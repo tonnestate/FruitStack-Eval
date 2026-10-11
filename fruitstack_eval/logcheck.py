@@ -113,7 +113,8 @@ def check_decision_log(views: Iterable[DecisionView], log_warnings: list[str], *
             cost_class = (candidates.get(offer) or {}).get("cost_class")
             if outcome.get("actual_cost_usd") is None:
                 if cost_class in free:
-                    stats["cost_unreported_free_offer"] += 1
+                    problems.add("COST_UNKNOWN_FOR_FREE_OFFER", decision_id=d.get("decision_id"),
+                                 receipt_id=outcome.get("receipt_id"), cost_class=cost_class)
                 else:
                     problems.add("COST_UNKNOWN_FOR_NON_FREE_OFFER", decision_id=d.get("decision_id"),
                                  receipt_id=outcome.get("receipt_id"), cost_class=cost_class)

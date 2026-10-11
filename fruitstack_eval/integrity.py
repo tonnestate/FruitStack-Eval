@@ -17,6 +17,7 @@ import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
+from packaging.version import Version
 
 from .gitutil import GitError, git
 
@@ -72,11 +73,8 @@ def load_requirements(path: Path) -> list[RepoRequirement]:
     return out
 
 
-def version_tuple(text: str) -> tuple[int, ...]:
-    parts = re.findall(r"\d+", text.split("+")[0].split("-")[0])
-    if not parts:
-        raise ValueError(f"not a version: {text!r}")
-    return tuple(int(p) for p in parts)
+def version_tuple(text: str) -> Version:
+    return Version(text)
 
 
 def _ref(repo: Path, remote: str, branch: str) -> str | None:

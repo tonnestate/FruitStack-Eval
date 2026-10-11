@@ -87,7 +87,8 @@ def test_g1_requirements_file_is_valid():
 
 def test_version_comparison():
     assert integrity.version_tuple("0.1.10") > integrity.version_tuple("0.1.8")
-    assert integrity.version_tuple("0.2.0rc1") >= integrity.version_tuple("0.2.0")
+    assert integrity.version_tuple("0.2.0rc1") < integrity.version_tuple("0.2.0")
+    assert integrity.version_tuple("0.2.0") < integrity.version_tuple("0.2.0.post1")
     with pytest.raises(ValueError):
         integrity.version_tuple("dev")
 
@@ -204,6 +205,19 @@ def test_empty_log_and_unknown_cost_of_paid_offer(tmp_path, write_log):
     views, warnings = load_views(log)
     counts = logcheck.check_decision_log(views.values(), warnings)["problem_counts"]
     assert counts == {"COST_UNKNOWN_FOR_NON_FREE_OFFER": 1}
+
+
+def test_unknown_cost_of_free_offer_blocks_g5(write_log):
+    views, warnings = load_views(write_log([full_decision("d1", cost_class="FREE_TIER"),
+                                           executed_outcome("d1", actual_cost_usd=None)]))
+    counts = logcheck.check_decision_log(views.values(), warnings)["problem_counts"]
+    assert counts == {"COST_UNKNOWN_FOR_FREE_OFFER": 1}
+
+
+def test_verified_zero_cost_of_free_offer_is_recorded(write_log):
+    views, warnings = load_views(write_log([full_decision("d1", cost_class="FREE_TIER"),
+                                           executed_outcome("d1", actual_cost_usd=0.0)]))
+    assert logcheck.check_decision_log(views.values(), warnings)["problem_counts"] == {}
 
 
 def test_ensemble_decisions_need_their_propensity(write_log):
