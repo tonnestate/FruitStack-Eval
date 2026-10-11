@@ -4,7 +4,7 @@ Independent research instrumentation for the protocol *Zero-Marginal-Cost Organi
 
 The evaluator sits **outside** the system under test. It never imports PlumMe, CherryMe or any other FruitStack package; it reads exported logs and git history only. That separation is the point: the system must not grade itself.
 
-**Status: proposal v0.2.0 on `web/claude`.** Standard library only, Python 3.11 or newer. Nothing here has evaluated a real pilot or confirmatory run yet.
+**Status: proposal v0.2.0 on `web/claude`.** Python 3.11 or newer; runtime dependency: `packaging` for PEP 440 version comparison. Nothing here has evaluated a real pilot or confirmatory run yet.
 
 Harness scripts that must drive PlumMe on the host live in `runners/` (see `runners/README.md`); they import PlumMe, the evaluator package never does.
 
