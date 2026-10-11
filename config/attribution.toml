@@ -1,0 +1,47 @@
+# Attribution rules for the build-time report (protocol section 6, threat 4).
+# Rules are applied in order; the first match wins. Branch rules apply to commits
+# introduced by merges whose message names the branch. Everything else is UNATTRIBUTED.
+version = "FSE-ATTRIBUTION/1"
+
+include = ["*.py", "*.json", "*.toml", "*.md"]
+
+# Modules that implement guards, routing, ensemble policy, verification and logging.
+critical = [
+  "src/plumme/market.py",
+  "src/plumme/selection.py",
+  "src/plumme/policy.py",
+  "src/plumme/decisions.py",
+  "src/plumme/evaluation.py",
+  "src/plumme/budget.py",
+  "cherryme/ensemble.py",
+  "cherryme/orchestrator.py",
+  "cherryme/referee.py",
+  "cherryme/epistemics.py",
+  "src/appleme/engine.py",
+  "src/peachme/steps.py",
+  "src/pomelome/zero_cost.py",
+]
+
+[[rule]]
+builder = "CLAUDE"
+field = "message"
+pattern = "(?im)^co-authored-by:.*claude"
+
+[[rule]]
+builder = "CLAUDE"
+field = "message"
+pattern = "(?im)^claude-session:"
+
+[[rule]]
+builder = "CHATGPT"
+field = "message"
+pattern = "(?im)^co-authored-by:.*(chatgpt|openai|codex)"
+
+[[rule]]
+builder = "LUNA"
+field = "author"
+pattern = "(?i)luna"
+
+[branch_rules]
+"web/chatgpt" = "CHATGPT"
+"web/claude" = "CLAUDE"
