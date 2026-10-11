@@ -1,0 +1,81 @@
+# Organizational components for ablation (protocol §11.4 of Tonn-AGI; `fse ablation`).
+# A component can enter an ablation only with a verified OFF switch that leaves model
+# weights and every other component unchanged.
+#
+# switch_status:
+#   VERIFIED        the OFF switch was found in code on 11 Oct 2026 (repository, branch, place)
+#   INJECTABLE      the runtime accepts a replacement object, but no OFF variant ships yet
+#   MISSING         no OFF switch found; must be built before the component can be ablated
+#   UNVERIFIED      not inspected for this registry
+
+[component.adaptive_ensemble]
+repo = "CherryMe"
+off = "CherryMeEngine(orchestration_skill=None)"
+where = "web/chatgpt cherryme/engine.py constructor"
+switch_status = "VERIFIED"
+
+[component.learned_ensemble_policy]
+repo = "CherryMe"
+off = "CherryMeEngine(ensemble_policy=None) or host_authorized_ensemble_policy=False (bootstrap rule)"
+where = "web/chatgpt cherryme/engine.py constructor"
+switch_status = "VERIFIED"
+
+[component.salvage]
+repo = "CherryMe"
+off = "CherryMeEngine(salvager=None)"
+where = "web/chatgpt cherryme/engine.py constructor"
+switch_status = "VERIFIED"
+
+[component.trajectory_assurance]
+repo = "CherryMe + AppleMe"
+off = "CherryMeEngine(assurance_tier=None)"
+where = "web/chatgpt cherryme/engine.py constructor"
+switch_status = "VERIFIED"
+
+[component.second_thought]
+repo = "CherryMe"
+off = "a no-intervention policy passed as intervention_policy"
+where = "only BootstrapInterventionPolicy ships (cherryme/behavior.py)"
+switch_status = "INJECTABLE"
+
+[component.exploration]
+repo = "PlumMe"
+off = "PLUMME_EXPLORATION_EPSILON=0"
+where = "src/plumme/config.py"
+switch_status = "VERIFIED"
+
+[component.output_economy]
+repo = "PlumMe + CogC"
+off = "PLUMME_GLOBAL_SKILL_IDS without output-economy"
+where = "src/plumme/config.py, README 'Shared CogC output economy policy'"
+switch_status = "VERIFIED"
+
+[component.task_skill_resolver]
+repo = "PlumMe"
+off = "none found"
+where = "web/chatgpt src/plumme/skill_resolver.py has no configuration switch"
+switch_status = "MISSING"
+
+[component.session_enforcement]
+repo = "PeachMe"
+off = "peachme-hook --print-settings --benchmark-arm B (non-enforcing arm)"
+where = "PeachMe README v0.8.3, HARNESS-EVAL-004"
+switch_status = "VERIFIED"
+
+[component.evidence_ledger]
+repo = "MangoMe"
+off = "host does not attach MangoMe"
+where = "not inspected"
+switch_status = "UNVERIFIED"
+
+[component.capability_acquisition]
+repo = "SPARI + IntakeGov"
+off = "agent skill not loaded"
+where = "not inspected"
+switch_status = "UNVERIFIED"
+
+[component.context_compilation]
+repo = "CogC"
+off = "raw context instead of compiled context (CogC A/B/C arm A)"
+where = "not inspected beyond the PlumMe A/B/C evaluator"
+switch_status = "UNVERIFIED"

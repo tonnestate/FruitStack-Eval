@@ -10,7 +10,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import attribution, compare, costaudit, drift, interventions, lite, ope, power, protected, tasks
+from . import ablation, attribution, compare, costaudit, drift, interventions, lite, ope, power, protected, tasks
 from .decision_log import load_views
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
@@ -134,6 +134,15 @@ def cmd_compare(args) -> int:
     return 0
 
 
+def cmd_ablation(args) -> int:
+    scored, excluded = compare.score_rows(_jsonl(args.results), args.success_threshold)
+    result = ablation.analyze(scored, ablation.load_configs(Path(args.configs)), metric=args.metric,
+                              bootstrap=args.bootstrap, alpha=args.alpha, seed=args.seed)
+    result["excluded"] = excluded
+    _emit(result)
+    return 0
+
+
 def cmd_attribution(args) -> int:
     rules_path = args.rules or _default("attribution.toml")
     if rules_path is None:
@@ -227,6 +236,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--bootstrap", type=int, default=2000)
     p.add_argument("--seed", type=int, default=20261011)
     p.set_defaults(func=cmd_compare)
+
+    p = sub.add_parser("ablation", help="which organizational component causes which gain (LOO and Shapley)")
+    p.add_argument("--results", required=True)
+    p.add_argument("--configs", required=True, help="TOML with an [arms] table: arm = [components switched on]")
+    p.add_argument("--metric", choices=list(ablation.METRICS), default="utility")
+    p.add_argument("--success-threshold", type=float, default=1.0)
+    p.add_argument("--alpha", type=float, default=0.05)
+    p.add_argument("--bootstrap", type=int, default=2000)
+    p.add_argument("--seed", type=int, default=20261011)
+    p.set_defaults(func=cmd_ablation)
 
     p = sub.add_parser("attribution", help="who wrote the code as it stands (git blame)")
     p.add_argument("--repo", required=True)

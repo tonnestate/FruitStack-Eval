@@ -17,6 +17,7 @@ The evaluator sits **outside** the system under test. It never imports PlumMe, C
 | `fse interventions add` / `summary` | Typed log of human acts: AUTHORITY (allowed) vs COGNITIVE (a deviation in the confirmatory phase), with minutes | Threat 3, H8, gate G5 |
 | `fse tasks validate` / `commit` / `verify` | Task registry; prompts and references are published only as hashes and salted commitments | Gate G4 |
 | `fse compare` | Recomputes utilities from raw evidence with rubric FSE-RUBRIC/1 and tests H4 with a paired cluster bootstrap | Gate G6, H4 |
+| `fse ablation` | Which organizational component causes which gain: leave-one-out effects with Holm-adjusted bootstrap p-values, an interaction residual, and Shapley values that add up exactly to the total gain (full factorial, up to 6 components) | §5.6, Tonn-AGI §11.4 |
 | `fse attribution` | Share of the current code written by each builder (git blame), separately for critical modules | Threat 4 |
 | `fse protected` | Rejects system-authored commits on protected paths; lists builder commits there for host review | Learning loop 4 |
 | `fse lite check` | Verifies that FruitStack-Lite clones sit at their pinned commits | Gate G6 |
@@ -50,6 +51,20 @@ fse protected --repo ../plumme --name plumme --base origin/main --head origin/we
 - **DecisionLog:** PlumMe's append-only JSONL rows `{"type": "decision" | "outcome" | "feedback", "data": {...}}`, including rotated segments `<file>.1`, `<file>.2`. Compatibility was checked against logs written by PlumMe's own `DecisionLog` (proposal branch `web/chatgpt`, commit `06ff53e`); SNIPS, IPS and effective sample size matched PlumMe's evaluator exactly on that log.
 - **Results for `fse compare`:** one JSON line per task and arm with `task_id`, `arm`, `family`, `subfamily`, raw `evidence`, `quota_units`, `cost_eur`, `wall_seconds`.
 - **Tasks:** one JSON line per task with `task_id`, `family` (INQUIRY, SOFTWARE, RESEARCH, ECONOMIC), `subfamily`, `split` (TRAIN, HELDOUT), `prompt`, `reference`. A subfamily is entirely TRAIN or entirely HELDOUT.
+
+## Ablation input
+
+`fse ablation` reads the same result rows as `fse compare` plus a TOML file that maps each arm to the components switched on:
+
+```toml
+[arms]
+BASE = []
+ENSEMBLE = ["adaptive_ensemble"]
+ASSURANCE = ["trajectory_assurance"]
+FULL = ["adaptive_ensemble", "trajectory_assurance"]
+```
+
+Only tasks run in every listed arm are used. `config/components.toml` lists the organizational components and whether their OFF switch was verified in code; only components with a verified switch should enter an ablation.
 
 ## Interpretation rules
 
