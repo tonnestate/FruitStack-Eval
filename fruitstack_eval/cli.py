@@ -10,7 +10,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import attribution, compare, costaudit, interventions, lite, ope, power, protected, tasks
+from . import attribution, compare, costaudit, drift, interventions, lite, ope, power, protected, tasks
 from .decision_log import load_views
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
@@ -75,6 +75,14 @@ def cmd_costaudit(args) -> int:
     result["log_warnings"] = warnings
     _emit(result)
     return 0 if result["passed"] else 1
+
+
+def cmd_drift(args) -> int:
+    views, warnings = load_views(Path(args.log))
+    result = drift.detect(views.values())
+    result["log_warnings"] = warnings
+    _emit(result)
+    return 0
 
 
 def cmd_interventions(args) -> int:
@@ -184,6 +192,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--log", required=True)
     p.add_argument("--allow", action="append", help="allowed cost class (repeatable)")
     p.set_defaults(func=cmd_costaudit)
+
+    p = sub.add_parser("drift", help="model drift epochs from per-call fingerprints")
+    p.add_argument("--log", required=True)
+    p.set_defaults(func=cmd_drift)
 
     p = sub.add_parser("interventions", help="typed human-intervention log")
     p.add_argument("action", choices=["add", "summary"])
