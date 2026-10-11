@@ -80,7 +80,42 @@ def isolated(base, out: Path, arm: str):
 
 def decision_count(service) -> int:
     """Provider-facing decisions so far (ACQUIRE and FALLBACK); ENSEMBLE records route nothing."""
-    return sum(1 for d in service.scheduler.decisions.decisions.values() if _value(d.kind) != "ENSEMBLE")
+    return sum(len(d.choices) for d in service.scheduler.decisions.decisions.values()
+               if _value(d.kind) != "ENSEMBLE")
+
+
+def cost_eur_from_usd(cost_usd: float | None) -> float | None:
+    """FREE_ONLY proves EUR zero only when the receipt explicitly reports USD zero."""
+    if cost_usd is None or cost_usd != 0:
+        return None
+    return 0.0
+
+
+def receipts_since(path: Path, offset: int) -> list[dict]:
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8") as stream:
+        stream.seek(offset)
+        return [json.loads(line) for line in stream if line.strip()]
+
+
+def receipt_cost_eur(receipts: list[dict]) -> float | None:
+    if not receipts:
+        return 0.0
+    costs = [receipt.get("usage", {}).get("cost_usd") for receipt in receipts]
+    if any(cost is None or cost != 0 for cost in costs):
+        return None
+    return 0.0
+
+
+def f3_configuration_error(args) -> str | None:
+    if args.arm != "F3":
+        return None
+    if args.no_assurance:
+        return "--no-assurance is not allowed for protocol arm F3"
+    if not args.composer_offer:
+        return "--composer-offer is required for protocol arm F3"
+    return None
 
 
 async def pinned_call(service, offer_id: str, task_text: str, *, consumer: str, max_output_tokens: int,
@@ -126,7 +161,8 @@ async def run_f1(args, settings, tasks) -> list[dict]:
                                  max_output_tokens=args.max_output_tokens, metadata={"fse_task_id": task["task_id"]})
         rows.append({"task_id": task["task_id"], "arm": "F1", "output": call.get("output"),
                      "status": "COMPLETED" if call["success"] else "FAILED",
-                     "quota_units": max(1, decision_count(service) - before), "cost_eur": float(call.get("cost_usd") or 0.0),
+                     "quota_units": max(0, decision_count(service) - before),
+                     "cost_eur": cost_eur_from_usd(call.get("cost_usd")),
                      "wall_seconds": round(time.monotonic() - t0, 2), "offer_id": args.offer, "calls": [call]})
         if args.pause:
             await asyncio.sleep(args.pause)
@@ -182,6 +218,8 @@ def run_f3(args, settings, tasks) -> list[dict]:
     rows = []
     for task in tasks:
         t0, before = time.monotonic(), decision_count(service)
+        receipts_path = Path(settings.receipt_file)
+        receipt_offset = receipts_path.stat().st_size if receipts_path.exists() else 0
         workspace = Path(args.out) / "cherryme" / task["task_id"]
         tier = None
         if not args.no_assurance:
@@ -201,7 +239,8 @@ def run_f3(args, settings, tasks) -> list[dict]:
                     "asked_types": list(final.asked_types)}
         except Exception as exc:
             rows.append({"task_id": task["task_id"], "arm": "F3", "output": None, "status": "FAILED",
-                         "quota_units": max(0, decision_count(service) - before), "cost_eur": 0.0,
+                         "quota_units": max(0, decision_count(service) - before),
+                         "cost_eur": receipt_cost_eur(receipts_since(receipts_path, receipt_offset)),
                          "wall_seconds": round(time.monotonic() - t0, 2),
                          "diagnostics": {"error": f"{type(exc).__name__}: {exc}"[:400]}})
             continue
@@ -218,8 +257,10 @@ def run_f3(args, settings, tasks) -> list[dict]:
             key = proposed if diag["key_grounded"] else "UNKNOWN"
         verdict = VERDICT_OF_STATUS.get(status, "NOT_ENOUGH_INFO")
         output = f"CherryMe claim status: {status}; evidence items: {len(evidence)}\nVERDICT: {verdict}\nKEY: {key}"
+        task_receipts = receipts_since(receipts_path, receipt_offset)
         rows.append({"task_id": task["task_id"], "arm": "F3", "output": output, "status": "COMPLETED",
-                     "quota_units": max(1, decision_count(service) - before), "cost_eur": 0.0,
+                     "quota_units": max(0, decision_count(service) - before),
+                     "cost_eur": receipt_cost_eur(task_receipts),
                      "wall_seconds": round(time.monotonic() - t0, 2), "diagnostics": diag,
                      "composer": composer})
         if args.pause:
@@ -233,11 +274,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--arm", required=True, choices=["F1", "F3", "A"])
     ap.add_argument("--offer", help="F1: the free offer chosen by the pre-registered rule")
-    ap.add_argument("--composer-offer", help="F3: free offer for KEY extraction (default: none -> KEY UNKNOWN)")
+    ap.add_argument("--composer-offer", help="F3: required free offer for KEY extraction")
     ap.add_argument("--cherryme-skill", help="F3: directory with the ACE SKILL.md and orchestration.json")
     ap.add_argument("--budget", type=int, default=8, help="F3: CherryMe question budget per task")
     ap.add_argument("--call-budget", type=int, default=24, help="F3: provider call cap per task")
-    ap.add_argument("--no-assurance", action="store_true", help="F3 without the AppleMe tier (not the F3 arm)")
+    ap.add_argument("--no-assurance", action="store_true", help="disable AppleMe assurance (invalid for protocol F3)")
     ap.add_argument("--max-output-tokens", type=int, default=1024)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--pause", type=float, default=0.0)
@@ -245,6 +286,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.arm == "A":
         print("refusing: arm A needs the owner's approval of its actual cost and a separate run", file=sys.stderr)
         return 3
+    if error := f3_configuration_error(args):
+        ap.error(error)
 
     import plumme
     from plumme.config import Settings
