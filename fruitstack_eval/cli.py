@@ -10,7 +10,8 @@ import os
 import sys
 from pathlib import Path
 
-from . import ablation, attribution, compare, costaudit, drift, interventions, lite, ope, power, protected, tasks
+from . import (ablation, attribution, blind, calibration, compare, costaudit, drift, independence, inquiry, integrity,
+               interventions, lite, logcheck, ope, power, protected, seal, tasks)
 from .decision_log import load_views
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
@@ -168,6 +169,143 @@ def cmd_lite(args) -> int:
     return 0 if result["ready"] else 1
 
 
+def _write_jsonl(path: str, rows: list[dict]) -> None:
+    Path(path).write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n" for r in rows),
+                          encoding="utf-8")
+
+
+def cmd_integrity(args) -> int:
+    requirements = integrity.load_requirements(Path(args.requirements or _default("g1_requirements.toml")))
+    result = integrity.check(requirements, Path(args.clones), remote=args.remote, fetch=args.fetch)
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
+def cmd_calib(args) -> int:
+    if args.action == "generate":
+        rows = calibration.generate(args.n, args.seed)
+        _write_jsonl(args.out, rows)
+        _emit({"tasks": len(rows), "seed": args.seed, "digest": calibration.task_set_digest(rows), "out": args.out})
+        return 0
+    _required(args, ["tasks", "results"])
+    task_rows = _jsonl(args.tasks)
+    scored, warnings = calibration.score(task_rows, _jsonl(args.results))
+    if args.out:
+        _write_jsonl(args.out, scored)
+    _emit({"task_set_digest": calibration.task_set_digest(task_rows), "rows": len(scored),
+           "executed": sum(1 for r in scored if r["executed"]), "correct": sum(1 for r in scored if r["correct"]),
+           "warnings": warnings, "out": args.out})
+    return 0
+
+
+def cmd_independence(args) -> int:
+    thresholds = independence.Thresholds.load(Path(args.thresholds or _default("g2_thresholds.toml")))
+    result = independence.analyze(_jsonl(args.scored), thresholds)
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
+def _log_spec(text: str) -> tuple[str, tuple[Path, str]]:
+    name, _, rest = text.partition("=")
+    path, _, kind = rest.rpartition(":")
+    if not name or not path or kind not in seal.LOG_KINDS:
+        raise ValueError(f"--log must be NAME=PATH:KIND with KIND in {seal.LOG_KINDS}, got {text!r}")
+    return name, (Path(path), kind)
+
+
+def cmd_seal(args) -> int:
+    if args.action == "create":
+        logs = dict(_log_spec(t) for t in args.log or [])
+        manifest, rows = seal.seal(logs)
+        out, rows_path = seal.write(manifest, rows, Path(args.seal))
+        _emit({"digest": manifest["digest"], "logs": {k: v["rows"] for k, v in manifest["logs"].items()},
+               "seal": str(out), "rows": str(rows_path)})
+        return 0
+    manifest, rows = seal.read(Path(args.seal))
+    result = seal.verify(manifest, rows, allow_retention=not args.strict)
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
+def cmd_logcheck(args) -> int:
+    views, warnings = load_views(Path(args.log))
+    seal_result = None
+    if args.seal:
+        manifest, rows = seal.read(Path(args.seal))
+        seal_result = seal.verify(manifest, rows)
+    result = logcheck.check(views.values(), warnings, interventions_path=Path(args.interventions) if args.interventions else None,
+                            seal_result=seal_result, expect_cost_policy=args.expect_cost_policy,
+                            require_feedback=args.require_feedback)
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
+def cmd_inquiry(args) -> int:
+    task_rows = [t for t in _jsonl(args.tasks) if t.get("family") == "INQUIRY"]
+    if args.action == "validate":
+        problems, verdicts, key_types, subfamilies = [], {}, {}, {}
+        for t in task_rows:
+            try:
+                ref = inquiry.parse_reference(t["reference"])
+            except (ValueError, KeyError, TypeError) as exc:
+                problems.append(f"{t.get('task_id')}: {exc}")
+                continue
+            if inquiry.FORMAT not in t.get("prompt", ""):
+                problems.append(f"{t.get('task_id')}: prompt lacks the FSE-INQUIRY/1 answer format")
+            verdicts[ref["verdict"]] = verdicts.get(ref["verdict"], 0) + 1
+            key_types[ref["key_type"]] = key_types.get(ref["key_type"], 0) + 1
+            subfamilies[t.get("subfamily")] = subfamilies.get(t.get("subfamily"), 0) + 1
+        problems.extend(tasks.validate(task_rows) if task_rows else ["no INQUIRY tasks"])
+        _emit({"tasks": len(task_rows), "verdicts": verdicts, "key_types": key_types, "subfamilies": subfamilies,
+               "problems": problems})
+        return 1 if problems else 0
+    _required(args, ["results", "out"])
+    by_id = {t["task_id"]: t for t in task_rows}
+    graded, summary = [], {}
+    for row in _jsonl(args.results):
+        task = by_id.get(row.get("task_id"))
+        if task is None:
+            raise ValueError(f"result for unknown inquiry task {row.get('task_id')}")
+        ev = inquiry.evidence(task["reference"], row.get("output"))
+        graded.append({"task_id": row["task_id"], "arm": row["arm"], "family": "INQUIRY", "subfamily": task["subfamily"],
+                       "evidence": ev, "quota_units": row.get("quota_units"), "cost_eur": row.get("cost_eur"),
+                       "wall_seconds": row.get("wall_seconds")})
+        s = summary.setdefault(row["arm"], {"items": 0, "grade_1": 0, "grade_0.5": 0, "grade_0": 0, "abstained": 0,
+                                            "NO_ANSWER": 0, "NO_STRUCTURED_ANSWER": 0})
+        s["items"] += 1
+        s[f"grade_{ev['grade']:g}"] += 1
+        s["abstained"] += int(ev["abstained"])
+        if ev["parse_status"] in ("NO_ANSWER", "NO_STRUCTURED_ANSWER"):
+            s[ev["parse_status"]] += 1
+    _write_jsonl(args.out, graded)
+    _emit({"grader": inquiry.GRADER, "rows": len(graded), "by_arm": summary, "out": args.out})
+    return 0
+
+
+def cmd_blind(args) -> int:
+    if args.action == "export":
+        _required(args, ["tasks", "results", "seed", "sheet", "key", "manifest"])
+        sheet, key, manifest = blind.export(_jsonl(args.results), _jsonl(args.tasks), seed=args.seed, sample=args.sample)
+        _write_jsonl(args.sheet, sheet)
+        fd = os.open(args.key, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(blind._canonical(key))
+        Path(args.manifest).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        _emit({k: manifest[k] for k in ("items", "tasks", "arms", "redactions", "key_sha256", "sheet_sha256")})
+        return 0
+    _required(args, ["manifest", "key", "sheet", "grader", "out"])
+    manifest = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
+    key_rows = [json.loads(l) for l in Path(args.key).read_text(encoding="utf-8").splitlines() if l.strip()]
+    result = blind.ingest(manifest, key_rows, _jsonl(args.sheet), grader=args.grader)
+    _write_jsonl(args.out, result["labels"])
+    out = {"labels": len(result["labels"]), "voided_tasks": result["voided_tasks"], "out": args.out}
+    if args.deterministic:
+        det = {(r["task_id"], r["arm"]): r["evidence"]["grade"] for r in _jsonl(args.deterministic)}
+        out["agreement_with_deterministic"] = blind.agreement(result["labels"], det)
+    _emit(out)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fse", description="FruitStack-Eval research instrumentation")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -267,6 +405,63 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--manifest", required=True)
     p.add_argument("--workspace", required=True)
     p.set_defaults(func=cmd_lite)
+
+    p = sub.add_parser("integrity", help="gate G1: main == sync/local-truth and required states merged")
+    p.add_argument("--clones", required=True, help="directory with one git clone per repository name")
+    p.add_argument("--requirements", help="TOML (default config/g1_requirements.toml)")
+    p.add_argument("--remote", default="origin")
+    p.add_argument("--fetch", action="store_true", help="fetch all branches before checking")
+    p.set_defaults(func=cmd_integrity)
+
+    p = sub.add_parser("calib", help="gate G2: calibration tasks with exact answers")
+    p.add_argument("action", choices=["generate", "score"])
+    p.add_argument("--n", type=int, default=60)
+    p.add_argument("--seed", type=int, default=20261011)
+    p.add_argument("--tasks")
+    p.add_argument("--results")
+    p.add_argument("--out")
+    p.set_defaults(func=cmd_calib)
+
+    p = sub.add_parser("independence", help="gate G2: reliability and error correlation per provider group")
+    p.add_argument("--scored", required=True, help="output of `fse calib score`")
+    p.add_argument("--thresholds", help="TOML (default config/g2_thresholds.toml)")
+    p.set_defaults(func=cmd_independence)
+
+    p = sub.add_parser("seal", help="gate G5: revision-evident seal of append-only logs")
+    p.add_argument("action", choices=["create", "verify"])
+    p.add_argument("--seal", required=True, help="seal file (rows go to <seal>.rows.json)")
+    p.add_argument("--log", action="append", help="NAME=PATH:KIND, KIND decisionlog or jsonl (create)")
+    p.add_argument("--strict", action="store_true", help="treat dropped (rotated-out) rows as a failure")
+    p.set_defaults(func=cmd_seal)
+
+    p = sub.add_parser("logcheck", help="gate G5: completeness of decision, intervention and seal records")
+    p.add_argument("--log", required=True, help="PlumMe DecisionLog")
+    p.add_argument("--interventions", help="typed intervention log")
+    p.add_argument("--seal", help="seal created by `fse seal create`")
+    p.add_argument("--expect-cost-policy", help="e.g. FREE_ONLY for free arms")
+    p.add_argument("--require-feedback", action="store_true", help="require verified feedback rows")
+    p.set_defaults(func=cmd_logcheck)
+
+    p = sub.add_parser("inquiry", help="gate G4: validate inquiry references and grade answers deterministically")
+    p.add_argument("action", choices=["validate", "grade"])
+    p.add_argument("--tasks", required=True)
+    p.add_argument("--results", help="JSON lines with task_id, arm, output, quota_units, cost_eur, wall_seconds")
+    p.add_argument("--out")
+    p.set_defaults(func=cmd_inquiry)
+
+    p = sub.add_parser("blind", help="gate G4: blinded human grading packets")
+    p.add_argument("action", choices=["export", "ingest"])
+    p.add_argument("--tasks")
+    p.add_argument("--results")
+    p.add_argument("--seed", type=int)
+    p.add_argument("--sample", type=float, default=1.0, help="share of tasks to include (whole tasks, all arms)")
+    p.add_argument("--sheet", help="grading sheet (export: written; ingest: the graded sheet)")
+    p.add_argument("--key", help="blind key, kept by the operator (mode 0600)")
+    p.add_argument("--manifest", help="manifest with key and sheet hashes; commit before grading")
+    p.add_argument("--grader")
+    p.add_argument("--out")
+    p.add_argument("--deterministic", help="output of `fse inquiry grade` for an agreement check")
+    p.set_defaults(func=cmd_blind)
     return parser
 
 
@@ -281,6 +476,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "interventions" and args.action == "add":
             _required(args, ["actor", "kind", "intervention", "minutes", "phase"])
+        if args.command == "calib" and args.action == "generate":
+            _required(args, ["out"])
         if args.command == "tasks" and args.action in ("commit", "verify"):
             _required(args, ["manifest", "salts"])
         return args.func(args)
