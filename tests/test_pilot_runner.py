@@ -36,6 +36,7 @@ def test_eur_cost_is_reported_only_when_usd_receipt_proves_zero(usd, expected):
     ([], 0, 0.0),
     ([], 1, None),
     ([{"usage": {"cost_usd": 0.0}}], 1, 0.0),
+    ([{"usage": {"cost_usd": 0.01}}], 0, None),
     ([{"usage": {"cost_usd": None}}], 1, None),
     ([{"usage": {"cost_usd": 0.01}}], 1, None),
 ])

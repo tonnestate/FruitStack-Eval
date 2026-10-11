@@ -100,10 +100,8 @@ def receipts_since(path: Path, offset: int) -> list[dict]:
 
 
 def receipt_cost_eur(receipts: list[dict], provider_calls: int) -> float | None:
-    if provider_calls == 0:
-        return 0.0
     if not receipts:
-        return None
+        return 0.0 if provider_calls == 0 else None
     costs = [receipt.get("usage", {}).get("cost_usd") for receipt in receipts]
     if any(cost is None or cost != 0 for cost in costs):
         return None
