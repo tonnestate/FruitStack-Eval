@@ -1,0 +1,125 @@
+{
+  "billing": "no provider call is made for a paid offer; the paid probe endpoint is .invalid and never contacted",
+  "checks": [
+    {
+      "check": "COST_POLICY_FREE_ONLY_ACTIVE",
+      "configured": "FREE_ONLY",
+      "passed": true,
+      "required": true,
+      "source": "PLUMME_COST_POLICY"
+    },
+    {
+      "check": "DOCTOR_COST_POLICY_PASS",
+      "doctor": {
+        "detail": "FREE_ONLY: only ANONYMOUS_FREE, FREE_TIER offers are eligible; UNKNOWN fails closed",
+        "hint": null,
+        "name": "cost policy",
+        "status": "PASS"
+      },
+      "passed": true,
+      "required": true
+    },
+    {
+      "adapters_and_cost_classes": [
+        [
+          "freellmapi",
+          "FREE_TIER"
+        ],
+        [
+          "fse-g3-probe",
+          "FREE_TIER"
+        ],
+        [
+          "fse-g3-probe",
+          "PREMIUM"
+        ]
+      ],
+      "check": "SUPPLY_DISCOVERED_WITH_PROBE",
+      "offers": 3,
+      "passed": true,
+      "required": true
+    },
+    {
+      "adapter": "fse-g3-probe",
+      "check": "GATE_REJECTS_PAID_OFFER",
+      "cost_class": "PREMIUM",
+      "gate_reasons": [
+        "COST_CLASS_PREMIUM_NOT_ALLOWED"
+      ],
+      "model": "fse-g3-paid-probe",
+      "offer_id": "offer_a167ada6c224ef31c0c1daf3",
+      "passed": true,
+      "required": true
+    },
+    {
+      "acquired": false,
+      "check": "PINNED_PAID_ACQUISITION_DENIED",
+      "error": "pinned worker unavailable: offer_a167ada6c224ef31c0c1daf3",
+      "error_type": "PinnedWorkerUnavailable",
+      "offer_id": "offer_a167ada6c224ef31c0c1daf3",
+      "passed": true,
+      "required": true
+    },
+    {
+      "check": "PAID_PROBE_NEVER_CALLED_PINNED",
+      "passed": true,
+      "probe_calls": [],
+      "required": true
+    },
+    {
+      "check": "REFUSAL_RECORDED_IN_DECISIONLOG",
+      "paid_offers": 1,
+      "passed": true,
+      "recorded_refusals": 1,
+      "required": false
+    },
+    {
+      "check": "FALLBACK_NEVER_REACHES_PAID_PROBE",
+      "completed": false,
+      "passed": true,
+      "policy": "FREE_ONLY",
+      "probe_calls": [
+        "fse-g3-free-probe"
+      ],
+      "required": true,
+      "selection_reason": "ALL_LANES_FAILED"
+    },
+    {
+      "check": "POSITIVE_CONTROL_ANY_REACHES_PAID_PROBE",
+      "completed": true,
+      "passed": true,
+      "policy": "ANY",
+      "probe_calls": [
+        "fse-g3-free-probe",
+        "fse-g3-paid-probe"
+      ],
+      "required": true,
+      "selection_reason": "FAMILY_DIVERSITY_THEN_LOWEST_FALLBACK"
+    }
+  ],
+  "decision_logs": {
+    "fallback_probe": "g3-local2/state-fallback/decisions.jsonl",
+    "pinned_probe": "g3-local2/state/decisions.jsonl",
+    "positive_control": "g3-local2/state-positive-control/decisions.jsonl"
+  },
+  "env_keys": [
+    "PLUMME_COST_POLICY",
+    "PLUMME_STATE_DIR"
+  ],
+  "host": "vm",
+  "mode": {
+    "production_credentials": false,
+    "real_adapters": true
+  },
+  "note": "Sandbox run without provider access against PlumMe 0.1.8 web/claude a0dec4e. Mechanism evidence only; G3 counts only from a host run.",
+  "passed": true,
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "plumme": {
+    "module": "<local venv>",
+    "version": "0.1.8"
+  },
+  "python": "3.11.17",
+  "recorded_at": "2026-10-11T11:58:33+00:00",
+  "schema": "FSE-G3-PROBE/1",
+  "seconds": 1.23
+}
