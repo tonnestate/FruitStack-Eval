@@ -13,6 +13,7 @@ The evaluator sits **outside** the system under test. It never imports PlumMe, C
 | `fse power` | Sample sizes for the paired or unpaired non-inferiority test | §5.4 |
 | `fse ope evaluate` / `fse ope review` | Independent IPS/SNIPS over a PlumMe DecisionLog export, with weight clipping, minimum support per action, effective sample size, seeded bootstrap interval, and evaluation of ensemble worker counts | §5.3, H1, H3 |
 | `fse costaudit` | Post-hoc zero-cost audit: every chosen offer must have an allowed cost class, no outcome may be billed | Gate G3 |
+| `fse drift` | Drift epochs per offer from the per-call `model_fingerprint`; a fingerprint change opens a new epoch | Threat 1 |
 | `fse interventions add` / `summary` | Typed log of human acts: AUTHORITY (allowed) vs COGNITIVE (a deviation in the confirmatory phase), with minutes | Threat 3, H8, gate G5 |
 | `fse tasks validate` / `commit` / `verify` | Task registry; prompts and references are published only as hashes and salted commitments | Gate G4 |
 | `fse compare` | Recomputes utilities from raw evidence with rubric FSE-RUBRIC/1 and tests H4 with a paired cluster bootstrap | Gate G6, H4 |
@@ -62,7 +63,8 @@ fse protected --repo ../plumme --name plumme --base origin/main --head origin/we
 - **Attribution:** today most commits carry no builder identity. Proposal commits pushed through web connectors appear under the owner's name, so the report needs `--range` for open proposal branches. From now on every commit should carry `FruitStack-Builder: <name>`. Shallow clones leave boundary lines unknown; use full clones for confirmatory reports.
 - **Protected paths:** entries exist for PlumMe, CherryMe, AppleMe, PeachMe, PomeloMe and this repository. MangoMe, SPARI, IntakeGov and further repositories still need entries. The check runs here; wiring it into each product repository's CI is a separate, governed change.
 - **FruitStack-Lite:** every component is still `UNPINNED`, so gate G6 is closed until gate G1 (merges, `main == sync/local-truth`) passes.
-- **Cost audit:** it verifies after the fact. Enforcement belongs in the labor market's own eligibility gate.
+- **Cost audit:** it verifies after the fact. Enforcement belongs in the labor market's own eligibility gate; PlumMe's `FREE_ONLY` cost policy is proposed on its `web/claude` branch (`f8fad50`).
+- **Drift:** needs DecisionLog outcomes with `model_fingerprint`, which PlumMe records only from that same proposal on. Older outcomes are counted as `outcomes_without_fingerprint`, never guessed. An end-to-end run (PlumMe `f8fad50` writing the log, this evaluator reading it) detected a simulated provider model swap as one change and two epochs, and confirmed that a present paid offer was never chosen under `FREE_ONLY`.
 
 ## Governance
 
