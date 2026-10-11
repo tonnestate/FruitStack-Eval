@@ -67,7 +67,8 @@ def census(service, role: str) -> tuple[list[dict], list]:
             "offer_id": offer.offer_id, "adapter": offer.adapter, "provider": offer.provider, "model": offer.model,
             "model_family": offer.model_family, "cost_class": _value(offer.cost_class),
             "independence_key": _independence_key(offer), "independence_basis": _independence_basis(offer),
-            "grounding": _value(offer.grounding),
+            "grounding": _value(offer.grounding), "health": _value(getattr(offer, "health", "UNKNOWN")),
+            "independence_group_declared": bool(getattr(offer, "independence_group", None)),
             "eligible_reasoning": offer.offer_id in eligible_ids, "gate_reasons": rejected.get(offer.offer_id, []),
         })
     return sorted(rows, key=lambda r: (r["adapter"], r["model"])), ranked
@@ -146,6 +147,12 @@ async def main_async(args) -> int:
         "free_eligible_reasoning": len(free_eligible),
         "free_groups": len(by_group),
         "grounded_free_offers": sum(1 for o in offers if o["cost_class"] in FREE and o["grounding"] in GROUNDED),
+        # CherryMe treats offers without a declared independence group as one shared group
+        # ("UNKNOWN"), so ACE can recruit independent workers only among declared groups.
+        "free_offers_with_declared_independence_group": sum(
+            1 for o in offers if o["cost_class"] in FREE and o["independence_group_declared"]),
+        "declared_free_independence_groups": len({o["independence_key"] for o in offers
+                                                  if o["cost_class"] in FREE and o["independence_group_declared"]}),
         "selected_offers": [{"offer_id": o.offer_id, "group": _independence_key(o), "model": o.model,
                              "provider": o.provider} for o in selected],
     }

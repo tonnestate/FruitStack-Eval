@@ -236,3 +236,12 @@ def test_executed_offer_must_be_a_chosen_offer(write_log):
     views, warnings = load_views(write_log([full_decision("d1"), executed_outcome("d1", executed_offer_id="B")]))
     counts = logcheck.check_decision_log(views.values(), warnings)["problem_counts"]
     assert counts == {"EXECUTED_OFFER_NOT_CHOSEN": 1}
+
+
+def test_refused_pin_is_a_complete_decision_without_choice(write_log):
+    row = full_decision("p1")
+    row["data"].update({"selector_name": "PINNED_DENIED", "choices": [],
+                        "hard_rejected": {"X": ["COST_CLASS_PREMIUM_NOT_ALLOWED"]}})
+    views, warnings = load_views(write_log([row]))
+    result = logcheck.check_decision_log(views.values(), warnings)
+    assert result["problem_counts"] == {} and result["stats"]["pinned_denied"] == 1
