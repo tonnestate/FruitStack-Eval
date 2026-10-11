@@ -32,11 +32,12 @@ def test_eur_cost_is_reported_only_when_usd_receipt_proves_zero(usd, expected):
     assert pilot_inquiry.cost_eur_from_usd(usd) == expected
 
 
-@pytest.mark.parametrize("receipts, expected", [
-    ([], 0.0),
-    ([{"usage": {"cost_usd": 0.0}}], 0.0),
-    ([{"usage": {"cost_usd": None}}], None),
-    ([{"usage": {"cost_usd": 0.01}}], None),
+@pytest.mark.parametrize("receipts, provider_calls, expected", [
+    ([], 0, 0.0),
+    ([], 1, None),
+    ([{"usage": {"cost_usd": 0.0}}], 1, 0.0),
+    ([{"usage": {"cost_usd": None}}], 1, None),
+    ([{"usage": {"cost_usd": 0.01}}], 1, None),
 ])
-def test_f3_cost_requires_zero_cost_for_every_receipt(receipts, expected):
-    assert pilot_inquiry.receipt_cost_eur(receipts) == expected
+def test_f3_cost_requires_zero_cost_for_every_receipt(receipts, provider_calls, expected):
+    assert pilot_inquiry.receipt_cost_eur(receipts, provider_calls) == expected

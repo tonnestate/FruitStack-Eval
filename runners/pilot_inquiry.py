@@ -99,9 +99,11 @@ def receipts_since(path: Path, offset: int) -> list[dict]:
         return [json.loads(line) for line in stream if line.strip()]
 
 
-def receipt_cost_eur(receipts: list[dict]) -> float | None:
-    if not receipts:
+def receipt_cost_eur(receipts: list[dict], provider_calls: int) -> float | None:
+    if provider_calls == 0:
         return 0.0
+    if not receipts:
+        return None
     costs = [receipt.get("usage", {}).get("cost_usd") for receipt in receipts]
     if any(cost is None or cost != 0 for cost in costs):
         return None
@@ -240,7 +242,9 @@ def run_f3(args, settings, tasks) -> list[dict]:
         except Exception as exc:
             rows.append({"task_id": task["task_id"], "arm": "F3", "output": None, "status": "FAILED",
                          "quota_units": max(0, decision_count(service) - before),
-                         "cost_eur": receipt_cost_eur(receipts_since(receipts_path, receipt_offset)),
+                         "cost_eur": receipt_cost_eur(
+                             receipts_since(receipts_path, receipt_offset),
+                             max(0, decision_count(service) - before)),
                          "wall_seconds": round(time.monotonic() - t0, 2),
                          "diagnostics": {"error": f"{type(exc).__name__}: {exc}"[:400]}})
             continue
@@ -260,7 +264,8 @@ def run_f3(args, settings, tasks) -> list[dict]:
         task_receipts = receipts_since(receipts_path, receipt_offset)
         rows.append({"task_id": task["task_id"], "arm": "F3", "output": output, "status": "COMPLETED",
                      "quota_units": max(0, decision_count(service) - before),
-                     "cost_eur": receipt_cost_eur(task_receipts),
+                     "cost_eur": receipt_cost_eur(
+                         task_receipts, max(0, decision_count(service) - before)),
                      "wall_seconds": round(time.monotonic() - t0, 2), "diagnostics": diag,
                      "composer": composer})
         if args.pause:

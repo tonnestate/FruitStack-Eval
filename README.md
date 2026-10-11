@@ -8,6 +8,8 @@ The evaluator sits **outside** the system under test. It never imports PlumMe, C
 
 Harness scripts that must drive PlumMe on the host live in `runners/` (see `runners/README.md`); they import PlumMe, the evaluator package never does. `PILOT_PROTOCOL.md` fixes how the 50-task inquiry pilot is run, graded and analyzed (PILOT-PROC/1).
 
+The F3 runner requires AppleMe assurance and a configured composer offer before it initializes PlumMe. It records EUR zero only when no provider route was selected or every provider receipt explicitly reports USD zero; missing receipts or cost fields remain unknown and block cost-completeness checks.
+
 ## What it does
 
 | Command | Purpose | Protocol reference |
