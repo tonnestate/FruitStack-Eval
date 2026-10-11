@@ -6,7 +6,7 @@ The evaluator sits **outside** the system under test. It never imports PlumMe, C
 
 **Status: proposal v0.2.0 on `web/claude`.** Standard library only, Python 3.11 or newer. Nothing here has evaluated a real pilot or confirmatory run yet.
 
-Harness scripts that must drive PlumMe on the host live in `runners/` (see `runners/README.md`); they import PlumMe, the evaluator package never does.
+Harness scripts that must drive PlumMe on the host live in `runners/` (see `runners/README.md`); they import PlumMe, the evaluator package never does. `PILOT_PROTOCOL.md` fixes how the 50-task inquiry pilot is run, graded and analyzed (PILOT-PROC/1).
 
 ## What it does
 
@@ -30,6 +30,9 @@ Harness scripts that must drive PlumMe on the host live in `runners/` (see `runn
 | `fse blind export` / `ingest` | Shuffled, arm-free, name-redacted grading packets; key hash committed before grading; whole-task voiding | Gate G4 |
 | `fse seal create` / `verify` | Row-level SHA-256 seal of append-only logs; reports APPEND_ONLY, RETENTION_DROPPED or TAMPERED | Gate G5 |
 | `fse logcheck` | Field-by-field completeness of decisions, propensities, fingerprints, quota, cost, feedback, interventions and seal | Gate G5 |
+| `fse pilot analyze` | Descriptive pilot estimates per arm and pair: successes, failures, unverifiable, abstentions, success-rate and utility differences, discordance psi with cluster bootstrap, sample-size proposal; no p-values | Phase 3, §5.4 |
+| `fse replay` | Recomputes every committed report of an evidence directory from its raw logs (`replay.toml`) and lists differences | Gate G6 |
+| `fse deposit build` / `verify` | Deposit manifest (SHA-256 per file, digest) of protocol, task manifest, thresholds, pilot procedure and freeze; passes only with a recorded DOI | Gate G7 |
 
 All commands print JSON. Exit codes: `0` success, `1` a check failed, `2` invalid input.
 
@@ -92,9 +95,9 @@ Only tasks run in every listed arm are used. `config/components.toml` lists the 
 
 - **Attribution:** today most commits carry no builder identity. Proposal commits pushed through web connectors appear under the owner's name, so the report needs `--range` for open proposal branches. From now on every commit should carry `FruitStack-Builder: <name>`. Shallow clones leave boundary lines unknown; use full clones for confirmatory reports.
 - **Protected paths:** entries exist for PlumMe, CherryMe, AppleMe, PeachMe, PomeloMe and this repository. MangoMe, SPARI, IntakeGov and further repositories still need entries. The check runs here; wiring it into each product repository's CI is a separate, governed change.
-- **FruitStack-Lite:** every component is still `UNPINNED`, so gate G6 is closed until gate G1 (merges, `main == sync/local-truth`) passes.
+- **FruitStack-Lite:** every component is still `UNPINNED`, so gate G6 is closed until gate G1 (merges, `main == sync/local-truth`) passes. The manifest lists what the pilot arms execute: PlumMe, CherryMe, AppleMe, CogC (only with the output-economy global skill) and this evaluator.
 - **Cost audit:** it verifies after the fact. Enforcement belongs in the labor market's own eligibility gate: PlumMe's `FREE_ONLY` policy (on PlumMe `main` since `37bfc3e`). The G3 probe in `runners/` shows the enforcement in the real execution path.
-- **Denied pinned acquisitions** leave no DecisionLog record in PlumMe 0.1.8; the G3 probe records them in its own evidence file instead.
+- **Denied pinned acquisitions** leave no DecisionLog record on PlumMe `main` (`37bfc3e`); the proposal on PlumMe `web/claude` (`a0dec4e`) records them as `PINNED_DENIED` decisions. Until it is accepted, the G3 probe keeps the denials in its own evidence file.
 - **Drift:** needs DecisionLog outcomes with `model_fingerprint`, which PlumMe records from `37bfc3e` on. Older outcomes are counted as `outcomes_without_fingerprint`, never guessed. An end-to-end run (PlumMe `f8fad50` writing the log, this evaluator reading it) detected a simulated provider model swap as one change and two epochs, and confirmed that a present paid offer was never chosen under `FREE_ONLY`.
 
 ## Governance

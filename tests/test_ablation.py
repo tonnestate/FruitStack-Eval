@@ -89,5 +89,5 @@ def test_component_registry_is_well_formed():
     from pathlib import Path
     data = tomllib.loads((Path(__file__).resolve().parent.parent / "config" / "components.toml").read_text(encoding="utf-8"))
     statuses = {name: c["switch_status"] for name, c in data["component"].items()}
-    assert set(statuses.values()) <= {"VERIFIED", "INJECTABLE", "MISSING", "UNVERIFIED"}
+    assert set(statuses.values()) <= {"VERIFIED", "INJECTABLE", "PROPOSED", "MISSING", "UNVERIFIED"}
     assert all({"repo", "off", "where", "switch_status"} <= set(c) for c in data["component"].values())

@@ -104,9 +104,10 @@ class Checks:
     def __init__(self) -> None:
         self.items: list[dict] = []
 
-    def add(self, name: str, passed: bool, **detail) -> bool:
-        self.items.append({"check": name, "passed": bool(passed), **detail})
-        print(f"[{'PASS' if passed else 'FAIL'}] {name}", file=sys.stderr)
+    def add(self, name: str, passed: bool, *, required: bool = True, **detail) -> bool:
+        self.items.append({"check": name, "passed": bool(passed), "required": required, **detail})
+        label = ("PASS" if passed else "FAIL") if required else ("INFO+" if passed else "INFO-")
+        print(f"[{label}] {name}", file=sys.stderr)
         return passed
 
 
@@ -142,6 +143,13 @@ async def probe_pinned(service, checks: Checks, probe, *, include_real: bool) ->
             outcome.update(acquired=False, error_type=type(exc).__name__, error=str(exc)[:300])
         checks.add("PINNED_PAID_ACQUISITION_DENIED", not outcome["acquired"], **outcome)
     checks.add("PAID_PROBE_NEVER_CALLED_PINNED", probe.calls.count(PROBE_PAID_MODEL) == 0, probe_calls=list(probe.calls))
+    # Informational (gate G5, not G3): PlumMe versions after 37bfc3e also write the refusal
+    # into the DecisionLog as a PINNED_DENIED decision with the gate's reasons.
+    recorded = [d for d in service.scheduler.decisions.decisions.values()
+                if getattr(d, "selector_name", None) == "PINNED_DENIED"]
+    covered = {o.offer_id for o in paid if any(o.offer_id in d.hard_rejected for d in recorded)}
+    checks.add("REFUSAL_RECORDED_IN_DECISIONLOG", bool(paid) and covered == {o.offer_id for o in paid},
+               required=False, recorded_refusals=len(recorded), paid_offers=len(paid))
     _ = by_id
 
 
@@ -205,7 +213,7 @@ def main(argv: list[str] | None = None) -> int:
     control_settings = isolated_settings(base, out / "state-positive-control", keep_credentials=False, cost_policy="ANY")
     asyncio.run(probe_fallback(control_settings, checks, positive_control=True))
 
-    passed = all(c["passed"] for c in checks.items)
+    passed = all(c["passed"] for c in checks.items if c.get("required", True))
     evidence = {
         "schema": SCHEMA,
         "recorded_at": _now(),

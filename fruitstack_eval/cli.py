@@ -10,8 +10,8 @@ import os
 import sys
 from pathlib import Path
 
-from . import (ablation, attribution, blind, calibration, compare, costaudit, drift, independence, inquiry, integrity,
-               interventions, lite, logcheck, ope, power, protected, seal, tasks)
+from . import (ablation, attribution, blind, calibration, compare, costaudit, deposit, drift, independence, inquiry,
+               integrity, interventions, lite, logcheck, ope, pilot, power, protected, replay, seal, tasks)
 from .decision_log import load_views
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
@@ -306,6 +306,42 @@ def cmd_blind(args) -> int:
     return 0
 
 
+def cmd_pilot(args) -> int:
+    _emit(pilot.analyze(_jsonl(args.graded), reference_arm=args.reference_arm, bootstrap=args.bootstrap,
+                        seed=args.seed, success_threshold=args.success_threshold))
+    return 0
+
+
+def cmd_replay(args) -> int:
+    result = replay.run(Path(args.evidence), main)
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
+def _files(specs: list[str] | None) -> dict[str, Path]:
+    out = {}
+    for spec in specs or []:
+        label, _, path = spec.partition("=")
+        if not label or not path:
+            raise ValueError(f"--file must be LABEL=PATH, got {spec!r}")
+        out[label] = Path(path)
+    return out
+
+
+def cmd_deposit(args) -> int:
+    if args.action == "build":
+        _required(args, ["out"])
+        manifest = deposit.build(_files(args.file))
+        Path(args.out).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        _emit({"digest": manifest["digest"], "items": len(manifest["items"]), "out": args.out,
+               "next": "deposit the manifest and the files, then record the DOI in the manifest's doi field"})
+        return 0
+    _required(args, ["manifest"])
+    result = deposit.verify(json.loads(Path(args.manifest).read_text(encoding="utf-8")), _files(args.file))
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fse", description="FruitStack-Eval research instrumentation")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -462,6 +498,27 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out")
     p.add_argument("--deterministic", help="output of `fse inquiry grade` for an agreement check")
     p.set_defaults(func=cmd_blind)
+
+    p = sub.add_parser("pilot", help="phase 3: descriptive pilot estimates and a sample-size proposal (no tests)")
+    p.add_argument("action", choices=["analyze"])
+    p.add_argument("--graded", required=True, help="output of `fse inquiry grade` (or blind labels joined to results)")
+    p.add_argument("--reference-arm", default="F1")
+    p.add_argument("--success-threshold", type=float, default=1.0)
+    p.add_argument("--bootstrap", type=int, default=2000)
+    p.add_argument("--seed", type=int, default=20261011)
+    p.set_defaults(func=cmd_pilot)
+
+    p = sub.add_parser("replay", help="gate G6: recompute committed reports from raw logs (replay.toml)")
+    p.add_argument("--evidence", required=True)
+    p.set_defaults(func=cmd_replay)
+
+    p = sub.add_parser("deposit", help="gate G7: deposit manifest of protocol, tasks, thresholds and freeze")
+    p.add_argument("action", choices=["build", "verify"])
+    p.add_argument("--file", action="append", help="LABEL=PATH; labels protocol, task_manifest, g2_thresholds, "
+                                                   "pilot_procedure, freeze (plus any extra)")
+    p.add_argument("--out")
+    p.add_argument("--manifest")
+    p.set_defaults(func=cmd_deposit)
     return parser
 
 

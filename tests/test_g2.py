@@ -97,6 +97,8 @@ def test_independent_groups_pass_and_a_clone_is_correlated():
     assert result["pairs"]["A|C"]["verdict"] == "CORRELATED" and result["pairs"]["A|C"]["phi"] == pytest.approx(1.0)
     assert len(result["largest_independent_set"]) == 3 and "B" in result["largest_independent_set"]
     assert result["passed"]
+    best = result["best_single_offer"]                      # A, B, C, D all 18/60 wrong -> tie -> name order
+    assert best["group"] == "A" and best["offer_id"] == "o-A" and best["accuracy"] == pytest.approx(0.7)
 
 
 def test_same_wrong_answers_count_as_correlation_even_with_low_phi():

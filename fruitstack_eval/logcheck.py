@@ -80,7 +80,9 @@ def check_decision_log(views: Iterable[DecisionView], log_warnings: list[str], *
                     problems.add("PROPENSITY_INVALID", decision_id=d.get("decision_id"))
         else:
             choices = d.get("choices") or []
-            if not choices and d.get("eligible_offer_ids"):
+            if d.get("selector_name") == "PINNED_DENIED":
+                stats["pinned_denied"] += 1
+            elif not choices and d.get("eligible_offer_ids"):
                 problems.add("NO_CHOICE_DESPITE_ELIGIBLE_OFFERS", decision_id=d.get("decision_id"))
             for choice in choices:
                 stats["choices"] += 1

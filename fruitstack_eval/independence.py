@@ -143,6 +143,17 @@ def analyze(scored: Iterable[dict], thresholds: Thresholds) -> dict:
         blockers.append("TOO_FEW_QUALIFIED_GROUPS")
     if len(best) < thresholds.min_groups:
         blockers.append("NO_INDEPENDENT_SET_OF_REQUIRED_SIZE")
+    # Pre-registered rule for pilot arm F1 ("best free single model"): the qualified group
+    # with the highest calibration accuracy; ties go to more executed calls, then the name.
+    # It is computed on calibration tasks only, never on pilot or confirmatory tasks.
+    ranked = sorted(qualified, key=lambda g: (-(groups[g]["accuracy"] or 0.0), -groups[g]["executed"], g))
+    best_single = None
+    if ranked:
+        g = ranked[0]
+        best_single = {"group": g, "offer_id": groups[g]["offers"][0] if groups[g]["offers"] else None,
+                       "model": groups[g]["models"][0] if groups[g]["models"] else None,
+                       "accuracy": groups[g]["accuracy"], "rule": "F1-RULE/1 highest calibration accuracy"}
     return {"gate": "G2", "passed": not blockers, "blockers": blockers, "thresholds": thresholds.__dict__,
             "groups": groups, "pairs": pairs, "qualified_groups": qualified,
-            "largest_independent_set": list(best), "rows_without_group": missing_group}
+            "largest_independent_set": list(best), "rows_without_group": missing_group,
+            "best_single_offer": best_single}
