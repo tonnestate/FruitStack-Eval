@@ -41,3 +41,9 @@ Feedback is recorded into PlumMe with verifier `fse-calib/1:HARNESS_OBSERVED`.
 4. Keras: the neural lifecycle is exercised on this run's verified rows through `evaluate_mq` and its gate (expected: INSUFFICIENT_EVIDENCE at n=48); the verdict is reported as it comes out.
 ## Allowed conclusions
 Descriptive operational differences; support/identifiability diagnostics; the gate verdict. NOT allowed: any Keras online advantage; any claim of superiority from A vs B at n=48; any extrapolation to organizational tasks.
+
+## Amendment 1 (ROUTE-ARMS-ABC/1.1), written before the real run, after a 2-task smoke test (6 real calls, rows archived in `smoke-discarded/`, not analysed)
+The smoke test showed that PlumMe's route ordering placed the FreeLLMAPI gateway route BEFORE the direct Groq route of the same model in arms B and C (5.2 s vs 0.5 s), because the market-wide adapter
+priority was ranked ahead of reliability. That is a defect of the route stage, not a property under test. PlumMe commit "route-stage ordering by evidence" orders routes of one model by health, quota pressure,
+observed reliability, hop count (direct before gateway), latency, and only then adapter priority. The arms, pool, tasks, bounds and analysis are unchanged. Consequence: in B and C a gateway route is used
+when the direct route fails or has worse observed reliability; with a healthy direct route B and A are expected to behave alike. The smoke rows are excluded from all results.
