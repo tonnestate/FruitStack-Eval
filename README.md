@@ -67,7 +67,7 @@ fse protected --repo ../plumme --name plumme --base origin/main --head origin/we
 - **Results for `fse compare`:** one JSON line per task and arm with `task_id`, `arm`, `family`, `subfamily`, raw `evidence`, `quota_units`, `cost_eur`, `wall_seconds`.
 - **Tasks:** one JSON line per task with `task_id`, `family` (INQUIRY, SOFTWARE, RESEARCH, ECONOMIC), `subfamily`, `split` (TRAIN, HELDOUT), `prompt`, `reference`. A subfamily is entirely TRAIN or entirely HELDOUT.
 - **Inquiry references (FSE-INQUIRY/1):** the `reference` of an INQUIRY task is a JSON string `{"verdict": "SUPPORTED"|"REFUTED", "key_type": "integer"|"number"|"year"|"date"|"text", "key": ..., "accept": [...], "tolerance": 0.0, "sources": [...]}`. Every answer must end with `VERDICT: ...` and `KEY: ...`. Grade 1 if both are right, 0.5 if one is, 0 otherwise; missing answers, unparseable answers and abstentions grade 0 and are counted separately.
-- **Calibration results (G2):** one JSON line per call with `task_id`, `group` (the labor market's independence key), `offer_id`, `model`, `receipt_id`, `success`, `structural_state`, `output`, `model_fingerprint`.
+- **Calibration results (G2):** one JSON line per call with `task_id`, `group` (the labor market's independence key), `offer_id`, `model`, `receipt_id`, `success`, `structural_state`, `output`, `model_fingerprint`. Newly generated calibration tasks use `FSE-CALIB/2`, which sorts word candidates before seeded shuffling for reproducibility across Python hash seeds; deposited `FSE-CALIB/1` task files remain unchanged.
 - **Seal (FSE-SEAL/1):** `<seal>.json` holds per-log row counts, roots and a digest; `<seal>.json.rows.json` holds the row hashes. Commit both.
 
 ## Ablation input
