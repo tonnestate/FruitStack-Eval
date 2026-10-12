@@ -15,7 +15,8 @@ The F3 runner requires AppleMe assurance and a configured composer offer before 
 | Command | Purpose | Protocol reference |
 | --- | --- | --- |
 | `fse power` | Sample sizes for the paired or unpaired non-inferiority test | §5.4 |
-| `fse ope evaluate` / `fse ope review` | Independent IPS/SNIPS over a PlumMe DecisionLog export, with weight clipping, minimum support per action, effective sample size, seeded bootstrap interval, and evaluation of ensemble worker counts | §5.3, H1, H3 |
+| `fse ope evaluate` / `fse ope review` | Independent IPS/SNIPS over a PlumMe DecisionLog export (offer level; hierarchical model/route records and other supply regimes are excluded and counted), with weight clipping, minimum support per action, effective sample size, seeded bootstrap interval, and evaluation of ensemble worker counts | §5.3, H1, H3 |
+| `fse ope-model` | Independent IPS/SNIPS for COGNITIVE-MODEL selection over hierarchical logs: one supply regime at a time, only decisions logged with a stochastic propensity count, censored executions and ensemble-level feedback are excluded, task-cluster bootstrap, estimates withheld unless identifiable | Hierarchical selection |
 | `fse costaudit` | Post-hoc zero-cost audit: every chosen offer must have an allowed cost class, no outcome may be billed | Gate G3 |
 | `fse drift` | Drift epochs per offer from the per-call `model_fingerprint`; a fingerprint change opens a new epoch | Threat 1 |
 | `fse interventions add` / `summary` | Typed log of human acts: AUTHORITY (allowed) vs COGNITIVE (a deviation in the confirmatory phase), with minutes | Threat 3, H8, gate G5 |
