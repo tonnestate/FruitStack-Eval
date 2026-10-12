@@ -47,3 +47,13 @@ The smoke test showed that PlumMe's route ordering placed the FreeLLMAPI gateway
 priority was ranked ahead of reliability. That is a defect of the route stage, not a property under test. PlumMe commit "route-stage ordering by evidence" orders routes of one model by health, quota pressure,
 observed reliability, hop count (direct before gateway), latency, and only then adapter priority. The arms, pool, tasks, bounds and analysis are unchanged. Consequence: in B and C a gateway route is used
 when the direct route fails or has worse observed reliability; with a healthy direct route B and A are expected to behave alike. The smoke rows are excluded from all results.
+
+## Amendment 2 (written AFTER the run, data-driven; the run itself is unchanged and nothing was re-run)
+Independent verification found two things the pre-registered analysis did not anticipate. They are reported as post-hoc diagnostics, not as pre-registered results.
+1. **Answer-integrity defect in PlumMe.** On the gateway route 37 of 44 executed answers had `finish_reason=length` and carried the truncated chain of thought as `content`; PlumMe only rejected EMPTY text,
+   so these non-answers were counted as "served". The harness grader (unparsed => wrong) caught them, which is why the verified accuracy of the gateway route looks low (6/44) while its answers that finished
+   regularly were 6/6 correct. Fix committed in PlumMe (`REASONING_LEAKED_AS_CONTENT` is a SEMANTIC_OUTPUT_FAILURE). The delivery numbers of arms B and C in this run therefore OVERSTATE answer-bearing delivery;
+   `answer_bearing_rate` (an ANSWER line was parsed) is reported next to `delivery_rate` for that reason.
+2. **Route dependence.** Because of (1), the verified utility of "the same model" depends on the delivering route, which contradicts the assumption of the model-level estimator. `fse ope-model` now tests
+   that assumption on the logs (seeded permutation test per model between routes) and withholds the estimate when it fails. The pre-registered thresholds are unchanged; this is an added validity condition.
+A corrected re-run (fix applied, answer-bearing delivery as the primary delivery metric) needs fresh free quota and is a separately registered protocol revision (ROUTE-ARMS-ABC/2); it was not run.
