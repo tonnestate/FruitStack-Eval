@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 from . import (ablation, attribution, blind, calibration, compare, costaudit, deposit, drift, independence, inquiry,
-               integrity, interventions, lite, logcheck, ope, pilot, power, protected, replay, seal, tasks)
+               integrity, interventions, lite, logcheck, ope, pilot, power, protected, replay, seal, stack, tasks)
 from .decision_log import load_views
 
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
@@ -269,9 +269,10 @@ def cmd_inquiry(args) -> int:
         ev = inquiry.evidence(task["reference"], row.get("output"))
         graded.append({"task_id": row["task_id"], "arm": row["arm"], "family": "INQUIRY", "subfamily": task["subfamily"],
                        "evidence": ev, "quota_units": row.get("quota_units"), "cost_eur": row.get("cost_eur"),
-                       "wall_seconds": row.get("wall_seconds")})
+                       "wall_seconds": row.get("wall_seconds"), "run_status": row.get("status")})
         s = summary.setdefault(row["arm"], {"items": 0, "grade_1": 0, "grade_0.5": 0, "grade_0": 0, "abstained": 0,
-                                            "NO_ANSWER": 0, "NO_STRUCTURED_ANSWER": 0})
+                                            "NO_ANSWER": 0, "NO_STRUCTURED_ANSWER": 0, "INCOMPLETE": 0})
+        s["INCOMPLETE"] += int(row.get("status") == "INCOMPLETE")
         s["items"] += 1
         s[f"grade_{ev['grade']:g}"] += 1
         s["abstained"] += int(ev["abstained"])
@@ -338,6 +339,12 @@ def cmd_deposit(args) -> int:
         return 0
     _required(args, ["manifest"])
     result = deposit.verify(json.loads(Path(args.manifest).read_text(encoding="utf-8")), _files(args.file))
+    _emit(result)
+    return 0 if result["passed"] else 1
+
+
+def cmd_stack(args) -> int:
+    result = stack.check(stack.load(Path(args.config or _default("stack.toml"))), args.python, fetch=args.fetch)
     _emit(result)
     return 0 if result["passed"] else 1
 
@@ -519,6 +526,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out")
     p.add_argument("--manifest")
     p.set_defaults(func=cmd_deposit)
+
+    p = sub.add_parser("stack", help="preflight: the whole FruitStack installed from canonical checkouts (run before any eval)")
+    p.add_argument("--python", required=True, help="host interpreter, e.g. /opt/fruitstack/venv-host/bin/python")
+    p.add_argument("--config", help="TOML (default config/stack.toml)")
+    p.add_argument("--fetch", action="store_true", help="fetch origin in each checkout first")
+    p.set_defaults(func=cmd_stack)
     return parser
 
 

@@ -47,6 +47,8 @@ def outcome_counts(rows: Iterable[dict]) -> dict[str, dict]:
             c[status.lower()] += 1
         if ev.get("abstained"):
             c["abstained"] += 1
+        if row.get("run_status") == "INCOMPLETE":      # system could not finish (supply, budget): counted apart from wrong answers
+            c["incomplete"] += 1
     return {arm: dict(v) for arm, v in counts.items()}
 
 

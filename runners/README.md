@@ -6,11 +6,11 @@ Scripts in this directory run **on the host that executes the arms** (the FruitS
 | --- | --- | --- | --- |
 | `g3_cost_probe.py` | G3 | No. The paid probe offer points at `https://paid-probe.invalid` and is never contacted; real paid offers are only screened and acquisition-tested, never executed. | `g3_probe.json`, three probe DecisionLogs |
 | `g2_supply_calibration.py` | G2 | No. It refuses to start unless `PLUMME_COST_POLICY=FREE_ONLY`, executes only offers the hard-eligibility gate admitted under that policy, and re-checks the cost class before every call. It consumes free quota. | `census.json`, `results.jsonl`, `run.json`, the run's DecisionLog |
-| `pilot_inquiry.py` | Phase 2 | No. Refuses to start unless `PLUMME_COST_POLICY=FREE_ONLY`; arm A is refused outright and needs a separately approved run. Never reads task references. | `results-<ARM>.jsonl`, `run-<ARM>.json`, the arm's DecisionLog, CherryMe workspaces (F3) |
+| `pilot_inquiry.py` | Phase 2 | No. Refuses to start unless `PLUMME_COST_POLICY=FREE_ONLY`, or with fewer than `--min-free-models` (default 50) executable free models (`plumme coverage --free`, PLUMME-FREE-SUPPLY-001); arm A is refused outright and needs a separately approved run. Never reads task references. `--shard K/N` splits the tasks across N parallel processes with separate state directories. CherryMe `INCOMPLETE` is recorded as a system outcome, never as an answer. | `results-<ARM>.jsonl`, `run-<ARM>.json`, the arm's DecisionLog, CherryMe workspaces (F3) |
 
 ## Order on the host
 
-Run from a checkout of this repository with the host's PlumMe environment loaded (`/opt/fruitstack/venv-host`, the usual `PLUMME_*` variables, `PLUMME_COST_POLICY=FREE_ONLY`). `fse` is this repository's CLI, installed into any Python 3.11+ environment (`pip install -e .`).
+First `fse stack --python /opt/fruitstack/venv-host/bin/python --fetch`: no run starts while a required FruitStack part is missing, stale or hand-patched. Run from a checkout of this repository with the host's PlumMe environment loaded (`/opt/fruitstack/venv-host`, the usual `PLUMME_*` variables, `PLUMME_COST_POLICY=FREE_ONLY`). `fse` is this repository's CLI, installed into any Python 3.11+ environment (`pip install -e .`).
 
 ```bash
 OUT=evidence/$(date -u +%Y%m%dT%H%M%SZ)
@@ -37,9 +37,11 @@ fse logcheck --log $OUT/g2/state/decisions.jsonl --interventions $OUT/interventi
 # Phase 2 (only after G1-G5 pass and the owner registered the approved task set; see PILOT_PROTOCOL.md)
 F1=$(python -c "import json;print(json.load(open('$OUT/g2/independence.json'))['best_single_offer']['offer_id'])")
 python runners/pilot_inquiry.py --tasks tasks.jsonl --out $OUT/pilot --arm F1 --offer $F1
-python runners/pilot_inquiry.py --tasks tasks.jsonl --out $OUT/pilot --arm F3 \
-    --cherryme-skill /root/fruits/sync/CherryMe/skill/ensemble --composer-offer $F1
-cat $OUT/pilot/results-F1.jsonl $OUT/pilot/results-F3.jsonl > $OUT/pilot/results.jsonl
+for k in 0 1 2 3 4 5; do         # F3 in six parallel processes, disjoint task slices, own state directories
+  python runners/pilot_inquiry.py --tasks tasks.jsonl --out $OUT/pilot --arm F3 --shard $k/6 \
+      --cherryme-skill /root/fruits/sync/CherryMe/skill/ensemble --composer-offer $F1 &
+done; wait
+cat $OUT/pilot/results-F1*.jsonl $OUT/pilot/results-F3*.jsonl > $OUT/pilot/results.jsonl
 fse inquiry grade --tasks tasks.jsonl --results $OUT/pilot/results.jsonl --out $OUT/pilot/graded.jsonl
 fse pilot analyze --graded $OUT/pilot/graded.jsonl > $OUT/pilot/estimates.json
 ```

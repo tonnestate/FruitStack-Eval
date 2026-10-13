@@ -26,6 +26,7 @@ The F3 runner requires AppleMe assurance and a configured composer offer before 
 | `fse protected` | Rejects system-authored commits on protected paths; lists builder commits there for host review | Learning loop 4 |
 | `fse lite check` | Verifies that FruitStack-Lite clones sit at their pinned commits | Gate G6 |
 | `fse integrity` | `main == sync/local-truth`, minimum versions, required paths and commits per repository, from git only | Gate G1 |
+| `fse stack` | Preflight before every run: the whole FruitStack (`config/stack.toml`: PlumMe, PeachMe, CherryMe, AppleMe, PomeloMe, CogC, OmniRoute unit) installed from clean canonical checkouts at `origin/main`; reads package metadata in a subprocess, imports nothing | Gate G1, run preflight |
 | `fse calib generate` / `score` | Calibration tasks with exact answers (six kinds, four difficulty levels) and harness scoring of worker answers | Gate G2 |
 | `fse independence` | Per provider group: end-to-end execution, accuracy; per pair: phi of error indicators with bootstrap interval, share of identical wrong answers; largest pairwise-independent set | Gate G2 |
 | `fse inquiry validate` / `grade` | Inquiry references (verdict + key value, sources) and the deterministic grader FSE-INQUIRY/1 | Gate G4 |

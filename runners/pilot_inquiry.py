@@ -147,6 +147,23 @@ def check_offer(service, offer_id: str) -> None:
         raise SystemExit(f"offer {offer_id} is {_value(offer.cost_class)}, not free")
 
 
+def supply_gate(settings, report_path: Path, minimum: int) -> str | None:
+    """Refuse to start on thin supply: an evaluation on a fraction of the free market measures the outage, not the system."""
+    from plumme.service import PlumMeService
+    try:
+        from plumme.free_supply import free_supply_report
+    except ImportError:
+        return "SUPPLY_GATE_UNAVAILABLE: this PlumMe has no free-supply report (needs PLUMME-FREE-SUPPLY-001); use --skip-supply-gate only for development"
+    service = PlumMeService(settings)
+    asyncio.run(service.store.discover())
+    report = free_supply_report(service)
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+    executable = report["headline"]["free_models_executable"]
+    if executable < minimum:
+        return f"SUPPLY_NOT_READY: {executable} executable free models < {minimum}; gaps by state: {report['states']} (see {report_path})"
+    return None
+
+
 # ---------------------------------------------------------------- F1
 
 async def run_f1(args, settings, tasks) -> list[dict]:
@@ -246,6 +263,14 @@ def run_f3(args, settings, tasks) -> list[dict]:
                          "wall_seconds": round(time.monotonic() - t0, 2),
                          "diagnostics": {"error": f"{type(exc).__name__}: {exc}"[:400]}})
             continue
+        if status == "INCOMPLETE":      # CherryMe could not finish (supply, budget, abort): a system outcome, never an answer
+            diag["incomplete_cause"] = getattr(final, "incomplete_reason", None) or getattr(final, "delta_status", None)
+            rows.append({"task_id": task["task_id"], "arm": "F3", "output": None, "status": "INCOMPLETE",
+                         "quota_units": max(0, decision_count(service) - before),
+                         "cost_eur": receipt_cost_eur(receipts_since(receipts_path, receipt_offset),
+                                                      max(0, decision_count(service) - before)),
+                         "wall_seconds": round(time.monotonic() - t0, 2), "diagnostics": diag})
+            continue
         key, composer = "UNKNOWN", None
         if evidence and args.composer_offer:
             composer = asyncio.run(pinned_call(
@@ -284,6 +309,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-assurance", action="store_true", help="disable AppleMe assurance (invalid for protocol F3)")
     ap.add_argument("--max-output-tokens", type=int, default=1024)
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--shard", default="0/1", help="K/N: run every N-th task starting at K (parallel processes, own state dirs)")
+    ap.add_argument("--min-free-models", type=int, default=50,
+                    help="refuse to start below this many executable free models (`plumme coverage --free`)")
+    ap.add_argument("--skip-supply-gate", action="store_true", help="development only: run without the free-supply gate")
     ap.add_argument("--pause", type=float, default=0.0)
     args = ap.parse_args(argv)
     if args.arm == "A":
@@ -305,14 +334,27 @@ def main(argv: list[str] | None = None) -> int:
     out = Path(args.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     tasks = load_tasks(Path(args.tasks))[: args.limit or None]
-    settings = isolated(base, out, args.arm)
+    try:
+        k, n = (int(x) for x in args.shard.split("/"))
+        assert 0 <= k < n
+    except (ValueError, AssertionError):
+        ap.error("--shard must be K/N with 0 <= K < N")
+    tasks = [t for i, t in enumerate(tasks) if i % n == k]
+    tag = args.arm if n == 1 else f"{args.arm}-shard{k}of{n}"
+    settings = isolated(base, out, tag)
+    if not args.skip_supply_gate:
+        gate = supply_gate(settings, out / f"supply-{tag}.json", args.min_free_models)
+        if gate is not None:
+            print(gate, file=sys.stderr)
+            return 4
     t0 = time.time()
     rows = asyncio.run(run_f1(args, settings, tasks)) if args.arm == "F1" else run_f3(args, settings, tasks)
-    path = out / f"results-{args.arm}.jsonl"
+    path = out / f"results-{tag}.jsonl"
     path.write_text("".join(json.dumps(r, ensure_ascii=False, sort_keys=True, default=str) + "\n" for r in rows),
                     encoding="utf-8")
     meta = {"schema": SCHEMA, "arm": args.arm, "finished_at": _now(), "seconds": round(time.time() - t0, 1),
             "tasks": len(tasks), "completed": sum(1 for r in rows if r["status"] == "COMPLETED"),
+            "incomplete": sum(1 for r in rows if r["status"] == "INCOMPLETE"), "shard": args.shard,
             "plumme": plumme.__version__, "offer": args.offer, "composer_offer": args.composer_offer,
             "budget": args.budget, "call_budget": args.call_budget, "assurance": not args.no_assurance,
             "cost_policy": base.cost_policy, "env_keys": sorted(k for k in os.environ if k.startswith("PLUMME_")),
@@ -322,7 +364,7 @@ def main(argv: list[str] | None = None) -> int:
         meta["cherryme"] = getattr(cherryme, "__version__", "unknown")
     except ImportError:
         pass
-    (out / f"run-{args.arm}.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (out / f"run-{tag}.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({k: meta[k] for k in ("arm", "tasks", "completed", "results")}))
     return 0
 
