@@ -16,18 +16,21 @@ the same information-access rights (web search) and comparable, explicitly measu
   `frozen-config.json` by `f2f3_epoch2.py init`; the file is immutable afterwards and every step re-verifies the task and adapter hashes.
 
 ## Arms (component configuration, fixed before execution)
-**F2** — PlumMe only. Two cognitive models from different vendor lineages (pair rule below). Information access: ONE fixed web search per task using the same search runtime, query construction and
-top-5 truncation as F3's grounding adapter; the results are appended to the task prompt for both models (context, not proof). Each model answers once (PINNED_MODEL lease, same-model route failover,
-max 2 attempts, 1024 output tokens). Composition: unanimity of VERDICT (SUPPORTED/REFUTED) -> answer = first-listed model's VERDICT/KEY block; otherwise abstain (graded 0). No orchestration, no Keras, no review.
-**F3** — CherryMe 0.3.0 with the ACE ensemble skill (question budget 3, provider-call cap 4, plus one final synthesis call), PlumMe federated supply with model-level identities and route failover,
-AppleMe assurance tier, MangoMe only as the local evidence outbox (no canonical authority is available for this research run, so no MangoMe governance claim is made), live web grounding (adapter inside
-CherryMe's own questioning), Keras SHADOW_ONLY (records recommendations, acts on nothing). Final answer: one pinned authorized model call over the evidence (corrected synthesis: claim status alone never produces an answer).
+**F2** — PlumMe only. Two cognitive models from different vendor lineages (pair rule below). Information access: ONE host retrieval per task with the SAME retriever as F3 (CherryMe `LiveWebRetriever`, allow-listed primary sources);
+the excerpts are appended to the task prompt of both models (context, not proof). Each model answers once (PINNED_MODEL lease, same-model route failover, max 2 attempts, 1024 output tokens). Composition: unanimity of
+VERDICT (SUPPORTED/REFUTED) -> answer = first-listed model's VERDICT/KEY block; otherwise abstain (graded 0). No orchestration, no verification quorum, no knowledge store, no Keras, no review.
+**F3** — the repaired production path (CherryMe 0.3.2 + PlumMe 0.1.11, both installed from the accepted canonical commits): CherryMe cognition with AUTO supply selection (bounded re-selection after provider failure) ->
+host retrieval, knowledge store first -> independent quote-bound verification (quorum 2, verbatim quote carrying every digit-containing value of the claim) -> canonical claim status SUPPORTED/REFUTED only from verified
+evidence -> hash-chained knowledge store -> KEY extraction grounded in the verified quotes (a key that does not occur literally in them becomes UNKNOWN). AppleMe assurance tier attached; MangoMe only as the local evidence
+outbox (no canonical authority exists for this research run, so no MangoMe governance claim is made); Keras SHADOW_ONLY. The earlier ACE-plus-synthesis design of this protocol is replaced before any confirmatory call.
 Both: FREE_ONLY (hard gate), research runtime (no local inference, no Ollama), no paid route, no key rotation, no retry beyond the lease, state directory and supply regime per arm, owner free-tier confirmations only via environment.
 
 ## F2 pair (registered rule, applied before registration)
-Shortlist (one model per lineage, general text >= 20B, route executable now): gpt-oss-120b, qwen3.6-27b or qwen3.8-27b (whichever has a text profile), llama-3.3-70b, mistral-small-3.2-24b, nemotron-3-super-120b,
-gemma-4-31b. Each answers the first 24 calibration tasks once (`runners/f2_pair_select.py select`). Eligible = delivery >= 0.8; pair = the two highest accuracies (over all 24 tasks) from different
-lineages; ties -> delivery, then name. The ranking and pair are stored in `pair-decision.json`. Two routes to one underlying model, or two models of one lineage, are never counted as independent workers.
+Shortlist (one model per lineage where available, executable at selection time, keys exactly as PlumMe's market reports them): gpt-oss-120b@default, nemotron-3-super-120b-a12b@default, gemma-4-31b-it@vision, qwen3.8-27b@vision,
+qwen3.6-27b@default, laguna-s-2.1@default, inkling@vision, gemini-3.8-flash@vision, gemini-3.7-flash@vision, llama-3.3-70b@default, mistral-small-3.2-24b@default. (Earlier attempts used keys with no route — a mapping defect, corrected.)
+Each answers 24 calibration tasks once (`runners/f2_pair_select.py select`; fresh disjoint FSE-CALIB/2 material per attempt, every attempt kept). Eligible = delivery >= 0.8 (unchanged); pair = the two highest accuracies from
+different lineages; ties -> delivery, then name. Two routes to one underlying model, or two models of one lineage, are never counted as independent workers. If no attempt yields a pair the confirmatory F2 comparison is NOT run and
+that limitation is reported; exploratory F3-only results are then labelled as such.
 
 ## Endpoints
 **Primary:** per task, correct = grade 1.0 (VERDICT and KEY right). Missing answer, abstention, failure, unreconciled call = not correct. F3 vs F2, exact two-sided McNemar on discordant pairs, alpha 0.05;
@@ -53,7 +56,7 @@ grading disagrees with the arm's own parse for reasons other than grading. Inval
 ## Known limitations (stated now)
 Tasks drafted by Claude and audited by a second model instance, not by a person; claims restate the key in 13/25 SUPPORTED tasks; web search can retrieve the cited primary pages themselves, so the tasks measure
 evidence use more than recall; only two models, one time window, shared free quota; n = 50; gateway models carry no independence-group metadata (lineage is taken from the registered table);
-the search adapter lives in the release payload, not in a candidate repository (hash-pinned); MangoMe adds no governance effect here.
+MangoMe adds no governance effect here.
 
 ## Reproduction
 `F2F3_RUN=<dir> python runners/f2f3_epoch2.py init --config cfg.json`; repeat `step` until exit 30; `f2f3_analyze.py --run <dir>`; seals via `fse seal create`; `fse costaudit`.
