@@ -8,6 +8,8 @@ The evaluator sits **outside** the system under test. It never imports PlumMe, C
 
 Harness scripts that must drive PlumMe on the host live in `runners/` (see `runners/README.md`); they import PlumMe, the evaluator package never does. `PILOT_PROTOCOL.md` fixes how the 50-task inquiry pilot is run, graded and analyzed (PILOT-PROC/1).
 
+The F2/F3 free-route calibration runner checkpoints each completed task in `calibration-progress.json` and resumes without repeating calls. Three consecutive unavailable pinned-worker observations end a model's calibration; the remaining tasks count as undelivered under the fixed 80% eligibility rule. The 2026-10-13 calibration evidence is under `/root/fruits/research/FRUITSTACK-EVAL-004/f2f3-free/calibration/`; no eligible F2 pair was selected, so no F2/F3 confirmatory run began.
+
 The F3 runner requires AppleMe assurance and a configured composer offer before it initializes PlumMe. It records EUR zero only when no provider route was selected or every provider receipt explicitly reports USD zero; missing receipts or cost fields remain unknown and block cost-completeness checks.
 
 ## What it does
