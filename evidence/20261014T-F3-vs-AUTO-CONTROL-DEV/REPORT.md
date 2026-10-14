@@ -32,3 +32,17 @@ cost_usd is null (unknown) on 442 of 808 F3 receipts and 85 of 118 control recei
 Control defined after the first (pinned openrouter/free, 32/50) run and after a manual-provider-pool attempt (archived `dev-f3-pooled-RESTRICTED-not-auto`) and an old-policy run (`dev-f3-OLD-POLICY-before-repair`); a 3-attempt control was abandoned for unequal budget (`dev-control/_abandoned-3attempt`). One F3 task timed out (counted as no answer, 1200 s). Shard-local knowledge stores. The F1 pinned run `20261014T023511Z-DEV-F1DEV-F3DEV` stays as history (its F3 had no retrieval; invalid).
 ## Reproducibility
 Raw per-shard results, journals, DecisionLogs and receipts in `raw/`; `results.jsonl` → `graded.jsonl` (independent grader); `estimates.json`. Confirmatory F2/F3 experiment: unchanged, its independence gate (G2) still unsatisfied.
+
+---
+
+## ADDENDUM 2026-10-14 (later): supply defects as threats to the validity of this comparison
+
+Raw observations above are unchanged. Found afterwards by the PlumMe supply preflight (PLUMME-SUPPLY-PREFLIGHT-001) and an owner review:
+
+1. **FreeLLMAPI supply was absent from both arms.** The earlier runs exported `FLM_KEY` (the key of the local isolated FreeLLMAPI instance); the shard scripts used for this comparison did not, so the whole `freellmapi` source (40 eligible routes once restored) never existed in the market of F3 or CONTROL. The statement "supply, not architecture, caused the abstentions" and the supply picture in this report are therefore **not supported as stated**: the supply was thinner than the system could have had.
+2. **Trial-credit routes were admitted under `FREE_ONLY`** (PlumMe <= 0.1.12). The 75 NVIDIA attempts of F3 were such routes; all answered 403, so no credit was consumed, but the policy was not enforced by the gate. Fixed in 0.1.13 (explicit opt-in only).
+3. **Failures were charged per model, not per pool.** A forbidden credential was retried model by model (60 attempts), and the market did not learn across shards (separate state dirs). Fixed in 0.1.13 (pool quarantine, shared evidence files).
+4. **Admission without execution evidence.** Catalog entries (aggregators) were eligible without any proof that they answer; in the later live qualification only 5 of 23 first-time calls to routes the old gate called eligible produced a valid answer.
+5. **Independence was HEURISTIC** for every worker (no lineage registry).
+
+What this changes: the 31 abstentions remain observed facts, their classes (FORBIDDEN 61, RATE_LIMITED 51, SEMANTIC_OUTPUT_FAILURE 37, BILLING 27, TIMEOUT 8, MODEL_NOT_FOUND 4) remain correct, but **they must not be read as evidence about organizational intelligence**: the comparison was run on a defective supply layer. The result "F3 below single-call control" is a statement about this supply configuration only. No new OGI experiment was run for this addendum.
