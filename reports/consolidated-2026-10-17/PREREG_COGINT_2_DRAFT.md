@@ -1,3 +1,5 @@
+> **SUPERSEDED 2026-10-17 by `PREREG_ORGSYNTH_3_DRAFT.md`** (adds synthesizer strength as a factor and the strong-model solo control after the C-arm forensics, assessment §14). Kept for history.
+
 # PREREG-COGINT-2 — Registrierungsentwurf (PREPARED, NOT FROZEN, NOT LAUNCHED)
 
 Stand 2026-10-17. Entwurf für den konfirmatorischen Vergleich der integrierten FruitStack-Organisation mit Kontrollen (Auftrag FRUITSTACK-COGNITIVE-INTEGRATION/2, Abschnitt 10). **Es wurde kein Provider aufgerufen. Dieser Entwurf friert nichts ein.** Einfrieren (Manifest-Hashes, Task-Seed, Schedule) und Start erfordern eine gesonderte ausdrückliche Eigentümerfreigabe. OGI-012 bleibt unberührt. Die 50 Entwicklungsaufgaben sind **nicht** Teil dieses Tests.
