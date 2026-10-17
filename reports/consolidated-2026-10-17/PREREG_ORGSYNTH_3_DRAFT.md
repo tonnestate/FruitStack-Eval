@@ -1,6 +1,7 @@
 # PREREG-ORGSYNTH-3 — Registrierungsentwurf (PREPARED, NOT FROZEN, NOT LAUNCHED)
 
 Stand 2026-10-17, nach der C-Arm-Forensik (Assessment §14). **Kein Providerruf, kein Einfrieren, kein Start** ohne gesonderte ausdrückliche Eigentümerfreigabe. OGI-012 bleibt unberührt, nichts hier ändert dessen Protokoll oder Evidenz. Die 50 Entwicklungsaufgaben und alle Aufgaben der Forensik sind **nicht** Teil dieses Tests.
+> **Technische Festlegungen vom 17.10.2026 (Assessment §15.6 Punkt 5):** Aufgabenquelle = OGI-011-Korpusgenerator mit neuem Seed; Arm D als Verifikationsablation implementiert (Eigentümer bestätigt oder gibt die feste Regel vor); Einheiten 171 / 282 / 552 (T3 = 123 / 234 / 504).
 
 ## 1. Frage
 Verbessert die vollständige RG/2-Organisation das **endgültige, unabhängig bewertete Aufgabenergebnis** gegenüber fair abgestimmten Kontrollen — und wie viel davon entsteht durch **automatische Synthese/Konsolidierung** statt durch bloß stärkere Einzelmodelle? Die Forensik zeigt, dass frühere Verluste vor allem aus Gate-Blockaden und aus dem Ausfall der Syntheseaufrufe stammen; diese Studie misst erst, ob ohne diese Defekte ein Organisationsvorteil besteht.
