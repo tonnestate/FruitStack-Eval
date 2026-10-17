@@ -9,6 +9,8 @@ Nicht verändert: OGI-012 (geparkt), alle eingefrorenen Worktrees, alle Rohdaten
 
 ## 0. Kurzurteil
 
+> **Ergänzung 2026-10-17 (§11, FRUITSTACK-SCIENCE-100):** Das 9/50-Defizit entsteht überwiegend vor/nach den Modellen (17 Aufgaben: Quellenpflicht-Gate stellt gar keine Modellfrage; 9: Schlüsselstufe; 6: Verifikationsregeln), nicht durch schwache Modelle; beobachtete Auswahl-Obergrenze 41/50.
+
 | Ebene | Stand |
 |---|---|
 | **Technisch funktionsfähig** | Ja, offline belegt: Missionspfad PEACH-MISSION/1 läuft gegen echtes MangoMe, PlumMe, CherryMe RG/2, AppleMe und PeachMe mit Scripted-Fake-Provider (Suiten: CherryMe 336, PeachMe 240, PlumMe 455, AppleMe 92, FruitStack-Eval 311, Worker/Cutover 10). **Kein** Beleg für Leistung. |
@@ -266,3 +268,132 @@ Jede Zeile bezieht sich auf die **jeweils untersuchte Architektur**. Keine älte
 **Freigabe 1 — Produktion (einzige zusammengefasste Freigabe, ohne neue Inferenz):** Cutover des Release-Satzes (§3) in der Reihenfolge PlumMe → AppleMe → PeachMe → CherryMe → Worker mit `rg2_cutover.py apply`. Sie muss mitentscheiden: (a) die PeachMe-Linie bzw. den fehlenden `sync/local-truth`-Spiegel, (b) die FruitStack-Eval-Zusammenführung (oder ausdrücklich „nicht Teil dieses Release“), (c) die WorkIdentity-Quelle für Aurora-Aufträge und den MangoMe-Zugang des Worker-Venvs, (d) die OrangeMe-Konfiguration, (e) die Egress-Policy. Danach muss die Truth-Writer-Quittung des Longrunners erneuert werden.
 
 **Freigabe 2 — Forschungsinferenz (getrennt, providerwirksam):** Erst sie erlaubt gültige Daten für die offenen Fragen A–F. Mindestens: ein vorab registrierter Vergleich auf der heutigen Architektur (Organisation gegen registrierte Kontrolle auf demselben Modellpool und denselben Aufgaben, mit freigegebenen Referenzen und ausreichender Stichprobe); die Wiederaufnahme von OGI-012 ist ausdrücklich ein eigener Schritt und nur mit den dort geltenden Preflight-Regeln zulässig. Ohne diese Freigabe bleibt die wissenschaftliche Antwort „unentschieden“.
+
+---
+
+## 11. Wissenschaftliche Ursachen- und Potenzialanalyse (FRUITSTACK-SCIENCE-100, 2026-10-17)
+
+Grundlage: dieselben 50 Entwicklungsaufgaben und Rohartefakte wie §4.1 (F3 9/50 vs. AUTO-Kontrolle 37/50), rein offline, keine Modell-Provider-Aufrufe. Reproduktion: `repro/d7_forensics.py` → `repro/d7_cases.json` (Fallrekonstruktion), `repro/d8_report.py` (Tabelle), `repro/d7_hgi_search_replay.json` (Such-Wiederholung, siehe 11.2). Referenzen gehen nur in die Bewertung ein, nie in eine Auswahl. **Die 50 Aufgaben bleiben Entwicklungsdaten; nichts hier ist konfirmatorisch.**
+
+### 11.1 Ursachenverteilung (alle 50 Fälle; Rohdaten-Zuordnung, UNKNOWN nur wo Rohdaten nicht entscheiden)
+
+| Ursache / verantwortlicher Prozessschritt | Fälle | davon Kontrolle voll richtig (= verlorenes Potenzial) |
+|---|---|---|
+| F3 voll richtig | 9 | – |
+| **Keine Modellfrage gestellt: Retrieval lieferte keine zulässige Primärquelle (Host-Grounding-Gate)** (16) + Abruf nie erfolgreich (tech-03) | 17 | 14 |
+| **Schlüsselstufe** lieferte nichts/UNKNOWN obwohl der Schlüssel in verifizierten Zitaten steht (Verdikt richtig, 0.5) | 7 | 5 (Rest: F3 > Kontrolle) |
+| Schlüsselstufe falsch/nicht belegt (hist-09, tech-02) | 2 | 1 |
+| **Verifikation lehnt wahrheitsgemäße Urteile ab** (Quorum/Teilbeleg/Zitatprüfung): hist-05, hist-08, org-01, sci-09, tech-01, tech-05 | 6 | 5 |
+| Korrekter Vorschlag nie promotet (law-07, sci-05, tech-08) | 3 | 2 |
+| Quellen abgerufen, aber Fakt nicht im Auszug (law-05, org-10, tech-10) | 3 | 2 |
+| Verifier-Quorum nicht erreichbar (hist-04, Versorgungsausfälle) | 1 | 1 |
+| Kein zulässiges Modell (law-03) | 1 | 1 |
+| Zeitlimit 1200 s (org-06, Ursache innerhalb der Aufgabe nicht rekonstruierbar = UNKNOWN) | 1 | 1 |
+
+„Versorgung" erklärt nur 3–4 Fälle (law-03, hist-04, org-06 und Teile von hist-08/org-01 über fehlende Verifier-Worker). Die große Lücke ist **Pipeline-Design**: 17 von 41 Nicht-Treffern entstehen, bevor ein Modell gefragt wird.
+
+### 11.2 Was HOST_GROUNDING_INVALID tatsächlich auslöst (Antwort auf die Frage berechtigt/fehlerhaft)
+
+1. **Es wird keine Modellantwort zurückgewiesen.** Das Label entsteht in `CherryMe/cherryme/plumme_bridge.py` (`_investigate_async`): für grounded Fragetypen (SCIENCE, REUSE, GAP) ruft die Bridge *vor* jedem Modellaufruf den Host-Provider (`KnowledgeFirstGrounder` → `LiveWebRetriever`) auf; **jede** Ausnahme daraus (auch `HOST_GROUNDING_UNAVAILABLE`, „No allowlisted primary source returned a usable excerpt", „search failed") wird zu `HOST_GROUNDING_INVALID` umbenannt. Der Text steht nur im Feld `note`; `events.jsonl` persistiert nur „All candidate providers failed." — der konkrete Grund ist in den Läufen **nicht** gespeichert (Befund: Telemetrielücke).
+2. **Berechtigt oder fehlerhaft?** Für die 16 Null-Grounding-Aufgaben zeigt eine Wiederholung der Suche (nur Websuche, kein Modell; heutige Ergebnisse, daher indikativ): bei 12 von 16 lieferte die Suche Treffer, aber **10 von 12 hatten null Treffer auf der Primärquellen-Allowlist** (Wikipedia, Britannica, BIPM-nahe Fachseiten, gdpr-info.eu u. a. liegen nicht auf der Liste), 2 hatten 1–3 Allowlist-Treffer (Abruf/Auszug unbrauchbar), 4 Suchaufrufe scheiterten technisch (CalledProcessError, vermutlich Rate-Limit). Die **Kontrolle** (derselbe Retriever, gleiche Aufgaben) bekam bei 15 von 16 ebenfalls keine Quelle — und beantwortete 13 von 16 **aus dem Modellwissen richtig** (voll). Das Gate hat also keine falsche Aussage abgefangen; es hat **richtiges Modellwissen verhindert**, weil CherryMe grounded Fragen ohne Quelle gar nicht stellt. Das ist weder „berechtigte Zurückweisung einer unbelegten Behauptung" noch ein Validierungsfehler im Sinne fehlerhafter Zitat-/Hash-Prüfung, sondern ein **Designkonflikt**: Quellenpflicht als Vorbedingung für jede Frage vernichtet korrekte, aber unbelegte Erkenntnis (kritischer Fall der Fragestellung: FruitStack vernichtet korrekte Erkenntnisse selbst — am Code und an den Daten belegt, für diese 17 Aufgaben).
+3. **Nicht geprüft/UNKNOWN:** ob zusätzlich Validierungsregeln (HTTPS, Hash, Duplikat nach Redirect: `seen` wird vor dem Redirect gesetzt, `validate()` lehnt doppelte `source_ref` nach Redirect ab) in einzelnen Fragen gültige Quellen verworfen haben; bei Aufgaben mit Abrufen aber HGI-Versuchen (z. B. 3–9 pro Aufgabe) ist der Grund nicht persistiert.
+4. **Zweite Zurückweisungsstufe (Verifier, tatsächliche Urteile über Modellvorschläge):** Von 163 Quell-Verifier-Einträgen waren 63 PROMOTED (alle in Übereinstimmung mit der Referenz — Precision der Promotion in dieser Stichprobe 63/63). Abgewiesen: 40× NOT_ADDRESSED_BEIDE (Auszug enthält den Fakt nicht — berechtigt bzgl. Beleg, aber Folge der 1500-Zeichen-Auszugsauswahl), 32× Verifier-Worker fehlte (Versorgung; in 9 davon stimmte der vorhandene Worker mit der Referenz überein), 13× Workers uneinig (in 11 davon stimmte genau ein Worker mit der Referenz überein — das feste Zwei-Worker-Quorum kann ohne dritten Blick nicht entscheiden), 6× Zitat ungültig/uneinig (6/6 mit einem korrekten Worker), und **9× PARTIAL_SUPPORT_VALUE_MISSING mit beiden Workern = Referenz** (hist-05: „11" aus „Apollo 11" gilt als fehlender Anspruchswert; org-02/org-05: „2023"). Das sind **fehlerhafte Zurückweisungen durch die Regel „jeder ziffernhaltige Anspruchswert muss im Zitat stehen"**: Bezeichner (Missionsnummer) werden wie Werte behandelt. Konsequenz: hist-05 verloren (Kontrolle 1.0), org-05 auf 0.5 begrenzt.
+
+### 11.3 Potenzialanalyse (vollständig richtig = 1.0; Halbtreffer separat)
+
+| Größe | Wert | Definition / Beleg |
+|---|---|---|
+| Actual Organization (F3) | 9/50 voll (+9 Halb, 13.5 Punkte) | graded, §4.1 |
+| Single Best (beste beobachtete Einzelinstanz) | AUTO-Kontrolle 37/50 voll (37.5 Punkte) | eine ungepinnte PlumMe-AUTO-Frage; kein Per-Modell-Vergleich möglich, da pro Aufgabe nur das Endmodell antwortet |
+| Best-of-N Oracle (post hoc, nur Obergrenze) | **41/50 voll** (42.5 Punkte) | Vereinigung der *beobachteten* Endantworten von Kontrolle und F3; Referenz wirkte nur in der Bewertung |
+| Lost Potential | 32 Aufgaben, 29 Punkte (Kontrolle > F3) | Tabelle 11.1, Spalte 3 |
+| Unsolved Potential | 9 Aufgaben ohne vollständig richtigen Beitrag: hist-02, hist-08, law-07, org-04, org-10, tech-06 (beide 0.0) + 3 mit höchstens Halbtreffer (hist-07, org-03, tech-02) | in diesen Fällen enthielten die **beobachteten** Antworten die Lösung nicht |
+| Beitrag, der nur F3 hatte | 4 voll (hist-01, org-09, law-09, tech-09) + 3 Halb (hist-07, org-03, tech-02) | **Achtung:** hist-01, hist-07, org-03, org-09 sind Fälle, in denen der Kontrollaufruf **0 Tokens/keine Antwort** lieferte (8 Kontrollausfälle insgesamt). Echter Wissenszuwachs durch Organisation gegenüber einer *antwortenden* Kontrolle: law-09, tech-09, tech-02 (3 Fälle) |
+
+Grenze der Aussage: das beobachtete Oracle (41) ist keine theoretische Obergrenze des Modellpools. Pro Aufgabe wurde nur *eine* Kontrollantwort und eine F3-Entscheidung beobachtet; das, was andere Poolmodelle geantwortet hätten, ist **UNKNOWN** (die Pool-Zusammensetzung wechselte zudem durch Versorgungsausfälle). 100 % beobachtet nicht erreichbar: bei 9 Aufgaben enthält keine beobachtete Antwort die Lösung.
+
+### 11.4 Organisationshypothese — was die Daten sagen
+
+- **Erhalt korrekter Einzelbeiträge:** nein. 17 Aufgaben (Gate) + 7 (Schlüsselstufe) + 6 (Verifikation) + 3 (nie promotet) = 33 Fälle, in denen ein korrekter Beitrag (Modellwissen, Verdikt eines Workers oder Zitat) existierte oder hätte existieren können und die Organisation ihn nicht zum Endergebnis gemacht hat.
+- **Zweite/dritte unabhängige Perspektive:** hilft dort, wo sie zugelassen ist — Verifier-Quorum promotete 63/63 mit Referenzübereinstimmung; die 11 + 6 Fälle mit genau einem korrekten Worker zeigen, dass bei Zwei-Worker-Uneinigkeit ein *dritter* Blick der naheliegende, aber nie vorhandene Mechanismus ist (das Quorum ist fest 2). Zusätzliche Beiträge **schaden**, wenn sie nur Veto-Rechte haben (Teilbeleg-Regel, Quorum, Quellenpflicht) statt Evidenz zu liefern: die Veto-/Auswahlstufen kosten in diesen Daten mehr korrekte Ergebnisse (22 Aufgaben: Verifikation 6, Vorschlag nie promotet 3, Quorum 1, Schlüsselstufe 9, Auszugsauswahl 3), als sie falsche abfangen (in keinem Fall wurde ein falsches Verdikt promotet; die Falsch-Positiv-Rate der Promotion war 0, aber auch die Ausbeute 9/50).
+- **Mehr Modelle: Wissen oder nur Kosten?** Aufwand F3 818 165 Tokens/854 Receipts gegenüber Kontrolle 34 090 Tokens (≈ 24×) für 9 vs. 37 volle Treffer. Gewinn an Wissen nachweisbar nur in 3 Fällen (law-09, tech-09, tech-02). Kein Beleg, dass mehr Modelle Wissen *addieren*; Beleg, dass sie Kosten addieren.
+- **Systematisch vs. versorgungsbedingt:** Designregeln (deterministisch wiederholbar) 29 Fälle (Quellenpflicht/Allowlist 17, Schlüsselstufe 9, Auszugsauswahl 3); gemischt Regel + fehlende Verifier 6 (Verifikationsstufe); rein versorgungsbedingt 3 (law-03, hist-04, org-06 unklar/UNKNOWN).
+- **Mehrheitsentscheid/Schweigen:** „UNKNOWN" statt Antwort (Schlüsselstufe, kein Grounding) ist hier kein Zeichen von Sorgfalt, sondern Informationsverlust: 13 der 17 Gate-Fälle hatte die Kontrolle richtig beantwortet.
+
+### 11.5 Das 100-%-Ziel als messbares Ziel (Stufenleiter)
+
+1. Sind alle richtigen Antworten in den beobachteten Beiträgen enthalten? **Nein:** 41/50 (82 %); bei 9 Aufgaben nicht. (Ob andere Poolmodelle sie enthielten: UNKNOWN.)
+2. Erkennt die Organisation sie? **Nein:** F3 nutzt 9 von 41 (22 %).
+3. Kann sie fehlende Lösungen erzeugen? **Nicht belegt:** kein Fall, in dem F3 allein aus Evidenz eine Antwort geliefert hätte, die die Kontrolle (mit Antwort) verfehlte, außer law-09, tech-09, tech-02.
+4. Fangen unabhängige Prüfungen Fehler ohne Wissensverlust? **Fehler gefangen: ja (0 falsche Promotionen), ohne Wissensverlust: nein** (22 Aufgaben mit verlorenem korrektem Beitrag, s. 11.4).
+5. Schließt die gemeinsame Entscheidung alle Aufgaben? **Nein.** Die Grenze: solange keine beobachtete Antwort die Lösung enthält (9 Aufgaben), kann Konsolidierung nichts liefern; 100 % ist für dieses Benchmark mit dem beobachteten Material **nicht erreichbar**, 82 % ist die beobachtete Auswahl-Obergrenze.
+
+### 11.6 Übertragbarkeit auf RG/2
+
+Belegt (Code/Tests, offline): RG/2 hat kein Quellenpflicht-Gate vor der Frage, keine feste Quorum-Veto-Regel und kann ohne Modellaufruf auf bestehende Erkenntnis zurückgreifen (Zero-Call-Pfad); es plant Verantwortlichkeiten dynamisch. Daraus folgt **nicht**, dass RG/2 die obigen Verluste vermeidet: die Verifier-/Schlüsselstufen-Regeln stammen aus CherryMe-Legacy und wurden hier nicht mit RG/2 gemessen. Es gibt **keine** empirische Messung von RG/2 auf denselben Aufgaben; historische F3-Zahlen werden nicht übertragen. Nicht untersucht: Verhalten der Konsolidierung bei echter Meinungsverschiedenheit mehrerer unabhängiger Modelle, Wirkung eines dritten Verifiers, Wirkung der Allowlist auf RG/2.
+
+### 11.7 Vorregistrierbares Studiendesign (nächster Schritt)
+
+- **Aufgaben:** frisches konfirmatorisches Set (nicht die 50 Dev-Aufgaben), Referenzen vorab freigegeben, Seed nach Code-Freeze; stratifiziert nach Fragetyp (Fakt, Mehrquellen, widersprüchlich, ohne verfügbare Primärquelle).
+- **Arme (gleiche Aufgaben, gleicher Modellpool, gleiche Informationszugänge, gleiche Budgets pro Aufgabe):** (A) bestes Einzelmodell mit gleichem Quellenzugang; (B) unorganisiert-multi: dieselben Modelle, feste Regel (Mehrheit/first-valid), keine Verifikation; (C) volle Organisation (RG/2) mit Quellenzugang *und* dem Recht, ungegründete Antworten als „UNGEBELEGT" zu liefern; optional (D) Ablation: C ohne Veto-Stufen. Interleaved, zufällige Reihenfolge, ITT-Analyse.
+- **Bewerter:** unabhängiger Grader (`fse inquiry grade`), Referenzen nur dort; Ausfälle der Versorgung als eigene Kategorie, nicht als Fehler der Organisation.
+- **Messgrößen:** Erfolgsrate (voll/halb), Abdeckung und Abstention (Silence ≠ Intelligenz → Abstention separat, nicht als „richtig"), Kosten, tatsächliche Providerdispatches, Wandzeit; **Konsolidierungsqualität als eigenes Objekt:** Anteil der beobachtet korrekten Einzelbeiträge, die die Endauswahl erreichen (Preservation Rate), Anteil falscher Beiträge, die ausgeschlossen werden (Rejection Precision), Anzahl verlorener korrekter Beiträge je Prozessschritt.
+- **Entscheidungsregel:** C > bestes von A und B bei vorab festgelegtem Margin m auf Cluster-robustem Test; Powerrechnung gemäß OGI-011-Revision 3 als Ausgangspunkt (N ≈ 96 Einheiten für +0.20), mit Ressourcenvergleich.
+- **Vorbedingungen aus dieser Analyse (vor jedem Lauf zu beheben, sonst misst die Studie wieder das Gate):** Persistenz des echten Grounding-Fehlergrunds; Erlaubnis ungegründeter Fragen mit Kennzeichnung; Bezeichner (Missionsnummer) nicht als Anspruchswert behandeln; dritter Verifier bei 1:1-Uneinigkeit; Schlüsselstufe mit Wiederholung statt Einzelaufruf.
+
+### 11.8 Fall-für-Fall-Tabelle (50 Aufgaben)
+
+| Aufgabe | Ref (Verdikt/Schlüssel) | Kontrolle | F3 | Ursache (Prozessschritt) | Befund | F3-Receipts/Tokens | Kontr.-Tokens |
+|---|---|---|---|---|---|---|---|
+| inq-hist-01 | SUPPORTED/1957-03-25 | 0.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 6/5310 | 0 |
+| inq-hist-02 | SUPPORTED/1989-11-09 | 0.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 0 |
+| inq-hist-03 | REFUTED/1990-10-03 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 490 |
+| inq-hist-04 | REFUTED/1992-02-07 | 1.0 | 0.0 | VERIFIER_QUORUM_UNREACHABLE | 2 Quelle(n) ohne zweiten Verifier; Versuche {'OK': 1, 'HOST_GROUNDING_INVALID': 5, 'NO_ELIGIBLE_NEURON': 6}; Ausfälle {'BILLING_OR_CREDIT_EXHAUSTED': 3, 'RATE_LIMITED': 3 | 7/1812 | 535 |
+| inq-hist-05 | SUPPORTED/1969-07-20 | 1.0 | 0.0 | VERIFICATION_REJECTED_TRUE_EVIDENCE | Verifier-Urteil in Richtung Wahrheit, nicht promotet: ['PARTIAL_SUPPORT_VALUE_MISSING', 'WORKERS_DISAGREE', 'PARTIAL_SUPPORT_VALUE_MISSING', 'PARTIAL_SUPPORT_VALUE_MISSIN | 46/56257 | 1213 |
+| inq-hist-06 | REFUTED/2002-01-01 | 1.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 37/40822 | 1014 |
+| inq-hist-07 | SUPPORTED/1948-12-10 | 0.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 11/4286 | 0 |
+| inq-hist-08 | REFUTED/2009-12-01 | 0.0 | 0.0 | VERIFICATION_REJECTED_TRUE_EVIDENCE | Verifier-Urteil in Richtung Wahrheit, nicht promotet: ['VERIFIER_WORKER_MISSING'] | 6/3298 | 0 |
+| inq-hist-09 | REFUTED/1985-06-14 | 1.0 | 0.5 | KEY_EXTRACTION_ERROR | Verdikt richtig; Schlüsselstufe lieferte '1990-06-19' statt '1985-06-14' (key_grounded=True) | 50/52412 | 1360 |
+| inq-hist-10 | SUPPORTED/1989 | 1.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 9/4355 | 892 |
+| inq-law-01 | SUPPORTED/4 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 504 |
+| inq-law-02 | SUPPORTED/2018-05-25 | 1.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 27/32130 | 326 |
+| inq-law-03 | REFUTED/72 | 1.0 | 0.0 | NO_ELIGIBLE_MODEL | PlumMe: keine zulässige Route ({'NO_ELIGIBLE_NEURON': 6, 'HOST_GROUNDING_INVALID': 2}) | 4/0 | 865 |
+| inq-law-04 | SUPPORTED/1689 | 1.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 29/31156 | 860 |
+| inq-law-05 | SUPPORTED/2025-02-02 | 1.0 | 0.0 | RETRIEVED_BUT_NOT_ADDRESSED | Quellen abgerufen; Verifier ['WORKERS_DISAGREE', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'VERIFIER_WORKER_MISSING', 'VERIFIER_WORKER_MISSING'] | 35/22487 | 1374 |
+| inq-law-06 | REFUTED/2025-08-02 | 1.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 34/33798 | 3297 |
+| inq-law-07 | REFUTED/1 | 0.0 | 0.0 | CORRECT_PROPOSAL_NOT_RECOGNIZED | Vorschlag mit richtigem Verdikt ({'REFUTED': 4, 'UNKNOWN': 4}) nie promotet; Verifier ['NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BO | 26/25784 | 649 |
+| inq-law-08 | SUPPORTED/3 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 410 |
+| inq-law-09 | REFUTED/2065 | 0.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 34/38902 | 532 |
+| inq-law-10 | REFUTED/16 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 258 |
+| inq-org-01 | SUPPORTED/2013-07-01 | 1.0 | 0.0 | VERIFICATION_REJECTED_TRUE_EVIDENCE | Verifier-Urteil in Richtung Wahrheit, nicht promotet: ['VERIFIER_WORKER_MISSING'] | 6/3796 | 1590 |
+| inq-org-02 | SUPPORTED/2023-04-04 | 1.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 26/28213 | 820 |
+| inq-org-03 | REFUTED/2024-03-07 | 0.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 12/9154 | 0 |
+| inq-org-04 | REFUTED/2020-01-31 | 0.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 0 |
+| inq-org-05 | SUPPORTED/20 | 1.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 30/31152 | 942 |
+| inq-org-06 | SUPPORTED/51 | 1.0 | 0.0 | BUDGET_ABORT | Zeitlimit (1200 s) ohne Abschluss: 46 Receipts, Retrieval 10/10; Ergebnis nie geschrieben (Ursache innerhalb der Aufgabe nicht rekonstruierbar) | 46/53451 | 645 |
+| inq-org-07 | REFUTED/1948-04-07 | 1.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 29/34394 | 1200 |
+| inq-org-08 | REFUTED/1954 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 347 |
+| inq-org-09 | SUPPORTED/1998-06-01 | 0.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 43/55563 | 0 |
+| inq-org-10 | REFUTED/193 | 0.0 | 0.0 | RETRIEVED_BUT_NOT_ADDRESSED | Quellen abgerufen; Verifier ['NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH'] | 19/22368 | 0 |
+| inq-sci-01 | SUPPORTED/299792458 | 1.0 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 23/26631 | 402 |
+| inq-sci-02 | REFUTED/2019-05-20 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 603 |
+| inq-sci-03 | SUPPORTED/4 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 596 |
+| inq-sci-04 | SUPPORTED/-273.15 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 388 |
+| inq-sci-05 | REFUTED/candela | 1.0 | 0.0 | CORRECT_PROPOSAL_NOT_RECOGNIZED | Vorschlag mit richtigem Verdikt ({'REFUTED': 4}) nie promotet; Verifier [] | 5/8950 | 444 |
+| inq-sci-06 | REFUTED/8 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 284 |
+| inq-sci-07 | SUPPORTED/7 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 688 |
+| inq-sci-08 | REFUTED/5730 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 623 |
+| inq-sci-09 | REFUTED/384400 | 1.0 | 0.0 | VERIFICATION_REJECTED_TRUE_EVIDENCE | Verifier-Urteil in Richtung Wahrheit, nicht promotet: ['QUOTE_INVALID_OR_DISAGREE', 'WORKERS_DISAGREE'] | 19/21450 | 964 |
+| inq-sci-10 | SUPPORTED/8848.86 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 561 |
+| inq-tech-01 | SUPPORTED/8446 | 1.0 | 0.0 | VERIFICATION_REJECTED_TRUE_EVIDENCE | Verifier-Urteil in Richtung Wahrheit, nicht promotet: ['QUOTE_INVALID_OR_DISAGREE', 'VERIFIER_WORKER_MISSING'] | 34/15182 | 679 |
+| inq-tech-02 | REFUTED/9114 | 0.0 | 0.5 | KEY_EXTRACTION_ERROR | Verdikt richtig; Schlüsselstufe lieferte 'UNKNOWN' statt '9114' (key_grounded=False) | 29/33020 | 412 |
+| inq-tech-03 | SUPPORTED/8259 | 1.0 | 0.0 | RETRIEVAL_FETCH_FAILED | Abrufe {None: 12}, keiner brauchbar; Versuche {'HOST_GROUNDING_INVALID': 8} | 0/0 | 506 |
+| inq-tech-04 | SUPPORTED/2023-10-02 | 1.0 | 0.5 | KEY_STAGE_SKIPPED_DESPITE_KEY_IN_VERIFIED_QUOTE | Verdikt richtig; Schlüssel steht in verifizierten Zitaten, wurde aber nicht extrahiert (Ausgabe 'UNKNOWN') | 34/6857 | 801 |
+| inq-tech-05 | REFUTED/3.13 | 1.0 | 0.0 | VERIFICATION_REJECTED_TRUE_EVIDENCE | Verifier-Urteil in Richtung Wahrheit, nicht promotet: ['WORKERS_DISAGREE', 'WORKERS_DISAGREE'] | 52/44300 | 2921 |
+| inq-tech-06 | SUPPORTED/2022-09-13 | 0.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 669 |
+| inq-tech-07 | SUPPORTED/128 | 1.0 | 0.0 | NO_GROUNDING_RETRIEVAL_EMPTY | alle 8 Versuche HOST_GROUNDING_INVALID, 0 Abrufe, 0 Modellaufrufe: der Host lieferte keine zulässige Primärquelle; es gibt keinen ungegründeten Pfad | 0/0 | 319 |
+| inq-tech-08 | REFUTED/256 | 1.0 | 0.0 | CORRECT_PROPOSAL_NOT_RECOGNIZED | Vorschlag mit richtigem Verdikt ({'REFUTED': 1, 'UNKNOWN': 2}) nie promotet; Verifier ['NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'VERIFIER_WORKER_MISSING'] | 33/18351 | 208 |
+| inq-tech-09 | REFUTED/2008-12-03 | 0.5 | 1.0 | F3_CORRECT | Antwort vollständig richtig | 31/30327 | 649 |
+| inq-tech-10 | REFUTED/4 | 1.0 | 0.0 | RETRIEVED_BUT_NOT_ADDRESSED | Quellen abgerufen; Verifier ['NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'NOT_ADDRESSED_BOTH', 'VERIFIER_WORKER_MISSING'] | 22/22197 | 1250 |
+
+Hinweis: Kontroll-Tokens 0 = Kontrollaufruf ohne Antwort (Versorgungsausfall, 8 Aufgaben). Zeilen mit "Keine Modellfrage" = 0 Modellaufrufe auf F3-Seite.
