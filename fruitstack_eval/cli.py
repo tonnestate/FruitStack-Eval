@@ -147,14 +147,15 @@ def cmd_ablation(args) -> int:
 
 def cmd_ogi13(args) -> int:
     """Read exported host observations: no model inference, repo imports or writes."""
-    result = ogi13.compare_paired(_jsonl(args.observations))
+    abc = args.action == "compare-abc"
+    result = (ogi13.compare_abc if abc else ogi13.compare_paired)(_jsonl(args.observations))
     result["observation_file"] = str(args.observations)
     result["complete_pairs_only"] = not (
         result["unmatched_tasks"] or result["confounded_tasks"] or
         result["missing_usage_tasks"] or result["incomplete_grade_tasks"]
     )
     _emit(result)
-    if result["paired_tasks"] == 0:
+    if result["matched_tasks" if abc else "paired_tasks"] == 0:
         return 1
     if args.require_complete and not result["complete_pairs_only"]:
         return 1
@@ -445,8 +446,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=20261011)
     p.set_defaults(func=cmd_ablation)
 
-    p = sub.add_parser("ogi13", help="OGI-013 independent fixed/adaptive organisational efficiency comparison")
-    p.add_argument("action", choices=("compare",))
+    p = sub.add_parser("ogi13", help="OGI-013 independent organisational efficiency comparison")
+    p.add_argument("action", choices=("compare", "compare-abc"))
     p.add_argument("--observations", required=True,
                    help="JSONL exported from host benchmark run, never self-graded by workers")
     p.add_argument("--require-complete", action="store_true",

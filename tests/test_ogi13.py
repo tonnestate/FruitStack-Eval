@@ -4,7 +4,7 @@ import json
 
 from fruitstack_eval.cli import main
 
-from fruitstack_eval.ogi13 import compare_paired, SCHEMA
+from fruitstack_eval.ogi13 import compare_abc, compare_paired, SCHEMA
 
 
 def observation(task, arm, *, grade=1, edges=None, calls=1, tokens=100,
@@ -176,3 +176,45 @@ def test_fse_ogi13_cli_gates_missing_usage_without_hiding_results(tmp_path, caps
     result = json.loads(capsys.readouterr().out)
     assert result["missing_usage_tasks"] == ["t1"]
     assert result["complete_pairs_only"] is False
+
+
+def test_abc_requires_same_tasks_and_reports_each_arm():
+    rows = [
+        observation("t1", "SINGLE", grade=0, tokens=50),
+        observation("t1", "FIXED", grade=0, tokens=100),
+        observation("t1", "ADAPTIVE", grade=1, tokens=120, edges=["research>verify"]),
+        observation("t2", "SINGLE", grade=1, tokens=50),
+        observation("t2", "FIXED", grade=1, tokens=100),
+        observation("t2", "ADAPTIVE", grade=1, tokens=80),
+    ]
+    result = compare_abc(rows)
+    assert result["matched_tasks"] == 2
+    assert result["overall"]["successes"] == {"SINGLE": 1, "FIXED": 1, "ADAPTIVE": 2}
+    assert result["overall"]["resources_per_verified_success"]["total_tokens"] == {
+        "SINGLE": 100, "FIXED": 200, "ADAPTIVE": 100,
+    }
+    assert result["fixed_adaptive_edges"]["research>verify"]["pairs"] == 1
+    assert result["organisational_advantage_proven"] is False
+
+
+def test_abc_excludes_missing_arm_and_confounded_task():
+    result = compare_abc([
+        observation("missing", "SINGLE"), observation("missing", "FIXED"),
+        observation("drift", "SINGLE"), observation("drift", "FIXED"),
+        observation("drift", "ADAPTIVE", budget_digest="different"),
+    ])
+    assert result["matched_tasks"] == 0
+    assert result["unmatched_tasks"] == ["missing"]
+    assert result["confounded_tasks"] == ["drift"]
+
+
+def test_abc_cli_exposes_missing_usage_without_false_cost(tmp_path, capsys):
+    observations = tmp_path / "observations.jsonl"
+    rows = [observation("t1", arm) for arm in ("SINGLE", "FIXED", "ADAPTIVE")]
+    rows[-1]["provider_receipt_refs"] = []
+    observations.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    assert main(["ogi13", "compare-abc", "--observations", str(observations),
+                 "--require-complete"]) == 1
+    result = json.loads(capsys.readouterr().out)
+    assert result["missing_usage_tasks"] == ["t1"]
+    assert result["overall"]["resources_per_verified_success"]["cost_usd"]["ADAPTIVE"] is None

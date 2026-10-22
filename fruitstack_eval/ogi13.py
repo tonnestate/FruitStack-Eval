@@ -12,7 +12,9 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 SCHEMA = "FSE-OGI13-PAIR/1"
+SCHEMA_ABC = "FSE-OGI13-ABC/1"
 ARMS = frozenset(("FIXED", "ADAPTIVE"))
+ABC_ARMS = frozenset(("SINGLE", "FIXED", "ADAPTIVE"))
 PARITY_KEYS = (
     "benchmark_id", "benchmark_revision", "task_manifest_digest",
     "grader_digest", "model_pool_digest", "skills_digest", "tools_digest",
@@ -49,7 +51,7 @@ def _check_row(raw: dict) -> dict:
     row = dict(raw)
     for field in ("task_id", "arm", *PARITY_KEYS, "work_ref", "trace_ref"):
         _nonempty(row, field)
-    if row["arm"] not in ARMS:
+    if row["arm"] not in ABC_ARMS:
         raise ValueError("INVALID_ARM")
     status = row.get("grade_status")
     if status not in ("VERIFIED", "UNKNOWN", "INCOMPLETE"):
@@ -227,3 +229,92 @@ def compare_paired(rows: Iterable[dict]) -> dict[str, Any]:
     if out["paired_tasks"] < 2:
         out["limitations"].append("INSUFFICIENT_PAIRED_TASKS")
     return out
+
+
+def compare_abc(rows: Iterable[dict]) -> dict[str, Any]:
+    """Compare single, fixed and adaptive runs on exactly the same task set.
+
+    This is descriptive analysis of host exports. Receipt references and grader
+    independence still require verification outside this package.
+    """
+    by_task: dict[str, dict[str, dict]] = defaultdict(dict)
+    paired_rows = []
+    count = 0
+    for raw in rows:
+        row = _check_row(raw)
+        count += 1
+        if row["arm"] in by_task[row["task_id"]]:
+            raise ValueError("DUPLICATE_TASK_ARM")
+        by_task[row["task_id"]][row["arm"]] = row
+        if row["arm"] in ARMS:
+            paired_rows.append(raw)
+
+    result: dict[str, Any] = {
+        "schema": SCHEMA_ABC,
+        "observation_rows": count,
+        "assigned_tasks": len(by_task),
+        "matched_tasks": 0,
+        "unmatched_tasks": [],
+        "confounded_tasks": [],
+        "missing_usage_tasks": [],
+        "incomplete_grade_tasks": [],
+        "overall": {},
+        "fixed_adaptive_edges": {},
+        "organisational_advantage_proven": False,
+        "causal_effect_proven": False,
+        "grader_provenance_attested": False,
+        "policy_promotion_authorized": False,
+        "limitations": [
+            "OBSERVATION_ONLY_NO_PRE_REGISTERED_RANDOMISATION_ATTESTED",
+            "GRADER_AND_PROVIDER_RECEIPT_REFERENCES_NOT_AUTHENTICATED",
+            "NO_OFFICIAL_BENCHMARK_GRADER_VERIFIED_BY_THIS_MODULE",
+        ],
+    }
+    matched = []
+    for task_id, arms in sorted(by_task.items()):
+        if set(arms) != ABC_ARMS:
+            result["unmatched_tasks"].append(task_id)
+            continue
+        if any(len({arms[arm][key] for arm in ABC_ARMS}) != 1 for key in PARITY_KEYS):
+            result["confounded_tasks"].append(task_id)
+            continue
+        if any(not row["_usage_complete"] for row in arms.values()):
+            result["missing_usage_tasks"].append(task_id)
+        if any(row["grade_status"] != "VERIFIED" for row in arms.values()):
+            result["incomplete_grade_tasks"].append(task_id)
+        matched.append(arms)
+
+    n = len(matched)
+    successes = {
+        arm: sum(rows[arm]["grade_status"] == "VERIFIED" and rows[arm]["grade"] == 1
+                 for rows in matched)
+        for arm in ("SINGLE", "FIXED", "ADAPTIVE")
+    }
+    complete = n > 0 and not result["missing_usage_tasks"]
+    result["matched_tasks"] = n
+    result["overall"] = {
+        "successes": successes,
+        "success_rate": {arm: successes[arm] / n if n else None for arm in successes},
+        "complete_usage_tasks": n - len(result["missing_usage_tasks"]),
+        "resources_per_verified_success": {
+            metric: {
+                arm: sum(rows[arm][metric] for rows in matched) / successes[arm]
+                if complete and successes[arm] else None
+                for arm in successes
+            }
+            for metric in RESOURCE_KEYS
+        },
+    }
+    if result["missing_usage_tasks"]:
+        result["limitations"].append("INCOMPLETE_RESOURCE_ACCOUNTING")
+    if result["incomplete_grade_tasks"]:
+        result["limitations"].append("INCOMPLETE_OR_UNVERIFIED_GRADING")
+    if result["confounded_tasks"]:
+        result["limitations"].append("MISMATCHED_RESOURCES_OR_BENCHMARK")
+    if n < 2:
+        result["limitations"].append("INSUFFICIENT_MATCHED_TASKS")
+    matched_ids = {rows["FIXED"]["task_id"] for rows in matched}
+    result["fixed_adaptive_edges"] = compare_paired(
+        row for row in paired_rows if row["task_id"] in matched_ids
+    )["by_one_added_edge"]
+    return result
