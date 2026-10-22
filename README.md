@@ -33,11 +33,18 @@ The F3 runner requires AppleMe assurance and a configured composer offer before 
 | `fse blind export` / `ingest` | Shuffled, arm-free, name-redacted grading packets; key hash committed before grading; whole-task voiding | Gate G4 |
 | `fse seal create` / `verify` | Row-level SHA-256 seal of append-only logs; reports APPEND_ONLY, RETENTION_DROPPED or TAMPERED | Gate G5 |
 | `fse logcheck` | Field-by-field completeness of decisions, propensities, fingerprints, quota, cost, feedback, interventions and seal | Gate G5 |
+| `fse ogi13 compare` | OGI-013 independent fixed/adaptive task-pair evidence: verified success and separate resource cost per success, explicit missing receipts/grading and zero causal/AGI claims | OGI13-PAIRED/1 (new proposal; not part of frozen PILOT-PROC/1) |
 | `fse pilot analyze` | Descriptive pilot estimates per arm and pair: successes, failures, unverifiable, abstentions, success-rate and utility differences, discordance psi with cluster bootstrap, sample-size proposal; no p-values | Phase 3, §5.4 |
 | `fse replay` | Recomputes every committed report of an evidence directory from its raw logs (`replay.toml`) and lists differences | Gate G6 |
 | `fse deposit build` / `verify` | Deposit manifest (SHA-256 per file, digest) of protocol, task manifest, thresholds, pilot procedure and freeze; passes only with a recorded DOI | Gate G7 |
 
 All commands print JSON. Exit codes: `0` success, `1` a check failed, `2` invalid input.
+
+## OGI-013 research extension (proposal, NOT a completed run)
+
+The additional `fruitstack_eval.ogi13` analyzer and `fse ogi13 compare --observations ROWS.jsonl --require-complete` compare matched FIXED vs ADAPTIVE task-variable organisations on the same frozen benchmark tasks, worker supply, tools, skills and resource ceilings. It reports independently **declared** grades, incomplete or unpaired tasks, provider receipt gaps, token/quota/time/cost/human-effort consumption and resources per fully successful task. It never imports any FruitStack component, selects a worker, calls a model, certifies receipt authenticity, promotes a policy or claims scientific OGI.
+
+See `OGI013_EVALUATION.md` for the full JSONL observation schema and evidence requirements. This extension is intentionally separate from the frozen 50-task `PILOT_PROTOCOL.md` and any deposited OGI-012 outcome. No genuine OGI-013 host benchmark has yet been demonstrated by this change.
 
 ## Install and test
 
