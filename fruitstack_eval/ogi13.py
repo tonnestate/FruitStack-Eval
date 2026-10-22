@@ -163,9 +163,11 @@ def compare_paired(rows: Iterable[dict]) -> dict[str, Any]:
                     "mean_resource_delta": {name: None for name in RESOURCE_KEYS}}
 
         successes = {
-            arm: sum(row[arm]["grade_status"] == "VERIFIED" and row[arm]["grade"] == 1
-                     for _, fixed, adapt, _ in matched_rows
-                     for row in ({"FIXED": fixed, "ADAPTIVE": adapt},))
+            arm: sum(
+                (fixed if arm == "FIXED" else adapt)["grade_status"] == "VERIFIED"
+                and (fixed if arm == "FIXED" else adapt)["grade"] == 1
+                for _, fixed, adapt, _ in matched_rows
+            )
             for arm in ("FIXED", "ADAPTIVE")
         }
         success_rates = {arm: successes[arm] / n for arm in successes}
@@ -180,11 +182,11 @@ def compare_paired(rows: Iterable[dict]) -> dict[str, Any]:
             )
             # Require COMPLETE measurements across every included task before
             # using the denominator; partial USD bills are not real ROI.
-            complete = len(pairs_with_metric) == n
+            complete = len(usage_rows) == n
             values = {
                 arm: (
-                    sum(row[arm][metric] for _, f, a, _ in matched_rows
-                        for row in ({"FIXED": f, "ADAPTIVE": a},)) / successes[arm]
+                    sum((fixed if arm == "FIXED" else adapt)[metric]
+                        for _, fixed, adapt, _ in matched_rows) / successes[arm]
                     if complete and successes[arm] else None
                 )
                 for arm in successes
