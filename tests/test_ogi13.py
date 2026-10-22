@@ -156,7 +156,7 @@ def test_fse_ogi13_cli_parses_actual_export_shape(tmp_path, capsys):
         observation("t1", "FIXED", grade=0),
         observation("t1", "ADAPTIVE", grade=1, edges=["analysis>verification"]),
     ]
-    observations.write_text("".join(json.dumps(row) + "\\n" for row in pairs), encoding="utf-8")
+    observations.write_text("".join(json.dumps(row) + "\n" for row in pairs), encoding="utf-8")
     assert main(["ogi13", "compare", "--observations", str(observations)]) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["paired_tasks"] == 1
@@ -170,7 +170,7 @@ def test_fse_ogi13_cli_gates_missing_usage_without_hiding_results(tmp_path, caps
         observation("t1", "FIXED", provider_receipt_refs=[]),
         observation("t1", "ADAPTIVE", grade=1),
     ]
-    observations.write_text("".join(json.dumps(row) + "\\n" for row in pairs), encoding="utf-8")
+    observations.write_text("".join(json.dumps(row) + "\n" for row in pairs), encoding="utf-8")
     assert main(["ogi13", "compare", "--observations", str(observations),
                  "--require-complete"]) == 1
     result = json.loads(capsys.readouterr().out)
