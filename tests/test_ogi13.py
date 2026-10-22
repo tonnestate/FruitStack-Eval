@@ -1,5 +1,8 @@
 """Independent OGI-013 analysis: resource parity, missing evidence and honest ROI."""
 import pytest
+import json
+
+from fruitstack_eval.cli import main
 
 from fruitstack_eval.ogi13 import compare_paired, SCHEMA
 
@@ -146,3 +149,30 @@ def test_duplicate_arms_cannot_dilute_denominators():
             observation("t1", "FIXED"),
             observation("t1", "FIXED"),
         ])
+
+def test_fse_ogi13_cli_parses_actual_export_shape(tmp_path, capsys):
+    observations = tmp_path / "observations.jsonl"
+    pairs = [
+        observation("t1", "FIXED", grade=0),
+        observation("t1", "ADAPTIVE", grade=1, edges=["analysis>verification"]),
+    ]
+    observations.write_text("".join(json.dumps(row) + "\\n" for row in pairs), encoding="utf-8")
+    assert main(["ogi13", "compare", "--observations", str(observations)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["paired_tasks"] == 1
+    assert result["overall"]["success_rate_delta"] == 1.0
+    assert result["organisational_advantage_proven"] is False
+
+
+def test_fse_ogi13_cli_gates_missing_usage_without_hiding_results(tmp_path, capsys):
+    observations = tmp_path / "observations.jsonl"
+    pairs = [
+        observation("t1", "FIXED", provider_receipt_refs=[]),
+        observation("t1", "ADAPTIVE", grade=1),
+    ]
+    observations.write_text("".join(json.dumps(row) + "\\n" for row in pairs), encoding="utf-8")
+    assert main(["ogi13", "compare", "--observations", str(observations),
+                 "--require-complete"]) == 1
+    result = json.loads(capsys.readouterr().out)
+    assert result["missing_usage_tasks"] == ["t1"]
+    assert result["complete_pairs_only"] is False
