@@ -10,7 +10,7 @@ FruitStack tests **organisational** intelligence with replaceable, low-cost work
 ## Architecture of the actual experiment
 
 External host runner (not an evaluator import):
-- IntakeGov/SPRARI and MangoMe own qualified work identity and reuse/canonical acceptance.
+- IntakeGov/SPARI and MangoMe own qualified work identity and reuse/canonical acceptance.
 - CherryMe owns cognitive inquiry and how to assemble competences; PlumMe owns labour market, skill eligibility, model/route supply and its own DecisionLog.
 - PeachMe is the virtual session/signal admission layer, PomeloMe the deterministic effect/recovery runtime, AppleMe is NoLLM trajectory assurance.
 - OrangeMe preserves the project ledger; CogC compiles safe efficient model-specific context; BlueberryMe controls sensitive egress. Other specialist tools are invoked only for justified tasks.
