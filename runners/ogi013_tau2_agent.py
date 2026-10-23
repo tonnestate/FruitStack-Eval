@@ -1,0 +1,352 @@
+"""OGI-013 adapter: the integrated FruitStack as a tau2-bench agent (official tasks, official environment, official grader).
+
+Every agent turn is decided THROUGH the integrated stack - never CherryMe -> PlumMe directly:
+  MangoMe  : one WorkIdentity + EXECUTE turn per task (isolated database), authority re-verified at every PeachMe context read
+  OrangeMe : the project memory ledger (isolated local git ledgers) that PeachMe requires for every context
+  PeachMe  : session, budget, reflex arc, egress; every model call is a PeachMe step (prepare -> infer) whose receipts and usage land in the session ledger
+  PlumMe   : the heart - dynamic qualified zero-charge supply behind PeachMe's PlumMeProvider
+  CherryMe : Brother Mode rounds (solution / challenge / revision, lineage kept in its ContributionLedger) for FIXED and consequence-triggered review in ADAPTIVE
+  AppleMe  : trajectory assurance observed every turn; an unhealthy state becomes a HEALTH_WARNING signal in PeachMe, whose BLOCK reflex stops the agent (effective, not decorative)
+
+Three conditions share the same supply, controls and budgets:
+  single   : one worker decides each turn; tool effects still pass Pomelo's gate.
+  fixed    : CherryMe reviews every valid action with another lineage.
+  adaptive : a predeclared consequence rule reviews writes/transfers; other actions use one worker. This is not a learned competence policy.
+Usage: imported by ogi013_tau2_run.py (registers the agent factory)."""
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import json
+import os
+import re
+import time
+import uuid
+from pathlib import Path
+from typing import Any, Optional
+
+from tau2.agent.base_agent import HalfDuplexAgent
+from tau2.data_model.message import AssistantMessage, Message, MultiToolMessage, ToolCall, ToolMessage, UserMessage
+from tau2.environment.tool import Tool
+from tau2.environment.toolkit import TOOL_TYPE_ATTR, ToolType
+
+MODES = ("single", "fixed", "adaptive")
+SYSTEM = """You are a customer service agent. Follow the <policy> strictly.
+In each turn you do exactly ONE of: send a message to the user, or make one tool call. Never both.
+Reply with EXACTLY ONE JSON object and nothing else:
+  {{"action": "message", "content": "<text for the user>"}}
+  {{"action": "tool", "name": "<tool name>", "arguments": {{...}}}}
+When the conversation is finished, say so in a message. Only use the tools listed below, with their documented arguments.
+<policy>
+{policy}
+</policy>
+<tools>
+{tools}
+</tools>"""
+
+
+def _is_write(tool: Tool) -> bool:
+    fn = getattr(tool, "_func", None)
+    fn = getattr(fn, "__func__", fn)
+    return getattr(fn, TOOL_TYPE_ATTR, None) == ToolType.WRITE
+
+
+def _tool_card(tool: Tool) -> str:
+    schema = tool.openai_schema.get("function", {})
+    return json.dumps({"name": schema.get("name"), "description": (schema.get("description") or "")[:700], "parameters": schema.get("parameters", {}).get("properties", {}),
+                       "required": schema.get("parameters", {}).get("required", [])}, ensure_ascii=False)
+
+
+def parse_action(text: str | None) -> dict | None:
+    """First JSON object of the reply with a valid action."""
+    if not text:
+        return None
+    decoder = json.JSONDecoder()
+    for m in re.finditer(r"\{", text):
+        try:
+            obj, _ = decoder.raw_decode(text[m.start():])
+        except ValueError:
+            continue
+        if isinstance(obj, dict) and obj.get("action") in ("message", "tool"):
+            if obj["action"] == "message" and isinstance(obj.get("content"), str):
+                return obj
+            if obj["action"] == "tool" and isinstance(obj.get("name"), str) and isinstance(obj.get("arguments", {}), dict):
+                obj.setdefault("arguments", {})
+                return obj
+    return None
+
+
+def should_organize(mode: str, action: dict, write_tools: set[str]) -> bool:
+    if mode == "fixed":
+        return True
+    if mode == "adaptive":
+        return action["action"] == "tool" and (action["name"] in write_tools or action["name"] == "transfer_to_human_agents")
+    return False
+
+
+class Stack:
+    """Process-wide integrated FruitStack (built once). Per-episode state lives in Episode."""
+    _inst: Optional["Stack"] = None
+
+    @classmethod
+    def get(cls, out: Path) -> "Stack":
+        if cls._inst is None:
+            cls._inst = cls(out)
+        return cls._inst
+
+    def __init__(self, out: Path):
+        required = ("OGI013_WORK_REF", "OGI013_TURN_ID", "OGI013_ACTOR_ID", "OGI013_PROJECT_REF")
+        missing = [name for name in required if not os.environ.get(name)]
+        if missing:
+            raise RuntimeError("HOST_BOUND_WORK_REQUIRED: " + ", ".join(missing))
+        from cherryme.appleme_bridge import connect_appleme
+        from mangome.runtime import get_service
+        from orangeme.runtime import OrangeRuntime
+        from peachme import SessionStore
+        from peachme.fruitstack import AppleAssuranceAdapter, FruitStackSession, MangoWorkAdapter, OrangeMemoryAdapter
+        from peachme.plumme import PlumMeProvider
+        from plumme.config import Settings
+        from plumme.credentials import CredentialSource, CredentialSourceKind
+        from plumme.service import PlumMeService, default_adapters
+        self.out = out
+        out.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("PLUMME_STATE_DIR", str(out / "plumme-state"))
+        (Path(os.environ["PLUMME_STATE_DIR"]) / "knowledge").mkdir(parents=True, exist_ok=True)
+        snap = Path("/root/fruits/research/FRUITSTACK-EVAL-004/inputs/models.dev-api.json")
+        if snap.exists() and not (Path(os.environ["PLUMME_STATE_DIR"]) / "knowledge" / "models.dev-api.json").exists():
+            import shutil
+            shutil.copyfile(snap, Path(os.environ["PLUMME_STATE_DIR"]) / "knowledge" / "models.dev-api.json")
+        settings = Settings.load()
+        self.svc = PlumMeService(settings, adapters=default_adapters(settings))
+        if os.environ.get("FLM_KEY"):
+            self.svc.credentials.register_source(CredentialSource("freellmapi", CredentialSourceKind.ENV_REFERENCE, "freellmapi-isolated-instance", {"var": "FLM_KEY"}))
+        asyncio.run(self.svc.discover())
+        self.mango = get_service()
+        self.orange = OrangeRuntime()
+        self.appleme = connect_appleme(workspace_root=out / "appleme")
+        self.store = SessionStore(out / "peachme.sqlite3")
+        self.heart = PlumMeProvider(self.svc)
+        self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange), assurance=AppleAssuranceAdapter(self.appleme.service),
+                                    authorize_model_input=lambda text, view: text)
+        self.projects: dict[str, str] = {}
+
+    def project(self, workspace: str) -> tuple[str, str, str]:
+        """Use only a work identity and active turn admitted by the invoking host."""
+        values = {name: os.environ.get(name) for name in (
+            "OGI013_WORK_REF", "OGI013_TURN_ID", "OGI013_ACTOR_ID", "OGI013_PROJECT_REF"
+        )}
+        missing = [name for name, value in values.items() if not value]
+        if missing:
+            raise RuntimeError("HOST_BOUND_WORK_REQUIRED: " + ", ".join(missing))
+        return values["OGI013_WORK_REF"], values["OGI013_PROJECT_REF"], values["OGI013_TURN_ID"]
+
+
+class Episode:
+    def __init__(self, stack: Stack, mode: str, task_id: str, domain: str, budget: dict, log: Path):
+        self.stack, self.mode, self.task_id, self.domain, self.log = stack, mode, task_id, domain, log
+        fs = stack.fs
+        self.actor = os.environ["OGI013_ACTOR_ID"]
+        self.work, self.project, self.turn_id = stack.project(f"/ogi013/tau2/{domain}/{mode}")
+        self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")
+        self.sid = self.session.session_id
+        fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
+        fs.governance.configure(self.sid, stack.store.get(self.sid).revision, **budget)
+        from cherryme.contributions import ContributionLedger
+        from cherryme.models import Claim
+        self.ledger = ContributionLedger()
+        self.claim = Claim(text=f"Resolve the customer's request in tau2 {domain} task {task_id} within the policy.")
+        self.signal = stack.appleme.start_run(claims=[self.claim], frame={"appleme": {"root_goal": self.claim.text, "definition_of_done": "The customer's request is resolved or transferred according to the policy, "
+                                              "with no repeated failing action.", "policy": {"no_progress_heartbeat_threshold": 8}}}, budget=1, call_budget=None)
+        self.run_id = self.signal.target_run_id
+        self.assurance_id = self.signal.assurance_id
+        self.step_n = 0
+        self.turns = 0
+        self.stopped = False
+        self.stats = {"steps": 0, "step_retries": 0, "escalations": 0, "challenges_found": 0, "revisions": 0, "reflex_blocks": 0, "unknown_steps": 0, "tokens_in": 0, "tokens_out": 0, "models": {}}
+
+    def event(self, kind: str, **data: Any) -> None:
+        with self.log.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "task": self.task_id, "mode": self.mode, "sid": self.sid, "event": kind, **data}, default=str) + "\n")
+
+    # one model call = one PeachMe step on the integrated stack; transient supply conditions are handled by PlumMe/PeachMe contracts, not by the benchmark
+    def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None) -> dict:
+        from peachme import PeachError
+        fs, last = self.stack.fs, None
+        for attempt in range(4):
+            self.step_n += 1
+            key = f"{self.task_id}:{self.turns}:{tag}:{self.step_n}"
+            s = self.stack.store.get(self.sid)
+            self.stack.heart.exclude_independence_keys = tuple(x for x in exclude if x)
+            self.stack.heart.prefer_model_key = prefer if attempt == 0 else None
+            t0 = time.monotonic()
+            try:
+                turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))
+                env = self.stack.store.get(self.sid).environment or {}
+                out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
+                                           reserve_tokens=self.reserve(prompt), reserve_cost_usd=0.0))
+            except PeachError as exc:
+                code = str(exc)
+                last = code
+                self.event("STEP_REFUSED", step=key, code=code, attempt=attempt + 1)
+                if code.startswith("REFLEX_BLOCKED"):
+                    raise
+                if code.startswith(("EXECUTION_NOT_PERFORMED", "EXECUTION_OUTPUT_UNUSABLE")):
+                    self.stats["step_retries"] += 1
+                    continue
+                if code.startswith("EXECUTION_NOT_CONFIRMED"):
+                    self.stats["unknown_steps"] += 1
+                    # UNKNOWN retains its reservation until authoritative host reconciliation.
+                    raise
+                raise
+            self.stats["steps"] += 1
+            st = out.step
+            self.stats["tokens_in"] += st.input_tokens or 0
+            self.stats["tokens_out"] += st.output_tokens or 0
+            self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
+            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2),
+                       independence_key=env.get("independence_key"), model_key=env.get("model_key"))
+            return {"success": True, "output": out.output, "model_key": env.get("model_key") or out.model, "independence_key": env.get("independence_key"), "receipt_id": st.receipt_id}
+        return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
+
+    def reserve(self, prompt: str) -> int:
+        snap = self.stack.fs.governance.snapshot(self.sid)
+        # UTF-8 bytes conservatively bound input tokens without excluding ordinary small-context free routes.
+        needed = len(prompt.encode("utf-8")) + 2048
+        return int(min(needed, snap["tokens_remaining"])) if snap else needed
+
+    def blocking(self) -> list[str]:
+        return list(self.stack.fs.vitals(self.sid).blocking)
+
+    def assure(self, event: dict) -> str:
+        """AppleMe observes the turn; an unhealthy assessment becomes a HEALTH_WARNING signal in PeachMe (BLOCK reflex)."""
+        sig = self.stack.appleme.observe_event(target_run_id=self.run_id, event=event, claim=self.claim)
+        try:
+            self.stack.fs.check_assurance(self.sid, assurance_id=self.assurance_id, event_key=f"{self.task_id}:{self.turns}")
+        except Exception as exc:  # noqa: BLE001 - assurance trouble must be visible, not silent
+            self.event("ASSURANCE_ERROR", error=str(exc)[:200])
+        self.event("ASSURANCE", health=sig.health_state, recommendation=sig.recommendation, blocking=self.blocking())
+        return sig.health_state
+
+    def close(self, reason: str) -> None:
+        if self.stopped:
+            return
+        self.stopped = True
+        try:
+            self.stack.appleme.finish_run(target_run_id=self.run_id, claims=[self.claim], stop_reason=reason)
+        except Exception as exc:  # noqa: BLE001
+            self.event("ASSURANCE_CLOSE_ERROR", error=str(exc)[:200])
+        snap = self.stack.fs.governance.snapshot(self.sid)
+        rows = [{"kind": r.kind, "reason": r.reason, "worker": r.worker, "status": r.epistemic_status} for r in self.ledger.rows]
+        self.event("EPISODE_CLOSED", reason=reason, stats=self.stats, budget=snap, contributions=rows)
+
+
+class FruitStackTau2Agent(HalfDuplexAgent[dict]):
+    def __init__(self, tools: list[Tool], domain_policy: str, *, mode: str, task: Any, domain: str, out: Path, budget: dict):
+        super().__init__(tools=tools, domain_policy=domain_policy)
+        if mode not in MODES:
+            raise ValueError(f"unsupported OGI-013 mode: {mode}")
+        self.mode, self.task, self.domain, self.out, self.budget = mode, task, domain, out, budget
+        self.write_tools = {t.name for t in tools if _is_write(t)}
+        self.prompt_head = SYSTEM.format(policy=domain_policy, tools="\n".join(_tool_card(t) for t in tools))
+        self.ep: Optional[Episode] = None
+
+    def get_init_state(self, message_history: Optional[list[Message]] = None) -> dict:
+        stack = Stack.get(self.out)
+        self.ep = Episode(stack, self.mode, getattr(self.task, "id", "task"), self.domain, self.budget, self.out / "fruitstack-events.jsonl")
+        self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
+        return {"transcript": [], "n_calls": 0}
+
+    @staticmethod
+    def _line(m: Message) -> str:
+        if isinstance(m, UserMessage):
+            return f"USER: {m.content}"
+        if isinstance(m, ToolMessage):
+            return f"TOOL RESULT ({m.id}): {str(m.content)[:3000]}"
+        if isinstance(m, AssistantMessage):
+            if m.tool_calls:
+                tc = m.tool_calls[0]
+                return f"ASSISTANT TOOL CALL: {tc.name}({json.dumps(tc.arguments, ensure_ascii=False)})"
+            return f"ASSISTANT: {m.content}"
+        return str(m)
+
+    def _decision_prompt(self, state: dict) -> str:
+        return self.prompt_head + "\n<conversation>\n" + "\n".join(state["transcript"]) + "\n</conversation>\nYour next action (one JSON object):"
+
+    def generate_next_message(self, message, state: dict):
+        ep = self.ep
+        ep.turns += 1
+        msgs = message.tool_messages if isinstance(message, MultiToolMessage) else [message]
+        for m in msgs:
+            state["transcript"].append(self._line(m))
+            if isinstance(m, ToolMessage) and m.error:                      # observed tool error: the same error repeated is what AppleMe watches for
+                ep.last_error = hashlib.sha256(str(m.content)[:200].encode()).hexdigest()[:12]
+        blocking = ep.blocking()
+        if blocking:                                                             # the reflex arc is binding: no further model spending, the agent stops acting
+            ep.stats["reflex_blocks"] += 1
+            ep.event("REFLEX_STOP", blocking=blocking)
+            msg = AssistantMessage.text("I am unable to continue with this request; I am handing it over to a human agent. ###STOP###")
+            if "transfer_to_human_agents" in {t.name for t in self.tools}:
+                msg = AssistantMessage.text("", tool_calls=[ToolCall(id=f"call_{uuid.uuid4().hex[:10]}", name="transfer_to_human_agents", arguments={"summary": "Automatic stop: operational health signal."}, requestor="assistant")])
+            state["transcript"].append("ASSISTANT: <reflex stop>")
+            ep.close("REFLEX_BLOCKED")
+            return msg, state
+        prompt = self._decision_prompt(state)
+        draft = ep.step(prompt, "draft")
+        action = parse_action(draft["output"]) if draft["success"] else None
+        if action is None and draft["success"]:
+            fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", "format")
+            action = parse_action(fix["output"]) if fix["success"] else None
+            draft = fix if action else draft
+        final_text = draft["output"]
+        if action is not None and should_organize(self.mode, action, self.write_tools):
+            ep.stats["escalations"] += 1
+            final_text, action = self._organize(ep, prompt, draft, action)
+        if action is None:
+            action = {"action": "message", "content": "I'm sorry, I could not complete that step. Could you please repeat your request?"}
+            ep.event("NO_VALID_ACTION")
+        if action["action"] == "tool":
+            names = {t.name for t in self.tools}
+            if action["name"] not in names:
+                ep.event("UNKNOWN_TOOL", name=action["name"])
+                action = {"action": "message", "content": "I'm sorry, I cannot do that. Is there anything else I can help you with?"}
+        if action["action"] == "tool":
+            msg = AssistantMessage.text("", tool_calls=[ToolCall(id=f"call_{uuid.uuid4().hex[:10]}", name=action["name"], arguments=action["arguments"], requestor="assistant")])
+            state["transcript"].append(f"ASSISTANT TOOL CALL: {action['name']}({json.dumps(action['arguments'], ensure_ascii=False)})")
+        else:
+            msg = AssistantMessage.text(action["content"])
+            state["transcript"].append(f"ASSISTANT: {action['content']}")
+        outcome = "COUNTED_FAILURE" if getattr(ep, "last_error", None) and action["action"] == "tool" else "PROGRESS"
+        ep.assure({"question_type": "ACT" if action["action"] == "tool" else "SAY", "question_outcome": outcome, "mutation_error": {"code": getattr(ep, "last_error", None)} if outcome == "COUNTED_FAILURE" else {}})
+        ep.last_error = None
+        return msg, state
+
+    def _organize(self, ep: Episode, prompt: str, draft: dict, action: dict) -> tuple[str, dict]:
+        """CherryMe Brother Mode on the first draft: a different lineage challenges it against the policy, the author revises on criticism. Calls go through PeachMe steps."""
+        from cherryme.brother import run_rounds
+
+        def work(p: str, stage: str, prefer=None, exclude=()):
+            r = ep.step(p, stage, exclude=tuple(exclude), prefer=prefer.split("#")[0] if prefer else None)
+            return r
+
+        seed = {"text": draft["output"], "model_key": draft.get("model_key"), "independence_key": draft.get("independence_key"), "receipt_id": draft.get("receipt_id")}
+        task_prompt = prompt + "\n(Reminder for any reviewer: the reply must stay a single valid JSON action and must comply with the policy and the tool documentation.)"
+        res = run_rounds(task_prompt=task_prompt, brief="", work=work, ledger=ep.ledger, claim_id=ep.claim.id, n_solvers=1, review_single=True, seed_solution=seed, max_rounds=2)
+        ep.stats["challenges_found"] += res.issues_found
+        ep.stats["revisions"] += res.revised
+        ep.event("ORGANIZED", issues=res.issues_found, revised=res.revised, rounds=res.rounds, stop=res.stop_reason, failures=res.failures)
+        for text in reversed(list(res.positions.values())):
+            parsed = parse_action(text)
+            if parsed is not None:
+                return text, parsed
+        return draft["output"], action
+
+    def stop(self, message=None, state=None) -> None:
+        if self.ep is not None:
+            self.ep.close("TASK_ENDED")
+
+
+def make_factory(mode: str, out: Path, budget: dict, domain_of_task=lambda task: "unknown"):
+    def factory(tools, domain_policy, **kwargs):
+        task = kwargs.get("task")
+        return FruitStackTau2Agent(tools, domain_policy, mode=mode, task=task, domain=domain_of_task(task), out=out, budget=budget)
+    return factory
