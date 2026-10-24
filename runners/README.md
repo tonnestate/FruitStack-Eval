@@ -8,6 +8,45 @@ Scripts in this directory run **on the host that executes the arms** (the FruitS
 | `g2_supply_calibration.py` | G2 | No. It refuses to start unless `PLUMME_COST_POLICY=FREE_ONLY`, executes only offers the hard-eligibility gate admitted under that policy, and re-checks the cost class before every call. It consumes free quota. | `census.json`, `results.jsonl`, `run.json`, the run's DecisionLog |
 | `pilot_inquiry.py` | Phase 2 | No. Refuses to start unless `PLUMME_COST_POLICY=FREE_ONLY`, or with fewer than `--min-free-models` (default 50) executable free models (`plumme coverage --free`, PLUMME-FREE-SUPPLY-001); arm A is refused outright and needs a separately approved run. Never reads task references. `--shard K/N` splits the tasks across N parallel processes with separate state directories. CherryMe `INCOMPLETE` is recorded as a system outcome, never as an answer. | `results-<ARM>.jsonl`, `run-<ARM>.json`, the arm's DecisionLog, CherryMe workspaces (F3) |
 
+## OGI-013: existing canonical host Python (not the frozen FREE_ONLY pilots)
+
+For OGI-013 only, the executable host bootstrap is
+`runners/ogi013_host_bootstrap.py`. The official benchmark checkout and all
+FruitStack component checkouts must be **existing, canonical local sources**.
+The bootstrap installs them editable in the **same host Python** that will
+execute the original OGI-013 runner, so stale/missing `loguru`, `tau2`,
+`mangome`, or `orangeme` cannot be mistaken for missing architecture.
+It rejects the unrelated `tau2` package from PyPI. No new model credentials,
+work identities, authorizations, tool plans, or spending limits are created.
+
+Invoke the bootstrap with the actual host values (do not clone or use an
+unverified benchmark revision). The local original benchmark runner is passed
+by its actual absolute file path:
+
+```bash
+python3 runners/ogi013_host_bootstrap.py \
+  --host-python /opt/fruitstack/venv-host/bin/python \
+  --tau2-checkout "$EXISTING_OFFICIAL_TAU2_CHECKOUT" \
+  --components-root "$CANONICAL_FRUITSTACK_CHECKOUTS" \
+  --runner "$EXISTING_OGI013_RUNNER" \
+  --task-limit 3
+```
+
+The wrapper logs the FruitStack component SHA of each canonical checkout.
+The runner itself must continue to use an already host-bound MangoMe EXECUTE
+turn and a trusted PomeloMe gateway + real authority and plan providers; it
+must not manufacture them. PeachMe's existing
+`FruitStackSession.attach_host_effects(...)` accepts these already-authorized
+objects when the original host composer creates the session before the effect
+bridge. Real provider runs and the independent evaluator are separate
+operations, not simulated by this installer.
+
+**Version comparability:** tau2 1.x and 2.x are not equivalent benchmarks.
+Record the official tau2 checkout HEAD and use the *same checkout* for all
+compared arms; do not silently upgrade a running experiment. The older
+FREE_ONLY G2/pilot documentation below describes frozen historical protocols,
+not an OGI-013 supply restriction.
+
 ## Order on the host
 
 First `fse stack --python /opt/fruitstack/venv-host/bin/python --fetch`: no run starts while a required FruitStack part is missing, stale or hand-patched. Run from a checkout of this repository with the host's PlumMe environment loaded (`/opt/fruitstack/venv-host`, the usual `PLUMME_*` variables, `PLUMME_COST_POLICY=FREE_ONLY`). `fse` is this repository's CLI, installed into any Python 3.11+ environment (`pip install -e .`).
