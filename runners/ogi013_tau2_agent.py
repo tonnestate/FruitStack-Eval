@@ -142,7 +142,7 @@ class Stack:
 
 
 class Episode:
-    def __init__(self, stack: Stack, mode: str, task_id: str, domain: str, budget: dict, log: Path):
+    def __init__(self, stack: Stack, mode: str, task_id: str, domain: str, log: Path):
         self.stack, self.mode, self.task_id, self.domain, self.log = stack, mode, task_id, domain, log
         fs = stack.fs
         self.actor = os.environ["OGI013_ACTOR_ID"]
@@ -150,7 +150,6 @@ class Episode:
         self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
-        fs.governance.configure(self.sid, stack.store.get(self.sid).revision, **budget)
         from cherryme.contributions import ContributionLedger
         from cherryme.models import Claim
         self.ledger = ContributionLedger()
@@ -183,7 +182,7 @@ class Episode:
                 turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))
                 env = self.stack.store.get(self.sid).environment or {}
                 out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
-                                           reserve_tokens=self.reserve(prompt), reserve_cost_usd=0.0))
+                                           reserve_tokens=self.reserve(prompt)))
             except PeachError as exc:
                 code = str(exc)
                 last = code
@@ -241,18 +240,18 @@ class Episode:
 
 
 class FruitStackTau2Agent(HalfDuplexAgent[dict]):
-    def __init__(self, tools: list[Tool], domain_policy: str, *, mode: str, task: Any, domain: str, out: Path, budget: dict):
+    def __init__(self, tools: list[Tool], domain_policy: str, *, mode: str, task: Any, domain: str, out: Path):
         super().__init__(tools=tools, domain_policy=domain_policy)
         if mode not in MODES:
             raise ValueError(f"unsupported OGI-013 mode: {mode}")
-        self.mode, self.task, self.domain, self.out, self.budget = mode, task, domain, out, budget
+        self.mode, self.task, self.domain, self.out = mode, task, domain, out
         self.write_tools = {t.name for t in tools if _is_write(t)}
         self.prompt_head = SYSTEM.format(policy=domain_policy, tools="\n".join(_tool_card(t) for t in tools))
         self.ep: Optional[Episode] = None
 
     def get_init_state(self, message_history: Optional[list[Message]] = None) -> dict:
         stack = Stack.get(self.out)
-        self.ep = Episode(stack, self.mode, getattr(self.task, "id", "task"), self.domain, self.budget, self.out / "fruitstack-events.jsonl")
+        self.ep = Episode(stack, self.mode, getattr(self.task, "id", "task"), self.domain, self.out / "fruitstack-events.jsonl")
         self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
         return {"transcript": [], "n_calls": 0}
 
@@ -345,8 +344,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             self.ep.close("TASK_ENDED")
 
 
-def make_factory(mode: str, out: Path, budget: dict, domain_of_task=lambda task: "unknown"):
+def make_factory(mode: str, out: Path, domain_of_task=lambda task: "unknown"):
     def factory(tools, domain_policy, **kwargs):
         task = kwargs.get("task")
-        return FruitStackTau2Agent(tools, domain_policy, mode=mode, task=task, domain=domain_of_task(task), out=out, budget=budget)
+        return FruitStackTau2Agent(tools, domain_policy, mode=mode, task=task, domain=domain_of_task(task), out=out)
     return factory

@@ -62,6 +62,32 @@ def test_runner_requires_existing_host_pomelo_bridge(monkeypatch):
     assert module._host_effects(type("Peach", (), {"effects": bridge})()) is bridge
 
 
+def test_runner_attaches_trusted_host_effects_before_task_execution(monkeypatch, tmp_path):
+    import importlib.util
+
+    runners = Path(__file__).resolve().parents[1] / "runners"
+    monkeypatch.syspath_prepend(str(runners))
+    spec = importlib.util.spec_from_file_location("ogi013_tau2_run", runners / "ogi013_tau2_run.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    class Peach:
+        effects = None
+        def attach_host_effects(self, **kwargs):
+            assert kwargs == host_effects
+            self.effects = bridge
+    bridge = object()
+    host_effects = {"gateway": object(), "authority_provider": lambda *_: None,
+                    "plan_provider": lambda *_: None}
+    peach = Peach()
+    monkeypatch.setattr(module.FruitStack, "get", lambda _: type("Stack", (), {"fs": peach})())
+    def stop_at_task(_):
+        assert peach.effects is bridge
+        raise LookupError("task reached")
+    monkeypatch.setattr(module, "get_tasks", stop_at_task)
+    with pytest.raises(LookupError, match="task reached"):
+        module.run_one("task", "domain", "single", tmp_path, host_effects=host_effects)
+
+
 def test_stack_refuses_to_admit_its_own_mango_identity(monkeypatch):
     import importlib.util
 

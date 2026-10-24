@@ -52,28 +52,30 @@ class _ToolBridge:
         # τ² tools expose no general idempotency probe; an ambiguous dispatched effect must stay unresolved.
         return None
 
-def _install_agent(out: Path, budget: dict, domain: str):
+def _install_agent(out: Path, domain: str):
     def factory(tools, domain_policy, **kwargs):
         task = kwargs.get("task")
         return FruitStackTau2Agent(
             tools, domain_policy, mode=MODE, task=task, domain=domain,
-            out=out, budget=budget,
+            out=out,
         )
     registry.register_agent_factory(factory, name="ogi013_fruitstack")
 
 
-def run_one(task_id: str, domain: str, mode: str, out: Path, max_tool_calls: int, max_provider_calls: int):
+def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=None):
     global MODE
     if mode not in {"single", "fixed", "adaptive"}:
         raise ValueError(f"unsupported OGI-013 mode: {mode}")
     MODE = mode
     out.mkdir(parents=True, exist_ok=True)
     stack = FruitStack.get(out / "fruitstack")
+    if host_effects is not None:
+        stack.fs.attach_host_effects(**host_effects)
+    _host_effects(stack.fs)
     task = next(t for t in get_tasks(domain) if t.id == task_id)
     task_out = out / "tasks" / task_id
     task_out.mkdir(parents=True, exist_ok=True)
-    budget = {"max_calls": max_provider_calls, "max_tokens": 120000, "max_cost_usd": 0.0}
-    _install_agent(task_out, budget, domain)
+    _install_agent(task_out, domain)
 
     original_build = batch.build_orchestrator
     parent_use = {"tool_calls": 0}
@@ -90,10 +92,6 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, max_tool_calls: int
             if ep is None:
                 from tau2.data_model.message import ToolMessage
                 return ToolMessage(id=message.id, content="Error: Pomelo execution gate is unavailable", requestor=message.requestor, role="tool", error=True)
-            if parent_use["tool_calls"] >= max_tool_calls:
-                ep.event("POMELO_PARENT_BUDGET_BLOCK", limit=max_tool_calls, tool=message.name)
-                from tau2.data_model.message import ToolMessage
-                return ToolMessage(id=message.id, content="Error: Pomelo parent tool-call budget exceeded", requestor=message.requestor, role="tool", error=True)
             parent_use["tool_calls"] += 1
             write = any(t.name == message.name and FruitStackTau2Agent._is_write(t) for t in agent.tools)
             try:
@@ -157,14 +155,10 @@ if __name__ == "__main__":
     parser.add_argument("--domain", required=True)
     parser.add_argument("--mode", choices=["single", "fixed", "adaptive"], required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--max-tool-calls", type=int, default=14)
-    parser.add_argument("--max-provider-calls", type=int, default=80)
     args = parser.parse_args()
     try:
         ensure_empty_output(args.out)
     except FileExistsError as exc:
         parser.error(str(exc))
-    if args.max_tool_calls < 1 or args.max_provider_calls < 1:
-        parser.error("both call budgets must be positive")
     os.environ.setdefault("ORANGEME_SOURCE_REPO", str(TAU2))
-    run_one(args.task, args.domain, args.mode, args.out, args.max_tool_calls, args.max_provider_calls)
+    run_one(args.task, args.domain, args.mode, args.out)
