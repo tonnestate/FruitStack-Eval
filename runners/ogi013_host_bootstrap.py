@@ -9,7 +9,7 @@ This launcher creates no actor, WorkIdentity, AuthorityEnvelope or tool approval
 from __future__ import annotations
 
 import argparse
-import importlib.util
+import shutil
 import os
 from pathlib import Path
 import subprocess
@@ -40,7 +40,7 @@ def install(python: str, source: Path) -> None:
     if in_python(python, "import pip"):
         run(python, "-m", "pip", "install", "--disable-pip-version-check", "-e", str(source))
         return
-    if subprocess.run(["uv", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+    if shutil.which("uv"):
         run("uv", "pip", "install", "--python", python, "-e", str(source))
         return
     raise RuntimeError("Neither pip in host Python nor uv available to install existing source")
@@ -64,6 +64,15 @@ def is_module_from_source(python: str, checkout: Path, *, env: dict[str, str]) -
         "p=Path(tau2.__file__).resolve(); "
         "assert p.is_relative_to(Path(" + repr(source_path) + "))"
     ), env=env)
+
+
+def is_component_from_checkout(python: str, module: str, checkout: Path) -> bool:
+    expected = str(checkout.resolve())
+    return in_python(python, (
+        "from pathlib import Path; from importlib.util import find_spec; "
+        "s=find_spec(" + repr(module) + "); assert s is not None and s.origin; "
+        "assert Path(s.origin).resolve().is_relative_to(Path(" + repr(expected) + "))"
+    ))
 
 
 def parse(argv: list[str] | None = None) -> argparse.Namespace:
@@ -95,14 +104,19 @@ def main(argv: list[str] | None = None) -> int:
         if not is_module_from_source(python, source, env=env):
             raise RuntimeError("Official tau2 and loguru still not importable from the pinned source")
     for module, repo in COMPONENTS.items():
-        if in_python(python, "import importlib.util; assert importlib.util.find_spec(" + repr(module) + ")"):
-            continue
         checkout = root / repo
         if not ((checkout / "pyproject.toml").is_file() or (checkout / "setup.py").is_file()):
             raise FileNotFoundError(f"Missing canonical checkout for {repo}: {checkout}")
-        install(python, checkout)
-        if not in_python(python, "import importlib.util; assert importlib.util.find_spec(" + repr(module) + ")"):
-            raise RuntimeError(f"{module} still not installed in canonical host Python")
+        if not is_component_from_checkout(python, module, checkout):
+            install(python, checkout)
+        if not is_component_from_checkout(python, module, checkout):
+            raise RuntimeError(f"{module} is not installed from canonical checkout {checkout}")
+        head = subprocess.run(
+            ["git", "-C", str(checkout), "rev-parse", "HEAD"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        print(f"OGI013_SOURCE {module}={head}", flush=True)
+    print(f"OGI013_RUNTIME python={python}", flush=True)
     run(python, str(runner), *args.runner_args, env=env)
     return 0
 
