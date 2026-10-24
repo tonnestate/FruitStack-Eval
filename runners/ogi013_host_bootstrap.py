@@ -81,8 +81,8 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--tau2-checkout", required=True, type=Path)
     p.add_argument("--components-root", required=True, type=Path)
     p.add_argument("--runner", required=True, type=Path)
-    p.add_argument("runner_args", nargs=argparse.REMAINDER)
-    return p.parse_args(argv)
+    options, options.runner_args = p.parse_known_args(argv)
+    return options
 
 
 def main(argv: list[str] | None = None) -> int:
