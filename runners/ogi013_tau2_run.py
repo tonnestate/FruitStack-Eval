@@ -63,7 +63,7 @@ def _install_agent(out: Path, domain: str):
     registry.register_agent_factory(factory, name="ogi013_fruitstack")
 
 
-def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=None):
+def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=None, llm_user=None):
     global MODE
     if mode not in {"single", "fixed", "adaptive"}:
         raise ValueError(f"unsupported OGI-013 mode: {mode}")
@@ -135,6 +135,7 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
             task_ids=[task_id],
             agent="ogi013_fruitstack",
             llm_agent="FruitStack/PlumMe",
+            **({"llm_user": llm_user} if llm_user else {}),
             max_steps=40,
             max_errors=8,
             seed=42,
@@ -158,6 +159,7 @@ def main(argv=None):
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--host-composer", required=True,
                         help="trusted host module exposing host_effects()")
+    parser.add_argument("--llm-user", help="tau2 user-simulator model; hold constant across comparison arms")
     args = parser.parse_args(argv)
     try:
         ensure_empty_output(args.out)
@@ -170,7 +172,7 @@ def main(argv=None):
         "gateway", "authority_provider", "plan_provider"
     }:
         raise RuntimeError("HOST_EFFECTS_COMPOSITION_INVALID")
-    run_one(args.task, args.domain, args.mode, args.out, host_effects=host_effects)
+    run_one(args.task, args.domain, args.mode, args.out, host_effects=host_effects, llm_user=args.llm_user)
 
 
 if __name__ == "__main__":

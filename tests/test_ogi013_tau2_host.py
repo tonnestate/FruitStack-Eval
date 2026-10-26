@@ -116,8 +116,10 @@ def test_cli_passes_host_composition_to_runner(monkeypatch, tmp_path):
     calls = []
     monkeypatch.setattr(module, "run_one", lambda *args, **kwargs: calls.append((args, kwargs)))
     module.main(["--task", "task", "--domain", "retail", "--mode", "single",
-                 "--out", str(tmp_path / "run"), "--host-composer", "trusted_ogi013_host"])
+                 "--out", str(tmp_path / "run"), "--host-composer", "trusted_ogi013_host",
+                 "--llm-user", "groq/llama-3.3-70b-versatile"])
     assert calls[0][1]["host_effects"] is host_effects
+    assert calls[0][1]["llm_user"] == "groq/llama-3.3-70b-versatile"
 
 
 def test_stack_refuses_to_admit_its_own_mango_identity(monkeypatch):
