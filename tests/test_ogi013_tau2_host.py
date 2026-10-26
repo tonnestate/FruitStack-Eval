@@ -30,6 +30,19 @@ def test_action_parser_preserves_nested_json_and_braces_in_strings():
     }
 
 
+def test_unconfigured_peach_budget_does_not_create_a_plum_token_ceiling():
+    pytest.importorskip("tau2")
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runners"))
+    from ogi013_tau2_agent import Episode
+
+    episode = object.__new__(Episode)
+    episode.sid = "existing-session"
+    episode.stack = type("Stack", (), {"fs": type("FS", (), {
+        "governance": type("Budget", (), {"snapshot": lambda _, sid: None})()
+    })()})()
+    assert episode.reserve("short prompt") is None
+
+
 def test_arm_policy_is_explicit_and_single_still_has_no_ensemble_review():
     pytest.importorskip("tau2")
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runners"))

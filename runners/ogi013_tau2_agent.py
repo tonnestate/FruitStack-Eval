@@ -123,10 +123,11 @@ class Stack:
         asyncio.run(self.svc.discover())
         self.mango = get_service()
         self.orange = OrangeRuntime()
+        orange_project = self.orange.registry.resolve("FruitStack OGI Evaluation")["project_id"]
         self.appleme = connect_appleme(workspace_root=out / "appleme")
         self.store = SessionStore(out / "peachme.sqlite3")
         self.heart = PlumMeProvider(self.svc)
-        self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange), assurance=AppleAssuranceAdapter(self.appleme.service),
+        self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange, project_ref=orange_project), assurance=AppleAssuranceAdapter(self.appleme.service),
                                     authorize_model_input=lambda text, view: text)
         self.projects: dict[str, str] = {}
 
@@ -207,11 +208,13 @@ class Episode:
             return {"success": True, "output": out.output, "model_key": env.get("model_key") or out.model, "independence_key": env.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
 
-    def reserve(self, prompt: str) -> int:
+    def reserve(self, prompt: str) -> int | None:
         snap = self.stack.fs.governance.snapshot(self.sid)
+        if snap is None:
+            return None
         # UTF-8 bytes conservatively bound input tokens without excluding ordinary small-context free routes.
         needed = len(prompt.encode("utf-8")) + 2048
-        return int(min(needed, snap["tokens_remaining"])) if snap else needed
+        return int(min(needed, snap["tokens_remaining"]))
 
     def blocking(self) -> list[str]:
         return list(self.stack.fs.vitals(self.sid).blocking)
