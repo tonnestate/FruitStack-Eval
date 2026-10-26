@@ -148,7 +148,7 @@ class Episode:
         fs = stack.fs
         self.actor = os.environ["OGI013_ACTOR_ID"]
         self.work, self.project, self.turn_id = stack.project(f"/ogi013/tau2/{domain}/{mode}")
-        self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")
+        self.session = stack.store.open(self.actor, work_ref=self.work, memory_ref="memory/working")
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         from cherryme.contributions import ContributionLedger

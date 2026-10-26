@@ -43,6 +43,28 @@ def test_unconfigured_peach_budget_does_not_create_a_plum_token_ceiling():
     assert episode.reserve("short prompt") is None
 
 
+def test_episode_uses_work_identity_for_peach_session(monkeypatch, tmp_path):
+    pytest.importorskip("tau2")
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runners"))
+    from ogi013_tau2_agent import Episode
+
+    monkeypatch.setenv("OGI013_ACTOR_ID", "worker:test")
+    stack = SimpleNamespace(
+        project=lambda _: ("work-identity", "orange-project", "turn-id"),
+        store=Mock(open=Mock(return_value=SimpleNamespace(session_id="session-id"))),
+        fs=Mock(),
+        appleme=Mock(start_run=Mock(return_value=SimpleNamespace(target_run_id="run-id", assurance_id="assurance-id"))),
+    )
+    Episode(stack, "single", "task-id", "retail", tmp_path / "events.jsonl")
+    stack.store.open.assert_called_once_with("worker:test", work_ref="work-identity", memory_ref="memory/working")
+    stack.fs.bind_turn_authority.assert_called_once_with(
+        "session-id", work_ref="work-identity", turn_id="turn-id", actor_id="worker:test"
+    )
+
+
 def test_arm_policy_is_explicit_and_single_still_has_no_ensemble_review():
     pytest.importorskip("tau2")
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runners"))
