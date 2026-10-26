@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import sys
@@ -149,16 +150,28 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
         batch.build_orchestrator = original_build
 
 
-if __name__ == "__main__":
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", required=True)
     parser.add_argument("--domain", required=True)
     parser.add_argument("--mode", choices=["single", "fixed", "adaptive"], required=True)
     parser.add_argument("--out", type=Path, required=True)
-    args = parser.parse_args()
+    parser.add_argument("--host-composer", required=True,
+                        help="trusted host module exposing host_effects()")
+    args = parser.parse_args(argv)
     try:
         ensure_empty_output(args.out)
     except FileExistsError as exc:
         parser.error(str(exc))
     os.environ.setdefault("ORANGEME_SOURCE_REPO", str(TAU2))
-    run_one(args.task, args.domain, args.mode, args.out)
+    composer = importlib.import_module(args.host_composer)
+    host_effects = composer.host_effects()
+    if not isinstance(host_effects, dict) or set(host_effects) != {
+        "gateway", "authority_provider", "plan_provider"
+    }:
+        raise RuntimeError("HOST_EFFECTS_COMPOSITION_INVALID")
+    run_one(args.task, args.domain, args.mode, args.out, host_effects=host_effects)
+
+
+if __name__ == "__main__":
+    main()
