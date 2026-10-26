@@ -88,6 +88,25 @@ def test_runner_attaches_trusted_host_effects_before_task_execution(monkeypatch,
         module.run_one("task", "domain", "single", tmp_path, host_effects=host_effects)
 
 
+def test_cli_passes_host_composition_to_runner(monkeypatch, tmp_path):
+    import importlib.util
+    import types
+
+    runners = Path(__file__).resolve().parents[1] / "runners"
+    monkeypatch.syspath_prepend(str(runners))
+    spec = importlib.util.spec_from_file_location("ogi013_tau2_run", runners / "ogi013_tau2_run.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    host_effects = {"gateway": object(), "authority_provider": lambda *_: None,
+                    "plan_provider": lambda *_: None}
+    monkeypatch.setitem(sys.modules, "trusted_ogi013_host", types.SimpleNamespace(host_effects=lambda: host_effects))
+    calls = []
+    monkeypatch.setattr(module, "run_one", lambda *args, **kwargs: calls.append((args, kwargs)))
+    module.main(["--task", "task", "--domain", "retail", "--mode", "single",
+                 "--out", str(tmp_path / "run"), "--host-composer", "trusted_ogi013_host"])
+    assert calls[0][1]["host_effects"] is host_effects
+
+
 def test_stack_refuses_to_admit_its_own_mango_identity(monkeypatch):
     import importlib.util
 
