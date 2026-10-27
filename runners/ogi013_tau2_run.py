@@ -65,7 +65,7 @@ def _install_agent(out: Path, domain: str):
 
 def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=None, llm_user=None):
     global MODE
-    if mode not in {"single", "fixed", "adaptive"}:
+    if mode not in {"single", "fixed", "adaptive", "rg2"}:
         raise ValueError(f"unsupported OGI-013 mode: {mode}")
     MODE = mode
     out.mkdir(parents=True, exist_ok=True)
@@ -158,7 +158,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", required=True)
     parser.add_argument("--domain", required=True)
-    parser.add_argument("--mode", choices=["single", "fixed", "adaptive"], required=True)
+    parser.add_argument("--mode", choices=["single", "fixed", "adaptive", "rg2"], required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--host-composer", required=True,
                         help="trusted host module exposing host_effects()")

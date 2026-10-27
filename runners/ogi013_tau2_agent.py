@@ -30,7 +30,7 @@ from tau2.data_model.message import AssistantMessage, Message, MultiToolMessage,
 from tau2.environment.tool import Tool
 from tau2.environment.toolkit import TOOL_TYPE_ATTR, ToolType
 
-MODES = ("single", "fixed", "adaptive")
+MODES = ("single", "fixed", "adaptive", "rg2")
 SYSTEM = """You are a customer service agent. Follow the <policy> strictly.
 In each turn you do exactly ONE of: send a message to the user, or make one tool call. Never both.
 Reply with EXACTLY ONE JSON object and nothing else:
@@ -151,6 +151,10 @@ class Episode:
         self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")  # PeachMe restores by MangoMe project key (as peachme.mission does)
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
+        self.org = None
+        self.org_budgeted = mode == "rg2"
+        if mode == "rg2":                                                    # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget
+            fs.governance.configure(self.sid, self.store_revision(stack), max_calls=10**9, max_tokens=10**12, max_cost_usd=0.0)   # no call/token ceiling; zero USD = free routes only
         from cherryme.contributions import ContributionLedger
         from cherryme.models import Claim
         self.ledger = ContributionLedger()
@@ -165,6 +169,9 @@ class Episode:
         self.seen_results: set[str] = set()
         self.verified_results = 0
         self.stats = {"steps": 0, "step_retries": 0, "escalations": 0, "challenges_found": 0, "revisions": 0, "reflex_blocks": 0, "unknown_steps": 0, "tokens_in": 0, "tokens_out": 0, "models": {}}
+
+    def store_revision(self, stack: Stack) -> int:
+        return stack.store.get(self.sid).revision
 
     def event(self, kind: str, **data: Any) -> None:
         with self.log.open("a", encoding="utf-8") as f:
@@ -185,7 +192,8 @@ class Episode:
                 turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))
                 env = self.stack.store.get(self.sid).environment or {}
                 out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
-                                           reserve_tokens=self.reserve(prompt)))
+                                           reserve_tokens=self.reserve(prompt),
+                                           reserve_cost_usd=0.0 if self.org_budgeted else None))
             except PeachError as exc:
                 code = str(exc)
                 last = code
@@ -264,6 +272,9 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
     def get_init_state(self, message_history: Optional[list[Message]] = None) -> dict:
         stack = Stack.get(self.out)
         self.ep = Episode(stack, self.mode, getattr(self.task, "id", "task"), self.domain, self.out / "fruitstack-events.jsonl")
+        if self.mode == "rg2":
+            from ogi013_org_bridge import OrgBridge
+            self.ep.org = OrgBridge(stack, self.ep.sid, str(getattr(self.task, "id", "task")), self.domain_policy, self.out / "org")
         self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
         return {"transcript": [], "n_calls": 0}
 
@@ -312,6 +323,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             action = parse_action(fix["output"]) if fix["success"] else None
             draft = fix if action else draft
         final_text = draft["output"]
+        if self.mode == "rg2" and action is not None:
+            action = self._org_decide(ep, prompt, action, state)
         if action is not None and should_organize(self.mode, action, self.write_tools):
             ep.stats["escalations"] += 1
             final_text, action = self._organize(ep, prompt, draft, action)
@@ -333,6 +346,34 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.assure({"question_type": f"ACT:{action['name']}" if action["action"] == "tool" else "SAY", "question_outcome": outcome, "verified_evidence_total": ep.verified_results, "mutation_error": {"code": getattr(ep, "last_error", None)} if outcome == "COUNTED_FAILURE" else {}})
         ep.last_error = None
         return msg, state
+
+    def _org_decide(self, ep: Episode, prompt: str, action: dict, state: dict) -> dict:
+        """RG/2: consequential decisions (writes, transfers, or any tool call after an earlier dissent) are put to CherryMe's engine, which staffs, verifies and
+        consolidates by itself. An engine failure never kills the episode (ORG_ERROR is logged and the draft stands); a verified/consolidated dissent triggers a revision."""
+        consequential = action["action"] == "tool" and (action["name"] in self.write_tools or action["name"] == "transfer_to_human_agents" or ep.org.alert > 0)
+        if not consequential:
+            return action
+        lines = state["transcript"]
+        request = next((l[6:] for l in lines if l.startswith("USER: ")), "")
+        desc = f"The assistant's tool call {action['name']}({json.dumps(action['arguments'], ensure_ascii=False)})"
+        importance = 0.9 if action["name"] in self.write_tools else 0.6
+        try:
+            rec = ep.org.decide(description=desc, importance=importance, request=request, transcript="\n".join(lines),
+                                tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")))
+        except Exception as exc:  # noqa: BLE001 - visible, not silent; the benchmark outcome must not depend on a bridge crash
+            ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
+            return action
+        ep.stats["escalations"] += 1
+        ep.event("ORG_DECISION", action=action["name"], **{k: v for k, v in rec.items() if k != "dissent"}, dissent_n=len(rec["dissent"]))
+        if rec["status"] in ("REFUTED", "CONFLICT") or rec["dissent"]:
+            issues = "\n".join(f"- {d['text']}" for d in rec["dissent"]) or "- the verified evidence contradicts the proposed action"
+            fix = ep.step(prompt + "\nIndependent reviewers raised these issues with your proposed action:\n" + issues +
+                          "\nReconsider against the policy. Reply with ONE valid JSON action.", "revise")
+            revised = parse_action(fix["output"]) if fix["success"] else None
+            if revised is not None:
+                ep.stats["revisions"] += 1
+                return revised
+        return action
 
     def _organize(self, ep: Episode, prompt: str, draft: dict, action: dict) -> tuple[str, dict]:
         """CherryMe Brother Mode on the first draft: a different lineage challenges it against the policy, the author revises on criticism. Calls go through PeachMe steps."""
