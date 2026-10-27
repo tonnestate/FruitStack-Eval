@@ -1,0 +1,141 @@
+"""Dry-run and guard tests for the OGI-013 c3 block queue. No launcher, no provider, no real run."""
+import json
+import os
+import pathlib
+import subprocess
+
+import pytest
+
+QDIR = pathlib.Path(__file__).resolve().parents[1] / "evidence" / "ogi013-c3-prereg" / "queue"
+BLOCK = QDIR / "block_queue.sh"
+COND = QDIR / "run_condition.sh"
+ALL = "SINGLE SINGLE-E FIXED RG2-OFF RG2-OFF-NOPERSIST RG2-NO-TRIAGE RG2-NO-VERIFY RG2-NO-KNOWLEDGE RG2-LEARNED RG2-RANDOMIZED"
+GOOD = {"OGI013_SINGLE_E_K": "3", "OGI013_ORG_LEARNED_DIR": "/nonexistent-learned", "OGI013_ORG_LEARNED_AUTHORIZED": "1"}
+FORBIDDEN = ("run1.sh", "queue.sh", "c2-")
+BASE = {k: v for k, v in os.environ.items()
+        if not k.startswith(("OGI013_", "PLUMME_")) and k not in ("DRY_RUN", "LAUNCHER", "RUNS_DIR", "CONDITIONS")}
+CAMP = "c3-test"
+
+
+def block(runs, args, conds=ALL, dry=True, extra=None):
+    env = dict(BASE, RUNS_DIR=str(runs), CONDITIONS=conds)
+    if dry:
+        env["DRY_RUN"] = "1"
+    env.update(extra or {})
+    return subprocess.run(["bash", str(BLOCK), *args], env=env, capture_output=True, text=True, timeout=120)
+
+
+def cond(runs, args, extra=None):
+    env = dict(BASE, RUNS_DIR=str(runs), DRY_RUN="1")
+    env.update(extra or {})
+    return subprocess.run(["bash", str(COND), *args], env=env, capture_output=True, text=True, timeout=60)
+
+
+def env_of(runs, task, condition):
+    text = (runs / CAMP / task / f"{condition}.log").read_text()
+    return dict(line[4:].split("=", 1) for line in text.splitlines() if line.startswith("ENV "))
+
+
+def order_of(runs, task):
+    return json.loads((runs / CAMP / task / "BLOCK.json").read_text())["condition_order"]
+
+
+def test_order_is_reproducible_permutation(tmp_path):
+    a, b = tmp_path / "a", tmp_path / "b"
+    for d in (a, b):
+        d.mkdir()
+        assert block(d, [CAMP, "airline", "A", "1013", "t1"], extra=GOOD).returncode == 0
+    assert order_of(a, "t1") == order_of(b, "t1")
+    assert sorted(order_of(a, "t1")) == sorted(ALL.split())
+
+
+def test_different_task_gives_different_order(tmp_path):
+    block(tmp_path, [CAMP, "airline", "A", "1013", "t1", "t2"], extra=GOOD)
+    assert order_of(tmp_path, "t1") != order_of(tmp_path, "t2")
+
+
+def test_one_route_file_per_task(tmp_path):
+    block(tmp_path, [CAMP, "airline", "A", "1013", "t1", "t2"], extra=GOOD)
+    routes = {}
+    for t in ("t1", "t2"):
+        vals = {env_of(tmp_path, t, c)["OGI013_SIM_ROUTE_FILE"] for c in ALL.split()}
+        assert len(vals) == 1, (t, vals)
+        routes[t] = vals.pop()
+    assert routes["t1"] != routes["t2"]
+    assert routes["t1"].endswith(f"{CAMP}-t1.route")
+
+
+def test_state_dirs_shared_for_rg2_off_fresh_for_noPersist(tmp_path):
+    block(tmp_path, [CAMP, "airline", "A", "1013", "t1", "t2"], conds="RG2-OFF RG2-OFF-NOPERSIST", extra=GOOD)
+    s = lambda t, c: env_of(tmp_path, t, c)["OGI013_ORG_STATE_DIR"]
+    assert s("t1", "RG2-OFF") == s("t2", "RG2-OFF")
+    assert s("t1", "RG2-OFF-NOPERSIST") != s("t2", "RG2-OFF-NOPERSIST")
+    assert s("t1", "RG2-OFF") != s("t1", "RG2-OFF-NOPERSIST")
+
+
+def test_learned_requires_authorization(tmp_path):
+    args = [CAMP, "t1", "airline", "RG2-LEARNED", "A"]
+    assert cond(tmp_path, args).returncode == 2
+    assert cond(tmp_path, args, {"OGI013_ORG_LEARNED_DIR": "/x"}).returncode == 2
+    assert cond(tmp_path, args, {"OGI013_ORG_LEARNED_DIR": "/x", "OGI013_ORG_LEARNED_AUTHORIZED": "1"}).returncode == 0
+
+
+def test_single_e_requires_k(tmp_path):
+    args = [CAMP, "t1", "airline", "SINGLE-E", "A"]
+    assert cond(tmp_path, args).returncode == 2
+    assert cond(tmp_path, args, {"OGI013_SINGLE_E_K": "3"}).returncode == 0
+
+
+def test_no_forbidden_references(tmp_path):
+    block(tmp_path, [CAMP, "airline", "A", "1013", "t1", "t2"], extra=GOOD)
+    for p in tmp_path.rglob("*"):
+        if p.is_file():
+            text = p.read_text(errors="ignore")
+            for f in FORBIDDEN:
+                assert f not in text, (p, f)
+
+
+def test_discarded_and_retried_on_route_failure(tmp_path):
+    fake = tmp_path / "fake_launcher.sh"
+    fake.write_text('#!/bin/bash\n'
+                    'n=$(cat "$FAKE_COUNT" 2>/dev/null || echo 0); n=$((n+1)); echo $n > "$FAKE_COUNT"\n'
+                    '[ "$n" -eq 1 ] && echo SIM_ROUTE_FAILED\nexit 0\n')
+    fake.chmod(0o755)
+    env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake),
+               FAKE_COUNT=str(tmp_path / "count"))
+    r = subprocess.run(["bash", str(BLOCK), CAMP, "airline", "A", "1013", "t1"],
+                       env=env, capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stderr
+    camp = tmp_path / CAMP
+    assert (camp / "discarded" / "t1-attempt1").is_dir()
+    assert json.loads((camp / "t1" / "BLOCK.json").read_text())["attempt"] == 2
+    assert "discarded attempt=1" in (camp / "progress.txt").read_text()
+    assert (tmp_path / "count").read_text().strip() == "2"
+
+
+def test_discarded_block_restores_persistent_state_and_live_run_needs_explicit_runs_dir(tmp_path):
+    """The persistent state of a discarded block must be rolled back (no contamination of the persistence/learning arms); a live call without RUNS_DIR is refused."""
+    import os, subprocess, textwrap
+    here = pathlib.Path(__file__).resolve().parents[1] / "evidence" / "ogi013-c3-prereg" / "queue"
+    runs = tmp_path / "runs"; runs.mkdir()
+    fake = tmp_path / "launcher.sh"
+    fake.write_text(textwrap.dedent('''\
+        #!/bin/bash
+        # args: OUTDIR TASK DOMAIN MODE PAIRROUTE SLOT ; writes into the persistent arm state, and fails the simulator on attempt 1 only
+        echo "$@" >> "$RUNS_DIR/launch.log"
+        mkdir -p "$OGI013_ORG_STATE_DIR" && echo "written-by-$2" >> "$OGI013_ORG_STATE_DIR/marker"
+        echo '{"model_key":"sim-x@default"}' > "$OGI013_SIM_ROUTE_FILE"
+        if [ ! -f "$RUNS_DIR/second-attempt" ]; then touch "$RUNS_DIR/second-attempt"; echo SIM_ROUTE_FAILED; fi
+        '''))
+    fake.chmod(0o755)
+    env = {**os.environ, "RUNS_DIR": str(runs), "CONDITIONS": "RG2-OFF", "LAUNCHER": str(fake)}
+    r = subprocess.run(["bash", str(here / "block_queue.sh"), "c3-test", "retail", "A", "7", "t1"], env=env, capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stderr
+    marker = runs / "c3-test" / "state" / "RG2-OFF" / "marker"
+    # attempt 1 was discarded and its state write rolled back; only the kept attempt's write remains
+    assert marker.read_text().count("written-by-t1") == 1
+    assert (runs / "c3-test" / "discarded" / "t1-attempt1").is_dir()
+    assert json.loads((runs / "c3-test" / "t1" / "BLOCK.json").read_text())["sim_model_key"] == "sim-x@default"
+    env2 = {k: v for k, v in env.items() if k != "RUNS_DIR"}
+    r2 = subprocess.run(["bash", str(here / "block_queue.sh"), "c3-test2", "retail", "A", "7", "t1"], env=env2, capture_output=True, text=True, timeout=60)
+    assert r2.returncode == 2

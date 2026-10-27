@@ -30,7 +30,9 @@ from tau2.data_model.message import AssistantMessage, Message, MultiToolMessage,
 from tau2.environment.tool import Tool
 from tau2.environment.toolkit import TOOL_TYPE_ATTR, ToolType
 
-MODES = ("single", "fixed", "adaptive", "rg2")
+from ogi013_single_e import majority_action, read_k
+
+MODES = ("single", "fixed", "adaptive", "rg2", "single_e")
 SYSTEM = """You are a customer service agent. Follow the <policy> strictly.
 In each turn you do exactly ONE of: send a message to the user, or make one tool call. Never both.
 Reply with EXACTLY ONE JSON object and nothing else:
@@ -267,6 +269,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         if mode not in MODES:
             raise ValueError(f"unsupported OGI-013 mode: {mode}")
         self.mode, self.task, self.domain, self.out = mode, task, domain, out
+        self.k = read_k(os.environ) if mode == "single_e" else None   # fail before any spend
         self.write_tools = {t.name for t in tools if _is_write(t)}
         self.prompt_head = SYSTEM.format(policy=domain_policy, tools="\n".join(_tool_card(t) for t in tools))
         self.ep: Optional[Episode] = None
@@ -321,6 +324,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         prompt = self._decision_prompt(state)
         draft = ep.step(prompt, "draft")
         action = parse_action(draft["output"]) if draft["success"] else None
+        if self.mode == "single_e":
+            draft, action = self._single_e_vote(ep, prompt, draft, action)
         if action is None and draft["success"]:
             fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", "format")
             action = parse_action(fix["output"]) if fix["success"] else None
@@ -349,6 +354,20 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.assure({"question_type": f"ACT:{action['name']}" if action["action"] == "tool" else "SAY", "question_outcome": outcome, "verified_evidence_total": ep.verified_results, "mutation_error": {"code": getattr(ep, "last_error", None)} if outcome == "COUNTED_FAILURE" else {}})
         ep.last_error = None
         return msg, state
+
+    def _single_e_vote(self, ep: Episode, prompt: str, first: dict, first_action: dict | None) -> tuple[dict, dict | None]:
+        """SINGLE-E: k independent drafts from the same supply (each a normal PeachMe step), majority canonical action. No critique, revision or organisation.
+        Returns the winning draft and action; if no draft parses, the first draft and None so the existing format retry path runs."""
+        drafts = [(first, first_action)]
+        for i in range(1, self.k):
+            d = ep.step(prompt, f"draft_{i}")
+            drafts.append((d, parse_action(d["output"]) if d["success"] else None))
+        ep.stats["single_e_drafts"] = ep.stats.get("single_e_drafts", 0) + len(drafts)
+        winner, info = majority_action([a for _, a in drafts])
+        ep.event("SINGLE_E_VOTE", k=self.k, counts=info["counts"], winner_index=info["winner_index"], ties=info["ties"])
+        if winner is None:
+            return first, None
+        return drafts[info["winner_index"]][0], winner
 
     def _structure_policy(self, task_ref: str):
         """Host structure policy for this arm: OFF (engine triage decides; default), FIXED, RANDOMIZED (training phase, propensity logged) or LEARNED (gated + authorized only)."""
