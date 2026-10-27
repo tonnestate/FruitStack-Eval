@@ -3,7 +3,7 @@ Environment common to all steps: R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi
 /root/fruits/integration/ogi013-org-components ; venv /root/fruits/integration/ogi013-hostpython-org ; trainer venv /root/SUPPLY-001/venv3.12 ; launcher $R/run_org.sh (PlumMe AUTO, no cost-class filter;
 optional $R/host_budget.env is the OWNER's approved ceilings - absent means no cash authorised, credit/free/included capacity still usable).
 
-1. Detect c2 end: all three `QUEUE_DONE` lines in $R/c2-airline-test/progress.txt. Do not modify c2.
+1. Detect c2 end: all three `QUEUE_DONE` lines in $R/c2-airline-test/progress.txt. Do not modify c2. After c2 evaluation, the supervisor must seal the pre-existing committed protocol and task split in PREREG_LOCK.txt BEFORE any c3 exploratory run. FREEZE.txt later seals learned/gate details and SINGLE-E k before confirmatory Phase B.
 2. c2 evaluation (unchanged interpretation): `python3 $R/export_rows.py $R/c2-airline-test > rows.jsonl` (as for c1), `cd ogi013-fse && python -m fruitstack_eval.cli ogi13 compare --observations rows.jsonl --require-complete`,
    run evidence scripts classify_failures.py / attribute_causes.py / integrity.py (evidence/ogi013-c1-airline-test) with the c2 path, sha256 manifest of the whole c2 dir (find ... sha256sum), copy small results to
    evidence/ogi013-c2-airline-test/. Cause attribution for c2 compares reflex-block rate with c1 (instrument-fix question only).
