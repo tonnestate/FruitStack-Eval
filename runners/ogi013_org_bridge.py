@@ -75,8 +75,35 @@ class OrgBridge:
         self.state = state
         self.engine = CherryMeEngine(workspace_root=state / "cherry", registry=registry, investigator=investigator, assurance_tier=assurance,
                                      orchestrator=ResolutionAwareOrchestrator(Falsify()), orchestration_skill=runtime["orchestration_skill"], frame=runtime["frame"])
+        # This PlumMe revision's BudgetEnvelope requires an integer per-response cap (newer PlumMe accepts none). Use the cap every other FruitStack step in this harness uses
+        # (fs.infer max_output_tokens=2048) so all arms share one per-response limit; it is not a task, token or call budget.
+        investigator.max_output_tokens = investigator.verifier_max_output_tokens = int(os.environ.get("OGI013_RESPONSE_TOKENS", "2048"))
+        real_investigate, trace_file = investigator.investigate, self.dir / "investigator-exceptions.log"
+
+        def traced(question, agent):                       # instrumentation only: the engine records a bare INVESTIGATOR_EXCEPTION; keep the cause
+            try:
+                return real_investigate(question, agent)
+            except Exception:  # noqa: BLE001
+                import traceback
+                with trace_file.open("a") as f:
+                    f.write(f"--- {question.type} agent={getattr(agent, 'id', None)}\n{traceback.format_exc()}\n")
+                raise
+        investigator.investigate = traced
+        self._reserve_simulator_route(registry)
         if "verify" not in self.ablate:
             investigator.evidence_verifier = EvidenceVerifier(investigator.run_worker, claim_lookup=lambda cid: self.engine.claims.load(cid)[0].text)
+
+    def _reserve_simulator_route(self, registry) -> None:
+        """The user simulator is pinned to one model for the pair; agent-side workers must not compete for that throttled free route (benchmark infrastructure isolation)."""
+        route_file = os.environ.get("OGI013_SIM_ROUTE_FILE")
+        try:
+            key = json.loads(Path(route_file).read_text())["model_key"] if route_file and Path(route_file).exists() else None
+            card = registry._agents.get(key) if key else None
+            if card is not None:
+                from dataclasses import replace
+                registry._agents[key] = replace(card, enabled=False)
+        except Exception:  # noqa: BLE001 - isolation is best effort; the run records which models the workers used
+            pass
 
     def _grounding(self, question):
         from cherryme.host_grounding import HostGrounding

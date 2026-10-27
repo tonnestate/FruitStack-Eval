@@ -366,7 +366,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
             return action
         ep.stats["escalations"] += 1
-        ep.event("ORG_DECISION", action=action["name"], **{k: v for k, v in rec.items() if k != "dissent"}, dissent_n=len(rec["dissent"]))
+        ep.event("ORG_DECISION", action=action.get("name", "message"), **{k: v for k, v in rec.items() if k != "dissent"}, dissent_n=len(rec["dissent"]))
         if rec["status"] in ("REFUTED", "CONFLICT") or rec["dissent"]:
             issues = "\n".join(f"- {d['text']}" for d in rec["dissent"]) or "- the verified evidence contradicts the proposed action"
             fix = ep.step(prompt + "\nIndependent reviewers raised these issues with your proposed action:\n" + issues +
