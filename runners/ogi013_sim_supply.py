@@ -71,7 +71,7 @@ def install(svc, route_file: Path, out: Path) -> None:
             neuron = await svc.acquire_neuron(req)
             lease = {"lease_id": neuron.lease_id, "provider_id": neuron.route.provider, "model_id": neuron.route.model,
                      "offer_id": neuron.route.offer_id, "model_key": neuron.route.model_key}
-            res = await provider.execute(lease_id=lease["lease_id"], task=_flatten(messages), max_output_tokens=1024)
+            res = await provider.execute(lease_id=lease["lease_id"], task=_flatten(messages), max_output_tokens=None)   # PlumMe negotiates the limit (PROTOCOL.md); a fixed 1024 let reasoning models exhaust it with EMPTY_CONTENT finish_reason=length
             return lease, res
 
         # Route selection (no pinned offer yet) tries alternatives: PlumMe's circuit state steers the next pick away from a failing offer.

@@ -87,21 +87,24 @@ stage_prereg() {  # Seal the already-committed protocol/split BEFORE demo and an
   log "c3 preregistration locked before experimental execution"
 }
 
-run_demo_once() {  # Never silently accept a failed subprocess.
-  local k rc
+run_demo_once() {  # Never silently accept a failed subprocess. A discarded attempt is archived (never deleted) and the shared organisational state is restored to its pre-attempt content.
+  local k rc ts ST="$R/org-demo/state" SNAP="$R/org-demo/.snap-$1"
   for k in 1 2 3; do
-    rm -rf "$R/org-demo/$1"; mkdir -p "$R/org-demo" || return 1
-    OGI013_ORG_STATE_DIR=$R/org-demo/state OGI013_ORG_POLICY_MODE=OFF "$R/run_org.sh" "org-demo/$1" "$2" airline rg2 "org-demo-$1" D > "$R/org-demo/$1.log" 2>&1
+    [ ! -e "$R/org-demo/$1" ] || return 1          # a previous attempt directory must already have been archived
+    rm -rf "$SNAP"; mkdir -p "$R/org-demo" || return 1
+    if [ -d "$ST" ]; then cp -a "$ST" "$SNAP" || return 1; else mkdir -p "$SNAP" || return 1; fi
+    OGI013_ORG_STATE_DIR=$ST OGI013_ORG_POLICY_MODE=OFF "$R/run_org.sh" "org-demo/$1" "$2" airline rg2 "org-demo-$1" D > "$R/org-demo/$1.log" 2>&1
     rc=$?
-    if grep -q SIM_ROUTE_FAILED "$R/org-demo/$1.log"; then
-      log "demo $1 attempt $k simulator route failed, retrying"
-      [ "$k" -eq 3 ] && return 1
-      mv "$R/org-demo/$1" "$R/org-demo/$1-discarded$k" || return 1
-      continue
+    if [ "$rc" -eq 0 ] && [ -s "$R/org-demo/$1/tasks/$2/official-result.json" ] && ! grep -q SIM_ROUTE_FAILED "$R/org-demo/$1.log"; then
+      rm -rf "$SNAP"; return 0                      # success: the state persists into the next demo run (intended)
     fi
-    [ "$rc" -eq 0 ] || return 1
-    [ -s "$R/org-demo/$1/tasks/$2/official-result.json" ] || return 1
-    return 0
+    ts=$(date -u +%Y%m%dT%H%M%SZ)
+    log "demo $1 attempt $k not validated (rc=$rc), archived as $1-discarded-$ts, state restored"
+    mv "$R/org-demo/$1" "$R/org-demo/$1-discarded-$ts" || return 1
+    mv "$R/org-demo/$1.log" "$R/org-demo/$1-discarded-$ts.log" || return 1
+    if [ -d "$ST" ]; then mv "$ST" "$R/org-demo/state-discarded-$1-$ts" || return 1; fi
+    if [ -d "$SNAP" ]; then mv "$SNAP" "$ST" || return 1; fi
+    grep -q SIM_ROUTE_FAILED "$R/org-demo/$1-discarded-$ts.log" || return 1      # only a simulator-route failure may be retried
   done
   return 1
 }
@@ -208,6 +211,7 @@ stage_eval() {  # RUNBOOK 7
 }
 for s in wait_c2 c2_eval prereg demo phaseA train freeze phaseB eval; do
   done_ $s && continue
+  [ "$s" != phaseA ] || [ -f "$SUP/PHASE_A_RELEASE" ] || halt phaseA "held: infrastructure release marker $SUP/PHASE_A_RELEASE not set (owner order: no Phase A before a stable live simulator is demonstrated)"
   status "RUNNING $s"
   for try in 1 2 3; do "stage_$s" && { mark $s; break; }; log "stage $s failed try $try"; sleep 60; done
   done_ $s || halt "$s" "failed 3 times, see $LOG"
