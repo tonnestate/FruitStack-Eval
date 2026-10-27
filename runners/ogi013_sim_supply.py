@@ -62,12 +62,12 @@ def install(svc, route_file: Path, out: Path) -> None:
         pinned = model_key  # the pair's simulator MODEL is fixed; PlumMe may choose any eligible route to that model (pinned_model_key)
         provider = PlumMeProvider(svc)
 
-        async def call():
+        async def call(prefer_multi_provider=True):
             from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
             req = NeuronRequest(consumer="ogi013-sim", objective="Simulate a tau2 customer", role_id=ROLE, cognitive_owner=CognitiveOwner.CONSUMER,
                                 selection_mode=SelectionMode.PINNED_MODEL if model_key else SelectionMode.BEST, pinned_model_key=model_key,
                                 required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1),
-                                metadata={} if model_key else {"exclude_independence_keys": _single_provider_keys(svc)})
+                                metadata={"exclude_independence_keys": _single_provider_keys(svc)} if (not model_key and prefer_multi_provider) else {})
             neuron = await svc.acquire_neuron(req)
             lease = {"lease_id": neuron.lease_id, "provider_id": neuron.route.provider, "model_id": neuron.route.model,
                      "offer_id": neuron.route.offer_id, "model_key": neuron.route.model_key}
@@ -80,7 +80,7 @@ def install(svc, route_file: Path, out: Path) -> None:
         for attempt in range(60 if pinned else 12):
             t0 = time.time()
             try:
-                lease, res = asyncio.run(call())
+                lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3))   # soft preference: plain BEST once the resilient set is saturated
             except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record and wait, do not crash the benchmark run
                 last = type(exc).__name__
                 with log.open("a") as f:

@@ -61,8 +61,9 @@ class OrgBridge:
         from peachme.cherry_accounting import BudgetedPlumMeService
         svc = BudgetedPlumMeService(self.stack.svc, self.stack.store, self.sid, authorize_model_input=lambda text, view: text)
         registry, investigator = connect_plumme(service=svc, refresh=True, host_grounding_provider=lambda question: self._grounding(question))
-        kpath = os.environ.get("OGI013_KNOWLEDGE_PATH")
-        knowledge = KnowledgeStore(kpath) if kpath and "knowledge" not in self.ablate else None
+        state = Path(os.environ.get("OGI013_ORG_STATE_DIR") or self.dir)       # shared across the tasks of ONE arm (set by the launch script); isolation between arms = separate dirs
+        state.mkdir(parents=True, exist_ok=True)
+        knowledge = KnowledgeStore(state / "knowledge.jsonl") if "knowledge" not in self.ablate else None
         runtime = responsibility_runtime(triage="off" if "triage" in self.ablate else "auto", knowledge_store=knowledge)
         self.dir.mkdir(parents=True, exist_ok=True)
 
@@ -71,7 +72,8 @@ class OrgBridge:
                 return QuestionType.FALSIFY
 
         assurance = connect_appleme(workspace_root=self.dir / "appleme")
-        self.engine = CherryMeEngine(workspace_root=self.dir / "cherry", registry=registry, investigator=investigator, assurance_tier=assurance,
+        self.state = state
+        self.engine = CherryMeEngine(workspace_root=state / "cherry", registry=registry, investigator=investigator, assurance_tier=assurance,
                                      orchestrator=ResolutionAwareOrchestrator(Falsify()), orchestration_skill=runtime["orchestration_skill"], frame=runtime["frame"])
         if "verify" not in self.ablate:
             investigator.evidence_verifier = EvidenceVerifier(investigator.run_worker, claim_lookup=lambda cid: self.engine.claims.load(cid)[0].text)
