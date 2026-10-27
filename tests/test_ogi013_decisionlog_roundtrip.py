@@ -8,6 +8,9 @@ No network, no provider calls: PlumMeService is built with adapters=[] and a tem
 
 Run: cd /root/fruits/integration/ogi013-org && PYTHONPATH=runners:.:/root/fruits/integration/ogi013-cherry-org:/root/fruits/integration/ogi013-plum-org/src:/root/fruits/integration/ogi013-peach-org/src /root/fruits/integration/ogi013-hostpython-org/bin/python -m pytest -q tests/test_ogi013_decisionlog_roundtrip.py
 """
+import pytest
+
+pytest.importorskip("plumme")  # needs the FruitStack components (CI installs only this repo)
 from ogi013_org_learning import attribute_episode_outcome
 
 from plumme.keras_data import build_ensemble

@@ -8,6 +8,9 @@ from types import SimpleNamespace
 
 import pytest
 
+pytest.importorskip("plumme")  # needs the FruitStack components (CI installs only this repo)
+pytest.importorskip("cherryme")
+
 from ogi013_org_policy import STRUCTURES, HostStructurePolicy
 from ogi013_org_bridge import OrgBridge
 

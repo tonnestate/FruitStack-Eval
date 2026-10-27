@@ -5,6 +5,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("tau2")  # needs the tau2-bench venv, absent in CI
+pytest.importorskip("loguru")
+
 
 def test_output_guard_accepts_empty_and_rejects_nonempty(tmp_path):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "runners"))
@@ -59,7 +62,7 @@ def test_episode_uses_work_identity_for_peach_session(monkeypatch, tmp_path):
         appleme=Mock(start_run=Mock(return_value=SimpleNamespace(target_run_id="run-id", assurance_id="assurance-id"))),
     )
     Episode(stack, "single", "task-id", "retail", tmp_path / "events.jsonl")
-    stack.store.open.assert_called_once_with("worker:test", work_ref="work-identity", memory_ref="memory/working")
+    stack.store.open.assert_called_once_with("worker:test", work_ref="orange-project", memory_ref="memory/working")
     stack.fs.bind_turn_authority.assert_called_once_with(
         "session-id", work_ref="work-identity", turn_id="turn-id", actor_id="worker:test"
     )

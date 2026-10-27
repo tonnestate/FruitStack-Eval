@@ -14,6 +14,9 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("plumme")  # needs the FruitStack components (CI installs only this repo)
+pytest.importorskip("cherryme")
+
 from ogi013_org_learning import (DECISION_SCHEMA, OUTCOME_SCHEMA, RESULT_SCHEMA, attribute_episode_outcome,
                                  load_training_table)
 from train_org_policy import KINDS, PERMITTED, OrgPolicy, run
@@ -46,11 +49,12 @@ def _write_store(store: Path, tasks: list[dict]):
     rng = random.Random(7)
     with (t / "decisions.jsonl").open("w") as fd, (t / "decision_results.jsonl").open("w") as fr, (t / "outcomes.jsonl").open("w") as fo:
         for spec in tasks:
-            for _ in range(spec.get("n", 10)):
-                fd.write(json.dumps({"schema": DECISION_SCHEMA, "task_ref": spec["task_ref"], "domain": "synthetic", "arm_mode": spec["arm"],
+            for i in range(spec.get("n", 10)):
+                rid = f"{spec['task_ref']}-{i}"
+                fr.write(json.dumps({"schema": RESULT_SCHEMA, "row_id": rid, "task_ref": spec["task_ref"], "action_changed": False}) + "\n")
+                fd.write(json.dumps({"schema": DECISION_SCHEMA, "row_id": rid, "task_ref": spec["task_ref"], "domain": "synthetic", "arm_mode": spec["arm"],
                                      "structure": spec["structure"], "propensity": 0.25 if spec["arm"] == "RANDOMIZED" else None,
                                      "features": _features(rng, spec["kind"])}) + "\n")
-            fr.write(json.dumps({"schema": RESULT_SCHEMA, "task_ref": spec["task_ref"], "action_changed": False}) + "\n")
             if spec.get("reward") is not None:
                 fo.write(json.dumps({"schema": OUTCOME_SCHEMA, "task_ref": spec["task_ref"], "reward": spec["reward"],
                                      "epistemic_state": "VERIFIED", "grader_result_sha256": "ab" * 32}) + "\n")
