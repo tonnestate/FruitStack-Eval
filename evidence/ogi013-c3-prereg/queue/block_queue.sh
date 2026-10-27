@@ -62,21 +62,47 @@ print(" ".join(c))' "$CONDITIONS" "$SEED" "$T")
     mkdir -p "$BLOCK"
     write_block "$BLOCK/BLOCK.json" "$T" "$ORDER" "$SEED" "$k" "${SIM_MODEL_KEY:-pending}"
     echo "$T block attempt=$k order=$ORDER slot=$S" >> "$PROG"
+    failure=""
     for COND in $ORDER; do
       "$HERE/run_condition.sh" "$C" "$T" "$DOM" "$COND" "$S" > "$BLOCK/$COND.log" 2>&1
-      echo "$T $COND attempt=$k exit=$? slot=$S" >> "$PROG"
+      rc=$?
+      echo "$T $COND attempt=$k exit=$rc slot=$S" >> "$PROG"
+      if grep -q SIM_ROUTE_FAILED "$BLOCK/$COND.log"; then
+        failure=SIM_ROUTE_FAILED
+        break
+      fi
+      if [ "$rc" -ne 0 ]; then
+        failure="EXECUTION_FAILED: $COND exit=$rc"
+        break
+      fi
+      # A successful shell exit is not valid evidence without the official tau2 result.
+      if [ "${DRY_RUN:-0}" != "1" ]; then
+        raw_task=$T
+        [ "$DOM" = mixed ] && raw_task=${T#*:}
+        official="$BLOCK/$COND/tasks/$raw_task/official-result.json"
+        if ! python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); assert isinstance(j,dict) and "reward_info" in j' "$official" > /dev/null 2>&1; then
+          failure="MISSING_OR_INVALID_OFFICIAL_RESULT: $COND"
+          break
+        fi
+      fi
     done
     [ -f "$RUNS_DIR/$C-$T.route" ] && cp "$RUNS_DIR/$C-$T.route" "$BLOCK/sim_route.txt"
     record_sim_key "$BLOCK"
-    if [ $k -lt 3 ] && grep -q SIM_ROUTE_FAILED "$BLOCK"/*.log 2>/dev/null; then
+    if [ "$failure" = SIM_ROUTE_FAILED ] && [ "$k" -lt 3 ]; then
       echo "$T discarded attempt=$k simulator route failed" >> "$PROG"
-      mv "$BLOCK" "$CDIR/discarded/$T-attempt$k"
-      restore_state "$T"
-    else
-      grep -q SIM_ROUTE_FAILED "$BLOCK"/*.log 2>/dev/null && echo "$T route failed after attempt $k, kept" >> "$PROG"
-      break
+      mv "$BLOCK" "$CDIR/discarded/$T-attempt$k" || exit 1
+      restore_state "$T" || exit 1
+      continue
     fi
+    if [ -n "$failure" ]; then
+      # The snapshot is intentionally retained for safe retry/resume.
+      echo "$T BLOCKED attempt=$k cause=$failure" >> "$PROG"
+      echo "$failure" > "$BLOCK/BLOCKED.txt"
+      exit 1
+    fi
+    date -u +%FT%TZ > "$BLOCK/BLOCK_DONE"
+    rm -rf "$CDIR/.snap-$T"
+    break
   done
-  rm -rf "$CDIR/.snap-$T"
 done
 echo "QUEUE_DONE slot=$S" >> "$PROG"
