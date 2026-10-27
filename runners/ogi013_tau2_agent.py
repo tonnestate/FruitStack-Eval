@@ -386,6 +386,9 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             revised = parse_action(fix["output"]) if fix["success"] else None
             if revised is not None:
                 ep.stats["revisions"] += 1
+                dig = lambda a: hashlib.sha256(json.dumps(a, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
+                ep.event("ORG_REVISION", claim=rec["claim"], draft=dig(action), revised=dig(revised), action_changed=dig(action) != dig(revised),
+                         trigger="VERIFIED_DISSENT" if rec["status"] in ("REFUTED", "CONFLICT") else "WORKER_DISSENT")   # causal record: only a changed action after worker dissent counts as an effect
                 return revised
         return action
 
