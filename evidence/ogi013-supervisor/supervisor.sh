@@ -29,7 +29,20 @@ stage_c2_eval() {  # RUNBOOK 2: unchanged interpretation, read-only on c2
   (cd "$R" && find c2-airline-test -type f -print0 | sort -z | xargs -0 sha256sum > "$D/c2-airline-test.SHA256SUMS")
   cp "$C/progress.txt" "$D/progress.txt" || return 1
 }
-airline_tasks() { ls "$R/c2-airline-test" | grep -E '^[0-9]+-fixed$' | sed 's/-fixed//' | sort -n | tr '\n' ' '; }
+# Fixed c1/c2 protocol: 20 airline test IDs. Never select phase-A tasks by c2
+# directories, as infrastructure failures could otherwise silently change the cohort.
+airline_tasks() { printf '%s\n' '2 6 8 13 16 18 19 22 24 25 26 29 30 31 32 35 37 44 45 48'; }
+validate_airline_cohort() {
+  local task actual expected
+  expected="$(airline_tasks)"
+  actual="$(find "$R/c2-airline-test" -mindepth 1 -maxdepth 1 -type d -name '*-fixed' -printf '%f\n' | sed 's/-fixed$//' | sort -n | tr '\n' ' ')" || return 1
+  # Compare sets, not whitespace formatting.
+  [ "$(echo "$actual" | xargs)" = "$expected" ] || { log "c2 airline cohort differs from 20 preregistered IDs: actual=$actual"; return 1; }
+  for task in $expected; do
+    [ -s "$R/c2-airline-test/$task-fixed/tasks/$task/official-result.json" ] || { log "missing official c2 FIXED result task=$task"; return 1; }
+    [ -s "$R/c2-airline-test/$task-adaptive/tasks/$task/official-result.json" ] || { log "missing official c2 ADAPTIVE result task=$task"; return 1; }
+  done
+}
 retail_side() {  # train|test (held-out) per plumme.keras_data.task_group(seed 1013, holdout 0.3)
   "$KPY" - "$1" "$R/retail_test_tasks.txt" <<'PY'
 import hashlib, sys
@@ -40,6 +53,7 @@ for t in open(sys.argv[2]).read().splitlines()[1].split():
 PY
 }
 stage_prereg() {  # Seal the already-committed protocol/split BEFORE demo and any c3 data.
+  validate_airline_cohort || return 1
   local lock="$P/PREREG_LOCK.txt" ph th
   [ -s "$P/PROTOCOL.md" ] && [ -s "$R/retail_test_tasks.txt" ] || return 1
   ph=$(sha256sum "$P/PROTOCOL.md" | cut -d' ' -f1) || return 1
