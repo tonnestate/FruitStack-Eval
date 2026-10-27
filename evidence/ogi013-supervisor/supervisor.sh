@@ -13,6 +13,14 @@ done_() { [ -f "$ST/$1.done" ]; }
 mark() { date -u +%FT%TZ > "$ST/$1.done"; }
 halt() { status "BLOCKED $1: $2"; exit 0; }
 
+# The evaluator's --require-complete also demands COMPLETE RESOURCE USAGE (cost is unknown on free/credit routes), so its exit code 1 is a finding, not an execution failure
+# (c1 had missing usage for 20/20 pairs). Run the evaluator without the flag; record the strict verdict next to the result; fail only if no valid result was produced.
+compare_recorded() {  # rows out
+  (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$1" > "$2" 2> "$2.err") || return 1
+  "$PY" -c 'import json,sys; j=json.load(open(sys.argv[1])); assert "paired_tasks" in j and "complete_pairs_only" in j' "$2" || return 1
+  (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$1" --require-complete > /dev/null 2>&1; echo "strict_require_complete_rc=$?" > "$2.strict")
+  log "compare $(basename "$2"): $(cat "$2.strict") $("$PY" -c 'import json,sys; j=json.load(open(sys.argv[1])); print("paired=%s incomplete_grade=%s confounded=%s unmatched=%s" % (j["paired_tasks"], len(j["incomplete_grade_tasks"]), len(j["confounded_tasks"]), len(j["unmatched_tasks"])))' "$2")"
+}
 stage_wait_c2() {
   while [ "$(grep -c QUEUE_DONE "$R/c2-airline-test/progress.txt" 2>/dev/null)" != 3 ]; do
     status "WAITING_C2 queues_done=$(grep -c QUEUE_DONE "$R/c2-airline-test/progress.txt" 2>/dev/null) results=$(ls "$R"/c2-airline-test/*-fixed/tasks 2>/dev/null | wc -l)"; sleep 120
@@ -22,7 +30,7 @@ stage_c2_eval() {  # RUNBOOK 2: unchanged interpretation, read-only on c2
   local C=$R/c2-airline-test D=$EV/ogi013-c2-airline-test S=$EV/ogi013-c1-airline-test
   mkdir -p "$D" || return 1
   cd "$O" && "$PY" "$R/export_rows.py" "$C" --out "$D/rows.jsonl" > "$D/export.log" 2>&1 || return 1
-  (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$D/rows.jsonl" --require-complete > "$D/compare.json" 2> "$D/compare.err") || return 1
+  compare_recorded "$D/rows.jsonl" "$D/compare.json" || return 1
   "$PY" "$S/classify_failures.py" "$C" "$D/failure_table.json" > "$D/classify.txt" 2>&1 || return 1
   "$PY" "$S/attribute_causes.py" "$C" > "$D/cause_attribution.txt" 2>&1 || return 1
   "$PY" "$S/integrity.py" "$C" > "$D/integrity.txt" 2>&1 || return 1
@@ -183,7 +191,7 @@ stage_eval() {  # RUNBOOK 7
       continue
     fi
     "$PY" runners/export_pair_rows.py --campaign "$R/c3-phaseB" --cond-a "$1" --cond-b "$2" --out "$D/rows-$1-vs-$2.jsonl" --mapping-out "$D/map-$1-vs-$2.json" > "$D/export-$1-vs-$2.log" 2>&1 || return 1
-    (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$D/rows-$1-vs-$2.jsonl" --require-complete > "$D/compare-$1-vs-$2.json" 2>&1) || return 1
+    compare_recorded "$D/rows-$1-vs-$2.jsonl" "$D/compare-$1-vs-$2.json" || return 1
   done
   local d found=0
   for d in "$R"/c3-phaseB/*/RG2-OFF; do
