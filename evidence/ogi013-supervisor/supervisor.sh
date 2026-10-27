@@ -39,6 +39,27 @@ for t in open(sys.argv[2]).read().splitlines()[1].split():
     if ("test" if g < 0.3 else "train") == want: print(t, end=" ")
 PY
 }
+stage_prereg() {  # Seal the already-committed protocol/split BEFORE demo and any c3 data.
+  local lock="$P/PREREG_LOCK.txt" ph th
+  [ -s "$P/PROTOCOL.md" ] && [ -s "$R/retail_test_tasks.txt" ] || return 1
+  ph=$(sha256sum "$P/PROTOCOL.md" | cut -d' ' -f1) || return 1
+  th=$(sha256sum "$R/retail_test_tasks.txt" | cut -d' ' -f1) || return 1
+  if [ -f "$lock" ]; then
+    grep -Fxq "protocol_sha256=$ph" "$lock" &&
+      grep -Fxq "retail_task_split_sha256=$th" "$lock"
+    return $?
+  fi
+  [ ! -e "$R/c3-phaseA/progress.txt" ] && [ ! -e "$R/c3-phaseB/progress.txt" ] || return 1
+  git -C "$O" diff --quiet HEAD -- evidence/ogi013-c3-prereg/PROTOCOL.md || return 1
+  {
+    echo "protocol_sha256=$ph"
+    echo "retail_task_split_sha256=$th"
+    echo "protocol_commit=$(git -C "$O" rev-parse HEAD)"
+    echo "sealed_at=$(date -u +%FT%TZ)"
+  } > "$lock" || return 1
+  log "c3 preregistration locked before experimental execution"
+}
+
 run_demo_once() {  # $1 outname $2 task ; retry only on simulator-route failure (RUNBOOK 3)
   local k
   for k in 1 2 3; do
@@ -52,8 +73,15 @@ stage_demo() {  # RUNBOOK 3
   set -- $(airline_tasks); local t1=$1 t2=$2
   run_demo_once d1 "$t1"; run_demo_once d2 "$t2"
   cd "$O" && for d in d1 d2; do "$PY" runners/rg2_trace_report.py "$R/org-demo/$d" --out "$EV/ogi013-rg2-demo/report-$d.json" > "$SUP/trace-$d.txt" 2>&1; done
-  "$PY" -c "import json,sys;r=json.load(open('$EV/ogi013-rg2-demo/report-d1.json'));print(r.get('organisational_success') if 'organisational_success' in r else r.get('verdict',{}).get('organisational_success'))" > "$SUP/demo_success.txt" 2>&1
-  log "demo organisational_success(d1)=$(cat "$SUP/demo_success.txt")"
+  "$PY" - "$EV/ogi013-rg2-demo/report-d1.json" "$EV/ogi013-rg2-demo/report-d2.json" > "$SUP/demo_success.txt" <<'PY'
+import json, sys
+reports = [json.load(open(path)) for path in sys.argv[1:]]
+def verified(r):
+    return r.get("organisational_success", r.get("verdict", {}).get("organisational_success")) is True
+print(any(verified(r) for r in reports))
+PY
+  [ "$?" -eq 0 ] || return 1
+  log "demo organisational_success(either)=$(cat "$SUP/demo_success.txt")"
   [ "$(cat "$SUP/demo_success.txt")" = "True" ] || halt demo "no verified multi-agent contribution; preventing Phase A and Keras training"
 }
 pending() {  # $1 campaign dir, rest tasks -> tasks without a complete block; an interrupted block is discarded and its state snapshot restored (resume after a crash)
@@ -64,6 +92,7 @@ pending() {  # $1 campaign dir, rest tasks -> tasks without a complete block; an
   done | tr '\n' ' '
 }
 stage_phaseA() {  # RUNBOOK 4
+  stage_prereg || return 1
   local tasks; tasks="$(pending "$R/c3-phaseA" $(airline_tasks) $(retail_side train))"
   [ -z "$tasks" ] || CONDITIONS="RG2-RANDOMIZED" "$Q/block_queue.sh" c3-phaseA mixed D 1013 $tasks || return 1
 }
@@ -71,7 +100,8 @@ stage_train() {
   cd "$O" && KERAS_BACKEND=jax PYTHONPATH=runners:.:/root/fruits/integration/ogi013-cherry-org:/root/fruits/integration/ogi013-plum-org/src "$KPY" runners/train_org_policy.py \
     --store "$R/c3-phaseA/state/RG2-RANDOMIZED" --gate "$EV/ogi013-learning/ORG_GATE_V1.json" --out "$R/c3-phaseA/learned" > "$SUP/train.log" 2>&1
 }
-stage_freeze() {  # RUNBOOK 5: refuses unless the prerequisites are really true
+stage_freeze() {  # RUNBOOK 5: locks learner and SINGLE-E k before confirmatory Phase B
+  stage_prereg || return 1
   [ "$(cat "$SUP/demo_success.txt" 2>/dev/null)" = "True" ] || halt freeze "no verified multi-agent contribution (demo organisational_success != True); needs owner decision, see $SUP/trace-d1.txt"
   [ -f "$R/c3-phaseA/learned/attestation.json" ] || halt freeze "no ORG-GATE/1 attestation"
   local K; K=$("$PY" - "$R/c3-phaseA/state/RG2-RANDOMIZED/training/decisions.jsonl" <<'PY'
@@ -91,6 +121,7 @@ PY
     echo "retail_train: $(retail_side train)"; echo "retail_heldout: $(retail_side test)"; echo "gate: $(cat "$R/c3-phaseA/learned/attestation.json" | tr -d '\n' | cut -c1-400)"; } > "$P/FREEZE.txt"
 }
 stage_phaseB() {  # RUNBOOK 6
+  stage_prereg || return 1
   local conds="SINGLE SINGLE-E FIXED RG2-OFF RG2-OFF-NOPERSIST RG2-NO-TRIAGE RG2-NO-VERIFY RG2-NO-KNOWLEDGE" K; K=$(cat "$SUP/single_e_k.txt")
   if grep -q LEARNED_POLICY_PERMITTED_FOR_AUTHORIZED_ARM "$R/c3-phaseA/learned/attestation.json"; then   # PROTOCOL: owner order authorises the learner-on arm only when the gate permits
     conds="$conds RG2-LEARNED"; export OGI013_ORG_LEARNED_DIR=$R/c3-phaseA/learned OGI013_ORG_LEARNED_AUTHORIZED=1
@@ -98,6 +129,7 @@ stage_phaseB() {  # RUNBOOK 6
   OGI013_SINGLE_E_K=$K CONDITIONS="$conds" "$Q/block_queue.sh" c3-phaseB retail D 2026 $(pending "$R/c3-phaseB" $(retail_side test)) || return 1
 }
 stage_eval() {  # RUNBOOK 7
+  stage_prereg || return 1
   local D=$EV/ogi013-c3-results; mkdir -p "$D"; cd "$O"
   for pair in "RG2-OFF SINGLE" "RG2-OFF SINGLE-E" "RG2-OFF FIXED" "RG2-OFF RG2-OFF-NOPERSIST" "RG2-LEARNED RG2-OFF"; do set -- $pair
     if [ "$1" = "RG2-LEARNED" ] && ! grep -q LEARNED_POLICY_PERMITTED_FOR_AUTHORIZED_ARM "$R/c3-phaseA/learned/attestation.json"; then
@@ -115,7 +147,7 @@ stage_eval() {  # RUNBOOK 7
   done
   [ "$found" -eq 1 ] || return 1
 }
-for s in wait_c2 c2_eval demo phaseA train freeze phaseB eval; do
+for s in wait_c2 c2_eval prereg demo phaseA train freeze phaseB eval; do
   done_ $s && continue
   status "RUNNING $s"
   for try in 1 2 3; do "stage_$s" && { mark $s; break; }; log "stage $s failed try $try"; sleep 60; done
