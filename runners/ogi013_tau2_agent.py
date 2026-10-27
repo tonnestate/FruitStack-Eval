@@ -152,10 +152,11 @@ class Episode:
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         self.org = None
-        self.org_budgeted = mode == "rg2"
         if mode == "rg2":                                                    # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget
-            fs.governance.configure(self.sid, self.store_revision(stack), max_calls=int(os.environ["OGI013_SESSION_MAX_CALLS"]), max_tokens=int(os.environ["OGI013_SESSION_MAX_TOKENS"]),
-                                    max_cost_usd=float(os.environ["OGI013_SESSION_MAX_COST_USD"]))   # host-authorized accounting envelope from the launch script; PlumMe still decides eligibility
+            env = os.environ.get       # a ceiling exists only if the host authorized one; absent = None = accounted but not capped (cash: none authorized). Nothing is invented.
+            fs.governance.configure(self.sid, self.store_revision(stack), max_calls=int(env("OGI013_SESSION_MAX_CALLS")) if env("OGI013_SESSION_MAX_CALLS") else None,
+                                    max_tokens=int(env("OGI013_SESSION_MAX_TOKENS")) if env("OGI013_SESSION_MAX_TOKENS") else None,
+                                    max_cost_usd=float(env("OGI013_SESSION_MAX_COST_USD")) if env("OGI013_SESSION_MAX_COST_USD") else None)
         from cherryme.contributions import ContributionLedger
         from cherryme.models import Claim
         self.ledger = ContributionLedger()
@@ -194,7 +195,7 @@ class Episode:
                 env = self.stack.store.get(self.sid).environment or {}
                 out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
                                            reserve_tokens=self.reserve(prompt),
-                                           reserve_cost_usd=self.reserve_cost()))
+                                           ))
             except PeachError as exc:
                 code = str(exc)
                 last = code
@@ -226,19 +227,13 @@ class Episode:
             return {"success": True, "output": out.output, "model_key": env.get("model_key") or out.model, "independence_key": env.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
 
-    def reserve_cost(self) -> float | None:
-        """A configured session budget requires an explicit cost reservation: the host-approved remaining USD is the ceiling PlumMe's budget-aware AUTO screens against
-        (non-billed entitlements reserve nothing; a priced route must fit it). No constant is substituted here."""
-        snap = self.stack.fs.governance.snapshot(self.sid)
-        return None if snap is None else float(snap["cost_remaining"])
-
     def reserve(self, prompt: str) -> int | None:
         snap = self.stack.fs.governance.snapshot(self.sid)
         if snap is None:
             return None
         # UTF-8 bytes conservatively bound input tokens without excluding ordinary small-context free routes.
         needed = len(prompt.encode("utf-8")) + 2048
-        return int(min(needed, snap["tokens_remaining"]))
+        return int(needed if snap["tokens_remaining"] is None else min(needed, snap["tokens_remaining"]))
 
     def blocking(self) -> list[str]:
         return list(self.stack.fs.vitals(self.sid).blocking)
