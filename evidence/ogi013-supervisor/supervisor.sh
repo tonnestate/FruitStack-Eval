@@ -2,7 +2,7 @@
 # OGI-013 post-c2 supervisor: runs RUNBOOK.md steps 1-7 in order, idempotent (stage markers), restart-safe (systemd Restart=on-failure).
 # It never touches c2 (read-only until all three QUEUE_DONE lines exist) and never starts a stage whose prerequisite is not true.
 # Exit 0 = pipeline finished OR halted on a recorded BLOCKED reason (status.txt); exit 1 = crash, systemd restarts and the stage resumes.
-set -u
+set -u -o pipefail
 R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs; O=/root/fruits/integration/ogi013-org; EV=$O/evidence
 SUP=$R/supervisor; ST=$SUP/stages; LOG=$SUP/supervisor.log; mkdir -p "$ST"
 PY=/root/fruits/integration/ogi013-hostpython-org/bin/python; KPY=/root/SUPPLY-001/venv3.12/bin/python
