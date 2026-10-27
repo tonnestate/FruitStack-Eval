@@ -1,5 +1,6 @@
 # c3 FREEZE checklist (FREEZE.txt is created only when every item is true; it records the commit hashes of all stack repos and this protocol)
 - [ ] c2 finished, exported with the c1/c2 exporter, evaluated with the strict evaluator, results and discarded attempts archived with a sha256 manifest (unchanged interpretation)
+- [ ] BEFORE c3 phase A or RG/2 demonstration: committed pre-registration and task split sealed in PREREG_LOCK.txt (protocol SHA-256, task-split SHA-256, revision); neither has subsequently changed
 - [x] SINGLE-E mode (offline): tests pass
 - [x] pairwise exporter (runners/export_pair_rows.py) tested
 - [x] block queue (evidence/ogi013-c3-prereg/queue) tested in DRY_RUN
