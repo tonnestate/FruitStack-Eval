@@ -154,7 +154,8 @@ class Episode:
         self.org = None
         self.org_budgeted = mode == "rg2"
         if mode == "rg2":                                                    # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget
-            fs.governance.configure(self.sid, self.store_revision(stack), max_calls=10**9, max_tokens=10**12, max_cost_usd=0.0)   # no call/token ceiling; zero USD = free routes only
+            fs.governance.configure(self.sid, self.store_revision(stack), max_calls=int(os.environ["OGI013_SESSION_MAX_CALLS"]), max_tokens=int(os.environ["OGI013_SESSION_MAX_TOKENS"]),
+                                    max_cost_usd=float(os.environ["OGI013_SESSION_MAX_COST_USD"]))   # host-authorized accounting envelope from the launch script; PlumMe still decides eligibility
         from cherryme.contributions import ContributionLedger
         from cherryme.models import Claim
         self.ledger = ContributionLedger()
@@ -348,15 +349,16 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         return msg, state
 
     def _org_decide(self, ep: Episode, prompt: str, action: dict, state: dict) -> dict:
-        """RG/2: consequential decisions (writes, transfers, or any tool call after an earlier dissent) are put to CherryMe's engine, which staffs, verifies and
-        consolidates by itself. An engine failure never kills the episode (ORG_ERROR is logged and the draft stands); a verified/consolidated dissent triggers a revision."""
-        consequential = action["action"] == "tool" and (action["name"] in self.write_tools or action["name"] == "transfer_to_human_agents" or ep.org.alert > 0)
-        if not consequential:
-            return action
+        """RG/2: every proposed action is put to CherryMe's engine as a claim; the engine decides (triage on structured signals, staffing, verification,
+        consolidation) how much cognition it deserves. An engine failure never kills the episode (ORG_ERROR is logged and the draft stands); a verified/consolidated dissent triggers a revision."""
         lines = state["transcript"]
         request = next((l[6:] for l in lines if l.startswith("USER: ")), "")
-        desc = f"The assistant's tool call {action['name']}({json.dumps(action['arguments'], ensure_ascii=False)})"
-        importance = 0.9 if action["name"] in self.write_tools else 0.6
+        if action["action"] == "tool":
+            desc = f"The assistant's tool call {action['name']}({json.dumps(action['arguments'], ensure_ascii=False)})"
+            importance = 0.9 if action["name"] in self.write_tools else 0.6 if action["name"] == "transfer_to_human_agents" else 0.3   # structured tool type, not a worker label
+        else:
+            desc = f"The assistant's reply to the customer: {action['content'][:800]}"
+            importance = 0.3
         try:
             rec = ep.org.decide(description=desc, importance=importance, request=request, transcript="\n".join(lines),
                                 tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")))

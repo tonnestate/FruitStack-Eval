@@ -30,6 +30,21 @@ def _flatten(messages) -> str:
     return "\n\n".join(lines) + "\n\n[assistant-turn: write the next message of the simulated customer ONLY, no preface]"
 
 
+
+def _single_provider_keys(svc) -> list[str]:
+    """The pair's simulator model is fixed for both arms, so choose one that survives losing a provider (free quota exhausts mid-pair): exclude models with fewer than two
+    distinct providers currently serving them. A selection hint over PlumMe's own offer table; PlumMe still decides eligibility and the route."""
+    try:
+        from plumme.knowledge import independence_key
+        accepted = {"AVAILABLE", "QUOTA_LOW", "DEGRADED"}
+        providers: dict[str, set] = {}
+        for o in svc.store.offers.values():
+            if str(getattr(getattr(o, "health", None), "value", getattr(o, "health", ""))) in accepted:
+                providers.setdefault(str(o.model_key), set()).add(str(o.provider))
+        return sorted({independence_key(o) for o in svc.store.offers.values() if len(providers.get(str(o.model_key), ())) < 2})
+    except Exception:  # noqa: BLE001 - a hint only; without it the selection is plain BEST as before
+        return []
+
 def install(svc, route_file: Path, out: Path) -> None:
     route_file, log = Path(route_file), Path(out) / "sim-usage.jsonl"
     log.parent.mkdir(parents=True, exist_ok=True)
@@ -51,7 +66,8 @@ def install(svc, route_file: Path, out: Path) -> None:
             from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
             req = NeuronRequest(consumer="ogi013-sim", objective="Simulate a tau2 customer", role_id=ROLE, cognitive_owner=CognitiveOwner.CONSUMER,
                                 selection_mode=SelectionMode.PINNED_MODEL if model_key else SelectionMode.BEST, pinned_model_key=model_key,
-                                required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1))
+                                required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1),
+                                metadata={} if model_key else {"exclude_independence_keys": _single_provider_keys(svc)})
             neuron = await svc.acquire_neuron(req)
             lease = {"lease_id": neuron.lease_id, "provider_id": neuron.route.provider, "model_id": neuron.route.model,
                      "offer_id": neuron.route.offer_id, "model_key": neuron.route.model_key}
