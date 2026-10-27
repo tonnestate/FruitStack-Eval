@@ -348,6 +348,16 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.last_error = None
         return msg, state
 
+    @staticmethod
+    def _abandon_unresolved(ep: Episode) -> None:
+        """Engine child inference that ended in an unknown outcome leaves PeachMe steps unresolved, which blocks the next turn (STEP_RECONCILIATION_REQUIRED). As with the
+        agent's own unknown steps, the host records them ABANDONED (an inference step has no external effect; the loss stays in the books)."""
+        fs = ep.stack.fs
+        for key in fs.steps.unresolved(ep.sid):
+            fs.steps.reconcile(ep.sid, ep.stack.store.get(ep.sid).revision, key, verdict="ABANDONED")
+            ep.stats["unknown_steps"] += 1
+            ep.event("STEP_ABANDONED", step=key, code="ENGINE_CHILD_STEP_UNRESOLVED")
+
     def _org_decide(self, ep: Episode, prompt: str, action: dict, state: dict) -> dict:
         """RG/2: every proposed action is put to CherryMe's engine as a claim; the engine decides (triage on structured signals, staffing, verification,
         consolidation) how much cognition it deserves. An engine failure never kills the episode (ORG_ERROR is logged and the draft stands); a verified/consolidated dissent triggers a revision."""
@@ -364,7 +374,9 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
                                 tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")))
         except Exception as exc:  # noqa: BLE001 - visible, not silent; the benchmark outcome must not depend on a bridge crash
             ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
+            self._abandon_unresolved(ep)
             return action
+        self._abandon_unresolved(ep)
         ep.stats["escalations"] += 1
         ep.event("ORG_DECISION", action=action.get("name", "message"), **{k: v for k, v in rec.items() if k != "dissent"}, dissent_n=len(rec["dissent"]))
         if rec["status"] in ("REFUTED", "CONFLICT") or rec["dissent"]:
