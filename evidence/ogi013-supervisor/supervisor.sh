@@ -31,8 +31,10 @@ stage_c2_eval() {  # RUNBOOK 2: unchanged interpretation, read-only on c2
   mkdir -p "$D" || return 1
   cd "$O" && "$PY" "$R/export_rows.py" "$C" --out "$D/rows.jsonl" > "$D/export.log" 2>&1 || return 1
   compare_recorded "$D/rows.jsonl" "$D/compare.json" || return 1
-  "$PY" "$S/classify_failures.py" "$C" "$D/failure_table.json" > "$D/classify.txt" 2>&1 || return 1
-  "$PY" "$S/attribute_causes.py" "$C" > "$D/cause_attribution.txt" 2>&1 || return 1
+  cd "$D" || return 1   # the c1 evidence scripts read their inputs from the current directory
+  "$PY" "$S/classify_failures.py" "$C" "$D/failure_table.json" > "$D/classify.txt" 2>&1 || log "classify_failures failed (descriptive evidence only)"
+  local CP=/root/fruits/integration/ogi013-org-components; PYTHONPATH="$CP/CherryMe:$CP/AppleMe/src:$CP/PlumMe/src" "$PY" "$S/replay_assurance.py" "$C" "$D/replay_assurance.json" > "$D/replay.txt" 2>&1 || log "replay_assurance failed (cause attribution limited)"
+  "$PY" "$S/attribute_causes.py" "$C" > "$D/cause_attribution.txt" 2>&1 || log "attribute_causes failed: the c1 scripts assume every arm has an official result (c2 has gaps); descriptive evidence only"
   "$PY" "$S/integrity.py" "$C" > "$D/integrity.txt" 2>&1 || return 1
   (cd "$R" && find c2-airline-test -type f -print0 | sort -z | xargs -0 sha256sum > "$D/c2-airline-test.SHA256SUMS")
   cp "$C/progress.txt" "$D/progress.txt" || return 1
@@ -46,10 +48,13 @@ validate_airline_cohort() {
   actual="$(find "$R/c2-airline-test" -mindepth 1 -maxdepth 1 -type d -name '*-fixed' -printf '%f\n' | sed 's/-fixed$//' | sort -n | tr '\n' ' ')" || return 1
   # Compare sets, not whitespace formatting.
   [ "$(echo "$actual" | xargs)" = "$expected" ] || { log "c2 airline cohort differs from 20 preregistered IDs: actual=$actual"; return 1; }
+  # Missing c2 official results are an infrastructure finding about c2 (c2 is never rerun): RECORDED and reported; they cannot shrink c3, whose cohort is the pinned list.
+  : > "$SUP/c2_missing_official_results.txt"
   for task in $expected; do
-    [ -s "$R/c2-airline-test/$task-fixed/tasks/$task/official-result.json" ] || { log "missing official c2 FIXED result task=$task"; return 1; }
-    [ -s "$R/c2-airline-test/$task-adaptive/tasks/$task/official-result.json" ] || { log "missing official c2 ADAPTIVE result task=$task"; return 1; }
+    [ -s "$R/c2-airline-test/$task-fixed/tasks/$task/official-result.json" ] || echo "$task-fixed" >> "$SUP/c2_missing_official_results.txt"
+    [ -s "$R/c2-airline-test/$task-adaptive/tasks/$task/official-result.json" ] || echo "$task-adaptive" >> "$SUP/c2_missing_official_results.txt"
   done
+  [ ! -s "$SUP/c2_missing_official_results.txt" ] || log "c2 arms without official result (infrastructure, recorded): $(wc -l < "$SUP/c2_missing_official_results.txt")"
 }
 retail_side() {  # train|test (held-out) per plumme.keras_data.task_group(seed 1013, holdout 0.3)
   "$KPY" - "$1" "$R/retail_test_tasks.txt" <<'PY'

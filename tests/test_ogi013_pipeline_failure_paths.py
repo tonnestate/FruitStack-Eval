@@ -104,9 +104,9 @@ def test_interrupted_block_is_recovered_and_state_restored(tmp_path):
 def test_incomplete_c2_cohort_cannot_shrink_the_sample(tmp_path):
     r = sandbox(tmp_path)
     assert sh(tmp_path, "validate_airline_cohort").returncode == 0
-    (r / "c2-airline-test/3-adaptive/tasks/3/official-result.json").unlink()          # one missing official result
-    assert sh(tmp_path, "validate_airline_cohort").returncode != 0
-    (r / "c2-airline-test/3-adaptive/tasks/3/official-result.json").write_text("{}")
-    subprocess.run(["rm", "-rf", str(r / "c2-airline-test/3-fixed")])                  # one missing task: sample must not silently shrink
+    (r / "c2-airline-test/3-adaptive/tasks/3/official-result.json").unlink()          # one missing official result: recorded, not silently dropped
+    assert sh(tmp_path, "validate_airline_cohort").returncode == 0
+    assert (r / "supervisor/c2_missing_official_results.txt").read_text().split() == ["3-adaptive"]
+    subprocess.run(["rm", "-rf", str(r / "c2-airline-test/3-fixed")])                  # a missing task directory changes the cohort: must fail
     assert sh(tmp_path, "validate_airline_cohort").returncode != 0
     assert "2 6 8 13 16 18 19 22 24 25 26 29 30 31 32 35 37 44 45 48" in SUP.read_text()
