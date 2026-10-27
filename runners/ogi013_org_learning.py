@@ -79,12 +79,13 @@ def load_training_table(store_dir) -> list[dict]:
     """
     t = Path(store_dir) / "training"
     outcomes = {o["task_ref"]: o for o in _read(t / "outcomes.jsonl")}
-    results = {x["task_ref"]: x for x in _read(t / "decision_results.jsonl")}
+    # Completion events identify a decision row_id, not a task_ref.
+    results = {x["row_id"]: x for x in _read(t / "decision_results.jsonl") if x.get("row_id")}
     table = []
     for d in _read(t / "decisions.jsonl"):
         tr = d.get("task_ref")
         o = outcomes.get(tr)
-        res = results.get(tr)
+        res = results.get(d.get("row_id"))
         prop = d.get("propensity")
         row = dict(d)
         row["result"] = {k: v for k, v in res.items() if k != "schema"} if res else None
