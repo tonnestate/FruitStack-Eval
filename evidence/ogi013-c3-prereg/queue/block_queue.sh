@@ -4,7 +4,7 @@
 # One simulator route file per task, shared by its conditions (set in run_condition.sh).
 # Whole-block discard to <campaign>/discarded/<task>-attemptK and retry (max 3) when any condition log has SIM_ROUTE_FAILED.
 # env: CONDITIONS (required), RUNS_DIR, SIM_MODEL_KEY (optional, recorded in BLOCK.json), DRY_RUN=1 (passed through).
-set -u
+set -u -o pipefail
 # A live run must name its runs directory explicitly (the default location also holds the historical c1/c2 evidence); DRY_RUN may use the default.
 if [ -z "${RUNS_DIR:-}" ] && [ "${DRY_RUN:-0}" != "1" ]; then echo "RUNS_DIR must be set explicitly for a live run" >&2; exit 2; fi
 RUNS_DIR=${RUNS_DIR:-/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs}
@@ -30,14 +30,17 @@ PY
 # Persistent organisational state (shared across the tasks of one arm) is snapshotted before every block and restored when the block is discarded, so a discarded block
 # leaves no trace in knowledge/claims/training rows and the retry sees exactly the state the first attempt saw.
 snapshot_state() {  # task
-  rm -rf "$CDIR/.snap-$1"; mkdir -p "$CDIR/.snap-$1"
-  [ -d "$CDIR/state" ] && cp -a "$CDIR/state" "$CDIR/.snap-$1/state"
-  return 0
+  rm -rf "$CDIR/.snap-$1" || return 1
+  mkdir -p "$CDIR/.snap-$1" || return 1
+  if [ -d "$CDIR/state" ]; then
+    cp -a "$CDIR/state" "$CDIR/.snap-$1/state" || return 1
+  fi
 }
 restore_state() {  # task
-  rm -rf "$CDIR/state"
-  [ -d "$CDIR/.snap-$1/state" ] && cp -a "$CDIR/.snap-$1/state" "$CDIR/state"
-  return 0
+  rm -rf "$CDIR/state" || return 1
+  if [ -d "$CDIR/.snap-$1/state" ]; then
+    cp -a "$CDIR/.snap-$1/state" "$CDIR/state" || return 1
+  fi
 }
 record_sim_key() {  # block-dir ; the pinned simulator model is only known after the first simulator call wrote the route file
   [ -f "$1/sim_route.txt" ] && python3 - "$1" <<'PY'
@@ -58,7 +61,7 @@ print(" ".join(c))' "$CONDITIONS" "$SEED" "$T")
   BLOCK="$CDIR/$T"
   for k in 1 2 3; do
     rm -f "$RUNS_DIR/$C-$T.route"
-    snapshot_state "$T"
+    snapshot_state "$T" || exit 1
     mkdir -p "$BLOCK"
     write_block "$BLOCK/BLOCK.json" "$T" "$ORDER" "$SEED" "$k" "${SIM_MODEL_KEY:-pending}"
     echo "$T block attempt=$k order=$ORDER slot=$S" >> "$PROG"
