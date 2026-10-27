@@ -132,17 +132,19 @@ stage_freeze() {  # RUNBOOK 5: locks learner and SINGLE-E k before confirmatory 
   stage_prereg || return 1
   [ "$(cat "$SUP/demo_success.txt" 2>/dev/null)" = "True" ] || halt freeze "no verified multi-agent contribution (demo organisational_success != True); needs owner decision, see $SUP/trace-d1.txt"
   [ -f "$R/c3-phaseA/learned/attestation.json" ] || halt freeze "no ORG-GATE/1 attestation"
-  local K; K=$("$PY" - "$R/c3-phaseA/state/RG2-RANDOMIZED/training/decisions.jsonl" <<'PY'
-import json, statistics, sys
-v = []
-for l in open(sys.argv[1]):
-    r = json.loads(l) if l.strip() else {}
-    c = r.get("result") or r
-    d = c.get("provider_dispatches")
-    if isinstance(d, int): v.append(d)
-print(max(1, round(statistics.median(v))) if v else "")
+  local K; K=$("$PY" - "$O/runners" "$R/c3-phaseA/state/RG2-RANDOMIZED" <<'PY'
+import statistics, sys
+sys.path.insert(0, sys.argv[1])
+from ogi013_org_learning import load_training_table
+values = []
+for row in load_training_table(sys.argv[2]):
+    result = row.get("result") or {}
+    dispatches = result.get("provider_dispatches")
+    if row.get("eligible_for_training") and isinstance(dispatches, int) and not isinstance(dispatches, bool):
+        values.append(dispatches)
+print(max(1, round(statistics.median(values))) if values else "")
 PY
-)
+) || return 1
   [ -n "$K" ] || halt freeze "k for SINGLE-E not derivable from phase A completion rows"
   echo "$K" > "$SUP/single_e_k.txt"
   { echo "FREEZE $(date -u +%FT%TZ) k=$K"; for r in ogi013-fse ogi013-org ogi013-cherry-org ogi013-plum-org ogi013-peach-org; do echo "$r $(git -C /root/fruits/integration/$r rev-parse HEAD)"; done
