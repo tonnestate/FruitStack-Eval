@@ -277,6 +277,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         if self.mode == "rg2":
             from ogi013_org_bridge import OrgBridge
             self.ep.org = OrgBridge(stack, self.ep.sid, str(getattr(self.task, "id", "task")), self.domain_policy, self.out / "org")
+            self.ep.structure_policy = self._structure_policy(str(getattr(self.task, "id", "task")))
         self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
         return {"transcript": [], "n_calls": 0}
 
@@ -349,6 +350,18 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.last_error = None
         return msg, state
 
+    def _structure_policy(self, task_ref: str):
+        """Host structure policy for this arm: OFF (engine triage decides; default), FIXED, RANDOMIZED (training phase, propensity logged) or LEARNED (gated + authorized only)."""
+        from ogi013_org_policy import HostStructurePolicy
+        mode = os.environ.get("OGI013_ORG_POLICY_MODE", "OFF").upper()
+        learned = None
+        if mode == "LEARNED":
+            from train_org_policy import OrgPolicy
+            learned = OrgPolicy(os.environ["OGI013_ORG_LEARNED_DIR"])
+        return HostStructurePolicy(mode, task_ref=task_ref, domain=self.domain, store_dir=Path(os.environ.get("OGI013_ORG_STATE_DIR") or (self.out / "org")),
+                                   fixed_arm=os.environ.get("OGI013_ORG_FIXED_ARM"), learned=learned, authorized=os.environ.get("OGI013_ORG_LEARNED_AUTHORIZED") == "1",
+                                   seed_salt=os.environ.get("OGI013_ORG_SEED_SALT", ""))
+
     @staticmethod
     def _abandon_unresolved(ep: Episode) -> None:
         """Engine child inference that ended in an unknown outcome leaves PeachMe steps unresolved, which blocks the next turn (STEP_RECONCILIATION_REQUIRED). As with the
@@ -371,8 +384,12 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             desc = f"The assistant's reply to the customer: {action['content'][:800]}"
             importance = 0.3
         try:
+            kind = ("WRITE" if action["name"] in self.write_tools else "TRANSFER" if action["name"] == "transfer_to_human_agents" else "READ") if action["action"] == "tool" else "MESSAGE"
+            features = {"importance": importance, "kind": kind, "step_index": ep.turns, "prior_alerts": ep.org.alert, "n_prior_org_decisions": len(ep.org.decisions),
+                        "n_prior_dissents": sum(1 for d in ep.org.decisions if d["dissent"])}
             rec = ep.org.decide(description=desc, importance=importance, request=request, transcript="\n".join(lines),
-                                tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")))
+                                tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")),
+                                structure_policy=getattr(ep, "structure_policy", None), features=features)
         except Exception as exc:  # noqa: BLE001 - visible, not silent; the benchmark outcome must not depend on a bridge crash
             ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
             self._abandon_unresolved(ep)

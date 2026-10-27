@@ -47,6 +47,7 @@ class OrgBridge:
         self.sources: list = []
         self.alert = 0                                  # earlier dissent/refutation/failure in this episode (structured signal, escalates the importance of later claims)
         self.decisions: list[dict] = []
+        self.ensemble_ids: list[str] = []
         self.ablate = set(filter(None, os.environ.get("OGI013_ORG_ABLATE", "").split(",")))   # pre-registered ablations: triage,verify,knowledge
 
     def _build(self) -> None:
@@ -108,7 +109,8 @@ class OrgBridge:
         from cherryme.host_grounding import HostGrounding
         return HostGrounding(question_id=question.id, sources=tuple(self.sources), search_backend="tau2-environment", corpus_family="tau2-airline-environment")
 
-    def decide(self, *, description: str, importance: float, request: str, transcript: str, tool_results: str) -> dict:
+    def decide(self, *, description: str, importance: float, request: str, transcript: str, tool_results: str,
+               structure_policy: Any = None, features: dict | None = None) -> dict:
         """Put one decision to the CherryMe engine. Returns status (SUPPORTED/REFUTED/CONFLICT/UNKNOWN), dissent texts, and the organisation the engine actually used."""
         from cherryme.models import Claim
         if self.engine is None:
@@ -117,6 +119,14 @@ class OrgBridge:
         claim = Claim(text=f"{description} follows the policy and is justified by the customer's request and the observed system data.",
                       importance=min(1.0, importance + 0.1 * self.alert), objective=request[:1000])
         self.engine.add_claim(claim)
+        row_id = None
+        if structure_policy is not None:                  # OGI-013 host structure policy (runners/ogi013_org_policy.py); None = unchanged default behaviour
+            structure, context, propensity, arm_mode = structure_policy.choose(features or {}, len(self.decisions))
+            if context is None:
+                self.engine.frame.pop("responsibility_context", None)     # OFF: engine triage 'auto' decides
+            else:
+                self.engine.frame["responsibility_context"] = dict(context)
+            row_id = structure_policy.record_decision(features=features or {}, structure=structure, propensity=propensity, arm_mode=arm_mode, claim_id=claim.id)
         calls_before, dispatches_before = self.engine.provider_calls, self.engine.provider_dispatches
         self.engine.run([claim.id], budget=QUESTIONS_PER_DECISION)
         final = self.engine.claims.load(claim.id)[0]
@@ -128,4 +138,32 @@ class OrgBridge:
         if final.status.value in ("REFUTED", "CONFLICT") or dissent:
             self.alert = min(self.alert + 1, 3)
         self.decisions.append(rec)
+        comp = self._completion(claim.id, rec)
+        for did in comp.pop("_ensemble_decision_ids"):
+            if did not in self.ensemble_ids:
+                self.ensemble_ids.append(did)             # every team decision of the episode: the official grade is attributed to all of them (episode-level credit)
+        if row_id is not None:
+            structure_policy.finish_decision(row_id, **comp)
         return rec
+
+    def _completion(self, claim_id: str, rec: dict) -> dict:
+        """Accounting of the newest question event of this claim (engine events.jsonl) plus ledger counts. revised/action_changed are not known at this layer (None)."""
+        accounting = ensemble_id = None
+        ids: list[str] = []
+        try:
+            for line in self.engine.workspace.events_path.read_text(encoding="utf-8").splitlines():
+                event = json.loads(line) if line.strip() else {}
+                if event.get("claim_id") == claim_id and (event.get("routing") or {}).get("ensemble"):
+                    ensemble = event["routing"]["ensemble"]
+                    accounting, ensemble_id = ensemble.get("accounting"), ensemble.get("plumme_ensemble_decision_id")
+                    if ensemble_id and ensemble_id not in ids:
+                        ids.append(ensemble_id)
+        except (OSError, ValueError):
+            pass
+        contributions: dict[str, int] = {}
+        for r in self.engine.ledger.for_claim(claim_id):
+            key = f"{r.kind}:{r.epistemic_status}"
+            contributions[key] = contributions.get(key, 0) + 1
+        return {"accounting": accounting, "contributions": contributions, "revised": None, "action_changed": None,
+                "provider_calls": rec["provider_calls"], "provider_dispatches": rec["provider_dispatches"], "plumme_ensemble_decision_id": ensemble_id,
+                "_ensemble_decision_ids": ids}

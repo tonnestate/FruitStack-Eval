@@ -83,11 +83,13 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
 
     original_build = batch.build_orchestrator
     parent_use = {"tool_calls": 0}
+    holder: dict = {}
 
     def build_with_bridge(config, task, **kwargs):
         orchestrator = original_build(config, task, **kwargs)
         env = orchestrator.environment
         agent = orchestrator.agent
+        holder["agent"] = agent
         original = env.get_response
         env._ogi013_original_get_response = original
 
@@ -148,6 +150,14 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
             save_dir=out / "tau2-logs", verbose_logs=True,
         )
         (task_out / "official-result.json").write_text(result.model_dump_json(indent=2), encoding="utf-8")
+        if mode == "rg2" and result.reward_info is not None and getattr(holder.get("agent"), "ep", None) is not None and holder["agent"].ep.org is not None:
+            import hashlib
+            from ogi013_org_learning import attribute_episode_outcome
+            ep_ = holder["agent"].ep
+            attribute_episode_outcome(stack.svc, task_ref=task_id, domain=domain, reward=float(result.reward_info.reward), grader_ref="tau2-official-grader",
+                                      result_sha256=hashlib.sha256((task_out / "official-result.json").read_bytes()).hexdigest(), decision_ids=list(ep_.org.ensemble_ids),
+                                      store_dir=ep_.structure_policy.store_dir, tokens=ep_.stats.get("tokens_in", 0) + ep_.stats.get("tokens_out", 0),
+                                      calls=ep_.stats.get("steps"), wall_seconds=getattr(result, "duration", None))
         print(json.dumps({"task_id": task_id, "reward": result.reward_info.reward if result.reward_info else None,
                           "pomelo_tool_calls": parent_use["tool_calls"], "result": str(task_out / "official-result.json")}, default=str))
     finally:
