@@ -7,6 +7,18 @@ set -u
 RUNS_DIR=${RUNS_DIR:-/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs}
 LAUNCHER=${LAUNCHER:-$RUNS_DIR/run_org.sh}
 C=${1:?campaign}; T=${2:?task}; DOM=${3:?domain}; COND=${4:?condition}; S=${5:?slot}
+# The mixed exploratory campaign uses domain-qualified task keys to prevent
+# collisions (airline:ID versus retail:ID) while the official runner receives
+# its canonical domain and unqualified task id.
+RAW_TASK=$T
+if [ "$DOM" = mixed ]; then
+  case "$T" in
+    airline:*) DOM=airline; RAW_TASK=${T#airline:} ;;
+    retail:*)  DOM=retail; RAW_TASK=${T#retail:} ;;
+    *) echo "mixed campaign requires airline:ID or retail:ID" >&2; exit 2 ;;
+  esac
+  [ -n "$RAW_TASK" ] || { echo "empty mixed task id" >&2; exit 2; }
+fi
 
 # caller values, read before the c3 environment is reset
 K_IN=${OGI013_SINGLE_E_K:-}; LD_IN=${OGI013_ORG_LEARNED_DIR:-}; LA_IN=${OGI013_ORG_LEARNED_AUTHORIZED:-}
@@ -44,9 +56,9 @@ OUTARG="$C/$T/$COND"; PAIR="$C-$T"; SLOTARG="$S-$COND"
 if [ -n "${DRY_RUN:-}" ]; then
   for kv in "${ENVV[@]}"; do echo "ENV $kv"; done
   echo "UNSET $UNSET"
-  echo "CMD $LAUNCHER $OUTARG $T $DOM $MODE $PAIR $SLOTARG"
+  echo "CMD $LAUNCHER $OUTARG $RAW_TASK $DOM $MODE $PAIR $SLOTARG"
   exit 0
 fi
 [ -n "$STATE" ] && mkdir -p "$STATE"
 for kv in "${ENVV[@]}"; do export "$kv"; done
-exec "$LAUNCHER" "$OUTARG" "$T" "$DOM" "$MODE" "$PAIR" "$SLOTARG"
+exec "$LAUNCHER" "$OUTARG" "$RAW_TASK" "$DOM" "$MODE" "$PAIR" "$SLOTARG"
