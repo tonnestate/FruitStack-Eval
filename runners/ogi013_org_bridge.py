@@ -75,9 +75,8 @@ class OrgBridge:
         self.state = state
         self.engine = CherryMeEngine(workspace_root=state / "cherry", registry=registry, investigator=investigator, assurance_tier=assurance,
                                      orchestrator=ResolutionAwareOrchestrator(Falsify()), orchestration_skill=runtime["orchestration_skill"], frame=runtime["frame"])
-        # This PlumMe revision's BudgetEnvelope requires an integer per-response cap (newer PlumMe accepts none). Use the cap every other FruitStack step in this harness uses
-        # (fs.infer max_output_tokens=2048) so all arms share one per-response limit; it is not a task, token or call budget.
-        investigator.max_output_tokens = investigator.verifier_max_output_tokens = int(os.environ.get("OGI013_RESPONSE_TOKENS", "2048"))
+        # No caller cap: PlumMe negotiates the per-response limit from the model's configured limit, the route's technical limit and the context room (and continues cut-off answers).
+        investigator.max_output_tokens = investigator.verifier_max_output_tokens = None
         real_investigate, trace_file = investigator.investigate, self.dir / "investigator-exceptions.log"
 
         def traced(question, agent):                       # instrumentation only: the engine records a bare INVESTIGATOR_EXCEPTION; keep the cause
