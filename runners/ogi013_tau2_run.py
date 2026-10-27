@@ -154,7 +154,7 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
             import hashlib
             from ogi013_org_learning import attribute_episode_outcome
             ep_ = holder["agent"].ep
-            attribute_episode_outcome(stack.svc, task_ref=task_id, domain=domain, reward=float(result.reward_info.reward), grader_ref="tau2-official-grader",
+            attribute_episode_outcome(stack.svc, task_ref=f"{domain}:{task_id}", domain=domain, reward=float(result.reward_info.reward), grader_ref="tau2-official-grader",
                                       result_sha256=hashlib.sha256((task_out / "official-result.json").read_bytes()).hexdigest(), decision_ids=list(ep_.org.ensemble_ids),
                                       store_dir=ep_.structure_policy.store_dir, tokens=ep_.stats.get("tokens_in", 0) + ep_.stats.get("tokens_out", 0),
                                       calls=ep_.stats.get("steps"), wall_seconds=getattr(result, "duration", None))
