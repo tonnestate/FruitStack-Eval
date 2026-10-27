@@ -146,7 +146,7 @@ def test_discarded_block_restores_persistent_state_and_live_run_needs_explicit_r
 
 def test_nonzero_launcher_blocks_without_false_queue_done(tmp_path):
     fake = tmp_path / "fail.sh"
-    fake.write_text("#!/bin/sh\\nexit 7\\n")
+    fake.write_text("#!/bin/sh\nexit 7\n")
     fake.chmod(0o755)
     env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake))
     r = subprocess.run(["bash", str(BLOCK), CAMP, "retail", "A", "1013", "task1"],
@@ -160,7 +160,7 @@ def test_nonzero_launcher_blocks_without_false_queue_done(tmp_path):
 
 def test_success_exit_without_official_result_is_not_complete(tmp_path):
     fake = tmp_path / "empty.sh"
-    fake.write_text("#!/bin/sh\\nexit 0\\n")
+    fake.write_text("#!/bin/sh\nexit 0\n")
     fake.chmod(0o755)
     env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake))
     r = subprocess.run(["bash", str(BLOCK), CAMP, "retail", "A", "1013", "task1"],
