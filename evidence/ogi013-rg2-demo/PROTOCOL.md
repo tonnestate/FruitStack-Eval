@@ -4,7 +4,7 @@ not the registered FIXED-vs-ADAPTIVE comparison and not a success-rate claim. c1
 
 Stack: FSE ogi013-org-bridge, CherryMe ogi013-org-cherry, PlumMe ogi013-org-plum (response-limit negotiation, AUTO, no caller output cap), PeachMe/AppleMe/MangoMe/OrangeMe/PomeloMe as in c2.
 No FastTrack component exists in any CherryMe checkout; the reused fast path is triage `auto` (simple tasks skip the triage call, status SKIPPED_SIMPLE_TASK).
-Run only after c2 has finished (shared free provider supply).
+Run only after c2 has finished (c2 shares the provider supply). The rg2 launcher requires the owner's host-approved budget (runs/host_budget.env); no cost-class restriction, trial-credit exclusion or zero-dollar limit is applied. c1/c2's TRIAL_CREDIT exclusion and zero-charge setting are recorded historical conditions only.
 
 ## Contribution is counted only if the trace shows it (all from existing ledgers: cherry contributions.jsonl, cherry events.jsonl, ORG_* events)
 1. Worker contribution: a CherryMe contribution row of kind PROPOSAL/CANDIDATE/VERIFIER with a delivered answer (not ATTEMPT_FAILED).

@@ -4,9 +4,14 @@ D=/root/fruits/integration/ogi013-org; T=/root/fruits/research/FRUITSTACK-EVAL-0
 cd $D; source /root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/env.sh; export PYTHONPATH=$D/runners:$D ORANGEME_SOURCE_REPO=$T; source $R/work.env
 S=${6:-A}; O=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/slots/$S
 export ORANGEME_HOME=$O/orangeme-home ORANGEME_CHAT_REPO=$O/ledgers/chat.git ORANGEME_PROJECT_REPO=$O/ledgers/project.git
-# host authorization of the PeachMe accounting envelope for rg2 sessions (PlumMe still owns route eligibility; usage is recorded, not assumed): calls/tokens are an unreachable
-# accounting envelope, USD 0.0 = owner order "no paid execution"
-export OGI013_SESSION_MAX_CALLS=1000000 OGI013_SESSION_MAX_TOKENS=1000000000 OGI013_SESSION_MAX_COST_USD=0.0
-export PLUMME_TRIAL_CREDIT=off  # owner: only genuinely free routes; trial credit is a finite allowance (set after pair 22 used 1 TRIAL_CREDIT sim call)
+# PlumMe runs budget-aware AUTO over ALL eligible, authorized supply (free tiers, trial credit, included/prepaid entitlements, paid routes inside the host-approved budget).
+# env.sh carries c1/c2 recorded conditions (PLUMME_ZERO_CHARGE_DISPATCH); they are NOT part of AUTO and are removed for rg2. No cost-class restriction is set here.
+unset PLUMME_TRIAL_CREDIT PLUMME_ZERO_CHARGE_DISPATCH
+# The host-approved session budget is an owner input (PeachMe needs a configured envelope for child-call accounting): $R/host_budget.env must define
+# OGI013_SESSION_MAX_CALLS, OGI013_SESSION_MAX_TOKENS, OGI013_SESSION_MAX_COST_USD. No defaults are invented here.
+[ -f "$R/host_budget.env" ] || { echo "HOST_BUDGET_REQUIRED: owner must provide $R/host_budget.env" >&2; exit 2; }
+source "$R/host_budget.env"
+: "${OGI013_SESSION_MAX_CALLS:?}" "${OGI013_SESSION_MAX_TOKENS:?}" "${OGI013_SESSION_MAX_COST_USD:?}"
+export OGI013_SESSION_MAX_CALLS OGI013_SESSION_MAX_TOKENS OGI013_SESSION_MAX_COST_USD
 export OGI013_EFFECT_DB=$R/$1/effects.sqlite3 OGI013_SIM_ROUTE_FILE=$R/$5.route
 exec $H runners/ogi013_host_bootstrap.py --host-python $H --tau2-checkout $T --components-root /root/fruits/integration/ogi013-org-components --runner runners/ogi013_tau2_run.py --task "$2" --domain $3 --mode $4 --out $R/$1 --host-composer ogi013_host_composer --llm-user plumme/auto

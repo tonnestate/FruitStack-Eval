@@ -194,7 +194,7 @@ class Episode:
                 env = self.stack.store.get(self.sid).environment or {}
                 out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
                                            reserve_tokens=self.reserve(prompt),
-                                           reserve_cost_usd=0.0 if self.org_budgeted else None))
+                                           reserve_cost_usd=self.reserve_cost()))
             except PeachError as exc:
                 code = str(exc)
                 last = code
@@ -225,6 +225,12 @@ class Episode:
                        independence_key=env.get("independence_key"), model_key=env.get("model_key"))
             return {"success": True, "output": out.output, "model_key": env.get("model_key") or out.model, "independence_key": env.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
+
+    def reserve_cost(self) -> float | None:
+        """A configured session budget requires an explicit cost reservation: the host-approved remaining USD is the ceiling PlumMe's budget-aware AUTO screens against
+        (non-billed entitlements reserve nothing; a priced route must fit it). No constant is substituted here."""
+        snap = self.stack.fs.governance.snapshot(self.sid)
+        return None if snap is None else float(snap["cost_remaining"])
 
     def reserve(self, prompt: str) -> int | None:
         snap = self.stack.fs.governance.snapshot(self.sid)
