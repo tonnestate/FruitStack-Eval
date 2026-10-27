@@ -99,6 +99,7 @@ def test_discarded_and_retried_on_route_failure(tmp_path):
     fake = tmp_path / "fake_launcher.sh"
     fake.write_text('#!/bin/bash\n'
                     'n=$(cat "$FAKE_COUNT" 2>/dev/null || echo 0); n=$((n+1)); echo $n > "$FAKE_COUNT"\n'
+                    'mkdir -p "$RUNS_DIR/$1/tasks/$2"; echo \'{"reward_info":null}\' > "$RUNS_DIR/$1/tasks/$2/official-result.json"\n'
                     '[ "$n" -eq 1 ] && echo SIM_ROUTE_FAILED\nexit 0\n')
     fake.chmod(0o755)
     env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake),
@@ -125,6 +126,8 @@ def test_discarded_block_restores_persistent_state_and_live_run_needs_explicit_r
         echo "$@" >> "$RUNS_DIR/launch.log"
         mkdir -p "$OGI013_ORG_STATE_DIR" && echo "written-by-$2" >> "$OGI013_ORG_STATE_DIR/marker"
         echo '{"model_key":"sim-x@default"}' > "$OGI013_SIM_ROUTE_FILE"
+        mkdir -p "$RUNS_DIR/$1/tasks/$2"
+        echo '{"reward_info":null}' > "$RUNS_DIR/$1/tasks/$2/official-result.json"
         if [ ! -f "$RUNS_DIR/second-attempt" ]; then touch "$RUNS_DIR/second-attempt"; echo SIM_ROUTE_FAILED; fi
         '''))
     fake.chmod(0o755)
@@ -139,3 +142,39 @@ def test_discarded_block_restores_persistent_state_and_live_run_needs_explicit_r
     env2 = {k: v for k, v in env.items() if k != "RUNS_DIR"}
     r2 = subprocess.run(["bash", str(here / "block_queue.sh"), "c3-test2", "retail", "A", "7", "t1"], env=env2, capture_output=True, text=True, timeout=60)
     assert r2.returncode == 2
+
+
+def test_nonzero_launcher_blocks_without_false_queue_done(tmp_path):
+    fake = tmp_path / "fail.sh"
+    fake.write_text("#!/bin/sh\\nexit 7\\n")
+    fake.chmod(0o755)
+    env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake))
+    r = subprocess.run(["bash", str(BLOCK), CAMP, "retail", "A", "1013", "task1"],
+                       env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode != 0
+    progress = (tmp_path / CAMP / "progress.txt").read_text()
+    assert "EXECUTION_FAILED" in progress
+    assert "QUEUE_DONE" not in progress
+    assert not (tmp_path / CAMP / "task1" / "BLOCK_DONE").exists()
+
+
+def test_success_exit_without_official_result_is_not_complete(tmp_path):
+    fake = tmp_path / "empty.sh"
+    fake.write_text("#!/bin/sh\\nexit 0\\n")
+    fake.chmod(0o755)
+    env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake))
+    r = subprocess.run(["bash", str(BLOCK), CAMP, "retail", "A", "1013", "task1"],
+                       env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode != 0
+    assert "MISSING_OR_INVALID_OFFICIAL_RESULT" in (tmp_path / CAMP / "progress.txt").read_text()
+    assert not (tmp_path / CAMP / "task1" / "BLOCK_DONE").exists()
+
+
+def test_mixed_domain_keys_preserve_canonical_runner_task_id(tmp_path):
+    r = cond(tmp_path, [CAMP, "airline:25", "mixed", "RG2-RANDOMIZED", "D"])
+    assert r.returncode == 0, r.stderr
+    assert "CMD " in r.stdout
+    assert "airline:25/RG2-RANDOMIZED 25 airline rg2" in r.stdout
+    assert "/airline:25" in r.stdout
+    bad = cond(tmp_path, [CAMP, "25", "mixed", "RG2-RANDOMIZED", "D"])
+    assert bad.returncode == 2
