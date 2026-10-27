@@ -29,12 +29,17 @@ LAUNCHER = textwrap.dedent('''\
 
 def sandbox(tmp_path, behavior="ok"):
     r = tmp_path / "runs"
-    (r / "c2-airline-test/2-fixed").mkdir(parents=True)
-    (r / "c2-airline-test/3-fixed").mkdir(parents=True)
+    for t in (2, 3):
+        for arm in ("fixed", "adaptive"):
+            d = r / f"c2-airline-test/{t}-{arm}/tasks/{t}"; d.mkdir(parents=True); (d / "official-result.json").write_text("{}")
     (r / "retail_test_tasks.txt").write_text("3\n5 9 12 17\n")
     (r / "run_org.sh").write_text(LAUNCHER); (r / "run_org.sh").chmod(0o755)
     (r / "behavior").write_text(behavior)
-    src = SUP.read_text().replace("R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs;", f"R={r};").replace("sleep 60", "sleep 0")
+    src = SUP.read_text().replace("R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs;", f"R={r};").replace("sleep 60", "sleep 0").replace("2 6 8 13 16 18 19 22 24 25 26 29 30 31 32 35 37 44 45 48", "2 3")
+    pre = tmp_path / "prereg"; pre.mkdir()                      # the lock is written next to PROTOCOL.md: keep it OUT of the real repo
+    (pre / "PROTOCOL.md").write_text((ROOT / "evidence/ogi013-c3-prereg/PROTOCOL.md").read_text())
+    src = src.replace("P=$EV/ogi013-c3-prereg; Q=$P/queue", f"Q=$EV/ogi013-c3-prereg/queue; P={pre}")
+    assert f"P={pre}" in src
     (tmp_path / "sup.sh").write_text(src)
     funcs = re.sub(r"^for s in wait_c2.*\Z", "", src, flags=re.S | re.M)
     (tmp_path / "funcs.sh").write_text(funcs)
@@ -77,16 +82,31 @@ def test_interrupted_block_is_recovered_and_state_restored(tmp_path):
     assert sh(tmp_path, "stage_phaseA").returncode == 0           # first run completes everything (baseline state with touched marks)
     state = r / "c3-phaseA/state/RG2-RANDOMIZED/touched"; before = state.read_text()
     (r / "behavior").write_text("hang")
+    for arm in ("fixed", "adaptive"):
+        d = r / f"c2-airline-test/4-{arm}/tasks/4"; d.mkdir(parents=True); (d / "official-result.json").write_text("{}")
     # new task block that gets killed mid-run (extra airline task appears)
-    (r / "c2-airline-test/4-fixed").mkdir()
-    proc = subprocess.Popen(["bash", "-c", f"source {tmp_path}/funcs.sh; stage_phaseA"], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    for _ in range(100):
+    
+    proc = subprocess.Popen(["bash", "-c", f"source {tmp_path}/funcs.sh; airline_tasks() {{ echo '2 3 4'; }}; stage_phaseA"], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    for _ in range(300):
         if (r / "c3-phaseA/airline:4/BLOCK.json").exists() and "airline 4" in (r / "calls.log").read_text(): break
         time.sleep(0.2)
+    else:
+        pytest.fail("the block to be interrupted never started")
     os.killpg(proc.pid, signal.SIGKILL); proc.wait()
     out = sh(tmp_path, 'pending "$R/c3-phaseA" airline:2 airline:3 airline:4').stdout
     assert out.split() == ["airline:4"]                               # finished blocks are skipped, the interrupted one is re-queued
     assert state.read_text() == before                                # the killed attempt left no trace in persistent state
     assert list((r / "c3-phaseA/discarded").glob("airline:4-interrupted*"))
     (r / "behavior").write_text("ok")
-    assert sh(tmp_path, "stage_phaseA").returncode == 0 and (r / "c3-phaseA/airline:4/BLOCK_DONE").exists()
+    assert sh(tmp_path, "airline_tasks() { echo '2 3 4'; }; stage_phaseA").returncode == 0 and (r / "c3-phaseA/airline:4/BLOCK_DONE").exists()
+
+
+def test_incomplete_c2_cohort_cannot_shrink_the_sample(tmp_path):
+    r = sandbox(tmp_path)
+    assert sh(tmp_path, "validate_airline_cohort").returncode == 0
+    (r / "c2-airline-test/3-adaptive/tasks/3/official-result.json").unlink()          # one missing official result
+    assert sh(tmp_path, "validate_airline_cohort").returncode != 0
+    (r / "c2-airline-test/3-adaptive/tasks/3/official-result.json").write_text("{}")
+    subprocess.run(["rm", "-rf", str(r / "c2-airline-test/3-fixed")])                  # one missing task: sample must not silently shrink
+    assert sh(tmp_path, "validate_airline_cohort").returncode != 0
+    assert "2 6 8 13 16 18 19 22 24 25 26 29 30 31 32 35 37 44 45 48" in SUP.read_text()
