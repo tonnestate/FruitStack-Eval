@@ -1,6 +1,6 @@
 # OGI-013 c3 - controlled organisation study: SINGLE / FIXED / ADAPTIVE-RG2 (+ learner, + ablations)  [PRE-REGISTRATION, written 2026-10-27, no c3 data exists]
 Status: Pre-registration must be sealed BEFORE the first c3 exploratory task: supervisor/prereg writes PREREG_LOCK.txt with the committed protocol revision, protocol SHA-256, and fixed task-split SHA-256. Phase A then explores only under these locked hypotheses, outcomes, split and exclusions. After Phase A, FREEZE.txt records the learner verdict, SINGLE-E k and repository revisions BEFORE confirmatory Phase B. After the pre-registration lock: hypotheses, outcome rules, task splits and tests are immutable; any deviations must be reported. After FREEZE: trained-arm decisions and k are also immutable.
-exclusion rules are immutable; deviations are reported as deviations. c1 and c2 stay separate historical evidence (their conditions: FIXED vs ADAPTIVE-write-gated, free-only/trial-off supply,
+c1 and c2 remain separate historical evidence (their conditions: FIXED vs ADAPTIVE-write-gated, free-only/trial-off supply,
 mis-fed sensor in c1) and are not relabelled as RG/2.
 
 ## Hypotheses (Tonn-AGI / AOR operationalised; each is falsifiable here and a negative result is a valid result)
