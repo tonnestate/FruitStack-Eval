@@ -20,13 +20,14 @@ stage_wait_c2() {
 }
 stage_c2_eval() {  # RUNBOOK 2: unchanged interpretation, read-only on c2
   local C=$R/c2-airline-test D=$EV/ogi013-c2-airline-test S=$EV/ogi013-c1-airline-test
+  mkdir -p "$D" || return 1
   cd "$O" && "$PY" "$R/export_rows.py" "$C" --out "$D/rows.jsonl" > "$D/export.log" 2>&1 || return 1
-  (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$D/rows.jsonl" --require-complete > "$D/compare.json" 2> "$D/compare.err"); true
-  "$PY" "$S/classify_failures.py" "$C" "$D/failure_table.json" > "$D/classify.txt" 2>&1
-  "$PY" "$S/attribute_causes.py" "$C" > "$D/cause_attribution.txt" 2>&1
-  "$PY" "$S/integrity.py" "$C" > "$D/integrity.txt" 2>&1
+  (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$D/rows.jsonl" --require-complete > "$D/compare.json" 2> "$D/compare.err") || return 1
+  "$PY" "$S/classify_failures.py" "$C" "$D/failure_table.json" > "$D/classify.txt" 2>&1 || return 1
+  "$PY" "$S/attribute_causes.py" "$C" > "$D/cause_attribution.txt" 2>&1 || return 1
+  "$PY" "$S/integrity.py" "$C" > "$D/integrity.txt" 2>&1 || return 1
   (cd "$R" && find c2-airline-test -type f -print0 | sort -z | xargs -0 sha256sum > "$D/c2-airline-test.SHA256SUMS")
-  cp "$C/progress.txt" "$D/progress.txt"
+  cp "$C/progress.txt" "$D/progress.txt" || return 1
 }
 airline_tasks() { ls "$R/c2-airline-test" | grep -E '^[0-9]+-fixed$' | sed 's/-fixed//' | sort -n | tr '\n' ' '; }
 retail_side() {  # train|test (held-out) per plumme.keras_data.task_group(seed 1013, holdout 0.3)
@@ -53,6 +54,7 @@ stage_demo() {  # RUNBOOK 3
   cd "$O" && for d in d1 d2; do "$PY" runners/rg2_trace_report.py "$R/org-demo/$d" --out "$EV/ogi013-rg2-demo/report-$d.json" > "$SUP/trace-$d.txt" 2>&1; done
   "$PY" -c "import json,sys;r=json.load(open('$EV/ogi013-rg2-demo/report-d1.json'));print(r.get('organisational_success') if 'organisational_success' in r else r.get('verdict',{}).get('organisational_success'))" > "$SUP/demo_success.txt" 2>&1
   log "demo organisational_success(d1)=$(cat "$SUP/demo_success.txt")"
+  [ "$(cat "$SUP/demo_success.txt")" = "True" ] || halt demo "no verified multi-agent contribution; preventing Phase A and Keras training"
 }
 pending() {  # $1 campaign dir, rest tasks -> tasks without a complete block; an interrupted block is discarded and its state snapshot restored (resume after a crash)
   local C=$1 t; shift
@@ -98,10 +100,20 @@ stage_phaseB() {  # RUNBOOK 6
 stage_eval() {  # RUNBOOK 7
   local D=$EV/ogi013-c3-results; mkdir -p "$D"; cd "$O"
   for pair in "RG2-OFF SINGLE" "RG2-OFF SINGLE-E" "RG2-OFF FIXED" "RG2-OFF RG2-OFF-NOPERSIST" "RG2-LEARNED RG2-OFF"; do set -- $pair
-    "$PY" runners/export_pair_rows.py --campaign "$R/c3-phaseB" --cond-a "$1" --cond-b "$2" --out "$D/rows-$1-vs-$2.jsonl" --mapping-out "$D/map-$1-vs-$2.json" > "$D/export-$1-vs-$2.log" 2>&1 || continue
-    (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$D/rows-$1-vs-$2.jsonl" --require-complete > "$D/compare-$1-vs-$2.json" 2>&1)
+    if [ "$1" = "RG2-LEARNED" ] && ! grep -q LEARNED_POLICY_PERMITTED_FOR_AUTHORIZED_ARM "$R/c3-phaseA/learned/attestation.json"; then
+      echo "NOT_TESTABLE: learner gate did not permit this arm" > "$D/RG2-LEARNED-vs-RG2-OFF.NOT_TESTABLE"
+      continue
+    fi
+    "$PY" runners/export_pair_rows.py --campaign "$R/c3-phaseB" --cond-a "$1" --cond-b "$2" --out "$D/rows-$1-vs-$2.jsonl" --mapping-out "$D/map-$1-vs-$2.json" > "$D/export-$1-vs-$2.log" 2>&1 || return 1
+    (cd /root/fruits/integration/ogi013-fse && "$PY" -m fruitstack_eval.cli ogi13 compare --observations "$D/rows-$1-vs-$2.jsonl" --require-complete > "$D/compare-$1-vs-$2.json" 2>&1) || return 1
   done
-  for d in "$R"/c3-phaseB/*/RG2-OFF; do "$PY" runners/rg2_trace_report.py "$d" --out "$D/trace-$(basename "$(dirname "$d")").json" > /dev/null 2>&1; done
+  local d found=0
+  for d in "$R"/c3-phaseB/*/RG2-OFF; do
+    [ -d "$d" ] || continue
+    found=1
+    "$PY" runners/rg2_trace_report.py "$d" --out "$D/trace-$(basename "$(dirname "$d")").json" > /dev/null 2>&1 || return 1
+  done
+  [ "$found" -eq 1 ] || return 1
 }
 for s in wait_c2 c2_eval demo phaseA train freeze phaseB eval; do
   done_ $s && continue
