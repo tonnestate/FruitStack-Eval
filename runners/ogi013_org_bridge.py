@@ -89,11 +89,11 @@ class OrgBridge:
                     f.write(f"--- {question.type} agent={getattr(agent, 'id', None)}\n{traceback.format_exc()}\n")
                 raise
         investigator.investigate = traced
-        self._reserve_simulator_route(registry)
+        self._reserve_simulator_route(registry, svc)
         if "verify" not in self.ablate:
             investigator.evidence_verifier = EvidenceVerifier(investigator.run_worker, claim_lookup=lambda cid: self.engine.claims.load(cid)[0].text)
 
-    def _reserve_simulator_route(self, registry) -> None:
+    def _reserve_simulator_route(self, registry, budget_svc) -> None:
         """The user simulator is pinned to one model for the pair; agent-side workers must not compete for that throttled free route (benchmark infrastructure isolation)."""
         route_file = os.environ.get("OGI013_SIM_ROUTE_FILE")
         try:
@@ -102,8 +102,26 @@ class OrgBridge:
             if card is not None:
                 from dataclasses import replace
                 registry._agents[key] = replace(card, enabled=False)
-        except Exception:  # noqa: BLE001 - isolation is best effort; the run records which models the workers used
-            pass
+            if key:
+                self._fence_simulator_model(budget_svc, key)
+            (self.dir / "sim-reservation.log").write_text(f"reserved {key}\n" if key else "no simulator route file at build time\n")
+        except Exception as exc:  # noqa: BLE001 - isolation is best effort, but the failure is recorded, never silent
+            (self.dir / "sim-reservation.log").write_text(f"RESERVATION_FAILED {type(exc).__name__}: {exc}\n")
+
+    def _fence_simulator_model(self, budget_svc, key: str) -> None:
+        """Service-level guard behind the card reservation (the registry may rebuild its cards): no organisational worker is ever routed to the simulator's model, so workers
+        cannot exhaust the quota the pinned simulator needs. Only the workers' budgeted service is fenced; the simulator and the host agent use their own paths."""
+        from plumme.knowledge import independence_key
+        excluded = sorted({independence_key(o) for o in self.stack.svc.store.offers.values() if str(o.model_key) == key})
+        inner = budget_svc.acquire_neuron
+
+        async def acquire_neuron(request, *args, **kwargs):
+            if getattr(request, "pinned_model_key", None) == key:
+                raise RuntimeError(f"SIM_MODEL_RESERVED:{key}")
+            meta = dict(getattr(request, "metadata", None) or {})
+            meta["exclude_independence_keys"] = sorted(set(meta.get("exclude_independence_keys") or []) | set(excluded))
+            return await inner(request.model_copy(update={"metadata": meta}), *args, **kwargs)
+        budget_svc.acquire_neuron = acquire_neuron
 
     def _grounding(self, question):
         from cherryme.host_grounding import HostGrounding

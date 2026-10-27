@@ -103,6 +103,7 @@ run_demo_once() {  # Never silently accept a failed subprocess. A discarded atte
     mv "$R/org-demo/$1" "$R/org-demo/$1-discarded-$ts" || return 1
     mv "$R/org-demo/$1.log" "$R/org-demo/$1-discarded-$ts.log" || return 1
     if [ -d "$ST" ]; then mv "$ST" "$R/org-demo/state-discarded-$1-$ts" || return 1; fi
+    if [ -f "$R/org-demo-$1.route" ]; then mv "$R/org-demo-$1.route" "$R/org-demo-$1.route.discarded-$ts" || return 1; fi   # the whole block is discarded: the retry selects its simulator model afresh
     if [ -d "$SNAP" ]; then mv "$SNAP" "$ST" || return 1; fi
     grep -q SIM_ROUTE_FAILED "$R/org-demo/$1-discarded-$ts.log" || return 1      # only a simulator-route failure may be retried
   done
