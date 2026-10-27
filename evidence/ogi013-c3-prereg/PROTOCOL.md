@@ -5,7 +5,7 @@ mis-fed sensor in c1) and are not relabelled as RG/2.
 
 ## Hypotheses (Tonn-AGI / AOR operationalised; each is falsifiable here and a negative result is a valid result)
 H1 organisation beats its constituents: RG2-OFF > SINGLE on unseen tasks.
-H1c organisation beats mere extra sampling: RG2-OFF > SINGLE-K (same model pool, k = per-decision median provider dispatches of RG2-OFF, best-of-k by majority action; no cooperation).
+H1c organisation beats mere extra sampling: RG2-OFF > SINGLE-E (equal-effort single model: same AUTO pool, k independent drafts per decision, majority canonical action, no critique/verification/cooperation; k = integer median provider dispatches per decision observed in phase A, fixed and recorded at the start of phase B, env OGI013_SINGLE_E_K).
 H2 adaptive beats fixed organisation: RG2-OFF > FIXED (always-on peer review, existing ADAPTIVE-v1 write-gated rule is NOT a comparator here: it was shown to be a static rule).
 H3 persistence/cross-task transfer: RG2-OFF with the arm's shared organisational state (knowledge store, claim/inquiry state) > RG2-OFF-NOPERSIST (fresh state per task), same task order.
 H4 learning: RG2-LEARNED > RG2-OFF on held-out tasks - testable ONLY if the learner passes ORG-GATE/1 (evidence/ogi013-learning/ORG_GATE_V1.json) and the owner authorises the learner-on arm; else H4 is reported "not testable: gate not met".
@@ -43,5 +43,16 @@ No post-hoc exclusion except the whole-block simulator-route discard above. No t
 sha256 manifests (as c1). Trial-credit/entitlement consumption and cash are reported separately and never merged. Grader provenance stays "hash, not signature" (grader_provenance_attested=false).
 
 ## Conditions list (all share tools, tasks, policy text, simulator, AUTO supply)
-SINGLE | SINGLE-K | FIXED | RG2-OFF | RG2-OFF-NOPERSIST | RG2-NO-TRIAGE | RG2-NO-VERIFY | RG2-NO-KNOWLEDGE | RG2-LEARNED (conditional on gate + owner authorisation) | RG2-RANDOMIZED (phase A only)
-Implementation prerequisites before FREEZE: SINGLE-K, a mode flag for NOPERSIST (fresh OGI013_ORG_STATE_DIR per task), per-block runner/queue, exporter mapping, c2 finished and evaluated.
+SINGLE | SINGLE-E | FIXED | RG2-OFF | RG2-OFF-NOPERSIST | RG2-NO-TRIAGE | RG2-NO-VERIFY | RG2-NO-KNOWLEDGE | RG2-LEARNED (conditional on gate + owner authorisation) | RG2-RANDOMIZED (phase A only)
+Implementation status before FREEZE (see FREEZE.txt checklist): SINGLE-E mode = done offline (runners/ogi013_single_e.py); NOPERSIST + per-block queue = evidence/ogi013-c3-prereg/queue; pairwise exporter = runners/export_pair_rows.py; trace report = runners/rg2_trace_report.py; c2 must be finished and evaluated first.
+
+## Consistency with the existing research protocol (checked 2026-10-27)
+- OGI013_EVALUATION.md (OGI13-PAIRED/1): the independent evaluator is unchanged and still two-arm (FIXED/ADAPTIVE roles); c3 maps each condition pair onto those roles per comparison (exporter mapping file is evidence)
+  and adds NO threshold to it. That document states a cause can be considered only under a separately registered inference/ablation protocol: this file is that registration; it was written before any c3 data.
+- PILOT-PROC/1 (OGI-012 inquiry pilot F1/F3/A) is historical and untouched. Its FREE_ONLY requirement (`PLUMME_COST_POLICY=FREE_ONLY`, `fse logcheck --expect-cost-policy FREE_ONLY`) belongs to that pilot and its
+  cost gate only; c3 runs budget-aware AUTO, so c3 seals use `fse seal create` over each condition's DecisionLog + results and `fse logcheck --expect-cost-policy AUTO`. PILOT-PROC/1 analysis is descriptive; c3's confirmatory tests are new and stated above.
+- ORG-GATE/1 vs MQ-GATE/1 (PlumMe keras_model.py): same structure and the same ECE bound (0.10), same min_test_tasks (12) and min_tasks (40), same "CI lower bound of the gain above 0" rule; ORG-GATE adds
+  min_rows_per_structure (40) because the target is structure-specific, uses log-loss (binary outcome) instead of RMSE, and requires 300 rows (MQ: 200) because labels are episode-level and rows within a task are correlated.
+  Like MQ-GATE, a permitting verdict never activates anything: activation needs the separate host authorisation flag of the registered learner-on arm (owner order 2026-10-27 authorises that arm's comparison once the gate permits).
+- Supply: PlumMe AUTO over ALL eligible authorized supply (free tiers, free/promotional/trial credits, included, prepaid, and paid routes only within real approved spending). c1/c2's trial-off / zero-charge settings are recorded historical conditions only.
+- Learned-policy claims: SHADOW_ONLY recording is never reported as organisational learning; only the registered learner-on vs learner-off held-out comparison (H4) counts, and only if the gate permits.
