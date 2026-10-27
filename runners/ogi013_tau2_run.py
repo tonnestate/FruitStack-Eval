@@ -18,7 +18,7 @@ from tau2.registry import registry
 from tau2.runner import batch
 from tau2.runner.helpers import get_tasks
 
-from ogi013_tau2_agent import FruitStackTau2Agent, Stack as FruitStack
+from ogi013_tau2_agent import FruitStackTau2Agent, Stack as FruitStack, _is_write
 from ogi013_run_guard import ensure_empty_output
 from pomelome.effects import EffectObservation
 from peachme.pomelo import effect_identity
@@ -73,6 +73,9 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
     if host_effects is not None:
         stack.fs.attach_host_effects(**host_effects)
     _host_effects(stack.fs)
+    if os.environ.get("OGI013_SIM_ROUTE_FILE"):
+        from ogi013_sim_supply import install as install_sim_supply
+        install_sim_supply(stack.svc, Path(os.environ["OGI013_SIM_ROUTE_FILE"]), out)
     task = next(t for t in get_tasks(domain) if t.id == task_id)
     task_out = out / "tasks" / task_id
     task_out.mkdir(parents=True, exist_ok=True)
@@ -94,7 +97,7 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
                 from tau2.data_model.message import ToolMessage
                 return ToolMessage(id=message.id, content="Error: Pomelo execution gate is unavailable", requestor=message.requestor, role="tool", error=True)
             parent_use["tool_calls"] += 1
-            write = any(t.name == message.name and FruitStackTau2Agent._is_write(t) for t in agent.tools)
+            write = any(t.name == message.name and _is_write(t) for t in agent.tools)
             try:
                 from pomelome.models import EffectClass
 

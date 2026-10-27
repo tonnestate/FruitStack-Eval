@@ -127,7 +127,7 @@ class Stack:
         self.appleme = connect_appleme(workspace_root=out / "appleme")
         self.store = SessionStore(out / "peachme.sqlite3")
         self.heart = PlumMeProvider(self.svc)
-        self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange, project_ref=orange_project), assurance=AppleAssuranceAdapter(self.appleme.service),
+        self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange, project_ref=orange_project), assurance=AppleAssuranceAdapter(getattr(self.appleme, "service", None) or self.appleme._service),
                                     authorize_model_input=lambda text, view: text)
         self.projects: dict[str, str] = {}
 
@@ -148,7 +148,7 @@ class Episode:
         fs = stack.fs
         self.actor = os.environ["OGI013_ACTOR_ID"]
         self.work, self.project, self.turn_id = stack.project(f"/ogi013/tau2/{domain}/{mode}")
-        self.session = stack.store.open(self.actor, work_ref=self.work, memory_ref="memory/working")
+        self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")  # PeachMe restores by MangoMe project key (as peachme.mission does)
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         from cherryme.contributions import ContributionLedger
@@ -195,8 +195,15 @@ class Episode:
                     continue
                 if code.startswith("EXECUTION_NOT_CONFIRMED"):
                     self.stats["unknown_steps"] += 1
-                    # UNKNOWN retains its reservation until authoritative host reconciliation.
-                    raise
+                    # UNKNOWN retains its reservation until host reconciliation. An inference step has no external effect, so the host (this harness)
+                    # records it ABANDONED (lost / possibly billed; stays in the books and is reported as an unknown step) and continues with a NEW step key.
+                    try:
+                        fs.steps.reconcile(self.sid, self.stack.store.get(self.sid).revision, key, verdict="ABANDONED")
+                    except PeachError as rec_exc:
+                        self.event("STEP_RECONCILE_FAILED", step=key, error=str(rec_exc)[:200])
+                        raise
+                    self.event("STEP_ABANDONED", step=key, code=code)
+                    continue
                 raise
             self.stats["steps"] += 1
             st = out.step
