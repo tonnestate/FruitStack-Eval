@@ -60,3 +60,16 @@ def test_synthetic_positive_case(tmp_path):
     assert v["organisational_success"] is True
     assert rep["note"] is None
     assert NOT_ACCEPTED not in render_markdown(rep)
+
+
+def test_productive_recovery_needs_a_delivering_attempt_on_another_worker_with_question_outcome_progress():
+    """SYNTHETIC sequences exercising the recovery rule only."""
+    import rg2_trace_report as r
+    fail = [("attempt", {"agent_id": "w1", "provider_ok": False, "outcome": "COUNTED_FAILURE"}), ("intervention", {"action": "SWITCH_WORKER", "agent_id": "w1"}),
+            ("attempt", {"agent_id": "w2", "provider_ok": True, "outcome": "PROGRESS"})]
+    sw, productive = r._recovery(fail)
+    assert productive is True and sw[0]["followups_on_other_worker"] == 1
+    same = [("intervention", {"action": "SWITCH_WORKER", "agent_id": "w1"}), ("attempt", {"agent_id": "w1", "provider_ok": True, "outcome": "PROGRESS"})]
+    assert r._recovery(same)[1] is False                       # same worker again is not a replacement
+    failed_again = [("intervention", {"action": "SWITCH_WORKER", "agent_id": "w1"}), ("attempt", {"agent_id": "w2", "provider_ok": False, "outcome": "COUNTED_FAILURE"})]
+    assert r._recovery(failed_again)[1] is False

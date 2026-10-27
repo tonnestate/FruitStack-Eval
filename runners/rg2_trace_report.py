@@ -45,7 +45,8 @@ def _reward(path: Path):
 
 
 def _attempt_progress(attempt: dict) -> bool:
-    return attempt.get("outcome") == "PROGRESS"
+    # the outcome is recorded per QUESTION (cherry events: question_outcome PROGRESS / COUNTED_FAILURE); an attempt counts only if its provider delivered
+    return attempt.get("outcome") == "PROGRESS" and attempt.get("provider_ok") is not False
 
 
 def _recovery(routing_seq: list[tuple[str, dict]]) -> tuple[list[dict], bool | None]:
@@ -106,7 +107,7 @@ def build_report(run_dir: Path) -> dict:
                 continue
             seq = per_claim_routing.setdefault(claim, [])
             for a in routing.get("attempts") or []:
-                seq.append(("attempt", a))
+                seq.append(("attempt", {**a, "outcome": e.get("question_outcome")}))
                 all_attempt_codes[a.get("error_code") or "NONE"] += 1
             for i in routing.get("interventions") or []:
                 seq.append(("intervention", {**i, "claim": claim, "task": task}))
