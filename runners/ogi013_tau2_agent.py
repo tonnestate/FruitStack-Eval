@@ -162,6 +162,8 @@ class Episode:
         self.step_n = 0
         self.turns = 0
         self.stopped = False
+        self.seen_results: set[str] = set()
+        self.verified_results = 0
         self.stats = {"steps": 0, "step_retries": 0, "escalations": 0, "challenges_found": 0, "revisions": 0, "reflex_blocks": 0, "unknown_steps": 0, "tokens_in": 0, "tokens_out": 0, "models": {}}
 
     def event(self, kind: str, **data: Any) -> None:
@@ -289,13 +291,16 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             state["transcript"].append(self._line(m))
             if isinstance(m, ToolMessage) and m.error:                      # observed tool error: the same error repeated is what AppleMe watches for
                 ep.last_error = hashlib.sha256(str(m.content)[:200].encode()).hexdigest()[:12]
+            elif isinstance(m, ToolMessage):                                 # environment-returned content not seen before is information gain (not a model claim)
+                h = hashlib.sha256(str(m.content).encode()).hexdigest()
+                if h not in ep.seen_results:
+                    ep.seen_results.add(h)
+                    ep.verified_results += 1
         blocking = ep.blocking()
         if blocking:                                                             # the reflex arc is binding: no further model spending, the agent stops acting
             ep.stats["reflex_blocks"] += 1
             ep.event("REFLEX_STOP", blocking=blocking)
             msg = AssistantMessage.text("I am unable to continue with this request; I am handing it over to a human agent. ###STOP###")
-            if "transfer_to_human_agents" in {t.name for t in self.tools}:
-                msg = AssistantMessage.text("", tool_calls=[ToolCall(id=f"call_{uuid.uuid4().hex[:10]}", name="transfer_to_human_agents", arguments={"summary": "Automatic stop: operational health signal."}, requestor="assistant")])
             state["transcript"].append("ASSISTANT: <reflex stop>")
             ep.close("REFLEX_BLOCKED")
             return msg, state
@@ -325,7 +330,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             msg = AssistantMessage.text(action["content"])
             state["transcript"].append(f"ASSISTANT: {action['content']}")
         outcome = "COUNTED_FAILURE" if getattr(ep, "last_error", None) and action["action"] == "tool" else "PROGRESS"
-        ep.assure({"question_type": "ACT" if action["action"] == "tool" else "SAY", "question_outcome": outcome, "mutation_error": {"code": getattr(ep, "last_error", None)} if outcome == "COUNTED_FAILURE" else {}})
+        ep.assure({"question_type": f"ACT:{action['name']}" if action["action"] == "tool" else "SAY", "question_outcome": outcome, "verified_evidence_total": ep.verified_results, "mutation_error": {"code": getattr(ep, "last_error", None)} if outcome == "COUNTED_FAILURE" else {}})
         ep.last_error = None
         return msg, state
 
