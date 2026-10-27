@@ -280,7 +280,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         if self.mode == "rg2":
             from ogi013_org_bridge import OrgBridge
             self.ep.org = OrgBridge(stack, self.ep.sid, str(getattr(self.task, "id", "task")), self.domain_policy, self.out / "org")
-            self.ep.structure_policy = self._structure_policy(str(getattr(self.task, "id", "task")))
+            self.ep.structure_policy = self._structure_policy(f"{self.domain}:{getattr(self.task, 'id', 'task')}")
         self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
         return {"transcript": [], "n_calls": 0}
 
