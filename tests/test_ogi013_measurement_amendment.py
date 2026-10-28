@@ -208,3 +208,13 @@ def test_earliest_retry_uses_plumme_cooldown_state():
     assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": None}), ["a", "b"]) == 0.0      # b is available now: rotate, do not wait
     assert _earliest_retry(svc([offer("a", "UNAVAILABLE")], {"a": 5.0}), ["a"]) is None                  # no routable offer at all
     assert _earliest_retry(svc([offer("a")], {"a": 9000.0}), "a") == 9000.0                               # daily-quota style window: the caller fails the block
+
+
+def test_selection_pool_excludes_only_until_the_retry_window_ends(tmp_path):
+    import time as _t
+    from ogi013_sim_supply import _selection_pool
+    (tmp_path / "sim_allowlist.json").write_text(json.dumps({"model_keys": ["b", "a", "c"]}))
+    now = _t.time()
+    rows = [{"ts": now, "model_key": "a", "until": now + 600}, {"ts": now - 7200, "model_key": "b"}, {"ts": now - 100, "model_key": "c", "until": now - 1}]
+    (tmp_path / "sim_exhausted.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    assert _selection_pool(tmp_path) == ["b", "c"]            # a: window still open; b: old row without window (one hour) expired; c: window ended

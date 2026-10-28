@@ -65,7 +65,7 @@ def _earliest_retry(svc, model_keys):
 
 def _selection_pool(runs_dir: Path) -> list[str]:
     """Models that may carry a new pair: the live-verified allowlist (sim_allowlist.json, from a real capacity survey) minus models recorded as quota-exhausted within the
-    last 24h (sim_exhausted.jsonl, written when a pinned model failed a block). Empty = no allowlist, plain PlumMe BEST. The ROUTE is always PlumMe's choice."""
+    recent failures (sim_exhausted.jsonl, written when a pinned model failed a block; excluded until PlumMe's own retry window ends, else one hour). Empty = no allowlist, plain PlumMe BEST. The ROUTE is always PlumMe's choice."""
     allow_file, spent_file = runs_dir / "sim_allowlist.json", runs_dir / "sim_exhausted.jsonl"
     if not allow_file.exists():
         return []
@@ -73,7 +73,7 @@ def _selection_pool(runs_dir: Path) -> list[str]:
     if spent_file.exists():
         for line in spent_file.read_text().splitlines():
             row = json.loads(line) if line.strip() else {}
-            if time.time() - row.get("ts", 0) < 86400:
+            if time.time() < row.get("until", row.get("ts", 0) + 3600):      # rows without a recorded window (older format) count for one hour only
                 spent.add(str(row["model_key"]))
     return [k for k in sorted(json.loads(allow_file.read_text())["model_keys"]) if k not in spent]
 
@@ -147,9 +147,10 @@ def install(svc, route_file: Path, out: Path) -> None:
                 failed_wait = (wait + 2) if wait is not None else (failed_wait or 1)
             time.sleep(failed_wait if failed_wait is not None else 10)
         if not succeeded:
-            if pinned:                                  # remember the model for 24h so the re-selection of the discarded block does not pick it again
+            if pinned:                                  # remember the model until its retry window ends so the re-selection of the discarded block does not pick it again
                 with (route_file.parent / "sim_exhausted.jsonl").open("a") as f:
-                    f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last}) + "\n")
+                    window = _earliest_retry(svc, pinned)
+                f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "until": time.time() + (window if window else 3600)}) + "\n")
             raise RuntimeError(f"SIM_ROUTE_FAILED:{last}")
         if pinned is None:
             if not lease["model_key"]:
