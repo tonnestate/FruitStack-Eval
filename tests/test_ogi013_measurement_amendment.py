@@ -183,3 +183,28 @@ def test_report_ignores_claims_of_other_runs_in_the_shared_state(tmp_path):
 def test_report_accepts_the_legacy_labels(tmp_path):
     legacy = [_vrow("A-1", "CONTRADICTS", "VERIFIED", "ACCEPTED", "lineage-a"), _vrow("A-1", "CONTRADICTS", "VERIFIED", "ACCEPTED", "lineage-b")]
     assert _run(tmp_path, legacy)["verdict"]["independent_verification"] is True
+
+
+# ---------- simulator cooldown logic (infrastructure; offline, fake service objects) -------------------------------------------------------------------------
+
+def test_earliest_retry_uses_plumme_cooldown_state():
+    import types
+    from ogi013_sim_supply import _earliest_retry
+
+    def offer(key, health="AVAILABLE"):
+        return types.SimpleNamespace(model_key=key, health=health)
+
+    class Sched:
+        def __init__(self, waits):
+            self.waits = waits
+
+        def availability(self, o):
+            return {"retry_after_seconds": self.waits[o.model_key]}
+
+    def svc(offers, waits):
+        return types.SimpleNamespace(store=types.SimpleNamespace(offers=dict(enumerate(offers))), scheduler=Sched(waits))
+
+    assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": 120.0}), ["a", "b"]) == 30.0
+    assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": None}), ["a", "b"]) == 0.0      # b is available now: rotate, do not wait
+    assert _earliest_retry(svc([offer("a", "UNAVAILABLE")], {"a": 5.0}), ["a"]) is None                  # no routable offer at all
+    assert _earliest_retry(svc([offer("a")], {"a": 9000.0}), "a") == 9000.0                               # daily-quota style window: the caller fails the block

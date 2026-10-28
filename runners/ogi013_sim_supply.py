@@ -49,15 +49,17 @@ def _single_provider_keys(svc) -> list[str]:
 MAX_WAIT_S = 600   # longest cooldown worth waiting for inside a block (per-minute rate-limit windows); a daily quota reset is far beyond it
 
 
-def _earliest_retry(svc, model_key: str):
-    """Seconds until PlumMe's own circuit/quota/credential state lets any route of the pinned model run again; None = no route will become available."""
+def _earliest_retry(svc, model_keys):
+    """Seconds until PlumMe's own circuit/quota/credential state lets any route of the given model(s) run again; None = no route will become available."""
+    wanted = {str(k) for k in ([model_keys] if isinstance(model_keys, str) else model_keys)}
     waits = []
     for o in svc.store.offers.values():
-        if str(o.model_key) != str(model_key) or str(getattr(getattr(o, "health", None), "value", getattr(o, "health", ""))) not in {"AVAILABLE", "QUOTA_LOW", "DEGRADED"}:
+        if str(o.model_key) not in wanted or str(getattr(getattr(o, "health", None), "value", getattr(o, "health", ""))) not in {"AVAILABLE", "QUOTA_LOW", "DEGRADED"}:
             continue
         w = svc.scheduler.availability(o)["retry_after_seconds"]
-        if w is not None:
-            waits.append(float(w))
+        if w is None:
+            return 0.0                       # a route of a wanted model is available right now
+        waits.append(float(w))
     return min(waits) if waits else None
 
 
@@ -113,30 +115,37 @@ def install(svc, route_file: Path, out: Path) -> None:
         # Once the pair model is fixed, only its route may change (PINNED_MODEL); a model with no eligible route fails the pair.
         last = "NO_ATTEMPT"
         succeeded = False
-        for attempt in range(60 if pinned else 12):
+        keys = [pinned] if pinned else (pool or [])
+        idle = 0
+        for attempt in range(60 if pinned else max(12, 2 * len(pool))):
             t0 = time.time()
+            failed_wait = None
             try:
                 lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None))   # soft preference: plain BEST once the resilient set is saturated
-            except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record and wait, do not crash the benchmark run
+            except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record, never crash the benchmark run
                 last = type(exc).__name__
                 with log.open("a") as f:
                     f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "exception": last, "detail": str(exc)[:200]}) + "\n")
-                if pinned:                       # PlumMe's cooldown/quota state decides: wait exactly the window if it is short, otherwise fail the block now (registered discard)
-                    wait = _earliest_retry(svc, pinned)
-                    with log.open("a") as f:
-                        f.write(json.dumps({"ts": t0, "pinned": True, "earliest_retry_s": wait}) + "\n")
-                    if wait is None or wait > MAX_WAIT_S:
-                        break
-                    time.sleep(wait + 2)
-                else:
-                    time.sleep(10)
-                continue
-            log_call(lease, res, t0, pinned)
-            last = res["failure_class"]
-            if res["success"] and res["output"]:
-                succeeded = True
-                break
-            time.sleep(5)
+            else:
+                log_call(lease, res, t0, pinned)
+                last = res["failure_class"]
+                if res["success"] and res["output"]:
+                    succeeded = True
+                    break
+                failed_wait = 5
+            # PlumMe's own cooldown/quota state decides what happens next: a short window is waited out exactly, a long one (daily quota) fails the block now (registered discard).
+            # While SELECTING a model, a model with no route at all is simply skipped (the next pool model is tried); the whole pool being cooled down beyond the window fails the block.
+            if keys:
+                wait = _earliest_retry(svc, keys)
+                with log.open("a") as f:
+                    f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "earliest_retry_s": wait, "scope": "pinned" if pinned else "pool"}) + "\n")
+                idle = idle + 1 if wait == 0.0 else 0
+                if pinned and (wait is None or wait > MAX_WAIT_S or idle >= 3):     # an "available" route that still cannot be acquired three times in a row is not recovering
+                    break
+                if not pinned and wait is not None and wait > MAX_WAIT_S and attempt >= len(pool) - 1:
+                    break
+                failed_wait = (wait + 2) if wait is not None else (failed_wait or 1)
+            time.sleep(failed_wait if failed_wait is not None else 10)
         if not succeeded:
             if pinned:                                  # remember the model for 24h so the re-selection of the discarded block does not pick it again
                 with (route_file.parent / "sim_exhausted.jsonl").open("a") as f:
