@@ -213,7 +213,8 @@ class OrgBridge:
         return HostGrounding(question_id=question.id, sources=tuple(sources), search_backend="tau2-environment", corpus_family="tau2-airline-environment")
 
     def decide(self, *, description: str, importance: float, request: str, transcript: str, tool_results: str,
-               structure_policy: Any = None, features: dict | None = None, atoms: list[dict] | None = None, user_text: str = "") -> dict:
+               structure_policy: Any = None, features: dict | None = None, atoms: list[dict] | None = None, user_text: str = "",
+               economy: Any = None, purpose: str | None = None, kind: str | None = None) -> dict:
         """Put one decision to the CherryMe engine. Returns status (SUPPORTED/REFUTED/CONFLICT/UNKNOWN), dissent texts, and the organisation the engine actually used."""
         from cherryme.models import Claim
         if self.engine is None:
@@ -233,18 +234,33 @@ class OrgBridge:
                 self.engine.frame["responsibility_context"] = dict(context)
             row_id = structure_policy.record_decision(features=features or {}, structure=structure, propensity=propensity, arm_mode=arm_mode, claim_id=claim.id)
         calls_before, dispatches_before = self.engine.provider_calls, self.engine.provider_dispatches
-        self.engine.run([claim.id], budget=QUESTIONS_PER_DECISION)
+        if economy is None:
+            self.engine.run([claim.id], budget=QUESTIONS_PER_DECISION)
+        else:                                               # economy mode: the engine's own ACTUAL-dispatch limit (workers, verifiers, reselections) bounds this escalation; engine counters are cumulative
+            self.engine.run([claim.id], budget=QUESTIONS_PER_DECISION, call_budget=self.engine.provider_dispatches + economy.primary_calls)
         self._flush_verifier_log(claim.id)
         final = self.engine.claims.load(claim.id)[0]
         rows = self.engine.ledger.for_claim(claim.id)
         dissent = [{"worker": r.worker, "kind": r.kind, "text": (r.answer_text or "")[:600]} for r in rows if r.epistemic_status == "DISSENT"]
         rec = {"claim": claim.id, "status": final.status.value, "importance": claim.importance, "rows": len(rows), "workers": sorted({str(r.worker) for r in rows if r.worker}),
                "dissent": dissent, "provider_calls": self.engine.provider_calls - calls_before, "provider_dispatches": self.engine.provider_dispatches - dispatches_before,
-               "triage": (self.engine.triage_log[-1]["status"] if self.engine.triage_log else None)}
-        rec["atoms"] = self._verify_atoms(atoms or [], request, user_text, tool_results)
+               "triage": (self.engine.triage_log[-1]["status"] if self.engine.triage_log else None),
+               "delivered": sum(1 for r in rows if r.kind in ("PROPOSAL", "CANDIDATE", "VERIFIER")), "purpose": purpose}
+        planned = atoms or []
+        if economy is not None:
+            planned = economy.plan_atoms(planned, kind=kind or "READ", alert=self.alert)
+            if planned and self.registry is not None and sum(1 for c in self.registry._agents.values() if c.enabled) < 2:
+                economy.skipped["roster_cannot_form_quorum"] = economy.skipped.get("roster_cannot_form_quorum", 0) + len(planned)
+                planned = []                                # a quorum needs two distinct judges; with fewer eligible models the verification could only burn attempts
+        rec["atoms"] = self._verify_atoms(planned, request, user_text, tool_results, call_allowance=economy.atom_calls if economy is not None else None)
+        rec["dispatch_total"] = rec["provider_dispatches"] + sum(a.get("dispatches", 0) for a in rec["atoms"])
+        rec["delivered"] += sum(a.get("delivered", 0) for a in rec["atoms"])
         for atom in rec["atoms"]:
             if atom["status"] in ("REFUTED", "CONFLICT") and rec["status"] not in ("REFUTED", "CONFLICT"):
                 rec["status"] = atom["status"]               # a quorum-verified contradiction of an asserted value is verified dissent against the action
+        if economy is not None:
+            economy.note_outcome(rec, purpose or "consequential_effect")
+            rec["economy"] = economy.summary()
         if rec["status"] in ("REFUTED", "CONFLICT") or dissent:
             self.alert = min(self.alert + 1, 3)
         self.decisions.append(rec)
@@ -265,7 +281,7 @@ class OrgBridge:
                     f.write(json.dumps({"claim": claim_id, **row}, default=str) + "\n")
             self._vlog_n = len(vlog)
 
-    def _verify_atoms(self, atoms: list[dict], request: str, user_text: str, tool_results: str) -> list[dict]:
+    def _verify_atoms(self, atoms: list[dict], request: str, user_text: str, tool_results: str, call_allowance: int | None = None) -> list[dict]:
         """AMENDMENT-1: one SCIENCE question per atomic proposition; the independent EvidenceVerifier (quorum of >=2 distinct independence keys with verbatim quotes, unchanged)
         judges it against the host excerpt windows. Skipped under the pre-registered no-verify ablation. Returns per-atom status and the independence keys that verified it."""
         from cherryme.models import Claim
@@ -279,14 +295,18 @@ class OrgBridge:
             self.engine.add_claim(claim)
             self.atom_ids.add(claim.id)
             self.atom_sources[claim.id] = atom_sources(self.task_id, index, atom["value"], user_text, tool_results)
-            calls_before = self.engine.provider_calls
-            self.engine.run([claim.id], budget=ATOM_QUESTION_BUDGET)       # a failed worker attempt (acquisition, rate limit) must be followed by a reselection, so more than one question
+            calls_before, disp_before = self.engine.provider_calls, self.engine.provider_dispatches
+            if call_allowance is None:
+                self.engine.run([claim.id], budget=ATOM_QUESTION_BUDGET)       # a failed worker attempt (acquisition, rate limit) must be followed by a reselection, so more than one question
+            else:
+                self.engine.run([claim.id], budget=ATOM_QUESTION_BUDGET, call_budget=disp_before + call_allowance)
             self._flush_verifier_log(claim.id)
             final = self.engine.claims.load(claim.id)[0]
             keys = sorted({(getattr(r, "identity", None) or {}).get("independence_key") for r in self.engine.ledger.for_claim(claim.id)
                            if r.kind == "VERIFIER" and r.epistemic_status == "VERIFIED"} - {None})
             results.append({"claim": claim.id, "value": atom["value"], "label": atom["label"], "status": final.status.value, "verified_by": keys,
-                            "provider_calls": self.engine.provider_calls - calls_before})
+                            "provider_calls": self.engine.provider_calls - calls_before, "dispatches": self.engine.provider_dispatches - disp_before,
+                            "delivered": sum(1 for r in self.engine.ledger.for_claim(claim.id) if r.kind in ("PROPOSAL", "CANDIDATE", "VERIFIER"))})
         return results
 
     def _completion(self, claim_id: str, rec: dict) -> dict:

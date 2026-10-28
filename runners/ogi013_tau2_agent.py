@@ -154,6 +154,7 @@ class Episode:
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         self.org = None
+        self.economy = None            # EconomyGate when OGI013_ORG_ECONOMY=1 (opt-in; the frozen conditions run without it)
         if mode == "rg2":                                                    # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget
             env = os.environ.get       # a ceiling exists only if the host authorized one; absent = None = accounted but not capped (cash: none authorized). Nothing is invented.
             fs.governance.configure(self.sid, self.store_revision(stack), max_calls=int(env("OGI013_SESSION_MAX_CALLS")) if env("OGI013_SESSION_MAX_CALLS") else None,
@@ -280,6 +281,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         if self.mode == "rg2":
             from ogi013_org_bridge import OrgBridge
             self.ep.org = OrgBridge(stack, self.ep.sid, str(getattr(self.task, "id", "task")), self.domain_policy, self.out / "org")
+            from ogi013_org_economy import EconomyGate
+            self.ep.economy = EconomyGate.from_env()
             self.ep.structure_policy = self._structure_policy(f"{self.domain}:{getattr(self.task, 'id', 'task')}")
         self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
         return {"transcript": [], "n_calls": 0}
@@ -326,13 +329,15 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         action = parse_action(draft["output"]) if draft["success"] else None
         if self.mode == "single_e":
             draft, action = self._single_e_vote(ep, prompt, draft, action)
+        used_format_retry = False
         if action is None and draft["success"]:
+            used_format_retry = True
             fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", "format")
             action = parse_action(fix["output"]) if fix["success"] else None
             draft = fix if action else draft
         final_text = draft["output"]
         if self.mode == "rg2" and action is not None:
-            action = self._org_decide(ep, prompt, action, state)
+            action = self._org_decide(ep, prompt, action, state, uncertain=used_format_retry)
         if action is not None and should_organize(self.mode, action, self.write_tools):
             ep.stats["escalations"] += 1
             final_text, action = self._organize(ep, prompt, draft, action)
@@ -391,7 +396,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             ep.stats["unknown_steps"] += 1
             ep.event("STEP_ABANDONED", step=key, code="ENGINE_CHILD_STEP_UNRESOLVED")
 
-    def _org_decide(self, ep: Episode, prompt: str, action: dict, state: dict) -> dict:
+    def _org_decide(self, ep: Episode, prompt: str, action: dict, state: dict, uncertain: bool = False) -> dict:
         """RG/2: every proposed action is put to CherryMe's engine as a claim; the engine decides (triage on structured signals, staffing, verification,
         consolidation) how much cognition it deserves. An engine failure never kills the episode (ORG_ERROR is logged and the draft stands); a verified/consolidated dissent triggers a revision."""
         from ogi013_org_bridge import atomic_values
@@ -405,12 +410,19 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             importance = 0.3
         try:
             kind = ("WRITE" if action["name"] in self.write_tools else "TRANSFER" if action["name"] == "transfer_to_human_agents" else "READ") if action["action"] == "tool" else "MESSAGE"
+            purpose = None
+            if ep.economy is not None:                    # economy mode: cooperation is bought only for a stated purpose; otherwise the single draft stands and nothing is dispatched
+                go, purpose = ep.economy.should_escalate(kind=kind, alert=ep.org.alert, prior_dissents=sum(1 for d in ep.org.decisions if d["dissent"]), uncertain=uncertain)
+                if not go:
+                    ep.event("ORG_SKIPPED", action=action.get("name", "message"), reason=purpose, action_kind=kind)
+                    return action
             features = {"importance": importance, "kind": kind, "step_index": ep.turns, "prior_alerts": ep.org.alert, "n_prior_org_decisions": len(ep.org.decisions),
                         "n_prior_dissents": sum(1 for d in ep.org.decisions if d["dissent"])}
             rec = ep.org.decide(description=desc, importance=importance, request=request, transcript="\n".join(lines),
                                 tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")),
                                 structure_policy=getattr(ep, "structure_policy", None), features=features,
-                                atoms=atomic_values(action), user_text="\n".join(l for l in lines if l.startswith("USER: ")))
+                                atoms=atomic_values(action), user_text="\n".join(l for l in lines if l.startswith("USER: ")),
+                                economy=ep.economy, purpose=purpose, kind=kind)
         except Exception as exc:  # noqa: BLE001 - visible, not silent; the benchmark outcome must not depend on a bridge crash
             ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
             self._abandon_unresolved(ep)
