@@ -1,24 +1,30 @@
-# OGI-013-PILOT-1 — proposal (NOT executed; needs the owner's approval of the budget below)
+# OGI-013-PILOT-1 — proposal (NOT executed; needs the owner's explicit approval of the budget below)
 
-Exploratory, separate from the preregistered study (no hypothesis test, no effect on PROTOCOL.md / locks / results). Question it can answer: on ONE fixed task, what does a single model cost and achieve, and what does the
-economy-mode organisation add or cost, per recorded dispatch? It also supplies the counterfactual that the final-demo d2 trace lacks (does a single model pass task 6?). n = 1 per arm: descriptive only.
+Exploratory, separate from the preregistered study (no hypothesis test, no effect on PROTOCOL.md / locks / results). Question: on ONE fixed task with a write action, what does a single model
+cost and achieve, and what does the committed collaboration step (`OGI013_ORG_COLLAB=1`: economy gate -> Brother-Mode challenge / revise / re-review / specialist) add or cost, per recorded dispatch?
+n = 1 per arm: descriptive only, no effect size, no OGI claim.
 
-Task: airline 6 (read-only; expected action get_reservation_details; archived c2 comparison: FIXED 0.0 and ADAPTIVE 0.0; final-demo d2 under full RG/2: 1.0). Simulator: the same pinned model for both arms, gemini-3.1-flash-lite@vision
-(seeded in the route file; a documented deviation from "PlumMe-chosen" for this pilot only). Supply: unchanged AUTO (no FREE_ONLY, no credit exclusion, full model pool).
-Arms: SINGLE (mode single, one model per step) | RG2-ECONOMY (mode rg2, OGI013_ORG_ECONOMY=1, policy OFF, fresh state; escalation only for a stated purpose, bounded dispatch allowances).
+Corrections to the earlier draft of this pilot (it could not have tested the collaboration):
+- it ran the shared `ogi013-org` checkout, which has no collaboration module -> `run_arm.sh` runs THIS checkout (`PILOT_CODE`), refused unless clean and containing the module and the gate;
+- the second arm never set `OGI013_ORG_COLLAB=1` -> it does now (mode rg2, policy OFF); the run records whether any `ORG_COLLAB` review happened and says "arm tested nothing" otherwise;
+- airline task 6 is read-only, so the economy gate would only log `ORG_SKIPPED` -> task 24 (expected action `book_reservation`, a write);
+- per-arm caps never matched (budget keys `SINGLE`/`RG2-ECONOMY` vs arm directories) -> keyed by the real arm directories; an arm without a cap halts;
+- a dispatch with missing usage counted as 0 tokens -> a successful dispatch without usage HALTS; a failed one is charged `reserve_tokens_per_dispatch`;
+- enforcement was a 10 s poll after the fact -> `runners/ogi013_pilot_gate.py` refuses every agent step and simulator attempt BEFORE the provider dispatch if the dispatch (+ reserve) would cross a cap
+  (`pilot_guard.py watch` remains as a backstop). Frozen conditions never set `OGI013_PILOT_BUDGET`, so they are unaffected.
 
-## Explicit maximum consumption (evidence/ogi013-pilot/pilot_budget.json; enforced by pilot_guard.py watch, fail-closed)
-| scope | max provider dispatches (incl. simulator calls) | max recorded tokens (in+out) |
+Arms: SINGLE (mode single) | COLLAB (mode rg2, `OGI013_ORG_COLLAB=1`, policy OFF), same code checkout, same pinned simulator model (seeded; documented deviation), unchanged AUTO supply, fresh state each.
+
+## Explicit maximum consumption (`pilot_budget.json`)
+| scope | max provider dispatches (incl. simulator) | max recorded tokens (in+out) |
 |---|---|---|
-| SINGLE arm | 45 | 160,000 |
-| RG2-ECONOMY arm | 105 | 320,000 |
-| **whole pilot** | **150** | **480,000** (cash 0.00 USD, wall 90 min) |
-Basis (measured, d2 / task 6): agent steps 15 dispatches / 81,102 tokens; simulator 13 calls / 19,730 tokens; one economy escalation <= 6 + 2x4 dispatches (~3,000 tokens each). Expected: SINGLE ~28 dispatches / ~100k tokens;
-ECONOMY ~45-60 dispatches / ~170-230k tokens. The caps are about 1.5x the expectation. Reference without the correction: airline:2 = 79 dispatches / 236k tokens; c2 means 42-56 dispatches / 117-174k tokens per episode.
+| SINGLE arm | 40 | 50,000 |
+| COLLAB arm | 80 | 120,000 |
+| **whole pilot** | **120** | **170,000** (cash 0.00 USD, wall 90 min, reserve 4,000 tokens per dispatch) |
 
-## Recording and stopping
-Every provider dispatch is a receipt row (plumme-state/receipts.jsonl); simulator calls are in sim-usage.jsonl; ORG_DECISION / ORG_SKIPPED events carry purpose, yield and dispatch totals. The guard polls every 10 s and, on any cap, writes PILOT_HALT and
-SIGTERMs the run's process group. Missing/mismatched approval = refusal. No retry loop exists outside the engine's own call budget and the simulator's cooldown-aware wait.
+Basis (archived c2 runs, task 24): fixed 40 dispatches / 27,616 tokens; adaptive 80 / 73,106. Expected SINGLE ~20-30 dispatches / ~20-30k tokens; COLLAB adds at most 5 calls per reviewed write.
+The reserve means a dispatch is refused when used + 4,000 would cross a cap, so the usable token headroom is the cap minus the reserve.
 
 ## To approve (owner)
-`sha256sum evidence/ogi013-pilot/pilot_budget.json > /root/pilot-approval.txt` then `PILOT_APPROVAL=/root/pilot-approval.txt evidence/ogi013-pilot/run_pilot.sh`. Nothing runs without that file, and a changed budget invalidates it.
+`sha256sum evidence/ogi013-pilot/pilot_budget.json > /root/pilot-approval.txt` then `PILOT_APPROVAL=/root/pilot-approval.txt evidence/ogi013-pilot/run_pilot.sh`. Nothing runs without that file;
+any edit of the budget invalidates the approval. This proposal authorises no expenditure by itself.
