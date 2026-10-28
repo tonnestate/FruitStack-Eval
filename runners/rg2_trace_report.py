@@ -211,19 +211,21 @@ def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
         reward_ok = None
     ev["official_reward"] = f"rewards per task={rewards}"
 
-    v_ok_any = iv is True or cz is True
-    if wc is False or reward_ok is False or (cz is False and iv is False):
+    # Registered rule (evidence/ogi013-rg2-demo/PROTOCOL.md, criterion 3): organisational success needs a CAUSAL contribution: an ORG_REVISION with action_changed=true after worker/verified
+    # dissent. Independent verification, worker contribution, recovery and the reward are reported as separate observations but can never establish success on their own; a draft accepted
+    # unchanged is never organisational success, whatever the reward (measurement-implementation correction, ERRATUM-1).
+    if wc is False or reward_ok is False or cz is False:
         org = False
-    elif wc is True and v_ok_any and reward_ok is True:
+    elif wc is True and cz is True and reward_ok is True:
         org = True
     else:
         org = None
-    ev["organisational_success"] = ("worker_contribution AND (causal_effect OR independent_verification) AND reward 1.0"
+    ev["organisational_success"] = ("worker_contribution AND causal_effect_on_decision (ORG_REVISION with action_changed=true) AND reward 1.0; independent verification is reported separately"
                                     f" -> wc={wc}, causal={cz}, verification={iv}, reward_1={reward_ok}")
 
     verdict = {"worker_contribution": wc, "independent_verification": iv, "causal_effect_on_decision": cz,
                "productive_recovery": pr, "knowledge_reuse": kr, "organisational_success": org}
-    note = NOT_ACCEPTED if reward_ok is True and wc is not True else None
+    note = NOT_ACCEPTED if reward_ok is True and cz is not True else None
 
     decision_out = []
     for d in decisions:

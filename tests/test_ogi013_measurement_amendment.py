@@ -143,11 +143,12 @@ def _vrow(claim, verdict, status, disposition, key, ref="https://tau2-environmen
             "evidence_refs": [ref], "identity": {"model_key": key, "independence_key": key}}
 
 
-def _run(tmp_path, rows, other_task_claims=()):
+def _run(tmp_path, rows, other_task_claims=(), closed_revisions=None):
     run = tmp_path / "run"
     _write(run / "tasks" / "2" / "fruitstack-events.jsonl", [
         {"event": "EPISODE_OPENED", "task": "2"},
-        {"event": "ORG_DECISION", "claim": "C-1", "action": "cancel_reservation", "status": "UNKNOWN", "atoms": [{"claim": "A-1", "value": "SDZQKO"}]}])
+        {"event": "ORG_DECISION", "claim": "C-1", "action": "cancel_reservation", "status": "UNKNOWN", "atoms": [{"claim": "A-1", "value": "SDZQKO"}]},
+        *([{"event": "EPISODE_CLOSED", "reason": "TASK_ENDED", "stats": {"revisions": closed_revisions}}] if closed_revisions is not None else [])])
     (run / "tasks" / "2" / "official-result.json").write_text(json.dumps({"reward_info": {"reward": 1.0}}))
     state = tmp_path / "state"
     _write(state / "contributions.jsonl", [{"claim_id": "C-1", "kind": "PROPOSAL", "worker": "m", "verdict": "UNKNOWN", "epistemic_status": "UNVERIFIED", "disposition": "RETAINED_UNVERIFIED"}, *rows])
@@ -158,7 +159,7 @@ def _run(tmp_path, rows, other_task_claims=()):
 def test_report_detects_quorum_promoted_verification(tmp_path):
     rep = _run(tmp_path, [_vrow("A-1", "SUPPORTS", "VERIFIED", "ACCEPTED", "lineage-a"), _vrow("A-1", "SUPPORTS", "VERIFIED", "ACCEPTED", "lineage-b")])
     v = rep["verdict"]
-    assert v["worker_contribution"] is True and v["independent_verification"] is True and v["organisational_success"] is True
+    assert v["worker_contribution"] is True and v["independent_verification"] is True and v["organisational_success"] is not True   # verification alone never establishes success (ERRATUM-1)
 
 
 def test_report_rejects_unpromoted_judgments(tmp_path):
@@ -272,3 +273,12 @@ def test_verifier_log_rows_are_tagged_with_the_claim_that_produced_them(tmp_path
     bridge._flush_verifier_log("A-atom")
     rows = [json.loads(line) for line in (tmp_path / "verifier.log").read_text().splitlines()]
     assert [(r["claim"], r["source_ref"]) for r in rows] == [("C-primary", "s1"), ("A-atom", "s2")]
+
+
+def test_unchanged_accepted_draft_is_never_organisational_success(tmp_path):
+    """ERRATUM-1 regression: reward 1.0 + a valid quorum verification + delivered worker contribution + ZERO revisions => organisational_success is False, observations stay reported."""
+    rep = _run(tmp_path, [_vrow("A-1", "SUPPORTS", "VERIFIED", "ACCEPTED", "lineage-a"), _vrow("A-1", "SUPPORTS", "VERIFIED", "ACCEPTED", "lineage-b")], closed_revisions=0)
+    v = rep["verdict"]
+    assert (v["worker_contribution"], v["independent_verification"], v["causal_effect_on_decision"]) == (True, True, False)
+    assert v["organisational_success"] is False and rep["tasks"][0]["official_reward"] == 1.0
+    assert rep["note"] == "original draft accepted - not organisational success"
