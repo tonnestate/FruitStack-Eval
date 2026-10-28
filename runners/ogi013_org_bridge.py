@@ -20,6 +20,7 @@ from typing import Any
 CHUNK = 5800                      # RetrievedSource excerpts are limited to 6000 characters by CherryMe
 MAX_SOURCES = 12                  # HostGrounding limit
 QUESTIONS_PER_DECISION = 8        # engine question budget for one claim; the engine stops earlier when the claim is resolved
+ATOM_QUESTION_BUDGET = 3          # engine questions per atomic claim (stops earlier once the claim is resolved)
 ATOMS_PER_DECISION = 2            # AMENDMENT-1: atomic provenance propositions verified per decision (host-derived, no model)
 ATOM_WINDOW = 1200                # characters either side of the value in the host excerpt
 
@@ -103,6 +104,7 @@ class OrgBridge:
         self.stack, self.sid, self.task_id, self.policy, self.dir = stack, sid, task_id, policy, work_dir
         self.engine = None
         self.investigator, self._vlog_n = None, 0
+        self.registry, self._base_cards, self._sim_key = None, {}, None
         self.atom_sources: dict[str, list] = {}        # claim id -> host excerpts of that atomic proposition
         self.atom_ids: set[str] = set()
         self.sources: list = []
@@ -152,6 +154,7 @@ class OrgBridge:
                     f.write(f"--- {question.type} agent={getattr(agent, 'id', None)}\n{traceback.format_exc()}\n")
                 raise
         investigator.investigate = traced
+        self.registry, self._base_cards, self._sim_key = registry, dict(registry._agents), None
         self._reserve_simulator_route(registry, svc)
         self._restrict_to_executable(registry)
         if "verify" not in self.ablate:
@@ -169,6 +172,7 @@ class OrgBridge:
                 from dataclasses import replace
                 registry._agents[key] = replace(card, enabled=False)
             if key:
+                self._sim_key = key
                 self._fence_simulator_model(budget_svc, key)
             (self.dir / "sim-reservation.log").write_text(f"reserved {key}\n" if key else "no simulator route file at build time\n")
         except Exception as exc:  # noqa: BLE001 - isolation is best effort, but the failure is recorded, never silent
@@ -182,10 +186,9 @@ class OrgBridge:
         try:
             eligible, _ = self.stack.svc.scheduler.screen(ExecutionRequest(task="ogi013-worker-pool", role_id="REASONING"))
             live = {str(o.model_key) for o in eligible}
-            off = [k for k, c in registry._agents.items() if c.enabled and str(c.model_key or c.id) not in live]
-            for k in off:
-                registry._agents[k] = replace(registry._agents[k], enabled=False)
-            (self.dir / "worker-pool.log").write_text(f"executable models {len(live)}; catalogue cards disabled {len(off)}; workers enabled {sum(c.enabled for c in registry._agents.values())}\n")
+            for k, base in self._base_cards.items():       # recomputed from the full roster every time: a model that cooled down leaves the roster, one that recovered returns
+                registry._agents[k] = replace(base, enabled=bool(base.enabled and str(base.model_key or base.id) in live and str(base.model_key or base.id) != self._sim_key))
+            (self.dir / "worker-pool.log").write_text(f"executable models {len(live)}; workers enabled {sum(c.enabled for c in registry._agents.values())} of {len(self._base_cards)} catalogue cards\n")
         except Exception as exc:  # noqa: BLE001 - recorded, never silent
             (self.dir / "worker-pool.log").write_text(f"POOL_RESTRICTION_FAILED {type(exc).__name__}: {exc}\n")
 
@@ -215,6 +218,8 @@ class OrgBridge:
         from cherryme.models import Claim
         if self.engine is None:
             self._build()
+        if self.registry is not None:
+            self._restrict_to_executable(self.registry)
         self.sources = environment_sources(self.task_id, self.policy, transcript, tool_results)
         claim = Claim(text=f"{description} follows the policy and is justified by the customer's request and the observed system data.",
                       importance=min(1.0, importance + 0.1 * self.alert), objective=request[:1000])
@@ -229,12 +234,7 @@ class OrgBridge:
             row_id = structure_policy.record_decision(features=features or {}, structure=structure, propensity=propensity, arm_mode=arm_mode, claim_id=claim.id)
         calls_before, dispatches_before = self.engine.provider_calls, self.engine.provider_dispatches
         self.engine.run([claim.id], budget=QUESTIONS_PER_DECISION)
-        vlog = list(getattr(getattr(self.investigator, "evidence_verifier", None), "log", []) or [])     # persisted so the trace report can show whether independent verification ran
-        if len(vlog) > self._vlog_n:
-            with (self.dir / "verifier.log").open("a") as f:
-                for row in vlog[self._vlog_n:]:
-                    f.write(json.dumps({"claim": claim.id, **row}, default=str) + "\n")
-            self._vlog_n = len(vlog)
+        self._flush_verifier_log(claim.id)
         final = self.engine.claims.load(claim.id)[0]
         rows = self.engine.ledger.for_claim(claim.id)
         dissent = [{"worker": r.worker, "kind": r.kind, "text": (r.answer_text or "")[:600]} for r in rows if r.epistemic_status == "DISSENT"]
@@ -256,6 +256,15 @@ class OrgBridge:
             structure_policy.finish_decision(row_id, **comp)
         return rec
 
+    def _flush_verifier_log(self, claim_id: str) -> None:
+        """Persist the verifier judgments made since the last flush, tagged with the claim whose run produced them (called after EVERY engine run)."""
+        vlog = list(getattr(getattr(self.investigator, "evidence_verifier", None), "log", []) or [])
+        if len(vlog) > self._vlog_n:
+            with (self.dir / "verifier.log").open("a") as f:
+                for row in vlog[self._vlog_n:]:
+                    f.write(json.dumps({"claim": claim_id, **row}, default=str) + "\n")
+            self._vlog_n = len(vlog)
+
     def _verify_atoms(self, atoms: list[dict], request: str, user_text: str, tool_results: str) -> list[dict]:
         """AMENDMENT-1: one SCIENCE question per atomic proposition; the independent EvidenceVerifier (quorum of >=2 distinct independence keys with verbatim quotes, unchanged)
         judges it against the host excerpt windows. Skipped under the pre-registered no-verify ablation. Returns per-atom status and the independence keys that verified it."""
@@ -271,7 +280,8 @@ class OrgBridge:
             self.atom_ids.add(claim.id)
             self.atom_sources[claim.id] = atom_sources(self.task_id, index, atom["value"], user_text, tool_results)
             calls_before = self.engine.provider_calls
-            self.engine.run([claim.id], budget=1)
+            self.engine.run([claim.id], budget=ATOM_QUESTION_BUDGET)       # a failed worker attempt (acquisition, rate limit) must be followed by a reselection, so more than one question
+            self._flush_verifier_log(claim.id)
             final = self.engine.claims.load(claim.id)[0]
             keys = sorted({(getattr(r, "identity", None) or {}).get("independence_key") for r in self.engine.ledger.for_claim(claim.id)
                            if r.kind == "VERIFIER" and r.epistemic_status == "VERIFIED"} - {None})

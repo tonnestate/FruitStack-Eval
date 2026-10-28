@@ -218,3 +218,49 @@ def test_selection_pool_excludes_only_until_the_retry_window_ends(tmp_path):
     rows = [{"ts": now, "model_key": "a", "until": now + 600}, {"ts": now - 7200, "model_key": "b"}, {"ts": now - 100, "model_key": "c", "until": now - 1}]
     (tmp_path / "sim_exhausted.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
     assert _selection_pool(tmp_path) == ["b", "c"]            # a: window still open; b: old row without window (one hour) expired; c: window ended
+
+
+# ---------- worker roster refresh and verifier log tagging (offline, fakes) ---------------------------------------------------------------------------------
+
+def _bridge(tmp_path, live_models):
+    import types
+    from dataclasses import dataclass
+    from ogi013_org_bridge import OrgBridge
+
+    @dataclass(frozen=True)
+    class Card:
+        id: str
+        model_key: str
+        enabled: bool = True
+
+    offers = [types.SimpleNamespace(model_key=m) for m in live_models]
+    scheduler = types.SimpleNamespace(screen=lambda request: (offers, {}))
+    stack = types.SimpleNamespace(svc=types.SimpleNamespace(scheduler=scheduler))
+    bridge = OrgBridge(stack, "sid", "2", "policy", tmp_path)
+    bridge._base_cards = {k: Card(k, k) for k in ("a@default", "b@default", "c@default")}
+    bridge._sim_key = "c@default"
+    registry = types.SimpleNamespace(_agents=dict(bridge._base_cards))
+    return bridge, registry, scheduler, offers
+
+
+def test_worker_roster_follows_plumme_eligibility_and_excludes_the_simulator_model(tmp_path):
+    bridge, registry, scheduler, offers = _bridge(tmp_path, ["a@default", "c@default"])
+    bridge._restrict_to_executable(registry)
+    assert {k for k, c in registry._agents.items() if c.enabled} == {"a@default"}          # b is not executable, c is the simulator's model
+    import types
+    offers[:] = [types.SimpleNamespace(model_key="a@default"), types.SimpleNamespace(model_key="b@default")]                 # a model that recovered returns, one that cooled down leaves
+    bridge._restrict_to_executable(registry)
+    assert {k for k, c in registry._agents.items() if c.enabled} == {"a@default", "b@default"}
+
+
+def test_verifier_log_rows_are_tagged_with_the_claim_that_produced_them(tmp_path):
+    import types
+    bridge, _r, _s, _o = _bridge(tmp_path, [])
+    verifier = types.SimpleNamespace(log=[])
+    bridge.investigator = types.SimpleNamespace(evidence_verifier=verifier)
+    verifier.log.append({"source_ref": "s1", "promoted": False})
+    bridge._flush_verifier_log("C-primary")
+    verifier.log.append({"source_ref": "s2", "promoted": True})
+    bridge._flush_verifier_log("A-atom")
+    rows = [json.loads(line) for line in (tmp_path / "verifier.log").read_text().splitlines()]
+    assert [(r["claim"], r["source_ref"]) for r in rows] == [("C-primary", "s1"), ("A-atom", "s2")]
