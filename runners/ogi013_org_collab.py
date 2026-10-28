@@ -52,6 +52,8 @@ class Collab:
     ungrounded_agreement: bool = False                      # every agreeing reviewer gave a bare verdict
     overruled: list = field(default_factory=list)           # author positions rejected after criticism and overruled by the specialist alone
     final_reviewed: bool = False                            # an independent reviewer examined exactly the final answer and found nothing
+    independent_review: bool = False                        # a critique was delivered by a KNOWN lineage different from the author's (an unknown lineage proves nothing)
+    trail: list = field(default_factory=list)               # every ledger row in order: the draft, each critique (with its text), each revision, the specialist - who, which lineage, what
 
 
 def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledger, claim_id: str, parse: Callable[[str], dict | None],
@@ -150,9 +152,12 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
             agreement.append({"model": c.worker, "lineage": entry["lineage"], "agreed_with": examined, "grounds": entry["grounds"], "grounds_stated": entry["grounds_stated"]})
     unresolved = [{"critic": c.worker, "objection": (c.answer_text or "")[:400]} for c in found if c.id not in material_critics]
     improved = changed and bool(material_critics)
+    trail = [{"stage": r.kind, "reason": r.reason, "model": r.worker, "lineage": r.identity.get("independence_key"), "status": r.epistemic_status, "text": (r.answer_text or "")[:600]} for r in rows]
+    author = seed.get("independence_key")
+    independent_review = any(c.identity.get("independence_key") and c.identity.get("independence_key") != author for c in crits)
     grounded = any(a["grounds_stated"] for a in agreement)
     final_reviewed = any(a["agreed_with"] == final_sig and a["agreed_with"] is not None for a in agreement)
     return Collab(final_text=final_text, final_action=final_action, changed=changed, improved=improved, validated=bool(crits) and not found and not changed and grounded,
                   review_unavailable=not crits, unresolved=unresolved, attribution=attribution, calls=res.calls, rounds=res.rounds, stop_reason=res.stop_reason,
                   specialist_used=specialist_used, failures=res.failures, agreement=agreement,
-                  ungrounded_agreement=bool(agreement) and not grounded, overruled=overruled, final_reviewed=final_reviewed)
+                  ungrounded_agreement=bool(agreement) and not grounded, overruled=overruled, final_reviewed=final_reviewed, independent_review=independent_review, trail=trail)

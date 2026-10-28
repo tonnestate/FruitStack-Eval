@@ -30,6 +30,7 @@ from tau2.data_model.message import AssistantMessage, Message, MultiToolMessage,
 from tau2.environment.tool import Tool
 from tau2.environment.toolkit import TOOL_TYPE_ATTR, ToolType
 
+from ogi013_pilot_gate import PilotBudgetStop
 from ogi013_pilot_gate import check as pilot_gate
 from ogi013_single_e import majority_action, read_k
 
@@ -79,6 +80,15 @@ def parse_action(text: str | None) -> dict | None:
     return None
 
 
+STOP_PREFIXES = ("SESSION_BUDGET_EXHAUSTED", "BUDGET_", "REFLEX_BLOCKED")
+
+
+def _is_stop(exc: BaseException) -> bool:
+    """A budget / reflex stop ends the episode: it is never converted into a failed worker, an ORG_ERROR, or an unreviewed action."""
+    from peachme import PeachError
+    return isinstance(exc, PilotBudgetStop) or (isinstance(exc, PeachError) and str(exc).startswith(STOP_PREFIXES))
+
+
 def _action_digest(action: dict) -> str:
     return hashlib.sha256(json.dumps(action, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
@@ -111,7 +121,7 @@ class Stack:
         from orangeme.runtime import OrangeRuntime
         from peachme import SessionStore
         from peachme.fruitstack import AppleAssuranceAdapter, FruitStackSession, MangoWorkAdapter, OrangeMemoryAdapter
-        from peachme.plumme import PlumMeProvider
+        from ogi013_lineage_heart import LineageHeart
         from plumme.config import Settings
         from plumme.credentials import CredentialSource, CredentialSourceKind
         from plumme.service import PlumMeService, default_adapters
@@ -133,7 +143,7 @@ class Stack:
         orange_project = self.orange.registry.resolve("FruitStack OGI Evaluation")["project_id"]
         self.appleme = connect_appleme(workspace_root=out / "appleme")
         self.store = SessionStore(out / "peachme.sqlite3")
-        self.heart = PlumMeProvider(self.svc)
+        self.heart = LineageHeart(self.svc)                  # PlumMeProvider + lineage exclusion / author preference / lineage in the lease (ogi013_lineage_heart)
         self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange, project_ref=orange_project), assurance=AppleAssuranceAdapter(getattr(self.appleme, "service", None) or self.appleme._service),
                                     authorize_model_input=lambda text, view: text)
         self.projects: dict[str, str] = {}
@@ -161,7 +171,8 @@ class Episode:
         self.org = None
         self.economy = None            # EconomyGate when OGI013_ORG_ECONOMY=1 (opt-in; the frozen conditions run without it)
         self.collab_issues = 0         # collaboration reviews in this episode that found issues (the alert that justifies later cooperation)
-        if mode == "rg2":                                                    # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget
+        self.budget_stopped = False
+        if mode == "rg2" or os.environ.get("OGI013_PILOT_BUDGET"):          # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget; the pilot configures it for BOTH arms
             env = os.environ.get       # a ceiling exists only if the host authorized one; absent = None = accounted but not capped (cash: none authorized). Nothing is invented.
             fs.governance.configure(self.sid, self.store_revision(stack), max_calls=int(env("OGI013_SESSION_MAX_CALLS")) if env("OGI013_SESSION_MAX_CALLS") else None,
                                     max_tokens=int(env("OGI013_SESSION_MAX_TOKENS")) if env("OGI013_SESSION_MAX_TOKENS") else None,
@@ -193,7 +204,12 @@ class Episode:
         from peachme import PeachError
         fs, last = self.stack.fs, None
         for attempt in range(4):
-            pilot_gate()                                      # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
+            try:
+                pilot_gate()                                  # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
+            except PilotBudgetStop as exc:
+                self.budget_stopped = True
+                self.event("BUDGET_STOP", source="pilot_gate", error=str(exc)[:300])
+                raise
             self.step_n += 1
             key = f"{self.task_id}:{self.turns}:{tag}:{self.step_n}"
             s = self.stack.store.get(self.sid)
@@ -203,6 +219,7 @@ class Episode:
             try:
                 turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))
                 env = self.stack.store.get(self.sid).environment or {}
+                facts = getattr(self.stack.heart, "lease_facts", lambda _id: {})(env.get("lease_id"))        # PeachMe stores only a whitelist of lease fields: the lineage comes from the heart
                 out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
                                            reserve_tokens=self.reserve(prompt),
                                            ))
@@ -226,6 +243,9 @@ class Episode:
                         raise
                     self.event("STEP_ABANDONED", step=key, code=code)
                     continue
+                if code.startswith(("SESSION_BUDGET_EXHAUSTED", "BUDGET_")):
+                    self.budget_stopped = True
+                    self.event("BUDGET_STOP", source="peachme_governance", code=code)
                 raise
             self.stats["steps"] += 1
             st = out.step
@@ -233,8 +253,8 @@ class Episode:
             self.stats["tokens_out"] += st.output_tokens or 0
             self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
             self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2),
-                       independence_key=env.get("independence_key"), model_key=env.get("model_key"))
-            return {"success": True, "output": out.output, "model_key": env.get("model_key") or out.model, "independence_key": env.get("independence_key"), "receipt_id": st.receipt_id}
+                       independence_key=facts.get("independence_key"), model_key=facts.get("model_key"), prefer_met=facts.get("prefer_met"))
+            return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
 
     def reserve(self, prompt: str) -> int | None:
@@ -262,6 +282,7 @@ class Episode:
         if self.stopped:
             return
         self.stopped = True
+        reason = "BUDGET_STOP" if self.budget_stopped else reason
         try:
             self.stack.appleme.finish_run(target_run_id=self.run_id, claims=[self.claim], stop_reason=reason)
         except Exception as exc:  # noqa: BLE001
@@ -465,13 +486,22 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             return action
 
         def work(p: str, stage: str, prefer=None, exclude=()):
-            return ep.step(p, stage, exclude=tuple(exclude), prefer=prefer.split("#")[0] if prefer else None)
+            try:
+                return ep.step(p, stage, exclude=tuple(exclude), prefer=prefer.split("#")[0] if prefer else None)
+            except Exception as exc:  # noqa: BLE001 - an unavailable worker (no admissible route, refused step) is a failed attempt for Brother Mode's loop guards, a stop is not
+                if _is_stop(exc):
+                    raise
+                return {"success": False, "output": None, "model_key": None, "independence_key": None, "receipt_id": None, "failure_class": (str(exc) or type(exc).__name__)[:80]}
 
         seed = {"text": draft["output"], "model_key": draft.get("model_key"), "independence_key": draft.get("independence_key"), "receipt_id": draft.get("receipt_id")}
         task_prompt = prompt + "\n(Reminder for any reviewer: the reply must stay a single valid JSON action and must comply with the policy and the tool documentation.)"
         try:
             out = collaborate(task_prompt=task_prompt, seed=seed, work=work, ledger=ep.ledger, claim_id=ep.claim.id, parse=parse_action, digest=_action_digest)
         except Exception as exc:  # noqa: BLE001 - visible; the benchmark outcome must not depend on the collaboration layer
+            if _is_stop(exc):
+                ep.budget_stopped = True
+                ep.event("BUDGET_STOP", source="collaboration", error=f"{type(exc).__name__}: {str(exc)[:300]}")
+                raise
             ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
             return action
         found = any(a.get("found_issues") for a in out.attribution)
@@ -480,7 +510,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.event("ORG_COLLAB", purpose=purpose, action=action.get("name", "message"), action_kind=kind, stop=out.stop_reason, calls=out.calls, rounds=out.rounds, changed=out.changed,
                  improved=out.improved, validated=out.validated, review_unavailable=out.review_unavailable, specialist=out.specialist_used, unresolved=out.unresolved,
                  attribution=out.attribution, failures=out.failures, agreement=out.agreement, ungrounded_agreement=out.ungrounded_agreement,
-                 overruled=out.overruled, final_reviewed=out.final_reviewed)
+                 overruled=out.overruled, final_reviewed=out.final_reviewed, independent_review=out.independent_review, trail=out.trail, draft=_action_digest(action),
+                 final=_action_digest(out.final_action) if out.final_action is not None else None)
         if out.changed and out.final_action is not None:
             ep.stats["revisions"] += 1
             ep.event("ORG_REVISION", claim=ep.claim.id, draft=_action_digest(action), revised=_action_digest(out.final_action), action_changed=True, trigger="CRITICISM_REVISED")

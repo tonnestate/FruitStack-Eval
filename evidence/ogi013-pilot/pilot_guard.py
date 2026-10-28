@@ -2,17 +2,28 @@
 """Fail-closed resource guard for the OGI-013 pilot (stdlib only, no inference).
 
   pilot_guard.py verify-approval BUDGET APPROVAL        exit 0 only if APPROVAL holds the sha256 of BUDGET (the owner's explicit approval of exactly this budget)
-  pilot_guard.py usage RUNS_DIR ARM [ARM ...]           print cumulative dispatches/tokens of the arm directories under RUNS_DIR
-  pilot_guard.py watch BUDGET RUNS_DIR PIDFILE ARM...   poll every 10 s; when any cap is exceeded: write HALT, SIGTERM the pids in PIDFILE, exit 3
-Dispatches = receipt rows + simulator call rows; tokens = recorded input+output usage. A missing budget, a missing/mismatched approval or an unreadable directory is a refusal (exit 2).
-Fail closed: a SUCCESSFUL dispatch that recorded no usage halts the pilot (its cost is unknown); a failed dispatch without usage is charged `reserve_tokens_per_dispatch`, never 0; an arm without a cap
-in the budget halts. precheck() is the pre-dispatch check (runners/ogi013_pilot_gate.py calls it before every provider dispatch); `watch` stays as the backstop."""
+  pilot_guard.py usage RUNS_DIR ARM [ARM ...]           print the cumulative accounting of the arm directories under RUNS_DIR
+  pilot_guard.py env BUDGET ARM                         print the PeachMe session ceilings (OGI013_SESSION_MAX_*) for ARM, derived from the same budget file
+  pilot_guard.py watch BUDGET RUNS_DIR PIDFILE ARM...   poll (PILOT_POLL_S, default 10 s); when a stop condition holds: write PILOT_HALT, SIGTERM the pids in PIDFILE, exit 3
+
+Accounting unit = one provider dispatch = one row of <arm>/fruitstack/plumme-state/receipts.jsonl (agent, reviewer, specialist, retry AND simulator dispatches all land there; a simulator row in
+sim-usage.jsonl that has a receipt is the SAME dispatch and is never counted twice). Fail closed:
+  - a SUCCESSFUL dispatch without recorded usage halts (its cost is unknown); a FAILED one is charged `reserve_tokens_per_dispatch`, never 0;
+  - a dispatch whose cash exposure is unknown (no cost class, UNKNOWN or paid class without a recorded cost) halts; known cash above `max_cash_usd` halts; entitlement use (TRIAL_CREDIT / INCLUDED) is reported;
+  - an arm without a cap halts; `max_consecutive_failures` failed dispatches in a row halt (a failing route is not retried without bound);
+  - precheck() is the pre-dispatch check (runners/ogi013_pilot_gate.py calls it before every agent step and simulator attempt); `watch` is only the backstop.
+A missing budget, a missing/mismatched approval or an unreadable directory is a refusal (exit 2)."""
 import hashlib
 import json
 import os
 import signal
 import sys
 import time
+
+ZERO_CASH = frozenset({"ANONYMOUS_FREE", "FREE_TIER", "LOCAL", "TRIAL_CREDIT", "INCLUDED"})       # no cash leaves the owner's account on these route classes
+NOT_PROCESSED = frozenset({"BILLING_OR_CREDIT_EXHAUSTED", "CREDENTIAL_EXHAUSTED", "RATE_LIMITED", "AUTH_FAILED", "AUTH_EXPIRED", "FORBIDDEN", "MODEL_NOT_FOUND"})   # PlumMe's own REJECTION_CLASSES (service.py):
+#  a provider answer of this class means nothing was processed -> no tokens, no cash; any OTHER failure without recorded usage (TIMEOUT, PROVIDER_UNAVAILABLE, ...) is UNCERTAIN and is charged the reserve
+ENTITLEMENT = frozenset({"TRIAL_CREDIT", "INCLUDED"})                                           # ... but they consume a credit / prepaid entitlement, which is reported
 
 
 def _rows(path):
@@ -34,26 +45,54 @@ def _tokens(u):
     return (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0) or (u.get("total_tokens") or 0)
 
 
+def dispatches(runs_dir, arm):
+    """The arm's provider dispatches in order, each once. `simulator` marks the customer-simulator calls (their receipts are listed in sim-usage.jsonl)."""
+    d = os.path.join(runs_dir, arm)
+    receipts = _rows(os.path.join(d, "fruitstack/plumme-state/receipts.jsonl"))
+    sim = [r for r in _rows(os.path.join(d, "sim-usage.jsonl")) if "success" in r]
+    sim_ids = {r.get("receipt_id") for r in sim if r.get("receipt_id")}
+    known = {r.get("receipt_id") for r in receipts}
+    out = [{"receipt_id": r.get("receipt_id"), "simulator": r.get("receipt_id") in sim_ids, "success": bool(r.get("success")), "tokens": _tokens(r.get("usage")),
+            "input_tokens": (r.get("usage") or {}).get("input_tokens"), "output_tokens": (r.get("usage") or {}).get("output_tokens"), "cost_usd": (r.get("usage") or {}).get("cost_usd"),
+            "cost_class": r.get("cost_class"), "failure_class": r.get("failure_class"), "model": r.get("model"), "provider": r.get("provider"), "lineage": r.get("independence_key"),
+            "started_at": r.get("started_at"), "finished_at": r.get("finished_at")} for r in receipts]
+    out += [{"receipt_id": r.get("receipt_id"), "simulator": True, "success": bool(r.get("success")), "tokens": _tokens(r), "input_tokens": r.get("input_tokens"),
+             "output_tokens": r.get("output_tokens"), "cost_usd": r.get("cost_usd"), "cost_class": None, "failure_class": r.get("failure_class"), "model": r.get("model"), "provider": r.get("provider"), "lineage": None,
+             "started_at": None, "finished_at": None} for r in sim if r.get("receipt_id") not in known]            # no receipt on record: counted, and its cash exposure is unknown
+    return out
+
+
 def usage(runs_dir, arms, reserve=0):
-    dispatches = tokens = missing = unmetered = 0
+    total = {"dispatches": 0, "tokens": 0, "receipts_without_usage": 0, "unmetered_failures": 0, "rejected_unprocessed": 0, "cash_usd": 0.0, "unknown_cash_exposure": 0, "entitlement": {}, "consecutive_failures": 0}
     per_arm = {}
     for arm in arms:
-        d = os.path.join(runs_dir, arm)
-        rows = [(r.get("success"), _tokens(r.get("usage"))) for r in _rows(os.path.join(d, "fruitstack/plumme-state/receipts.jsonl"))]
-        rows += [(r.get("success"), _tokens(r)) for r in _rows(os.path.join(d, "sim-usage.jsonl")) if "success" in r]
-        a_tok = 0
-        for ok, t in rows:
-            if t:
-                a_tok += t
-            elif ok:
-                missing += 1                                   # succeeded but nothing recorded: the cost is unknown -> exceeded() halts
+        a_tok, streak = 0, 0
+        rows = dispatches(runs_dir, arm)
+        for r in rows:
+            if r["tokens"]:
+                a_tok += r["tokens"]
+            elif r["success"]:
+                total["receipts_without_usage"] += 1           # succeeded but nothing recorded: the cost is unknown -> exceeded() halts
+            elif r["failure_class"] in NOT_PROCESSED:
+                total["rejected_unprocessed"] += 1             # rejected before processing (PlumMe's certainty NOT_EXECUTED): known zero tokens, still a dispatch and still part of a failure streak
             else:
-                a_tok += reserve                               # a failure may still have been billed: charged conservatively, never 0
-                unmetered += 1
-        per_arm[arm] = {"dispatches": len(rows), "tokens": a_tok}
-        dispatches += len(rows)
-        tokens += a_tok
-    return {"dispatches": dispatches, "tokens": tokens, "receipts_without_usage": missing, "unmetered_failures": unmetered, "per_arm": per_arm}
+                a_tok += reserve                               # an uncertain failure may still have been processed / billed: charged conservatively, never 0
+                total["unmetered_failures"] += 1
+            if isinstance(r["cost_usd"], (int, float)) and not isinstance(r["cost_usd"], bool):
+                total["cash_usd"] += float(r["cost_usd"])
+            elif r["cost_class"] not in ZERO_CASH:
+                total["unknown_cash_exposure"] += 1            # no cost class on record, UNKNOWN, or a paid class without a recorded cost
+            if r["cost_class"] in ENTITLEMENT:
+                e = total["entitlement"].setdefault(r["cost_class"], {"dispatches": 0, "tokens": 0})
+                e["dispatches"] += 1
+                e["tokens"] += r["tokens"]
+            streak = 0 if r["success"] else streak + 1
+        n = len(rows)
+        per_arm[arm] = {"dispatches": n, "tokens": a_tok, "consecutive_failures": streak}
+        total["dispatches"] += n
+        total["tokens"] += a_tok
+        total["consecutive_failures"] = max(total["consecutive_failures"], streak)
+    return {**total, "per_arm": per_arm}
 
 
 def exceeded(budget, u, started_at=None, now=None):
@@ -65,6 +104,13 @@ def exceeded(budget, u, started_at=None, now=None):
         why.append(f"tokens {u['tokens']} > {c['max_tokens']}")
     if u.get("receipts_without_usage"):
         why.append(f"MISSING_USAGE: {u['receipts_without_usage']} successful dispatch(es) recorded no token usage (fail closed)")
+    if u.get("unknown_cash_exposure"):
+        why.append(f"UNKNOWN_CASH_EXPOSURE: {u['unknown_cash_exposure']} dispatch(es) with no known zero-cash route class and no recorded cost (fail closed)")
+    if c.get("max_cash_usd") is not None and u.get("cash_usd", 0.0) > c["max_cash_usd"] + 1e-9:
+        why.append(f"cash {u['cash_usd']:.6f} USD > {c['max_cash_usd']}")
+    limit = budget.get("max_consecutive_failures")
+    if limit and u.get("consecutive_failures", 0) >= limit:
+        why.append(f"{u['consecutive_failures']} consecutive failed dispatches (limit {limit}): the failing route is not retried further")
     for arm, a in u["per_arm"].items():
         cap = budget["arms"].get(arm)
         if cap is None:
@@ -77,7 +123,8 @@ def exceeded(budget, u, started_at=None, now=None):
 
 
 def precheck(budget, runs_dir, arms, arm, started_at=None, now=None):
-    """Reasons to refuse the NEXT provider dispatch of `arm` (empty = allowed): the pilot is already halted or over a cap, usage is missing, or the next dispatch plus its token reserve would cross a cap."""
+    """Reasons to refuse the NEXT provider dispatch of `arm` (empty = allowed): the pilot is already halted or over a cap, usage or cash exposure is unknown, or the next dispatch plus its token
+    reserve would cross a cap."""
     if os.path.exists(os.path.join(runs_dir, "PILOT_HALT")):
         return ["PILOT_HALT exists"]
     reserve = budget.get("reserve_tokens_per_dispatch")
@@ -98,6 +145,13 @@ def precheck(budget, runs_dir, arms, arm, started_at=None, now=None):
     return why
 
 
+def session_env(budget, arm):
+    """PeachMe's shared execution-budget ceilings for the arm's agent-side dispatches (the simulator is covered by precheck). Cash: the budget's max_cash_usd (0 = no cash authorised)."""
+    cap = budget["arms"][arm]
+    return {"OGI013_SESSION_MAX_CALLS": str(cap["max_dispatches"]), "OGI013_SESSION_MAX_TOKENS": str(cap["max_tokens"]),
+            "OGI013_SESSION_MAX_COST_USD": repr(float(budget["cumulative"].get("max_cash_usd") or 0.0))}
+
+
 def verify_approval(budget_path, approval_path):
     if not (os.path.isfile(budget_path) and os.path.isfile(approval_path)):
         return False
@@ -112,14 +166,20 @@ def main(argv):
     if len(argv) >= 4 and argv[1] == "usage":
         print(json.dumps(usage(argv[2], argv[3:])))
         return 0
+    if len(argv) == 4 and argv[1] == "env":
+        for k, v in session_env(json.load(open(argv[2])), argv[3]).items():
+            print(f"export {k}={v}")
+        return 0
     if len(argv) >= 6 and argv[1] == "watch":
         budget = json.load(open(argv[2]))
         start = time.time()
+        poll = float(os.environ.get("PILOT_POLL_S", "10"))
         while True:
             u = usage(argv[3], argv[5:], budget.get("reserve_tokens_per_dispatch") or 0)
             why = exceeded(budget, u, start)
             if why:
-                open(os.path.join(argv[3], "PILOT_HALT"), "w").write(json.dumps({"why": why, "usage": u}))
+                if not os.path.exists(os.path.join(argv[3], "PILOT_HALT")):
+                    open(os.path.join(argv[3], "PILOT_HALT"), "w").write(json.dumps({"why": why, "usage": u, "by": "watch"}))
                 for pid in open(argv[4]).read().split():
                     try:
                         os.killpg(os.getpgid(int(pid)), signal.SIGTERM)       # the run was started with setsid: its whole process group (bootstrap + runner) stops
@@ -127,7 +187,7 @@ def main(argv):
                         pass
                 print("HALT", why)
                 return 3
-            time.sleep(10)
+            time.sleep(poll)
     print(__doc__)
     return 2
 

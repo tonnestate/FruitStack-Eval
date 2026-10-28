@@ -6,6 +6,7 @@ import importlib
 import json
 import os
 import sys
+import time
 import types
 from pathlib import Path
 
@@ -160,6 +161,10 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
                                       calls=ep_.stats.get("steps"), wall_seconds=getattr(result, "duration", None))
         print(json.dumps({"task_id": task_id, "reward": result.reward_info.reward if result.reward_info else None,
                           "pomelo_tool_calls": parent_use["tool_calls"], "result": str(task_out / "official-result.json")}, default=str))
+    except BaseException as exc:                      # a stop (budget, interrupt, crash): keep everything already written, say why, and never restart on our own
+        (task_out / "RUN_INTERRUPTED.json").write_text(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "exception": type(exc).__name__, "error": str(exc)[:500],
+                                                                    "official_result_written": (task_out / "official-result.json").exists()}), encoding="utf-8")
+        raise
     finally:
         batch.build_orchestrator = original_build
 

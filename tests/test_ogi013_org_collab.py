@@ -126,6 +126,22 @@ def test_an_unchanged_answer_after_criticism_is_not_an_improvement():
     assert not out.improved and not out.changed and out.unresolved and out.final_action == BAD       # nothing improved: the objection is kept, the action stays the draft
 
 
+def test_the_trail_records_every_step_and_independence_needs_a_known_different_lineage():
+    w = Workers(challenge=["ISSUES: FOUND\nuse HAT001", "ISSUES: NONE\nchecked"], revise=[json.dumps(GOOD)])
+    out, _ = run(w)
+    assert [t["stage"] for t in out.trail] == ["SOLUTION", "CRITIQUE", "REVISION", "CRITIQUE"] and json.dumps(BAD) in out.trail[0]["text"] and "HAT001" in out.trail[1]["text"]
+    assert [t["lineage"] for t in out.trail] == ["lineage-draft", "lineage-challenge-1", "lineage-revise-2", "lineage-challenge-3"] and out.independent_review
+    unknown = Workers(challenge=["ISSUES: NONE\nchecked"])
+    unknown_worker = lambda prompt, stage, prefer=None, exclude=(): {**unknown(prompt, stage, prefer, exclude), "independence_key": None}        # a reviewer whose lineage PlumMe did not report
+    ledger = ContributionLedger()
+    seed = {"text": json.dumps(GOOD), "model_key": "draft-model", "independence_key": "lineage-draft", "receipt_id": "r0"}
+    res = collaborate(task_prompt=PROMPT, seed=seed, work=unknown_worker, ledger=ledger, claim_id="C-2", parse=parse, digest=digest)
+    assert not res.independent_review and res.validated                                      # grounded agreement is recorded, but independence is NOT proven by an unknown lineage
+    same = lambda prompt, stage, prefer=None, exclude=(): {**unknown(prompt, stage, prefer, exclude), "independence_key": "lineage-draft"}
+    res = collaborate(task_prompt=PROMPT, seed=seed, work=same, ledger=ContributionLedger(), claim_id="C-3", parse=parse, digest=digest)
+    assert not res.independent_review                                                         # nor is a reviewer of the author's own lineage
+
+
 def test_attribution_comes_from_the_ledger_with_lineage():
     w = Workers(challenge=["ISSUES: FOUND\nfix to HAT001", "ISSUES: NONE"], revise=[json.dumps(GOOD)])
     out, ledger = run(w)

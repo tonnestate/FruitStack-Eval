@@ -173,7 +173,7 @@ def install(svc, route_file: Path, out: Path) -> None:
             if pinned:                                  # remember the model until its retry window ends so the re-selection of the discarded block does not pick it again
                 with (route_file.parent / "sim_exhausted.jsonl").open("a") as f:
                     window = _earliest_retry(svc, pinned)
-                f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "until": time.time() + (window if window else 3600)}) + "\n")
+                    f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "until": time.time() + (window if window else 3600)}) + "\n")      # (was outside the with: ValueError on a closed file)
             raise RuntimeError(f"SIM_ROUTE_FAILED:{last}")
         if pinned is None:
             if not lease["model_key"]:
