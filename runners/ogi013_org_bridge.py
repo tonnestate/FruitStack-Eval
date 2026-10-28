@@ -44,6 +44,7 @@ class OrgBridge:
     def __init__(self, stack: Any, sid: str, task_id: str, policy: str, work_dir: Path):
         self.stack, self.sid, self.task_id, self.policy, self.dir = stack, sid, task_id, policy, work_dir
         self.engine = None
+        self.investigator, self._vlog_n = None, 0
         self.sources: list = []
         self.alert = 0                                  # earlier dissent/refutation/failure in this episode (structured signal, escalates the importance of later claims)
         self.decisions: list[dict] = []
@@ -68,9 +69,12 @@ class OrgBridge:
         runtime = responsibility_runtime(triage="off" if "triage" in self.ablate else "auto", knowledge_store=knowledge)
         self.dir.mkdir(parents=True, exist_ok=True)
 
-        class Falsify:                                   # the question type the decision claim is put under: try to refute the action (SCIENCE-type grounding is done by the verifier)
+        class Falsify:                                   # per claim: first a SCIENCE question (host-grounded against the hashed environment excerpts and judged by the independent EvidenceVerifier,
+            asked: dict = {}                             # the only path that can promote PASS/CONTRADICT; FALSIFY is not a grounded type), then FALSIFY questions that try to refute the action
+
             def choose(self, claim, state_features):
-                return QuestionType.FALSIFY
+                n = self.asked[claim.id] = self.asked.get(claim.id, 0) + 1
+                return QuestionType.SCIENCE if n == 1 else QuestionType.FALSIFY
 
         assurance = connect_appleme(workspace_root=self.dir / "appleme")
         self.state = state
