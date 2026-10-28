@@ -56,10 +56,12 @@ def _earliest_retry(svc, model_keys):
     for o in svc.store.offers.values():
         if str(o.model_key) not in wanted or str(getattr(getattr(o, "health", None), "value", getattr(o, "health", ""))) not in {"AVAILABLE", "QUOTA_LOW", "DEGRADED"}:
             continue
-        w = svc.scheduler.availability(o)["retry_after_seconds"]
-        if w is None:
+        av = svc.scheduler.availability(o)
+        if av["retry_after_seconds"] is not None:
+            waits.append(float(av["retry_after_seconds"]))
+        elif av.get("credential_available", True) and not av.get("circuit_open") and not av.get("quota_exhausted"):
             return 0.0                       # a route of a wanted model is available right now
-        waits.append(float(w))
+        # else: unusable with no known recovery time (e.g. a daily quota that the provider did not date): it neither blocks nor satisfies the wait
     return min(waits) if waits else None
 
 

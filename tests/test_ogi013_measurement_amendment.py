@@ -199,7 +199,7 @@ def test_earliest_retry_uses_plumme_cooldown_state():
             self.waits = waits
 
         def availability(self, o):
-            return {"retry_after_seconds": self.waits[o.model_key]}
+            return {"retry_after_seconds": self.waits[o.model_key], "credential_available": o.model_key != "dead", "circuit_open": False, "quota_exhausted": False}
 
     def svc(offers, waits):
         return types.SimpleNamespace(store=types.SimpleNamespace(offers=dict(enumerate(offers))), scheduler=Sched(waits))
@@ -207,6 +207,7 @@ def test_earliest_retry_uses_plumme_cooldown_state():
     assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": 120.0}), ["a", "b"]) == 30.0
     assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": None}), ["a", "b"]) == 0.0      # b is available now: rotate, do not wait
     assert _earliest_retry(svc([offer("a", "UNAVAILABLE")], {"a": 5.0}), ["a"]) is None                  # no routable offer at all
+    assert _earliest_retry(svc([offer("dead")], {"dead": None}), ["dead"]) is None                         # no retry time but the credential is unusable (undated daily quota): NOT available
     assert _earliest_retry(svc([offer("a")], {"a": 9000.0}), "a") == 9000.0                               # daily-quota style window: the caller fails the block
 
 
