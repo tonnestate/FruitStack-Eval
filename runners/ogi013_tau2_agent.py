@@ -78,6 +78,10 @@ def parse_action(text: str | None) -> dict | None:
     return None
 
 
+def _action_digest(action: dict) -> str:
+    return hashlib.sha256(json.dumps(action, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
+
+
 def should_organize(mode: str, action: dict, write_tools: set[str]) -> bool:
     if mode == "fixed":
         return True
@@ -155,6 +159,7 @@ class Episode:
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         self.org = None
         self.economy = None            # EconomyGate when OGI013_ORG_ECONOMY=1 (opt-in; the frozen conditions run without it)
+        self.collab_issues = 0         # collaboration reviews in this episode that found issues (the alert that justifies later cooperation)
         if mode == "rg2":                                                    # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget
             env = os.environ.get       # a ceiling exists only if the host authorized one; absent = None = accounted but not capped (cash: none authorized). Nothing is invented.
             fs.governance.configure(self.sid, self.store_revision(stack), max_calls=int(env("OGI013_SESSION_MAX_CALLS")) if env("OGI013_SESSION_MAX_CALLS") else None,
@@ -282,7 +287,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             from ogi013_org_bridge import OrgBridge
             self.ep.org = OrgBridge(stack, self.ep.sid, str(getattr(self.task, "id", "task")), self.domain_policy, self.out / "org")
             from ogi013_org_economy import EconomyGate
-            self.ep.economy = EconomyGate.from_env()
+            self.ep.economy = EconomyGate.from_env() or (EconomyGate() if os.environ.get("OGI013_ORG_COLLAB") == "1" else None)
             self.ep.structure_policy = self._structure_policy(f"{self.domain}:{getattr(self.task, 'id', 'task')}")
         self.ep.event("EPISODE_OPENED", work=self.ep.work, turn=self.ep.turn_id, assurance=self.ep.assurance_id, write_tools=sorted(self.write_tools))
         return {"transcript": [], "n_calls": 0}
@@ -337,7 +342,10 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             draft = fix if action else draft
         final_text = draft["output"]
         if self.mode == "rg2" and action is not None:
-            action = self._org_decide(ep, prompt, action, state, uncertain=used_format_retry)
+            if os.environ.get("OGI013_ORG_COLLAB") == "1":       # exploratory branch: the economy gate decides WHETHER, Brother Mode does the cooperating on the actual solution
+                action = self._org_collab(ep, prompt, draft, action, state, uncertain=used_format_retry)
+            else:
+                action = self._org_decide(ep, prompt, action, state, uncertain=used_format_retry)
         if action is not None and should_organize(self.mode, action, self.write_tools):
             ep.stats["escalations"] += 1
             final_text, action = self._organize(ep, prompt, draft, action)
@@ -442,6 +450,41 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
                          trigger="VERIFIED_DISSENT" if rec["status"] in ("REFUTED", "CONFLICT") else "WORKER_DISSENT")   # causal record: only a changed action after worker dissent counts as an effect
                 return revised
         return action
+
+    def _org_collab(self, ep: Episode, prompt: str, draft: dict, action: dict, state: dict, uncertain: bool = False) -> dict:
+        """RG/2 + Brother Mode without duplicate review (see ogi013_org_collab): the economy gate decides whether cooperation is justified and records its purpose; the cooperation reviews the
+        ACTUAL proposed solution with the full task materials (policy, conversation, tool results), re-examines revisions, lets a specialist adjudicate an unresolved objection, and records
+        which contribution materially improved the result. An unchanged answer that was independently validated is reported as validated, never as an improvement."""
+        from ogi013_org_collab import collaborate
+        kind = ("WRITE" if action["name"] in self.write_tools else "TRANSFER" if action["name"] == "transfer_to_human_agents" else "READ") if action["action"] == "tool" else "MESSAGE"
+        go, purpose = ep.economy.should_escalate(kind=kind, alert=ep.collab_issues, prior_dissents=ep.collab_issues, uncertain=uncertain)
+        if not go:
+            ep.event("ORG_SKIPPED", action=action.get("name", "message"), reason=purpose, action_kind=kind)
+            return action
+
+        def work(p: str, stage: str, prefer=None, exclude=()):
+            return ep.step(p, stage, exclude=tuple(exclude), prefer=prefer.split("#")[0] if prefer else None)
+
+        seed = {"text": draft["output"], "model_key": draft.get("model_key"), "independence_key": draft.get("independence_key"), "receipt_id": draft.get("receipt_id")}
+        task_prompt = prompt + "\n(Reminder for any reviewer: the reply must stay a single valid JSON action and must comply with the policy and the tool documentation.)"
+        try:
+            out = collaborate(task_prompt=task_prompt, seed=seed, work=work, ledger=ep.ledger, claim_id=ep.claim.id, parse=parse_action, digest=_action_digest)
+        except Exception as exc:  # noqa: BLE001 - visible; the benchmark outcome must not depend on the collaboration layer
+            ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
+            return action
+        found = any(a.get("found_issues") for a in out.attribution)
+        ep.stats["escalations"] += 1
+        ep.stats["challenges_found"] += sum(1 for a in out.attribution if a.get("found_issues"))
+        ep.event("ORG_COLLAB", purpose=purpose, action=action.get("name", "message"), action_kind=kind, stop=out.stop_reason, calls=out.calls, rounds=out.rounds, changed=out.changed,
+                 improved=out.improved, validated=out.validated, review_unavailable=out.review_unavailable, specialist=out.specialist_used, unresolved=out.unresolved,
+                 attribution=out.attribution, failures=out.failures)
+        if out.changed and out.final_action is not None:
+            ep.stats["revisions"] += 1
+            ep.event("ORG_REVISION", claim=ep.claim.id, draft=_action_digest(action), revised=_action_digest(out.final_action), action_changed=True, trigger="CRITICISM_REVISED")
+        ep.collab_issues += 1 if found else 0
+        ep.economy.note_outcome({"dissent": [1] if found else [], "status": "REFUTED" if out.changed else "UNKNOWN", "atoms": [], "delivered": 0 if out.review_unavailable else 1,
+                                 "dispatch_total": out.calls}, purpose)
+        return out.final_action if (out.changed and out.final_action is not None) else action
 
     def _organize(self, ep: Episode, prompt: str, draft: dict, action: dict) -> tuple[str, dict]:
         """CherryMe Brother Mode on the first draft: a different lineage challenges it against the policy, the author revises on criticism. Calls go through PeachMe steps."""

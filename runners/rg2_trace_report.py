@@ -15,7 +15,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-DELIVERED_KINDS = {"PROPOSAL", "CANDIDATE", "VERIFIER"}
+DELIVERED_KINDS = {"PROPOSAL", "CANDIDATE", "VERIFIER", "CRITIQUE", "REVISION", "SOLUTION"}      # CRITIQUE/REVISION/SOLUTION: Brother-Mode collaboration rows (ORG_COLLAB events); the host draft itself is never one of them
 VERDICT_KEYS = ("worker_contribution", "independent_verification", "causal_effect_on_decision",
                 "productive_recovery", "knowledge_reuse", "organisational_success")
 KNOWLEDGE_MARKERS = ("ZERO_CALL", "VERIFIED_KNOWLEDGE", "UNVERIFIED_FOR_THIS_CLAIM")
@@ -71,6 +71,7 @@ def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
     tasks_dir = run_dir / "tasks"
     task_dirs = sorted(p for p in tasks_dir.iterdir() if p.is_dir()) if tasks_dir.is_dir() else []
 
+    collabs = []
     decisions, revisions, interventions, all_attempt_codes = [], [], [], Counter()
     contrib_rows, verifier_rows, rewards, tasks_out = [], [], [], []
     episode_revisions, accounting_reuse, marker_hits = [], [], 0
@@ -97,6 +98,8 @@ def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
             if e.get("event") == "ORG_DECISION":
                 decisions.append({"task": task, **{k: e.get(k) for k in (
                     "claim", "action", "status", "triage", "workers", "rows", "provider_calls", "dissent_n")}})
+            elif e.get("event") == "ORG_COLLAB":
+                collabs.append({"task": task, **e})
             elif e.get("event") == "ORG_REVISION":
                 revisions.append({"task": task, "claim": e.get("claim") or e.get("claim_id"),
                                   "action_changed": e.get("action_changed"),
@@ -134,6 +137,12 @@ def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
                           "investigator_exceptions_lines": (sum(1 for _ in exc_log.open(encoding="utf-8"))
                                                             if exc_log.is_file() else None)})
 
+    for cb in collabs:                          # collaboration contributions come from the events (the attribution is read from the ledger by ogi013_org_collab)
+        for a in cb.get("attribution", []):
+            kind = {"critique": "CRITIQUE", "revision": "REVISION", "specialist": "SOLUTION"}.get(a.get("role"))
+            if kind:
+                contrib_rows.append({"task": cb["task"], "claim": None, "kind": kind, "epistemic_status": "DISSENT" if a.get("found_issues") else "UNVERIFIED", "verdict": None,
+                                     "disposition": None, "refs": (), "key": a.get("lineage") or a.get("model")})
     recovery_claims = {}
     for claim, seq in per_claim_routing.items():
         sw, prod = _recovery(seq)
@@ -168,6 +177,10 @@ def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
         iv = any(len(keys - {None}) >= 2 for keys in by_source.values())
         ev["independent_verification"] = f"{len(pv)} quorum-promoted rows; distinct independence keys per (claim, source)={ {str(s[0]) + '|' + ','.join(s[1]): len(k) for s, k in by_source.items()} }"
 
+    if collabs:                                 # separate observations; none of them is part of the success formula except through an action-changing ORG_REVISION
+        ev["collaboration"] = (f"{len(collabs)} reviews: improved={sum(1 for c in collabs if c.get('improved'))}, validated_unchanged={sum(1 for c in collabs if c.get('validated'))}, "
+                               f"review_unavailable={sum(1 for c in collabs if c.get('review_unavailable'))}, unresolved_objections={sum(len(c.get('unresolved') or []) for c in collabs)}, "
+                               f"specialist={sum(1 for c in collabs if c.get('specialist'))}, provider_calls={sum(int(c.get('calls') or 0) for c in collabs)}")
     if revisions:
         changed = [r for r in revisions if r["action_changed"] is True]
         cz = True if changed else (False if all(r["action_changed"] is False for r in revisions) else None)
