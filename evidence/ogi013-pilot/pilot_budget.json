@@ -1,12 +1,15 @@
 {
-  "pilot": "OGI-013-PILOT-1 (exploratory, separate from the preregistered study): SINGLE vs COLLAB (OGI013_ORG_COLLAB=1)",
+  "pilot": "OGI-013-PILOT-1 (exploratory, separate from the preregistered study): SINGLE vs RG2-COLLAB (OGI013_ORG_COLLAB=1)",
+  "status": "PROPOSAL - not an authorization. Nothing runs until the owner approves exactly this file (sha256).",
   "task": {"domain": "airline", "id": "24"},
   "simulator_model_key": "gemini-3.1-flash-lite@vision",
-  "arms": {"pilot-1/single": {"max_dispatches": 40, "max_tokens": 50000}, "pilot-1/collab": {"max_dispatches": 80, "max_tokens": 120000}},
-  "cumulative": {"max_dispatches": 120, "max_tokens": 170000, "max_cash_usd": 0.0, "max_wall_minutes": 90},
+  "arms": {"pilot-1/single": {"max_dispatches": 70, "max_tokens": 100000}, "pilot-1/collab": {"max_dispatches": 110, "max_tokens": 180000}},
+  "cumulative": {"max_dispatches": 180, "max_tokens": 280000, "max_cash_usd": 0.0, "max_wall_minutes": 90},
   "reserve_tokens_per_dispatch": 4000,
-  "dispatch_definition": "every receipt row (provider execution) in the arm's plumme-state/receipts.jsonl plus every simulator call row in sim-usage.jsonl",
-  "token_definition": "recorded usage input+output tokens of those rows; a SUCCESSFUL row without usage halts the pilot; a failed row without usage is charged reserve_tokens_per_dispatch",
-  "enforcement": "pre-dispatch: runners/ogi013_pilot_gate.py refuses every agent step and simulator attempt whose dispatch (+ reserve) would cross a cap; pilot_guard.py watch is the backstop",
-  "basis": "task 24 has a write action (expected: book_reservation), so the economy gate escalates (task 6 is read-only: COLLAB would mostly be ORG_SKIPPED). Archived c2 runs of task 24: fixed 40 dispatches / 27,616 tokens, adaptive 80 / 73,106. Expected SINGLE ~20-30 dispatches / ~20-30k tokens; COLLAB adds <= 5 calls per reviewed write (challenge, revise, challenge, specialist, re-review)."
+  "max_consecutive_failures": 20,
+  "dispatch_definition": "every provider dispatch = one row of the arm's plumme-state/receipts.jsonl (agent, reviewer, specialist, retry and simulator dispatches; the simulator's sim-usage rows are the same dispatches and are not counted twice); rejected attempts count",
+  "token_definition": "recorded input+output usage; a successful dispatch without usage halts; a failure rejected before processing (PlumMe REJECTION_CLASSES) is known zero; any other failure without usage is charged reserve_tokens_per_dispatch",
+  "cash_definition": "authorised cash is 0.00 USD. Route classes ANONYMOUS_FREE, FREE_TIER, LOCAL, TRIAL_CREDIT, INCLUDED are zero-cash (TRIAL_CREDIT / INCLUDED consume an entitlement, reported); any other or unknown route class without a recorded cost halts",
+  "enforcement": "(1) PeachMe session budget configured for BOTH arms from this file (OGI013_SESSION_MAX_CALLS/TOKENS/COST_USD): reservation before every agent-side dispatch; (2) runners/ogi013_pilot_gate.py before every agent step and simulator attempt (all dispatches, cumulative, cash, unknown usage, failure streak); (3) pilot_guard.py watch as backstop",
+  "estimate_basis": "ESTIMATE from archived c2 runs recounted without the old simulator double-count (task 29 adaptive: 37 dispatches / 143,638 tokens; task 6 adaptive: 31 / 97,637; task 24 adaptive: 48 / 41,609 but ended early under rate limiting; recorded tokens per successful agent call 2.4k-5.5k; simulator ~1.5k) and the failure profile of those runs (50-70% of dispatches were rejected before processing, 0 tokens). Expected SINGLE ~48 dispatches / ~70k tokens; COLLAB ~70 dispatches / ~115k tokens (each reviewed write adds <= 5 calls). Caps are ~1.4-1.6x the expectation."
 }
