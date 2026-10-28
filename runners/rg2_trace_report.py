@@ -180,7 +180,8 @@ def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
     if collabs:                                 # separate observations; none of them is part of the success formula except through an action-changing ORG_REVISION
         ev["collaboration"] = (f"{len(collabs)} reviews: improved={sum(1 for c in collabs if c.get('improved'))}, validated_unchanged={sum(1 for c in collabs if c.get('validated'))}, "
                                f"review_unavailable={sum(1 for c in collabs if c.get('review_unavailable'))}, unresolved_objections={sum(len(c.get('unresolved') or []) for c in collabs)}, "
-                               f"specialist={sum(1 for c in collabs if c.get('specialist'))}, provider_calls={sum(int(c.get('calls') or 0) for c in collabs)}")
+                               f"specialist={sum(1 for c in collabs if c.get('specialist'))}, ungrounded_agreement={sum(1 for c in collabs if c.get('ungrounded_agreement'))}, "
+                               f"overruled_dissent={sum(len(c.get('overruled') or []) for c in collabs)}, final_reviewed={sum(1 for c in collabs if c.get('final_reviewed'))}, provider_calls={sum(int(c.get('calls') or 0) for c in collabs)}")
     if revisions:
         changed = [r for r in revisions if r["action_changed"] is True]
         cz = True if changed else (False if all(r["action_changed"] is False for r in revisions) else None)

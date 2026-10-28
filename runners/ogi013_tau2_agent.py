@@ -477,7 +477,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.stats["challenges_found"] += sum(1 for a in out.attribution if a.get("found_issues"))
         ep.event("ORG_COLLAB", purpose=purpose, action=action.get("name", "message"), action_kind=kind, stop=out.stop_reason, calls=out.calls, rounds=out.rounds, changed=out.changed,
                  improved=out.improved, validated=out.validated, review_unavailable=out.review_unavailable, specialist=out.specialist_used, unresolved=out.unresolved,
-                 attribution=out.attribution, failures=out.failures)
+                 attribution=out.attribution, failures=out.failures, agreement=out.agreement, ungrounded_agreement=out.ungrounded_agreement,
+                 overruled=out.overruled, final_reviewed=out.final_reviewed)
         if out.changed and out.final_action is not None:
             ep.stats["revisions"] += 1
             ep.event("ORG_REVISION", claim=ep.claim.id, draft=_action_digest(action), revised=_action_digest(out.final_action), action_changed=True, trigger="CRITICISM_REVISED")

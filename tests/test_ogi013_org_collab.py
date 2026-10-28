@@ -56,13 +56,26 @@ def run(workers, seed_action=BAD, max_rounds=2):
 
 
 def test_good_solution_is_independently_validated_without_repeated_escalation():
-    w = Workers(challenge=["ISSUES: NONE"])
+    w = Workers(challenge=["ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."])
     out, ledger = run(w, seed_action=GOOD)
     assert w.stages() == ["challenge"] and out.calls == 1                         # one independent review, nothing else was asked
     assert out.validated and not out.improved and not out.changed and not out.review_unavailable
     assert [r.kind for r in ledger.rows] == ["SOLUTION", "CRITIQUE"] and ledger.rows[1].epistemic_status == "UNVERIFIED"
-    assert out.attribution == [{"role": "critique", "model": "challenge-model-1", "lineage": "lineage-challenge-1", "found_issues": False, "materially_improved": False}]
+    assert out.attribution == [{"role": "critique", "model": "challenge-model-1", "lineage": "lineage-challenge-1", "found_issues": False, "materially_improved": False,
+                                "examined": digest(GOOD), "grounds": "Policy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION.", "grounds_stated": True}]
+    assert out.agreement[0]["agreed_with"] == digest(GOOD) and out.final_reviewed and not out.ungrounded_agreement       # who agreed, with which answer, on what stated grounds
+    assert "state the specific checks" in w.calls[0]["prompt"]                                                              # the reviewer is asked for grounds, not just a verdict
     assert w.calls[0]["exclude"] == ("lineage-draft",)                            # the reviewer is a different lineage than the author
+
+
+def test_a_bare_agreement_is_recorded_but_is_not_validation():
+    w = Workers(challenge=["ISSUES: NONE"])
+    out, _ = run(w, seed_action=GOOD)
+    assert out.ungrounded_agreement and not out.validated and not out.improved and not out.changed and out.final_action == GOOD
+    assert out.agreement == [{"model": "challenge-model-1", "lineage": "lineage-challenge-1", "agreed_with": digest(GOOD), "grounds": "", "grounds_stated": False}]
+    wrong = Workers(challenge=["ISSUES: NONE\nLooks fine."])                                                               # grounds are recorded verbatim; agreement on a WRONG answer is still only a claim
+    out2, _ = run(wrong, seed_action=BAD)
+    assert out2.validated and out2.final_action == BAD and out2.agreement[0]["grounds"] == "Looks fine."
 
 
 def test_flawed_solution_is_criticised_improved_and_the_revision_is_examined_again():
@@ -86,10 +99,17 @@ def test_unresolved_disagreement_stays_visible_and_one_specialist_adjudicates():
     assert "Use HAT001" in w.calls[2]["prompt"] and set(w.calls[2]["exclude"]) >= {"lineage-draft", "lineage-challenge-1"}       # the dossier carries the objection; further lineages only
     assert not out.changed and not out.improved and not out.validated
     assert len(out.unresolved) == 1 and "HAT001" in out.unresolved[0]["objection"]                  # the objection is NOT dropped
-    w2 = Workers(challenge=["ISSUES: FOUND\nUse HAT001."], revise=[json.dumps(BAD)], specialist=[json.dumps(GOOD)])                      # the specialist sides with the critic
+    w2 = Workers(challenge=["ISSUES: FOUND\nUse HAT001.", "ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."], revise=[json.dumps(BAD) + " "], specialist=[json.dumps(GOOD)])      # the author rejects, the specialist sides with the critic
     out2, _ = run(w2)
-    assert out2.changed and out2.improved and out2.final_action == GOOD and out2.unresolved == [] and out2.specialist_used
-    assert {"role": "specialist", "model": "specialist-model-3", "lineage": "lineage-specialist-3", "changed_action": True} in out2.attribution
+    assert w2.stages() == ["challenge", "revise", "specialist", "challenge"]                                              # the specialist's answer is examined once more
+    assert set(w2.calls[3]["exclude"]) >= {"lineage-draft", "lineage-challenge-1", "lineage-specialist-3"} and json.dumps(GOOD) in w2.calls[3]["prompt"]
+    assert out2.changed and out2.improved and out2.final_action == GOOD and out2.unresolved == [] and out2.specialist_used and out2.final_reviewed
+    assert out2.overruled == [{"author": "draft-model", "author_position": digest(BAD), "overruled_by": "specialist-model-3", "author_grounds": json.dumps(BAD) + " "}]      # the author's rejection is kept
+    assert next(a for a in out2.attribution if a["role"] == "specialist") == {"role": "specialist", "model": "specialist-model-3", "lineage": "lineage-specialist-3",
+                                                                              "changed_action": True, "grounds": json.dumps(GOOD)}
+    w3 = Workers(challenge=["ISSUES: FOUND\nUse HAT001.", "ISSUES: FOUND\nHAT001 is a flight number, not a reservation id."], revise=[json.dumps(BAD)], specialist=[json.dumps(GOOD)])
+    out3, _ = run(w3)                                                                                                    # the re-review objects to the specialist's answer: it stays visible, the answer is not called reviewed
+    assert out3.changed and not out3.final_reviewed and len(out3.unresolved) == 1 and "flight number" in out3.unresolved[0]["objection"]
 
 
 def test_unavailable_workers_cause_no_retry_loop_and_are_never_counted_as_agreement():
@@ -139,7 +159,7 @@ def test_agent_hook_escalates_a_write_improves_it_and_records_the_causal_revisio
 
 
 def test_agent_hook_does_not_escalate_a_simple_read_and_a_validated_answer_is_no_revision():
-    w = Workers(challenge=["ISSUES: NONE"])
+    w = Workers(challenge=["ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."])
     read = {"action": "tool", "name": "get_reservation_details", "arguments": {"reservation_id": "HAT001"}}
     out, events, _ = _agent_collab(w, read)
     assert out == read and events[0][0] == "ORG_SKIPPED" and w.calls == []
@@ -167,3 +187,12 @@ def test_report_counts_the_collaboration_and_only_a_changed_action_establishes_s
                        {"event": "ORG_REVISION", "claim": "C-ep", "action_changed": True, "trigger": "CRITICISM_REVISED"}]
     improved = episode(tmp_path / "b", improved_events)
     assert improved["verdict"]["causal_effect_on_decision"] is True and improved["verdict"]["organisational_success"] is True
+
+
+def test_committed_trace_is_what_the_code_produces():
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(root / "evidence" / "ogi013-collab"))
+    from make_trace import render
+    assert render() == (root / "evidence" / "ogi013-collab" / "COLLAB_TRACE.md").read_text()
