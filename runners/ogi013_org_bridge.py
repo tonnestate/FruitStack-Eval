@@ -90,8 +90,11 @@ class OrgBridge:
                 raise
         investigator.investigate = traced
         self._reserve_simulator_route(registry, svc)
+        self._restrict_to_executable(registry)
         if "verify" not in self.ablate:
             investigator.evidence_verifier = EvidenceVerifier(investigator.run_worker, claim_lookup=lambda cid: self.engine.claims.load(cid)[0].text)
+        self.investigator, self._vlog_n = investigator, 0
+        (self.dir / "verifier-attached.txt").write_text(f"evidence_verifier attached: {investigator.evidence_verifier is not None}\n")
 
     def _reserve_simulator_route(self, registry, budget_svc) -> None:
         """The user simulator is pinned to one model for the pair; agent-side workers must not compete for that throttled free route (benchmark infrastructure isolation)."""
@@ -107,6 +110,21 @@ class OrgBridge:
             (self.dir / "sim-reservation.log").write_text(f"reserved {key}\n" if key else "no simulator route file at build time\n")
         except Exception as exc:  # noqa: BLE001 - isolation is best effort, but the failure is recorded, never silent
             (self.dir / "sim-reservation.log").write_text(f"RESERVATION_FAILED {type(exc).__name__}: {exc}\n")
+
+    def _restrict_to_executable(self, registry) -> None:
+        """Catalogue is not capacity: only models that PlumMe's own hard eligibility gate (scheduler.screen: credentials, circuits, cooldowns, quotas) admits right now may be staffed
+        as workers. Otherwise attempts are spent on routes that cannot execute (PLUMME_ACQUIRE_FAILED). No new rule: the gate is PlumMe's."""
+        from dataclasses import replace
+        from plumme.models import ExecutionRequest
+        try:
+            eligible, _ = self.stack.svc.scheduler.screen(ExecutionRequest(task="ogi013-worker-pool", role_id="REASONING"))
+            live = {str(o.model_key) for o in eligible}
+            off = [k for k, c in registry._agents.items() if c.enabled and str(c.model_key or c.id) not in live]
+            for k in off:
+                registry._agents[k] = replace(registry._agents[k], enabled=False)
+            (self.dir / "worker-pool.log").write_text(f"executable models {len(live)}; catalogue cards disabled {len(off)}; workers enabled {sum(c.enabled for c in registry._agents.values())}\n")
+        except Exception as exc:  # noqa: BLE001 - recorded, never silent
+            (self.dir / "worker-pool.log").write_text(f"POOL_RESTRICTION_FAILED {type(exc).__name__}: {exc}\n")
 
     def _fence_simulator_model(self, budget_svc, key: str) -> None:
         """Service-level guard behind the card reservation (the registry may rebuild its cards): no organisational worker is ever routed to the simulator's model, so workers
@@ -147,6 +165,12 @@ class OrgBridge:
             row_id = structure_policy.record_decision(features=features or {}, structure=structure, propensity=propensity, arm_mode=arm_mode, claim_id=claim.id)
         calls_before, dispatches_before = self.engine.provider_calls, self.engine.provider_dispatches
         self.engine.run([claim.id], budget=QUESTIONS_PER_DECISION)
+        vlog = list(getattr(getattr(self.investigator, "evidence_verifier", None), "log", []) or [])     # persisted so the trace report can show whether independent verification ran
+        if len(vlog) > self._vlog_n:
+            with (self.dir / "verifier.log").open("a") as f:
+                for row in vlog[self._vlog_n:]:
+                    f.write(json.dumps({"claim": claim.id, **row}, default=str) + "\n")
+            self._vlog_n = len(vlog)
         final = self.engine.claims.load(claim.id)[0]
         rows = self.engine.ledger.for_claim(claim.id)
         dissent = [{"worker": r.worker, "kind": r.kind, "text": (r.answer_text or "")[:600]} for r in rows if r.epistemic_status == "DISSENT"]

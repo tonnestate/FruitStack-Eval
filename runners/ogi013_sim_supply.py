@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import random
 import time
 from pathlib import Path
 
@@ -60,22 +61,19 @@ def _earliest_retry(svc, model_key: str):
     return min(waits) if waits else None
 
 
-def _hard_excluded_keys(svc, runs_dir: Path) -> list[str]:
-    """Models that cannot carry a pair: not in the live-verified allowlist (sim_allowlist.json, written from a real capacity survey) or recorded as quota-exhausted
-    within the last 24h (sim_exhausted.jsonl, written when a pinned model failed a block). Selection hint only; PlumMe still decides eligibility and the route."""
-    try:
-        from plumme.knowledge import independence_key
-        banned: set[str] = set()
-        allow_file, spent_file = runs_dir / "sim_allowlist.json", runs_dir / "sim_exhausted.jsonl"
-        if spent_file.exists():
-            for line in spent_file.read_text().splitlines():
-                row = json.loads(line) if line.strip() else {}
-                if time.time() - row.get("ts", 0) < 86400:
-                    banned.add(str(row["model_key"]))
-        allowed = set(json.loads(allow_file.read_text())["model_keys"]) if allow_file.exists() else None
-        return sorted({independence_key(o) for o in svc.store.offers.values() if str(o.model_key) in banned or (allowed is not None and str(o.model_key) not in allowed)})
-    except Exception:  # noqa: BLE001 - a hint only
+def _selection_pool(runs_dir: Path) -> list[str]:
+    """Models that may carry a new pair: the live-verified allowlist (sim_allowlist.json, from a real capacity survey) minus models recorded as quota-exhausted within the
+    last 24h (sim_exhausted.jsonl, written when a pinned model failed a block). Empty = no allowlist, plain PlumMe BEST. The ROUTE is always PlumMe's choice."""
+    allow_file, spent_file = runs_dir / "sim_allowlist.json", runs_dir / "sim_exhausted.jsonl"
+    if not allow_file.exists():
         return []
+    spent = set()
+    if spent_file.exists():
+        for line in spent_file.read_text().splitlines():
+            row = json.loads(line) if line.strip() else {}
+            if time.time() - row.get("ts", 0) < 86400:
+                spent.add(str(row["model_key"]))
+    return [k for k in sorted(json.loads(allow_file.read_text())["model_keys"]) if k not in spent]
 
 
 def install(svc, route_file: Path, out: Path) -> None:
@@ -95,12 +93,16 @@ def install(svc, route_file: Path, out: Path) -> None:
         pinned = model_key  # the pair's simulator MODEL is fixed; PlumMe may choose any eligible route to that model (pinned_model_key)
         provider = PlumMeProvider(svc)
 
-        async def call(prefer_multi_provider=True):
+        pool = [] if model_key else _selection_pool(route_file.parent)
+        random.Random(route_file.name).shuffle(pool)       # the order in which allowlisted models are tried for this pair
+
+        async def call(prefer_multi_provider=True, pick=None):
             from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
+            use = model_key or pick
             req = NeuronRequest(consumer="ogi013-sim", objective="Simulate a tau2 customer", role_id=ROLE, cognitive_owner=CognitiveOwner.CONSUMER,
-                                selection_mode=SelectionMode.PINNED_MODEL if model_key else SelectionMode.BEST, pinned_model_key=model_key,
+                                selection_mode=SelectionMode.PINNED_MODEL if use else SelectionMode.BEST, pinned_model_key=use,
                                 required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1),
-                                metadata={"exclude_independence_keys": sorted(set(_hard_excluded_keys(svc, route_file.parent)) | (set(_single_provider_keys(svc)) if prefer_multi_provider else set()))} if not model_key else {})
+                                metadata={"exclude_independence_keys": _single_provider_keys(svc)} if (not use and prefer_multi_provider) else {})
             neuron = await svc.acquire_neuron(req)
             lease = {"lease_id": neuron.lease_id, "provider_id": neuron.route.provider, "model_id": neuron.route.model,
                      "offer_id": neuron.route.offer_id, "model_key": neuron.route.model_key}
@@ -114,7 +116,7 @@ def install(svc, route_file: Path, out: Path) -> None:
         for attempt in range(60 if pinned else 12):
             t0 = time.time()
             try:
-                lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3))   # soft preference: plain BEST once the resilient set is saturated
+                lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None))   # soft preference: plain BEST once the resilient set is saturated
             except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record and wait, do not crash the benchmark run
                 last = type(exc).__name__
                 with log.open("a") as f:
