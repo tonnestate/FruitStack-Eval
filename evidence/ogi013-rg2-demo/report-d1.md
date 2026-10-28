@@ -3,56 +3,24 @@
 - task 2: official reward=1.0; verifier.log=not present
 
 ## Decisions
-- C-01M5ZYVTYTFCK1JNAF5CJPB839: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['nemotron-3.5-lightning@default', 'xing4.0-29b-a4b@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZYYAN3GMF3S4DFV8Z8HMNY: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['unknown:llm7>llm7>codestral-latest', 'xing4.0-29b-a4b@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZ2K7PJ0SK12VSPTAEC0F9: draft=get_user_details final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['north-mini-code@default', 'openai-fast@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZ3KY8FB21TR74BYG80ZJ8: draft=get_reservation_details final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['north-mini-code@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZ64CHH9QVNMFHTVM9YXWA: draft=get_reservation_details final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['north-mini-code@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZ9PRKMJ1BH8A81V0ME4QK: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['north-mini-code@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZEB48N82F29F94ZVZTC42: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['north-mini-code@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZNBPX8F4YZMYXNFVQ3WM2: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['beam@default', 'dots-3-note-preview@default', 'nemotron-3.5-super-vl@default', 'nemotron-3.5-super-vl@vision', 'openai-fast@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZRW48M32GZ0Y9S74G0QZH: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['dots-3-note-preview@vision', 'flint-v1.0@default', 'nemotron-3.5-super-vl@default', 'nemotron-3.5-super-vl@vision']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M5ZZY4FBS5MZ0ZVXQ4254GF7: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['gemini-2.5-flash-lite@vision', 'gemini-2.5-flash@vision', 'nemotron-3-ultra-550b-a55b@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M6006RABW4MYC7PG8GPNJ5BA: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['gemini-3-flash-preview@vision', 'nemotron-3-nano:30b@default', 'nemotron-3.5-lightning@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M6009PCEEJ6JAXDFAD1RFWMN: draft=transfer_to_human_agents final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['gemma-4-26b-a4b-it@vision', 'gemma-4-31b-it@vision', 'mistral-nemo-instruct-2407@default', 'nemotron-3-nano:30b@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
-- C-01M6009YEY6PZJW1EFNA6GVBH7: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['glyph-cluster@default', 'mistral-nemo-instruct-2407@default']
-  rows={} epistemic={}
-  responsibilities planned=None activated=None dispatches=None attempt_errors={}
+- C-01M60RVA8A6QEBGPE0ZZBTMRT0: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['gpt-oss-120b@default', 'xing4.0-29b-a4b@default']
+  rows={'ATTEMPT_FAILED': 2} epistemic={'UNVERIFIED': 2}
+  responsibilities planned=1 activated=1 dispatches={'PRIMARY': 1} attempt_errors={'PLUMME_ACQUIRE_FAILED': 1, 'RATE_LIMITED': 1}
+- C-01M60RVMY3GN5XH2VD5YJKSWEH: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['beam@default', 'openai-fast@default', 'xing4.0-29b-a4b@default']
+  rows={'ATTEMPT_FAILED': 3} epistemic={'UNVERIFIED': 3}
+  responsibilities planned=1 activated=2 dispatches={'PRIMARY': 1} attempt_errors={'RATE_LIMITED': 1, 'PINNED_WORKER_UNAVAILABLE': 1, 'PLUMME_ACQUIRE_FAILED': 1}
+- C-01M60SDXT1NQK5ZG5PZF5GN29C: draft=message final=None (no ORG_REVISION observed); status=UNKNOWN triage=SKIPPED_SIMPLE_TASK workers=['north-mini-code@default', 'openai-fast@default']
+  rows={'PROPOSAL': 1, 'ATTEMPT_FAILED': 2} epistemic={'UNVERIFIED': 3}
+  responsibilities planned=1 activated=1 dispatches={'PRIMARY': 1} attempt_errors={'NONE': 1, 'RATE_LIMITED': 1, 'PLUMME_ACQUIRE_FAILED': 1}
 
-Attempt error codes (run): none
-Interventions: none
+Attempt error codes (run): {'PLUMME_ACQUIRE_FAILED': 7, 'RATE_LIMITED': 3, 'PINNED_WORKER_UNAVAILABLE': 1, 'NONE': 1}
+Interventions: [('SWITCH_WORKER', 'gpt-oss-120b@default', 'PLUMME_ACQUIRE_FAILED'), ('SWITCH_WORKER', 'xing4.0-29b-a4b@default', 'RATE_LIMITED'), ('SWITCH_WORKER', 'openai-fast@default', 'RATE_LIMITED'), ('SWITCH_WORKER', 'xing4.0-29b-a4b@default', 'PINNED_WORKER_UNAVAILABLE'), ('SWITCH_WORKER', 'beam@default', 'PLUMME_ACQUIRE_FAILED'), ('SWITCH_WORKER', 'unknown:llm7>llm7>codestral-latest', 'PLUMME_ACQUIRE_FAILED'), ('SWITCH_WORKER', 'unknown:llm7>llm7>codestral-latest', 'PLUMME_ACQUIRE_FAILED'), ('SWITCH_WORKER', 'openai-fast@default', 'RATE_LIMITED'), ('SWITCH_WORKER', 'north-mini-code@default', 'PLUMME_ACQUIRE_FAILED'), ('SWITCH_WORKER', 'north-mini-code@default', 'PLUMME_ACQUIRE_FAILED'), ('SWITCH_WORKER', 'nemotron-3.5-super-vl@default', 'PLUMME_ACQUIRE_FAILED')]
 Knowledge-marker events: 0
 
 ## Verdict
-- worker_contribution: None -- no contribution rows in trace
-- independent_verification: None -- no PASS/CONTRADICT rows in trace; verifier.log not present
+- worker_contribution: True -- 1 delivered of 12 rows; kinds={'ATTEMPT_FAILED': 11, 'PROPOSAL': 1}
+- independent_verification: None -- no quorum-promoted PASS/CONTRADICT; 0 verifier judgments (relations={}); verifier.log not present
 - causal_effect_on_decision: False -- no ORG_REVISION events; EPISODE_CLOSED stats.revisions=0
-- productive_recovery: None -- no SWITCH_WORKER intervention in traces
-- knowledge_reuse: None -- no ZERO_CALL/VERIFIED_KNOWLEDGE/unverified-lead markers in traces
-- organisational_success: None -- worker_contribution AND (causal_effect OR independent_verification) AND reward 1.0 -> wc=None, causal=False, verification=None, reward_1=True
-
-NOTE: original draft accepted - not organisational success
+- productive_recovery: False -- 11 SWITCH_WORKER; progress follow-ups on other worker=0
+- knowledge_reuse: False -- no markers; ensemble accounting reused_without_inference=0
+- organisational_success: None -- worker_contribution AND (causal_effect OR independent_verification) AND reward 1.0 -> wc=True, causal=False, verification=None, reward_1=True
