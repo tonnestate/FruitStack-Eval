@@ -46,23 +46,41 @@ def _single_provider_keys(svc) -> list[str]:
     except Exception:  # noqa: BLE001 - a hint only; without it the selection is plain BEST as before
         return []
 
-MAX_WAIT_S = 600   # longest cooldown worth waiting for inside a block (per-minute rate-limit windows); a daily quota reset is far beyond it
+MAX_WAIT_S = 900   # longest cooldown worth waiting for inside a block: PlumMe credential cooldowns of ~600 s were observed (Groq); a daily quota reset is far beyond it
 
 
 def _earliest_retry(svc, model_keys):
-    """Seconds until PlumMe's own circuit/quota/credential state lets any route of the given model(s) run again; None = no route will become available."""
+    """Seconds until PlumMe lets any route of the given model(s) run again. 0.0 = a route passes PlumMe's hard eligibility gate (scheduler.screen) right now; otherwise the shortest KNOWN
+    circuit/quota/credential cooldown among the models' routes; None = no route has a known recovery time (nothing to wait for). Offers that the gate rejects without any cooldown
+    (e.g. no credential configured for that provider) neither count as available nor as a window."""
+    from plumme.models import ExecutionRequest
     wanted = {str(k) for k in ([model_keys] if isinstance(model_keys, str) else model_keys)}
+    eligible, _rejected = svc.scheduler.screen(ExecutionRequest(task="ogi013-sim-wait", role_id=ROLE))
+    if any(str(o.model_key) in wanted for o in eligible):
+        return 0.0
     waits = []
     for o in svc.store.offers.values():
-        if str(o.model_key) not in wanted or str(getattr(getattr(o, "health", None), "value", getattr(o, "health", ""))) not in {"AVAILABLE", "QUOTA_LOW", "DEGRADED"}:
-            continue
-        av = svc.scheduler.availability(o)
-        if av["retry_after_seconds"] is not None:
-            waits.append(float(av["retry_after_seconds"]))
-        elif av.get("credential_available", True) and not av.get("circuit_open") and not av.get("quota_exhausted"):
-            return 0.0                       # a route of a wanted model is available right now
-        # else: unusable with no known recovery time (e.g. a daily quota that the provider did not date): it neither blocks nor satisfies the wait
+        if str(o.model_key) in wanted:
+            w = svc.scheduler.availability(o)["retry_after_seconds"]
+            if w is not None:
+                waits.append(float(w))
     return min(waits) if waits else None
+
+
+def _explain(svc, model_key: str) -> dict:
+    """Why PlumMe refuses every route of a model right now: its own hard-gate rejection codes and runtime availability per offer (diagnostic row in sim-usage.jsonl)."""
+    try:
+        from plumme.models import ExecutionRequest
+        _eligible, rejected = svc.scheduler.screen(ExecutionRequest(task="ogi013-sim-explain", role_id=ROLE))
+        out = {}
+        for oid, o in svc.store.offers.items():
+            if str(o.model_key) == str(model_key):
+                av = svc.scheduler.availability(o)
+                out[f"{o.provider}:{oid[-6:]}"] = {"rejected": rejected.get(oid) or rejected.get(getattr(o, "offer_id", oid)), "circuit_open": av["circuit_open"], "credential_available": av["credential_available"],
+                                                   "quota_exhausted": av["quota_exhausted"], "retry_after_s": av["retry_after_seconds"]}
+        return out
+    except Exception as exc:  # noqa: BLE001 - diagnostic only
+        return {"explain_failed": f"{type(exc).__name__}: {exc}"[:200]}
 
 
 def _selection_pool(runs_dir: Path) -> list[str]:
@@ -127,7 +145,8 @@ def install(svc, route_file: Path, out: Path) -> None:
             except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record, never crash the benchmark run
                 last = type(exc).__name__
                 with log.open("a") as f:
-                    f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "exception": last, "detail": str(exc)[:200]}) + "\n")
+                    f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "exception": last, "detail": str(exc)[:200],
+                                        "why": _explain(svc, pinned or (pool[attempt % len(pool)] if pool else ""))}) + "\n")
             else:
                 log_call(lease, res, t0, pinned)
                 last = res["failure_class"]

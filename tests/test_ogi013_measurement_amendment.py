@@ -187,28 +187,35 @@ def test_report_accepts_the_legacy_labels(tmp_path):
 
 # ---------- simulator cooldown logic (infrastructure; offline, fake service objects) -------------------------------------------------------------------------
 
-def test_earliest_retry_uses_plumme_cooldown_state():
+def test_earliest_retry_uses_plumme_gate_and_cooldown_state():
+    import sys
     import types
     from ogi013_sim_supply import _earliest_retry
+    sys.modules.setdefault("plumme.models", types.SimpleNamespace(ExecutionRequest=lambda **kw: types.SimpleNamespace(**kw)))
 
-    def offer(key, health="AVAILABLE"):
-        return types.SimpleNamespace(model_key=key, health=health)
+    def offer(key, health="AVAILABLE", name=None):
+        return types.SimpleNamespace(model_key=key, health=health, name=name or key)
 
     class Sched:
-        def __init__(self, waits):
-            self.waits = waits
+        def __init__(self, eligible_names, waits):
+            self.eligible_names, self.waits = eligible_names, waits
+
+        def screen(self, request):
+            return [o for o in self.offers if o.name in self.eligible_names], {}
 
         def availability(self, o):
-            return {"retry_after_seconds": self.waits[o.model_key], "credential_available": o.model_key != "dead", "circuit_open": False, "quota_exhausted": False}
+            return {"retry_after_seconds": self.waits.get(o.name)}
 
-    def svc(offers, waits):
-        return types.SimpleNamespace(store=types.SimpleNamespace(offers=dict(enumerate(offers))), scheduler=Sched(waits))
+    def svc(offers, eligible_names=(), waits=None):
+        sched = Sched(set(eligible_names), waits or {})
+        sched.offers = offers
+        return types.SimpleNamespace(store=types.SimpleNamespace(offers=dict(enumerate(offers))), scheduler=sched)
 
-    assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": 120.0}), ["a", "b"]) == 30.0
-    assert _earliest_retry(svc([offer("a"), offer("b")], {"a": 30.0, "b": None}), ["a", "b"]) == 0.0      # b is available now: rotate, do not wait
-    assert _earliest_retry(svc([offer("a", "UNAVAILABLE")], {"a": 5.0}), ["a"]) is None                  # no routable offer at all
-    assert _earliest_retry(svc([offer("dead")], {"dead": None}), ["dead"]) is None                         # no retry time but the credential is unusable (undated daily quota): NOT available
-    assert _earliest_retry(svc([offer("a")], {"a": 9000.0}), "a") == 9000.0                               # daily-quota style window: the caller fails the block
+    assert _earliest_retry(svc([offer("a"), offer("b")], ["b"], {"a": 30.0}), ["a", "b"]) == 0.0           # b passes the hard gate now: rotate, do not wait
+    assert _earliest_retry(svc([offer("a"), offer("b")], [], {"a": 30.0, "b": 120.0}), ["a", "b"]) == 30.0   # nothing eligible: the shortest known window
+    assert _earliest_retry(svc([offer("a", name="a-cooling"), offer("a", name="a-nocred")], [], {"a-cooling": 598.0}), "a") == 598.0   # an offer with no credential does not count as available
+    assert _earliest_retry(svc([offer("a")], [], {}), "a") is None                                        # no known recovery time
+    assert _earliest_retry(svc([offer("a")], [], {"a": 9000.0}), "a") == 9000.0                           # daily-quota style window: the caller fails the block
 
 
 def test_selection_pool_excludes_only_until_the_retry_window_ends(tmp_path):
