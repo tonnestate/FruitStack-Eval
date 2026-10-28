@@ -35,7 +35,8 @@ def sandbox(tmp_path, behavior="ok"):
     (r / "retail_test_tasks.txt").write_text("3\n5 9 12 17\n")
     (r / "run_org.sh").write_text(LAUNCHER); (r / "run_org.sh").chmod(0o755)
     (r / "behavior").write_text(behavior)
-    src = SUP.read_text().replace("R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs;", f"R={r};").replace("sleep 60", "sleep 0").replace("2 6 8 13 16 18 19 22 24 25 26 29 30 31 32 35 37 44 45 48", "2 3")
+    (tmp_path / "gate.json").write_text('{"min_tasks": 1}')            # sandbox gate: the real ORG-GATE/1 needs 40 tasks, the sandbox has two
+    src = SUP.read_text().replace("R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs;", f"R={r};").replace("sleep 60", "sleep 0").replace("2 6 8 13 16 18 19 22 24 25 26 29 30 31 32 35 37 44 45 48", "2 3").replace("GATE_JSON=$EV/ogi013-learning/ORG_GATE_V1.json", f"GATE_JSON={tmp_path}/gate.json")
     pre = tmp_path / "prereg"; pre.mkdir()                      # the lock is written next to PROTOCOL.md: keep it OUT of the real repo
     (pre / "PROTOCOL.md").write_text((ROOT / "evidence/ogi013-c3-prereg/PROTOCOL.md").read_text())
     src = src.replace("P=$EV/ogi013-c3-prereg; Q=$P/queue", f"Q=$EV/ogi013-c3-prereg/queue; P={pre}")
@@ -60,14 +61,16 @@ def test_success_routes_mixed_domains_and_marks_done(tmp_path):
     assert "QUEUE_DONE" in (c / "progress.txt").read_text()
 
 
-@pytest.mark.parametrize("behavior,cause", [("crash", "EXECUTION_FAILED"), ("nores", "MISSING_OR_INVALID_OFFICIAL_RESULT"), ("simfail", "BLOCKED")])
+@pytest.mark.parametrize("behavior,cause", [("crash", "EXECUTION_FAILED"), ("nores", "MISSING_OR_INVALID_OFFICIAL_RESULT"), ("simfail", "INFRA_INCOMPLETE")])
 def test_technical_failure_never_completes(tmp_path, behavior, cause):
     r = sandbox(tmp_path, behavior)
     p = sh(tmp_path, "stage_phaseA"); assert p.returncode != 0
     c = r / "c3-phaseA"; prog = (c / "progress.txt").read_text()
     assert cause in prog and "QUEUE_DONE" not in prog and not list(c.glob("*/BLOCK_DONE"))
     if behavior == "simfail":
-        assert len(list((c / "discarded").iterdir())) == 2          # attempts 1-2 discarded, attempt 3 ends BLOCKED
+        incomplete = list((c / "discarded").glob("*-INFRA_INCOMPLETE.txt"))
+        assert incomplete and len(list((c / "discarded").glob("*-attempt*"))) == 3 * len(incomplete)       # exactly 3 registered attempts per task, then INFRA_INCOMPLETE
+        assert "QUEUE_INCOMPLETE" in prog
     # the whole supervisor must halt BLOCKED, never PIPELINE_COMPLETE
     for s in ("wait_c2", "c2_eval", "prereg", "demo"): (r / "supervisor/stages").mkdir(parents=True, exist_ok=True); (r / f"supervisor/stages/{s}.done").write_text("x")
     (r / "supervisor/demo_success.txt").write_text("True")

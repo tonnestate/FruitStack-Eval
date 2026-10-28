@@ -4,6 +4,7 @@
 # Exit 0 = pipeline finished OR halted on a recorded BLOCKED reason (status.txt); exit 1 = crash, systemd restarts and the stage resumes.
 set -u -o pipefail
 R=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs; O=/root/fruits/integration/ogi013-org; EV=$O/evidence
+GATE_JSON=$EV/ogi013-learning/ORG_GATE_V1.json
 SUP=$R/supervisor; ST=$SUP/stages; LOG=$SUP/supervisor.log; mkdir -p "$ST"
 PY=/root/fruits/integration/ogi013-hostpython-org/bin/python; KPY=/root/SUPPLY-001/venv3.12/bin/python
 P=$EV/ogi013-c3-prereg; Q=$P/queue; export RUNS_DIR=$R
@@ -133,6 +134,7 @@ pending() {  # A directory is NOT evidence of completion. Require an explicit va
   local C=$1 t; shift
   for t in "$@"; do
     if [ -f "$C/$t/BLOCK_DONE" ]; then continue; fi
+    if [ -f "$C/discarded/$t-INFRA_INCOMPLETE.txt" ]; then continue; fi      # 3 registered attempts used: never retried beyond the maximum
     if [ -d "$C/.snap-$t" ]; then
       mkdir -p "$C/discarded" || return 1
       if [ -d "$C/$t" ]; then mv "$C/$t" "$C/discarded/$t-interrupted$(date +%s)" || return 1; fi
@@ -154,6 +156,12 @@ stage_phaseA() {  # RUNBOOK 4: domain-qualified keys, shared organisational lear
   [ "${#tasks[@]}" -gt 0 ] || return 1
   todo="$(pending "$R/c3-phaseA" "${tasks[@]}")" || return 1
   [ -z "$todo" ] || CONDITIONS="RG2-RANDOMIZED" "$Q/block_queue.sh" c3-phaseA mixed D 1013 $todo || return 1
+  local done_n min_n; done_n=$(ls "$R"/c3-phaseA/*/BLOCK_DONE 2>/dev/null | wc -l)
+  min_n=$("$PY" -c 'import json,sys; print(json.load(open(sys.argv[1]))["min_tasks"])' "$GATE_JSON") || return 1
+  if [ "$done_n" -lt "$min_n" ]; then
+    log "phaseA: $done_n of ${#tasks[@]} tasks complete, ORG-GATE/1 min_tasks=$min_n cannot be met ($(ls "$R"/c3-phaseA/discarded/*-INFRA_INCOMPLETE.txt 2>/dev/null | wc -l) INFRA_INCOMPLETE after 3 registered attempts each); extra attempts need an explicit owner authorisation"
+    return 1
+  fi
 }
 stage_train() {
   cd "$O" && KERAS_BACKEND=jax PYTHONPATH=runners:.:/root/fruits/integration/ogi013-cherry-org:/root/fruits/integration/ogi013-plum-org/src "$KPY" runners/train_org_policy.py \
@@ -202,6 +210,12 @@ stage_eval() {  # RUNBOOK 7
     "$PY" runners/export_pair_rows.py --campaign "$R/c3-phaseB" --cond-a "$1" --cond-b "$2" --out "$D/rows-$1-vs-$2.jsonl" --mapping-out "$D/map-$1-vs-$2.json" > "$D/export-$1-vs-$2.log" 2>&1 || return 1
     compare_recorded "$D/rows-$1-vs-$2.jsonl" "$D/compare-$1-vs-$2.json" || return 1
   done
+  local h f fam=()      # registered confirmatory analysis: exact McNemar per pair + Holm over the family (PROTOCOL.md primary endpoint)
+  for h in "H1:RG2-OFF-vs-SINGLE" "H1c:RG2-OFF-vs-SINGLE-E" "H2:RG2-OFF-vs-FIXED" "H3:RG2-OFF-vs-RG2-OFF-NOPERSIST" "H4:RG2-LEARNED-vs-RG2-OFF"; do
+    f="$D/rows-${h#*:}.jsonl"; [ -s "$f" ] && fam+=("${h%%:*}=$f")
+  done
+  [ "${#fam[@]}" -gt 0 ] || return 1
+  "$PY" runners/ogi013_confirmatory.py --out "$D/confirmatory.json" "${fam[@]}" > "$D/confirmatory.log" 2>&1 || return 1
   local d found=0
   for d in "$R"/c3-phaseB/*/RG2-OFF; do
     [ -d "$d" ] || continue

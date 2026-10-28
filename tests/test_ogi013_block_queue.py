@@ -178,3 +178,20 @@ def test_mixed_domain_keys_preserve_canonical_runner_task_id(tmp_path):
     assert "/airline:25" in r.stdout
     bad = cond(tmp_path, [CAMP, "25", "mixed", "RG2-RANDOMIZED", "D"])
     assert bad.returncode == 2
+
+
+def test_third_simulator_failure_marks_task_incomplete_and_the_queue_continues(tmp_path):
+    """Registered maximum = 3 attempts per task: the 3rd simulator-route failure makes the task INFRA_INCOMPLETE (never retried further), the other tasks still run."""
+    fake = tmp_path / "sim.sh"
+    fake.write_text('#!/bin/bash\nif [ "$2" = bad ]; then echo SIM_ROUTE_FAILED; exit 1; fi\nmkdir -p "$RUNS_DIR/$1/tasks/$2"\necho \'{"reward_info":{"reward":1.0}}\' > "$RUNS_DIR/$1/tasks/$2/official-result.json"\n')
+    fake.chmod(0o755)
+    env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="FIXED", LAUNCHER=str(fake))
+    r = subprocess.run(["bash", str(BLOCK), CAMP, "retail", "A", "1013", "bad", "good"], env=env, capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stderr
+    prog = (tmp_path / CAMP / "progress.txt").read_text()
+    assert prog.count("discarded attempt=") == 3 and "bad INFRA_INCOMPLETE attempts=3" in prog
+    assert (tmp_path / CAMP / "discarded" / "bad-INFRA_INCOMPLETE.txt").is_file()
+    assert (tmp_path / CAMP / "good" / "BLOCK_DONE").is_file() and not (tmp_path / CAMP / "bad" / "BLOCK_DONE").exists()
+    assert "QUEUE_INCOMPLETE" in prog and "QUEUE_DONE" not in prog
+    r2 = subprocess.run(["bash", str(BLOCK), CAMP, "retail", "A", "1013", "bad"], env=env, capture_output=True, text=True, timeout=60)   # a rerun must not start a 4th attempt
+    assert r2.returncode == 0 and (tmp_path / CAMP / "progress.txt").read_text().count("discarded attempt=") == 3

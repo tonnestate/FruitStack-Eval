@@ -59,6 +59,7 @@ c = sys.argv[1].split()
 random.Random(f"{sys.argv[2]}|{sys.argv[3]}").shuffle(c)
 print(" ".join(c))' "$CONDITIONS" "$SEED" "$T")
   BLOCK="$CDIR/$T"
+  if [ -f "$CDIR/discarded/$T-INFRA_INCOMPLETE.txt" ]; then echo "$T skipped: INFRA_INCOMPLETE after the registered maximum of 3 attempts" >> "$PROG"; continue; fi
   for k in 1 2 3; do
     rm -f "$RUNS_DIR/$C-$T.route"
     snapshot_state "$T" || exit 1
@@ -91,11 +92,16 @@ print(" ".join(c))' "$CONDITIONS" "$SEED" "$T")
     done
     [ -f "$RUNS_DIR/$C-$T.route" ] && cp "$RUNS_DIR/$C-$T.route" "$BLOCK/sim_route.txt"
     record_sim_key "$BLOCK"
-    if [ "$failure" = SIM_ROUTE_FAILED ] && [ "$k" -lt 3 ]; then
+    if [ "$failure" = SIM_ROUTE_FAILED ]; then
       echo "$T discarded attempt=$k simulator route failed" >> "$PROG"
       mv "$BLOCK" "$CDIR/discarded/$T-attempt$k" || exit 1
       restore_state "$T" || exit 1
-      continue
+      [ "$k" -lt 3 ] && continue
+      # registered maximum (3) reached: the task is INFRA_INCOMPLETE (reported, scored as non-success, never retried beyond the maximum); the queue goes on
+      { date -u +%FT%TZ; echo "INFRA_INCOMPLETE attempts=3 cause=SIM_ROUTE_FAILED"; } > "$CDIR/discarded/$T-INFRA_INCOMPLETE.txt" || exit 1
+      echo "$T INFRA_INCOMPLETE attempts=3 cause=SIM_ROUTE_FAILED" >> "$PROG"
+      rm -rf "$CDIR/.snap-$T"
+      break
     fi
     if [ -n "$failure" ]; then
       # The snapshot is intentionally retained for safe retry/resume.
@@ -108,4 +114,5 @@ print(" ".join(c))' "$CONDITIONS" "$SEED" "$T")
     break
   done
 done
-echo "QUEUE_DONE slot=$S" >> "$PROG"
+INC=$(ls "$CDIR/discarded"/*-INFRA_INCOMPLETE.txt 2>/dev/null | wc -l)
+if [ "$INC" -gt 0 ]; then echo "QUEUE_INCOMPLETE slot=$S incomplete=$INC" >> "$PROG"; else echo "QUEUE_DONE slot=$S" >> "$PROG"; fi
