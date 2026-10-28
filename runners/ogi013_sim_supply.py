@@ -14,6 +14,7 @@ import random
 import time
 from pathlib import Path
 
+from ogi013_pilot_gate import check as pilot_gate
 from peachme.plumme import PlumMeProvider
 from tau2.data_model.message import AssistantMessage
 from tau2.user import user_simulator
@@ -138,6 +139,7 @@ def install(svc, route_file: Path, out: Path) -> None:
         keys = [pinned] if pinned else (pool or [])
         idle = 0
         for attempt in range(60 if pinned else max(12, 2 * len(pool))):
+            pilot_gate()                                      # pilot only: before every simulator dispatch attempt (outside the try: a stop must not be retried)
             t0 = time.time()
             failed_wait = None
             try:

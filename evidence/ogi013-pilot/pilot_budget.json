@@ -1,10 +1,12 @@
 {
-  "pilot": "OGI-013-PILOT-1 (exploratory, separate from the preregistered study)",
-  "task": {"domain": "airline", "id": "6"},
+  "pilot": "OGI-013-PILOT-1 (exploratory, separate from the preregistered study): SINGLE vs COLLAB (OGI013_ORG_COLLAB=1)",
+  "task": {"domain": "airline", "id": "24"},
   "simulator_model_key": "gemini-3.1-flash-lite@vision",
-  "arms": {"SINGLE": {"max_dispatches": 45, "max_tokens": 160000}, "RG2-ECONOMY": {"max_dispatches": 105, "max_tokens": 320000}},
-  "cumulative": {"max_dispatches": 150, "max_tokens": 480000, "max_cash_usd": 0.0, "max_wall_minutes": 90},
+  "arms": {"pilot-1/single": {"max_dispatches": 40, "max_tokens": 50000}, "pilot-1/collab": {"max_dispatches": 80, "max_tokens": 120000}},
+  "cumulative": {"max_dispatches": 120, "max_tokens": 170000, "max_cash_usd": 0.0, "max_wall_minutes": 90},
+  "reserve_tokens_per_dispatch": 4000,
   "dispatch_definition": "every receipt row (provider execution) in the arm's plumme-state/receipts.jsonl plus every simulator call row in sim-usage.jsonl",
-  "token_definition": "recorded usage input+output tokens of those rows (rows without usage are counted as 0 and listed)",
-  "basis": "measured on final-demo/d2 (task 6): agent steps 15 dispatches / 81,102 tokens, simulator 13 calls / 19,730 tokens; economy escalation allowance 6 + 2x4 dispatches at ~3,000 tokens each"
+  "token_definition": "recorded usage input+output tokens of those rows; a SUCCESSFUL row without usage halts the pilot; a failed row without usage is charged reserve_tokens_per_dispatch",
+  "enforcement": "pre-dispatch: runners/ogi013_pilot_gate.py refuses every agent step and simulator attempt whose dispatch (+ reserve) would cross a cap; pilot_guard.py watch is the backstop",
+  "basis": "task 24 has a write action (expected: book_reservation), so the economy gate escalates (task 6 is read-only: COLLAB would mostly be ORG_SKIPPED). Archived c2 runs of task 24: fixed 40 dispatches / 27,616 tokens, adaptive 80 / 73,106. Expected SINGLE ~20-30 dispatches / ~20-30k tokens; COLLAB adds <= 5 calls per reviewed write (challenge, revise, challenge, specialist, re-review)."
 }

@@ -39,11 +39,11 @@ def test_usage_counts_every_dispatch_and_simulator_call(tmp_path):
 
 
 def test_caps_are_detected_per_arm_and_cumulatively(tmp_path):
-    arm(tmp_path, "pilot-1/single", receipts=60, sim=0)                       # over the SINGLE arm cap (45), still under the cumulative cap (150)
+    arm(tmp_path, "pilot-1/single", receipts=60, sim=0)                       # over the SINGLE arm cap (40), under the cumulative cap (120)... the arm cap is what trips
     u = guard.usage(str(tmp_path), ["pilot-1/single"])
-    assert any("pilot-1/single" in w or "SINGLE" in w for w in guard.exceeded({**BUDGET, "arms": {"pilot-1/single": BUDGET["arms"]["SINGLE"]}}, u))
-    arm(tmp_path, "pilot-1/econ", receipts=100, sim=0)
-    assert any("dispatches" in w for w in guard.exceeded(BUDGET, guard.usage(str(tmp_path), ["pilot-1/single", "pilot-1/econ"])))
+    assert any("arm pilot-1/single over its cap" in w for w in guard.exceeded(BUDGET, u))        # keyed by the REAL arm directory: it used to never match
+    arm(tmp_path, "pilot-1/collab", receipts=100, sim=0)
+    assert any("dispatches" in w for w in guard.exceeded(BUDGET, guard.usage(str(tmp_path), ["pilot-1/single", "pilot-1/collab"])))
     assert guard.exceeded(BUDGET, {"dispatches": 1, "tokens": 1, "per_arm": {}}, started_at=time.time() - 91 * 60) == ["wall clock over the cap"]
 
 

@@ -30,6 +30,7 @@ from tau2.data_model.message import AssistantMessage, Message, MultiToolMessage,
 from tau2.environment.tool import Tool
 from tau2.environment.toolkit import TOOL_TYPE_ATTR, ToolType
 
+from ogi013_pilot_gate import check as pilot_gate
 from ogi013_single_e import majority_action, read_k
 
 MODES = ("single", "fixed", "adaptive", "rg2", "single_e")
@@ -192,6 +193,7 @@ class Episode:
         from peachme import PeachError
         fs, last = self.stack.fs, None
         for attempt in range(4):
+            pilot_gate()                                      # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
             self.step_n += 1
             key = f"{self.task_id}:{self.turns}:{tag}:{self.step_n}"
             s = self.stack.store.get(self.sid)
