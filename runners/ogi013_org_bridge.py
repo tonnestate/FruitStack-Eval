@@ -13,12 +13,15 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 CHUNK = 5800                      # RetrievedSource excerpts are limited to 6000 characters by CherryMe
 MAX_SOURCES = 12                  # HostGrounding limit
 QUESTIONS_PER_DECISION = 8        # engine question budget for one claim; the engine stops earlier when the claim is resolved
+ATOMS_PER_DECISION = 2            # AMENDMENT-1: atomic provenance propositions verified per decision (host-derived, no model)
+ATOM_WINDOW = 1200                # characters either side of the value in the host excerpt
 
 
 def _chunks(text: str, size: int = CHUNK) -> list[str]:
@@ -38,6 +41,61 @@ def environment_sources(task_id: str, policy: str, transcript: str, tool_results
     return out
 
 
+def _is_identifier(text: str) -> bool:
+    return bool(re.fullmatch(r"[A-Z0-9]{5,8}", text) or (re.search(r"\d", text) and len(text) >= 3))
+
+
+def atomic_values(action: dict) -> list[dict]:
+    """AMENDMENT-1: host-derived atomic propositions (no model): every identifier-like value (reservation/user/payment id, date, amount) the proposed action asserts. Each becomes
+    ONE claim 'the value appears in what the customer said or in a system tool result', checkable against a single host excerpt. Tool arguments first, then values in a reply."""
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    def add(value, label: str, kind: str) -> None:
+        text = str(value).strip()
+        if text and text not in seen and _is_identifier(text):
+            seen.add(text)
+            out.append({"value": text, "label": label, "kind": kind})
+
+    def walk(prefix: str, obj) -> None:
+        if isinstance(obj, dict):
+            for key, val in obj.items():
+                walk(f"{prefix}.{key}", val)
+        elif isinstance(obj, (list, tuple)):
+            for val in obj:
+                walk(prefix, val)
+        elif isinstance(obj, (str, int, float)) and not isinstance(obj, bool):
+            add(obj, prefix, "tool_argument")
+
+    if action.get("action") == "tool":
+        walk(str(action.get("name")), action.get("arguments") or {})
+    else:
+        for match in re.finditer(r"\b[A-Z0-9]{5,8}\b|\$\d[\d,.]*|\b\d{4}-\d{2}-\d{2}\b", str(action.get("content") or "")):
+            add(match.group(0), "reply", "message_value")
+    return out[:ATOMS_PER_DECISION]
+
+
+def atom_sources(task_id: str, index: int, value: str, user_text: str, tool_results: str):
+    """Host excerpts for ONE atomic proposition: a window around the last occurrence of the value in what the CUSTOMER said and in a system TOOL RESULT (the assistant's own earlier
+    words are never a source). If the value occurs in neither, the tail of the tool results is offered, so an unsupported value is judged NOT_ADDRESSED rather than silently dropped."""
+    from cherryme.host_grounding import RetrievedSource
+
+    def window(text: str):
+        at = text.rfind(value)
+        return None if at < 0 else text[max(0, at - ATOM_WINDOW): at + len(value) + ATOM_WINDOW]
+
+    picks = [(group, w) for group, w in (("customer", window(user_text)), ("system-data", window(tool_results))) if w and w.strip()]
+    if not picks:
+        tail = (tool_results.strip() or user_text.strip())[-2 * ATOM_WINDOW:] or "(no customer statement or system data yet)"
+        picks = [("system-data", tail)]
+    out = []
+    for group, text in picks:
+        digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        out.append(RetrievedSource(source_ref=f"https://tau2-environment.invalid/{task_id}/atom{index}/{group}", excerpt=text, excerpt_sha256=digest,
+                                   retrieval_receipt_id=f"tau2-env:{digest[:16]}", source_group=group))
+    return out
+
+
 class OrgBridge:
     """One per Episode (one tau2 task per process). Lazy: nothing is built or spent until the first consequential decision."""
 
@@ -45,6 +103,8 @@ class OrgBridge:
         self.stack, self.sid, self.task_id, self.policy, self.dir = stack, sid, task_id, policy, work_dir
         self.engine = None
         self.investigator, self._vlog_n = None, 0
+        self.atom_sources: dict[str, list] = {}        # claim id -> host excerpts of that atomic proposition
+        self.atom_ids: set[str] = set()
         self.sources: list = []
         self.alert = 0                                  # earlier dissent/refutation/failure in this episode (structured signal, escalates the importance of later claims)
         self.decisions: list[dict] = []
@@ -69,12 +129,11 @@ class OrgBridge:
         runtime = responsibility_runtime(triage="off" if "triage" in self.ablate else "auto", knowledge_store=knowledge)
         self.dir.mkdir(parents=True, exist_ok=True)
 
-        class Falsify:                                   # per claim: first a SCIENCE question (host-grounded against the hashed environment excerpts and judged by the independent EvidenceVerifier,
-            asked: dict = {}                             # the only path that can promote PASS/CONTRADICT; FALSIFY is not a grounded type), then FALSIFY questions that try to refute the action
+        bridge = self
 
-            def choose(self, claim, state_features):
-                n = self.asked[claim.id] = self.asked.get(claim.id, 0) + 1
-                return QuestionType.SCIENCE if n == 1 else QuestionType.FALSIFY
+        class Falsify:                                   # the compound decision claim is put under FALSIFY (workers try to refute the action); AMENDMENT-1 atomic provenance claims are
+            def choose(self, claim, state_features):     # SCIENCE questions: the only grounded type, so the independent EvidenceVerifier can judge them against a single host excerpt
+                return QuestionType.SCIENCE if claim.id in bridge.atom_ids else QuestionType.FALSIFY
 
         assurance = connect_appleme(workspace_root=self.dir / "appleme")
         self.state = state
@@ -147,10 +206,11 @@ class OrgBridge:
 
     def _grounding(self, question):
         from cherryme.host_grounding import HostGrounding
-        return HostGrounding(question_id=question.id, sources=tuple(self.sources), search_backend="tau2-environment", corpus_family="tau2-airline-environment")
+        sources = self.atom_sources.get(question.claim_id) or self.sources
+        return HostGrounding(question_id=question.id, sources=tuple(sources), search_backend="tau2-environment", corpus_family="tau2-airline-environment")
 
     def decide(self, *, description: str, importance: float, request: str, transcript: str, tool_results: str,
-               structure_policy: Any = None, features: dict | None = None) -> dict:
+               structure_policy: Any = None, features: dict | None = None, atoms: list[dict] | None = None, user_text: str = "") -> dict:
         """Put one decision to the CherryMe engine. Returns status (SUPPORTED/REFUTED/CONFLICT/UNKNOWN), dissent texts, and the organisation the engine actually used."""
         from cherryme.models import Claim
         if self.engine is None:
@@ -181,7 +241,11 @@ class OrgBridge:
         rec = {"claim": claim.id, "status": final.status.value, "importance": claim.importance, "rows": len(rows), "workers": sorted({str(r.worker) for r in rows if r.worker}),
                "dissent": dissent, "provider_calls": self.engine.provider_calls - calls_before, "provider_dispatches": self.engine.provider_dispatches - dispatches_before,
                "triage": (self.engine.triage_log[-1]["status"] if self.engine.triage_log else None)}
-        if final.status.value in ("REFUTED", "CONFLICT") or dissent:
+        rec["atoms"] = self._verify_atoms(atoms or [], request, user_text, tool_results)
+        for atom in rec["atoms"]:
+            if atom["status"] in ("REFUTED", "CONFLICT") and rec["status"] not in ("REFUTED", "CONFLICT"):
+                rec["status"] = atom["status"]               # a quorum-verified contradiction of an asserted value is verified dissent against the action
+        if rec["status"] in ("REFUTED", "CONFLICT") or dissent:
             self.alert = min(self.alert + 1, 3)
         self.decisions.append(rec)
         comp = self._completion(claim.id, rec)
@@ -191,6 +255,29 @@ class OrgBridge:
         if row_id is not None:
             structure_policy.finish_decision(row_id, **comp)
         return rec
+
+    def _verify_atoms(self, atoms: list[dict], request: str, user_text: str, tool_results: str) -> list[dict]:
+        """AMENDMENT-1: one SCIENCE question per atomic proposition; the independent EvidenceVerifier (quorum of >=2 distinct independence keys with verbatim quotes, unchanged)
+        judges it against the host excerpt windows. Skipped under the pre-registered no-verify ablation. Returns per-atom status and the independence keys that verified it."""
+        from cherryme.models import Claim
+        if not atoms or "verify" in self.ablate or self.engine is None:
+            return []
+        results = []
+        for index, atom in enumerate(atoms):
+            subject = "of the assistant's tool call" if atom["kind"] == "tool_argument" else "stated in the assistant's reply"
+            claim = Claim(text=f"The value {atom['value']} {('given as ' + repr(atom['label']) + ' ') if atom['kind'] == 'tool_argument' else ''}{subject} appears in what the customer said or in a system tool result of this conversation.",
+                          importance=0.6, objective=request[:1000])
+            self.engine.add_claim(claim)
+            self.atom_ids.add(claim.id)
+            self.atom_sources[claim.id] = atom_sources(self.task_id, index, atom["value"], user_text, tool_results)
+            calls_before = self.engine.provider_calls
+            self.engine.run([claim.id], budget=1)
+            final = self.engine.claims.load(claim.id)[0]
+            keys = sorted({(getattr(r, "identity", None) or {}).get("independence_key") for r in self.engine.ledger.for_claim(claim.id)
+                           if r.kind == "VERIFIER" and r.epistemic_status == "VERIFIED"} - {None})
+            results.append({"claim": claim.id, "value": atom["value"], "label": atom["label"], "status": final.status.value, "verified_by": keys,
+                            "provider_calls": self.engine.provider_calls - calls_before})
+        return results
 
     def _completion(self, claim_id: str, rec: dict) -> dict:
         """Accounting of the newest question event of this claim (engine events.jsonl) plus ledger counts. revised/action_changed are not known at this layer (None)."""

@@ -116,7 +116,7 @@ stage_demo() {  # RUNBOOK 3
   cd "$O" || return 1
   mkdir -p "$EV/ogi013-rg2-demo" || return 1
   for d in d1 d2; do
-    "$PY" runners/rg2_trace_report.py "$R/org-demo/$d" --out "$EV/ogi013-rg2-demo/report-$d.json" > "$SUP/trace-$d.txt" 2>&1 || return 1
+    "$PY" runners/rg2_trace_report.py "$R/org-demo/$d" --state-dir "$R/org-demo/state/cherry" --out "$EV/ogi013-rg2-demo/report-$d.json" > "$SUP/trace-$d.txt" 2>&1 || return 1
   done
   "$PY" - "$EV/ogi013-rg2-demo/report-d1.json" "$EV/ogi013-rg2-demo/report-d2.json" > "$SUP/demo_success.txt" <<'PY'
 import json, sys
@@ -206,7 +206,7 @@ stage_eval() {  # RUNBOOK 7
   for d in "$R"/c3-phaseB/*/RG2-OFF; do
     [ -d "$d" ] || continue
     found=1
-    "$PY" runners/rg2_trace_report.py "$d" --out "$D/trace-$(basename "$(dirname "$d")").json" > /dev/null 2>&1 || return 1
+    "$PY" runners/rg2_trace_report.py "$d" --state-dir "$R/c3-phaseB/state/RG2-OFF/cherry" --out "$D/trace-$(basename "$(dirname "$d")").json" > /dev/null 2>&1 || return 1
   done
   [ "$found" -eq 1 ] || return 1
 }

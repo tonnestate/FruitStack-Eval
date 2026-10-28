@@ -64,7 +64,9 @@ def _recovery(routing_seq: list[tuple[str, dict]]) -> tuple[list[dict], bool | N
     return switches, productive
 
 
-def build_report(run_dir: Path) -> dict:
+def build_report(run_dir: Path, state_dir: Path | None = None) -> dict:
+    """state_dir: the engine workspace shared by an arm (OGI013_ORG_STATE_DIR/cherry). When given, only rows of claims decided in THIS run_dir are read from it
+    (two tasks of one arm share the state); without it the per-task <task>/org/cherry directory is read (legacy layout)."""
     run_dir = Path(run_dir)
     tasks_dir = run_dir / "tasks"
     task_dirs = sorted(p for p in tasks_dir.iterdir() if p.is_dir()) if tasks_dir.is_dir() else []
@@ -78,8 +80,14 @@ def build_report(run_dir: Path) -> dict:
     for tdir in task_dirs:
         task = tdir.name
         fs = read_jsonl(tdir / "fruitstack-events.jsonl")
-        cherry = read_jsonl(tdir / "org" / "cherry" / "events.jsonl")
-        contribs = read_jsonl(tdir / "org" / "cherry" / "contributions.jsonl")
+        own_claims = {c for e in fs if e.get("event") == "ORG_DECISION"
+                      for c in [e.get("claim"), *[a.get("claim") for a in (e.get("atoms") or [])]] if c}
+        if state_dir is not None:
+            cherry = [e for e in read_jsonl(Path(state_dir) / "events.jsonl") if e.get("claim_id") in own_claims]
+            contribs = [c for c in read_jsonl(Path(state_dir) / "contributions.jsonl") if c.get("claim_id") in own_claims]
+        else:
+            cherry = read_jsonl(tdir / "org" / "cherry" / "events.jsonl")
+            contribs = read_jsonl(tdir / "org" / "cherry" / "contributions.jsonl")
         reward = _reward(tdir / "official-result.json")
         rewards.append(reward)
         verifier_logs = [str(p.relative_to(run_dir)) for p in tdir.rglob("verifier.log")]
@@ -119,8 +127,9 @@ def build_report(run_dir: Path) -> dict:
         for c in contribs:
             contrib_rows.append({"task": task, "claim": c.get("claim_id"), "kind": c.get("kind"),
                                  "epistemic_status": c.get("epistemic_status"),
-                                 "verdict": c.get("verdict"),
-                                 "key": (c.get("identity") or {}).get("model_key") or c.get("worker")})
+                                 "verdict": c.get("verdict"), "disposition": c.get("disposition"),
+                                 "refs": tuple(c.get("evidence_refs") or ()),
+                                 "key": (c.get("identity") or {}).get("independence_key") or (c.get("identity") or {}).get("model_key") or c.get("worker")})
         tasks_out.append({"task": task, "official_reward": reward, "verifier_log": verifier_logs or "not present",
                           "investigator_exceptions_lines": (sum(1 for _ in exc_log.open(encoding="utf-8"))
                                                             if exc_log.is_file() else None)})
@@ -141,17 +150,23 @@ def build_report(run_dir: Path) -> dict:
         wc = bool(delivered)
         ev["worker_contribution"] = f"{len(delivered)} delivered of {len(contrib_rows)} rows; kinds={dict(Counter(r['kind'] for r in contrib_rows))}"
 
-    pv = [r for r in contrib_rows if r["verdict"] in ("PASS", "CONTRADICT")]
+    # CherryMe's EvidenceVerifier records its judgments as VERIFIER contribution rows whose verdict is the raw relation (SUPPORTS / CONTRADICTS / NOT_ADDRESSED); a quorum
+    # promotion (SUPPORTS -> Evidence PASS, CONTRADICTS -> Evidence CONTRADICT) is the row with epistemic_status VERIFIED and disposition ACCEPTED. Legacy labels PASS/CONTRADICT are accepted too.
+    promoted_labels = {"SUPPORTS", "CONTRADICTS", "PASS", "CONTRADICT"}
+    vrows = [r for r in contrib_rows if r["kind"] == "VERIFIER"]
+    pv = [r for r in vrows if r["verdict"] in promoted_labels and r["epistemic_status"] == "VERIFIED" and r["disposition"] == "ACCEPTED"]
+    legacy = [r for r in contrib_rows if r["kind"] != "VERIFIER" and r["verdict"] in ("PASS", "CONTRADICT")]
+    pv += legacy
     if not pv:
-        iv = None
-        ev["independent_verification"] = "no PASS/CONTRADICT rows in trace; verifier.log " + (
-            "present (not parsed)" if any(t["verifier_log"] != "not present" for t in tasks_out) else "not present")
+        iv = None if not vrows else False
+        ev["independent_verification"] = (f"no quorum-promoted PASS/CONTRADICT; {len(vrows)} verifier judgments (relations={dict(Counter(r['verdict'] for r in vrows))}); verifier.log "
+                                          + ("present (not parsed)" if any(t["verifier_log"] != "not present" for t in tasks_out) else "not present"))
     else:
-        by_claim: dict[str, set] = {}
+        by_source: dict[tuple, set] = {}
         for r in pv:
-            by_claim.setdefault(r["claim"], set()).add(r["key"])
-        iv = any(len(keys - {None}) >= 2 for keys in by_claim.values())
-        ev["independent_verification"] = f"{len(pv)} PASS/CONTRADICT rows; distinct keys per claim={ {c: len(k) for c, k in by_claim.items()} }"
+            by_source.setdefault((r["claim"], r["refs"]), set()).add(r["key"])
+        iv = any(len(keys - {None}) >= 2 for keys in by_source.values())
+        ev["independent_verification"] = f"{len(pv)} quorum-promoted rows; distinct independence keys per (claim, source)={ {str(s[0]) + '|' + ','.join(s[1]): len(k) for s, k in by_source.items()} }"
 
     if revisions:
         changed = [r for r in revisions if r["action_changed"] is True]
@@ -273,8 +288,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("run_dir", type=Path)
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--state-dir", type=Path, default=None, help="engine workspace shared by the arm (<OGI013_ORG_STATE_DIR>/cherry)")
     args = ap.parse_args()
-    rep = build_report(args.run_dir)
+    rep = build_report(args.run_dir, args.state_dir)
     md = render_markdown(rep)
     if args.out:
         args.out.write_text(json.dumps(rep, indent=2, ensure_ascii=False, default=str), encoding="utf-8")

@@ -394,6 +394,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
     def _org_decide(self, ep: Episode, prompt: str, action: dict, state: dict) -> dict:
         """RG/2: every proposed action is put to CherryMe's engine as a claim; the engine decides (triage on structured signals, staffing, verification,
         consolidation) how much cognition it deserves. An engine failure never kills the episode (ORG_ERROR is logged and the draft stands); a verified/consolidated dissent triggers a revision."""
+        from ogi013_org_bridge import atomic_values
         lines = state["transcript"]
         request = next((l[6:] for l in lines if l.startswith("USER: ")), "")
         if action["action"] == "tool":
@@ -408,7 +409,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
                         "n_prior_dissents": sum(1 for d in ep.org.decisions if d["dissent"])}
             rec = ep.org.decide(description=desc, importance=importance, request=request, transcript="\n".join(lines),
                                 tool_results="\n".join(l for l in lines if l.startswith("TOOL RESULT")),
-                                structure_policy=getattr(ep, "structure_policy", None), features=features)
+                                structure_policy=getattr(ep, "structure_policy", None), features=features,
+                                atoms=atomic_values(action), user_text="\n".join(l for l in lines if l.startswith("USER: ")))
         except Exception as exc:  # noqa: BLE001 - visible, not silent; the benchmark outcome must not depend on a bridge crash
             ep.event("ORG_ERROR", error=f"{type(exc).__name__}: {str(exc)[:300]}")
             self._abandon_unresolved(ep)
