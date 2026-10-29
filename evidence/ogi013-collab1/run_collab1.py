@@ -145,6 +145,8 @@ class Campaign:
             env[k.replace("OGI013_", "PILOT_", 1)] = v
         if cond == "COLLAB":
             env.update({"OGI013_ORG_COLLAB": "1", "OGI013_ORG_POLICY_MODE": "OFF"})
+        if self.manifest.get("sim_fixed_model"):
+            env["OGI013_SIM_FIXED_MODEL"] = self.manifest["sim_fixed_model"]
         if cond == "FIXED":
             env["OGI013_FIXED_MODEL"] = self.manifest["fixed_model"]
         if cond == "SINGLE-E":
@@ -243,6 +245,10 @@ class Campaign:
 
     def supply_gate(self, route: Path) -> int:
         """A REAL tiny zero-cash completion through PlumMe on allowlisted models until one answers; that model becomes the block's pinned simulator model (supply_gate.py). False = no executable simulator path."""
+        if self.manifest.get("sim_fixed_model"):                                                   # the cohort's simulator is a pinned ChatGPT-headless model: no PlumMe supply is needed (nor probed) for it
+            route.parent.mkdir(parents=True, exist_ok=True)
+            route.write_text(json.dumps({"model_key": f"{self.manifest['sim_fixed_model']}@fixed", "provider": "chatgpt-codex", "model": self.manifest["sim_fixed_model"], "verified_by": "manifest"}))
+            return 0
         if os.environ.get("PILOT_OFFLINE_TRANSPORT"):                                              # offline acceptance (scripted provider transport, refused against the real base): nothing real to probe
             return 0
         cr = str(COMPONENTS)

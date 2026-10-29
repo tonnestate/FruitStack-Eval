@@ -105,6 +105,9 @@ class CodexHeadlessHeart:
         failure, res, tail = None, {"text": "", "usage": {}, "errors": [], "tool_items": 0, "exit": None}, ""
         try:
             overhead = await self._scaffold()
+            pdir = self.receipts.parent / "codex-prompts"                      # provenance: the exact text the fixed model received
+            pdir.mkdir(exist_ok=True)
+            (pdir / f"{rid}.txt").write_text(task, encoding="utf-8")
             res, tail = await self._run(task)
             if res["exit"] not in (0, None) or not res["text"]:
                 failure = _classify(" ".join(res["errors"]) + " " + tail)

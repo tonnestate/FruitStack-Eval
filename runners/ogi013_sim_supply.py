@@ -131,6 +131,24 @@ def _selection_pool(runs_dir: Path, svc=None) -> list[str]:
     return [k for k in sorted(json.loads(allow_file.read_text())["model_keys"]) if k not in spent]
 
 
+_FIXED_HEART = {}
+
+
+def _fixed_simulator_reply(log: Path, log_call, messages, model: str):
+    from ogi013_codex_heart import CodexHeadlessHeart
+    pilot_gate()                                          # pilot only: before every simulator dispatch (a stop is never retried)
+    heart = _FIXED_HEART.get(model)
+    if heart is None:
+        heart = _FIXED_HEART[model] = CodexHeadlessHeart(model, Path(os.environ["PLUMME_STATE_DIR"]) / "receipts.jsonl")
+    t0 = time.time()
+    lease = asyncio.run(heart.acquire(role_id=ROLE, objective="Simulate a tau2 customer", required_skill_ids=()))
+    res = asyncio.run(heart.execute(lease_id=lease["lease_id"], task=_flatten(messages)))
+    log_call({"lease_id": lease["lease_id"], "provider_id": lease["provider_id"], "model_id": lease["model_id"], "offer_id": lease["offer_id"], "model_key": f"{model}@fixed"}, res, t0, True)
+    if not (res["success"] and res["output"]):
+        raise RuntimeError(f"SIM_ROUTE_FAILED:{res['failure_class']}")
+    return AssistantMessage(role="assistant", content=res["output"], cost=0.0, usage={"prompt_tokens": res["input_tokens"] or 0, "completion_tokens": res["output_tokens"] or 0})
+
+
 def install(svc, route_file: Path, out: Path) -> None:
     route_file, log = Path(route_file), Path(out) / "sim-usage.jsonl"
     log.parent.mkdir(parents=True, exist_ok=True)
@@ -143,6 +161,9 @@ def install(svc, route_file: Path, out: Path) -> None:
             f.write(json.dumps(rec) + "\n")
 
     def generate(model, messages, tools=None, tool_choice=None, call_name=None, **kwargs):
+        fixed_sim = os.environ.get("OGI013_SIM_FIXED_MODEL")
+        if fixed_sim:                                         # VALIDATION-1: the user simulator is ONE pinned model (ChatGPT headless) for every arm of the cohort: its identity cannot change and no free route can vanish under it
+            return _fixed_simulator_reply(log, log_call, messages, fixed_sim)
         # text-only simulator: user-side tools are never offered (telecom-style tasks that need them are out of scope)
         model_key = json.loads(route_file.read_text())["model_key"] if route_file.exists() else None
         pinned = model_key  # the pair's simulator MODEL is fixed; PlumMe may choose any eligible route to that model (pinned_model_key)
