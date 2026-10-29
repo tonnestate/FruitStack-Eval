@@ -75,9 +75,10 @@ def test_simple_task_is_not_escalated_but_consequential_and_uncertain_ones_are()
     assert g.should_escalate(kind="READ") == (False, "simple_task") and g.should_escalate(kind="MESSAGE") == (False, "simple_task")
     assert g.should_escalate(kind="WRITE") == (True, "consequential_effect") and g.should_escalate(kind="TRANSFER") == (True, "consequential_effect")
     assert g.should_escalate(kind="READ", uncertain=True) == (True, "draft_uncertainty")
-    assert g.should_escalate(kind="MESSAGE", alert=1) == (True, "observed_uncertainty")
-    assert g.should_escalate(kind="MESSAGE", prior_dissents=1) == (True, "observed_uncertainty")
-    assert g.should_escalate(kind="READ", alert=1) == (False, "read_no_effect") and g.should_escalate(kind="READ", prior_dissents=2) == (False, "read_no_effect")      # AMENDMENT-1 L
+    assert g.should_escalate(kind="MESSAGE", alert=1) == (False, "no_effect_under_alert")      # AMENDMENT-1 N (L skipped READs only)
+    assert g.should_escalate(kind="MESSAGE", prior_dissents=1) == (False, "no_effect_under_alert")
+    assert g.should_escalate(kind="READ", alert=1) == (False, "no_effect_under_alert") and g.should_escalate(kind="READ", prior_dissents=2) == (False, "no_effect_under_alert")
+    assert g.should_escalate(kind="WRITE", alert=1) == (True, "consequential_effect")
 
 
 def test_allowances_leave_room_for_a_quorum_and_a_third_judge():
@@ -127,8 +128,8 @@ def test_difficult_actions_are_escalated_with_a_stated_purpose_and_a_dispatch_al
     kinds = [k for k, _ in events]
     assert "ORG_DECISION" in kinds and bridge.decisions[0]["purpose"] == "consequential_effect"
     assert bridge.engine.runs[0]["call_budget"] == 0 + gate.primary_calls                    # engine counters are cumulative: allowance = dispatches so far + primary_calls
-    out, events = agent_decide(bridge, gate, MSG)                                          # an earlier dissent raised the alert: the same plain message is now justified
-    assert bridge.decisions[-1]["purpose"] == "observed_uncertainty"
+    out, events = agent_decide(bridge, gate, MSG)                                          # an earlier dissent raised the alert: a plain message is still not worth a review round (AMENDMENT-1 N)
+    assert events[-1][0] == "ORG_SKIPPED" and events[-1][1]["reason"] == "no_effect_under_alert" and bridge.decisions[-1]["purpose"] == "consequential_effect"
 
 
 def test_failing_providers_cannot_cause_unbounded_retries(tmp_path):
@@ -146,7 +147,7 @@ def test_failing_providers_cannot_cause_unbounded_retries(tmp_path):
         agent_decide(econ, gate, action)
     bound = (4 + gate.supply_fail_limit) * (gate.primary_calls + 2 * gate.atom_calls)
     assert econ.engine.provider_dispatches <= bound < frozen.engine.provider_dispatches
-    assert gate.skipped.get("known_supply_failure", 0) >= 30
+    assert gate.skipped.get("known_supply_failure", 0) + gate.skipped.get("no_effect_under_alert", 0) >= 30
 
 
 def test_frozen_path_is_unchanged_without_economy(tmp_path):

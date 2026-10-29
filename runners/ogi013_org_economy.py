@@ -51,8 +51,8 @@ class EconomyGate:
         if uncertain:
             return True, "draft_uncertainty"
         if alert > 0 or prior_dissents > 0:
-            if kind == "READ":
-                return self._skip("read_no_effect")      # COLLAB-1 AMENDMENT-1 L: an earlier dissent does not make a READ worth reviewing - it changes nothing and its result is observed; measured: one such read cost 46k tokens (airline:11, step 6)
+            if kind not in CONSEQUENTIAL:
+                return self._skip("no_effect_under_alert")   # AMENDMENT-1 L/N: an earlier dissent does not make a READ or a MESSAGE worth a review round; measured: such reviews cost 46k (airline:11 step 6 READ) and ~69k of 103k tokens in 5 turns (airline:14 attempt 2, MESSAGE)
             return True, "observed_uncertainty"
         return self._skip("simple_task")
 
