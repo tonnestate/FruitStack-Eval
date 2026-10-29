@@ -153,6 +153,17 @@ def install(svc, route_file: Path, out: Path) -> None:
     route_file, log = Path(route_file), Path(out) / "sim-usage.jsonl"
     log.parent.mkdir(parents=True, exist_ok=True)
 
+    def out_log(name):
+        return Path(out) / name
+
+    def log_call_to(name):
+        def f(lease, res, t0, pinned):
+            rec = {"ts": t0, "latency_s": round(time.time() - t0, 2), "provider": lease["provider_id"], "model": lease["model_id"], "model_key": lease["model_key"], "receipt_id": res["receipt_id"],
+                   "input_tokens": res["input_tokens"], "output_tokens": res["output_tokens"], "success": res["success"], "failure_class": res["failure_class"], "role": "nl-assertion-judge"}
+            with out_log(name).open("a") as fh:
+                fh.write(json.dumps(rec) + "\n")
+        return f
+
     def log_call(lease, res, t0, pinned):
         rec = {"ts": t0, "latency_s": round(time.time() - t0, 2), "pinned": bool(pinned), "provider": lease["provider_id"], "model": lease["model_id"],
                "offer_id": lease["offer_id"], "model_key": lease["model_key"], "receipt_id": res["receipt_id"], "input_tokens": res["input_tokens"], "output_tokens": res["output_tokens"],
@@ -252,3 +263,9 @@ def install(svc, route_file: Path, out: Path) -> None:
                                 usage={"prompt_tokens": res["input_tokens"] or 0, "completion_tokens": res["output_tokens"] or 0})
 
     user_simulator.generate = generate
+    if os.environ.get("OGI013_SIM_FIXED_MODEL"):             # VALIDATION-1: tau2's NL-assertion judge (retail tasks with reward_basis NL_ASSERTION) is an LLM; it is the SAME pinned model in every arm, never an unreachable default
+        import tau2.evaluator.evaluator_nl_assertions as nl_judge
+
+        def judge_generate(model=None, messages=None, tools=None, tool_choice=None, call_name=None, **kwargs):
+            return _fixed_simulator_reply(out_log("judge-usage.jsonl"), log_call_to("judge-usage.jsonl"), messages, os.environ["OGI013_SIM_FIXED_MODEL"])
+        nl_judge.generate = judge_generate
