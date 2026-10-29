@@ -100,6 +100,28 @@ def test_the_simulator_cannot_reach_a_paid_route_either(monkeypatch, tmp_path):
     assert adapter.executed == []
 
 
+def test_the_simulator_executes_on_a_free_route_under_the_real_lease_budget_check(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from ogi013_pilot_fixtures import ARMS, BUDGET, PILOT
+    from tau2.user import user_simulator
+    import ogi013_sim_supply as sim
+    from ogi013_scripted_stack import real_plumme
+    svc, adapter = real_plumme(tmp_path, {"draft": ["I want to cancel HAT001."]}, **_paid(("free-1",), ()))
+    route_file = tmp_path / "pair.route"
+    route_file.write_text(json.dumps({"model_key": "free-1@default"}))
+    runs = tmp_path / "runs"
+    runs.mkdir()
+    (runs / "budget.json").write_text(json.dumps(BUDGET))
+    for k, v in {"OGI013_PILOT_BUDGET": str(runs / "budget.json"), "OGI013_PILOT_GUARD": str(PILOT / "pilot_guard.py"), "OGI013_PILOT_RUNS": str(runs), "OGI013_PILOT_ARMS": ",".join(ARMS),
+                 "OGI013_PILOT_ARM": ARMS[1], "OGI013_PILOT_START": "9999999999"}.items():
+        monkeypatch.setenv(k, v)
+    monkeypatch.setattr(user_simulator, "generate", user_simulator.generate)
+    monkeypatch.setattr(sim.time, "sleep", lambda s: None)
+    sim.install(svc, route_file, tmp_path / "out")
+    user_simulator.generate("ignored", [SimpleNamespace(role="user", content="Hello")])      # regression: execute must not widen the lease's zero-cash budget (LEASE_BUDGET_EXPANSION in the first live pilot)
+    assert len(adapter.executed) == 1
+
+
 def test_no_agent_step_can_reserve_more_than_the_per_step_ceiling_whatever_the_route_claims(monkeypatch, tmp_path):
     from ogi013_pilot_fixtures import BUDGET
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 270000, 0.0))
