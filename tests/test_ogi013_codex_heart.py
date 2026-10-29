@@ -34,10 +34,10 @@ def test_one_pinned_model_receipt_in_plummes_format_and_net_accounting(heart, tm
     assert lease["model_id"] == "gpt-6-luna" and lease["cost_class"] == "INCLUDED" and heart.lease_facts(lease["lease_id"])["model_key"] == "gpt-6-luna@fixed"
     res = asyncio.run(heart.execute(lease_id=lease["lease_id"], task="x" * 400))
     assert res["success"] and res["output"] == "ANSWER" and res["model"] == "gpt-6-luna" and res["execution"] == "EXECUTED"
-    assert res["input_tokens"] == 100 and res["output_tokens"] == 7                                  # 13,039 scaffold subtracted, the task's ~100 tokens remain
+    assert res["input_tokens"] == ch.CodexHeadlessHeart.count_tokens("x" * 400) and res["output_tokens"] == 7      # the prompt as the other arms count it, not Codex's scaffold
     row = json.loads((tmp_path / "state/receipts.jsonl").read_text().splitlines()[-1])
     assert row["provider"] == "chatgpt-codex" and row["cost_class"] == "INCLUDED" and row["usage"]["cost_usd"] == 0.0 and row["metadata"]["provider_attempt_count"] == 1
-    assert row["metadata"]["scaffold_tokens"] == 13039 and row["metadata"]["raw_input_tokens"] == 13139
+    assert row["metadata"]["raw_input_tokens"] == 13139 and (tmp_path / "state/codex-prompts" / f"{row['receipt_id']}.txt").read_text() == "x" * 400
 
 
 def test_an_unsupported_model_is_a_classified_failure_not_a_silent_substitution(heart):

@@ -48,7 +48,6 @@ class CodexHeadlessHeart:
         self.receipts = Path(receipts_path)
         self.receipts.parent.mkdir(parents=True, exist_ok=True)
         self._facts: dict[str, dict] = {}
-        self._overhead: int | None = None
         self.workdir = Path(os.environ.get("OGI013_CODEX_WORKDIR", "/tmp/ogi013-codex-empty"))
         self.workdir.mkdir(parents=True, exist_ok=True)
 
@@ -91,20 +90,19 @@ class CodexHeadlessHeart:
                 errors.append(json.dumps(ev)[:300])
         return {"text": text, "usage": usage, "errors": errors, "tool_items": tools, "exit": proc.returncode}, out.decode(errors="replace")[-300:]
 
-    async def _scaffold(self) -> int:
-        """Codex's constant per-call scaffold, measured once per process with a one-word prompt."""
-        if self._overhead is None:
-            r, _ = await self._run("Reply with: OK")
-            u = r["usage"]
-            self._overhead = max(0, int(u.get("input_tokens") or 0) - 6)
-        return self._overhead
+    @staticmethod
+    def count_tokens(text: str) -> int:
+        try:
+            import litellm
+            return int(litellm.token_counter(model="gpt-4", text=text))
+        except Exception:  # noqa: BLE001 - same conservative fallback as PlumMe's estimate (chars/3)
+            return (len(text) + 2) // 3
 
     async def execute(self, *, lease_id: str, task: str, max_output_tokens: int | None = None, max_total_tokens: int | None = None, max_cost_usd: float | None = None) -> dict:
         started = time.time()
         rid = f"receipt_codex_{uuid.uuid4().hex}"
         failure, res, tail = None, {"text": "", "usage": {}, "errors": [], "tool_items": 0, "exit": None}, ""
         try:
-            overhead = await self._scaffold()
             pdir = self.receipts.parent / "codex-prompts"                      # provenance: the exact text the fixed model received
             pdir.mkdir(exist_ok=True)
             (pdir / f"{rid}.txt").write_text(task, encoding="utf-8")
@@ -112,9 +110,9 @@ class CodexHeadlessHeart:
             if res["exit"] not in (0, None) or not res["text"]:
                 failure = _classify(" ".join(res["errors"]) + " " + tail)
         except asyncio.TimeoutError:
-            failure, overhead = "TIMEOUT", self._overhead or 0
+            failure = "TIMEOUT"
         raw_in, raw_out = int(res["usage"].get("input_tokens") or 0), int(res["usage"].get("output_tokens") or 0)
-        net_in = max(0, raw_in - (self._overhead or 0)) if raw_in else None
+        net_in = self.count_tokens(task) if raw_in else None
         usage = {"input_tokens": net_in, "output_tokens": raw_out if raw_in else None, "total_tokens": (net_in + raw_out) if net_in is not None else None, "cost_usd": 0.0}
         ok = failure is None
         row = {"receipt_id": rid, "provider_request_id": None, "attempt_id": f"attempt_{uuid.uuid4().hex}", "neuron_id": f"codex-headless:{self.model}", "role_id": "REASONING",
@@ -122,7 +120,7 @@ class CodexHeadlessHeart:
                "started_at": time.strftime("%Y-%m-%dT%H:%M:%S.000000Z", time.gmtime(started)), "finished_at": time.strftime("%Y-%m-%dT%H:%M:%S.000000Z", time.gmtime()),
                "success": ok, "output": res["text"] if ok else "", "failure_class": failure, "failure_message": " ".join(res["errors"])[:300] or None, "usage": usage,
                "fallback_level": 0, "metadata": {"provider_attempt_count": 1, "protocol": "CODEX_EXEC", "raw_input_tokens": raw_in, "cached_input_tokens": res["usage"].get("cached_input_tokens"),
-                                                 "raw_output_tokens": raw_out, "scaffold_tokens": self._overhead, "tool_items": res["tool_items"], "model_identity": "pinned-fixed"},
+                                                 "raw_output_tokens": raw_out, "accounting": "prompt text counted with the gpt-4 tokenizer + returned output; raw includes the Codex scaffold and internal requests", "tool_items": res["tool_items"], "model_identity": "pinned-fixed"},
                "offer_id": f"codex-headless:{self.model}", "cost_class": "INCLUDED", "runtime_id": "codex-exec", "canonical_model_id": self.model, "independence_key": "chatgpt-codex",
                "latency_ms": round((time.time() - started) * 1000, 3)}
         with self.receipts.open("a", encoding="utf-8") as f:
