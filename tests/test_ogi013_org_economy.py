@@ -77,6 +77,7 @@ def test_simple_task_is_not_escalated_but_consequential_and_uncertain_ones_are()
     assert g.should_escalate(kind="READ", uncertain=True) == (True, "draft_uncertainty")
     assert g.should_escalate(kind="MESSAGE", alert=1) == (True, "observed_uncertainty")
     assert g.should_escalate(kind="MESSAGE", prior_dissents=1) == (True, "observed_uncertainty")
+    assert g.should_escalate(kind="READ", alert=1) == (False, "read_no_effect") and g.should_escalate(kind="READ", prior_dissents=2) == (False, "read_no_effect")      # AMENDMENT-1 L
 
 
 def test_allowances_leave_room_for_a_quorum_and_a_third_judge():

@@ -25,7 +25,6 @@ MODE = {"SINGLE": "single", "COLLAB": "rg2", "SINGLE-E": "single_e"}
 DONE_STATES = {"DONE", "BUDGET_STOP", "TIMEOUT"}                        # scored (non-success unless the official grade says otherwise); never run again
 HOSTPY = "/root/fruits/integration/ogi013-hostpython-org/bin/python"
 COMPONENTS = Path("/root/fruits/integration/ogi013-org-components")
-SUPPLY_RECHECK_S = 120                                                  # between verified-capacity checks while nothing can serve the simulator (no block is consumed)
 LOCKS = [CODE / "evidence/ogi013-phase2/STUDY_LOCK.txt", HERE / "AMENDMENT_LOCK.txt"]
 
 
@@ -121,7 +120,7 @@ class Campaign:
     # ---- one episode ---------------------------------------------------------------------------------------------------------------------------------------------
     def episode_env(self, task, cond, arm, ep_dir, start):
         env = {k: v for k, v in os.environ.items() if not k.startswith(("OGI013_ORG_", "OGI013_SINGLE_E", "OGI013_PILOT_", "PILOT_SESSION"))}
-        env.update({"PILOT_CODE": str(CODE), "PILOT_BASE": str(self.base), "OGI013_PILOT_BUDGET": str(self.budget_path), "OGI013_PILOT_GUARD": str(PILOT / "pilot_guard.py"),
+        env.update({"PLUMME_SHARED_HEALTH_DIR": str(self.R), "PILOT_CODE": str(CODE), "PILOT_BASE": str(self.base), "OGI013_PILOT_BUDGET": str(self.budget_path), "OGI013_PILOT_GUARD": str(PILOT / "pilot_guard.py"),
                     "OGI013_PILOT_RUNS": str(self.R), "OGI013_PILOT_ARMS": ",".join(self.arms()), "OGI013_PILOT_ARM": arm, "OGI013_PILOT_START": str(start),
                     "OGI013_ORG_STATE_DIR": str(ep_dir.parent / f"{cond}-state")})
         for k, v in self.guard.session_env(self.budget, arm).items():
@@ -222,17 +221,17 @@ class Campaign:
                 rec.write_text(json.dumps(d, indent=1, sort_keys=True))
         return dest
 
-    def supply_gate(self, route: Path) -> bool:
+    def supply_gate(self, route: Path) -> int:
         """A REAL tiny zero-cash completion through PlumMe on allowlisted models until one answers; that model becomes the block's pinned simulator model (supply_gate.py). False = no executable simulator path."""
         if os.environ.get("PILOT_OFFLINE_TRANSPORT"):                                              # offline acceptance (scripted provider transport, refused against the real base): nothing real to probe
-            return True
+            return 0
         cr = str(COMPONENTS)
         path = ":".join([str(CODE / "runners"), str(CODE), f"{cr}/CherryMe"] + [f"{cr}/{c}/src" for c in ("PeachMe", "PlumMe", "AppleMe", "MangoMe", "OrangeMe", "PomeloMe")] + [str(self.base / "benchmarks/tau2-bench/src")])
         env = {**os.environ, "PYTHONPATH": path}
         work = self.R / "work.env"
         if work.exists():
             env.update(dict(l.split("=", 1) for l in work.read_text().replace("export ", "").split() if "=" in l))
-        return sh(HOSTPY, str(HERE / "supply_gate.py"), str(self.R), str(route), env=env).returncode == 0
+        return sh(HOSTPY, str(HERE / "supply_gate.py"), str(self.R), str(route), env=env).returncode
 
     def run_block(self, t) -> str:
         ref, order = t["task_ref"], t["order"]
@@ -242,8 +241,8 @@ class Campaign:
         for attempt in range(len([p for p in (self.C / "discarded").glob(f"{dirname}-attempt*")]) + 1, 4):
             if not any(self.read_rec(ref, c) for c in order):                                           # a fresh block attempt: the simulator model is chosen once and then shared by its conditions
                 (self.R / f"{self.a.campaign}-{dirname}.route").unlink(missing_ok=True)
-                if not self.supply_gate(self.R / f"{self.a.campaign}-{dirname}.route"):                  # no executable simulator path: nothing is started, no task or attempt is consumed
-                    self.log(f"{ref} SUPPLY_UNAVAILABLE (verified: no simulator model answered a real request; block not started, no attempt consumed)")
+                if self.supply_gate(self.R / f"{self.a.campaign}-{dirname}.route"):                      # no executable simulator path: nothing is started, no task or attempt is consumed
+                    self.log(f"{ref} SUPPLY_UNAVAILABLE (no simulator model answered a real request or every pool is EXHAUSTED/blocked in PlumMe's pool health; campaign PAUSED, no block started, no attempt consumed)")
                     return "SUPPLY_UNAVAILABLE"
             self.log(f"{ref} block attempt={attempt} order={'>'.join(order)}")
             for cond in order:
@@ -312,9 +311,7 @@ class Campaign:
                 t = queue.pop(0)
                 result = self.run_block(t)
                 if result == "SUPPLY_UNAVAILABLE":
-                    queue.insert(0, t)                                                                # supply is global: the same block waits at the front; nothing else is consumed
-                    time.sleep(SUPPLY_RECHECK_S)
-                    continue
+                    return 6                                                                          # paused, resumable: no polling loop, no probes; resume when supply changes (pool renewal / new provider)
                 if result == "HALTED":
                     return 3
                 if result == "FAILED_EXEC":

@@ -2,6 +2,7 @@
 """Verified simulator capacity (COLLAB-1, AMENDMENT-1 section K). Eligibility is not capacity: PlumMe can list a route as eligible that then answers RATE_LIMITED. This performs ONE real, tiny,
 zero-cash completion through PlumMe (the same PlumMeProvider/lease path the simulator uses) on allowlisted models until one answers, and writes the answering model to the block's route file so the block
 starts on a model that has just served a request. Exit 0 = verified (route file written), 3 = SUPPLY_UNAVAILABLE (no model answered; nothing consumed but the probe requests, logged in supply_gate.jsonl).
+Exit 4 = nothing was probeable (every pool/credential is already known EXHAUSTED or blocked in PlumMe's persistent pool health): no request was made at all.
 usage: supply_gate.py RUNS_DIR ROUTE_FILE   (host python, same PYTHONPATH as the arms)"""
 import asyncio
 import json
@@ -12,11 +13,45 @@ import time
 from pathlib import Path
 
 
+def seed_pool_health(svc, runs: Path) -> None:
+    """Replay evidence this campaign already holds through PlumMe's own failure path so the persistent pool health knows it: (1) every credential the registry holds EXHAUSTED, (2) the latest
+    failure receipt per provider in the campaign's state directories re-classified by PlumMe's (corrected) classifier. Idempotent; nothing is dispatched."""
+    from plumme.failures import classify_http
+    sched, seen = svc.scheduler, set()
+    sched._load_pool_state()
+    reg = json.loads((runs / "credential_health.json").read_text()) if (runs / "credential_health.json").exists() else {}
+    by_provider = {}
+    for o in svc.store.offers.values():
+        by_provider.setdefault(o.provider, o)
+    for handle in (reg.get("exhausted") or {}):
+        prov = (reg.get("sources") or {}).get(handle, {}).get("provider")
+        o = by_provider.get(prov)
+        if o is not None and o.quota_pool_id not in sched.pool_state:
+            sched.observe_pool_failure(o, "BILLING_OR_CREDIT_EXHAUSTED", f"credential {handle} exhausted (registry)")
+            seen.add(o.quota_pool_id)
+    latest = {}
+    for f in runs.rglob("receipts.jsonl"):
+        for line in f.read_text(errors="replace").splitlines():
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            m = r.get("failure_message") or ""
+            if not r.get("success") and r.get("failure_class") in ("RATE_LIMITED", "BILLING_OR_CREDIT_EXHAUSTED") and m.startswith("HTTP 429") and (r.get("provider") not in latest or r.get("finished_at", "") > latest[r["provider"]].get("finished_at", "")):
+                latest[r["provider"]] = r
+    for prov, r in latest.items():
+        o = by_provider.get(prov)
+        cls = classify_http(429, r.get("failure_message") or "")[0]
+        if o is not None and cls == "BILLING_OR_CREDIT_EXHAUSTED" and o.quota_pool_id not in sched.pool_state:
+            sched.observe_pool_failure(o, cls, r.get("failure_message"))
+
+
 def main(runs: Path, route_file: Path) -> int:
     sys.path[:0] = [str(Path(__file__).resolve().parents[2] / "runners")]
     state = runs / "supply-gate" / "fruitstack" / "plumme-state"                       # harvested by the credential registry like any episode's state
     (state / "knowledge").mkdir(parents=True, exist_ok=True)
     os.environ["PLUMME_STATE_DIR"], os.environ["OGI013_PILOT_RUNS"] = str(state), str(runs)
+    os.environ["PLUMME_SHARED_HEALTH_DIR"] = str(runs)                                       # PlumMe's persistent pool health (pool_health.json) is shared by every episode and this gate
     snap = Path("/root/fruits/research/FRUITSTACK-EVAL-004/inputs/models.dev-api.json")
     if snap.exists() and not (state / "knowledge" / "models.dev-api.json").exists():
         import shutil
@@ -32,13 +67,17 @@ def main(runs: Path, route_file: Path) -> int:
     svc = PlumMeService(settings, adapters=default_adapters(settings))
     latch_exhaustion(svc)
     asyncio.run(svc.discover())
+    seed_pool_health(svc, runs)
     pool = sim._selection_pool(runs, svc)
     random.shuffle(pool)
     log = runs / "supply_gate.jsonl"
     provider = PlumMeProvider(svc)
-    for key in pool:
-        if sim._earliest_retry(svc, key) != 0.0:
-            continue
+    probeable = [k for k in pool if sim._earliest_retry(svc, k) == 0.0]
+    if not probeable:
+        with log.open("a") as f:
+            f.write(json.dumps({"ts": time.time(), "verdict": "SUPPLY_UNAVAILABLE", "probeable": 0, "note": "no request made: every route's pool is EXHAUSTED/blocked in pool_health.json"}) + "\n")
+        return 4
+    for key in probeable:
         t0, row = time.time(), {"ts": time.time(), "model_key": key}
         try:
             async def one():
