@@ -21,6 +21,8 @@ Proof: `tests/test_ogi013_integrated_runtime.py` drives the real agent/episode/s
 | per-arm caps keyed `SINGLE`/`RG2-ECONOMY`, looked up as `pilot-1/single|econ` | per-arm caps never enforced | keyed by the real arm directories; an arm without a cap halts |
 | missing usage counted as 0; unknown cash not considered | silent zero | see §4 |
 | `ogi013_sim_supply`: `f.write` outside its `with` | a failed pinned simulator crashed with "I/O on closed file" instead of recording the exhausted model | indented into the `with` |
+| the agent reserved prompt + 2,048 tokens per step and PlumMe stops continuations at the reservation | a longer (reasoning) answer was refused `BUDGET_EXHAUSTED` and abandoned in both arms | pilot reservation from the route's output limit, bounded by budget facts only (§4); proven on the real PlumMe scheduler |
+| `train_org_policy._versions()` imported Keras unconditionally | an `INSUFFICIENT_EVIDENCE` refusal crashed on a host without Keras | version recorded as `None` when Keras is absent |
 | `env.sh` assigns `D=<research dir>`; the arm launcher used `$D` after sourcing it | wrong code path for the preflight / `PYTHONPATH` | the pilot checkout lives in `PD` (found by the dry-run test against the real env files) |
 | the earlier pilot ran the shared `ogi013-org` checkout (no collaboration module), never set `OGI013_ORG_COLLAB`, and used task 6 (read-only: the gate would only log `ORG_SKIPPED`) | it could not have tested the collaboration | `run_arm.sh` runs this checkout; COLLAB arm = `rg2` + flag; task 24 |
 
@@ -37,7 +39,7 @@ no model or provider restriction, AUTO. The only intended difference is mode and
 3. **`pilot_guard.py watch`** as a backstop.
 Rules: a *successful* dispatch without usage halts; a failure rejected before processing (PlumMe's own `REJECTION_CLASSES`) is known-zero tokens; any other failure without usage is charged the reserve; a route class that is
 not zero-cash (`ANONYMOUS_FREE FREE_TIER LOCAL TRIAL_CREDIT INCLUDED`) without a recorded cost halts; `TRIAL_CREDIT`/`INCLUDED` use is reported as entitlement; 20 failed dispatches in a row halt (observed worst streak in
-the archived runs: 17); rejected attempts count as dispatches. No response is truncated to save budget (the agent's existing 2,048-token per-response limit is unchanged and identical in both arms).
+the archived runs: 17); rejected attempts count as dispatches. No fixed output cap in the pilot: each agent step's reservation is sized from the route's published output limit (PlumMe continues a longer answer) and capped only by budget facts — the owner-approved `max_tokens_per_step` (24,000), PeachMe's remaining session tokens and the ledger's remaining headroom (agent + simulator); a step that cannot afford 2,048 answer tokens is a budget stop before dispatch, never a truncated answer. Outside the pilot the old 2,048 rule is unchanged.
 
 ## 5. Estimated budget (ESTIMATE from archived runs, recounted without the double count — see `pilot_budget.json`)
 | scope | max dispatches | max tokens |
@@ -55,7 +57,8 @@ rejected, wall clock, cash and entitlement with unknowns listed, controls check,
 (3) improvement over SINGLE observed in this pair (with or without a documented mechanism), (4) statistical evidence — always "not established" for one pair.
 
 ## 7. Limitations
-- `LineageHeart` is proven against a fake PlumMe that honours `request.metadata["exclude_independence_keys"]` and `PINNED_MODEL` as PlumMe's scheduler documents; its first live contact is the pilot (the report shows each step's lineage and `prefer_met`).
+- `LineageHeart` and the whole collaboration flow are proven offline on the REAL PlumMe service/scheduler/receipt store (scripted provider adapter, `tests/test_ogi013_real_plumme.py`); live provider behaviour is first seen in the pilot (the report shows each step's lineage and `prefer_met`).
+- A long answer can use up to `max_tokens_per_step` in one step, so token use per step is less predictable than before; every cap still fails closed.
 - The MangoMe database (`mangome_ogi013_eval`) and the host-bound work/turn identity are shared by both arms by design; the ledgers, PlumMe/PeachMe/AppleMe state and organisational state are isolated.
 - `PLUMME_COST_POLICY=ANY` comes from the shared `env.sh`; zero cash is enforced by layers 1-2, not by PlumMe's policy.
 - The caps count completed dispatches (receipts are written after the call); the reserve covers the one in flight.
