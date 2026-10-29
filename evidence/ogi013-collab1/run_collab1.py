@@ -28,6 +28,24 @@ COMPONENTS = Path("/root/fruits/integration/ogi013-org-components")
 LOCKS = [CODE / "evidence/ogi013-phase2/STUDY_LOCK.txt", HERE / "AMENDMENT_LOCK.txt"]
 
 
+SUPPLY_ENV = Path("/root/.plumme/runtime.env")
+SUPPLY_KEYS = ("FLM_KEY", "PLUMME_FREELLMAPI_BASE_URL")                  # the isolated FreeLLMAPI pool (:3101): without them PlumMe never sees its 284 models (AMENDMENT-1 O)
+
+
+def load_supply_env(path: Path = SUPPLY_ENV) -> list[str]:
+    """Export ONLY the FreeLLMAPI connection of the host's runtime.env to the campaign (never PLUMME_STATE_DIR / cost policy: those would change per-episode isolation or routing). The file is SOURCED by
+    bash because FLM_KEY is computed at source time from the FreeLLMAPI instance's database. Values are never logged."""
+    got = []
+    if path.is_file():
+        out = subprocess.run(["bash", "-c", 'set -a; source "$1" >/dev/null 2>&1; for k in "${@:2}"; do printf "%s\\0%s\\0" "$k" "${!k}"; done', "_", str(path), *SUPPLY_KEYS],
+                             capture_output=True, text=True).stdout.split("\0")
+        for key, val in zip(out[0::2], out[1::2]):
+            if key in SUPPLY_KEYS and val and key not in os.environ:
+                os.environ[key] = val
+                got.append(key)
+    return got
+
+
 class Interrupted(Exception):
     pass
 
@@ -302,6 +320,7 @@ class Campaign:
             cj.write_text(json.dumps({"started_at": time.time(), "budget_sha256": hashlib.sha256(self.budget_path.read_bytes()).hexdigest(), "code_head": sh("git", "-C", str(CODE), "rev-parse", "HEAD").stdout.strip()}, indent=1))
         elif json.loads(cj.read_text()).get("halted"):
             return self.refuse("this campaign was halted; a halted campaign is not restarted by itself")
+        self.log("supply env: " + (", ".join(load_supply_env()) or "none loaded (already set or runtime.env absent)"))
         signal.signal(signal.SIGTERM, self.on_signal)
         signal.signal(signal.SIGINT, self.on_signal)
         tasks = [t for t in self.manifest["tasks"] if not self.a.only or t["task_ref"] in self.a.only.split(",")]

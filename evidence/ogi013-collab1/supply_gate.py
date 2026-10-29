@@ -65,6 +65,9 @@ def main(runs: Path, route_file: Path) -> int:
     from plumme.service import PlumMeService, default_adapters
     settings = Settings.load()
     svc = PlumMeService(settings, adapters=default_adapters(settings))
+    if os.environ.get("FLM_KEY"):                                                                 # the same registration the arms make (ogi013_tau2_agent.Stack)
+        from plumme.credentials import CredentialSource, CredentialSourceKind
+        svc.credentials.register_source(CredentialSource("freellmapi", CredentialSourceKind.ENV_REFERENCE, "freellmapi-isolated-instance", {"var": "FLM_KEY"}))
     latch_exhaustion(svc)
     asyncio.run(svc.discover())
     seed_pool_health(svc, runs)
