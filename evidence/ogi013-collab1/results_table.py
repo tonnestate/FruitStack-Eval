@@ -16,6 +16,7 @@ spec = importlib.util.spec_from_file_location("g", HERE.parent / "ogi013-pilot/p
 g = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(g)
 budget = json.loads((HERE / "collab1_budget.json").read_text())
+MS = {t["task_ref"] for t in json.loads((HERE / "study_manifest_v2.json").read_text())["tasks"] if t["expected_write_actions"] >= 2}      # AMENDMENT-1 S
 CONDS = ("SINGLE", "SINGLE-E", "COLLAB")
 
 
@@ -50,7 +51,7 @@ for d in sorted(p.name for p in C.iterdir() if p.is_dir() and "_" in p.name and 
 fmt = lambda e: "-" if e is None else f"{e['status'][:6]}|rw={e['reward']}|{e['req']}rq|{e['tok']}t|{e['min']}m|rev={e['reviews']}/{e['consequential']}c/{e['changed']}ch"
 print(f"{'task':12s} " + " ".join(f"{c:42s}" for c in CONDS))
 for t, r in rows.items():
-    print(f"{t:12s} " + " ".join(f"{fmt(r[c]):42s}" for c in CONDS))
+    print(f"{t:12s}{'MS' if t in MS else '  '} " + " ".join(f"{fmt(r[c]):42s}" for c in CONDS))
 done = collections.Counter()
 for r in rows.values():
     for c in CONDS:
