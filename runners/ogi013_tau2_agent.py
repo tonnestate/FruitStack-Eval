@@ -233,7 +233,7 @@ class Episode:
     def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None) -> dict:
         from peachme import PeachError
         fs, last = self.stack.fs, None
-        for attempt in range(4):
+        for attempt in range(6):                              # (4 before AMENDMENT-1 X: every attempt is a counted dispatch under the 110-request ceiling, which is the real bound)
             try:
                 pilot_gate()                                  # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
             except PilotBudgetStop as exc:
@@ -245,6 +245,7 @@ class Episode:
             s = self.stack.store.get(self.sid)
             self.stack.heart.exclude_independence_keys = tuple(x for x in exclude if x)
             self.stack.heart.prefer_model_key = prefer if attempt == 0 else None
+            self.stack.heart.min_context_tokens = len(prompt) // 3 + 3000      # the request's own size (PlumMe's chars/3 estimate) plus room for the answer
             t0 = time.monotonic()
             try:
                 turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))

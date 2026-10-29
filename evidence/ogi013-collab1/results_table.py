@@ -11,13 +11,14 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 R = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013-collab1/runs")
-C = R / "collab1"
+CAMPAIGN = sys.argv[2] if len(sys.argv) > 2 else "collab1"
+C = R / CAMPAIGN
 spec = importlib.util.spec_from_file_location("g", HERE.parent / "ogi013-pilot/pilot_guard.py")
 g = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(g)
 budget = json.loads((HERE / "collab1_budget.json").read_text())
 MS = {t["task_ref"] for t in json.loads((HERE / "study_manifest_v2.json").read_text())["tasks"] if t["expected_write_actions"] >= 2}      # AMENDMENT-1 S
-CONDS = ("SINGLE", "SINGLE-E", "COLLAB")
+CONDS = ("FIXED", "SINGLE", "SINGLE-E", "COLLAB") if CAMPAIGN != "collab1" else ("SINGLE", "SINGLE-E", "COLLAB")
 
 
 def episode(task_dir: str, cond: str) -> dict | None:
@@ -29,7 +30,7 @@ def episode(task_dir: str, cond: str) -> dict | None:
     off = glob.glob(str(C / task_dir / cond / "tasks/*/official-result.json"))
     if off:
         out["reward"] = json.loads(Path(off[0]).read_text())["reward_info"]["reward"]
-    u = g.usage(str(R), [f"collab1/{task_dir}/{cond}"], budget["reserve_tokens_per_dispatch"])
+    u = g.usage(str(R), [f"{CAMPAIGN}/{task_dir}/{cond}"], budget["reserve_tokens_per_dispatch"])
     out["req"], out["tok"] = u["dispatches"], u["tokens"]
     ev = glob.glob(str(C / task_dir / cond / "tasks/*/fruitstack-events.jsonl"))
     if ev:
