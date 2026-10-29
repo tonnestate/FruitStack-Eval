@@ -109,3 +109,34 @@ def test_report_is_deterministic_and_the_reference_stays_in_the_evaluator(tmp_pa
     for src in (ROOT / "runners").glob("*.py"):                                      # no agent/runner code reads the reference actions or imports the metrics
         text = src.read_text()
         assert "evaluation_criteria" not in text and "decision_metrics" not in text, src.name
+
+
+def test_a_bounded_simulator_wait_is_configurable_and_the_default_is_unchanged():
+    import subprocess
+    import sys
+    code = "import sys; sys.path[:0]=['runners']; import ogi013_sim_supply as s; print(s.MAX_WAIT_S)"
+    env = {**__import__("os").environ, "PYTHONPATH": __import__("os").environ.get("PYTHONPATH", "")}
+    assert subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT, env={**env, "OGI013_SIM_MAX_WAIT_S": "120"}).stdout.split()[-1] == "120.0"
+    assert subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT, env={k: v for k, v in env.items() if k != "OGI013_SIM_MAX_WAIT_S"}).stdout.split()[-1] == "900.0"
+
+
+def test_an_operator_terminated_first_episode_is_archived_and_the_block_chooses_its_simulator_afresh(tmp_path, monkeypatch):
+    import argparse
+    ns = load("run_collab1", C1 / "run_collab1.py")
+    base = tmp_path / "base"
+    (base / "runs/collab1/discarded").mkdir(parents=True)
+    (base / "runs/collab1/campaign.json").write_text(json.dumps({"started_at": 4e9}))
+    a = argparse.Namespace(approval="x", base=str(base), budget=str(C1 / "collab1_budget.json"), manifest=str(C1 / "study_manifest_v2.json"), campaign="collab1", only=None, plan=False)
+    camp = ns.Campaign(a)
+    task = next(t for t in camp.manifest["tasks"])
+    ref, d = task["task_ref"], task["task_ref"].replace(":", "_")
+    first = task["order"][0]
+    (camp.R / f"collab1-{d}.route").write_text('{"model_key": "unusable@default"}')
+    (camp.C / d / first).mkdir(parents=True)
+    camp.write_rec(ref, first, status="OPERATOR_TERMINATED_INFRA", task=ref, condition=first)
+    ran = []
+    monkeypatch.setattr(camp, "run_episode", lambda t, cond, attempt: ran.append(cond) or (camp.write_rec(t["task_ref"], cond, status="DONE"), "DONE")[1])
+    assert camp.run_block(task) == "DONE" and ran == task["order"]                                  # the block is run again in full, nothing completed is repeated
+    assert not (camp.R / f"collab1-{d}.route").exists()                                             # the unusable simulator model is not pinned any more
+    archived = list((camp.C / "discarded").glob(f"{d}-operator-infra*/{d}/{first}.episode.json"))
+    assert archived and json.loads(archived[0].read_text())["archived_as"].startswith("operator-infra")

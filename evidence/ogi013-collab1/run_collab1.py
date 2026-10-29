@@ -120,7 +120,7 @@ class Campaign:
         env = {k: v for k, v in os.environ.items() if not k.startswith(("OGI013_ORG_", "OGI013_SINGLE_E", "OGI013_PILOT_", "PILOT_SESSION"))}
         env.update({"PILOT_CODE": str(CODE), "PILOT_BASE": str(self.base), "OGI013_PILOT_BUDGET": str(self.budget_path), "OGI013_PILOT_GUARD": str(PILOT / "pilot_guard.py"),
                     "OGI013_PILOT_RUNS": str(self.R), "OGI013_PILOT_ARMS": ",".join(self.arms()), "OGI013_PILOT_ARM": arm, "OGI013_PILOT_START": str(start),
-                    "OGI013_ORG_STATE_DIR": str(ep_dir.parent / f"{cond}-state")})
+                    "OGI013_ORG_STATE_DIR": str(ep_dir.parent / f"{cond}-state"), "OGI013_SIM_MAX_WAIT_S": str(self.budget.get("sim_max_wait_s", 120))})
         for k, v in self.guard.session_env(self.budget, arm).items():
             env[k.replace("OGI013_", "PILOT_", 1)] = v
         if cond == "COLLAB":
@@ -231,7 +231,9 @@ class Campaign:
                 if rec and rec.get("status") in DONE_STATES:
                     continue                                                                          # completed work is never repeated
                 if rec:                                                                                # RUNNING / interrupted: archive the unfinished directory (its usage stays counted), run afresh
-                    self.archive(t, [cond], f"interrupted{int(time.time())}")
+                    self.archive(t, [cond], ("operator-infra" if rec.get("status") == "OPERATOR_TERMINATED_INFRA" else "interrupted") + str(int(time.time())))
+                    if not any(self.read_rec(ref, c) for c in order):                                  # nothing of this block survives: the simulator model is chosen afresh
+                        (self.R / f"{self.a.campaign}-{dirname}.route").unlink(missing_ok=True)
                 if json.loads((self.C / "campaign.json").read_text()).get("halted"):
                     return "HALTED"
                 if time.time() - json.loads((self.C / "campaign.json").read_text())["started_at"] > self.budget["cumulative"]["max_wall_minutes"] * 60:

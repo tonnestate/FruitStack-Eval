@@ -50,7 +50,7 @@ def _single_provider_keys(svc) -> list[str]:
 
 SIM_MIN_ANSWER = 512   # pilot: the customer simulator's replies are short; a step that cannot afford this much answer is a budget stop, never a truncated reply
 
-MAX_WAIT_S = 900   # longest cooldown worth waiting for inside a block: PlumMe credential cooldowns of ~600 s were observed (Groq); a daily quota reset is far beyond it
+MAX_WAIT_S = float(os.environ.get("OGI013_SIM_MAX_WAIT_S", "900"))   # (COLLAB-1 launcher sets 120: a pinned simulator route that is cooling down longer than that ends the block attempt promptly - SIM_ROUTE_FAILED, whole-block discard, PlumMe selects another model - instead of waiting ~10 minutes per reply)  # longest cooldown worth waiting for inside a block: PlumMe credential cooldowns of ~600 s were observed (Groq); a daily quota reset is far beyond it
 
 
 def lease_cash(total_cap):
