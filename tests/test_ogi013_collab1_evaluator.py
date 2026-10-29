@@ -111,9 +111,9 @@ def test_report_is_deterministic_and_the_reference_stays_in_the_evaluator(tmp_pa
         assert "evaluation_criteria" not in text and "decision_metrics" not in text, src.name
 
 
-def test_the_simulator_layer_has_no_wait_constant_and_never_sleeps():
+def test_the_simulator_layer_waits_only_for_a_short_plummereported_window_of_the_pinned_route():
     text = (ROOT / "runners" / "ogi013_sim_supply.py").read_text()
-    assert "MAX_WAIT_S" not in text and "time.sleep" not in text
+    assert "MAX_WAIT_S" not in text and text.count("time.sleep") == 1 and "PINNED_RETRY_WINDOW_S" in text
 
 
 def test_an_operator_terminated_first_episode_is_archived_and_the_block_chooses_its_simulator_afresh(tmp_path, monkeypatch):

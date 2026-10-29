@@ -48,6 +48,7 @@ def _single_provider_keys(svc) -> list[str]:
     except Exception:  # noqa: BLE001 - a hint only; without it the selection is plain BEST as before
         return []
 
+PINNED_RETRY_WINDOW_S = 120.0   # longest PlumMe-reported cooldown a pinned simulator route is waited out (AMENDMENT-1 M); longer or unknown = the attempt ends
 SIM_MIN_ANSWER = 512   # pilot: the customer simulator's replies are short; a step that cannot afford this much answer is a budget stop, never a truncated reply
 
 # (no wait/timeout constant: PlumMe's eligibility decides NOW; a route that is not eligible is never waited for - owner correction 2026-10-29)
@@ -201,7 +202,10 @@ def install(svc, route_file: Path, out: Path) -> None:
                 with log.open("a") as f:
                     f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "eligible_now": wait == 0.0, "scope": "pinned" if pinned else "pool"}) + "\n")
                 idle = idle + 1 if wait == 0.0 else 0
-                if pinned and (wait != 0.0 or idle >= 3):     # no eligible route (cooldown, quota, exhausted credential, no credential) or an "available" route that keeps failing: end the attempt now
+                if pinned and wait is not None and 0.0 < wait <= PINNED_RETRY_WINDOW_S:
+                    time.sleep(wait + 1.0)                     # PlumMe's OWN known short window (circuit/model cooldown) on the only route of the block's pinned model: discarding a block over seconds would throw away finished work. Never an exhausted pool/credential (those have no retry time).
+                    continue
+                if pinned and (wait != 0.0 or idle >= 3):     # no eligible route (quota, exhausted credential/pool, no credential, long window) or an "available" route that keeps failing: end the attempt now
                     break
                 if not pinned and wait != 0.0 and attempt >= len(pool) - 1:
                     last = "SUPPLY_UNAVAILABLE"        # every allowlisted model was tried and none has an eligible route

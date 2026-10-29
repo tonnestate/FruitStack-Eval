@@ -288,6 +288,17 @@ def test_the_groq_failure_sequence_never_sleeps_and_ends_the_attempt_at_once(mon
     assert row["cause"] == "BILLING_OR_CREDIT_EXHAUSTED" and "until" not in row
 
 
+def test_a_short_plummereported_window_on_the_pinned_route_is_waited_out_not_a_discarded_block(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    generate, svc, _ = _install_sim(monkeypatch, tmp_path, {"draft": [{"fail": "TIMEOUT"}, "I want to cancel HAT001."]})
+    svc.store.offers = {"o1": SimpleNamespace(model_key="sim@x", provider="p", offer_id="o1")}
+    svc.scheduler.availability = lambda o: {"retry_after_seconds": 5.0, "circuit_open": True, "credential_available": True, "quota_exhausted": False}
+    slept = []
+    monkeypatch.setattr(__import__("time"), "sleep", lambda s: slept.append(s))
+    msg = generate("ignored", [SimpleNamespace(role="user", content="Hello")])
+    assert msg.content == "I want to cancel HAT001." and slept == [6.0]                      # PlumMe's own 5 s window, once; no exhausted-pool wait exists (those have no retry time)
+
+
 def test_in_the_pilot_the_simulator_gets_the_per_step_token_bound_and_zero_cash(monkeypatch, tmp_path):
     from types import SimpleNamespace
     from ogi013_pilot_fixtures import ARMS, BUDGET, receipt, write_arm
