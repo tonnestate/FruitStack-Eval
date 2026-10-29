@@ -50,7 +50,7 @@ def _single_provider_keys(svc) -> list[str]:
 
 SIM_MIN_ANSWER = 512   # pilot: the customer simulator's replies are short; a step that cannot afford this much answer is a budget stop, never a truncated reply
 
-MAX_WAIT_S = float(os.environ.get("OGI013_SIM_MAX_WAIT_S", "900"))   # (COLLAB-1 launcher sets 120: a pinned simulator route that is cooling down longer than that ends the block attempt promptly - SIM_ROUTE_FAILED, whole-block discard, PlumMe selects another model - instead of waiting ~10 minutes per reply)  # longest cooldown worth waiting for inside a block: PlumMe credential cooldowns of ~600 s were observed (Groq); a daily quota reset is far beyond it
+# (no wait/timeout constant: PlumMe's eligibility decides NOW; a route that is not eligible is never waited for - owner correction 2026-10-29)
 
 
 def lease_cash(total_cap):
@@ -94,27 +94,39 @@ def _explain(svc, model_key: str) -> dict:
         return {"explain_failed": f"{type(exc).__name__}: {exc}"[:200]}
 
 
+def _exhausted_providers(runs_dir: Path) -> set[str]:
+    """Providers whose every known credential is EXHAUSTED in the campaign's credential registry (ogi013_credential_health). A state, not a timer."""
+    f = Path(runs_dir) / "credential_health.json"
+    if not f.exists():
+        return set()
+    try:
+        reg = json.loads(f.read_text())
+    except ValueError:
+        return set()
+    renewals = Path(runs_dir) / "credential_renewals.json"
+    renewed = json.loads(renewals.read_text()) if renewals.exists() else {}
+    by_provider: dict[str, list[bool]] = {}
+    for handle, src in (reg.get("sources") or {}).items():
+        ex = (reg.get("exhausted") or {}).get(handle)
+        by_provider.setdefault(str(src.get("provider")), []).append(bool(ex) and float(renewed.get(handle, 0)) <= float(ex["at"]))
+    return {p for p, flags in by_provider.items() if flags and all(flags)}
+
+
 def _selection_pool(runs_dir: Path, svc=None) -> list[str]:
-    """Models that may carry a new pair: the live-verified allowlist (sim_allowlist.json, from a real capacity survey) minus models recorded as exhausted (sim_exhausted.jsonl, written when a pinned model failed a
-    block; excluded until PlumMe's own retry window ends, else one hour). Empty = no allowlist, plain PlumMe BEST - which still never sees an exhausted credential, because credential health is carried across
-    processes (ogi013_credential_health). A model is NOT blacklisted when another provider can serve it: with `svc`, a row that names the exhausted providers only excludes the model if EVERY offer of that
-    model is served by one of them (rows without providers - the older format - exclude the model as before). The ROUTE is always PlumMe's choice."""
-    allow_file, spent_file = runs_dir / "sim_allowlist.json", runs_dir / "sim_exhausted.jsonl"
+    """Models that may carry a new pair: the live-verified allowlist (sim_allowlist.json, from a real capacity survey) minus models that NO non-exhausted provider can serve. Exhaustion comes from the
+    credential registry (an EXHAUSTED credential stays out until positive evidence of renewal) - never from a clock. A model is NOT excluded when another provider can serve it; the ROUTE is
+    always PlumMe's choice. Empty = no allowlist, plain PlumMe BEST. sim_exhausted.jsonl is evidence only."""
+    allow_file = runs_dir / "sim_allowlist.json"
     if not allow_file.exists():
         return []
-    spent, by_provider = set(), {}
-    if spent_file.exists():
-        for line in spent_file.read_text().splitlines():
-            row = json.loads(line) if line.strip() else {}
-            if time.time() < row.get("until", row.get("ts", 0) + 3600):      # rows without a recorded window (older format) count for one hour only
-                if row.get("providers") and svc is not None:
-                    by_provider.setdefault(str(row["model_key"]), set()).update(row["providers"])
-                else:
-                    spent.add(str(row["model_key"]))
-    for key, exhausted in by_provider.items():
-        serving = {o.provider for o in svc.store.offers.values() if str(o.model_key) == key}
-        if not serving or serving <= exhausted:                                # no other provider can serve it
-            spent.add(key)
+    dead = _exhausted_providers(runs_dir)
+    spent = set()
+    if dead and svc is not None:
+        keys = {str(o.model_key) for o in svc.store.offers.values()}
+        for key in keys:
+            serving = {o.provider for o in svc.store.offers.values() if str(o.model_key) == key}
+            if serving <= dead:
+                spent.add(key)
     return [k for k in sorted(json.loads(allow_file.read_text())["model_keys"]) if k not in spent]
 
 
@@ -157,16 +169,17 @@ def install(svc, route_file: Path, out: Path) -> None:
         succeeded = False
         keys = [pinned] if pinned else (pool or [])
         idle = 0
-        for attempt in range(60 if pinned else max(12, 2 * len(pool))):
+        # Never sleeps. A failed call is followed at once by the next eligible route/model (PlumMe's circuit and credential state steer it away from the failing one); a pinned model that has no eligible
+        # route left ends this attempt NOW (SIM_ROUTE_FAILED -> whole-block discard, a fresh block selects another model); nothing eligible anywhere is SUPPLY_UNAVAILABLE, reported immediately.
+        for attempt in range(8 if pinned else max(12, 2 * len(pool))):
             pilot_gate()                                      # pilot only: before every simulator dispatch attempt (outside the try: a stop must not be retried)
             limits = token_limits()                           # pilot only: the same per-step / headroom bounds the agent steps get, covering the simulator's usage too
             total_cap = None if limits is None else min(limits["per_step"], limits["headroom"])
             if total_cap is not None and total_cap - len(_flatten(messages).encode("utf-8")) < SIM_MIN_ANSWER:
                 raise PilotBudgetStop(f"simulator step cannot afford {SIM_MIN_ANSWER} answer tokens (cap {total_cap})")
             t0 = time.time()
-            failed_wait = None
             try:
-                with step_parent_budget(svc, total_cap, None if limits is None else limits["calls"], account_to=log.parent, who="simulator") as parent:            # pilot: tokens and provider requests of this simulator reply, continuations and retries included
+                with step_parent_budget(svc, total_cap, None if limits is None else limits["calls"], account_to=log.parent, who="simulator") as parent:            # pilot: tokens and provider requests of this simulator reply, cont
                     lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None, total_cap=total_cap))
                     if parent is not None and res["success"]:
                         parent.receipted = True   # soft preference: plain BEST once the resilient set is saturated
@@ -183,26 +196,21 @@ def install(svc, route_file: Path, out: Path) -> None:
                 if res["success"] and res["output"]:
                     succeeded = True
                     break
-                failed_wait = 5
-            # PlumMe's own cooldown/quota state decides what happens next: a short window is waited out exactly, a long one (daily quota) fails the block now (registered discard).
-            # While SELECTING a model, a model with no route at all is simply skipped (the next pool model is tried); the whole pool being cooled down beyond the window fails the block.
             if keys:
-                wait = _earliest_retry(svc, keys)
+                wait = _earliest_retry(svc, keys)      # 0.0 = a route is eligible right now; anything else is information, never a duration to sit out
                 with log.open("a") as f:
-                    f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "earliest_retry_s": wait, "scope": "pinned" if pinned else "pool"}) + "\n")
+                    f.write(json.dumps({"ts": t0, "pinned": bool(pinned), "eligible_now": wait == 0.0, "scope": "pinned" if pinned else "pool"}) + "\n")
                 idle = idle + 1 if wait == 0.0 else 0
-                if pinned and (wait is None or wait > MAX_WAIT_S or idle >= 3):     # an "available" route that still cannot be acquired three times in a row is not recovering
+                if pinned and (wait != 0.0 or idle >= 3):     # no eligible route (cooldown, quota, exhausted credential, no credential) or an "available" route that keeps failing: end the attempt now
                     break
-                if not pinned and wait is not None and wait > MAX_WAIT_S and attempt >= len(pool) - 1:
+                if not pinned and wait != 0.0 and attempt >= len(pool) - 1:
+                    last = "SUPPLY_UNAVAILABLE"        # every allowlisted model was tried and none has an eligible route
                     break
-                failed_wait = (wait + 2) if wait is not None else (failed_wait or 1)
-            time.sleep(failed_wait if failed_wait is not None else 10)
         if not succeeded:
-            if pinned:                                  # remember the model until its retry window ends so the re-selection of the discarded block does not pick it again
+            if pinned:                                  # evidence only (not an exclusion window): which model failed a block, why, and which providers were unusable
                 with (route_file.parent / "sim_exhausted.jsonl").open("a") as f:
-                    window = _earliest_retry(svc, pinned)
                     providers = sorted({k.rsplit(":", 1)[0] for k, v in _explain(svc, pinned).items() if isinstance(v, dict) and (v.get("rejected") or not v.get("credential_available", True) or v.get("quota_exhausted"))})
-                    f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "providers": providers, "until": time.time() + (window if window else 3600)}) + "\n")      # (was outside the with: ValueError on a closed file)
+                    f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "providers": providers}) + "\n")
             raise RuntimeError(f"SIM_ROUTE_FAILED:{last}")
         if pinned is None:
             if not lease["model_key"]:

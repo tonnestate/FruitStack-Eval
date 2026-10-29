@@ -69,7 +69,7 @@ def test_the_gate_runs_before_the_provider_dispatch_in_both_dispatch_paths():
     step = agent[agent.index("    def step(self, prompt"):]
     assert step.index("pilot_gate()") < step.index("fs.prepare(") < step.index("fs.infer(")
     sim = (ROOT / "runners/ogi013_sim_supply.py").read_text()
-    loop = sim[sim.index("        for attempt in range(60"):]
+    loop = sim[sim.index("        for attempt in range(8 if pinned"):]
     assert loop.index("pilot_gate()") < loop.index("asyncio.run(call(") and loop.index("pilot_gate()") < loop.index("            try:")        # outside the try: a stop is never retried
 
 

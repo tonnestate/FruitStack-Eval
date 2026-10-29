@@ -111,13 +111,9 @@ def test_report_is_deterministic_and_the_reference_stays_in_the_evaluator(tmp_pa
         assert "evaluation_criteria" not in text and "decision_metrics" not in text, src.name
 
 
-def test_a_bounded_simulator_wait_is_configurable_and_the_default_is_unchanged():
-    import subprocess
-    import sys
-    code = "import sys; sys.path[:0]=['runners']; import ogi013_sim_supply as s; print(s.MAX_WAIT_S)"
-    env = {**__import__("os").environ, "PYTHONPATH": __import__("os").environ.get("PYTHONPATH", "")}
-    assert subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT, env={**env, "OGI013_SIM_MAX_WAIT_S": "120"}).stdout.split()[-1] == "120.0"
-    assert subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT, env={k: v for k, v in env.items() if k != "OGI013_SIM_MAX_WAIT_S"}).stdout.split()[-1] == "900.0"
+def test_the_simulator_layer_has_no_wait_constant_and_never_sleeps():
+    text = (ROOT / "runners" / "ogi013_sim_supply.py").read_text()
+    assert "MAX_WAIT_S" not in text and "time.sleep" not in text
 
 
 def test_an_operator_terminated_first_episode_is_archived_and_the_block_chooses_its_simulator_afresh(tmp_path, monkeypatch):

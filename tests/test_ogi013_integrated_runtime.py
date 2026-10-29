@@ -274,6 +274,20 @@ def test_a_rejected_simulator_route_fails_the_pair_without_a_retry_storm(monkeyp
     assert exhausted["model_key"] == "sim@x" and exhausted["cause"] == "RATE_LIMITED"
 
 
+def test_the_groq_failure_sequence_never_sleeps_and_ends_the_attempt_at_once(monkeypatch, tmp_path):
+    """The historical sequence: the pinned model answered once, then BILLING_OR_CREDIT_EXHAUSTED. Before: ~600 s waits. Now: the attempt ends on the spot, no sleep, no retry, evidence row without any window."""
+    from types import SimpleNamespace
+    generate, svc, _ = _install_sim(monkeypatch, tmp_path, {"draft": ["I want to cancel HAT001.", {"fail": "BILLING_OR_CREDIT_EXHAUSTED"}] + [{"fail": "BILLING_OR_CREDIT_EXHAUSTED"}] * 60})
+    slept = []
+    monkeypatch.setattr(__import__("time"), "sleep", lambda s: slept.append(s))
+    generate("ignored", [SimpleNamespace(role="user", content="Hello")])
+    with pytest.raises(RuntimeError, match="SIM_ROUTE_FAILED:BILLING_OR_CREDIT_EXHAUSTED"):
+        generate("ignored", [SimpleNamespace(role="user", content="And?")])
+    assert slept == [] and len(svc.executed) == 2
+    row = json.loads((tmp_path / "sim_exhausted.jsonl").read_text().splitlines()[0])
+    assert row["cause"] == "BILLING_OR_CREDIT_EXHAUSTED" and "until" not in row
+
+
 def test_in_the_pilot_the_simulator_gets_the_per_step_token_bound_and_zero_cash(monkeypatch, tmp_path):
     from types import SimpleNamespace
     from ogi013_pilot_fixtures import ARMS, BUDGET, receipt, write_arm

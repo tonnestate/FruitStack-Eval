@@ -120,7 +120,7 @@ class Campaign:
         env = {k: v for k, v in os.environ.items() if not k.startswith(("OGI013_ORG_", "OGI013_SINGLE_E", "OGI013_PILOT_", "PILOT_SESSION"))}
         env.update({"PILOT_CODE": str(CODE), "PILOT_BASE": str(self.base), "OGI013_PILOT_BUDGET": str(self.budget_path), "OGI013_PILOT_GUARD": str(PILOT / "pilot_guard.py"),
                     "OGI013_PILOT_RUNS": str(self.R), "OGI013_PILOT_ARMS": ",".join(self.arms()), "OGI013_PILOT_ARM": arm, "OGI013_PILOT_START": str(start),
-                    "OGI013_ORG_STATE_DIR": str(ep_dir.parent / f"{cond}-state"), "OGI013_SIM_MAX_WAIT_S": str(self.budget.get("sim_max_wait_s", 120))})
+                    "OGI013_ORG_STATE_DIR": str(ep_dir.parent / f"{cond}-state")})
         for k, v in self.guard.session_env(self.budget, arm).items():
             env[k.replace("OGI013_", "PILOT_", 1)] = v
         if cond == "COLLAB":

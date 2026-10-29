@@ -159,6 +159,9 @@ class Stack:
         self.svc = PlumMeService(settings, adapters=default_adapters(settings))
         if os.environ.get("FLM_KEY"):
             self.svc.credentials.register_source(CredentialSource("freellmapi", CredentialSourceKind.ENV_REFERENCE, "freellmapi-isolated-instance", {"var": "FLM_KEY"}))
+        if os.environ.get("OGI013_PILOT_RUNS"):
+            from ogi013_credential_health import latch_exhaustion
+            latch_exhaustion(self.svc)
         asyncio.run(self.svc.discover())
         self.mango = get_service()
         self.orange = OrangeRuntime()
