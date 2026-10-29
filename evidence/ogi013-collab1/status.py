@@ -97,7 +97,7 @@ def main() -> int:
         state = f"HALTED ({camp.get('halt_reason') or 'PILOT_HALT file'})"
     elif launchers:
         hb = age(heartbeat)
-        if cur is None and progress and "SUPPLY_UNAVAILABLE" in progress[-1]:
+        if progress and "SUPPLY_UNAVAILABLE" in progress[-1]:
             state = "SUPPLY_UNAVAILABLE - launcher alive, no episode started, no task consumed (re-checking verified simulator capacity)"
         elif cur is None:
             state = "RUNNING - between episodes"
