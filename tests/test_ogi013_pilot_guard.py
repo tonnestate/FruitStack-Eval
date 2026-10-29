@@ -126,3 +126,16 @@ def test_watch_stops_the_running_process_group_and_keeps_the_evidence(tmp_path, 
     victim.wait(timeout=10)
     assert rc == 3 and victim.returncode is not None and json.loads((tmp_path / "PILOT_HALT").read_text())["by"] == "watch"
     assert (tmp_path / ARMS[0] / "fruitstack/plumme-state/receipts.jsonl").is_file()                # nothing was deleted
+
+
+def test_a_receipt_counts_as_all_the_provider_requests_behind_it(tmp_path):
+    from ogi013_pilot_fixtures import ARMS, BUDGET, receipt, write_arm
+    r = receipt(tin=100, tout=10)
+    r["metadata"] = {"provider_attempt_count": 3}                                          # an answer delivered in three requests
+    plain, absent = receipt(), receipt(ok=False)
+    absent["metadata"] = {"provider_attempt_count": 0}                                     # refused before egress: still one dispatch, never fewer than before
+    write_arm(tmp_path, ARMS[1], [r, plain, absent])
+    u = guard.usage(str(tmp_path), [ARMS[1]], BUDGET["reserve_tokens_per_dispatch"])
+    assert u["dispatches"] == 5 and u["per_arm"][ARMS[1]]["dispatches"] == 5
+    cap = dict(BUDGET, cumulative=dict(BUDGET["cumulative"], max_dispatches=4))
+    assert any("dispatches 5 > 4" in w for w in guard.exceeded(cap, u))                   # and the limit is enforced on requests

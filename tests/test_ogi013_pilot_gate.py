@@ -92,9 +92,17 @@ def test_token_limits_count_agent_and_simulator_usage_and_carry_the_per_step_cei
     rows = [receipt(tin=10000, tout=0) for _ in range(3)]
     write_arm(tmp_path, ARMS[1], rows, sim_ids=[rows[2]["receipt_id"]])                     # 20k agent + 10k simulator tokens
     lim = gate.token_limits()
-    assert lim == {"headroom": BUDGET["arms"][ARMS[1]]["max_tokens"] - 30000, "per_step": BUDGET["max_tokens_per_step"]}
+    assert lim == {"headroom": BUDGET["arms"][ARMS[1]]["max_tokens"] - 30000, "per_step": BUDGET["max_tokens_per_step"], "calls": BUDGET["arms"][ARMS[1]]["max_dispatches"] - 3}
     write_arm(tmp_path, ARMS[0], [receipt(tin=BUDGET["cumulative"]["max_tokens"] - 30000 - 500, tout=0)])
     assert gate.token_limits()["headroom"] == 500                                           # the pilot-wide cap binds once the other arm has used its share
     monkeypatch.setenv("OGI013_PILOT_BUDGET", str(tmp_path / "missing.json"))
     with pytest.raises(gate.PilotBudgetStop, match="token limits unavailable"):
         gate.token_limits()
+
+
+def test_the_requests_left_count_provider_requests_not_receipts(tmp_path, monkeypatch):
+    _env(monkeypatch, tmp_path)
+    r = receipt(tin=100, tout=10)
+    r["metadata"] = {"provider_attempt_count": 4}                                          # one receipt, four provider requests (continuations / retries)
+    write_arm(tmp_path, ARMS[1], [r, receipt()])
+    assert gate.token_limits()["calls"] == BUDGET["arms"][ARMS[1]]["max_dispatches"] - 5

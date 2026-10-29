@@ -45,6 +45,15 @@ def _tokens(u):
     return (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0) or (u.get("total_tokens") or 0)
 
 
+def _requests(receipt):
+    """Provider requests behind ONE receipt: PlumMe counts every adapter call of an execution (continuations of a truncated answer, credential-rotation retries) in metadata.provider_attempt_count.
+    A receipt that records none (refused before egress, or an older record) still counts as one dispatch, as before - never fewer."""
+    try:
+        return max(1, int((receipt.get("metadata") or {}).get("provider_attempt_count") or 0))
+    except (TypeError, ValueError):
+        return 1
+
+
 def dispatches(runs_dir, arm):
     """The arm's provider dispatches in order, each once. `simulator` marks the customer-simulator calls (their receipts are listed in sim-usage.jsonl)."""
     d = os.path.join(runs_dir, arm)
@@ -55,10 +64,11 @@ def dispatches(runs_dir, arm):
     out = [{"receipt_id": r.get("receipt_id"), "simulator": r.get("receipt_id") in sim_ids, "success": bool(r.get("success")), "tokens": _tokens(r.get("usage")),
             "input_tokens": (r.get("usage") or {}).get("input_tokens"), "output_tokens": (r.get("usage") or {}).get("output_tokens"), "cost_usd": (r.get("usage") or {}).get("cost_usd"),
             "cost_class": r.get("cost_class"), "failure_class": r.get("failure_class"), "model": r.get("model"), "provider": r.get("provider"), "lineage": r.get("independence_key"),
-            "started_at": r.get("started_at"), "finished_at": r.get("finished_at")} for r in receipts]
+            "started_at": r.get("started_at"), "finished_at": r.get("finished_at"),
+            "requests": _requests(r)} for r in receipts]
     out += [{"receipt_id": r.get("receipt_id"), "simulator": True, "success": bool(r.get("success")), "tokens": _tokens(r), "input_tokens": r.get("input_tokens"),
              "output_tokens": r.get("output_tokens"), "cost_usd": r.get("cost_usd"), "cost_class": None, "failure_class": r.get("failure_class"), "model": r.get("model"), "provider": r.get("provider"), "lineage": None,
-             "started_at": None, "finished_at": None} for r in sim if r.get("receipt_id") not in known]            # no receipt on record: counted, and its cash exposure is unknown
+             "started_at": None, "finished_at": None, "requests": 1} for r in sim if r.get("receipt_id") not in known]            # no receipt on record: counted, and its cash exposure is unknown
     return out
 
 
@@ -68,6 +78,8 @@ def usage(runs_dir, arms, reserve=0):
     for arm in arms:
         a_tok, streak = 0, 0
         rows = dispatches(runs_dir, arm)
+        for extra in _rows(os.path.join(runs_dir, arm, "step-accounting.jsonl")):      # tokens of requests whose execution ended in a failed receipt without usage (see ogi013_pilot_gate)
+            a_tok += int(extra.get("charged_tokens") or 0) + (int(extra.get("unknown_usage_attempts") or 0) * reserve)
         for r in rows:
             if r["tokens"]:
                 a_tok += r["tokens"]
@@ -87,7 +99,7 @@ def usage(runs_dir, arms, reserve=0):
                 e["dispatches"] += 1
                 e["tokens"] += r["tokens"]
             streak = 0 if r["success"] else streak + 1
-        n = len(rows)
+        n = sum(r["requests"] for r in rows)                  # provider REQUESTS, not receipts
         per_arm[arm] = {"dispatches": n, "tokens": a_tok, "consecutive_failures": streak}
         total["dispatches"] += n
         total["tokens"] += a_tok

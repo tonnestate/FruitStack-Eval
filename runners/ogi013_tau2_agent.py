@@ -32,6 +32,7 @@ from tau2.environment.toolkit import TOOL_TYPE_ATTR, ToolType
 
 from ogi013_pilot_gate import PilotBudgetStop
 from ogi013_pilot_gate import check as pilot_gate
+from ogi013_pilot_gate import step_parent_budget
 from ogi013_single_e import majority_action, read_k
 
 MODES = ("single", "fixed", "adaptive", "rg2", "single_e")
@@ -232,7 +233,12 @@ class Episode:
                 env = self.stack.store.get(self.sid).environment or {}
                 facts = getattr(self.stack.heart, "lease_facts", lambda _id: {})(env.get("lease_id"))        # PeachMe stores only a whitelist of lease fields: the lineage comes from the heart
                 max_out, reserve = self.output_budget(prompt, env)
-                out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve))
+                tokens, calls = self.step_authorization()
+                with step_parent_budget(self.stack.svc, tokens, calls, account_to=getattr(getattr(self.stack, "out", None), "parent", None), who=key) as parent:           # pilot: the step's tokens AND provider requests are enforced across continuations and retries
+                    out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve))
+                    if parent is not None:
+                        parent.receipted = True
+                self._step_parent = parent.snapshot() if parent is not None else None
             except PeachError as exc:
                 code = str(exc)
                 last = code
@@ -269,12 +275,22 @@ class Episode:
             self.stats["tokens_in"] += st.input_tokens or 0
             self.stats["tokens_out"] += st.output_tokens or 0
             self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
-            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2), input_estimate=(getattr(self, "_input_estimate", None) or {}),
+            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2), input_estimate=(getattr(self, "_input_estimate", None) or {}), step_requests=(getattr(self, "_step_parent", None) or {}).get("provider_attempt_count"), step_tokens_charged=(getattr(self, "_step_parent", None) or {}).get("charged_tokens"),
                        independence_key=facts.get("independence_key"), model_key=facts.get("model_key"), prefer_met=facts.get("prefer_met"))
             return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
 
     MIN_ANSWER_TOKENS = 2048    # pilot: a step that cannot afford at least this much answer is not dispatched (a budget stop, not a truncated answer)
+
+    def step_authorization(self) -> tuple[int | None, int | None]:
+        """(tokens, provider requests) the owner's budget allows THIS step in total, continuations and retries included; (None, None) outside the pilot."""
+        from ogi013_pilot_gate import token_limits
+        limits = token_limits()
+        if limits is None:
+            return None, None
+        remaining = (self.stack.fs.governance.snapshot(self.sid) or {}).get("tokens_remaining")
+        tokens = min(c for c in (limits["per_step"], limits["headroom"], remaining) if c is not None)
+        return int(tokens), int(limits["calls"])
 
     def provider_messages(self, prompt: str, env: dict) -> list[dict]:
         """The COMPLETE provider-facing input, built exactly as PlumMe's scheduler builds it: a system message with the lease's skill instructions and the task as the user message."""

@@ -14,7 +14,7 @@ import random
 import time
 from pathlib import Path
 
-from ogi013_pilot_gate import PilotBudgetStop, token_limits
+from ogi013_pilot_gate import PilotBudgetStop, step_parent_budget, token_limits
 from ogi013_pilot_gate import check as pilot_gate
 from peachme.plumme import PlumMeProvider
 from tau2.data_model.message import AssistantMessage
@@ -157,7 +157,12 @@ def install(svc, route_file: Path, out: Path) -> None:
             t0 = time.time()
             failed_wait = None
             try:
-                lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None, total_cap=total_cap))   # soft preference: plain BEST once the resilient set is saturated
+                with step_parent_budget(svc, total_cap, None if limits is None else limits["calls"], account_to=log.parent, who="simulator") as parent:            # pilot: tokens and provider requests of this simulator reply, continuations and retries included
+                    lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None, total_cap=total_cap))
+                    if parent is not None and res["success"]:
+                        parent.receipted = True   # soft preference: plain BEST once the resilient set is saturated
+            except PilotBudgetStop:                           # a budget stop (also from the step budget) is never retried
+                raise
             except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record, never crash the benchmark run
                 last = type(exc).__name__
                 with log.open("a") as f:
