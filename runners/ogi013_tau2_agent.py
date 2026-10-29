@@ -101,6 +101,17 @@ def should_organize(mode: str, action: dict, write_tools: set[str]) -> bool:
     return False
 
 
+def count_tokens(messages: list[dict], model_id: str | None):
+    """(tokens, tokenizer) from litellm's LOCAL tokenizers (no network, no provider call); (None, None) when unavailable. Only names with a tokenizer litellm ships are passed through."""
+    try:
+        import litellm
+        name = str(model_id or "").lower()
+        model = name if name.startswith(("gpt-", "o1", "o3", "o4", "chatgpt", "claude")) else "gpt-4"
+        return int(litellm.token_counter(model=model, messages=messages)), model
+    except Exception:  # noqa: BLE001 - the PlumMe estimate still governs
+        return None, None
+
+
 class Stack:
     """Process-wide integrated FruitStack (built once). Per-episode state lives in Episode."""
     _inst: Optional["Stack"] = None
@@ -258,35 +269,49 @@ class Episode:
             self.stats["tokens_in"] += st.input_tokens or 0
             self.stats["tokens_out"] += st.output_tokens or 0
             self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
-            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2),
+            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2), input_estimate=(getattr(self, "_input_estimate", None) or {}),
                        independence_key=facts.get("independence_key"), model_key=facts.get("model_key"), prefer_met=facts.get("prefer_met"))
             return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
 
     MIN_ANSWER_TOKENS = 2048    # pilot: a step that cannot afford at least this much answer is not dispatched (a budget stop, not a truncated answer)
 
-    BYTES_PER_TOKEN_FLOOR = 3   # pilot: input tokens <= ceil(UTF-8 bytes / 3). Real text is ~4 bytes/token (pilot-2 stopped at step 10 because bytes/1 put a 6,000-token prompt at 24 KB, over the 24,000 per-step ceiling); the provider's RECORDED tokens of every step are checked against the per-step ceiling afterwards (BUDGET_STEP_CEILING_EXCEEDED)
+    def provider_messages(self, prompt: str, env: dict) -> list[dict]:
+        """The COMPLETE provider-facing input, built exactly as PlumMe's scheduler builds it: a system message with the lease's skill instructions and the task as the user message."""
+        skills = getattr(self.stack.svc, "skills", None)
+        system = skills.execution_instructions_for_skills(env.get("role_id") or "REASONING", list(env.get("effective_skill_ids") or [])) if skills is not None else ""
+        return [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
 
-    def input_token_bound(self, prompt: str) -> int:
-        return -(-len(prompt.encode("utf-8")) // self.BYTES_PER_TOKEN_FLOOR)
+    def input_tokens(self, prompt: str, env: dict) -> dict:
+        """Pre-dispatch input tokens of the complete provider-facing input. Two independent measures, the larger one governs (no multiplier of ours): PlumMe's own gating estimate (the number its
+        scheduler subtracts from the reservation to size the response, SwarmScheduler.estimate_input_tokens) and a real tokenizer count (litellm's local tokenizers; OpenAI/Anthropic model names use
+        their own, every other model the generic cl100k encoding - the provider's real tokenizer is not available before dispatch)."""
+        from plumme.scheduler import SwarmScheduler
+        msgs = self.provider_messages(prompt, env)
+        plumme = SwarmScheduler.estimate_input_tokens(msgs)
+        counted, tokenizer = count_tokens(msgs, env.get("model_id"))
+        return {"bound": max(plumme, counted or 0), "plumme": plumme, "counted": counted, "tokenizer": tokenizer}
 
     def output_budget(self, prompt: str, env: dict) -> tuple[int | None, int | None]:
         """(max_output_tokens, reserve_tokens) for one step. Outside the pilot: unchanged (2048 per response, reserve = prompt bytes + 2048) - the frozen conditions keep their behaviour.
-        In the pilot no fixed output cap is set: PlumMe applies the route's own per-response limit and continues a longer answer, bounded by the reservation, which is sized from the route's
+        In the pilot the output cap is the RESERVED room (reservation minus the counted input) or the route's own limit if smaller, never a fixed number; the reservation is sized from the route's
         published output limit and capped only by budget facts - the owner-approved per-step ceiling, PeachMe's remaining session tokens and the pilot ledger's remaining headroom."""
         from ogi013_pilot_gate import token_limits
         from peachme import PeachError
         limits = token_limits()
         if limits is None:
             return 2048, self.reserve(prompt)
-        inp = self.input_token_bound(prompt)
+        est = self.input_tokens(prompt, env)
+        self._input_estimate = est
+        inp = est["bound"]
         route_out = env.get("output_limit") or env.get("context_window")
         snap = self.stack.fs.governance.snapshot(self.sid)
         caps = [inp + route_out if route_out else None, limits["per_step"], limits["headroom"], (snap or {}).get("tokens_remaining")]
         reserve = int(min(c for c in caps if c is not None))
         if reserve - inp < self.MIN_ANSWER_TOKENS:
             raise PeachError("BUDGET_HEADROOM_BELOW_MIN_ANSWER")
-        return None, reserve
+        room = reserve - inp                                     # the reserved output: PlumMe's per-response limit is min(route limit, reservation - ITS estimate); stating it here also bounds every continuation (its ledger refuses a call whose input + this cap exceed the reservation)
+        return (min(int(env["output_limit"]), room) if env.get("output_limit") else room), reserve
 
     def reserve(self, prompt: str) -> int | None:
         snap = self.stack.fs.governance.snapshot(self.sid)
