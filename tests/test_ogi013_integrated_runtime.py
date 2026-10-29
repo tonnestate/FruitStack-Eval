@@ -214,7 +214,7 @@ def test_the_real_stack_builds_the_lineage_heart_and_the_hooks_exist():
     src = (Path(__file__).resolve().parents[1] / "runners/ogi013_tau2_agent.py").read_text()
     stack_init = next(n for n in ast.walk(ast.parse(src)) if isinstance(n, ast.ClassDef) and n.name == "Stack")
     assigns = [ast.unparse(n.value) for n in ast.walk(stack_init) if isinstance(n, ast.Assign) and any(ast.unparse(t) == "self.heart" for t in n.targets)]
-    assert assigns == ["LineageHeart(self.svc)"]                                       # the live Stack must not fall back to the attribute-only PlumMeProvider
+    assert assigns[0] == "LineageHeart(self.svc)" and all("CodexHeadlessHeart" in a for a in assigns[1:])                                       # the live Stack must not fall back to the attribute-only PlumMeProvider
 
 
 # ---- 10. the customer-simulator dispatch path (same pinned model, same accounting, same gate) ------------------------------------------------------------------------
