@@ -169,6 +169,9 @@ class Stack:
         self.appleme = connect_appleme(workspace_root=out / "appleme")
         self.store = SessionStore(out / "peachme.sqlite3")
         self.heart = LineageHeart(self.svc)                  # PlumMeProvider + lineage exclusion / author preference / lineage in the lease (ogi013_lineage_heart)
+        if os.environ.get("OGI013_FIXED_MODEL"):             # the fixed single-model competitor (ChatGPT headless, ONE pinned model; no PlumMe selection, no organisation): see ogi013_codex_heart
+            from ogi013_codex_heart import CodexHeadlessHeart
+            self.heart = CodexHeadlessHeart(os.environ["OGI013_FIXED_MODEL"], Path(os.environ["PLUMME_STATE_DIR"]) / "receipts.jsonl")
         self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(self.mango), OrangeMemoryAdapter(self.orange, project_ref=orange_project), assurance=AppleAssuranceAdapter(getattr(self.appleme, "service", None) or self.appleme._service),
                                     authorize_model_input=lambda text, view: text)
         self.projects: dict[str, str] = {}

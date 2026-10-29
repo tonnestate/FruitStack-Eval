@@ -21,7 +21,7 @@ HERE = Path(__file__).resolve().parent
 CODE = HERE.parents[1]
 PILOT = CODE / "evidence/ogi013-pilot"
 REAL_BASE = Path("/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013")
-MODE = {"SINGLE": "single", "COLLAB": "rg2", "SINGLE-E": "single_e"}
+MODE = {"SINGLE": "single", "COLLAB": "rg2", "SINGLE-E": "single_e", "FIXED": "single"}      # FIXED = single mode with the pinned ChatGPT-headless model (OGI013_FIXED_MODEL)
 DONE_STATES = {"DONE", "BUDGET_STOP", "TIMEOUT"}                        # scored (non-success unless the official grade says otherwise); never run again
 HOSTPY = "/root/fruits/integration/ogi013-hostpython-org/bin/python"
 COMPONENTS = Path("/root/fruits/integration/ogi013-org-components")
@@ -145,6 +145,8 @@ class Campaign:
             env[k.replace("OGI013_", "PILOT_", 1)] = v
         if cond == "COLLAB":
             env.update({"OGI013_ORG_COLLAB": "1", "OGI013_ORG_POLICY_MODE": "OFF"})
+        if cond == "FIXED":
+            env["OGI013_FIXED_MODEL"] = self.manifest["fixed_model"]
         if cond == "SINGLE-E":
             se = self.manifest["single_e"]
             env.update({"OGI013_SINGLE_E_K": str(se["k"]), "OGI013_SINGLE_E_SCOPE": se["scope"]})
