@@ -13,6 +13,8 @@ if os.environ.get("PILOT_OFFLINE_TRANSPORT"):
              "payment_methods": [], "total_baggages": 0, "nonfree_baggages": 0, "insurance": "no"}
 
     def _stage(task: str) -> str:
+        if "ENDS the interaction" in task:
+            return "termination"
         if "[assistant-turn: write the next message of the simulated customer ONLY" in task:
             return "sim"
         if "A colleague criticised it" in task:
@@ -47,6 +49,29 @@ if os.environ.get("PILOT_OFFLINE_TRANSPORT"):
             return json.dumps({"action": "tool", "name": "book_reservation", "arguments": {**_BOOK, "cabin": "economy"}})
         return json.dumps({"action": "message", "content": "I have processed your request. Is there anything else?"})
 
+    _SPEC = None
+    if os.environ.get("PILOT_OFFLINE_CAMPAIGN"):          # COLLAB-1 acceptance: per task and condition scripts (see tests/test_ogi013_collab1_campaign.py); the arm name tells the DOUBLE which script to play
+        with open(os.environ["PILOT_OFFLINE_CAMPAIGN"], encoding="utf-8") as _f:
+            _SPEC = json.load(_f)
+        _ARM = os.environ.get("OGI013_PILOT_ARM", "")
+        _REF, _COND = (_ARM.split("/")[-2].replace("_", ":", 1), _ARM.split("/")[-1]) if _ARM.count("/") >= 2 else ("", "")
+        _SCRIPT = {**_SPEC.get("tasks", {}).get(_REF, {}).get("*", {}), **_SPEC.get("tasks", {}).get(_REF, {}).get(_COND, {})}
+        _CALLS = {"n": 0, "pending": None}
+
+    def _spec_text(stage: str) -> str:
+        _STATE[stage] = _STATE.get(stage, 0) + 1
+        items = _SCRIPT.get(stage) or []
+        item = items[min(_STATE[stage], len(items)) - 1] if items else None
+        if item is None:
+            return "###STOP###" if stage == "sim" else json.dumps({"action": "message", "content": "OK"}) if stage in ("draft", "revise", "format") else "ISSUES: NONE\nChecked the facts against the materials."
+        if stage == "termination":
+            return item
+        if stage in ("draft", "revise", "format"):
+            if "message" in item:
+                return json.dumps({"action": "message", "content": item["message"]})
+            return json.dumps({"action": "tool", "name": item["name"], "arguments": item.get("arguments", {})})
+        return item
+
     def _install() -> None:
         import plumme.service as service
         from plumme.adapters.base import AdapterError, AdapterResult, ProviderAdapter
@@ -69,7 +94,28 @@ if os.environ.get("PILOT_OFFLINE_TRANSPORT"):
                 stage = _stage(task)
                 if os.environ.get("PILOT_OFFLINE_SCENARIO") == "fail":                 # every provider rejects before processing
                     raise AdapterError("RATE_LIMITED", "offline scenario: rate limited", None)
-                text = _answer(stage)
+                if _SPEC is not None:
+                    _CALLS["n"] += 1
+                    every = _SCRIPT.get("fail_every")
+                    if stage == "sim" and _SCRIPT.get("sim_fail"):                           # the customer simulator's provider is down: the whole block fails (SIM_ROUTE_FAILED)
+                        raise AdapterError("RATE_LIMITED", "scripted simulator outage", None)
+                    if stage == "sim":
+                        _CALLS["sim_provider"] = offer.provider
+                    if every and stage != "sim" and offer.provider != _CALLS.get("sim_provider") and _CALLS["n"] % every == 0:      # never the simulator's own provider: its pinned route must stay usable                                   # a provider that rejects every Nth request before processing
+                        raise AdapterError("RATE_LIMITED", "scripted rejection", None)
+                    if _CALLS["pending"] is not None and "Continue exactly where it stopped" in str(messages[-1].get("content", "")):
+                        text, _CALLS["pending"] = _CALLS["pending"], None
+                    else:
+                        text = _spec_text(stage)
+                        cut = _SCRIPT.get("truncate_first_draft") if stage == "draft" and _STATE.get("draft") == 1 else None
+                        if cut and len(text) > cut:                                           # the provider stops at its output limit; PlumMe continues
+                            _CALLS["pending"] = text[cut:]
+                            exc = AdapterError("SEMANTIC_OUTPUT_FAILURE", f"TRUNCATED_CONTENT finish_reason=length max_tokens={cut}", None, usage=Usage(input_tokens=max(100, len(task) // 4), output_tokens=cut // 4,
+                                                                                                                                                         total_tokens=max(100, len(task) // 4) + cut // 4, cost_usd=None))
+                            exc.partial_text = text[:cut]
+                            raise exc
+                else:
+                    text = _answer(stage)
                 if _LOG:
                     with open(_LOG, "a", encoding="utf-8") as f:
                         f.write(json.dumps({"ts": time.time(), "stage": stage, "provider": offer.provider, "model": offer.model, "pid": os.getpid(), "bytes": len(task.encode("utf-8"))}) + "\n")

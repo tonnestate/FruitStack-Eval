@@ -22,6 +22,8 @@ FOUND = "ISSUES: FOUND\nWRONG1 is not the customer's booking; the CONVERSATION n
 
 
 def stage_of(task: str) -> str:
+    if "ENDS the interaction" in task:
+        return "termination"
     if "A colleague criticised it" in task:
         return "revise"
     if "A colleague proposed this solution" in task:
@@ -146,6 +148,10 @@ class FakeMango:
     def work_context(self, ref):
         return {"work": {"entity_id": ref}}
 
+    def checkpoint_work(self, **kw):
+        self.checkpoints = getattr(self, "checkpoints", []) + [kw]
+        return {"checkpoint_id": f"cp-{len(self.checkpoints)}"}
+
     def __init__(self):
         self.store = SimpleNamespace(get=lambda table, turn_id: {"work_id": "work-1", "actor_id": "worker:test", "status": "BOUND", "mode": "EXECUTE"})
 
@@ -180,7 +186,7 @@ class ScriptedStack:
         return "work-1", "project-1", "turn-1"
 
 
-def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budget=None, routes=POOL, tokens_per_call=(400, 100), real=False, real_kw=None):
+def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budget=None, routes=POOL, tokens_per_call=(400, 100), real=False, real_kw=None, policy="POLICY: refunds only within 24h."):
     """The real FruitStackTau2Agent on a scripted stack. budget = (max_calls, max_tokens, max_cost_usd) as the pilot configures PeachMe's session budget."""
     from tau2.environment.tool import as_tool
     from tau2.environment.toolkit import ToolType, is_tool
@@ -211,6 +217,18 @@ def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budge
         """
         return "{}"
 
+    @is_tool(ToolType.GENERIC)
+    def transfer_to_human_agents(summary: str) -> str:
+        """Transfer the user to a human agent.
+
+        Args:
+            summary: A summary of the issue.
+
+        Returns:
+            Confirmation.
+        """
+        return "Transfer successful"
+
     stack = ScriptedStack(tmp, script, routes, tokens_per_call, real=real, real_kw=real_kw)
     monkeypatch.setenv("OGI013_ACTOR_ID", "worker:test")
     monkeypatch.setenv("OGI013_ORG_COLLAB", "1") if collab else monkeypatch.delenv("OGI013_ORG_COLLAB", raising=False)
@@ -230,7 +248,7 @@ def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budge
     monkeypatch.setattr(agent_mod.Stack, "get", classmethod(lambda cls, out: stack))
     out = tmp / "task"
     out.mkdir(parents=True, exist_ok=True)
-    agent = agent_mod.FruitStackTau2Agent([as_tool(get_reservation_details), as_tool(cancel_reservation)], "POLICY: refunds only within 24h.", mode=mode, task=SimpleNamespace(id="24"), domain="airline", out=out)
+    agent = agent_mod.FruitStackTau2Agent([as_tool(get_reservation_details), as_tool(cancel_reservation), as_tool(transfer_to_human_agents)], policy, mode=mode, task=SimpleNamespace(id="24"), domain="airline", out=out)
     state = agent.get_init_state()
     return agent, state, stack, out
 

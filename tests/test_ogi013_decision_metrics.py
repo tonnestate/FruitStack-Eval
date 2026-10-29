@@ -32,11 +32,25 @@ def test_review_outcomes(draft, final, changed, expected):
     assert dm.outcome(draft, final, changed) == expected
 
 
-def test_summary_counts_executed_unexpected_actions_and_completed_objectives():
-    official = {"reward_info": {"reward": 0.0}, "termination_reason": "user_stop", "messages": [{"role": "assistant", "tool_calls": [{"name": "cancel_reservation", "arguments": {"reservation_id": "R"}},
-                                                                                                 {"name": "book_reservation", "arguments": BOOK["arguments"]}]}]}
-    s = dm.summarize(official, [], [BOOK])
-    assert s["unexpected_writes_executed"] == 1 and s["expected_actions_completed"] == ["book_reservation"] and s["reviews"] == []
+def test_summary_separates_attempted_from_executed_and_deviations_from_policy_violations():
+    msgs = [{"role": "assistant", "tool_calls": [{"id": "1", "name": "cancel_reservation", "arguments": {"reservation_id": "R"}}]}, {"role": "tool", "id": "1", "content": "ok", "error": False},
+            {"role": "assistant", "tool_calls": [{"id": "2", "name": "cancel_reservation", "arguments": {"reservation_id": "Q"}}]}, {"role": "tool", "id": "2", "content": "Error: x", "error": True},
+            {"role": "assistant", "tool_calls": [{"id": "3", "name": "book_reservation", "arguments": BOOK["arguments"]}]}, {"role": "tool", "id": "3", "content": "ok", "error": False}]
+    s = dm.summarize({"reward_info": {"reward": 0.0, "db_check": {"db_match": False}, "nl_assertions": None}, "termination_reason": "user_stop", "messages": msgs}, [], [BOOK])
+    assert s["state_changing_deviations"] == ["cancel_reservation"] and s["failed_write_attempts"] == ["cancel_reservation"]          # the failed cancel changed no state
+    assert s["expected_actions_completed"] == ["book_reservation"] and s["objectives_abandoned"] == [] and s["abandon_cause"] == "NONE"
+    assert s["policy_evidence"] == "NOT_EVALUATED_BY_OFFICIAL_GRADER" and s["db_match"] is False and s["reviews"] == []                # a reference deviation is NOT reported as a policy violation
+
+
+def test_abandonment_causes_are_mechanical():
+    base = {"reward_info": {"reward": 0.0}, "termination_reason": "user_stop"}
+    stop = dict(base, messages=[{"role": "assistant", "content": "Please confirm?"}, {"role": "user", "content": "Yes, go ahead. ###STOP###"}])
+    assert dm.summarize(stop, [], [BOOK])["abandon_cause"] == "PREMATURE_STOP_PENDING"
+    transfer = dict(base, messages=[{"role": "assistant", "content": "x"}, {"role": "user", "content": "###TRANSFER###"}])
+    assert dm.summarize(transfer, [], [BOOK])["abandon_cause"] == "TRANSFER"
+    wrong = dict(stop, messages=[{"role": "assistant", "tool_calls": [{"id": "1", "name": "cancel_reservation", "arguments": {}}]}, {"role": "tool", "id": "1", "content": "ok", "error": False},
+                                 {"role": "assistant", "content": "Done?"}, {"role": "user", "content": "yes ###STOP###"}])
+    assert dm.summarize(wrong, [], [BOOK])["abandon_cause"] == "WRONG_ACTION_EXECUTED"
 
 
 RUN = Path("/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/runs/pilot-4")
@@ -50,7 +64,7 @@ def test_pilot4_collab_decision_is_classified_as_an_error_replaced_by_a_differen
     s = dm.summarize(json.loads((arm / "official-result.json").read_text()), [json.loads(x) for x in (arm / "fruitstack-events.jsonl").read_text().splitlines() if x.strip()], expected)
     first = s["reviews"][0]
     assert (first["draft_class"], first["final_class"], first["outcome"]) == ("UNEXPECTED_WRITE", "UNEXPECTED_TRANSFER", "ERROR_REPLACED_BY_DIFFERENT_ERROR")
-    assert s["unexpected_writes_executed"] == 0 and s["unexpected_transfer_executed"] == 1 and s["expected_actions_completed"] == [] and s["reward"] == 0.0
+    assert s["state_changing_deviations"] == [] and s["unnecessary_transfer"] is True and s["expected_actions_completed"] == [] and s["reward"] == 0.0 and s["abandon_cause"] == "TRANSFER"
 
 
 @pytest.mark.skipif(not (DATA / "domains/airline/split_tasks.json").is_file(), reason="needs the tau2 data")
@@ -66,9 +80,14 @@ def test_the_study_manifest_is_deterministic_disjoint_from_the_test_splits_and_s
 
 
 def test_the_collab_study_lock_matches_the_frozen_files():
-    """A change to any frozen file must be a dated amendment, not a silent edit: STUDY_LOCK.txt hashes the design, manifest, generator, metrics and the COLLAB implementation."""
+    """A change to any frozen file must be a dated amendment, not a silent edit: the LATEST entry per file of STUDY_LOCK.txt and AMENDMENT_LOCK.txt must match the bytes in the repository."""
     import hashlib
-    rows = [line.split(None, 1) for line in (PHASE2 / "STUDY_LOCK.txt").read_text().splitlines() if line and not line.startswith("#")]
-    assert len(rows) >= 10
-    for digest, rel in rows:
-        assert hashlib.sha256((ROOT / rel.strip()).read_bytes()).hexdigest() == digest, rel
+    latest = {}
+    for lock in (PHASE2 / "STUDY_LOCK.txt", ROOT / "evidence/ogi013-collab1/AMENDMENT_LOCK.txt"):
+        for line in lock.read_text().splitlines():
+            if line and not line.startswith("#"):
+                digest, rel = line.split(None, 1)
+                latest[rel.strip()] = digest
+    assert len(latest) >= 24
+    for rel, digest in latest.items():
+        assert hashlib.sha256((ROOT / rel).read_bytes()).hexdigest() == digest, rel

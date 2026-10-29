@@ -1,3 +1,5 @@
+> **SUPERSEDED for approval purposes (2026-10-29):** the multi-study request below is NOT approved and is replaced by the COLLAB-1-only request `evidence/ogi013-collab1/BUDGET_REQUEST.md`. The estimates remain as history.
+
 # OGI-013 — consolidated resource plan and single approval request for the outstanding campaign
 
 **All numbers are ESTIMATES from measured episodes (C3 demos d1/d2: 33–77 requests, 43k–196k tokens, 26–31 min per episode; PILOT-4: 15–22 requests, 62k–93k tokens, 2–11 min) — not confirmed capacity. Nothing below is authorised; the PILOT-4 authorisation is exhausted and is not reused.**

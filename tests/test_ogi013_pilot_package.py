@@ -370,7 +370,7 @@ def test_a_later_pilot_id_runs_under_the_same_approved_budget_hash():
     guard = load("pilot_guard", PILOT / "pilot_guard.py")
     budget = json.loads((PILOT / "pilot_budget.json").read_text())
     assert guard.arm_cap(budget, "pilot-3/single") == budget["arms"]["pilot-1/single"] and guard.arm_cap(budget, "pilot-3/collab") == budget["arms"]["pilot-1/collab"]
-    assert guard.arm_cap(budget, "pilot-3/other") is None and guard.arm_cap({"arms": {"a/single": {}, "b/single": {}}}, "c/single") is None          # no cap, or an ambiguous one: fail closed
+    assert guard.arm_cap(budget, "pilot-3/other") is None and guard.arm_cap(dict(budget, default_arm_cap={"max_dispatches": 9, "max_tokens": 9}), "pilot-3/other") == {"max_dispatches": 9, "max_tokens": 9} and guard.arm_cap({"arms": {"a/single": {}, "b/single": {}}}, "c/single") is None          # no cap, or an ambiguous one: fail closed
     assert guard.session_env(budget, "pilot-3/collab")["OGI013_SESSION_MAX_CALLS"] == "110"
 
 

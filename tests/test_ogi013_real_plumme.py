@@ -125,22 +125,16 @@ def test_the_simulator_executes_on_a_free_route_under_the_real_lease_budget_chec
 def test_no_agent_step_can_reserve_more_than_the_per_step_ceiling_whatever_the_route_claims(monkeypatch, tmp_path):
     from ogi013_pilot_fixtures import BUDGET
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 270000, 0.0))
-    inp = agent.ep.input_tokens("short prompt", {})["bound"]
-    huge = agent.ep.output_budget("short prompt", {"output_limit": 1_000_000, "context_window": 2_000_000})
-    assert huge[1] == BUDGET["max_tokens_per_step"] and huge[0] == huge[1] - inp               # a route that claims a million output tokens is still bounded by the owner's ceiling; the cap IS the reserved room
-    small = agent.ep.output_budget("short prompt", {"output_limit": 3000})
-    assert small == (3000, inp + 3000)                                                          # a modest route limit sizes the reservation itself (input + the route's own answer limit)
-    unknown_route = agent.ep.output_budget("short prompt", {})
-    assert unknown_route[1] == BUDGET["max_tokens_per_step"]                                    # no published limit: still capped by budget facts, never unbounded
+    for env in ({"output_limit": 1_000_000, "context_window": 2_000_000}, {"output_limit": 3000}, {}):
+        assert agent.ep.output_budget("short prompt", env) == (None, BUDGET["max_tokens_per_step"])      # the authorization is the reservation whatever the route claims; no fixed output cap
 
 
 def test_a_long_prompt_is_admitted_by_the_token_bound(monkeypatch, tmp_path):
     from ogi013_pilot_fixtures import BUDGET
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 270000, 0.0))
     long_prompt = "x" * 30000                                                  # pilot-2 refused such a step (bytes bound 30,000 + 2,048 > 24,000)
-    max_out, reserve = agent.ep.output_budget(long_prompt, {"output_limit": 20000})
-    inp = agent.ep.input_tokens(long_prompt, {})["bound"]
-    assert reserve == BUDGET["max_tokens_per_step"] and max_out == reserve - inp and max_out >= agent.ep.MIN_ANSWER_TOKENS
+    assert agent.ep.output_budget(long_prompt, {"output_limit": 20000}) == (None, BUDGET["max_tokens_per_step"])
+    assert agent.ep.input_tokens(long_prompt, {})["bound"] + agent.ep.MIN_ANSWER_TOKENS <= BUDGET["max_tokens_per_step"]
 
 
 def test_a_step_whose_recorded_tokens_exceed_the_ceiling_stops_the_pilot(monkeypatch, tmp_path):
@@ -173,7 +167,7 @@ def test_the_input_bound_is_the_larger_of_plummes_estimate_and_a_real_tokenizer_
     except Exception as exc:                                                                    # a prompt that leaves no room under the approved ceiling is the only refusal
         assert "BUDGET_HEADROOM_BELOW_MIN_ANSWER" in str(exc) and est["bound"] + agent.ep.MIN_ANSWER_TOKENS > BUDGET["max_tokens_per_step"]
     else:
-        assert reserve <= BUDGET["max_tokens_per_step"] and max_out == min(8192, reserve - est["bound"]) and est["bound"] + max_out <= reserve
+        assert max_out is None and reserve <= BUDGET["max_tokens_per_step"] and est["bound"] + agent.ep.MIN_ANSWER_TOKENS <= reserve
 
 
 def test_scripts_with_many_tokens_per_character_are_counted_not_guessed(monkeypatch, tmp_path):
@@ -188,7 +182,7 @@ def test_a_long_multilingual_prompt_that_really_exceeds_the_ceiling_is_refused_a
     from peachme import PeachError
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 270000, 0.0))
     ok = agent.ep.output_budget(TEXTS["chinese"][:3000], {"output_limit": 8192})
-    assert ok[0] and ok[1] <= 24000
+    assert ok == (None, 24000)
     with pytest.raises(PeachError, match="BUDGET_HEADROOM_BELOW_MIN_ANSWER"):
         agent.ep.output_budget(TEXTS["chinese"] * 6, {"output_limit": 8192})                    # ~60k tokens of CJK: cannot fit one step under 24,000
 
@@ -229,8 +223,8 @@ def test_plumme_enforces_max_total_tokens_before_dispatch_against_its_own_estima
     assert ok["success"] and len(adapter.executed) == 1 and adapter.executed[0]["max_output_tokens"] == 50                              # exactly the room fits
 
 
-def test_a_continuation_that_would_pass_the_reservation_is_refused_by_the_ledger_before_dispatch(monkeypatch, tmp_path):
-    """The long answer does not fit the reserved room: PlumMe's ledger refuses the continuation (input so far + the stated cap > reservation) - one dispatch only, nothing beyond the reservation."""
+def test_a_continuation_the_remaining_authorization_cannot_accommodate_is_refused_before_dispatch(monkeypatch, tmp_path):
+    """The long answer does not fit what the step may still use: the first response is cut at the route's limit, the continuation is refused by the step's ParentBudget BEFORE dispatch - one request only."""
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": "Reasoning: " + "x" * 8500 + "\n" + J(GOOD)}]}, real=True, budget=(50, 9000, 0.0))
     try:
         say(agent, state)
@@ -238,7 +232,17 @@ def test_a_continuation_that_would_pass_the_reservation_is_refused_by_the_ledger
         pass
     assert len(stack.adapter.executed) == 1
     receipts = [json.loads(line) for line in (tmp_path / "receipts.jsonl").read_text().splitlines()]
-    assert receipts and all(((r.get("usage") or {}).get("total_tokens") or 0) <= 9000 + 400 for r in receipts)     # (the scripted provider adds 400 input tokens per call)
+    assert receipts and all(((r.get("usage") or {}).get("total_tokens") or 0) <= 9000 + 400 for r in receipts)
+
+
+def test_a_cut_off_answer_continues_inside_the_step_authorization_and_is_delivered_whole(monkeypatch, tmp_path):
+    """The legitimate case: the route cuts the answer at its limit, PlumMe continues, every request is pre-checked against the step's 24,000 tokens, the whole answer arrives."""
+    answer = "Reasoning: " + "x" * 15000 + "\n" + J(GOOD)
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": answer}], "challenge": [NONE_WITH_GROUNDS]}, real=True, budget=(50, 100000, 0.0))
+    action, _ = say(agent, state)
+    step = next(e for e in events(out) if e["event"] == "STEP" and e["tag"] == "draft")
+    assert action == GOOD and step["step_requests"] >= 2 and step["step_tokens_charged"] <= 24000        # several provider requests, one step, inside the authorization
+    assert sum(1 for e in stack.adapter.executed if e["stage"] == "draft") == step["step_requests"]
 
 
 # ---- the owner's per-step authorization across multi-request executions (continuations, retries) ------------------------------------------------------------------

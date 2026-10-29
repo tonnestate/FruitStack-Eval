@@ -17,6 +17,7 @@ Agreement is a reviewer's claim, never proof: every agreeing reviewer is recorde
 as validation. A specialist that overrules the author's rejection is recorded in `overruled`, and the specialist's answer is examined once more by a lineage not yet involved (`final_reviewed`)."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -25,6 +26,60 @@ from cherryme.brother import _FOUND, _NONE, CHALLENGE, SPECIALIST, _add, _ok, ru
 MAX_ROUNDS = 2
 GROUNDS = ("\nIn either case, after the first line, state the specific checks you made against the materials (policy clause, conversation fact, tool result) and what each showed. "
            "A bare verdict without these checks is not accepted as an assessment.")
+
+
+TERMINATION = ("A colleague rejected the proposed action and the replacement below ENDS the interaction (it hands the customer over or stops the work). Rejecting one action is not ending the task: the customer's "
+               "other requests may still be open, and the policy may allow declining only the part it forbids.\n"
+               "TASK MATERIALS:\n{task}\n\nREJECTED ACTION:\n{rejected}\n\nPROPOSED TERMINATING REPLACEMENT:\n{replacement}\n\n"
+               "Reply in exactly these four lines:\n"
+               "OPEN_REQUESTS: <every request of the customer that is still unmet, separated by ' | ', or NONE>\n"
+               "TERMINATION_REQUIRED_CLAUSE: <a verbatim quote from the policy or instructions in the materials that REQUIRES ending the interaction for ALL open requests, or NONE>\n"
+               "ALTERNATIVE: <ONE valid JSON action in the task's output format that declines only what the policy forbids and continues with the open requests, or NONE>\n"
+               "VERDICT: CONTINUE or TERMINATE")
+
+
+def _field(text: str, name: str) -> str:
+    m = re.search(rf"^\s*{name}\s*:\s*(.*)$", text or "", re.I | re.M)
+    return m.group(1).strip() if m else ""
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\s+", " ", (text or "").strip().strip("\"'").lower())
+
+
+def termination_review(*, task_prompt: str, policy_text: str, rejected: str, replacement: str, work: Callable[..., dict], parse: Callable[[str], dict | None],
+                       terminating: Callable[[dict], bool], used: tuple, continuity=None) -> dict:
+    """Rejecting one action is not ending the task. When a rejection ended up as an action that terminates the interaction (a human transfer), a lineage not yet involved is asked which requests are still open,
+    for the verbatim policy clause that REQUIRES ending, and for a continuing alternative. The decision is mechanical, never a reviewer's say-so: TERMINATE stands only if the quoted clause really occurs in the
+    policy / instructions AND no continuing, non-terminating alternative was offered while requests remain open; otherwise the continuing alternative is adopted, or - with none - the rejected action is
+    declined without ending (DECLINE_FALLBACK, the host's generic decline). A review that cannot be delivered leaves the replacement untouched (a required transfer is never blocked by an outage)."""
+    c = work(TERMINATION.format(task=task_prompt, rejected=rejected, replacement=replacement), "termination", exclude=used)
+    text = _ok(c)
+    out = {"reviewed": text is not None, "model": c.get("model_key"), "lineage": c.get("independence_key")}
+    if text is None:
+        out.update({"outcome": "REVIEW_UNAVAILABLE", "failure": c.get("failure_class") or "NO_ADMISSIBLE_WORKER"})
+        return out
+    opens = [x.strip() for x in re.split(r"\s*\|\s*", _field(text, "OPEN_REQUESTS")) if x.strip() and x.strip().upper() != "NONE"]
+    clause, alt_text, verdict = _field(text, "TERMINATION_REQUIRED_CLAUSE"), _field(text, "ALTERNATIVE"), _field(text, "VERDICT").upper()
+    clause_ok = bool(clause) and clause.upper() != "NONE" and _squash(clause) in _squash(task_prompt + "\n" + policy_text)
+    alternative = parse(alt_text) if alt_text and alt_text.upper() != "NONE" else None
+    alternative = alternative if alternative is not None and not terminating(alternative) else None
+    out.update({"open_requests": opens, "clause": clause[:300], "clause_verified": clause_ok, "verdict": verdict, "alternative": alt_text[:300] if alternative else None, "grounds": text[:500]})
+    if continuity is not None:
+        for o in opens:
+            continuity.register_objective(o, source="termination_review")
+        continuity.reject("action", rejected[:300], reason="rejected by independent review")
+        if clause_ok:
+            continuity.restrict(clause, source="policy")
+    if verdict == "TERMINATE" and clause_ok and not (opens and alternative is not None):
+        out["outcome"] = "TERMINATE_APPROVED"
+    elif alternative is not None:
+        out.update({"outcome": "CONTINUE_ADOPTED", "action": alternative, "text": alt_text})
+    else:
+        out["outcome"] = "DECLINE_FALLBACK"
+    if continuity is not None:
+        continuity.decide(f"{out['outcome']}: {replacement[:160]}", grounds=(clause if clause_ok else "no verified clause requires ending the interaction")[:300])
+    return out
 
 
 def _grounds(text: str | None) -> str:
@@ -53,11 +108,14 @@ class Collab:
     overruled: list = field(default_factory=list)           # author positions rejected after criticism and overruled by the specialist alone
     final_reviewed: bool = False                            # an independent reviewer examined exactly the final answer and found nothing
     independent_review: bool = False                        # a critique was delivered by a KNOWN lineage different from the author's (an unknown lineage proves nothing)
+    termination: dict | None = None                         # the review of a terminating replacement (termination_review), None when no rejection ended in a terminating action
+    declined: bool = False                                  # the rejected action is declined WITHOUT ending: the host's generic decline replaces it
     trail: list = field(default_factory=list)               # every ledger row in order: the draft, each critique (with its text), each revision, the specialist - who, which lineage, what
 
 
 def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledger, claim_id: str, parse: Callable[[str], dict | None],
-                digest: Callable[[dict], str], max_rounds: int = MAX_ROUNDS) -> Collab:
+                digest: Callable[[dict], str], max_rounds: int = MAX_ROUNDS, terminating: Callable[[dict], bool] | None = None, policy_text: str = "",
+                continuity=None) -> Collab:
     def sig(text: str) -> str | None:
         action = parse(text) if text else None
         return digest(action) if action is not None else None
@@ -124,6 +182,17 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
         else:
             res.failures.append({"stage": "specialist", "class": c.get("failure_class") or "NO_ADMISSIBLE_WORKER", "model": c.get("model_key")})
 
+    termination, declined = None, False
+    seed_action = parse(seed["text"])
+    if terminating is not None and final_action is not None and terminating(final_action) and not (seed_action is not None and terminating(seed_action)):
+        used_now = tuple(k for k in {seed.get("independence_key"), *[r.identity.get("independence_key") for r in rows if r.identity.get("independence_key")]} if k)
+        res.calls += 1
+        termination = termination_review(task_prompt=task_prompt, policy_text=policy_text, rejected=seed["text"], replacement=final_text, work=asked, parse=parse, terminating=terminating, used=used_now,
+                                         continuity=continuity)
+        if termination["outcome"] == "CONTINUE_ADOPTED":
+            final_text, final_action = termination["text"], termination["action"]
+        elif termination["outcome"] == "DECLINE_FALLBACK":
+            final_action, declined = None, True
     changed = sig(final_text) != seed_sig
     material_critics: set = set()
     attribution = []
@@ -153,11 +222,14 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
     unresolved = [{"critic": c.worker, "objection": (c.answer_text or "")[:400]} for c in found if c.id not in material_critics]
     improved = changed and bool(material_critics)
     trail = [{"stage": r.kind, "reason": r.reason, "model": r.worker, "lineage": r.identity.get("independence_key"), "status": r.epistemic_status, "text": (r.answer_text or "")[:600]} for r in rows]
+    if termination is not None:
+        trail.append({"stage": "TERMINATION_REVIEW", "reason": termination["outcome"], "model": termination.get("model"), "lineage": termination.get("lineage"), "status": "UNVERIFIED",
+                      "text": ("open: " + " | ".join(termination.get("open_requests", [])) + f"; clause verified: {termination.get('clause_verified')}; verdict: {termination.get('verdict')}")[:600]})
     author = seed.get("independence_key")
     independent_review = any(c.identity.get("independence_key") and c.identity.get("independence_key") != author for c in crits)
     grounded = any(a["grounds_stated"] for a in agreement)
     final_reviewed = any(a["agreed_with"] == final_sig and a["agreed_with"] is not None for a in agreement)
     return Collab(final_text=final_text, final_action=final_action, changed=changed, improved=improved, validated=bool(crits) and not found and not changed and grounded,
-                  review_unavailable=not crits, unresolved=unresolved, attribution=attribution, calls=res.calls, rounds=res.rounds, stop_reason=res.stop_reason,
+                  review_unavailable=not crits, unresolved=unresolved, termination=termination, declined=declined, attribution=attribution, calls=res.calls, rounds=res.rounds, stop_reason=res.stop_reason,
                   specialist_used=specialist_used, failures=res.failures, agreement=agreement,
                   ungrounded_agreement=bool(agreement) and not grounded, overruled=overruled, final_reviewed=final_reviewed, independent_review=independent_review, trail=trail)

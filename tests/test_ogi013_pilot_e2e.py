@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import subprocess
+import uuid
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -17,7 +18,6 @@ from ogi013_pilot_fixtures import PILOT, ROOT
 pytest.importorskip("plumme")        # needs the real components in the interpreter that runs pytest (not in the CI replica, which has none)
 
 REAL = Path("/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013")
-SCRATCH_DB = "mangome_ogi013_offline_e2e"
 pytestmark = [pytest.mark.skipif(not (REAL / "env.sh").is_file() or not (REAL / "runs/work.env").is_file() or not (REAL / "benchmarks/tau2-bench").is_dir() or not shutil.which("mongosh"),
                                  reason="needs the ogi-013 evaluation base, the tau2 checkout and a local MongoDB")]
 
@@ -28,12 +28,17 @@ def _mongosh(js: str) -> str:
 
 @pytest.fixture(scope="module")
 def scratch_db():
-    """A scratch copy of the evaluation MangoMe database (read the source, write only the copy); dropped afterwards. The source must come out unchanged."""
+    """A scratch copy of the evaluation MangoMe database, UNIQUELY OWNED by this fixture invocation (name = pid + random suffix): concurrent or orphaned test processes can never drop, re-copy or read each other's
+    database. Reads the source, writes only its own copy, drops only its own copy; the source must come out unchanged. An existing database of that name is refused, never reused."""
+    name = f"mangome_ogi013_e2e_{os.getpid()}_{uuid.uuid4().hex[:8]}"
     probe = "JSON.stringify(db.getSiblingDB('mangome_ogi013_eval').getCollectionNames().sort().map(c=>[c,db.getSiblingDB('mangome_ogi013_eval')[c].countDocuments()]))"
     before = _mongosh(probe)
-    _mongosh("const s=db.getSiblingDB('mangome_ogi013_eval'), d=db.getSiblingDB('%s'); d.dropDatabase(); s.getCollectionNames().forEach(c=>s[c].aggregate([{$out:{db:'%s',coll:c}}]));" % (SCRATCH_DB, SCRATCH_DB))
-    yield SCRATCH_DB
-    _mongosh("db.getSiblingDB('%s').dropDatabase()" % SCRATCH_DB)
+    assert name not in json.loads(_mongosh("JSON.stringify(db.getMongo().getDBNames())")), "scratch database name collision"
+    _mongosh("const s=db.getSiblingDB('mangome_ogi013_eval'); s.getCollectionNames().forEach(c=>s[c].aggregate([{$out:{db:'%s',coll:c}}]));" % name)
+    try:
+        yield name
+    finally:
+        _mongosh("db.getSiblingDB('%s').dropDatabase()" % name)
     assert _mongosh(probe) == before, "the evaluation database must not be touched by the simulation"
 
 

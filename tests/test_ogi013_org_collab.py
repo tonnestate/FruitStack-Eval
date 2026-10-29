@@ -158,9 +158,9 @@ def _agent_collab(workers, action, gate=None, uncertain=False):
     from ogi013_org_economy import EconomyGate
     from ogi013_tau2_agent import FruitStackTau2Agent
     events = []
-    ep = SimpleNamespace(economy=gate or EconomyGate(), ledger=ContributionLedger(), claim=SimpleNamespace(id="C-ep"), collab_issues=0, stats={"escalations": 0, "challenges_found": 0, "revisions": 0},
+    ep = SimpleNamespace(economy=gate or EconomyGate(), ledger=ContributionLedger(), claim=SimpleNamespace(id="C-ep"), continuity=None, collab_issues=0, stats={"escalations": 0, "challenges_found": 0, "revisions": 0},
                          event=lambda kind, **d: events.append((kind, d)), step=lambda p, stage, exclude=(), prefer=None: workers(p, stage, prefer, exclude))
-    me = SimpleNamespace(write_tools={"cancel_reservation"})
+    me = SimpleNamespace(write_tools={"cancel_reservation"}, domain_policy="")
     draft = {"output": json.dumps(action), "model_key": "draft-model", "independence_key": "lineage-draft", "receipt_id": "r0"}
     out = FruitStackTau2Agent._org_collab(me, ep, PROMPT, draft, action, {"transcript": []}, uncertain=uncertain)
     return out, events, ep

@@ -164,7 +164,9 @@ def arm_cap(budget, arm):
     if arm in caps:
         return caps[arm]
     hits = [v for k, v in caps.items() if k.rsplit("/", 1)[-1] == arm.rsplit("/", 1)[-1]]
-    return hits[0] if len(hits) == 1 else None
+    if len(hits) == 1:
+        return hits[0]
+    return budget.get("default_arm_cap") if not hits else None          # a campaign of many episodes declares ONE per-episode cap for all of them; an ambiguous role is still no cap
 
 
 def session_env(budget, arm):

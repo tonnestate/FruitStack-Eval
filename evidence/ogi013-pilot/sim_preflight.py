@@ -61,7 +61,7 @@ def contract_check(budget_path: str, guard_path: str) -> dict:
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             budget = json.loads(Path(budget_path).read_text())
-            arms = list(budget["arms"])
+            arms = list(budget["arms"]) or ["contract/probe"]          # a campaign budget declares one default per-episode cap instead of named arms
             runs = tmp / "runs"
             for a in arms:
                 (runs / a / "fruitstack/plumme-state").mkdir(parents=True)

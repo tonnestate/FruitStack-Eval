@@ -300,3 +300,20 @@ def test_outside_the_pilot_the_simulator_is_unchanged(monkeypatch, tmp_path):
     generate, svc, _ = _install_sim(monkeypatch, tmp_path, {"draft": ["hi"]}, armed=False)
     generate("ignored", [SimpleNamespace(role="user", content="Hello")])
     assert svc.executed[0]["max_total_tokens"] is None and svc.requests[0].budget.max_cost_usd is None       # frozen conditions: no pilot limits
+
+
+READ = {"action": "tool", "name": "get_reservation_details", "arguments": {"reservation_id": "HAT001"}}
+
+
+def test_single_e_scope_writes_spends_the_extra_drafts_only_on_consequential_decisions(monkeypatch, tmp_path):
+    monkeypatch.setenv("OGI013_SINGLE_E_K", "3")
+    monkeypatch.setenv("OGI013_SINGLE_E_SCOPE", "writes")
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path / "a", {"draft": [J(READ)]}, mode="single_e", collab=False)
+    assert say(agent, state)[0] == READ and len(stack.svc.executed) == 1                          # a read: one draft, no vote
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path / "b", {"draft": [J(GOOD), J(BAD), J(GOOD)]}, mode="single_e", collab=False)
+    assert say(agent, state)[0] == GOOD and len(stack.svc.executed) == 3                          # a write: k independent drafts, majority
+    assert [e["event"] for e in events(out)].count("SINGLE_E_VOTE") == 1
+    monkeypatch.delenv("OGI013_SINGLE_E_SCOPE")
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path / "c", {"draft": [J(READ)] * 3}, mode="single_e", collab=False)
+    say(agent, state)
+    assert len(stack.svc.executed) == 3                                                           # the registered C3 behaviour (scope all) is unchanged

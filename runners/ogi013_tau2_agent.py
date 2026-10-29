@@ -94,6 +94,14 @@ def _action_digest(action: dict) -> str:
     return hashlib.sha256(json.dumps(action, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
 
+DECLINE_ACTION = {"action": "message", "content": "I'm sorry, I cannot do that. Is there anything else I can help you with?"}      # the host's generic decline (also used for a refused tool call)
+
+
+def _is_terminating(action: dict) -> bool:
+    """An action that ends the interaction rather than advancing it: a human transfer."""
+    return action.get("action") == "tool" and action.get("name") == "transfer_to_human_agents"
+
+
 def should_organize(mode: str, action: dict, write_tools: set[str]) -> bool:
     if mode == "fixed":
         return True
@@ -182,6 +190,8 @@ class Episode:
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         self.org = None
         self.economy = None            # EconomyGate when OGI013_ORG_ECONOMY=1 (opt-in; the frozen conditions run without it)
+        from cherryme.continuity import ContinuityLedger
+        self.continuity = ContinuityLedger(log.with_name("continuity.json"), objective=f"{domain} task {task_id}")      # cognitive continuity across corrections (CherryMe CM-CONT/1); not a work or truth store
         self.collab_issues = 0         # collaboration reviews in this episode that found issues (the alert that justifies later cooperation)
         self.budget_stopped = False
         if mode == "rg2" or os.environ.get("OGI013_PILOT_BUDGET"):          # child calls of CherryMe's engine are accounted by PeachMe, which requires a configured session budget; the pilot configures it for BOTH arms
@@ -282,6 +292,15 @@ class Episode:
 
     MIN_ANSWER_TOKENS = 2048    # pilot: a step that cannot afford at least this much answer is not dispatched (a budget stop, not a truncated answer)
 
+    def checkpoint_continuity(self) -> None:
+        """Write the continuity record to MangoMe's canonical work graph (checkpoint_work, idempotent per record sequence) so that a restart or another worker finds it there; a failure is recorded, never fatal."""
+        led = self.continuity
+        try:
+            self.stack.fs.mango.checkpoint(self.work, self.actor, "COGNITIVE_CONTINUITY", {**led.checkpoint_payload(), "idempotency_key": f"cont-{self.sid}-{led.seq}"}, turn_id=self.turn_id)
+            self.event("CONTINUITY_CHECKPOINT", seq=led.seq, open_objectives=len(led.open_objectives()))
+        except Exception as exc:  # noqa: BLE001
+            self.event("CONTINUITY_CHECKPOINT_FAILED", error=f"{type(exc).__name__}: {str(exc)[:200]}")
+
     def step_authorization(self) -> tuple[int | None, int | None]:
         """(tokens, provider requests) the owner's budget allows THIS step in total, continuations and retries included; (None, None) outside the pilot."""
         from ogi013_pilot_gate import token_limits
@@ -310,8 +329,10 @@ class Episode:
 
     def output_budget(self, prompt: str, env: dict) -> tuple[int | None, int | None]:
         """(max_output_tokens, reserve_tokens) for one step. Outside the pilot: unchanged (2048 per response, reserve = prompt bytes + 2048) - the frozen conditions keep their behaviour.
-        In the pilot the output cap is the RESERVED room (reservation minus the counted input) or the route's own limit if smaller, never a fixed number; the reservation is sized from the route's
-        published output limit and capped only by budget facts - the owner-approved per-step ceiling, PeachMe's remaining session tokens and the pilot ledger's remaining headroom."""
+        In the pilot the step's token authorization is the reservation: min(the owner-approved per-step ceiling, the pilot ledger's remaining headroom, PeachMe's remaining session tokens); no fixed output cap is set.
+        PlumMe sizes the first response as min(route limit, reservation - its input estimate) and, when an answer is cut off at the route's limit, CONTINUES it; every request of the step (first attempt and each
+        continuation) is checked beforehand against the same authorization by the step's ParentBudget (ogi013_pilot_gate.step_parent_budget), which also clamps each response to the headroom left. A step is refused
+        before dispatch only when the counted input (the larger of PlumMe's estimate and a real tokenizer, see input_tokens) leaves less than MIN_ANSWER_TOKENS of the authorization."""
         from ogi013_pilot_gate import token_limits
         from peachme import PeachError
         limits = token_limits()
@@ -320,14 +341,11 @@ class Episode:
         est = self.input_tokens(prompt, env)
         self._input_estimate = est
         inp = est["bound"]
-        route_out = env.get("output_limit") or env.get("context_window")
         snap = self.stack.fs.governance.snapshot(self.sid)
-        caps = [inp + route_out if route_out else None, limits["per_step"], limits["headroom"], (snap or {}).get("tokens_remaining")]
-        reserve = int(min(c for c in caps if c is not None))
+        reserve = int(min(c for c in (limits["per_step"], limits["headroom"], (snap or {}).get("tokens_remaining")) if c is not None))
         if reserve - inp < self.MIN_ANSWER_TOKENS:
             raise PeachError("BUDGET_HEADROOM_BELOW_MIN_ANSWER")
-        room = reserve - inp                                     # the reserved output: PlumMe's per-response limit is min(route limit, reservation - ITS estimate); stating it here also bounds every continuation (its ledger refuses a call whose input + this cap exceed the reservation)
-        return (min(int(env["output_limit"]), room) if env.get("output_limit") else room), reserve
+        return None, reserve
 
     def reserve(self, prompt: str) -> int | None:
         snap = self.stack.fs.governance.snapshot(self.sid)
@@ -401,7 +419,9 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         return str(m)
 
     def _decision_prompt(self, state: dict) -> str:
-        return self.prompt_head + "\n<conversation>\n" + "\n".join(state["transcript"]) + "\n</conversation>\nYour next action (one JSON object):"
+        cont = self.ep.continuity
+        record = ("\n<your_earlier_decisions>\n" + cont.summary() + "\n(Open items stay open until closed with a reason; a rejected action does not close them.)\n</your_earlier_decisions>") if cont.seq else ""       # CM-CONT/1, only once something was recorded
+        return self.prompt_head + "\n<conversation>\n" + "\n".join(state["transcript"]) + "\n</conversation>" + record + "\nYour next action (one JSON object):"
 
     def generate_next_message(self, message, state: dict):
         ep = self.ep
@@ -427,7 +447,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         prompt = self._decision_prompt(state)
         draft = ep.step(prompt, "draft")
         action = parse_action(draft["output"]) if draft["success"] else None
-        if self.mode == "single_e":
+        if self.mode == "single_e" and self._single_e_applies(action):
             draft, action = self._single_e_vote(ep, prompt, draft, action)
         used_format_retry = False
         if action is None and draft["success"]:
@@ -451,7 +471,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
             names = {t.name for t in self.tools}
             if action["name"] not in names:
                 ep.event("UNKNOWN_TOOL", name=action["name"])
-                action = {"action": "message", "content": "I'm sorry, I cannot do that. Is there anything else I can help you with?"}
+                action = dict(DECLINE_ACTION)
         if action["action"] == "tool":
             msg = AssistantMessage.text("", tool_calls=[ToolCall(id=f"call_{uuid.uuid4().hex[:10]}", name=action["name"], arguments=action["arguments"], requestor="assistant")])
             state["transcript"].append(f"ASSISTANT TOOL CALL: {action['name']}({json.dumps(action['arguments'], ensure_ascii=False)})")
@@ -462,6 +482,13 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.assure({"question_type": f"ACT:{action['name']}" if action["action"] == "tool" else "SAY", "question_outcome": outcome, "verified_evidence_total": ep.verified_results, "mutation_error": {"code": getattr(ep, "last_error", None)} if outcome == "COUNTED_FAILURE" else {}})
         ep.last_error = None
         return msg, state
+
+    def _single_e_applies(self, action: dict | None) -> bool:
+        """OGI013_SINGLE_E_SCOPE=all (default, the registered C3 behaviour): k drafts at every turn. =writes (COLLAB-1): the extra drafts are spent on the decisions COLLAB reviews - a write or a transfer -
+        and only there, so the effort is matched per consequential decision and not per turn."""
+        if os.environ.get("OGI013_SINGLE_E_SCOPE", "all") != "writes":
+            return True
+        return action is not None and action["action"] == "tool" and (action["name"] in self.write_tools or action["name"] == "transfer_to_human_agents")
 
     def _single_e_vote(self, ep: Episode, prompt: str, first: dict, first_action: dict | None) -> tuple[dict, dict | None]:
         """SINGLE-E: k independent drafts from the same supply (each a normal PeachMe step), majority canonical action. No critique, revision or organisation.
@@ -568,7 +595,8 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         seed = {"text": draft["output"], "model_key": draft.get("model_key"), "independence_key": draft.get("independence_key"), "receipt_id": draft.get("receipt_id")}
         task_prompt = prompt + "\n(Reminder for any reviewer: the reply must stay a single valid JSON action and must comply with the policy and the tool documentation.)"
         try:
-            out = collaborate(task_prompt=task_prompt, seed=seed, work=work, ledger=ep.ledger, claim_id=ep.claim.id, parse=parse_action, digest=_action_digest)
+            out = collaborate(task_prompt=task_prompt, seed=seed, work=work, ledger=ep.ledger, claim_id=ep.claim.id, parse=parse_action, digest=_action_digest,
+                              terminating=_is_terminating, policy_text=self.domain_policy, continuity=ep.continuity)
         except Exception as exc:  # noqa: BLE001 - visible; the benchmark outcome must not depend on the collaboration layer
             if _is_stop(exc):
                 ep.budget_stopped = True
@@ -582,7 +610,7 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.event("ORG_COLLAB", purpose=purpose, action=action.get("name", "message"), action_kind=kind, stop=out.stop_reason, calls=out.calls, rounds=out.rounds, changed=out.changed,
                  improved=out.improved, validated=out.validated, review_unavailable=out.review_unavailable, specialist=out.specialist_used, unresolved=out.unresolved,
                  attribution=out.attribution, failures=out.failures, agreement=out.agreement, ungrounded_agreement=out.ungrounded_agreement,
-                 overruled=out.overruled, final_reviewed=out.final_reviewed, independent_review=out.independent_review, trail=out.trail, draft=_action_digest(action),
+                 overruled=out.overruled, final_reviewed=out.final_reviewed, independent_review=out.independent_review, trail=out.trail, termination=out.termination, declined=out.declined, final_text=out.final_text if out.final_action is not None else None, draft=_action_digest(action),
                  final=_action_digest(out.final_action) if out.final_action is not None else None)
         if out.changed and out.final_action is not None:
             ep.stats["revisions"] += 1
@@ -590,6 +618,11 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         ep.collab_issues += 1 if found else 0
         ep.economy.note_outcome({"dissent": [1] if found else [], "status": "REFUTED" if out.changed else "UNKNOWN", "atoms": [], "delivered": 0 if out.review_unavailable else 1,
                                  "dispatch_total": out.calls}, purpose)
+        if out.termination is not None:
+            ep.checkpoint_continuity()
+        if out.declined:                                              # the rejected action is declined without ending the work; the customer's other requests stay open
+            ep.event("ORG_DECLINE", action=action.get("name", "message"), reason="termination_not_required")
+            return dict(DECLINE_ACTION)
         return out.final_action if (out.changed and out.final_action is not None) else action
 
     def _organize(self, ep: Episode, prompt: str, draft: dict, action: dict) -> tuple[str, dict]:
