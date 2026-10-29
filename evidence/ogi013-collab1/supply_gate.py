@@ -13,6 +13,68 @@ import time
 from pathlib import Path
 
 
+import re
+
+_UNSUITABLE = re.compile(r"guard|embed|rerank|moderat|whisper|tts|stt|image|uncensored|heretic|roleplay|\brp\b|nsfw|abliterat|jailbreak", re.I)
+_SIZE = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)\s?b(?![a-z])", re.I)
+
+
+def simulator_suitable(model_id: str, minimum_b: float = 20.0) -> bool:
+    """Objective, outcome-independent suitability of a model to play the customer (AMENDMENT-1 S): a general-purpose chat model, not a classifier / embedding / speech / role-play / uncensored
+    variant, and - where the id states a parameter count - at least 20 B. Decided from the model id text alone, before any episode."""
+    if _UNSUITABLE.search(model_id):
+        return False
+    sizes = [float(x) for x in _SIZE.findall(model_id)]
+    return not sizes or max(sizes) >= minimum_b
+
+
+def best_selection(svc, sim, provider, log: Path, route_file: Path, tries: int = 6) -> int:
+    """The simulator model of a block is whatever PlumMe's BEST selection picks from ALL its currently executable routes, preferring models served by >= 2 providers (the original protocol hint
+    `_single_provider_keys`), verified by ONE real tiny request; a model that fails its probe is excluded for the next pick. Pinned for the block's three conditions afterwards."""
+    from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
+    from plumme.knowledge import independence_key
+    skip: set[str] = set()
+    hint = True                                                                                     # multi-provider preference; dropped when no such model is executable right now
+    for _ in range(tries):
+        t0, row = time.time(), {"ts": time.time(), "selection": "BEST"}
+        try:
+            async def one():
+                req = NeuronRequest(consumer="ogi013-supply-gate", objective="Supply gate", role_id=sim.ROLE, cognitive_owner=CognitiveOwner.CONSUMER, selection_mode=SelectionMode.BEST,
+                                    required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1, max_cost_usd=0.0), metadata={"exclude_independence_keys": sorted((set(sim._single_provider_keys(svc)) if hint else set()) | skip)})
+                n = await svc.acquire_neuron(req)
+                res = await provider.execute(lease_id=n.lease_id, task="[user] Reply with the single word OK.", max_output_tokens=None, max_total_tokens=2000, max_cost_usd=0.0)
+                return n, res
+            n, res = asyncio.run(one())
+            if not simulator_suitable(n.route.model):
+                row.update(model_key=n.route.model_key, provider=n.route.provider, success=False, skipped="UNSUITABLE_AS_SIMULATOR", model=n.route.model)
+                skip.add(independence_key(n.route))
+                with log.open("a") as f:
+                    f.write(json.dumps(row) + "\n")
+                continue
+            row.update(model_key=n.route.model_key, provider=n.route.provider, success=bool(res["success"] and res["output"]), failure_class=res["failure_class"], latency_s=round(time.time() - t0, 2),
+                       input_tokens=res["input_tokens"], output_tokens=res["output_tokens"])
+            if row["success"]:
+                route_file.parent.mkdir(parents=True, exist_ok=True)
+                route_file.write_text(json.dumps({"model_key": n.route.model_key, "offer_id": n.route.offer_id, "provider": n.route.provider, "model": n.route.model, "verified_by": "supply_gate:BEST"}))
+                with log.open("a") as f:
+                    f.write(json.dumps(row) + "\n")
+                return 0
+            skip.add(independence_key(n.route))
+        except Exception as exc:  # noqa: BLE001 - nothing executable for this pick
+            row.update(success=False, exception=type(exc).__name__, detail=str(exc)[:160], multi_provider_hint=hint)
+            with log.open("a") as f:
+                f.write(json.dumps(row) + "\n")
+            if hint:
+                hint = False
+                continue
+            break
+        with log.open("a") as f:
+            f.write(json.dumps(row) + "\n")
+    with log.open("a") as f:
+        f.write(json.dumps({"ts": time.time(), "verdict": "SUPPLY_UNAVAILABLE", "selection": "BEST"}) + "\n")
+    return 3
+
+
 def seed_pool_health(svc, runs: Path) -> None:
     """Replay evidence this campaign already holds through PlumMe's own failure path so the persistent pool health knows it: (1) every credential the registry holds EXHAUSTED, (2) the latest
     failure receipt per provider in the campaign's state directories re-classified by PlumMe's (corrected) classifier. Idempotent; nothing is dispatched."""
@@ -75,6 +137,8 @@ def main(runs: Path, route_file: Path) -> int:
     random.shuffle(pool)
     log = runs / "supply_gate.jsonl"
     provider = PlumMeProvider(svc)
+    if not pool:                                                                                    # no allowlist (retired, AMENDMENT-1 S): PlumMe's own BEST over its whole executable supply
+        return best_selection(svc, sim, provider, log, route_file)
     probeable = [k for k in pool if sim._earliest_retry(svc, k) == 0.0]
     if not probeable:
         with log.open("a") as f:

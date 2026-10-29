@@ -136,3 +136,11 @@ def test_an_operator_terminated_first_episode_is_archived_and_the_block_chooses_
     assert not (camp.R / f"collab1-{d}.route").exists()                                             # the unusable simulator model is not pinned any more
     archived = list((camp.C / "discarded").glob(f"{d}-operator-infra*/{d}/{first}.episode.json"))
     assert archived and json.loads(archived[0].read_text())["archived_as"].startswith("operator-infra")
+
+
+def test_simulator_suitability_is_decided_from_the_model_id_alone():
+    import sys
+    sys.path.insert(0, str(ROOT / "evidence/ogi013-collab1"))
+    from supply_gate import simulator_suitable
+    assert all(simulator_suitable(m) for m in ("gpt-oss-120b", "llama-3.3-70b", "qwen3.5-397b", "north-mini-code", "dots3-note-preview", "mistral-small-3.2-24b"))
+    assert not any(simulator_suitable(m) for m in ("qwen3guard-gen-0.6b", "qwen3.5-0.8b", "llama-3-2-1b-instruct", "gemma-4-e4b-uncensored-aggressive", "lfm2.5-2.6b"))
