@@ -1,0 +1,31 @@
+# OGI-013-COLLAB-1 — AMENDMENT-1 (prospective; dated 2026-10-29; no COLLAB-1 episode has been run)
+
+The original design (`evidence/ogi013-phase2/COLLAB_STUDY_DESIGN.md`, `STUDY_LOCK.txt`, `study_manifest.json` v1) is preserved unchanged. This amendment supersedes only what is listed here; `AMENDMENT_LOCK.txt` hashes the resulting files.
+Population (48 tasks), conditions (SINGLE, COLLAB, SINGLE-E), seed, strata, the Holm family size (3) and the test (exact two-sided McNemar) are unchanged.
+
+## A. Decision-quality evaluation (`decision_metrics.py`, rewritten; evaluator-only)
+- **Attempted vs executed** actions are separated: attempts are the draft/final actions of the review trail; executed actions are the agent's tool calls in the OFFICIAL result paired with their tool messages (`error` flag).
+- **Deviation from the reference is not a policy violation.** The official grader for these tasks (reward basis DB/COMMUNICATE) does not evaluate the NL policy assertions, so policy compliance is reported as `NOT_EVALUATED_BY_OFFICIAL_GRADER` unless `nl_assertions` is present.
+  What is measured: `state_changing_deviations` (a write executed successfully that the reference does not contain; DB evidence `db_match` reported beside it), `failed_write_attempts`, `unnecessary_transfer`, and the objectives completed / abandoned with a mechanical cause (`TRANSFER`, `PREMATURE_STOP_PENDING`, `OTHER_TERMINATION`).
+- Review outcomes: PREVENTED_WRITE_ERROR, ERROR_REPLACED_BY_DIFFERENT_ERROR, ERROR_NOT_FIXED, CORRECT_BLOCKED, VALIDATED_CORRECT, UNNECESSARY_CHANGE, NO_CHANGE_SAFE.
+- **E3 is redefined** from "≥ 1 unexpected write or unexpected transfer executed" to **"no state-changing deviation"** (the episode executed no write that succeeded although the reference does not contain it), COLLAB vs SINGLE, exact two-sided McNemar on pairs where both episodes have an official result (others excluded and counted). Transfers are reported separately and descriptively.
+  Reason: PILOT-4 showed that a transfer is a different failure from a state change and the original E3 mixed them; the reference is a benchmark artefact, not a policy judgement.
+- **Isolation:** the reference actions are read only by the evaluator (`analyze_study.py`, `decision_metrics.py`). No file under `runners/` mentions `evaluation_criteria` or imports the metrics (a test enforces this); the agent receives the tau2 `task` object but reads only its id.
+
+## B. Equal-effort comparison (see `CALIBRATION.md`)
+SINGLE-E draws its extra drafts per consequential decision (scope `writes`, k = 3 fixed from calibration data, not from COLLAB-1 results), the condition order is balanced per block, and realised requests/tokens are reported paired with an effort-matched sensitivity. The registered C3 SINGLE-E (every turn) is unchanged and not used here.
+
+## C. Study isolation
+- Task-ID overlap with C3 was checked on the actual lists: C3 Phase A/B use the 20 airline test-split tasks and the 40 retail test-split tasks (26 + 14 by the registered hash split); COLLAB-1 uses train-split tasks only; **intersection = ∅** (`tests/test_ogi013_collab1_campaign.py`, from the repository files).
+- COLLAB-1 runs in its own base (`prepare_study_base.py`): its own copy of the MangoMe database, its own runs directory and its own clones of the frozen ledger snapshot (`slots/D`, unchanged since 2026-10-26, before C3 Phase A); every episode clones the ledgers afresh. Nothing from `runs/c3-*`, `learned/`, attestation or training tables is read; no policy is learned, loaded or authorised (`OGI013_ORG_POLICY_MODE=OFF`).
+
+## D. Budget accounting (the PILOT-4 controls, reused)
+Per-episode caps (110 provider requests, 200,000 tokens, 24,000 tokens per agent step incl. continuations, 90 minutes, USD 0.00) and the campaign totals of `collab1_budget.json` are enforced by the existing pre-dispatch gate, PlumMe ParentBudget, request counting by `provider_attempt_count`, deduplicated step accounting and the guard watch;
+`pilot_guard.arm_cap` gained `default_arm_cap` (one cap for all episodes). A campaign-level limit halts the campaign (exit 3, never restarted by itself); an episode cap ends that episode as BUDGET_STOP (non-success) and the campaign continues. No new multipliers or gates.
+
+## E. Freeze
+`AMENDMENT_LOCK.txt` (written by `make_amendment_lock.sh` before the first episode) holds the sha256 of this amendment, the calibration, manifest v2, the budget, the launcher, the evaluator, the metrics and every implementation file. The launcher refuses to start on any other bytes.
+
+## F. Implementation base after the PILOT-4 product repair (2026-10-29, before any study episode)
+The COLLAB implementation under test now includes the decision-continuity repair: a rejection that ends in a terminating action (a human transfer) is checked by `termination_review` (`runners/ogi013_org_collab.py`) — a verbatim policy clause is required, a continuing alternative is preferred while requests remain open, the rejected action is otherwise declined without ending the work, and an unavailable review never blocks a transfer. The episode keeps a CherryMe `ContinuityLedger` (`cherryme/continuity.py`, CherryMe branch `ogi013-org-cherry`; the component heads are recorded per episode in `component_heads`).
+This changes COLLAB's behaviour relative to PILOT-4; SINGLE and SINGLE-E are unaffected (no review). The file hashes are in `AMENDMENT_LOCK.txt`.

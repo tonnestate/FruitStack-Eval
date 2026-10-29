@@ -1,0 +1,37 @@
+{
+ "study": "OGI-013-COLLAB-1 (prospective multi-task evaluation of the COLLAB mechanism; separate from C3)",
+ "status": "PROPOSAL - not an authorization. Nothing runs until the owner approves exactly this file (sha256) in an approval file.",
+ "manifest": "evidence/ogi013-collab1/study_manifest_v2.json",
+ "manifest_sha256": "567d30e00c05c8df335980522679e923ff9e0ee0e82b6808906ffc558c570568",
+ "episodes_planned": 144,
+ "arms": {},
+ "default_arm_cap": {
+  "max_dispatches": 110,
+  "max_tokens": 200000
+ },
+ "max_episode_minutes": 90,
+ "cumulative": {
+  "max_dispatches": 17424,
+  "max_tokens": 31680000,
+  "max_cash_usd": 0.0,
+  "max_wall_minutes": 20160
+ },
+ "request_breakdown": {
+  "base_ceiling": "144 episodes x 110 provider requests = 15,840; 144 x 200,000 tokens = 28,800,000",
+  "discard_overhead": "10% = 1,584 requests and 2,880,000 tokens for whole-block simulator discards (<=3 attempts per block); their usage counts against the totals",
+  "expected_use": "far below the ceilings: 20-80 requests and 40k-200k tokens per episode (estimates)"
+ },
+ "reserve_tokens_per_dispatch": 4000,
+ "max_tokens_per_step": 24000,
+ "max_tokens_per_step_definition": "owner-approved ceiling for ONE agent step (input + the whole answer incl. PlumMe continuations), enforced by PlumMe's ParentBudget before every provider request of the step",
+ "max_consecutive_failures": 20,
+ "dispatch_definition": "actual provider REQUESTS: each receipt counts receipt.metadata.provider_attempt_count (continuations, retries, credential rotation), at least 1; rejected attempts count; simulator receipts are the same rows and are not counted twice",
+ "token_definition": "recorded input+output usage; a successful dispatch without usage halts; a failure rejected before processing (PlumMe REJECTION_CLASSES) is known zero; any other failure without usage is charged reserve_tokens_per_dispatch; tokens of a failed step already carried by its receipts are not charged again",
+ "cash_definition": "authorised cash is 0.00 USD. Route classes ANONYMOUS_FREE, FREE_TIER, LOCAL, TRIAL_CREDIT, INCLUDED are zero-cash (TRIAL_CREDIT / INCLUDED consume an entitlement, reported); any other or unknown route class without a recorded cost halts.",
+ "supply": "the full eligible PlumMe supply (budget-aware AUTO), no vendor restriction",
+ "halt_policy": "a campaign-level limit halts the campaign (exit 3, evidence kept); an episode-level cap ends that episode as BUDGET_STOP (scored non-success) and the campaign continues; no automatic restart of a halted campaign",
+ "single_e": {
+  "k": 3,
+  "scope": "writes"
+ }
+}
