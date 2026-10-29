@@ -153,6 +153,8 @@ class Stack:
         if snap.exists() and not (Path(os.environ["PLUMME_STATE_DIR"]) / "knowledge" / "models.dev-api.json").exists():
             import shutil
             shutil.copyfile(snap, Path(os.environ["PLUMME_STATE_DIR"]) / "knowledge" / "models.dev-api.json")
+        from ogi013_credential_health import prepare_state
+        prepare_state(Path(os.environ["PLUMME_STATE_DIR"]))      # campaigns only: credential health earlier episodes learned (exhausted billing) is not forgotten by this process
         settings = Settings.load()
         self.svc = PlumMeService(settings, adapters=default_adapters(settings))
         if os.environ.get("FLM_KEY"):

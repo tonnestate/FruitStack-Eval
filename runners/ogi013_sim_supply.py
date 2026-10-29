@@ -94,18 +94,27 @@ def _explain(svc, model_key: str) -> dict:
         return {"explain_failed": f"{type(exc).__name__}: {exc}"[:200]}
 
 
-def _selection_pool(runs_dir: Path) -> list[str]:
-    """Models that may carry a new pair: the live-verified allowlist (sim_allowlist.json, from a real capacity survey) minus models recorded as quota-exhausted within the
-    recent failures (sim_exhausted.jsonl, written when a pinned model failed a block; excluded until PlumMe's own retry window ends, else one hour). Empty = no allowlist, plain PlumMe BEST. The ROUTE is always PlumMe's choice."""
+def _selection_pool(runs_dir: Path, svc=None) -> list[str]:
+    """Models that may carry a new pair: the live-verified allowlist (sim_allowlist.json, from a real capacity survey) minus models recorded as exhausted (sim_exhausted.jsonl, written when a pinned model failed a
+    block; excluded until PlumMe's own retry window ends, else one hour). Empty = no allowlist, plain PlumMe BEST - which still never sees an exhausted credential, because credential health is carried across
+    processes (ogi013_credential_health). A model is NOT blacklisted when another provider can serve it: with `svc`, a row that names the exhausted providers only excludes the model if EVERY offer of that
+    model is served by one of them (rows without providers - the older format - exclude the model as before). The ROUTE is always PlumMe's choice."""
     allow_file, spent_file = runs_dir / "sim_allowlist.json", runs_dir / "sim_exhausted.jsonl"
     if not allow_file.exists():
         return []
-    spent = set()
+    spent, by_provider = set(), {}
     if spent_file.exists():
         for line in spent_file.read_text().splitlines():
             row = json.loads(line) if line.strip() else {}
             if time.time() < row.get("until", row.get("ts", 0) + 3600):      # rows without a recorded window (older format) count for one hour only
-                spent.add(str(row["model_key"]))
+                if row.get("providers") and svc is not None:
+                    by_provider.setdefault(str(row["model_key"]), set()).update(row["providers"])
+                else:
+                    spent.add(str(row["model_key"]))
+    for key, exhausted in by_provider.items():
+        serving = {o.provider for o in svc.store.offers.values() if str(o.model_key) == key}
+        if not serving or serving <= exhausted:                                # no other provider can serve it
+            spent.add(key)
     return [k for k in sorted(json.loads(allow_file.read_text())["model_keys"]) if k not in spent]
 
 
@@ -126,7 +135,7 @@ def install(svc, route_file: Path, out: Path) -> None:
         pinned = model_key  # the pair's simulator MODEL is fixed; PlumMe may choose any eligible route to that model (pinned_model_key)
         provider = PlumMeProvider(svc)
 
-        pool = [] if model_key else _selection_pool(route_file.parent)
+        pool = [] if model_key else _selection_pool(route_file.parent, svc)
         random.Random(route_file.name).shuffle(pool)       # the order in which allowlisted models are tried for this pair
 
         async def call(prefer_multi_provider=True, pick=None, total_cap=None):
@@ -192,7 +201,8 @@ def install(svc, route_file: Path, out: Path) -> None:
             if pinned:                                  # remember the model until its retry window ends so the re-selection of the discarded block does not pick it again
                 with (route_file.parent / "sim_exhausted.jsonl").open("a") as f:
                     window = _earliest_retry(svc, pinned)
-                    f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "until": time.time() + (window if window else 3600)}) + "\n")      # (was outside the with: ValueError on a closed file)
+                    providers = sorted({k.rsplit(":", 1)[0] for k, v in _explain(svc, pinned).items() if isinstance(v, dict) and (v.get("rejected") or not v.get("credential_available", True) or v.get("quota_exhausted"))})
+                    f.write(json.dumps({"ts": time.time(), "model_key": pinned, "cause": last, "providers": providers, "until": time.time() + (window if window else 3600)}) + "\n")      # (was outside the with: ValueError on a closed file)
             raise RuntimeError(f"SIM_ROUTE_FAILED:{last}")
         if pinned is None:
             if not lease["model_key"]:
