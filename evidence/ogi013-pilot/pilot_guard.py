@@ -21,7 +21,7 @@ import sys
 import time
 
 ZERO_CASH = frozenset({"ANONYMOUS_FREE", "FREE_TIER", "LOCAL", "TRIAL_CREDIT", "INCLUDED"})       # no cash leaves the owner's account on these route classes
-NOT_PROCESSED = frozenset({"BILLING_OR_CREDIT_EXHAUSTED", "CREDENTIAL_EXHAUSTED", "RATE_LIMITED", "AUTH_FAILED", "AUTH_EXPIRED", "FORBIDDEN", "MODEL_NOT_FOUND"})   # PlumMe's own REJECTION_CLASSES (service.py):
+NOT_PROCESSED = frozenset({"BILLING_OR_CREDIT_EXHAUSTED", "CREDENTIAL_EXHAUSTED", "RATE_LIMITED", "AUTH_FAILED", "AUTH_EXPIRED", "FORBIDDEN", "MODEL_NOT_FOUND", "PROVIDER_UNAVAILABLE", "CONTEXT_WINDOW_EXCEEDED"})   # PlumMe's own REJECTION_CLASSES (service.py):
 #  a provider answer of this class means nothing was processed -> no tokens, no cash; any OTHER failure without recorded usage (TIMEOUT, PROVIDER_UNAVAILABLE, ...) is UNCERTAIN and is charged the reserve
 ENTITLEMENT = frozenset({"TRIAL_CREDIT", "INCLUDED"})                                           # ... but they consume a credit / prepaid entitlement, which is reported
 

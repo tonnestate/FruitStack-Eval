@@ -44,8 +44,8 @@ def test_failed_dispatches_are_charged_by_what_is_known_about_them(tmp_path):
             receipt(ok=False, failure="TIMEOUT", usage=False), receipt(ok=False, failure="PROVIDER_UNAVAILABLE", usage=False), receipt(ok=False, failure="SEMANTIC_OUTPUT_FAILURE", tin=300, tout=30)]
     write_arm(tmp_path, ARMS[0], rows)
     u = guard.usage(str(tmp_path), ARMS, RESERVE)
-    assert u["rejected_unprocessed"] == 2                                                        # rejected before processing (PlumMe's own REJECTION_CLASSES): known zero tokens
-    assert u["unmetered_failures"] == 2 and u["tokens"] == 110 + 330 + 2 * RESERVE               # timeouts / unavailable are UNCERTAIN: charged the reserve, never 0
+    assert u["rejected_unprocessed"] == 3                                                        # rejected before processing (PlumMe's REJECTION_CLASSES + 503 PROVIDER_UNAVAILABLE, AMENDMENT-1 P): known zero tokens
+    assert u["unmetered_failures"] == 1 and u["tokens"] == 110 + 330 + 1 * RESERVE               # a timeout is UNCERTAIN (it may have been processed): charged the reserve, never 0
     assert guard.usage(str(tmp_path), ARMS)["tokens"] == 440                                     # (the plain CLI view without a reserve reports only what was recorded)
 
 
