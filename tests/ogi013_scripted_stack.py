@@ -83,6 +83,61 @@ class ScriptedPlumMe:
                                verification="NOT_VERIFIED", failure_class=None, execution_certainty="EXECUTED")
 
 
+def real_plumme(tmp: Path, script, models=("alpha-1", "beta-1", "gamma-1", "delta-1"), tokens=(400, 100)):
+    """The REAL PlumMeService + SwarmScheduler + ReceiptStore (PlumMe's own offline test harness, tests/test_v014*.py / test_v0111*.py) over a scripted provider adapter: selection, lineage
+    exclusion, PINNED_MODEL, cooldowns, receipts and failure classification are PlumMe's own code. Each model is its own family (= lineage) on its own provider. No network."""
+    import plumme
+    sys.path.insert(0, str(Path(plumme.__file__).resolve().parents[2] / "tests"))
+    from plumme.adapters.base import AdapterError, AdapterResult
+    from plumme.decisions import DecisionLog
+    from plumme.knowledge import independence_key
+    from plumme.market import FREE_COST_CLASSES
+    from plumme.models import Usage
+    from test_v0111_hierarchy import RouteAdapter, offer
+    from test_v014_correctness_and_uni import _scheduler, _service
+
+    class ScriptedRoutes(RouteAdapter):
+        def __init__(self, offers):
+            super().__init__(offers)
+            self.script, self.executed = {k: list(v) for k, v in script.items()}, []
+
+        async def execute(self, route_, messages, max_output_tokens, credential):
+            task = "\n".join(str(m.get("content", "")) for m in messages)
+            stage = stage_of(task)
+            if "Continue exactly where it stopped" in str(messages[-1].get("content", "")):     # PlumMe's continuation request: serve the rest of the answer in progress
+                item = {"long": self.pending}
+            else:
+                queue = self.script.get(stage, [])
+                item = queue.pop(0) if queue else {"fail": "RATE_LIMITED"}
+            if isinstance(item, dict) and "long" in item:           # an output-limited provider: 1 character = 1 token, a response stops at max_output_tokens with finish_reason=length
+                text, limit = item["long"], max_output_tokens or len(item["long"])
+                self.executed.append({"stage": stage, "model_key": route_.model_key, "lineage": independence_key(route_), "task": task, "item": "long", "max_output_tokens": max_output_tokens})
+                if len(text) > limit:
+                    self.pending = text[limit:]
+                    exc = AdapterError("SEMANTIC_OUTPUT_FAILURE", f"TRUNCATED_CONTENT finish_reason=length max_tokens={limit}", None, usage=Usage(input_tokens=tokens[0], output_tokens=limit, total_tokens=tokens[0] + limit, cost_usd=None))
+                    exc.partial_text = text[:limit]
+                    raise exc
+                return AdapterResult(text=text, usage=Usage(input_tokens=tokens[0], output_tokens=len(text), total_tokens=tokens[0] + len(text), cost_usd=None), provider_request_id="req-long",
+                                     metadata={"finish_reason": "stop"})
+            self.executed.append({"stage": stage, "model_key": route_.model_key, "lineage": independence_key(route_), "task": task, "item": item, "max_output_tokens": max_output_tokens})
+            if isinstance(item, dict) and "fail" in item:
+                raise AdapterError(item["fail"], f"scripted {item['fail']}", None)
+            text = item["nousage"] if isinstance(item, dict) else item
+            usage = None if isinstance(item, dict) else Usage(input_tokens=tokens[0], output_tokens=tokens[1], total_tokens=sum(tokens), cost_usd=None)
+            return AdapterResult(text=text, usage=usage, provider_request_id=f"req-{len(self.executed)}", metadata={"finish_reason": "stop"})
+
+    adapter = ScriptedRoutes([offer(m, f"prov-{m.split('-')[0]}") for m in models])
+    sched = _scheduler(tmp, adapter)
+    sched.allowed_cost_classes, sched.cost_policy = FREE_COST_CLASSES, "FREE_ONLY"
+    for o in adapter._offers:
+        sched.credentials.put(o["provider"], "k")
+    sched.decisions = DecisionLog(tmp / "decisions.jsonl")
+    svc = _service(sched)
+    svc.credentials = sched.credentials
+    asyncio.run(sched.store.discover())
+    return svc, adapter
+
+
 class FakeMango:
     def session_restore(self, project_ref):
         return {"restore_state": "STATE_FOUND", "productive_execution_allowed": False, "next_executable_items": []}
@@ -107,8 +162,12 @@ class FakeApple:
 class ScriptedStack:
     """The `Stack` the agent expects (store, fs, heart, appleme, project(), svc) built on real PeachMe parts."""
 
-    def __init__(self, tmp: Path, script, routes=POOL, tokens_per_call=(400, 100)):
-        self.svc = ScriptedPlumMe(script, routes, tokens_per_call)
+    def __init__(self, tmp: Path, script, routes=POOL, tokens_per_call=(400, 100), real=False):
+        if real:                                                   # the real PlumMe service; `executed` comes from the scripted provider adapter underneath it
+            self.svc, self.adapter = real_plumme(tmp, script, tokens=tokens_per_call)
+        else:
+            self.svc = ScriptedPlumMe(script, routes, tokens_per_call)
+            self.adapter = self.svc
         self.store = SessionStore(tmp / "peachme.sqlite3")
         self.heart = LineageHeart(self.svc)
         self.fs = FruitStackSession(self.store, self.heart, MangoWorkAdapter(FakeMango()), OrangeMemoryAdapter(FakeOrange(), project_ref="project-1"), assurance=FakeApple(),
@@ -120,7 +179,7 @@ class ScriptedStack:
         return "work-1", "project-1", "turn-1"
 
 
-def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budget=None, routes=POOL, tokens_per_call=(400, 100)):
+def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budget=None, routes=POOL, tokens_per_call=(400, 100), real=False):
     """The real FruitStackTau2Agent on a scripted stack. budget = (max_calls, max_tokens, max_cost_usd) as the pilot configures PeachMe's session budget."""
     from tau2.environment.tool import as_tool
     from tau2.environment.toolkit import ToolType, is_tool
@@ -151,7 +210,7 @@ def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budge
         """
         return "{}"
 
-    stack = ScriptedStack(tmp, script, routes, tokens_per_call)
+    stack = ScriptedStack(tmp, script, routes, tokens_per_call, real=real)
     monkeypatch.setenv("OGI013_ACTOR_ID", "worker:test")
     monkeypatch.setenv("OGI013_ORG_COLLAB", "1") if collab else monkeypatch.delenv("OGI013_ORG_COLLAB", raising=False)
     for k in ("OGI013_ORG_ECONOMY", "OGI013_PILOT_BUDGET", "OGI013_SESSION_MAX_CALLS", "OGI013_SESSION_MAX_TOKENS", "OGI013_SESSION_MAX_COST_USD"):
