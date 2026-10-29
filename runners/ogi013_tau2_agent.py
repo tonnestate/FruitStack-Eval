@@ -220,9 +220,8 @@ class Episode:
                 turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))
                 env = self.stack.store.get(self.sid).environment or {}
                 facts = getattr(self.stack.heart, "lease_facts", lambda _id: {})(env.get("lease_id"))        # PeachMe stores only a whitelist of lease fields: the lineage comes from the heart
-                out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=2048,
-                                           reserve_tokens=self.reserve(prompt),
-                                           ))
+                max_out, reserve = self.output_budget(prompt, env)
+                out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve))
             except PeachError as exc:
                 code = str(exc)
                 last = code
@@ -256,6 +255,26 @@ class Episode:
                        independence_key=facts.get("independence_key"), model_key=facts.get("model_key"), prefer_met=facts.get("prefer_met"))
             return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
+
+    MIN_ANSWER_TOKENS = 2048    # pilot: a step that cannot afford at least this much answer is not dispatched (a budget stop, not a truncated answer)
+
+    def output_budget(self, prompt: str, env: dict) -> tuple[int | None, int | None]:
+        """(max_output_tokens, reserve_tokens) for one step. Outside the pilot: unchanged (2048 per response, reserve = prompt bytes + 2048) - the frozen conditions keep their behaviour.
+        In the pilot no fixed output cap is set: PlumMe applies the route's own per-response limit and continues a longer answer, bounded by the reservation, which is sized from the route's
+        published output limit and capped only by budget facts - the owner-approved per-step ceiling, PeachMe's remaining session tokens and the pilot ledger's remaining headroom."""
+        from ogi013_pilot_gate import token_limits
+        from peachme import PeachError
+        limits = token_limits()
+        if limits is None:
+            return 2048, self.reserve(prompt)
+        inp = len(prompt.encode("utf-8"))                        # UTF-8 bytes bound the input tokens from above
+        route_out = env.get("output_limit") or env.get("context_window")
+        snap = self.stack.fs.governance.snapshot(self.sid)
+        caps = [inp + route_out if route_out else None, limits["per_step"], limits["headroom"], (snap or {}).get("tokens_remaining")]
+        reserve = int(min(c for c in caps if c is not None))
+        if reserve - inp < self.MIN_ANSWER_TOKENS:
+            raise PeachError("BUDGET_HEADROOM_BELOW_MIN_ANSWER")
+        return None, reserve
 
     def reserve(self, prompt: str) -> int | None:
         snap = self.stack.fs.governance.snapshot(self.sid)

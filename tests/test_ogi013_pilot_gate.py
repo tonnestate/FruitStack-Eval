@@ -83,3 +83,18 @@ def test_episode_step_refuses_before_touching_the_stack_and_records_the_stop(tmp
     with pytest.raises(gate.PilotBudgetStop):
         ep.step("prompt", "tag")                                                       # fs=None: any attempt to prepare/infer would raise AttributeError instead of PilotBudgetStop
     assert ep.budget_stopped and json.loads((tmp_path / "events.jsonl").read_text().splitlines()[-1])["event"] == "BUDGET_STOP"
+
+
+def test_token_limits_count_agent_and_simulator_usage_and_carry_the_per_step_ceiling(tmp_path, monkeypatch):
+    monkeypatch.delenv("OGI013_PILOT_BUDGET", raising=False)
+    assert gate.token_limits() is None                                                     # outside the pilot: nothing changes
+    _env(monkeypatch, tmp_path)
+    rows = [receipt(tin=10000, tout=0) for _ in range(3)]
+    write_arm(tmp_path, ARMS[1], rows, sim_ids=[rows[2]["receipt_id"]])                     # 20k agent + 10k simulator tokens
+    lim = gate.token_limits()
+    assert lim == {"headroom": BUDGET["arms"][ARMS[1]]["max_tokens"] - 30000, "per_step": BUDGET["max_tokens_per_step"]}
+    write_arm(tmp_path, ARMS[0], [receipt(tin=BUDGET["cumulative"]["max_tokens"] - 30000 - 500, tout=0)])
+    assert gate.token_limits()["headroom"] == 500                                           # the pilot-wide cap binds once the other arm has used its share
+    monkeypatch.setenv("OGI013_PILOT_BUDGET", str(tmp_path / "missing.json"))
+    with pytest.raises(gate.PilotBudgetStop, match="token limits unavailable"):
+        gate.token_limits()

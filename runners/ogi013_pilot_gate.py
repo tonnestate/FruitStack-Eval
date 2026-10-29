@@ -10,6 +10,29 @@ class PilotBudgetStop(RuntimeError):
     pass
 
 
+def _guard_and_budget():
+    spec = importlib.util.spec_from_file_location("pilot_guard", os.environ["OGI013_PILOT_GUARD"])
+    guard = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(guard)
+    with open(os.environ["OGI013_PILOT_BUDGET"], encoding="utf-8") as f:
+        return guard, json.load(f)
+
+
+def token_limits() -> dict | None:
+    """Pilot only (None otherwise): the tokens this arm may still commit to ONE step - min(arm cap - arm usage, pilot cap - pilot usage), agent AND simulator usage from the provider ledger -
+    and the owner-approved per-step ceiling (max_tokens_per_step). Unreadable configuration = a stop, never a pass."""
+    if not os.environ.get("OGI013_PILOT_BUDGET"):
+        return None
+    try:
+        guard, budget = _guard_and_budget()
+        arms, arm = os.environ["OGI013_PILOT_ARMS"].split(","), os.environ["OGI013_PILOT_ARM"]
+        u = guard.usage(os.environ["OGI013_PILOT_RUNS"], arms, budget["reserve_tokens_per_dispatch"])
+        head = min(budget["arms"][arm]["max_tokens"] - u["per_arm"].get(arm, {"tokens": 0})["tokens"], budget["cumulative"]["max_tokens"] - u["tokens"])
+        return {"headroom": max(0, head), "per_step": int(budget["max_tokens_per_step"])}
+    except Exception as exc:  # noqa: BLE001
+        raise PilotBudgetStop(f"pilot token limits unavailable {type(exc).__name__}: {str(exc)[:200]}") from exc
+
+
 def check() -> None:
     path = os.environ.get("OGI013_PILOT_BUDGET")
     if not path:
@@ -19,11 +42,7 @@ def check() -> None:
         missing = [k for k in ("OGI013_PILOT_GUARD", "OGI013_PILOT_RUNS", "OGI013_PILOT_ARMS", "OGI013_PILOT_ARM", "OGI013_PILOT_START") if not os.environ.get(k)]
         if missing:
             raise PilotBudgetStop(f"pilot gate misconfigured, missing {missing}")
-        spec = importlib.util.spec_from_file_location("pilot_guard", os.environ["OGI013_PILOT_GUARD"])
-        guard = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(guard)
-        with open(path, encoding="utf-8") as f:
-            budget = json.load(f)
+        guard, budget = _guard_and_budget()
         why = guard.precheck(budget, runs, os.environ["OGI013_PILOT_ARMS"].split(","), os.environ["OGI013_PILOT_ARM"], float(os.environ["OGI013_PILOT_START"]))
     except PilotBudgetStop as exc:
         why = [str(exc)]
