@@ -206,6 +206,8 @@ def install(svc, route_file: Path, out: Path) -> None:
                 if not pinned and wait != 0.0 and attempt >= len(pool) - 1:
                     last = "SUPPLY_UNAVAILABLE"        # every allowlisted model was tried and none has an eligible route
                     break
+        if not succeeded and not pinned:
+            last = "SUPPLY_UNAVAILABLE"                 # a whole selection pass over the allowlist produced no answer: nothing is serving the simulator right now (the launcher defers the block, no attempt consumed)
         if not succeeded:
             if pinned:                                  # evidence only (not an exclusion window): which model failed a block, why, and which providers were unusable
                 with (route_file.parent / "sim_exhausted.jsonl").open("a") as f:

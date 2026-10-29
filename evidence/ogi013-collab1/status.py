@@ -62,7 +62,8 @@ def main() -> int:
         recs[f.relative_to(C).as_posix()[: -len(".episode.json")]] = json.loads(f.read_text())
     statuses = Counter(r["status"] for r in recs.values())
     total = len(manifest["tasks"]) * len(manifest["conditions"])
-    blocks_done = sum(1 for p in C.glob("*/BLOCK_DONE")) + len(list((C / "discarded").glob("*-INFRA_INCOMPLETE.txt")))
+    blocks_done = sum(1 for p in C.glob("*/BLOCK_DONE"))                                    # scored, complete blocks only (infrastructure-incomplete blocks are NOT progress)
+    blocks_infra = len(list((C / "discarded").glob("*-INFRA_INCOMPLETE.txt")))
     progress = [x for x in (C / "progress.txt").read_text().splitlines()] if (C / "progress.txt").is_file() else []
     last_done = next((x for x in reversed(progress) if " DONE " in x or "BUDGET_STOP" in x or "TIMEOUT" in x), None)
     launchers = [x for x in ps("run_collab1.py", f"--base {base}") if x["args"].startswith(("python", "/usr"))]       # the production launcher of THIS base (not a test copy)
@@ -96,7 +97,9 @@ def main() -> int:
         state = f"HALTED ({camp.get('halt_reason') or 'PILOT_HALT file'})"
     elif launchers:
         hb = age(heartbeat)
-        if cur is None:
+        if cur is None and progress and "SUPPLY_UNAVAILABLE" in progress[-1]:
+            state = "SUPPLY_UNAVAILABLE - launcher alive, no episode started, no task consumed (re-checking verified simulator capacity)"
+        elif cur is None:
             state = "RUNNING - between episodes"
         elif hb is not None and hb < FRESH_S:
             state = "PROGRESSING" + (f" (but waiting: {waiting[0]})" if waiting else "")
@@ -114,7 +117,7 @@ def main() -> int:
         state = "NOT RUNNING"
     rep = {"claude_session": "UNKNOWN (not observable from the VPS; pytest/launcher processes below are what runs on the machine)", "state": state, "launcher": launchers, "episode_processes": episodes,
            "study": manifest["study"], "episodes": {"done": statuses.get("DONE", 0) + statuses.get("BUDGET_STOP", 0) + statuses.get("TIMEOUT", 0), "running": statuses.get("RUNNING", 0), "total": total,
-                                                    "statuses": dict(statuses)}, "blocks_done": f"{blocks_done}/{len(manifest['tasks'])}", "current": cur_info, "heartbeat_age_s": age(heartbeat),
+                                                    "statuses": dict(statuses)}, "blocks_done": f"{blocks_done}/{len(manifest['tasks'])}", "blocks_infra_incomplete": blocks_infra, "current": cur_info, "heartbeat_age_s": age(heartbeat),
            "last_completed": last_done, "last_progress_line": progress[-1] if progress else None, "waiting_reasons": waiting, "recent_provider_errors": errors,
            "campaign_requests": f"{u['dispatches']} / {budget['cumulative']['max_dispatches']}", "campaign_tokens": f"{u['tokens']} / {budget['cumulative']['max_tokens']}", "cash_usd": u["cash_usd"],
            "entitlement": u["entitlement"], "campaign_started_age_s": age(camp.get("started_at")), "other_processes": {"pytest": ps("pytest")[:3], "c3_queue": ps("block_queue.sh")[:2]}}
@@ -125,7 +128,7 @@ def main() -> int:
     print(f"Claude     : {rep['claude_session']}")
     print(f"Launcher   : " + (", ".join(f"PID {x['pid']} (running {x['elapsed_s']}s)" for x in launchers) or "none"))
     print(f"Episode    : " + (", ".join(f"PID {x['pid']}" for x in episodes) or "none") + (f"  -> {cur_info['task']} / {cur_info['condition']} attempt {cur_info['attempt']}, running {cur_info['started_age_s']}s of {cur_info['limit_s']}s" if cur_info else ""))
-    print(f"Progress   : episodes {rep['episodes']['done']}/{total} done ({rep['episodes']['statuses']}), blocks {rep['blocks_done']}")
+    print(f"Progress   : scored episodes {rep['episodes']['done']}/{total} ({rep['episodes']['statuses']}); complete scored blocks {rep['blocks_done']}; infrastructure-incomplete blocks (not scored, not progress) {blocks_infra}")
     print(f"Heartbeat  : newest file activity {rep['heartbeat_age_s']}s ago; current episode receipts {cur_info.get('receipts')}, last receipt {cur_info.get('last_receipt_age_s')}s ago")
     print(f"Last done  : {last_done or 'no episode finished yet'}   | last progress line: {rep['last_progress_line']}")
     print(f"Waiting    : {'; '.join(waiting) or 'nothing known'}")

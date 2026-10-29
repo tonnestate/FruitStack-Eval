@@ -23,6 +23,9 @@ PILOT = CODE / "evidence/ogi013-pilot"
 REAL_BASE = Path("/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013")
 MODE = {"SINGLE": "single", "COLLAB": "rg2", "SINGLE-E": "single_e"}
 DONE_STATES = {"DONE", "BUDGET_STOP", "TIMEOUT"}                        # scored (non-success unless the official grade says otherwise); never run again
+HOSTPY = "/root/fruits/integration/ogi013-hostpython-org/bin/python"
+COMPONENTS = Path("/root/fruits/integration/ogi013-org-components")
+SUPPLY_RECHECK_S = 120                                                  # between verified-capacity checks while nothing can serve the simulator (no block is consumed)
 LOCKS = [CODE / "evidence/ogi013-phase2/STUDY_LOCK.txt", HERE / "AMENDMENT_LOCK.txt"]
 
 
@@ -173,7 +176,9 @@ class Campaign:
         heads = dict(line.split()[1].split("=", 1) for line in text.splitlines() if line.startswith("OGI013_SOURCE "))
         official = ep_dir / "tasks" / tid / "official-result.json"
         status, halt = None, self.R / "PILOT_HALT"
-        if "SIM_ROUTE_FAILED" in text and not official.exists():
+        if "SIM_ROUTE_FAILED:SUPPLY_UNAVAILABLE" in text and not official.exists():
+            status = "SUPPLY_UNAVAILABLE"                                                              # no simulator model had an eligible route at block start: not an attempt of the block
+        elif "SIM_ROUTE_FAILED" in text and not official.exists():
             status = "SIM_ROUTE_FAILED"
         elif halt.exists():
             why = json.loads(halt.read_text()).get("why", [])
@@ -217,6 +222,18 @@ class Campaign:
                 rec.write_text(json.dumps(d, indent=1, sort_keys=True))
         return dest
 
+    def supply_gate(self, route: Path) -> bool:
+        """A REAL tiny zero-cash completion through PlumMe on allowlisted models until one answers; that model becomes the block's pinned simulator model (supply_gate.py). False = no executable simulator path."""
+        if os.environ.get("PILOT_OFFLINE_TRANSPORT"):                                              # offline acceptance (scripted provider transport, refused against the real base): nothing real to probe
+            return True
+        cr = str(COMPONENTS)
+        path = ":".join([str(CODE / "runners"), str(CODE), f"{cr}/CherryMe"] + [f"{cr}/{c}/src" for c in ("PeachMe", "PlumMe", "AppleMe", "MangoMe", "OrangeMe", "PomeloMe")] + [str(self.base / "benchmarks/tau2-bench/src")])
+        env = {**os.environ, "PYTHONPATH": path}
+        work = self.R / "work.env"
+        if work.exists():
+            env.update(dict(l.split("=", 1) for l in work.read_text().replace("export ", "").split() if "=" in l))
+        return sh(HOSTPY, str(HERE / "supply_gate.py"), str(self.R), str(route), env=env).returncode == 0
+
     def run_block(self, t) -> str:
         ref, order = t["task_ref"], t["order"]
         dirname = ref.replace(":", "_")
@@ -225,6 +242,9 @@ class Campaign:
         for attempt in range(len([p for p in (self.C / "discarded").glob(f"{dirname}-attempt*")]) + 1, 4):
             if not any(self.read_rec(ref, c) for c in order):                                           # a fresh block attempt: the simulator model is chosen once and then shared by its conditions
                 (self.R / f"{self.a.campaign}-{dirname}.route").unlink(missing_ok=True)
+                if not self.supply_gate(self.R / f"{self.a.campaign}-{dirname}.route"):                  # no executable simulator path: nothing is started, no task or attempt is consumed
+                    self.log(f"{ref} SUPPLY_UNAVAILABLE (verified: no simulator model answered a real request; block not started, no attempt consumed)")
+                    return "SUPPLY_UNAVAILABLE"
             self.log(f"{ref} block attempt={attempt} order={'>'.join(order)}")
             for cond in order:
                 rec = self.read_rec(ref, cond)
@@ -240,6 +260,10 @@ class Campaign:
                     self.halt("campaign wall-clock limit")
                     return "HALTED"
                 status = self.run_episode(t, cond, attempt)
+                if status == "SUPPLY_UNAVAILABLE":
+                    self.archive(t, order, f"supply{int(time.time())}")                               # kept as evidence; does not count towards the 3 attempts
+                    self.log(f"{ref} SUPPLY_UNAVAILABLE (no eligible simulator route; block deferred, no attempt consumed)")
+                    return "SUPPLY_UNAVAILABLE"
                 if status == "SIM_ROUTE_FAILED":
                     self.archive(t, order, f"attempt{attempt}")
                     break
@@ -283,8 +307,14 @@ class Campaign:
         signal.signal(signal.SIGINT, self.on_signal)
         tasks = [t for t in self.manifest["tasks"] if not self.a.only or t["task_ref"] in self.a.only.split(",")]
         try:
-            for t in tasks:
+            queue = list(tasks)
+            while queue:
+                t = queue.pop(0)
                 result = self.run_block(t)
+                if result == "SUPPLY_UNAVAILABLE":
+                    queue.insert(0, t)                                                                # supply is global: the same block waits at the front; nothing else is consumed
+                    time.sleep(SUPPLY_RECHECK_S)
+                    continue
                 if result == "HALTED":
                     return 3
                 if result == "FAILED_EXEC":
