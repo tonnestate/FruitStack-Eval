@@ -5,7 +5,7 @@
 # Nothing here retries or restarts: an existing run directory of the same pilot id (any state) refuses the next start. The first attempt (pilot-1, stopped by LEASE_BUDGET_EXPANSION before any inference) is preserved as evidence;
 # the next attempt runs as pilot-2 (PILOT_ID) under the SAME approved budget file: its limits are keyed by arm role (pilot_guard.arm_cap).
 set -u
-H=$(cd "$(dirname "$0")" && pwd); CODE=$(cd "$H/../.." && pwd); B=${PILOT_BASE:-/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013}; R=$B/runs; ID=${PILOT_ID:-pilot-2}; P=$R/$ID; BUDGET="$H/pilot_budget.json"
+H=$(cd "$(dirname "$0")" && pwd); CODE=$(cd "$H/../.." && pwd); B=${PILOT_BASE:-/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013}; R=$B/runs; ID=${PILOT_ID:-pilot-3}; P=$R/$ID; BUDGET="$H/pilot_budget.json"
 REAL_BASE=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013
 if [ -n "${PILOT_OFFLINE_TRANSPORT:-}" ]; then      # the offline provider transport exists for the end-to-end simulation only: never against the real evaluation base, which is where live inference happens
   [ -n "${PILOT_BASE:-}" ] && [ "$(cd "$PILOT_BASE" 2>/dev/null && pwd -P)" != "$(cd "$REAL_BASE" 2>/dev/null && pwd -P)" ] || { echo "PILOT_OFFLINE_TRANSPORT is only allowed with a PILOT_BASE other than the real evaluation base" >&2; exit 2; }
@@ -13,7 +13,7 @@ fi
 python3 "$H/pilot_guard.py" verify-approval "$BUDGET" "${PILOT_APPROVAL:-/nonexistent}" || exit 2
 [ -f "$CODE/runners/ogi013_org_collab.py" ] && [ -f "$CODE/runners/ogi013_pilot_gate.py" ] && [ -f "$CODE/runners/ogi013_lineage_heart.py" ] || { echo "code checkout $CODE lacks the collaboration module, the lineage heart or the pre-dispatch gate" >&2; exit 2; }
 [ -z "$(git -C "$CODE" status --porcelain)" ] || { echo "code checkout $CODE is not clean" >&2; exit 2; }
-[ "$ID" != "pilot-1" ] || { echo "pilot-1 is the preserved failed attempt and is never reused" >&2; exit 2; }
+case "$ID" in pilot-1|pilot-2) echo "$ID is a preserved failed attempt and is never reused" >&2; exit 2;; esac
 [ ! -e "$P" ] || { echo "$ID already exists; it is never restarted automatically (choose a new PILOT_ID)" >&2; exit 2; }
 [ ! -e "$R/PILOT_HALT" ] || { echo "stale PILOT_HALT; archive it first" >&2; exit 2; }
 ROUTE="$R/$ID-task24.route"

@@ -48,7 +48,7 @@ def test_outside_the_pilot_the_frozen_behaviour_is_unchanged(monkeypatch, tmp_pa
 
 def test_a_step_that_cannot_afford_a_normal_answer_is_a_budget_stop_before_dispatch(monkeypatch, tmp_path):
     from peachme import PeachError
-    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 3000, 0.0))
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 2000, 0.0))
     with pytest.raises(PeachError, match="BUDGET_HEADROOM_BELOW_MIN_ANSWER"):
         say(agent, state)
     assert stack.adapter.executed == [] and "BUDGET_STOP" in [e["event"] for e in events(out)]
@@ -128,6 +128,25 @@ def test_no_agent_step_can_reserve_more_than_the_per_step_ceiling_whatever_the_r
     huge = agent.ep.output_budget("short prompt", {"output_limit": 1_000_000, "context_window": 2_000_000})
     assert huge[0] is None and huge[1] == BUDGET["max_tokens_per_step"]                         # a route that claims a million output tokens is still bounded by the owner's ceiling
     small = agent.ep.output_budget("short prompt", {"output_limit": 3000})
-    assert small[1] == len("short prompt") + 3000                                              # a modest route limit sizes the reservation itself (input + the route's own answer limit)
+    assert small[1] == agent.ep.input_token_bound("short prompt") + 3000                                              # a modest route limit sizes the reservation itself (input + the route's own answer limit)
     unknown_route = agent.ep.output_budget("short prompt", {})
     assert unknown_route[1] == BUDGET["max_tokens_per_step"]                                    # no published limit: still capped by budget facts, never unbounded
+
+
+def test_a_long_prompt_is_admitted_by_the_token_bound(monkeypatch, tmp_path):
+    from ogi013_pilot_fixtures import BUDGET
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 270000, 0.0))
+    long_prompt = "x" * 30000                                                  # ~7.5k real tokens: pilot-2 refused such a step (bytes bound 30,000 + 2,048 > 24,000)
+    max_out, reserve = agent.ep.output_budget(long_prompt, {"output_limit": 20000})
+    assert max_out is None and reserve == BUDGET["max_tokens_per_step"]
+    from peachme import PeachError
+    with pytest.raises(PeachError, match="BUDGET_HEADROOM_BELOW_MIN_ANSWER"):
+        agent.ep.output_budget("x" * 70000, {"output_limit": 8192})            # a prompt that cannot leave room for an answer under the ceiling is still refused
+
+
+def test_a_step_whose_recorded_tokens_exceed_the_ceiling_stops_the_pilot(monkeypatch, tmp_path):
+    from peachme import PeachError
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, real=True, budget=(50, 270000, 0.0), tokens_per_call=(30000, 100))     # the provider records more than the 24,000 per-step ceiling
+    with pytest.raises(PeachError, match="BUDGET_STEP_CEILING_EXCEEDED"):
+        say(agent, state)
+    assert "BUDGET_STOP" in [e["event"] for e in events(out)]

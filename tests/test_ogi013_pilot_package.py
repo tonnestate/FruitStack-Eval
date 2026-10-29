@@ -204,20 +204,20 @@ def launcher(tmp_path):
         out, err = p.communicate(timeout=120)
         return SimpleNamespace(rc=p.returncode, out=out, err=err)
 
-    return SimpleNamespace(run=run, base=base, runs=base / "runs", pilot=base / "runs/pilot-2", code=code, tmp=tmp_path)
+    return SimpleNamespace(run=run, base=base, runs=base / "runs", pilot=base / "runs/pilot-3", code=code, tmp=tmp_path)
 
 
 def test_a_complete_matched_pilot_runs_both_arms_with_isolated_state_and_one_difference(launcher):
     r = launcher.run("ok")
     assert r.rc == 0, r.err
-    p, env = launcher.pilot, {a: json.loads((launcher.runs / f"pilot-2/{a}/stub-env.json").read_text()) for a in ("single", "collab")}
-    assert env["single"]["args"][1:5] == ["24", "airline", "single", "pilot-2-task24"] and env["collab"]["args"][1:5] == ["24", "airline", "rg2", "pilot-2-task24"]      # same task, domain, simulator route
+    p, env = launcher.pilot, {a: json.loads((launcher.runs / f"pilot-3/{a}/stub-env.json").read_text()) for a in ("single", "collab")}
+    assert env["single"]["args"][1:5] == ["24", "airline", "single", "pilot-3-task24"] and env["collab"]["args"][1:5] == ["24", "airline", "rg2", "pilot-3-task24"]      # same task, domain, simulator route
     assert not env["single"]["OGI013_ORG_COLLAB"] and env["collab"]["OGI013_ORG_COLLAB"] == "1" and env["collab"]["OGI013_ORG_POLICY_MODE"] == "OFF"          # the one intended difference
     assert env["single"]["args"][5] != env["collab"]["args"][5] and env["single"]["OGI013_ORG_STATE_DIR"] != env["collab"]["OGI013_ORG_STATE_DIR"]          # isolated ledgers and organisational state
     for a in ("single", "collab"):
-        assert (Path(env[a]["args"][5]) / "ledgers/chat.git").is_dir() and env[a]["OGI013_PILOT_ARM"] == f"pilot-2/{a}"
+        assert (Path(env[a]["args"][5]) / "ledgers/chat.git").is_dir() and env[a]["OGI013_PILOT_ARM"] == f"pilot-3/{a}"
         assert env[a]["PILOT_SESSION_MAX_CALLS"] == str(BUDGET["arms"][f"pilot-1/{a}"]["max_dispatches"]) and env[a]["PILOT_SESSION_MAX_COST_USD"] == "0.0"      # PeachMe ceilings from the budget file
-        assert env[a]["OGI013_PILOT_BUDGET"] and env[a]["OGI013_PILOT_ARMS"] == "pilot-2/single,pilot-2/collab"                                               # the pre-dispatch gate is armed for both
+        assert env[a]["OGI013_PILOT_BUDGET"] and env[a]["OGI013_PILOT_ARMS"] == "pilot-3/single,pilot-3/collab"                                               # the pre-dispatch gate is armed for both
     assert json.loads((p / "conditions-single.json").read_text())["slot_heads"] == json.loads((p / "conditions-collab.json").read_text())["slot_heads"]   # identical initial ledger state
     md = (p / "report.md").read_text()
     assert "Controls identical across arms: **True**" in md and "OBSERVED_IN_THIS_PAIR" in md and "NOT ESTABLISHED" in md
@@ -241,32 +241,32 @@ def test_a_budget_violation_stops_the_arm_preserves_the_evidence_and_the_collab_
     r = launcher.run("over_budget")
     assert r.rc == 3 and "halted by the budget guard" in r.err and time.time() - t0 < 50          # the guard killed the sleeping arm, it did not wait for it
     halt = json.loads((launcher.runs / "PILOT_HALT").read_text())
-    assert halt["by"] == "watch" and any("arm pilot-2/single over its cap" in w for w in halt["why"])
-    assert len((launcher.runs / "pilot-2/single/fruitstack/plumme-state/receipts.jsonl").read_text().splitlines()) == 400          # nothing deleted
-    assert not (launcher.runs / "pilot-2/collab").exists() and (launcher.pilot / "report.md").is_file()
+    assert halt["by"] == "watch" and any("arm pilot-3/single over its cap" in w for w in halt["why"])
+    assert len((launcher.runs / "pilot-3/single/fruitstack/plumme-state/receipts.jsonl").read_text().splitlines()) == 400          # nothing deleted
+    assert not (launcher.runs / "pilot-3/collab").exists() and (launcher.pilot / "report.md").is_file()
     assert "NOT_ASSESSABLE" in (launcher.pilot / "report.md").read_text() or "Benchmark executed in both arms: **False**" in (launcher.pilot / "report.md").read_text()
 
 
 def test_a_failed_arm_keeps_its_evidence_and_nothing_is_retried(launcher):
     r = launcher.run("arm_fail")
-    assert r.rc == 5 and "SINGLE arm failed" in r.err and not (launcher.runs / "pilot-2/collab").exists()
+    assert r.rc == 5 and "SINGLE arm failed" in r.err and not (launcher.runs / "pilot-3/collab").exists()
     assert (launcher.runs / "stub-launches.txt").read_text().count("\n") == 1                      # launched once, never again
-    assert (launcher.runs / "pilot-2/single/fruitstack/plumme-state/receipts.jsonl").is_file()
+    assert (launcher.runs / "pilot-3/single/fruitstack/plumme-state/receipts.jsonl").is_file()
 
 
 def test_an_interrupted_pilot_preserves_everything_and_never_restarts_on_its_own(launcher):
     p = launcher.run("hang", wait=False)
     deadline = time.time() + 60
-    while time.time() < deadline and not (launcher.runs / "pilot-2/single/fruitstack/plumme-state/receipts.jsonl").exists():
+    while time.time() < deadline and not (launcher.runs / "pilot-3/single/fruitstack/plumme-state/receipts.jsonl").exists():
         time.sleep(0.2)
     time.sleep(1.0)
     os.killpg(os.getpgid(p.pid), signal.SIGTERM)
     out, err = p.communicate(timeout=60)
     assert p.returncode == 130 and "interrupted by TERM" in (launcher.pilot / "INTERRUPTED").read_text()
-    assert (launcher.runs / "pilot-2/single/fruitstack/plumme-state/receipts.jsonl").is_file() and (launcher.pilot / "report.md").is_file() and (launcher.pilot / "conditions-single.json").is_file()
+    assert (launcher.runs / "pilot-3/single/fruitstack/plumme-state/receipts.jsonl").is_file() and (launcher.pilot / "report.md").is_file() and (launcher.pilot / "conditions-single.json").is_file()
     assert json.loads((launcher.pilot / "conditions-single.json").read_text())["exit_code"] == 130
     time.sleep(1.0)
-    assert (launcher.runs / "stub-launches.txt").read_text().count("\n") == 1 and not (launcher.runs / "pilot-2/collab").exists()          # nothing relaunched itself
+    assert (launcher.runs / "stub-launches.txt").read_text().count("\n") == 1 and not (launcher.runs / "pilot-3/collab").exists()          # nothing relaunched itself
     again = launcher.run("ok")
     assert again.rc == 2 and "already exists" in again.err and (launcher.runs / "stub-launches.txt").read_text().count("\n") == 1             # a second start is refused, not resumed
 
@@ -359,18 +359,19 @@ def test_a_new_pilot_id_never_touches_the_failed_attempt_and_pilot_1_is_never_re
     (old / "single").mkdir(parents=True)
     (old / "single.log").write_text("SIM_ROUTE_FAILED:AuthorityDenied\n")
     before = {str(p.relative_to(old)): p.read_bytes() for p in old.rglob("*") if p.is_file()}
-    assert launcher.run("ok").rc == 0 and launcher.pilot.is_dir()                                       # default id is pilot-2
+    assert launcher.run("ok").rc == 0 and launcher.pilot.is_dir()                                       # default id is pilot-3 (pilot-1 and pilot-2 were used)
     assert {str(p.relative_to(old)): p.read_bytes() for p in old.rglob("*") if p.is_file()} == before     # the failed attempt is byte-identical
-    refused = launcher.run("ok", PILOT_ID="pilot-1")
-    assert refused.rc == 2 and "never reused" in refused.err
+    for used in ("pilot-1", "pilot-2"):
+        refused = launcher.run("ok", PILOT_ID=used)
+        assert refused.rc == 2 and "never reused" in refused.err
 
 
 def test_a_later_pilot_id_runs_under_the_same_approved_budget_hash():
     guard = load("pilot_guard", PILOT / "pilot_guard.py")
     budget = json.loads((PILOT / "pilot_budget.json").read_text())
-    assert guard.arm_cap(budget, "pilot-2/single") == budget["arms"]["pilot-1/single"] and guard.arm_cap(budget, "pilot-2/collab") == budget["arms"]["pilot-1/collab"]
-    assert guard.arm_cap(budget, "pilot-2/other") is None and guard.arm_cap({"arms": {"a/single": {}, "b/single": {}}}, "c/single") is None          # no cap, or an ambiguous one: fail closed
-    assert guard.session_env(budget, "pilot-2/collab")["OGI013_SESSION_MAX_CALLS"] == "110"
+    assert guard.arm_cap(budget, "pilot-3/single") == budget["arms"]["pilot-1/single"] and guard.arm_cap(budget, "pilot-3/collab") == budget["arms"]["pilot-1/collab"]
+    assert guard.arm_cap(budget, "pilot-3/other") is None and guard.arm_cap({"arms": {"a/single": {}, "b/single": {}}}, "c/single") is None          # no cap, or an ambiguous one: fail closed
+    assert guard.session_env(budget, "pilot-3/collab")["OGI013_SESSION_MAX_CALLS"] == "110"
 
 
 def test_the_lease_contract_check_passes_for_every_zero_cash_class_and_catches_a_widened_execution(preflight, monkeypatch):

@@ -1,4 +1,4 @@
-"""OFFLINE PROVIDER TRANSPORT for the end-to-end launcher simulation (tests only). PILOT_OFFLINE_SCENARIO: unset = scripted success, "fail" = every dispatch rejected (RATE_LIMITED), "paid" = every offer is a priced (NORMAL) route. Python imports this module at start-up when its directory is on PYTHONPATH (run_arm.sh prepends
+"""OFFLINE PROVIDER TRANSPORT for the end-to-end launcher simulation (tests only). PILOT_OFFLINE_SCENARIO: unset = scripted success, "fail" = every dispatch rejected (RATE_LIMITED), "paid" = every offer is a priced (NORMAL) route, "long" = a long customer conversation (prompt > 22 KB). Python imports this module at start-up when its directory is on PYTHONPATH (run_arm.sh prepends
 $PILOT_OFFLINE_TRANSPORT, and run_pilot.sh only allows that outside the real base). It replaces EXACTLY ONE thing: plumme.service.default_adapters now returns one scripted adapter instead of the
 live provider adapters - the model providers' network transport. Everything above it (PlumMeService, scheduler, leases, _check_execution_budget, receipts, PeachMe, CherryMe, tau2, MangoMe, OrangeMe,
 AppleMe, the pilot gate and guard) is the real code. Every dispatch is appended to $PILOT_OFFLINE_TRANSPORT_LOG so a test can prove that nothing else answered."""
@@ -29,6 +29,8 @@ if os.environ.get("PILOT_OFFLINE_TRANSPORT"):
         _STATE[stage] = _STATE.get(stage, 0) + 1
         n = _STATE[stage]
         if stage == "sim":
+            if os.environ.get("PILOT_OFFLINE_SCENARIO") == "long":        # a long conversation: the prompt grows past 22 KB (pilot-2 stopped there)
+                return ("Please be careful with my request, here are more details. " * 25)[:1500] if n <= 9 else "###STOP###"
             return ["Hi, I want to remove Ethan from reservation H9ZU1C.", "Please look up my date of birth in my profile and book the cheapest direct round trip.",
                     "Yes, please go ahead."][n - 1] if n <= 3 else "###STOP###"
         if stage == "draft":
@@ -70,7 +72,7 @@ if os.environ.get("PILOT_OFFLINE_TRANSPORT"):
                 text = _answer(stage)
                 if _LOG:
                     with open(_LOG, "a", encoding="utf-8") as f:
-                        f.write(json.dumps({"ts": time.time(), "stage": stage, "provider": offer.provider, "model": offer.model, "pid": os.getpid()}) + "\n")
+                        f.write(json.dumps({"ts": time.time(), "stage": stage, "provider": offer.provider, "model": offer.model, "pid": os.getpid(), "bytes": len(task.encode("utf-8"))}) + "\n")
                 tin = max(100, len(task) // 4)
                 return AdapterResult(text=text, usage=Usage(input_tokens=tin, output_tokens=max(8, len(text) // 4), total_tokens=tin + max(8, len(text) // 4), cost_usd=None),
                                      provider_request_id=f"offline-{os.getpid()}-{sum(_STATE.values())}", metadata={"finish_reason": "stop"})

@@ -248,6 +248,13 @@ class Episode:
                 raise
             self.stats["steps"] += 1
             st = out.step
+            from ogi013_pilot_gate import token_limits
+            lim = token_limits()
+            used = (st.input_tokens or 0) + (st.output_tokens or 0)
+            if lim is not None and used > lim["per_step"]:             # pilot: the owner's per-step ceiling holds on what the provider RECORDED too, whatever the pre-dispatch estimate said
+                self.budget_stopped = True
+                self.event("BUDGET_STOP", source="step_ceiling", code="BUDGET_STEP_CEILING_EXCEEDED", recorded=used, ceiling=lim["per_step"], step=key)
+                raise PeachError("BUDGET_STEP_CEILING_EXCEEDED")
             self.stats["tokens_in"] += st.input_tokens or 0
             self.stats["tokens_out"] += st.output_tokens or 0
             self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
@@ -258,6 +265,11 @@ class Episode:
 
     MIN_ANSWER_TOKENS = 2048    # pilot: a step that cannot afford at least this much answer is not dispatched (a budget stop, not a truncated answer)
 
+    BYTES_PER_TOKEN_FLOOR = 3   # pilot: input tokens <= ceil(UTF-8 bytes / 3). Real text is ~4 bytes/token (pilot-2 stopped at step 10 because bytes/1 put a 6,000-token prompt at 24 KB, over the 24,000 per-step ceiling); the provider's RECORDED tokens of every step are checked against the per-step ceiling afterwards (BUDGET_STEP_CEILING_EXCEEDED)
+
+    def input_token_bound(self, prompt: str) -> int:
+        return -(-len(prompt.encode("utf-8")) // self.BYTES_PER_TOKEN_FLOOR)
+
     def output_budget(self, prompt: str, env: dict) -> tuple[int | None, int | None]:
         """(max_output_tokens, reserve_tokens) for one step. Outside the pilot: unchanged (2048 per response, reserve = prompt bytes + 2048) - the frozen conditions keep their behaviour.
         In the pilot no fixed output cap is set: PlumMe applies the route's own per-response limit and continues a longer answer, bounded by the reservation, which is sized from the route's
@@ -267,7 +279,7 @@ class Episode:
         limits = token_limits()
         if limits is None:
             return 2048, self.reserve(prompt)
-        inp = len(prompt.encode("utf-8"))                        # UTF-8 bytes bound the input tokens from above
+        inp = self.input_token_bound(prompt)
         route_out = env.get("output_limit") or env.get("context_window")
         snap = self.stack.fs.governance.snapshot(self.sid)
         caps = [inp + route_out if route_out else None, limits["per_step"], limits["headroom"], (snap or {}).get("tokens_remaining")]

@@ -61,7 +61,7 @@ def _world(tmp: Path, db: str, mutate_budget=None):
     approval = tmp / "approval.txt"
     approval.write_text(hashlib.sha256(budget.read_bytes()).hexdigest() + "\n")
     log = tmp / "transport.jsonl"
-    return SimpleNamespace(base=base, code=code, transport=transport, approval=approval, log=log, runs=base / "runs", pilot=base / "runs/pilot-2")
+    return SimpleNamespace(base=base, code=code, transport=transport, approval=approval, log=log, runs=base / "runs", pilot=base / "runs/pilot-3")
 
 
 def _run(w, scenario=None):
@@ -152,3 +152,14 @@ def test_the_offline_transport_is_refused_against_the_real_base(tmp_path):
     env.pop("PILOT_BASE")
     r = subprocess.run(["bash", str(PILOT / "run_pilot.sh")], env=env, capture_output=True, text=True, timeout=60)
     assert r.returncode == 2 and "only allowed" in r.stderr
+
+
+def test_a_long_conversation_with_prompts_over_22_kb_runs_to_the_official_grade(tmp_path, scratch_db):
+    """pilot-3 stopped at step 10 (BUDGET_HEADROOM_BELOW_MIN_ANSWER) when the prompt passed ~22 KB, because input tokens were bounded by BYTES against the 24,000 per-step ceiling."""
+    w = _world(tmp_path, scratch_db)
+    r = _run(w, "long")
+    assert r.rc == 0, (r.err[-800:], r.out[-300:])
+    assert max(x["bytes"] for x in _rows(w.log) if x["stage"] in ("draft", "challenge", "revise")) > 22000      # the old bound would have refused these
+    for arm in ("single", "collab"):
+        assert json.loads((w.pilot / arm / "tasks/24/official-result.json").read_text())["reward_info"] is not None
+        assert "BUDGET_STOP" not in [e["event"] for e in _events(w, arm)]
