@@ -155,10 +155,10 @@ def test_a_multi_task_campaign_through_the_real_launcher_survives_a_restart_and_
     assert [reward("airline:25", c) for c in CONDS] == [0.0, 1.0, 1.0]                              # critique prevented the wrong write; the vote out-voted it; SINGLE executed it
     assert [reward("airline:30", c) for c in CONDS] == [1.0, 0.0, 1.0]                              # the critique rejected a correct action
     assert [reward("airline:35", c) for c in CONDS] == [1.0, 1.0, 1.0]                              # the PILOT-4 shape, repaired: no transfer, the booking is completed
-    assert [reward("airline:8", c) for c in CONDS] == [1.0, 0.0, 1.0]                               # one wrong write replaced by a different wrong write
+    assert [reward("airline:8", c) for c in CONDS] == [1.0, 0.0, 1.0]                               # one wrong write replaced by a different wrong write (validated-correct: the two correct writes reviewed in 35 and 37)
     assert [reward("airline:37", c) for c in CONDS] == [1.0, 1.0, 1.0]                              # providers failing and continuing answers did not stop the work
     o = rep["decision_outcomes"]
-    assert (o.get("PREVENTED_WRITE_ERROR"), o.get("CORRECT_BLOCKED"), o.get("ERROR_REPLACED_BY_DIFFERENT_ERROR"), o.get("VALIDATED_CORRECT")) == (2, 1, 1, 1)
+    assert (o.get("PREVENTED_WRITE_ERROR"), o.get("CORRECT_BLOCKED"), o.get("ERROR_REPLACED_BY_DIFFERENT_ERROR"), o.get("VALIDATED_CORRECT")) == (2, 1, 1, 2)
     assert rep["premature_stop_episodes"] == {"SINGLE": 1, "COLLAB": 1, "SINGLE-E": 1}
     e1 = rep["confirmatory"]["E1"]
     assert (e1["a_only"], e1["b_only"], e1["pairs"]) == (1, 2, 7) and not e1["significant_at_0.05"]
