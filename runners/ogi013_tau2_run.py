@@ -123,6 +123,8 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
                 failed = not observation or observation.get("success") is not True
                 if failed and observation:
                     response = observation.get("data") or observation.get("message") or "effect failed"
+                if failed and isinstance(response, dict) and set(response) == {"error"}:
+                    response = f"Error: {response['error']}"      # exactly the content tau2's own get_response gives a failed tool call: the official evaluator replays every write on a fresh environment and compares, so {"error": ...} crashed the grading of any arm whose write failed
                 content = json.dumps(response, ensure_ascii=False, default=str) if not isinstance(response, str) else response
                 from tau2.data_model.message import ToolMessage
                 return ToolMessage(id=message.id, content=content, requestor=message.requestor, role="tool", error=failed)
@@ -151,7 +153,7 @@ def run_one(task_id: str, domain: str, mode: str, out: Path, *, host_effects=Non
             save_dir=out / "tau2-logs", verbose_logs=True,
         )
         (task_out / "official-result.json").write_text(result.model_dump_json(indent=2), encoding="utf-8")
-        if mode == "rg2" and result.reward_info is not None and getattr(holder.get("agent"), "ep", None) is not None and holder["agent"].ep.org is not None:
+        if mode == "rg2" and result.reward_info is not None and getattr(holder.get("agent"), "ep", None) is not None and holder["agent"].ep.org is not None and list(holder["agent"].ep.org.ensemble_ids):      # no ensemble decision (org policy OFF, as in the pilot) = nothing to credit; attribution used to raise AFTER the official result and fail the arm
             import hashlib
             from ogi013_org_learning import attribute_episode_outcome
             ep_ = holder["agent"].ep

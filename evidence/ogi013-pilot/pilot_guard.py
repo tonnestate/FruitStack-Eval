@@ -112,7 +112,7 @@ def exceeded(budget, u, started_at=None, now=None):
     if limit and u.get("consecutive_failures", 0) >= limit:
         why.append(f"{u['consecutive_failures']} consecutive failed dispatches (limit {limit}): the failing route is not retried further")
     for arm, a in u["per_arm"].items():
-        cap = budget["arms"].get(arm)
+        cap = arm_cap(budget, arm)
         if cap is None:
             why.append(f"arm {arm} has no cap in the budget (fail closed)")
         elif a["dispatches"] > cap["max_dispatches"] or a["tokens"] > cap["max_tokens"]:
@@ -134,7 +134,7 @@ def precheck(budget, runs_dir, arms, arm, started_at=None, now=None):
     why = exceeded(budget, u, started_at, now)
     if why:
         return why
-    c, cap, a = budget["cumulative"], budget["arms"].get(arm), u["per_arm"].get(arm, {"dispatches": 0, "tokens": 0})
+    c, cap, a = budget["cumulative"], arm_cap(budget, arm), u["per_arm"].get(arm, {"dispatches": 0, "tokens": 0})
     if cap is None:
         return [f"arm {arm} has no cap in the budget (fail closed)"]
     for scope, used, limit in (("pilot", u, c), (f"arm {arm}", a, cap)):
@@ -145,9 +145,19 @@ def precheck(budget, runs_dir, arms, arm, started_at=None, now=None):
     return why
 
 
+def arm_cap(budget, arm):
+    """The cap of an arm. The approved budget names its arms by role under its own label (pilot-1/single); another run of the SAME plan lives under another pilot id (pilot-2/single) with the same approved
+    limits and the same file hash, so a cap is found by the exact name first, else by the arm's role (the part after the last '/') when that role is unique in the budget. None = no cap (fail closed)."""
+    caps = budget["arms"]
+    if arm in caps:
+        return caps[arm]
+    hits = [v for k, v in caps.items() if k.rsplit("/", 1)[-1] == arm.rsplit("/", 1)[-1]]
+    return hits[0] if len(hits) == 1 else None
+
+
 def session_env(budget, arm):
     """PeachMe's shared execution-budget ceilings for the arm's agent-side dispatches (the simulator is covered by precheck). Cash: the budget's max_cash_usd (0 = no cash authorised)."""
-    cap = budget["arms"][arm]
+    cap = arm_cap(budget, arm)
     return {"OGI013_SESSION_MAX_CALLS": str(cap["max_dispatches"]), "OGI013_SESSION_MAX_TOKENS": str(cap["max_tokens"]),
             "OGI013_SESSION_MAX_COST_USD": repr(float(budget["cumulative"].get("max_cash_usd") or 0.0))}
 

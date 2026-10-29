@@ -12,6 +12,8 @@ base = Path(os.environ["PILOT_BASE"]) / "runs"
 count = base / "stub-launches.txt"
 if args and args[0] == "--verify-components":
     sys.exit(1 if scenario == "components_fail" else 0)
+if args and args[0] == "--contract":
+    sys.exit(1 if scenario == "contract_fail" else 0)
 if args and args[0] == "--preflight":
     sys.exit(1 if scenario == "preflight_fail" else (Path(args[2]).mkdir(parents=True, exist_ok=True) or print(json.dumps({"executable": True})) or 0))
 out, task, domain, mode, route, slot = args

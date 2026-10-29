@@ -54,7 +54,7 @@ def mark(pilot_dir, arm, phase, a=None, b=None):
 
 
 def _arm(runs_dir, pilot_dir, name, reserve):
-    rel = f"pilot-1/{name}"
+    rel = f"{Path(pilot_dir).name}/{name}"
     root = Path(runs_dir) / rel
     task_dirs = sorted((root / "tasks").glob("*")) if (root / "tasks").is_dir() else []
     td = task_dirs[0] if task_dirs else root / "tasks" / "_missing"

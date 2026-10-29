@@ -1,4 +1,4 @@
-# OGI-013-PILOT-1 — execution package (NOT executed; the budget below is a proposal, not an authorization)
+# OGI-013-PILOT-1 — execution package (attempt 1 = `pilot-1` FAILED before any inference, see §12; the next attempt is `pilot-2`; each execution needs its own owner approval)
 
 One matched **SINGLE vs RG2-COLLAB** episode on the official tau2 benchmark (airline task 24, a write task), exploratory and separate from the preregistered OGI-013 study (its protocol, locks, evidence and
 worktrees are untouched). n = 1 pair: it can show whether the integration works and what it costs, never an effect.
@@ -52,7 +52,7 @@ the archived runs: 17); rejected attempts count as dispatches. No fixed output c
 Cash 0.00 USD, wall clock 90 min, reserve 4,000 tokens per dispatch. Expected SINGLE ~48 dispatches / ~70k tokens, COLLAB ~70 / ~115k (each reviewed write adds ≤ 5 calls; 50-70 % of archived dispatches were provider
 rejections that cost no tokens). Task 24 itself was never run to completion under these conditions; the estimate may be off in either direction, which is why every cap fails closed.
 
-## 6. What the run produces (`runs/pilot-1/`)
+## 6. What the run produces (`runs/<pilot id>/`, default `pilot-2`)
 `report.md` + `report.json` (official reward per arm, final actions, drafts/revisions/reviews with text, objections left, overruled positions, models and lineages, dispatches and tokens split agent/simulator/successful/
 rejected, wall clock, cash and entitlement with unknowns listed, controls check, overhead of the collaboration), `conditions-<arm>.json`, `<arm>.log`, `pilot_budget.json` (as run), `code-head.txt`,
 `preflight.json`, the arms' receipts/events/official results. Report verdict, four separate questions: (1) benchmark executed in both arms, (2) independent review / a documented action-changing intervention,
@@ -71,7 +71,7 @@ rejected, wall clock, cash and entitlement with unknowns listed, controls check,
 - offline proof (no inference): `evidence/ogi013-pilot/offline_tests.sh`
 - exact commands per arm, nothing executed: `PILOT_DRY_RUN=1 PILOT_CODE=$PWD evidence/ogi013-pilot/run_arm.sh pilot-1/collab 24 airline rg2 pilot-1-task24 /tmp/slot`
 - owner approval of exactly this budget: `sha256sum evidence/ogi013-pilot/pilot_budget.json > /root/pilot-approval.txt` (any edit of the file invalidates it)
-- run after approval: `PILOT_APPROVAL=/root/pilot-approval.txt /root/fruits/integration/ogi013-collab-proof/evidence/ogi013-pilot/run_pilot.sh`
+- run after approval (pilot id `pilot-2`; `PILOT_ID=...` picks another; `pilot-1` is refused): `PILOT_APPROVAL=/root/pilot-approval.txt /root/fruits/integration/ogi013-collab-proof/evidence/ogi013-pilot/run_pilot.sh`
   exit codes: 0 complete · 2 refused (nothing started) · 3 halted by the budget · 4 simulator not executable · 5 an arm failed · 130 interrupted. Nothing is ever restarted or resumed automatically.
 
 ## 9. CI status (GitHub Actions) — verified cause, not a code defect
@@ -98,3 +98,18 @@ Kept apart: a working mechanism (1-3), an observed difference (4), statistical e
 | cash | 0.00 USD | PeachMe cash 0.0 + `max_cost_usd=0.0` on the simulator (PlumMe `PAID_BUDGET_NOT_AUTHORIZED`), post-hoc halt on any paid/unknown class; proven on the real scheduler: paid-only world = zero dispatches, mixed world = only free routes execute |
 | failure streak | 20 | gate |
 `PLUMME_COST_POLICY=ANY` in the shared env.sh is ignored by this PlumMe (deprecated, budget-aware AUTO applies): the zero-cash guarantee does not rely on it.
+
+
+## 12. First live attempt (`pilot-1`) and what it changed
+`pilot-1` was started once under the owner's approval and stopped at the very first simulator call: `RuntimeError: SIM_ROUTE_FAILED:AuthorityDenied` = PlumMe `LEASE_BUDGET_EXPANSION`. No provider was reached: 0 dispatches, 0 tokens, USD 0.00. The evidence stays unchanged under `runs/pilot-1/` and is never reused.
+
+| defect (found by the live attempt or by the end-to-end simulation that followed) | fix | what now catches it |
+|---|---|---|
+| **Simulator lease/execution budget mismatch.** The pilot acquires the simulator lease with `max_cost_usd=0.0`; `PlumMeProvider.execute` defaults `max_cost_usd=None`; PlumMe lets an execution narrow, never expand, the budget frozen at acquisition (`plumme.service._check_execution_budget`), so `None` on a capped lease is `LEASE_BUDGET_EXPANSION`. | `ogi013_sim_supply.lease_cash()` is the one cash value used for acquire AND execute. | `sim_preflight.py --contract` (run by `run_pilot.sh` before the network preflight; offline, no lease, no inference) pushes the REAL sim path and the REAL agent path (LineageHeart + PeachMe cash estimate) through PlumMe's real `_check_execution_budget` for every zero-cash class; `tests/test_ogi013_pilot_package.py` shows it fails on the old behaviour. |
+| **A failed WRITE crashed the official grading.** The Pomelo bridge returned `{"error": ...}` as the tool message; the official evaluator replays every write on a fresh environment and compares with tau2's own `Error: ...` (strict) -> `ValueError`, no grade. | `ogi013_tau2_run.py`: a failed effect is recorded with the content tau2 itself produces. | end-to-end simulation (a scripted write against an unknown user fails exactly like that). |
+| **Outcome attribution crashed the COLLAB arm after the grade.** With `OGI013_ORG_POLICY_MODE=OFF` an RG/2 episode has no ensemble decisions; `attribute_episode_outcome` raised `decision_ids must be non-empty`, the arm exited 1 and the launcher reported "COLLAB arm failed". | attribution only when the episode has ensemble decisions. | end-to-end simulation. |
+| Budget keyed by the pilot label (`pilot-1/single`) | arms are found by role (`pilot_guard.arm_cap`), so a later id runs under the SAME approved file and hash. | `test_a_later_pilot_id_runs_under_the_same_approved_budget_hash` |
+
+### End-to-end simulation (`tests/test_ogi013_pilot_e2e.py`, part of `offline_tests.sh`, no inference)
+The REAL `run_pilot.sh` -> `run_arm.sh` -> bootstrap -> `ogi013_tau2_run.py` -> official tau2 task 24 -> MangoMe / OrangeMe / PeachMe / PlumMe / CherryMe / AppleMe / PomeloMe, the real gate, guard, report. Only the provider transport is replaced: `tests/ogi013_offline_transport/sitecustomize.py` swaps `plumme.service.default_adapters` (allowed only with a `PILOT_BASE` other than the real base, `PILOT_OFFLINE_TRANSPORT`). MangoMe runs on a scratch copy of the evaluation database (dropped afterwards; the source is asserted unchanged); provider keys are stripped and all proxies point at a dead port. Scenarios: both arms complete (COLLAB runs challenge -> revision -> renewed review on a write; SINGLE does not), total provider rejection, paid-only world (no dispatch), per-arm cap halt through the real gate (COLLAB never starts), refusal of the transport against the real base.
+It does NOT prove: that live providers answer in the formats the scripted one does, live catalogue/cost classes, quota behaviour, or any model quality.

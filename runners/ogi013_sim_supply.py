@@ -53,6 +53,13 @@ SIM_MIN_ANSWER = 512   # pilot: the customer simulator's replies are short; a st
 MAX_WAIT_S = 900   # longest cooldown worth waiting for inside a block: PlumMe credential cooldowns of ~600 s were observed (Groq); a daily quota reset is far beyond it
 
 
+def lease_cash(total_cap):
+    """The ONE cash value of a simulator dispatch: the lease is acquired with it and every execution of that lease carries the SAME value, because PlumMe lets an execution narrow, never expand,
+    the budget frozen at acquisition (plumme.service._check_execution_budget: a missing cap on an execution of a capped lease is LEASE_BUDGET_EXPANSION - what stopped PILOT-1 before any inference).
+    Pilot (a token cap is in force): zero cash. Otherwise no cap on either side."""
+    return None if total_cap is None else 0.0
+
+
 def _earliest_retry(svc, model_keys):
     """Seconds until PlumMe lets any route of the given model(s) run again. 0.0 = a route passes PlumMe's hard eligibility gate (scheduler.screen) right now; otherwise the shortest KNOWN
     circuit/quota/credential cooldown among the models' routes; None = no route has a known recovery time (nothing to wait for). Offers that the gate rejects without any cooldown
@@ -127,12 +134,12 @@ def install(svc, route_file: Path, out: Path) -> None:
             use = model_key or pick
             req = NeuronRequest(consumer="ogi013-sim", objective="Simulate a tau2 customer", role_id=ROLE, cognitive_owner=CognitiveOwner.CONSUMER,
                                 selection_mode=SelectionMode.PINNED_MODEL if use else SelectionMode.BEST, pinned_model_key=use,
-                                required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1, **({} if total_cap is None else {"max_cost_usd": 0.0})),     # pilot: zero cash is authorised -> PlumMe admits no priced route
+                                required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1, max_cost_usd=lease_cash(total_cap)),     # pilot: zero cash is authorised -> PlumMe admits no priced route
                                 metadata={"exclude_independence_keys": _single_provider_keys(svc)} if (not use and prefer_multi_provider) else {})
             neuron = await svc.acquire_neuron(req)
             lease = {"lease_id": neuron.lease_id, "provider_id": neuron.route.provider, "model_id": neuron.route.model,
                      "offer_id": neuron.route.offer_id, "model_key": neuron.route.model_key}
-            res = await provider.execute(lease_id=lease["lease_id"], task=_flatten(messages), max_output_tokens=None, max_total_tokens=total_cap, max_cost_usd=None if total_cap is None else 0.0)   # PlumMe negotiates the limit (PROTOCOL.md); a fixed 1024 let reasoning models exhaust it with EMPTY_CONTENT finish_reason=length
+            res = await provider.execute(lease_id=lease["lease_id"], task=_flatten(messages), max_output_tokens=None, max_total_tokens=total_cap, max_cost_usd=lease_cash(total_cap))   # PlumMe negotiates the limit (PROTOCOL.md); a fixed 1024 let reasoning models exhaust it with EMPTY_CONTENT finish_reason=length
             return lease, res
 
         # Route selection (no pinned offer yet) tries alternatives: PlumMe's circuit state steers the next pick away from a failing offer.

@@ -27,7 +27,7 @@ def token_limits() -> dict | None:
         guard, budget = _guard_and_budget()
         arms, arm = os.environ["OGI013_PILOT_ARMS"].split(","), os.environ["OGI013_PILOT_ARM"]
         u = guard.usage(os.environ["OGI013_PILOT_RUNS"], arms, budget["reserve_tokens_per_dispatch"])
-        head = min(budget["arms"][arm]["max_tokens"] - u["per_arm"].get(arm, {"tokens": 0})["tokens"], budget["cumulative"]["max_tokens"] - u["tokens"])
+        head = min(guard.arm_cap(budget, arm)["max_tokens"] - u["per_arm"].get(arm, {"tokens": 0})["tokens"], budget["cumulative"]["max_tokens"] - u["tokens"])
         return {"headroom": max(0, head), "per_step": int(budget["max_tokens_per_step"])}
     except Exception as exc:  # noqa: BLE001
         raise PilotBudgetStop(f"pilot token limits unavailable {type(exc).__name__}: {str(exc)[:200]}") from exc
