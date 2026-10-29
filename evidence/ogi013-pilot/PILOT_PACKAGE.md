@@ -23,6 +23,8 @@ Proof: `tests/test_ogi013_integrated_runtime.py` drives the real agent/episode/s
 | `ogi013_sim_supply`: `f.write` outside its `with` | a failed pinned simulator crashed with "I/O on closed file" instead of recording the exhausted model | indented into the `with` |
 | the agent reserved prompt + 2,048 tokens per step and PlumMe stops continuations at the reservation | a longer (reasoning) answer was refused `BUDGET_EXHAUSTED` and abandoned in both arms | pilot reservation from the route's output limit, bounded by budget facts only (§4); proven on the real PlumMe scheduler |
 | `train_org_policy._versions()` imported Keras unconditionally | an `INSUFFICIENT_EVIDENCE` refusal crashed on a host without Keras | version recorded as `None` when Keras is absent |
+| the host venv resolved all seven components from NON-canonical places; the bootstrap would `pip install -e` them into that SHARED venv at pilot start | mutates a venv other runs use, may need the network, and the arms' code version depended on that | `run_arm.sh` puts the canonical sources first on `PYTHONPATH` (they win over editable installs); `--verify-components` (read-only) is a launch gate; nothing is installed |
+| the simulator dispatched without a per-step token bound or an explicit zero-cash envelope | only the after-the-fact guard saw its usage | in the pilot it gets `max_total_tokens` = min(per-step ceiling, ledger headroom) and `max_cost_usd = 0.0`; a step that cannot afford a 512-token reply is a budget stop |
 | `env.sh` assigns `D=<research dir>`; the arm launcher used `$D` after sourcing it | wrong code path for the preflight / `PYTHONPATH` | the pilot checkout lives in `PD` (found by the dry-run test against the real env files) |
 | the earlier pilot ran the shared `ogi013-org` checkout (no collaboration module), never set `OGI013_ORG_COLLAB`, and used task 6 (read-only: the gate would only log `ORG_SKIPPED`) | it could not have tested the collaboration | `run_arm.sh` runs this checkout; COLLAB arm = `rg2` + flag; task 24 |
 
@@ -71,3 +73,28 @@ rejected, wall clock, cash and entitlement with unknowns listed, controls check,
 - owner approval of exactly this budget: `sha256sum evidence/ogi013-pilot/pilot_budget.json > /root/pilot-approval.txt` (any edit of the file invalidates it)
 - run after approval: `PILOT_APPROVAL=/root/pilot-approval.txt /root/fruits/integration/ogi013-collab-proof/evidence/ogi013-pilot/run_pilot.sh`
   exit codes: 0 complete · 2 refused (nothing started) · 3 halted by the budget · 4 simulator not executable · 5 an arm failed · 130 interrupted. Nothing is ever restarted or resumed automatically.
+
+## 9. CI status (GitHub Actions) — verified cause, not a code defect
+Every run on every branch (`ogi013-collab-proof`, `ogi013-org-bridge`, `main`) fails with 0 steps and no runner; the job annotation reads *"The job was not started because recent account payments have failed or your spending limit
+needs to be increased."* No run in the account's last 100 ever succeeded; `main` fails identically (baseline, not introduced by this branch). The code is green under the workflow's own recipe:
+`evidence/ogi013-pilot/ci_local.sh [REF]` replays `.github/workflows/tests.yml` (fresh venv per Python, `pip install -e .[dev]`, `pytest -q`, `compileall`) from a clean clone, so no extra component leaks in.
+Result on this branch: Python 3.11, 3.12 and 3.13 all pass (tests needing tau2/PeachMe/PlumMe skip there by design). The only fix is on the GitHub side: Settings → Billing & plans.
+
+## 10. Does PILOT-1 answer the five questions?
+1 same task, comparable conditions → `controls` in the report are computed from the evidence (task, seed, policy hash, pinned simulator model, code head, component heads, ledger heads, the one intended flag).
+2 independent critique performed → `independent_review` (a KNOWN lineage different from the author's) and the trail with each reviewer's lineage.
+3 critique changed or confirmed a decision → `improved` (action-changing, with `ORG_REVISION`) vs `validated` (grounded agreement) vs `ungrounded_agreement` (a bare "NONE" is recorded, never counted); unresolved and overruled objections are listed.
+4 better / worse / equal → official tau2 reward per arm; the verdict is graded: observed in this pair with a documented mechanism / higher without one / none observed / not assessable.
+5 additional calls, tokens, cost → dispatches (agent, simulator, rejected), recorded tokens, collaboration calls, cash, entitlement use, wall clock, unknowns listed.
+Kept apart: a working mechanism (1-3), an observed difference (4), statistical evidence — never claimed for n = 1; the report adds the confounders one episode cannot exclude (simulator variability, fixed arm order on shared quotas, few write actions).
+
+## 11. Verified limits (all enforced before the next dispatch; see tests/test_ogi013_pilot_gate.py, test_ogi013_real_plumme.py, test_ogi013_integrated_runtime.py)
+| limit | value | enforced by |
+|---|---|---|
+| dispatches, all kinds incl. simulator, reviews, revisions, retries, rejected attempts | 180 (70 + 110) | gate + guard on the deduplicated provider ledger; PeachMe calls ceiling per arm |
+| tokens | 280,000 (100,000 + 180,000) | gate (+ reserve 4,000), PeachMe reservation, simulator `max_total_tokens` |
+| tokens per agent step | 24,000 | reservation sized from the route limit, capped by this ceiling |
+| wall clock | 90 min | gate before each dispatch, `watch` kills the process group |
+| cash | 0.00 USD | PeachMe cash 0.0 + `max_cost_usd=0.0` on the simulator (PlumMe `PAID_BUDGET_NOT_AUTHORIZED`), post-hoc halt on any paid/unknown class; proven on the real scheduler: paid-only world = zero dispatches, mixed world = only free routes execute |
+| failure streak | 20 | gate |
+`PLUMME_COST_POLICY=ANY` in the shared env.sh is ignored by this PlumMe (deprecated, budget-aware AUTO applies): the zero-cash guarantee does not rely on it.
