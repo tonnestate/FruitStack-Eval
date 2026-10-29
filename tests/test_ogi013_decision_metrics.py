@@ -91,3 +91,10 @@ def test_the_collab_study_lock_matches_the_frozen_files():
     assert len(latest) >= 24
     for rel, digest in latest.items():
         assert hashlib.sha256((ROOT / rel).read_bytes()).hexdigest() == digest, rel
+
+
+def test_reads_are_means_not_objectives():
+    official = {"reward_info": {"reward": 1.0}, "termination_reason": "user_stop", "messages": [{"role": "assistant", "tool_calls": [{"id": "1", "name": "book_reservation", "arguments": BOOK["arguments"]}]},
+                                                                                            {"role": "tool", "id": "1", "content": "ok", "error": False}]}
+    s = dm.summarize(official, [], [{"name": "get_reservation_details", "arguments": {}}, {"name": "search_direct_flight", "arguments": {}}, BOOK])
+    assert s["expected_writes"] == ["book_reservation"] and s["objectives_abandoned"] == [] and s["abandon_cause"] == "NONE"

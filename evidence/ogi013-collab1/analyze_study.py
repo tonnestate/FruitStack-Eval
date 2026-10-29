@@ -132,7 +132,7 @@ def evaluate(C: Path, manifest: dict, budget: dict, data_dir: Path) -> dict:
         ds = [eps[(t["task_ref"], c)]["decision"] for t in manifest["tasks"] if eps[(t["task_ref"], c)]["decision"]]
         quality[c] = {"episodes_with_official_result": len(ds), "state_changing_deviation_episodes": sum(1 for d in ds if d["state_changing_deviations"]), "unnecessary_transfer_episodes": sum(1 for d in ds if d["unnecessary_transfer"]),
                       "objectives_abandoned": dict(sorted(Counter(d["abandon_cause"] for d in ds if d["objectives_abandoned"]).items())),
-                      "expected_actions_completed": sum(len(d["expected_actions_completed"]) for d in ds), "expected_actions_total": sum(len(d["expected_actions"]) for d in ds),
+                      "expected_actions_completed": sum(len(d["expected_actions_completed"]) for d in ds), "expected_actions_total": sum(len(d["expected_writes"]) for d in ds),
                       "policy_evidence": dict(sorted(Counter(str(d["policy_evidence"]) for d in ds).items()))}
     resources = {}
     for c in conds:

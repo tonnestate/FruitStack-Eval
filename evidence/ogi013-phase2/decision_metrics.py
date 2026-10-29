@@ -110,15 +110,16 @@ def summarize(official: dict, events: list[dict], expected: list[dict]) -> dict:
         final_executed = bool(f and f.get("action") == "tool" and any(x["name"] == f.get("name") and x["ok"] for x in executed))
         reviews.append({"purpose": e.get("purpose"), "action": e.get("action"), "draft_class": dc, "final_class": fc, "changed": bool(e.get("changed")), "outcome": outcome(dc, fc, bool(e.get("changed"))),
                         "final_executed_ok": final_executed or not (f and f.get("action") == "tool"), "independent_review": e.get("independent_review"), "final_reviewed": e.get("final_reviewed"), "calls": e.get("calls")})
-    completed = [n for n in (e["name"] for e in expected) if any(x["name"] == n and x["class"] == "MATCH_EXPECTED" and x["ok"] for x in executed)]
-    remaining = [e["name"] for e in expected if e["name"] not in completed]
+    expected_writes = [e["name"] for e in expected if e["name"] in WRITE_TOOLS]                    # objectives are the state-changing outcomes; lookups and searches are means, not objectives
+    completed = [n for n in expected_writes if any(x["name"] == n and x["class"] == "MATCH_EXPECTED" and x["ok"] for x in executed)]
+    remaining = [n for n in expected_writes if n not in completed]
     ri = official.get("reward_info") or {}
     deviations = [x["name"] for x in executed if x["class"] in ("UNEXPECTED_WRITE", "WRONG_ARGS") and x["ok"]]
     return {"reward": ri.get("reward"), "termination": official.get("termination_reason"), "db_match": (ri.get("db_check") or {}).get("db_match"),
             "policy_evidence": "NOT_EVALUATED_BY_OFFICIAL_GRADER" if ri.get("nl_assertions") is None else ri["nl_assertions"],
             "executed_actions": [{"name": x["name"], "class": x["class"], "ok": x["ok"]} for x in executed],
             "state_changing_deviations": deviations, "failed_write_attempts": [x["name"] for x in executed if x["class"] in ("UNEXPECTED_WRITE", "WRONG_ARGS") and x["ok"] is False],
-            "unnecessary_transfer": any(x["class"] == "UNEXPECTED_TRANSFER" for x in executed), "expected_actions": [e["name"] for e in expected], "expected_actions_completed": completed,
+            "unnecessary_transfer": any(x["class"] == "UNEXPECTED_TRANSFER" for x in executed), "expected_actions": [e["name"] for e in expected], "expected_writes": expected_writes, "expected_actions_completed": completed,
             "objectives_abandoned": remaining, "abandon_cause": _abandon_cause(official, remaining, deviations), "reviews": reviews}
 
 
