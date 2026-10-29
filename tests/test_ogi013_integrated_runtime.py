@@ -272,3 +272,31 @@ def test_a_rejected_simulator_route_fails_the_pair_without_a_retry_storm(monkeyp
     assert len(svc.executed) == 1                                                                   # PlumMe says no recovery time is known -> the block fails now, registered, not 60 attempts
     exhausted = json.loads((tmp_path / "sim_exhausted.jsonl").read_text().splitlines()[0])         # the exhausted model is remembered (this write used to crash on a closed file)
     assert exhausted["model_key"] == "sim@x" and exhausted["cause"] == "RATE_LIMITED"
+
+
+def test_in_the_pilot_the_simulator_gets_the_per_step_token_bound_and_zero_cash(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from ogi013_pilot_fixtures import ARMS, BUDGET, receipt, write_arm
+    generate, svc, runs = _install_sim(monkeypatch, tmp_path, {"draft": ["I want to cancel HAT001."]})
+    write_arm(runs, ARMS[1], [receipt(tin=10000, tout=0)])
+    generate("ignored", [SimpleNamespace(role="user", content="Hello")])
+    assert svc.executed[0]["max_total_tokens"] == min(BUDGET["max_tokens_per_step"], BUDGET["arms"][ARMS[1]]["max_tokens"] - 10000)      # same bound as the agent steps, ledger-aware
+    assert svc.requests[0].budget.max_cost_usd == 0.0                                                    # PlumMe admits no priced route for the simulator
+
+
+def test_the_simulator_stops_before_dispatch_when_the_headroom_cannot_carry_a_reply(monkeypatch, tmp_path):
+    import ogi013_pilot_gate as gate
+    from types import SimpleNamespace
+    from ogi013_pilot_fixtures import ARMS, BUDGET, receipt, write_arm
+    generate, svc, runs = _install_sim(monkeypatch, tmp_path, {"draft": ["never sent"]})
+    write_arm(runs, ARMS[1], [receipt(tin=BUDGET["arms"][ARMS[1]]["max_tokens"] - 4600, tout=0)])      # 4,600 left: the 4,000 reserve passes the gate, but no 512-token reply fits after a 4,100-byte prompt
+    with pytest.raises(gate.PilotBudgetStop, match="cannot afford"):
+        generate("ignored", [SimpleNamespace(role="user", content="x" * 4100)])
+    assert svc.executed == [] and svc.requests == []
+
+
+def test_outside_the_pilot_the_simulator_is_unchanged(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    generate, svc, _ = _install_sim(monkeypatch, tmp_path, {"draft": ["hi"]}, armed=False)
+    generate("ignored", [SimpleNamespace(role="user", content="Hello")])
+    assert svc.executed[0]["max_total_tokens"] is None and svc.requests[0].budget.max_cost_usd is None       # frozen conditions: no pilot limits

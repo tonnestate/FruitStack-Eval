@@ -93,6 +93,20 @@ def _arm(runs_dir, pilot_dir, name, reserve):
     }
 
 
+def caveats(arms, identical, reviews):
+    """What a single paired episode cannot separate from the effect of the collaboration. Always stated, so a reader never mistakes a pilot result for evidence."""
+    s, c = arms["single"]["resources"], arms["collab"]["resources"]
+    out = ["n = 1 task, 1 episode per arm: any reward difference may be run-to-run variance of the agent models, the customer simulator or the providers; no effect size or significance can be claimed.",
+           "The customer simulator is an LLM: its replies are not identical across the arms, so the two conversations can diverge for reasons unrelated to the agent.",
+           f"Fixed arm order (SINGLE first) on shared free-tier quotas: provider rejections before processing were {s['rejected_before_processing']} (SINGLE) vs {c['rejected_before_processing']} (COLLAB); supply conditions may differ.",
+           "COLLAB reviews write actions only, and the pilot task has few of them: the opportunity for an intervention is small."]
+    if not identical:
+        out.append("The controls check FAILED or is incomplete: the arms are not demonstrably comparable.")
+    if not reviews:
+        out.append("COLLAB performed no collaboration review: this episode tested nothing about the collaboration.")
+    return out
+
+
 def build_report(runs_dir, pilot_dir, budget_path):
     budget = json.loads(Path(budget_path).read_text())
     reserve = int(budget.get("reserve_tokens_per_dispatch") or 0)
@@ -149,7 +163,7 @@ def build_report(runs_dir, pilot_dir, budget_path):
                        "wall_clock_s": {"single": s["wall_clock_s"], "collab": c["wall_clock_s"]}, "collaboration_calls": c["collaboration"]["collaboration_calls"],
                        "improving_reviews": sum(1 for r in reviews if r.get("improved")), "validated_unchanged_reviews": sum(1 for r in reviews if r.get("validated")),
                        "ungrounded_agreements": sum(1 for r in reviews if r.get("ungrounded_agreement")), "unresolved_objections": sum(len(r.get("unresolved") or []) for r in reviews)},
-        "unknowns": unknowns,
+        "unknowns": unknowns, "caveats": caveats(arms, identical, reviews),
     }
 
 
@@ -179,6 +193,7 @@ def render(rep):
     if not rep["arms"]["collab"]["collaboration"]["reviews"]:
         L.append(f"(no collaboration review took place; skipped: {rep['arms']['collab']['collaboration']['skipped']})")
     L += ["", "## Unknown or unproven values"] + ([f"- {u}" for u in rep["unknowns"]] or ["- none recorded"])
+    L += ["", "## Why this is a pilot and not evidence"] + [f"- {c}" for c in rep["caveats"]]
     return "\n".join(L) + "\n"
 
 

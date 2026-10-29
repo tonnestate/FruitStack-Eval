@@ -13,6 +13,7 @@ python3 "$H/pilot_guard.py" verify-approval "$BUDGET" "${PILOT_APPROVAL:-/nonexi
 ROUTE="$R/pilot-1-task24.route"
 echo '{"model_key": "gemini-3.1-flash-lite@vision"}' > "$ROUTE"                  # the SAME simulator model for both arms (seeded, not PlumMe-chosen: documented deviation of this exploratory pilot)
 export PILOT_CODE="$CODE" PILOT_BASE="$B"
+"$H/run_arm.sh" --verify-components > "$R/pilot-1-components.json" 2>&1 || { echo "components do not resolve from the canonical checkouts (see $R/pilot-1-components.json); refusing rather than installing into the shared host venv" >&2; exit 2; }
 PRE="$R/pilot-1-preflight-$(date +%s)"; mkdir -p "$PRE"
 "$H/run_arm.sh" --preflight "$ROUTE" "$PRE" > "$PRE/preflight.json" 2> "$PRE/preflight.err" || { echo "pinned simulator model is not executable right now (see $PRE/preflight.json); nothing was dispatched to the arms" >&2; exit 4; }
 mkdir -p "$P"; : > "$P/pids"; git -C "$CODE" rev-parse HEAD > "$P/code-head.txt"; cp "$BUDGET" "$P/pilot_budget.json"; cp "$PRE/preflight.json" "$P/"

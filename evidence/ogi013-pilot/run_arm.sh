@@ -3,9 +3,17 @@
 # collaboration module, and that the OrangeMe ledger slot is a directory of its own. Both modes go through the same bootstrap (pinned components, same host python).
 # usage: PILOT_CODE=<checkout> run_arm.sh OUTNAME TASK DOMAIN MODE PAIRROUTE SLOT_DIR
 #        PILOT_CODE=<checkout> run_arm.sh --preflight ROUTE_FILE STATE_DIR        (simulator preflight, no inference)
+#        PILOT_CODE=<checkout> run_arm.sh --verify-components                      (read-only: every component resolves from the canonical checkout, nothing would be installed)
 PD=${PILOT_CODE:?PILOT_CODE is required}; B=${PILOT_BASE:-/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013}; T=$B/benchmarks/tau2-bench; R=$B/runs; H=${PILOT_HOSTPY:-/root/fruits/integration/ogi013-hostpython-org/bin/python}
-cd "$PD" || exit 2; source $B/env.sh; export PYTHONPATH=$PD/runners:$PD ORANGEME_SOURCE_REPO=$T; source $R/work.env
-BOOT="$H runners/ogi013_host_bootstrap.py --host-python $H --tau2-checkout $T --components-root /root/fruits/integration/ogi013-org-components"
+cd "$PD" || exit 2; source $B/env.sh; CR=${PILOT_COMPONENTS:-/root/fruits/integration/ogi013-org-components}
+# The canonical component sources go FIRST on the path (they win over the shared venv's editable installs), so the bootstrap's own check passes and NO `pip install -e` ever touches the shared host venv,
+# and both arms run exactly these sources (their heads are logged by the bootstrap as OGI013_SOURCE lines).
+export PYTHONPATH=$PD/runners:$PD:$CR/CherryMe:$CR/PeachMe/src:$CR/PlumMe/src:$CR/AppleMe/src:$CR/MangoMe/src:$CR/OrangeMe/src:$CR/PomeloMe/src ORANGEME_SOURCE_REPO=$T; source $R/work.env
+BOOT="$H runners/ogi013_host_bootstrap.py --host-python $H --tau2-checkout $T --components-root $CR"
+if [ "${1:-}" = "--verify-components" ]; then
+  [ -n "${PILOT_DRY_RUN:-}" ] && { echo "COMMAND=$H $PD/evidence/ogi013-pilot/verify_components.py $CR $T"; exit 0; }
+  exec $H "$PD/evidence/ogi013-pilot/verify_components.py" "$CR" "$T"
+fi
 if [ "${1:-}" = "--preflight" ]; then
   [ -n "${PILOT_DRY_RUN:-}" ] && { echo "COMMAND=$BOOT --runner $PD/evidence/ogi013-pilot/sim_preflight.py $2 $3"; exit 0; }
   exec $BOOT --runner "$PD/evidence/ogi013-pilot/sim_preflight.py" "$2" "$3"

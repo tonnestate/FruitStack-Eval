@@ -14,6 +14,7 @@ import random
 import time
 from pathlib import Path
 
+from ogi013_pilot_gate import PilotBudgetStop, token_limits
 from ogi013_pilot_gate import check as pilot_gate
 from peachme.plumme import PlumMeProvider
 from tau2.data_model.message import AssistantMessage
@@ -46,6 +47,8 @@ def _single_provider_keys(svc) -> list[str]:
         return sorted({independence_key(o) for o in svc.store.offers.values() if len(providers.get(str(o.model_key), ())) < 2})
     except Exception:  # noqa: BLE001 - a hint only; without it the selection is plain BEST as before
         return []
+
+SIM_MIN_ANSWER = 512   # pilot: the customer simulator's replies are short; a step that cannot afford this much answer is a budget stop, never a truncated reply
 
 MAX_WAIT_S = 900   # longest cooldown worth waiting for inside a block: PlumMe credential cooldowns of ~600 s were observed (Groq); a daily quota reset is far beyond it
 
@@ -119,17 +122,17 @@ def install(svc, route_file: Path, out: Path) -> None:
         pool = [] if model_key else _selection_pool(route_file.parent)
         random.Random(route_file.name).shuffle(pool)       # the order in which allowlisted models are tried for this pair
 
-        async def call(prefer_multi_provider=True, pick=None):
+        async def call(prefer_multi_provider=True, pick=None, total_cap=None):
             from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
             use = model_key or pick
             req = NeuronRequest(consumer="ogi013-sim", objective="Simulate a tau2 customer", role_id=ROLE, cognitive_owner=CognitiveOwner.CONSUMER,
                                 selection_mode=SelectionMode.PINNED_MODEL if use else SelectionMode.BEST, pinned_model_key=use,
-                                required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1),
+                                required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1, **({} if total_cap is None else {"max_cost_usd": 0.0})),     # pilot: zero cash is authorised -> PlumMe admits no priced route
                                 metadata={"exclude_independence_keys": _single_provider_keys(svc)} if (not use and prefer_multi_provider) else {})
             neuron = await svc.acquire_neuron(req)
             lease = {"lease_id": neuron.lease_id, "provider_id": neuron.route.provider, "model_id": neuron.route.model,
                      "offer_id": neuron.route.offer_id, "model_key": neuron.route.model_key}
-            res = await provider.execute(lease_id=lease["lease_id"], task=_flatten(messages), max_output_tokens=None)   # PlumMe negotiates the limit (PROTOCOL.md); a fixed 1024 let reasoning models exhaust it with EMPTY_CONTENT finish_reason=length
+            res = await provider.execute(lease_id=lease["lease_id"], task=_flatten(messages), max_output_tokens=None, max_total_tokens=total_cap)   # PlumMe negotiates the limit (PROTOCOL.md); a fixed 1024 let reasoning models exhaust it with EMPTY_CONTENT finish_reason=length
             return lease, res
 
         # Route selection (no pinned offer yet) tries alternatives: PlumMe's circuit state steers the next pick away from a failing offer.
@@ -140,10 +143,14 @@ def install(svc, route_file: Path, out: Path) -> None:
         idle = 0
         for attempt in range(60 if pinned else max(12, 2 * len(pool))):
             pilot_gate()                                      # pilot only: before every simulator dispatch attempt (outside the try: a stop must not be retried)
+            limits = token_limits()                           # pilot only: the same per-step / headroom bounds the agent steps get, covering the simulator's usage too
+            total_cap = None if limits is None else min(limits["per_step"], limits["headroom"])
+            if total_cap is not None and total_cap - len(_flatten(messages).encode("utf-8")) < SIM_MIN_ANSWER:
+                raise PilotBudgetStop(f"simulator step cannot afford {SIM_MIN_ANSWER} answer tokens (cap {total_cap})")
             t0 = time.time()
             failed_wait = None
             try:
-                lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None))   # soft preference: plain BEST once the resilient set is saturated
+                lease, res = asyncio.run(call(prefer_multi_provider=attempt < 3, pick=pool[attempt % len(pool)] if pool else None, total_cap=total_cap))   # soft preference: plain BEST once the resilient set is saturated
             except Exception as exc:  # noqa: BLE001 - e.g. PinnedWorkerUnavailable: record, never crash the benchmark run
                 last = type(exc).__name__
                 with log.open("a") as f:

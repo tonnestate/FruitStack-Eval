@@ -230,6 +230,8 @@ def test_nothing_starts_without_exact_approval_a_clean_checkout_or_an_executable
     (launcher.code / "dirty.txt").write_text("x")
     assert launcher.run("ok").rc == 2 and not launcher.pilot.exists()
     (launcher.code / "dirty.txt").unlink()
+    r = launcher.run("components_fail")
+    assert r.rc == 2 and "refusing rather than installing" in r.err and not launcher.pilot.exists() and not (launcher.runs / "stub-launches.txt").exists()      # non-canonical components: refused, nothing installed or launched
     r = launcher.run("preflight_fail")
     assert r.rc == 4 and "not executable" in r.err and not launcher.pilot.exists() and not (launcher.runs / "stub-launches.txt").exists()      # no arm was ever launched
 
@@ -299,3 +301,47 @@ def test_the_real_arm_launcher_resolves_the_pilot_checkout_after_sourcing_the_sh
         assert d["PLUMME_ZERO_CHARGE_DISPATCH"] == "<unset>" and d["PLUMME_TRIAL_CREDIT"] == "<unset>"      # the supply is not narrowed: full eligible PlumMe pool, no invented model restriction
     assert (single["OGI013_SESSION_MAX_CALLS"], single["OGI013_SESSION_MAX_TOKENS"], single["OGI013_SESSION_MAX_COST_USD"]) == ("70", "100000", "0.0")
     assert collab["OGI013_ORG_COLLAB"] == "1" and single["OGI013_ORG_COLLAB"] == "<unset>" and single["COMMAND"].split("--out ")[1] != collab["COMMAND"].split("--out ")[1]
+
+
+def test_components_must_resolve_from_the_canonical_checkouts_or_the_pilot_refuses(tmp_path):
+    vc = load("verify_components", PILOT / "verify_components.py")
+    root, tau2 = tmp_path / "components", tmp_path / "tau2"
+    for repo in vc.COMPONENTS.values():
+        (root / repo).mkdir(parents=True)
+    tau2.mkdir()
+    r = vc.resolve("json", root / "MangoMe")                                                      # a stdlib module is not inside the canonical checkout: the bootstrap would reinstall
+    assert not r["canonical"] and r["origin"]
+    assert vc.resolve("definitely_not_installed_xyz", root / "MangoMe") == {"module": "definitely_not_installed_xyz", "origin": None, "canonical": False}
+    assert vc.main(["x", str(root), str(tau2)]) == 1                                                # nothing canonical here -> exit 1, nothing is installed by the check
+    assert vc.main(["x"]) == 2
+
+
+@pytest.mark.skipif(not (REAL_BASE / "env.sh").is_file(), reason="needs the ogi-013 base")
+def test_with_the_real_environment_every_component_resolves_from_the_canonical_checkouts():
+    """Real env files + real hostpython: the pilot's PYTHONPATH makes all seven components and tau2 canonical, so the bootstrap installs NOTHING into the shared host venv."""
+    comp = Path("/root/fruits/integration/ogi013-org-components")
+    if not comp.is_dir():
+        pytest.skip("components root missing")
+    r = subprocess.run([str(PILOT / "run_arm.sh"), "--verify-components"], env={**os.environ, "PILOT_CODE": str(ROOT)}, capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stdout[-400:] + r.stderr[-400:]
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    assert out["all_canonical"] and {m["module"] for m in out["modules"]} >= {"mangome", "orangeme", "peachme", "pomelome", "plumme", "cherryme", "appleme", "tau2"}
+    script = (PILOT / "run_pilot.sh").read_text()
+    assert script.index("--verify-components") < script.index("--preflight")                         # refused before anything is created
+
+
+def test_the_report_states_what_one_paired_episode_cannot_separate(tmp_path):
+    rep, *_ = build(tmp_path)
+    text = " ".join(rep["caveats"])
+    assert "n = 1" in text and "customer simulator is an LLM" in text and "Fixed arm order" in text and "no effect size" in text
+    assert "Why this is a pilot and not evidence" in report.render(rep)
+    rep2, *_ = build(tmp_path / "x", collab_events=[], collab={"code": "other"})
+    assert any("controls check FAILED" in c for c in rep2["caveats"]) and any("tested nothing about the collaboration" in c for c in rep2["caveats"])
+
+
+def test_the_budget_file_carries_exactly_the_owner_stated_limits():
+    c = BUDGET["cumulative"]
+    assert (c["max_dispatches"], c["max_tokens"], c["max_wall_minutes"], c["max_cash_usd"], BUDGET["max_tokens_per_step"]) == (180, 280000, 90, 0.0, 24000)
+    assert sum(a["max_dispatches"] for a in BUDGET["arms"].values()) == c["max_dispatches"] and set(BUDGET["arms"]) == {"pilot-1/single", "pilot-1/collab"}
+    assert all(a["max_tokens"] <= c["max_tokens"] and BUDGET["max_tokens_per_step"] <= a["max_tokens"] for a in BUDGET["arms"].values())
+    assert BUDGET["status"].startswith("PROPOSAL") and BUDGET["reserve_tokens_per_dispatch"] == 4000 and BUDGET["max_consecutive_failures"] == 20
