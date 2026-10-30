@@ -23,11 +23,13 @@ from ogi013_coding_gate import CodingGate
 from ogi013_tau2_agent import Episode, Stack
 
 CODEX_HOME = "/root/.plumme/codex-headless-home"
+ENV_NOTE = ("Python 3.8 interpreter with Django's dependencies: /root/fruits/research/OGI013-SINGLE-TASK/venv38/bin/python ; run tests with: "
+            "PYTHONPATH=. /root/fruits/research/OGI013-SINGLE-TASK/venv38/bin/python tests/runtests.py <module>\n")     # the same environment note Luna received in arm L
 CRITIQUE_CAP = 4000                     # characters of critique handed to the reviser, identical in LSR and LBR
 CRITIC_TASK = ("You are an independent code reviewer. The repository in the working directory already contains a colleague's proposed change (P0). Inspect it and run the relevant existing "
                "tests yourself. Do NOT edit any file. Then finish with a plain message whose FIRST line is exactly 'ISSUES: NONE' or 'ISSUES: FOUND', followed by the specific problems and the "
-               "evidence you observed (test commands and their results, code facts).\n<issue>\n{issue}\n</issue>\n<proposed_change>\n{p0}\n</proposed_change>")
-REVISE_TASK = ("{issue_block}\nYour earlier change (P0) is in the working directory. A reviewer examined it and reported:\n<review>\n{critique}\n</review>\n"
+               "evidence you observed (test commands and their results, code facts).\n" + ENV_NOTE + "<issue>\n{issue}\n</issue>\n<proposed_change>\n{p0}\n</proposed_change>")
+REVISE_TASK = ("You are working in a checkout of the Django repository in the current directory. " + ENV_NOTE + "ISSUE:\n{issue}\nYour earlier change (P0) is in the working directory. A reviewer examined it and reported:\n<review>\n{critique}\n</review>\n"
                "Decide whether the review is right. Change the source code if it is, run the relevant existing tests after your last edit, and finish.")
 
 
@@ -84,7 +86,7 @@ def classify(before: dict, after: dict) -> str:
 
 def lineage_keys(stack: Stack) -> list:
     from plumme.knowledge import independence_key
-    return sorted({independence_key(o) for o in stack.svc.market.offers.values() if re.search(r"(?i)openai|gpt|luna|codex", f"{o.provider} {o.model} {o.model_family}")})
+    return sorted({independence_key(o) for o in stack.svc.store.market.offers.values() if re.search(r"(?i)openai|gpt|luna|codex", f"{o.provider} {o.model} {o.model_family}")})
 
 
 def main(argv=None) -> int:
@@ -150,7 +152,7 @@ def main(argv=None) -> int:
                 rev_ws = d / "rev_ws"
                 shutil.copytree(p0_ws, rev_ws, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
                 gate = CodingGate(rev_ws, task["base_commit"], d / "gate")
-                r = luna(REVISE_TASK.format(issue_block=ct.SYSTEM.split("<issue>")[0].split("Tools:")[0] + "ISSUE:\n" + issue, critique=rec["critique"]), rev_ws, "workspace-write", d / "revision")
+                r = luna(REVISE_TASK.format(issue=issue, critique=rec["critique"]), rev_ws, "workspace-write", d / "revision")
                 feed_gate(gate, r["events"])
                 dec = gate.check_submit()
                 rec["revision"] = {"usage": r["usage"], "seconds": r["seconds"], "gate": dec.reason, "accepted": dec.accepted, "changed_vs_p0": dec.diff != p0_text}
