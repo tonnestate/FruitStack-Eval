@@ -230,7 +230,7 @@ class Episode:
             f.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "task": self.task_id, "mode": self.mode, "sid": self.sid, "event": kind, **data}, default=str) + "\n")
 
     # one model call = one PeachMe step on the integrated stack; transient supply conditions are handled by PlumMe/PeachMe contracts, not by the benchmark
-    def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None) -> dict:
+    def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None, sticky_attempts: int = 1) -> dict:
         from peachme import PeachError
         fs, last = self.stack.fs, None
         for attempt in range(6 if os.environ.get("OGI013_PILOT_RUNS") else 4):                              # campaigns: 6 (AMENDMENT-1 X; every attempt is a counted dispatch under the 110-request ceiling, the real bound); the frozen C-conditions keep 4
@@ -244,7 +244,7 @@ class Episode:
             key = f"{self.task_id}:{self.turns}:{tag}:{self.step_n}"
             s = self.stack.store.get(self.sid)
             self.stack.heart.exclude_independence_keys = tuple(x for x in exclude if x)
-            self.stack.heart.prefer_model_key = prefer if attempt == 0 else None
+            self.stack.heart.prefer_model_key = prefer if attempt < sticky_attempts else None
             self.stack.heart.min_context_tokens = (len(prompt) // 3 + 3000) if os.environ.get("OGI013_PILOT_RUNS") else None      # campaigns only: the request's own size (PlumMe's chars/3 estimate) plus room for the answer
             t0 = time.monotonic()
             try:

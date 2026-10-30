@@ -75,7 +75,17 @@ class Sandbox:
         n = text.count(old)
         if n != 1:
             raise ValueError(f"'old' must occur exactly once in {path}; it occurs {n} times")
-        p.write_text(text.replace(old, new))
+        new_text = text.replace(old, new)
+        p.write_text(new_text)
+        if p.suffix == ".py":                 # AMENDMENT-DRIVER-2 R3: a syntactically invalid edit is reverted and reported by error type only
+            chk = subprocess.run([self.python, "-c", "import py_compile,sys,tempfile;d=tempfile.TemporaryDirectory();py_compile.compile(sys.argv[1],cfile=d.name+'/x.pyc',doraise=True)", str(p)],
+                                 capture_output=True, text=True, env={"PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1"})
+            if chk.returncode:
+                p.write_text(text)
+                m = re.search(r"(SyntaxError|IndentationError|TabError)[^\n]*", chk.stderr)
+                ln = re.search(r"line (\d+)", chk.stderr)
+                detail = re.sub(r"^\w+Error:\s*", "", m.group(0)) if m else "invalid syntax"
+                raise ValueError(f"EDIT_REJECTED: {m.group(0).split(':')[0] if m else 'SyntaxError'} at line {ln.group(1) if ln else '?'}: {detail[:160]} (the file was left unchanged)")
         return f"OK: edited {path}"
 
     def run_tests(self, modules: list[str]) -> str:
@@ -106,8 +116,9 @@ class _Bridge:
 
 def render(transcript: list[dict]) -> str:
     out, n = [], len(transcript)
+    last_run = max((i for i in range(1, n) if transcript[i]["role"] == "result" and transcript[i - 1]["text"].startswith("run_tests(")), default=-1)     # AMENDMENT-DRIVER-2: the latest test result stays in full
     for i, e in enumerate(transcript):
-        if e["role"] == "result" and i < n - KEEP_FULL:
+        if e["role"] == "result" and i < n - KEEP_FULL and i != last_run:
             out.append(f"TOOL RESULT: {e['text'][:500]}{' [...]' if len(e['text']) > 500 else ''}")
         else:
             out.append({"call": "ASSISTANT TOOL CALL: ", "result": "TOOL RESULT: "}[e["role"]] + e["text"])
@@ -162,15 +173,18 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
         if blocking:
             return "STOP:REFLEX_BLOCKED", first
         prompt = head + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
-        pref = prefer if first is None else first["model_key"]            # the same model carries a critic / reviser through its own session; the author is PlumMe AUTO per step
-        d = ep.step(prompt, role, exclude=tuple(exclude), prefer=pref if role != "author" else None)
+        pref = prefer if first is None else first["model_key"]            # AMENDMENT-DRIVER-2 R1: one model carries every role through its own session; PlumMe AUTO re-chooses only after 2 consecutive provider failures
+        d = ep.step(prompt, role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
+        if d["success"] and first is not None and d["model_key"] != first["model_key"]:
+            ep.event("ROLE_HANDOVER", role=role, label="AUTHOR_HANDOVER" if role == "author" else "ROLE_HANDOVER", from_model=first["model_key"], to_model=d["model_key"], reason="2 consecutive provider failures")
+            first = {**first, "model_key": d["model_key"]}
         if d["success"] and first is None:
             first = d
         if d["success"] and role == "author" and d.get("independence_key"):
             ctx.keys["author"].add(d["independence_key"])
         action = parse_action(d["output"]) if d["success"] else None
         if action is None and d["success"]:
-            fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref if role != "author" else None)
+            fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
             action = parse_action(fix["output"]) if fix["success"] else None
         if action is None:
             ep.event("BAD_ACTION", role=role, model=d.get("model_key"), output=(d.get("output") or "")[:400], failure=d.get("failure_class"))
