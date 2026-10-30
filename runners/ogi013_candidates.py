@@ -3,11 +3,9 @@ Everything here is decided by the host (driver-run checks), never by a model's c
 from __future__ import annotations
 
 import hashlib
-import os
 import re
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
 
 TEST_LINE = re.compile(r"^(.+?) \.\.\. (ok|FAIL|ERROR|skipped.*|expected failure|unexpected success)\s*$", re.M)
