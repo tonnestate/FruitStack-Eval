@@ -51,3 +51,4 @@ Critique validity (pre-registered rule): LSR 5/5 valid (grounded NONE); LBR 0/5 
 ## SWE-bench Verified membership (to be re-verified against the dataset when the sample is drawn)
 - `django__django-11019`: not in SWE-bench Verified.
 - `django__django-14855`: in Verified; excluded from the sample as the development task (PREREG exclusion).
+- FIX 2 (2026-10-30): execution crashes found in G-dev episode 1 (`gdev1`): (a) `parse_code_action` raised TypeError when a model put a non-string in `name`/`action`; (b) `OBJECTION` ledger events used the keyword `kind`, clashing with `Episode.event(kind, ...)`, which crashed the helper path. Both fixed (`okind`; type check); `WORK_ERROR` events now carry a traceback. Tests added. Affected run: gdev1 (not counted; G-dev restarts at episode 1 of 3).
