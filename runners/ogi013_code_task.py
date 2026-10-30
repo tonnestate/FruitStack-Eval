@@ -183,6 +183,7 @@ class Ctx:
 STALL_TURNS_WITHOUT_ACTION = 8
 NO_PROGRESS_TURNS = 8        # Addendum 3 F: a role session stops after this many consecutive turns without progress (replaces the fixed turn cap)
 HARD_TURNS = 400             # absolute safety bound of one session; reaching it is reported as a defect, never expected
+SUPPLY_WAITS, SUPPLY_WAIT_SECONDS = 10, 60   # NO_ELIGIBLE_NEURON is a supply condition: wait up to 10 minutes per step before the stage fails
 NOMINAL_TURNS = 40           # reference length for stall condition (d) "50% of the session's turn limit"
 
 
@@ -215,7 +216,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
     nominal = limit or NOMINAL_TURNS
     np_turns, seen_reads = 0, set()
     stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
-    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "check_ns": [], "reads": set(), "progress": [], "role": role}
+    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "check_ns": [], "checks": [], "reads": set(), "progress": [], "role": role}
     best_vis: dict = {}                                 # Addendum 5: this session's best-so-far visible record (test name -> ever passed)
     repro: dict = {}                                    # label -> last result (True = exit 0) of the session's own reproduction checks
     regressed = False
@@ -225,6 +226,17 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         if w:
             ep.event("HELP_GIVEN", role=role, condition=w["cond"], helper_model=w["model"], recovered=recovered, turns_after=ctx.last_session["turns"] - w["turn"])
             stall["watch"] = None
+
+    def step(*a, **k):
+        """Infrastructure failures are not evidence about the work: NO_ELIGIBLE_NEURON (supply momentarily exhausted) is waited out, logged, and does not count as a turn."""
+        for waited in range(SUPPLY_WAITS + 1):
+            try:
+                return ep.step(*a, **k)
+            except RuntimeError as exc:
+                if "NO_ELIGIBLE_NEURON" not in str(exc) or waited == SUPPLY_WAITS or time.monotonic() + SUPPLY_WAIT_SECONDS > ctx.deadline:
+                    raise
+                ep.event("SUPPLY_WAIT", role=role, waited=waited + 1, seconds=SUPPLY_WAIT_SECONDS)
+                time.sleep(SUPPLY_WAIT_SECONDS)
 
     def progress_check(made) -> None:
         nonlocal np_turns
@@ -264,7 +276,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             ep.event("TEAM_STATE", role=role, sha=hashlib.sha256(ts.encode()).hexdigest(), turn=turn)
         prompt = head + (f"\n<team_state>\n{ts}\n</team_state>" if ts else "") + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
         pref = prefer if first is None else first["model_key"]            # AMENDMENT-DRIVER-2 R1: one model carries every role through its own session; PlumMe AUTO re-chooses only after 2 consecutive provider failures
-        d = ep.step(prompt, role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
+        d = step(prompt, role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
         if d["success"] and first is not None and d["model_key"] != first["model_key"]:
             ep.event("ROLE_HANDOVER", role=role, label="AUTHOR_HANDOVER" if role == "author" else "ROLE_HANDOVER", from_model=first["model_key"], to_model=d["model_key"], reason="2 consecutive provider failures")
             first = {**first, "model_key": d["model_key"]}
@@ -274,7 +286,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             ctx.keys.setdefault(role, set()).add(d["independence_key"])
         action = parse_action(d["output"]) if d["success"] else None
         if action is None and d["success"]:
-            fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
+            fix = step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
             action = parse_action(fix["output"]) if fix["success"] else None
         if action is None:
             ep.event("BAD_ACTION", role=role, model=d.get("model_key"), output=(d.get("output") or "")[:400], failure=d.get("failure_class"))
@@ -319,7 +331,9 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         elif name == "run_python":
             stall["idle"] = 0
             ctx.last_session["py_runs"] += 1
-            ctx.last_session["check_ns"].append(time.monotonic_ns())
+            if sb.last_py:
+                ctx.last_session["check_ns"].append(time.monotonic_ns())
+                ctx.last_session["checks"].append((time.monotonic_ns(), sb.last_py[2]))
             if sb.last_py:
                 ok_py = sb.last_py[1] == 0
                 lab = (sb.last_py[0] or "").strip()
@@ -337,6 +351,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             stall["idle"] = 0
             ctx.last_session["test_runs"] += 1
             ctx.last_session["check_ns"].append(time.monotonic_ns())
+            ctx.last_session["checks"].append((time.monotonic_ns(), sb.last_run[2]))
             ctx.last_session["cmd_keys"] += list(args.get("modules", []))
             if gated:
                 cur = visible_results(sb.last_run[2])

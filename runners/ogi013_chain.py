@@ -48,9 +48,8 @@ def chain(run: Path):
             kind = "vote_rejection"
         if not kind or (kind == "challenge" and e.get("verdict") != "FOUND"):
             continue
-        oid = next((k for k, (j, o) in objs.items() if j > i and j <= i + 8 and o["lineage"] == e.get("lineage") and o["target"] == e.get("pos")), None) if kind != "specialist" else None
-        if kind == "help":
-            oid = next((k for k, (j, o) in objs.items() if i - 3 <= j <= i and o["lineage"] == e.get("lineage")), None)
+        ids = e.get("objection_ids") or []                       # linked by id only (Addendum 7 B.3)
+        oid = next((k for k in ids if k in objs), None)
         c1 = bool(oid and objs[oid][1]["grounded"]) if kind != "specialist" else None
         rev = next(((j, r) for j, r in revs if oid and j > i and oid in r["responding_to"]), None)
         c2 = bool(rev and rev[1]["changed_code"])

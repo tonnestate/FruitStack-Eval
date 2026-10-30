@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 import ogi013_code_task as ct
-from ogi013_vote import judge_vote, tally as release_tally
+from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
 from ogi013_tau2_agent import Episode, Stack, _is_stop
 
@@ -52,33 +52,18 @@ class Pos:
         self.snapshots: list = []
 
 
-class TeamState:
-    """team_state.md: goal, per position diff + latest full visible test result + status, open objections, decisions. Never truncated by age."""
+class TeamState(Ledger):
+    """team_state.md: goal, per position diff + latest full visible test result + status, open objections, decisions. Never truncated by age. The objection ledger (lifecycle) is ogi013_vote.Ledger."""
     def __init__(self, goal: str, path: Path):
-        self.goal, self.path, self.pos, self.objs, self.decisions, self.n = goal, path, {}, [], [], 0
-        self.emit = lambda *a, **k: None           # set to Episode.event: every ledger row is also an event (Addendum 6: the audit trail)
-
-    def objection(self, target: str, lineage, text: str, kind="objection", grounded=True) -> None:
-        self.n += 1
-        self.objs.append({"id": f"O{self.n}", "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "open": True, "grounded": grounded, "answered_by": None, "withdrawn": False})
-        self.emit("OBJECTION", id=f"O{self.n}", target=target, lineage=lineage, kind=kind, grounded=grounded)
-
-    def close_objections(self, target: str, reason: str) -> None:
-        for o in self.objs:
-            if o["target"] == target and o["open"]:
-                o["open"], o["answered_by"] = False, reason
-                self.decisions.append(f"{o['id']} on {target} superseded: {reason}")
-
-    def open_count(self, target: str) -> int:
-        """Addendum 5: only GROUNDED open objections count; ungrounded ones are recorded and shown but neither count nor block."""
-        return sum(1 for o in self.objs if o["target"] == target and o["open"] and o["kind"] == "objection" and o["grounded"])
+        super().__init__()
+        self.goal, self.path, self.pos, self.decisions = goal, path, {}, []
 
     def text(self) -> str:
         out = [f"GOAL:\n{self.goal}\n", "POSITIONS:"]
         for p in self.pos.values():
             out.append(f"- {p.id} (model {p.model}, status {p.status}, revision {p.rev})\n  diff:\n{p.diff or '  (no accepted diff yet)'}\n  latest visible test result (tail):\n{p.test_tail or '  (none)'}")
         out.append("OPEN OBJECTIONS / SUGGESTIONS:")
-        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}]: {o['text']}" for o in self.objs if o["open"]] or ["(none)"]
+        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}, {o['state']}]: {o['text']}" for o in self.objs if o["open"]] or ["(none)"]
         out.append("DECISIONS:")
         out += [f"- {d}" for d in self.decisions] or ["(none)"]
         s = "\n".join(out)
@@ -169,7 +154,7 @@ def main(argv=None) -> int:
 
     def helper_for(p: Pos):
         def helper(cond, diff, tests, recent):
-            copy = a.out / "help" / f"{p.id}_{cond}_{int(time.time())}"
+            copy = a.out / "help" / f"{p.id}_{cond}_{time.time_ns()}"
             shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
             saved = ctx.last_session
             out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + HELP_HEAD.format(cond=cond, diff=diff[:6000], tests=tests, recent=recent), ct.Sandbox(copy, a.python, readonly=True),
@@ -178,9 +163,9 @@ def main(argv=None) -> int:
             ctx.last_session = saved
             if isinstance(out, str) and out.startswith("STOP:"):
                 return None, None
-            team.objection(p.id, st["independence_key"], out, kind="suggestion", grounded=ct.grounded_text(out, hgs))
+            hoid = team.objection(p.id, st["independence_key"], out, kind="suggestion", grounded=ct.grounded_text(out, hgs))
             holders[st["model_key"]] = st["independence_key"]
-            ep.event("HELP_ANSWER", pos=p.id, rev=p.rev, author_lineages=sorted(p.keys), condition=cond, model=st["model_key"], lineage=st["independence_key"], text=out[:300])
+            ep.event("HELP_ANSWER", pos=p.id, rev=p.rev, author_lineages=sorted(p.keys), condition=cond, model=st["model_key"], lineage=st["independence_key"], objection_ids=[hoid], text=out[:300])
             return out, st["model_key"]
         return helper
 
@@ -208,18 +193,28 @@ def main(argv=None) -> int:
                 return result(out, st)
             if stage == "challenge":
                 tgt = next((p for t, p in by_text.items() if t and t in prompt), None)
-                copy = a.out / "challenge" / f"{tgt.id}_r{tgt.rev}_{len(tgt.exams)}"
+                copy = a.out / "challenge" / f"{tgt.id}_r{tgt.rev}_{len(tgt.exams)}_{time.time_ns()}"
                 shutil.copytree(tgt.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-                out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team)
+                pending = [o for o in team.objs if o["target"] == tgt.id and o["state"] == PENDING]
+                if pending:                                           # Addendum 7: re-examination of addressed objections, preferably by the raiser
+                    prompt += ("\nThe author claims these earlier objections are now addressed. After running a check yourself, write one line per id exactly 'O<n>: RESOLVED' or 'O<n>: STILL_OPEN':\n"
+                               + "\n".join(f"{o['id']}: {o['text'][:400]}" for o in pending))
+                    raiser = {v: k for k, v in holders.items()}.get(pending[0]["lineage"])
+                    prefer = prefer or raiser
+                out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=prefer, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team)
                 gs = ctx.last_session
                 if isinstance(out, str) and not out.startswith("STOP:"):
                     found = bool(re.match(r"\s*ISSUES:\s*FOUND", out, re.I))
                     exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": ct.grounded_text(out, gs) and len(out) > 80, "text": out}
                     tgt.exams.append(exam)
                     holders[st["model_key"]] = st["independence_key"]
-                    ep.event("CHALLENGE", pos=tgt.id, rev=tgt.rev, author_lineages=sorted(tgt.keys), verdict=exam["verdict"], lineage=exam["lineage"], model=exam["model"], test_runs=exam["test_runs"], grounded=exam["grounded"])
+                    changes = team.reexamine(tgt.id, out, st["independence_key"], tuple(tgt.keys), gs["checks"]) if pending else []
+                    oids = []
+                    if found and not any(state == OPEN for _, state in changes):
+                        oids.append(team.objection(tgt.id, exam["lineage"], out, grounded=exam["grounded"]))
+                    ep.event("CHALLENGE", pos=tgt.id, rev=tgt.rev, author_lineages=sorted(tgt.keys), verdict=exam["verdict"], lineage=exam["lineage"], model=exam["model"], test_runs=exam["test_runs"], grounded=exam["grounded"],
+                             objection_ids=oids, reexamined=changes)
                     if found:
-                        team.objection(tgt.id, exam["lineage"], out, grounded=exam["grounded"])
                         tgt.status = "challenged"
                     elif exam["grounded"]:
                         tgt.status = "validated"
@@ -228,14 +223,14 @@ def main(argv=None) -> int:
             if stage == "revise":
                 p = by_model.get((prefer or "").split("#")[0]) or by_model.get(prefer or "")
                 before = p.diff
-                responding = [o["id"] for o in team.objs if o["open"] and o["target"] == p.id and o["kind"] == "objection"]
+                responding = [o["id"] for o in team.objs if o["state"] == OPEN and o["target"] == p.id and o["kind"] == "objection"]
                 out, st = session(p, author_head + "\n" + prompt + "\nYour final answer is the repository state: change the files if the criticism is right, re-run the relevant tests, then submit.")
                 if not isinstance(out, str):
                     p.rev += 1
                     ep.event("REVISION", pos=p.id, rev=p.rev, responding_to=responding, changed_code=out.diff != before, reviser_lineage=st["independence_key"], snapshot=f"{p.id}_rev{p.rev}")
                     p.exams = []
-                    team.close_objections(p.id, f"revision {p.rev}")
                     freeze(p, out, f"rev{p.rev}")
+                    team.revise(p.id, p.rev, out.diff != before, responding, reason="revision submitted with unchanged code")
                     p.status = "revised"
                     team.decisions.append(f"{p.id} revised after criticism (revision {p.rev}, {'changed' if out.diff != before else 'unchanged'})")
                     out = out.diff
@@ -295,20 +290,39 @@ def main(argv=None) -> int:
         return sorted(acc, key=lambda p: (-passing(p), team.open_count(p.id)))[0] if acc else None
 
     def vote(p: Pos, model: str, lineage):
-        copy = a.out / "vote" / f"{p.id}_r{p.rev}_{len(votes_log)}"
+        copy = a.out / "vote" / f"{p.id}_r{p.rev}_{len(votes_log)}_{time.time_ns()}"
         shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         saved = ctx.last_session
-        out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + VOTE_HEAD.format(diff=p.diff), ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=model, gated=False, team=team)
+        out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + VOTE_HEAD.format(diff=p.diff), ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=model, exclude=tuple(p.keys), gated=False, team=team)
         gs = ctx.last_session
         runs = gs["test_runs"] + gs["py_runs"]
         ctx.last_session = saved
         if isinstance(out, str) and out.startswith("STOP:"):
             return {"voter": model, "lineage": lineage, "verdict": "NO_VOTE", "counts": "REJECT", "text": out}
-        j = judge_vote(out, lineage, team.objs, p.id, gs.get("check_ns", []), getattr(p, "changed_ns", 0), ct.grounded_text(out, gs))
-        return {"voter": model, "lineage": st["independence_key"], "verdict": j["verdict"], "counts": j["counts"], "text": out, "test_runs": runs, "grounded": ct.grounded_text(out, gs), "reason": j["reason"], "rev": p.rev, "author_lineages": sorted(p.keys)}
+        j = judge_vote(out, lineage, team.objs, p.id, gs["checks"], getattr(p, "changed_ns", 0), ct.grounded_text(out, gs), returned_lineage=st["independence_key"], author_lineages=tuple(p.keys))
+        return {"voter": model, "lineage": st["independence_key"], "withdrawals": j["withdrawals"], "verdict": j["verdict"], "counts": j["counts"], "text": out, "test_runs": runs, "grounded": ct.grounded_text(out, gs), "reason": j["reason"], "rev": p.rev, "author_lineages": sorted(p.keys)}
 
     votes_log: list = []
-    cls, chosen, guard, open_at_stop = "NO_PATCH", None, None, []
+    cls, chosen, guard, open_at_stop, withdrawals = "NO_PATCH", None, None, [], 0
+
+    def adjudicate(p: Pos):
+        """Addendum 7 B.1: a grounded objection CONTESTED_BY_AUTHOR for 2 cycles is adjudicated by a specialist from a third lineage (read + run access)."""
+        cont = [o for o in team.objs if o["target"] == p.id and o["state"] == OPEN and o["kind"] == "objection" and o["grounded"] and o["contested"] >= 2]
+        if not cont:
+            return
+        copy = a.out / "adjudicate" / f"{p.id}_r{p.rev}_{time.time_ns()}"
+        shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        head = (ct.CRITIC_HEAD.format(issue=issue) + "\nYou are the SPECIALIST adjudicating objections the author contests (it revised without changing code). Run your own check, then reply with one line per id "
+                "exactly 'O<n>: RESOLVED' (the author is right) or 'O<n>: STILL_OPEN', then your grounds.\n<candidate_diff>\n" + p.diff + "\n</candidate_diff>\n"
+                + "\n".join(f"{o['id']}: {o['text'][:500]}\nAUTHOR'S REASON: {o.get('author_reason', '')}" for o in cont))
+        saved = ctx.last_session
+        out, st = ct.agent_loop(ctx, "critic", head, ct.Sandbox(copy, a.python, readonly=True), tools_ro, exclude=tuple(p.keys) + tuple(o["lineage"] for o in cont), gated=False, team=team)
+        gs = ctx.last_session
+        ctx.last_session = saved
+        if isinstance(out, str) and not out.startswith("STOP:"):
+            holders[st["model_key"]] = st["independence_key"]
+            ch = team.reexamine(p.id, out, st["independence_key"], tuple(p.keys), gs["checks"], from_state=OPEN, decided_by="specialist")
+            ep.event("SPECIALIST_ADJUDICATION", pos=p.id, lineage=st["independence_key"], objections=[o["id"] for o in cont], decided=ch)
     if a.mode == "team" and best() is not None:
         from cherryme.brother import CHALLENGE, REVISE
         prompt0 = f"Task: resolve this issue in the repository.\n{issue}\n"
@@ -322,25 +336,26 @@ def main(argv=None) -> int:
                         continue
                     v = vote(chosen, model, lineage)
                     votes_log.append({"cycle": cycle, "pos": chosen.id, **{k: v[k] for k in v if k != "text"}})
-                    ep.event("RELEASE_VOTE", cycle=cycle, pos=chosen.id, voter=v["voter"], lineage=v["lineage"], verdict=v["verdict"], test_runs=v.get("test_runs"), reason=v.get("reason"), rev=v.get("rev"), author_lineages=v.get("author_lineages"))
+                    voids = []
+                    if v["counts"] != "EXCELLENT" and v["verdict"] != "NO_VOTE":
+                        voids.append(team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}", grounded=bool(v.get("grounded")) and v["verdict"] != "UNGROUNDED_APPROVAL"))
+                    ep.event("RELEASE_VOTE", objection_ids=voids, withdrawals=v.get("withdrawals", 0), cycle=cycle, pos=chosen.id, voter=v["voter"], lineage=v["lineage"], verdict=v["verdict"], test_runs=v.get("test_runs"), reason=v.get("reason"), rev=v.get("rev"), author_lineages=v.get("author_lineages"))
                     votes_now.append(v)
                     (a.out / "votes").mkdir(exist_ok=True)
                     (a.out / "votes" / f"c{cycle}_{chosen.id}_{len(votes_log)}.txt").write_text(v["text"] or "")
                 if release_tally(votes_now) == "RELEASED_UNANIMOUS_EXCELLENT":
-                    cls = "RELEASED_UNANIMOUS_EXCELLENT"
+                    cls, withdrawals = "RELEASED_UNANIMOUS_EXCELLENT", sum(v.get("withdrawals", 0) for v in votes_now)
                     break
                 fails = fails + 1 if not any(v["verdict"] != "NO_VOTE" for v in votes_now) else 0
-                for v in votes_now:
-                    if v["counts"] != "EXCELLENT" and v["verdict"] != "NO_VOTE":
-                        team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}", grounded=bool(v.get("grounded")) and v["verdict"] != "UNGROUNDED_APPROVAL")
                 open_now, score = team.open_count(chosen.id), passing(chosen)         # Addendum 5: GROUNDED open objections shrink, or the best position's visible result improves
-                no_shrink = 0 if prev_open is None or open_now < prev_open or score > prev_score else no_shrink + 1
+                no_shrink = next_no_shrink(no_shrink, prev_open, open_now, prev_score, score)
                 prev_open, prev_score = open_now, score
                 cycle += 1
-                if no_shrink >= 3 or cycle >= MAX_VOTE_CYCLES or fails >= 3:
-                    guard = "VOTE_NO_SHRINK_3" if no_shrink >= 3 else "VOTE_CYCLES_8" if cycle >= MAX_VOTE_CYCLES else "VOTE_FAILURES_3"
+                guard = vote_stop(no_shrink, cycle, fails, MAX_VOTE_CYCLES)
+                if guard:
                     break
-                crit = "\n---\n".join(o["text"] for o in team.objs if o["open"] and o["target"] == chosen.id)
+                adjudicate(chosen)
+                crit = "\n---\n".join(o["text"] for o in team.objs if o["state"] == OPEN and o["target"] == chosen.id)
                 r = work(REVISE.format(task=prompt0, own=chosen.diff, critique=crit), "revise", prefer=chosen.model)
                 if r["success"]:
                     work(CHALLENGE.format(task=prompt0, work=chosen.diff), "challenge", exclude=tuple(chosen.keys))
@@ -356,7 +371,7 @@ def main(argv=None) -> int:
     final = chosen.diff if chosen else ""
     if chosen:
         (snaps / "RELEASED.diff").write_text(final)
-    release = {"guard": guard, "votes": votes_log, "class": cls, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
+    release = {"guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
     ep.event("RELEASE", **release)
     status = cls
     ep.close(status)
