@@ -25,3 +25,34 @@
 | commit | defect | rerun scope |
 |---|---|---|
 | (see RESULTS.md) | dev06: all authors stopped after 9 exploration turns; author-type roles now get the 12-read exploration allowance until their first run_tests | G-dev restarted at episode 1 of 3 |
+
+## Pre-registered design (fixed 2026-10-30, before any scored run; changes only by a dated erratum that does not touch H, endpoints, n, selection or thresholds)
+
+Hypotheses
+- H1 (Experiment A): from the same failed Luna P0, revision after a VALID independent-lineage critique (LBR) rescues more often than after Luna's own critique (LSR).
+  Unit: (instance, replicate). Endpoint: rescue = hidden-test resolved after revision while P0 not resolved. Test: exact two-sided McNemar on discordant LBR/LSR pairs, alpha 0.05.
+  Secondary: partial improvement (F2P up, P2P not worse), harm, valid vs INVALID_CRITIQUE counts per branch.
+- H2 (Experiment B): team T resolves more instances than the same supply without organisation N. Unit: instance. Exact McNemar T vs N. Secondary: T vs S (McNemar), T vs L (descriptive, Wilson 95% CI).
+- H3 (mechanism): >= 1 COMPLETE C1-C4 chain occurs per gate window (definitions: Addendum 6 section 3, Addendum 7, Addendum 8).
+- H4 (cost): additional tokens and calls per additional resolved instance (T-N, T-S); tokens per complete chain. Descriptive.
+
+Samples
+- Verified pool: princeton-nlp/SWE-bench_Verified, test split, dataset revision recorded at draw time.
+  Order: ascending sha256("OGI013-SWEV-1|" + instance_id). Exclusions applied BEFORE taking positions:
+  django__django-14855 (development task), django__django-11019, and any instance whose gold patch fails the official harness (HARNESS_INVALID).
+  Sample = first 50 after exclusions. Positions 1-5 = window W5, 1-15 = window W15. Commit the list and its sha256 when drawn, before any run on it.
+- Terminal-Bench 2.1: Harbor dataset terminal-bench/terminal-bench-2-1, order ascending sha256("OGI013-TB21-1|" + task_id), first 20.
+- Development task: django__django-14855 (SWE-bench Lite), never reported as a result.
+
+Sequence and gates (owner decision "cheapest evidence first", 2026-10-30)
+1. G-dev: <= 3 episodes after FIX 1. PASS requires all Addendum 3 C items, Addendum 6 section 4 diversity, Addendum 5 C guard audit (wasted tail <= 40%),
+   AND >= 1 COMPLETE C1-C4 chain in at least one episode. FAIL -> stop the study after REPORT 1 (finding: no verified correction by the organisation under current supply).
+2. W5: T, N, L on positions 1-5, K = 1. CONTINUE iff >= 1 COMPLETE chain in T AND T resolved >= N resolved on W5. Else stop after REPORT 2.
+3. W15: T, N, S, L on positions 6-15, K = 1 (W5 results are reused; S added on 1-15). Experiment A on Luna-failed instances within W15, K = 2.
+   CONTINUE to the full program iff the McNemar T vs N on W15 has more T-only than N-only resolutions AND >= 3 COMPLETE chains on W15. Else write FINAL.md from existing data.
+4. Full program (only after a positive W15): L on positions 16-50; Terminal-Bench 2.1 (20 tasks, L and T, 1 run each); 11019 closure (T, N, S once each); FINAL.md.
+
+Stop conditions in any step: a circuit breaker hit twice -> stop that step and report it as a defect. A stop is a reported result.
+
+Fixed per-arm resources: loop guards per Addenda 5 and 7 and FIX 1; circuit breaker 3,000,000 tokens / 1,500 requests / 4 h per episode; identical for T, N and S.
+N's session count: fixed per instance so that N's tokens are within +-10% of T's tokens on that instance; measured from T first.
