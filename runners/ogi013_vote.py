@@ -20,16 +20,19 @@ class Ledger:
     def __init__(self):
         self.objs, self.n = [], 0
         self.emit = lambda *a, **k: None
+        self.on_change = lambda o: None          # called after every objection state change (the audit trail of the ledger)
 
     def _set(self, o, state, **info):
         o["state"], o["open"] = state, state in (OPEN, PENDING)
         o.update(info)
+        self.on_change(o)
 
     def objection(self, target, lineage, text, kind="objection", grounded=True) -> str:
         self.n += 1
         oid = f"O{self.n}"
         self.objs.append({"id": oid, "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "grounded": grounded, "raised_ns": time.monotonic_ns(),
                           "state": OPEN, "open": True, "contested": 0, "decided_by": None, "revised_ns": None})
+        self.on_change(self.objs[-1])
         self.emit("OBJECTION", id=oid, target=target, lineage=lineage, okind=kind, grounded=grounded)   # not kind=: Episode.event(kind, ...) takes that name
         return oid
 
@@ -41,6 +44,7 @@ class Ledger:
                 else:
                     o["contested"] += 1                                     # CONTESTED_BY_AUTHOR: stays OPEN
                     o["author_reason"] = reason[:500]
+                    self.on_change(o)
                 self.emit("OBJECTION_REVISED", id=o["id"], rev=rev, state=o["state"], contested=o["contested"])
 
     def reexamine(self, target, text, examiner_lineage, excluded_lineages, checks, from_state=PENDING, decided_by="reexamination") -> list:

@@ -17,8 +17,10 @@ import sys
 import time
 import traceback
 from pathlib import Path
+from types import SimpleNamespace
 
 import ogi013_code_task as ct
+from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
 from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
 from ogi013_tau2_agent import Episode, Stack, _is_stop
@@ -58,9 +60,79 @@ class TeamState(Ledger):
     def __init__(self, goal: str, path: Path):
         super().__init__()
         self.goal, self.path, self.pos, self.decisions = goal, path, {}, []
+        self.votes, self.release, self.mango, self._written = [], None, None, {}
+        self.on_change = self._objection_changed
         self.independent = False        # Addendum 8: True from episode start until the SOLVE phase ends; a solver (or its helper) then sees only its own position
 
+    # ---- MangoMe as the work ledger (AMENDMENT-MANGO-1 / C.3) -------------------------------------------------------------------------------------------------
+    PERSISTED_OBJ_KEYS = ("id", "target", "lineage", "text", "kind", "grounded", "state", "open", "contested", "decided_by", "author_reason")
+
+    def _objection_row(self, o) -> dict:
+        return {k: o.get(k) for k in self.PERSISTED_OBJ_KEYS}
+
+    def _objection_changed(self, o) -> None:
+        if self.mango is not None:
+            row = self._objection_row(o)
+            self.mango.write("TEAM_OBJECTION", f"{o['id']}:{o['state']}:{o.get('contested', 0)}:{self.mango.seq}", row)
+            self._written[("obj", o["id"])] = json.dumps(row, sort_keys=True)
+
+    def state_dict(self) -> dict:
+        return {"goal": self.goal, "independent": self.independent,
+                "pos": [{"id": p.id, "model": p.model, "status": p.status, "rev": p.rev, "diff": p.diff, "test_tail": p.test_tail,
+                         "sha256": hashlib.sha256((p.diff or "").encode()).hexdigest()} for p in self.pos.values()],
+                "objs": [self._objection_row(o) for o in self.objs], "n": self.n, "decisions": list(self.decisions), "votes": list(self.votes), "release": self.release}
+
+    def persist(self) -> None:
+        """Granular records for every changed row, then the full structured state as the LAST checkpoint (work_context returns only the latest one)."""
+        if self.mango is None:
+            return
+        m = self.mango
+        if ("goal",) not in self._written:
+            m.write("TEAM_GOAL", "goal", {"goal": self.goal})
+            self._written[("goal",)] = "1"
+        for p in self.pos.values():
+            row = {"id": p.id, "model": p.model, "status": p.status, "rev": p.rev, "sha256": hashlib.sha256((p.diff or "").encode()).hexdigest(), "diff": p.diff}
+            enc = json.dumps(row, sort_keys=True)
+            if self._written.get(("pos", p.id)) != enc:
+                m.write("TEAM_POSITION", f"{p.id}:{p.rev}:{row['sha256'][:12]}:{p.status}", row)
+                self._written[("pos", p.id)] = enc
+        for o in self.objs:
+            enc = json.dumps(self._objection_row(o), sort_keys=True)
+            if self._written.get(("obj", o["id"])) != enc:
+                self._objection_changed(o)               # state changed outside a ledger method (e.g. an evidenced withdrawal inside a vote)
+        for i, d in enumerate(self.decisions):
+            if ("dec", i) not in self._written:
+                m.write("TEAM_DECISION", str(i), {"i": i, "text": d})
+                self._written[("dec", i)] = d
+        for i, v in enumerate(self.votes):
+            if ("vote", i) not in self._written:
+                m.write("TEAM_VOTE", str(i), v)
+                self._written[("vote", i)] = "1"
+        if self.release is not None and ("release",) not in self._written:
+            m.write("TEAM_RELEASE", "release", self.release)
+            self._written[("release",)] = "1"
+        full = self.state_dict()
+        enc = json.dumps(full, sort_keys=True, default=str)
+        if self._written.get(("full",)) != enc:
+            m.write("TEAM_STATE_FULL", "full", full)
+            self._written[("full",)] = enc
+
+    @classmethod
+    def restore(cls, ledger: MangoLedger, path: Path) -> "TeamState":
+        """Rebuild the team state from MangoMe's work_context alone (restart test, final order C.4 step 3)."""
+        d = ledger.latest()
+        if not d or "goal" not in d:
+            raise InfraMangoFailed("RESTORE_NO_TEAM_STATE: the latest checkpoint of the work holds no TEAM_STATE_FULL")
+        t = cls(d["goal"], path)
+        t.independent, t.n = d.get("independent", False), d.get("n", 0)
+        for p in d["pos"]:
+            t.pos[p["id"]] = SimpleNamespace(id=p["id"], model=p["model"], status=p["status"], rev=p["rev"], diff=p["diff"], test_tail=p["test_tail"])
+        t.objs = [{**o, "raised_ns": 0, "revised_ns": None} for o in d["objs"]]
+        t.decisions, t.votes, t.release = list(d["decisions"]), list(d["votes"]), d["release"]
+        return t
+
     def text(self, view=None) -> str:
+        self.persist()
         """view: id of the solver position whose session (or helper) is being prompted. During independent solving only that position, its objections and its decisions are shown."""
         solo = self.independent and view is not None
         out = [f"GOAL:\n{self.goal}\n", "POSITIONS:"]
@@ -122,6 +194,16 @@ def funcs_of(diff: str) -> frozenset:
     return frozenset(out)
 
 
+def infra_failed_exit(ep, out: Path, exc: BaseException, t0: float) -> int:
+    """C.2: a failed MangoMe write ends the episode as INFRA_MANGOME_FAILED: infrastructure, never a result, never silently continued."""
+    ep.event("INFRA_MANGOME_FAILED", error=str(exc)[:400])
+    ep.close("INFRA_MANGOME_FAILED")
+    (out / "run.json").write_text(json.dumps({"status": "INFRA_MANGOME_FAILED", "error": str(exc)[:400], "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project,
+                                               "seconds": round(time.monotonic() - t0, 1)}, indent=1))
+    print(json.dumps({"status": "INFRA_MANGOME_FAILED"}))
+    return 3
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", type=Path, required=True)
@@ -147,6 +229,8 @@ def main(argv=None) -> int:
     ctx = ct.Ctx(ep, effects, None, t0 + a.wall_seconds, a.out)
     team = TeamState(issue, a.out / "team_state.md")
     team.emit = ep.event
+    team.mango = MangoLedger(stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)      # MangoMe is the work ledger of the episode; a failed write ends it INFRA_MANGOME_FAILED
+    infra: list = []
     team.independent = a.mode == "team"
     author_head = ct.SYSTEM.format(issue=issue) + ct.AUTHOR_NOTE
     tools_rw = {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python"}
@@ -176,6 +260,7 @@ def main(argv=None) -> int:
         p.diff, p.status = dec.diff, p.status if label != "first" else "open"
         p.last_run = p.session_sb.last_run
         p.test_tail = (p.last_run[2][-3000:] if p.last_run else "")
+        team.mango.write("TEAM_SNAPSHOT", f"{p.id}:{label}", {"pos": p.id, "label": label, "rev": p.rev, "sha256": dec.diff_sha256, "files": list(dec.changed_source_files)})
         by_text[dec.diff] = p
 
     def result(out, st):
@@ -325,6 +410,8 @@ def main(argv=None) -> int:
             out, st = session(p, author_head)
             if not isinstance(out, str):
                 freeze(p, out, "first")
+    except InfraMangoFailed as exc:
+        infra.append(exc)
     except BaseException as exc:  # noqa: BLE001 - a stop is recorded; accepted positions stay, nothing is synthesised
         ep.event("RUN_STOPPED", exception=type(exc).__name__, error=str(exc)[:400], budget_stop=_is_stop(exc))
 
@@ -384,6 +471,8 @@ def main(argv=None) -> int:
                         continue
                     v = vote(chosen, model, lineage)
                     votes_log.append({"cycle": cycle, "pos": chosen.id, **{k: v[k] for k in v if k != "text"}})
+                    team.votes.append(votes_log[-1])
+                    team.persist()
                     voids = []
                     if v["counts"] != "EXCELLENT" and v["verdict"] != "NO_VOTE":
                         voids.append(team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}", grounded=bool(v.get("grounded")) and v["verdict"] != "UNGROUNDED_APPROVAL"))
@@ -407,6 +496,8 @@ def main(argv=None) -> int:
                 r = work(REVISE.format(task=prompt0, own=chosen.diff, critique=crit), "revise", prefer=chosen.model)
                 if r["success"]:
                     work(CHALLENGE.format(task=prompt0, work=chosen.diff), "challenge", exclude=tuple(chosen.keys))
+        except InfraMangoFailed as exc:
+            infra.append(exc)
         except BaseException as exc:  # noqa: BLE001
             guard = f"STOP:{type(exc).__name__}"
             ep.event("LOOP_GUARD", guard="EPISODE_CIRCUIT_BREAKER", exception=type(exc).__name__, error=str(exc)[:300], budget_stop=_is_stop(exc))
@@ -423,12 +514,19 @@ def main(argv=None) -> int:
     final = chosen.diff if chosen else ""
     if chosen:
         (snaps / "RELEASED.diff").write_text(final)
+    if infra:                                  # C.2: infrastructure, never a result; nothing is released
+        return infra_failed_exit(ep, a.out, infra[0], t0)
     release = {"solver_similarity": sim, "guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
     ep.event("RELEASE", **release)
+    team.release = release
+    try:
+        team.persist()
+    except InfraMangoFailed as exc:
+        return infra_failed_exit(ep, a.out, exc, t0)
     status = cls
     ep.close(status)
     (a.out / "final.diff").write_text(final)
-    summary = {"status": status, "release": release, "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats,
+    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "release": release, "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats,
                "positions": {p.id: {"model": p.model, "keys": sorted(k for k in p.keys if k), "status": p.status, "revisions": p.rev, "snapshots": p.snapshots,
                                     "exams": [{k: v for k, v in e.items() if k != "text"} for e in p.exams]} for p in positions.values()},
                "rounds": {"stop": res.stop_reason, "calls": res.calls, "specialist": res.specialist_used} if res else None}
