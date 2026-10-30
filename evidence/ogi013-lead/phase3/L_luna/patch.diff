@@ -1,0 +1,114 @@
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 02aa32b..baf281c 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -59,22 +59,21 @@ class Media:
+ 
+     @property
+     def _css(self):
+-        css = self._css_lists[0]
+-        # filter(None, ...) avoids calling merge with empty dicts.
+-        for obj in filter(None, self._css_lists[1:]):
+-            css = {
+-                medium: self.merge(css.get(medium, []), obj.get(medium, []))
+-                for medium in css.keys() | obj.keys()
+-            }
+-        return css
++        css = {}
++        for obj in filter(None, self._css_lists):
++            for medium, paths in obj.items():
++                css.setdefault(medium, []).append(paths)
++        return {
++            medium: lists[0] if len(lists) == 1 and len(set(lists[0])) == len(lists[0]) else self.merge(*lists)
++            for medium, lists in css.items()
++        }
+ 
+     @property
+     def _js(self):
+-        js = self._js_lists[0]
+-        # filter(None, ...) avoids calling merge() with empty lists.
+-        for obj in filter(None, self._js_lists[1:]):
+-            js = self.merge(js, obj)
+-        return js
++        lists = list(filter(None, self._js_lists))
++        if len(lists) == 1 and len(set(lists[0])) == len(lists[0]):
++            return lists[0]
++        return self.merge(*lists)
+ 
+     def render(self):
+         return mark_safe('\n'.join(chain.from_iterable(getattr(self, 'render_' + name)() for name in MEDIA_TYPES)))
+@@ -115,7 +114,7 @@ class Media:
+         raise KeyError('Unknown media type "%s"' % name)
+ 
+     @staticmethod
+-    def merge(list_1, list_2):
++    def merge(*lists):
+         """
+         Merge two lists while trying to keep the relative order of the elements.
+         Warn if the lists have the same two elements in a different relative
+@@ -125,29 +124,42 @@ class Media:
+         in a certain order. In JavaScript you may not be able to reference a
+         global or in CSS you might want to override a style.
+         """
+-        # Start with a copy of list_1.
+-        combined_list = list(list_1)
+-        last_insert_index = len(list_1)
+-        # Walk list_2 in reverse, inserting each element into combined_list if
+-        # it doesn't already exist.
+-        for path in reversed(list_2):
+-            try:
+-                # Does path already exist in the list?
+-                index = combined_list.index(path)
+-            except ValueError:
+-                # Add path to combined_list since it doesn't exist.
+-                combined_list.insert(last_insert_index, path)
+-            else:
+-                if index > last_insert_index:
+-                    warnings.warn(
+-                        'Detected duplicate Media files in an opposite order:\n'
+-                        '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
+-                        MediaOrderConflictWarning,
+-                    )
+-                # path already exists in the list. Update last_insert_index so
+-                # that the following elements are inserted in front of this one.
+-                last_insert_index = index
+-        return combined_list
++        # Each list contributes only its own ordering constraints. Combining
++        # lists incrementally would make unrelated files appear ordered.
++        paths = list(dict.fromkeys(path for media_list in lists for path in media_list))
++        dependencies = {path: set() for path in paths}
++        for media_list in lists:
++            for before, after in zip(media_list, media_list[1:]):
++                if before != after:
++                    dependencies[after].add(before)
++
++        result = []
++        remaining = set(paths)
++        while remaining:
++            ready = next((path for path in paths if path in remaining and not dependencies[path] & remaining), None)
++            if ready is None:
++                # Preserve the historical behavior for contradictory input,
++                # including its warning and deterministic output.
++                combined_list = list(lists[0]) if lists else []
++                for media_list in lists[1:]:
++                    last_insert_index = len(combined_list)
++                    for path in reversed(media_list):
++                        try:
++                            index = combined_list.index(path)
++                        except ValueError:
++                            combined_list.insert(last_insert_index, path)
++                        else:
++                            if index > last_insert_index:
++                                warnings.warn(
++                                    'Detected duplicate Media files in an opposite order:\n'
++                                    '%s\n%s' % (combined_list[last_insert_index], combined_list[index]),
++                                    MediaOrderConflictWarning,
++                                )
++                            last_insert_index = index
++                return combined_list
++            result.append(ready)
++            remaining.remove(ready)
++        return result
+ 
+     def __add__(self, other):
+         combined = Media()

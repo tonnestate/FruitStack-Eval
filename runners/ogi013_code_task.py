@@ -4,7 +4,7 @@ Reuses the tau2 adapter's Stack / Episode / FruitStackTau2Agent._org_collab / SI
 the turn loop, and the Pomelo-gated tool execution. The agent never sees the hidden acceptance tests, the gold patch or hints; the verdict comes from the task's own evaluator, run afterwards.
 
 usage (inside the host python, see evidence/ogi013-single-task/run_code_arm.sh):
-  ogi013_code_task.py --workdir DIR --task-json task.json --python VENV_PY --out OUT --mode single|rg2|single_e [--max-turns 40]"""
+  ogi013_code_task.py --workdir DIR --task-json task.json --python VENV_PY --out OUT --mode single|rg2 [--max-turns 40]"""
 from __future__ import annotations
 
 import argparse
@@ -12,18 +12,20 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
 import uuid
 from pathlib import Path
 
-from ogi013_tau2_agent import Episode, FruitStackTau2Agent, Stack, _is_stop, parse_action
+from ogi013_coding_gate import CodingGate, GateError
+from ogi013_tau2_agent import Episode, Stack, _is_stop, parse_action
 
 SYSTEM = """You are a software engineer fixing an issue in the repository checked out in the working directory. Work in steps; each step is exactly ONE action.
-Reply with EXACTLY ONE JSON object and nothing else:
-  {{"action": "tool", "name": "<tool name>", "arguments": {{...}}}}
-  {{"action": "message", "content": "<final summary>"}}      (this submits your work and ends the session; send it only when the fix is complete and verified)
+Reply with EXACTLY ONE JSON object and nothing else. A tool call ALWAYS has this shape (the tool name goes in "name", its parameters in "arguments"):
+  {{"action": "tool", "name": "read_file", "arguments": {{"path": "django/forms/widgets.py", "start": 1, "end": 120}}}}
+  {{"action": "tool", "name": "submit", "arguments": {{}}}}      (hands in your finished change; a plain message {{"action": "message", "content": "..."}} does the same)
 Tools:
   list_dir   {{"path": "<dir relative to repo root>"}}
   read_file  {{"path": "<file>", "start": <first line, default 1>, "end": <last line, default start+199>}}      (numbered lines; at most 250 per call)
@@ -38,8 +40,9 @@ KEEP_FULL = 3          # the latest tool results stay in full, older ones are cu
 
 
 class Sandbox:
-    def __init__(self, workdir: Path, python: str):
-        self.root, self.python = workdir.resolve(), python
+    def __init__(self, workdir: Path, python: str, readonly: bool = False):
+        self.root, self.python, self.readonly = workdir.resolve(), python, readonly
+        self.last_run: tuple | None = None          # (argv, exit code, full output) of the latest run_tests, for the submit gate
 
     def _path(self, rel: str) -> Path:
         p = (self.root / rel).resolve()
@@ -63,6 +66,8 @@ class Sandbox:
         return "\n".join(l[:240] for l in hits) or "(no matches)"
 
     def edit_file(self, path: str, old: str, new: str) -> str:
+        if self.readonly:
+            raise ValueError("this workspace is read-only for you")
         p = self._path(path)
         if "tests" in p.relative_to(self.root).parts[:1]:
             raise ValueError("tests/ is read-only")
@@ -77,7 +82,9 @@ class Sandbox:
         if not modules or not all(re.fullmatch(r"[\w.]+", m) for m in modules):
             raise ValueError("modules must be Django test labels")
         env = {"PYTHONWARNINGS": "ignore", "PATH": "/usr/bin:/bin", "PYTHONPATH": str(self.root), "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"}
-        r = subprocess.run([self.python, "tests/runtests.py", "--parallel", "1", *modules], cwd=self.root, capture_output=True, text=True, timeout=900, env=env)
+        argv = [self.python, "tests/runtests.py", "--parallel", "1", *modules]
+        r = subprocess.run(argv, cwd=self.root, capture_output=True, text=True, timeout=900, env=env)
+        self.last_run = (argv, r.returncode, r.stdout + r.stderr)
         return f"exit={r.returncode}\n" + (r.stdout + r.stderr)[-3000:]
 
 
@@ -129,14 +136,85 @@ def pomelo_call(ep: Episode, sb: Sandbox, effects, name: str, args: dict, write:
     return (data if isinstance(data, str) else json.dumps(data, default=str))[:MAX_RESULT_CHARS], failed
 
 
+AUTHOR_NOTE = ("\nWhen the fix is complete and you have run the relevant existing tests, submit it. A submission is accepted only with a source change under django/ and a "
+               "test run that exercises it after your last edit.")
+CRITIC_HEAD = ("You are an independent code reviewer. The repository in the working directory is a copy that already contains a colleague's proposed change. You may read files, search and run "
+               "tests; you cannot edit. Inspect the change and run the relevant existing tests yourself, then finish with a plain message (no tool call) whose FIRST line is exactly "
+               "'ISSUES: NONE' or 'ISSUES: FOUND', followed by the specific problems and the evidence you observed (test output, code facts).\n"
+               "Reply with EXACTLY ONE JSON object per step, either a tool call {{\"action\": \"tool\", \"name\": ..., \"arguments\": {{...}}}} with list_dir/read_file/search/run_tests "
+               "(same arguments as in the task description below) or {{\"action\": \"message\", \"content\": ...}}.\n<issue>\n{issue}\n</issue>\n")
+LIMITS = {"author": 40, "critic": 15, "reviser": 25}
+
+
+class Ctx:
+    def __init__(self, ep, effects, gate, deadline, out):
+        self.ep, self.effects, self.gate, self.deadline, self.out = ep, effects, gate, deadline, out
+        self.keys = {"author": set()}
+
+
+def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool):
+    """One role's tool loop. Returns (final, first_step): final = the accepted SubmitDecision (gated author/reviser) or the critic's message text, or a string 'STOP:<why>'."""
+    ep, transcript, first = ctx.ep, [], None
+    for turn in range(LIMITS[role]):
+        if time.monotonic() > ctx.deadline:
+            return "STOP:TIME_LIMIT", first
+        blocking = ep.blocking()
+        if blocking:
+            return "STOP:REFLEX_BLOCKED", first
+        prompt = head + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
+        pref = prefer if first is None else first["model_key"]            # the same model carries a critic / reviser through its own session; the author is PlumMe AUTO per step
+        d = ep.step(prompt, role, exclude=tuple(exclude), prefer=pref if role != "author" else None)
+        if d["success"] and first is None:
+            first = d
+        if d["success"] and role == "author" and d.get("independence_key"):
+            ctx.keys["author"].add(d["independence_key"])
+        action = parse_action(d["output"]) if d["success"] else None
+        if action is None and d["success"]:
+            fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref if role != "author" else None)
+            action = parse_action(fix["output"]) if fix["success"] else None
+        if action is None:
+            ep.event("BAD_ACTION", role=role, model=d.get("model_key"), output=(d.get("output") or "")[:400], failure=d.get("failure_class"))
+            transcript.append({"role": "result", "text": "Error: your reply was not a valid action; reply with one JSON object."})
+            continue
+        if action["action"] == "message" or action.get("name") == "submit":
+            if not gated:                                                       # the critic's plain message is its verdict
+                if action["action"] == "message":
+                    return action["content"], first
+                transcript.append({"role": "result", "text": "Error: use a plain message to give your verdict."})
+                continue
+            dec = ctx.gate.check_submit()
+            ep.event("SUBMIT_CHECK", role=role, accepted=dec.accepted, reason=dec.reason, sha=dec.diff_sha256)
+            if dec.accepted:
+                return dec, first
+            transcript.append({"role": "call", "text": "submit()"})
+            transcript.append({"role": "result", "text": dec.reason})          # the gate's neutral text, verbatim
+            continue
+        name, args = action["name"], action.get("arguments", {})
+        transcript.append({"role": "call", "text": f"{name}({json.dumps(args, ensure_ascii=False)[:1500]})"})
+        if name not in allowed:
+            ep.event("BAD_TOOL", role=role, model=d.get("model_key"), name=name)
+            transcript.append({"role": "result", "text": f"Error: tool {name} is not available to you"})
+            continue
+        text, failed = pomelo_call(ep, sb, ctx.effects, name, args, write=name == "edit_file")
+        transcript.append({"role": "result", "text": text})
+        ep.event("TOOL", role=role, name=name, failed=failed, args=json.dumps(args)[:300])
+        if gated and not failed and name == "edit_file":
+            ctx.gate.record_edit(args["path"])
+        if gated and name == "run_tests" and sb.last_run:
+            ctx.gate.record_test_run(*sb.last_run)
+        elif not gated and name == "run_tests" and sb.last_run:
+            ep.event("CRITIC_TEST_RUN", argv=sb.last_run[0][2:], exit_code=sb.last_run[1])
+    return "STOP:MAX_TURNS", first
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workdir", type=Path, required=True)
     ap.add_argument("--task-json", type=Path, required=True)
     ap.add_argument("--python", required=True)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--mode", choices=["single", "rg2", "single_e"], required=True)
-    ap.add_argument("--max-turns", type=int, default=40)
+    ap.add_argument("--mode", choices=["single", "rg2"], required=True, help="single = author only, no criticism (submits P0); rg2 = FruitStack organisation (P0 -> independent Brother critic -> revision P1)")
+    ap.add_argument("--wall-seconds", type=int, default=3600)
     a = ap.parse_args(argv)
     task = json.loads(a.task_json.read_text())
     a.out.mkdir(parents=True, exist_ok=True)
@@ -144,74 +222,79 @@ def main(argv=None) -> int:
     import ogi013_host_composer
     effects = ogi013_host_composer.host_effects()
     stack.fs.attach_host_effects(**effects)
-    effects = stack.fs.effects                              # the attached gateway wrapper (as the tau2 runner's _host_effects)
+    effects = stack.fs.effects
     sb = Sandbox(a.workdir, a.python)
-    log = a.out / "fruitstack-events.jsonl"
-    ep = Episode(stack, a.mode, task["instance_id"], "django", log)
-    if a.mode != "rg2":                                    # the organised mode configures the session ceilings itself; the other modes get the same ones
+    ep = Episode(stack, a.mode, task["instance_id"], "django", a.out / "fruitstack-events.jsonl")
+    if a.mode != "rg2":
         env = os.environ.get
         stack.fs.governance.configure(ep.sid, ep.store_revision(stack), max_calls=int(env("OGI013_SESSION_MAX_CALLS")) if env("OGI013_SESSION_MAX_CALLS") else None,
                                       max_tokens=int(env("OGI013_SESSION_MAX_TOKENS")) if env("OGI013_SESSION_MAX_TOKENS") else None, max_cost_usd=0.0)
-    agent = object.__new__(FruitStackTau2Agent)            # the existing organisation methods (_org_collab, _single_e_vote) run on this host object unchanged
-    agent.mode, agent.task, agent.domain, agent.out, agent.tools = a.mode, type("T", (), {"id": task["instance_id"]})(), "django", a.out, []
-    agent.k = int(os.environ.get("OGI013_SINGLE_E_K", "2")) if a.mode == "single_e" else None
-    agent.write_tools = {"edit_file"}
-    agent.domain_policy = task["problem_statement"]
-    agent.ep = ep
-    if a.mode == "rg2":
-        from ogi013_org_economy import EconomyGate
-        ep.economy = EconomyGate.from_env() or EconomyGate()
-    head = SYSTEM.format(issue=task["problem_statement"])
-    transcript: list[dict] = []
-    state = {"transcript": []}
-    ep.event("EPISODE_OPENED", work=ep.work, mode=a.mode, write_tools=["edit_file"])
-    t0, status = time.monotonic(), "MAX_TURNS"
+    gate = CodingGate(a.workdir, task["base_commit"], a.out / "gate")
+    t0 = time.monotonic()
+    ctx = Ctx(ep, effects, gate, t0 + a.wall_seconds, a.out)
+    issue = task["problem_statement"]
+    author_head = SYSTEM.format(issue=issue) + AUTHOR_NOTE
+    ep.event("EPISODE_OPENED", work=ep.work, mode=a.mode)
+    status, review = "NO_PATCH", None
     try:
-        for turn in range(a.max_turns):
-            ep.turns = turn + 1
-            blocking = ep.blocking()
-            if blocking:
-                ep.event("REFLEX_STOP", blocking=blocking)
-                status = "REFLEX_BLOCKED"
-                break
-            prompt = head + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
-            draft = ep.step(prompt, "draft")
-            action = parse_action(draft["output"]) if draft["success"] else None
-            if a.mode == "single_e" and agent._single_e_applies(action):
-                draft, action = agent._single_e_vote(ep, prompt, draft, action)
-            used_retry = False
-            if action is None and draft["success"]:
-                used_retry = True
-                fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", "format")
-                action = parse_action(fix["output"]) if fix["success"] else None
-                draft = fix if action else draft
-            if action is None:
-                ep.event("NO_VALID_ACTION", failure=draft.get("failure_class"))
-                transcript.append({"role": "result", "text": "Error: your reply was not a valid action; reply with one JSON object."})
-                continue
-            if action["action"] == "tool" and action["name"] == "edit_file":
-                ep.event("DRAFT_ACTION", action=action)       # the author's original proposal, kept for the paired original-vs-revised comparison
+        final, first = agent_loop(ctx, "author", author_head, sb, {"list_dir", "read_file", "search", "edit_file", "run_tests"}, gated=True)
+        if isinstance(final, str):
+            gate.outcome_without_patch(final)
+            ep.event("NO_PATCH", limit=final)
+        else:
+            gate.snapshot("P0", final)
+            status = "P0_SUBMITTED"
+            ep.event("P0_FROZEN", sha=final.diff_sha256, author_model=first and first["model_key"], author_keys=sorted(ctx.keys["author"]), files=list(final.changed_source_files))
             if a.mode == "rg2":
-                action = agent._org_collab(ep, prompt, draft, action, state, uncertain=used_retry)
-            if action["action"] == "message":
-                ep.event("SUBMIT", content=action["content"][:500])
-                status = "SUBMITTED"
-                break
-            name, args = action["name"], action.get("arguments", {})
-            transcript.append({"role": "call", "text": f"{name}({json.dumps(args, ensure_ascii=False)[:1500]})"})
-            text, failed = pomelo_call(ep, sb, effects, name, args, write=name in agent.write_tools)
-            transcript.append({"role": "result", "text": text})
-            if name == "edit_file":
-                ep.event("EDIT_APPLIED", args=args, ok=not failed)
-            ep.assure({"question_type": f"ACT:{name}", "question_outcome": "COUNTED_FAILURE" if failed else "PROGRESS", "verified_evidence_total": ep.verified_results + turn,
-                       "mutation_error": {"code": hashlib.sha256(text[:200].encode()).hexdigest()[:12]} if failed else {}})
-    except BaseException as exc:  # noqa: BLE001 - a stop is recorded and everything already written is kept
-        status = f"STOPPED:{type(exc).__name__}"
+                p0_copy = a.out / "p0_workspace"
+                shutil.copytree(a.workdir, p0_copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+                critic_sb = Sandbox(p0_copy, a.python, readonly=True)
+                author_keys = tuple(sorted(ctx.keys["author"]))
+                target = gate.review_target()
+                from cherryme.brother import run_rounds
+                from cherryme.contributions import ContributionLedger
+                ledger = ContributionLedger()
+
+                def work(p: str, stage: str, prefer=None, exclude=()):
+                    try:
+                        if stage == "challenge":
+                            out, st = agent_loop(ctx, "critic", CRITIC_HEAD.format(issue=issue) + "\n" + p, critic_sb, {"list_dir", "read_file", "search", "run_tests"},
+                                                 exclude=author_keys, gated=False)
+                        elif stage == "revise":
+                            out, st = agent_loop(ctx, "reviser", author_head + "\n" + p + "\nYour final answer is the repository state: change the files if the criticism is right, re-run the relevant "
+                                                 "tests, then submit.", sb, {"list_dir", "read_file", "search", "edit_file", "run_tests"}, prefer=prefer.split("#")[0] if prefer else None, gated=True)
+                            if not isinstance(out, str):
+                                gate.snapshot("P1", out)
+                                out = out.diff
+                        else:
+                            return {"success": False, "output": None, "failure_class": f"STAGE_NOT_USED:{stage}"}
+                    except Exception as exc:  # noqa: BLE001
+                        if _is_stop(exc):
+                            raise
+                        return {"success": False, "output": None, "model_key": None, "independence_key": None, "receipt_id": None, "failure_class": (str(exc) or type(exc).__name__)[:80]}
+                    if isinstance(out, str) and out.startswith("STOP:"):
+                        return {"success": False, "output": None, "model_key": st and st["model_key"], "independence_key": st and st["independence_key"], "receipt_id": st and st["receipt_id"], "failure_class": out}
+                    return {"success": True, "output": out, "model_key": st["model_key"], "independence_key": st["independence_key"], "receipt_id": st["receipt_id"]}
+
+                seed = {"text": target, "model_key": first and first["model_key"], "independence_key": next(iter(author_keys), None), "receipt_id": first and first["receipt_id"]}
+                prompt = f"Task: resolve this issue in the repository.\n{issue}\n"
+                res = run_rounds(task_prompt=prompt, brief="", work=work, ledger=ledger, claim_id=ep.claim.id, n_solvers=1, review_single=True, seed_solution=seed, max_rounds=1)
+                review = {"stop": res.stop_reason, "calls": res.calls, "issues_found": res.issues_found, "revised": res.revised, "failures": res.failures,
+                          "rows": [{"kind": r.kind, "worker": r.worker, "independence_key": r.identity.get("independence_key"), "status": r.epistemic_status, "text": r.answer_text} for r in res.rows]}
+                (a.out / "review.json").write_text(json.dumps(review, indent=1, default=str))
+                ep.event("BROTHER_REVIEW", stop=res.stop_reason, issues_found=res.issues_found, revised=res.revised, author_keys=list(author_keys),
+                         critic_keys=[r["independence_key"] for r in review["rows"] if r["kind"] == "CRITIQUE"])
+                status = "P1_SUBMITTED" if (a.out / "gate" / "P1.diff").exists() else "P0_FINAL"
+    except BaseException as exc:  # noqa: BLE001 - a stop is recorded; an accepted snapshot stays the submission, nothing is synthesised
         ep.event("RUN_STOPPED", exception=type(exc).__name__, error=str(exc)[:400], budget_stop=_is_stop(exc))
+        if status == "NO_PATCH":
+            gate.outcome_without_patch(type(exc).__name__)
+        elif status == "P0_SUBMITTED":
+            status = "P0_FINAL"
     ep.close(status)
-    diff = subprocess.run(["git", "-C", str(a.workdir), "diff"], capture_output=True, text=True).stdout
-    (a.out / "patch.diff").write_text(diff)
-    summary = {"status": status, "seconds": round(time.monotonic() - t0, 1), "turns": ep.turns, "stats": ep.stats, "patch_bytes": len(diff)}
+    final_diff = next((p.read_text() for p in (a.out / "gate" / "P1.diff", a.out / "gate" / "P0.diff") if p.exists()), "")
+    (a.out / "final.diff").write_text(final_diff)
+    summary = {"status": status, "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats, "final_diff_bytes": len(final_diff), "review": {k: v for k, v in (review or {}).items() if k != "rows"}}
     (a.out / "run.json").write_text(json.dumps(summary, indent=1, default=str))
     print(json.dumps(summary, default=str))
     return 0
