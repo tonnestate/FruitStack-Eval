@@ -165,6 +165,14 @@ class Ctx:
 
 
 STALL_TURNS_WITHOUT_ACTION = 8
+NO_PROGRESS_TURNS = 8        # Addendum 3 F: a role session stops after this many consecutive turns without progress (replaces the fixed turn cap)
+HARD_TURNS = 400             # absolute safety bound of one session; reaching it is reported as a defect, never expected
+NOMINAL_TURNS = 40           # reference length for stall condition (d) "50% of the session's turn limit"
+
+
+def outcome_key(output: str) -> tuple:
+    ran = re.findall(r"^Ran (\d+) tests?", output or "", re.M)
+    return (int(ran[-1]) if ran else 0, len(re.findall(r"\.\.\. (?:FAIL|ERROR)\s*$", output or "", re.M)), "OK" in (output or "")[-200:])
 
 
 def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None):
@@ -172,7 +180,9 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
     team: shared team state (inserted, hash-logged, into every prompt). helper(cond, wip) -> text|None: asked once per stall condition (Addendum 3 B.3)."""
     ep, transcript, first = ctx.ep, [], None
     gate = gate or ctx.gate
-    limit = limit or LIMITS[role]
+    nominal = limit or NOMINAL_TURNS
+    np_turns, last_outcome, seen_reads = 0, None, set()
+    team_ver = (len(team.objs) + len(team.decisions)) if team else 0
     stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
     ctx.last_session = {"test_runs": 0, "turns": 0}
 
@@ -182,7 +192,14 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
             ep.event("HELP_GIVEN", role=role, condition=w["cond"], helper_model=w["model"], recovered=recovered, turns_after=ctx.last_session["turns"] - w["turn"])
             stall["watch"] = None
 
-    for turn in range(limit):
+    def progress_check(made: bool) -> None:
+        nonlocal np_turns, team_ver
+        ver = (len(team.objs) + len(team.decisions)) if team else 0
+        if ver != team_ver:                                   # a new objection / new grounds / decision reached the shared state
+            team_ver, made = ver, True
+        np_turns = 0 if made else np_turns + 1
+
+    for turn in range(limit or HARD_TURNS):
         ctx.last_session["turns"] = turn
         if time.monotonic() > ctx.deadline:
             resolve_watch(False)
@@ -194,7 +211,7 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
             resolve_watch(False)
         if helper and gated:
             cond = ("zero_tests" if stall["zero"] >= 2 else "edit_rejected" if stall["rejected"] >= 2 else "idle" if stall["idle"] >= STALL_TURNS_WITHOUT_ACTION
-                    else "half_budget" if turn == limit // 2 else None)
+                    else "half_budget" if turn == nominal // 2 else None)
             if cond and cond not in stall["used"]:
                 stall["used"].add(cond)
                 stall.update(zero=0, rejected=0, idle=0)
@@ -204,6 +221,11 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
                 if answer:
                     transcript.append({"role": "result", "text": "HELP FROM A COLLEAGUE (unverified): " + answer[:3000]})
                     stall["watch"] = {"cond": cond, "turn": turn, "model": hmodel}
+                    np_turns = 0                                              # the answer is new grounds in the shared state
+        if np_turns >= NO_PROGRESS_TURNS:
+            ep.event("LOOP_GUARD", guard="NO_PROGRESS_8_TURNS", role=role, turn=turn, test_runs=ctx.last_session["test_runs"])
+            resolve_watch(False)
+            return "STOP:NO_PROGRESS", first
         ts = team.text() if team else ""
         if team:
             ep.event("TEAM_STATE", role=role, sha=hashlib.sha256(ts.encode()).hexdigest(), turn=turn)
@@ -224,6 +246,7 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
         if action is None:
             ep.event("BAD_ACTION", role=role, model=d.get("model_key"), output=(d.get("output") or "")[:400], failure=d.get("failure_class"))
             transcript.append({"role": "result", "text": "Error: your reply was not a valid action; reply with one JSON object."})
+            progress_check(False)
             continue
         if action["action"] == "message" or action.get("name") == "submit":
             if not gated:                                                       # the critic's plain message is its verdict
@@ -238,25 +261,34 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
                 return dec, first
             transcript.append({"role": "call", "text": "submit()"})
             transcript.append({"role": "result", "text": dec.reason})          # the gate's neutral text, verbatim
+            progress_check(False)
             continue
         name, args = action["name"], action.get("arguments", {})
         transcript.append({"role": "call", "text": f"{name}({json.dumps(args, ensure_ascii=False)[:1500]})"})
         if name not in allowed:
             ep.event("BAD_TOOL", role=role, model=d.get("model_key"), name=name)
             transcript.append({"role": "result", "text": f"Error: tool {name} is not available to you"})
+            progress_check(False)
             continue
         text, failed = pomelo_call(ep, sb, ctx.effects, name, args, write=name == "edit_file")
         transcript.append({"role": "result", "text": text})
         ep.event("TOOL", role=role, name=name, failed=failed, args=json.dumps(args)[:300])
+        made = False
         if name not in ("edit_file", "run_tests"):
             stall["idle"] += 1
+            if not gated:                                                       # a read-only session explores: a novel read/search counts as progress
+                sig = (name, json.dumps(args, sort_keys=True))
+                made, _ = sig not in seen_reads, seen_reads.add(sig)
         if name == "edit_file":
+            made = made or not failed
             stall["idle"] = 0
             stall["rejected"] = stall["rejected"] + 1 if (failed and "EDIT_REJECTED" in text) else 0
             if gated and not failed:
                 gate.record_edit(args["path"])
         if name == "run_tests" and sb.last_run:
             stall["idle"] = 0
+            ok_ = outcome_key(sb.last_run[2])
+            made, last_outcome = made or ok_ != last_outcome, ok_
             ctx.last_session["test_runs"] += 1
             if gated:
                 entry = gate.record_test_run(*sb.last_run)
@@ -265,6 +297,7 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
                     resolve_watch(True)
             else:
                 ep.event("CRITIC_TEST_RUN", argv=sb.last_run[0][2:], exit_code=sb.last_run[1])
+        progress_check(made)
     resolve_watch(False)
     return "STOP:MAX_TURNS", first
 

@@ -28,6 +28,11 @@ HELP_HEAD = ("\nYou are instead a colleague asked for help by a teammate whose w
              "latest test output and recent actions, work out what is blocking them, and finish with a plain message: ISSUES: FOUND followed by concrete observations and suggestions "
              "(facts you verified, not a finished patch).\n<current_diff>\n{diff}\n</current_diff>\n"
              "<latest_test_output>\n{tests}\n</latest_test_output>\n<recent_actions>\n{recent}\n</recent_actions>\n")
+VOTE_HEAD = ("\nYou are instead a member of the team that produced the candidate patch below, casting your RELEASE VOTE. The repository is a copy of the candidate workspace: read, search and run tests; "
+             "you cannot edit. Finish with a plain message whose FIRST line is exactly one of 'APPROVE: EXCELLENT', 'APPROVE: ACCEPTABLE' or 'REJECT'. Then state what you checked, which tests you ran "
+             "and what they showed, and how each earlier objection raised by YOU was resolved, citing its id (O1, O2, ...). Vote EXCELLENT only if you would stand behind this patch resolving the "
+             "issue completely without breaking existing behaviour.\n<candidate_diff>\n{diff}\n</candidate_diff>\n")
+MAX_VOTE_CYCLES = 8              # = CherryMe DEFAULT_MAX_ROUNDS
 RAN = re.compile(r"^Ran (\d+) tests?", re.M)
 FAILCOUNT = re.compile(r"\((?:failures=(\d+))?(?:, )?(?:errors=(\d+))?")
 
@@ -106,10 +111,9 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--mode", choices=["team", "indep", "solo"], required=True)
     ap.add_argument("--n-sessions", type=int, default=2, help="indep: number of independent sessions")
-    ap.add_argument("--solo-turns", type=int, default=120)
-    ap.add_argument("--max-calls", type=int, default=int(os.environ.get("OGI013_EP_MAX_CALLS", 400)))
-    ap.add_argument("--max-tokens", type=int, default=int(os.environ.get("OGI013_EP_MAX_TOKENS", 800000)))
-    ap.add_argument("--wall-seconds", type=int, default=int(os.environ.get("OGI013_EP_WALL", 7200)))
+    ap.add_argument("--max-calls", type=int, default=int(os.environ.get("OGI013_EP_MAX_CALLS", 1500)))
+    ap.add_argument("--max-tokens", type=int, default=int(os.environ.get("OGI013_EP_MAX_TOKENS", 3000000)))
+    ap.add_argument("--wall-seconds", type=int, default=int(os.environ.get("OGI013_EP_WALL", 14400)))
     a = ap.parse_args(argv)
     task = json.loads(a.task_json.read_text())
     issue = task["problem_statement"]
@@ -126,6 +130,7 @@ def main(argv=None) -> int:
     author_head = ct.SYSTEM.format(issue=issue) + ct.AUTHOR_NOTE
     tools_rw = {"list_dir", "read_file", "search", "edit_file", "run_tests"}
     tools_ro = {"list_dir", "read_file", "search", "run_tests"}
+    holders: dict[str, str] = {}              # role-holder model key -> lineage (solvers, specialist, challengers, helpers)
     positions: dict[str, Pos] = {}
     by_text: dict[str, Pos] = {}
     by_model: dict[str, Pos] = {}
@@ -166,6 +171,7 @@ def main(argv=None) -> int:
             if isinstance(out, str) and out.startswith("STOP:"):
                 return None, None
             team.objection(p.id, st["independence_key"], out, kind="suggestion")
+            holders[st["model_key"]] = st["independence_key"]
             ep.event("HELP_ANSWER", pos=p.id, condition=cond, model=st["model_key"], lineage=st["independence_key"], text=out[:300])
             return out, st["model_key"]
         return helper
@@ -178,6 +184,7 @@ def main(argv=None) -> int:
             p.model = p.model or st["model_key"]
             p.keys.add(st["independence_key"])
             by_model[st["model_key"]] = p
+            holders[st["model_key"]] = st["independence_key"]
         return out, st
 
     def work(prompt: str, stage: str, prefer=None, exclude=()):
@@ -200,6 +207,7 @@ def main(argv=None) -> int:
                     found = bool(re.match(r"\s*ISSUES:\s*FOUND", out, re.I))
                     exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": len(out.strip().splitlines()) > 1 and len(out) > 80, "text": out}
                     tgt.exams.append(exam)
+                    holders[st["model_key"]] = st["independence_key"]
                     ep.event("CHALLENGE", pos=tgt.id, verdict=exam["verdict"], lineage=exam["lineage"], model=exam["model"], test_runs=exam["test_runs"], grounded=exam["grounded"])
                     if found:
                         team.objection(tgt.id, exam["lineage"], out)
@@ -259,30 +267,86 @@ def main(argv=None) -> int:
                 work("", "solve")
         else:
             p = new_pos("S")
-            out, st = session(p, author_head, turns=a.solo_turns)
+            out, st = session(p, author_head)
             if not isinstance(out, str):
                 freeze(p, out, "first")
     except BaseException as exc:  # noqa: BLE001 - a stop is recorded; accepted positions stay, nothing is synthesised
         ep.event("RUN_STOPPED", exception=type(exc).__name__, error=str(exc)[:400], budget_stop=_is_stop(exc))
 
-    # joint release (B.4): one fixed rule, hidden tests never consulted
-    accepted = [p for p in positions.values() if p.diff]
-    def lineage_ok(p, e): return e["lineage"] not in p.keys
-    cls, chosen = "NO_PATCH", None
-    if a.mode == "team":
-        chosen = next((p for p in accepted if p.exams and p.exams[-1]["verdict"] == "NONE" and p.exams[-1]["grounded"] and lineage_ok(p, p.exams[-1])), None)
-        if chosen:
-            cls = "RELEASED_VALIDATED"
-    if chosen is None and accepted:
-        def key(p):
-            o = outcome(p.last_run[2]) if p.last_run else None
-            passing = (o[0] - o[1]) if o else -1
-            return (-passing, team.open_count(p.id))
-        chosen, cls = sorted(accepted, key=key)[0], "RELEASED_UNVALIDATED"
+    # joint release (B.4): unanimous grounded APPROVE: EXCELLENT; hidden tests never consulted
+    def passing(p):
+        o = outcome(p.last_run[2]) if p.last_run else None
+        return (o[0] - o[1]) if o else -1
+
+    def best():
+        acc = [p for p in positions.values() if p.diff]
+        return sorted(acc, key=lambda p: (-passing(p), team.open_count(p.id)))[0] if acc else None
+
+    def vote(p: Pos, model: str, lineage):
+        copy = a.out / "vote" / f"{p.id}_r{p.rev}_{len(votes_log)}"
+        shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        saved = ctx.last_session
+        out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + VOTE_HEAD.format(diff=p.diff), ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=model, gated=False, team=team)
+        runs = ctx.last_session["test_runs"]
+        ctx.last_session = saved
+        if isinstance(out, str) and out.startswith("STOP:"):
+            return {"voter": model, "lineage": lineage, "verdict": "NO_VOTE", "counts": "REJECT", "text": out}
+        first = out.strip().splitlines()[0].strip().upper() if out.strip() else ""
+        verdict = "EXCELLENT" if first.startswith("APPROVE: EXCELLENT") else "ACCEPTABLE" if first.startswith("APPROVE: ACCEPTABLE") else "REJECT"
+        mine = [o["id"] for o in team.objs if o["lineage"] == lineage and o["kind"] == "objection"]
+        grounded = runs >= 1 and all(i in out for i in mine)
+        if verdict != "REJECT" and not grounded:
+            return {"voter": model, "lineage": st["independence_key"], "verdict": "UNGROUNDED_APPROVAL", "counts": "REJECT", "text": out, "test_runs": runs, "uncited": [i for i in mine if i not in out]}
+        return {"voter": model, "lineage": st["independence_key"], "verdict": verdict, "counts": verdict if verdict != "EXCELLENT" else "EXCELLENT", "text": out, "test_runs": runs}
+
+    votes_log: list = []
+    cls, chosen, guard, open_at_stop = "NO_PATCH", None, None, []
+    if a.mode == "team" and best() is not None:
+        from cherryme.brother import CHALLENGE, REVISE
+        prompt0 = f"Task: resolve this issue in the repository.\n{issue}\n"
+        cycle, no_shrink, prev_open, fails = 0, 0, None, 0
+        try:
+            while True:
+                chosen = best()
+                tally = []
+                for model, lineage in list(holders.items()):
+                    v = vote(chosen, model, lineage)
+                    votes_log.append({"cycle": cycle, "pos": chosen.id, **{k: v[k] for k in v if k != "text"}})
+                    ep.event("RELEASE_VOTE", cycle=cycle, pos=chosen.id, voter=v["voter"], lineage=v["lineage"], verdict=v["verdict"], test_runs=v.get("test_runs"), uncited=v.get("uncited"))
+                    tally.append(v)
+                    (a.out / "votes").mkdir(exist_ok=True)
+                    (a.out / "votes" / f"c{cycle}_{chosen.id}_{len(votes_log)}.txt").write_text(v["text"] or "")
+                if tally and all(v["counts"] == "EXCELLENT" for v in tally):
+                    cls = "RELEASED_UNANIMOUS_EXCELLENT"
+                    break
+                fails = fails + 1 if not any(v["verdict"] != "NO_VOTE" for v in tally) else 0
+                for v in tally:
+                    if v["counts"] != "EXCELLENT" and v["verdict"] != "NO_VOTE":
+                        team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}")
+                open_now = team.open_count(chosen.id)
+                no_shrink = no_shrink + 1 if (prev_open is not None and open_now >= prev_open) else 0
+                prev_open = open_now
+                cycle += 1
+                if no_shrink >= 3 or cycle >= MAX_VOTE_CYCLES or fails >= 3:
+                    guard = "VOTE_NO_SHRINK_3" if no_shrink >= 3 else "VOTE_CYCLES_8" if cycle >= MAX_VOTE_CYCLES else "VOTE_FAILURES_3"
+                    break
+                crit = "\n---\n".join(o["text"] for o in team.objs if o["open"] and o["target"] == chosen.id)
+                r = work(REVISE.format(task=prompt0, own=chosen.diff, critique=crit), "revise", prefer=chosen.model)
+                if r["success"]:
+                    work(CHALLENGE.format(task=prompt0, work=chosen.diff), "challenge", exclude=tuple(chosen.keys))
+        except BaseException as exc:  # noqa: BLE001
+            guard = f"STOP:{type(exc).__name__}"
+            ep.event("LOOP_GUARD", guard="EPISODE_CIRCUIT_BREAKER", exception=type(exc).__name__, error=str(exc)[:300], budget_stop=_is_stop(exc))
+        if cls != "RELEASED_UNANIMOUS_EXCELLENT":
+            chosen, cls = best(), "RELEASED_NO_CONSENSUS"
+            open_at_stop = [o for o in team.objs if o["open"]]
+            ep.event("LOOP_GUARD", guard=guard, open_objections=[o["id"] for o in open_at_stop])
+    elif best() is not None:
+        chosen, cls = best(), "RELEASED_UNVALIDATED"      # indep / solo: the visible-signal rule (most relevant tests passing)
     final = chosen.diff if chosen else ""
     if chosen:
         (snaps / "RELEASED.diff").write_text(final)
-    release = {"class": cls, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
+    release = {"guard": guard, "votes": votes_log, "class": cls, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
     ep.event("RELEASE", **release)
     status = cls
     ep.close(status)
