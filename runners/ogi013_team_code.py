@@ -56,9 +56,9 @@ class TeamState:
     def __init__(self, goal: str, path: Path):
         self.goal, self.path, self.pos, self.objs, self.decisions, self.n = goal, path, {}, [], [], 0
 
-    def objection(self, target: str, lineage, text: str, kind="objection") -> None:
+    def objection(self, target: str, lineage, text: str, kind="objection", grounded=True) -> None:
         self.n += 1
-        self.objs.append({"id": f"O{self.n}", "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "open": True})
+        self.objs.append({"id": f"O{self.n}", "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "open": True, "grounded": grounded})
 
     def close_objections(self, target: str, reason: str) -> None:
         for o in self.objs:
@@ -67,14 +67,15 @@ class TeamState:
                 self.decisions.append(f"{o['id']} on {target} superseded: {reason}")
 
     def open_count(self, target: str) -> int:
-        return sum(1 for o in self.objs if o["target"] == target and o["open"] and o["kind"] == "objection")
+        """Addendum 5: only GROUNDED open objections count; ungrounded ones are recorded and shown but neither count nor block."""
+        return sum(1 for o in self.objs if o["target"] == target and o["open"] and o["kind"] == "objection" and o["grounded"])
 
     def text(self) -> str:
         out = [f"GOAL:\n{self.goal}\n", "POSITIONS:"]
         for p in self.pos.values():
             out.append(f"- {p.id} (model {p.model}, status {p.status}, revision {p.rev})\n  diff:\n{p.diff or '  (no accepted diff yet)'}\n  latest visible test result (tail):\n{p.test_tail or '  (none)'}")
         out.append("OPEN OBJECTIONS / SUGGESTIONS:")
-        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}]: {o['text']}" for o in self.objs if o["open"]] or ["(none)"]
+        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}]: {o['text']}" for o in self.objs if o["open"]] or ["(none)"]
         out.append("DECISIONS:")
         out += [f"- {d}" for d in self.decisions] or ["(none)"]
         s = "\n".join(out)
@@ -128,8 +129,8 @@ def main(argv=None) -> int:
     ctx = ct.Ctx(ep, effects, None, t0 + a.wall_seconds, a.out)
     team = TeamState(issue, a.out / "team_state.md")
     author_head = ct.SYSTEM.format(issue=issue) + ct.AUTHOR_NOTE
-    tools_rw = {"list_dir", "read_file", "search", "edit_file", "run_tests"}
-    tools_ro = {"list_dir", "read_file", "search", "run_tests"}
+    tools_rw = {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python"}
+    tools_ro = {"list_dir", "read_file", "search", "run_tests", "run_python"}
     holders: dict[str, str] = {}              # role-holder model key -> lineage (solvers, specialist, challengers, helpers)
     positions: dict[str, Pos] = {}
     by_text: dict[str, Pos] = {}
@@ -203,14 +204,15 @@ def main(argv=None) -> int:
                 copy = a.out / "challenge" / f"{tgt.id}_r{tgt.rev}_{len(tgt.exams)}"
                 shutil.copytree(tgt.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
                 out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team)
+                gs = ctx.last_session
                 if isinstance(out, str) and not out.startswith("STOP:"):
                     found = bool(re.match(r"\s*ISSUES:\s*FOUND", out, re.I))
-                    exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": len(out.strip().splitlines()) > 1 and len(out) > 80, "text": out}
+                    exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": ct.grounded_text(out, gs) and len(out) > 80, "text": out}
                     tgt.exams.append(exam)
                     holders[st["model_key"]] = st["independence_key"]
                     ep.event("CHALLENGE", pos=tgt.id, verdict=exam["verdict"], lineage=exam["lineage"], model=exam["model"], test_runs=exam["test_runs"], grounded=exam["grounded"])
                     if found:
-                        team.objection(tgt.id, exam["lineage"], out)
+                        team.objection(tgt.id, exam["lineage"], out, grounded=exam["grounded"])
                         tgt.status = "challenged"
                     elif exam["grounded"]:
                         tgt.status = "validated"
@@ -287,24 +289,25 @@ def main(argv=None) -> int:
         shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         saved = ctx.last_session
         out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + VOTE_HEAD.format(diff=p.diff), ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=model, gated=False, team=team)
-        runs = ctx.last_session["test_runs"]
+        gs = ctx.last_session
+        runs = gs["test_runs"] + gs["py_runs"]
         ctx.last_session = saved
         if isinstance(out, str) and out.startswith("STOP:"):
             return {"voter": model, "lineage": lineage, "verdict": "NO_VOTE", "counts": "REJECT", "text": out}
         first = out.strip().splitlines()[0].strip().upper() if out.strip() else ""
         verdict = "EXCELLENT" if first.startswith("APPROVE: EXCELLENT") else "ACCEPTABLE" if first.startswith("APPROVE: ACCEPTABLE") else "REJECT"
         mine = [o["id"] for o in team.objs if o["lineage"] == lineage and o["kind"] == "objection"]
-        grounded = runs >= 1 and all(i in out for i in mine)
+        grounded = runs >= 1 and ct.grounded_text(out, gs) and all(i in out for i in mine)
         if verdict != "REJECT" and not grounded:
             return {"voter": model, "lineage": st["independence_key"], "verdict": "UNGROUNDED_APPROVAL", "counts": "REJECT", "text": out, "test_runs": runs, "uncited": [i for i in mine if i not in out]}
-        return {"voter": model, "lineage": st["independence_key"], "verdict": verdict, "counts": verdict if verdict != "EXCELLENT" else "EXCELLENT", "text": out, "test_runs": runs}
+        return {"voter": model, "lineage": st["independence_key"], "verdict": verdict, "counts": verdict if verdict != "EXCELLENT" else "EXCELLENT", "text": out, "test_runs": runs, "grounded": ct.grounded_text(out, gs)}
 
     votes_log: list = []
     cls, chosen, guard, open_at_stop = "NO_PATCH", None, None, []
     if a.mode == "team" and best() is not None:
         from cherryme.brother import CHALLENGE, REVISE
         prompt0 = f"Task: resolve this issue in the repository.\n{issue}\n"
-        cycle, no_shrink, prev_open, fails = 0, 0, None, 0
+        cycle, no_shrink, prev_open, prev_score, fails = 0, 0, None, -1, 0
         try:
             while True:
                 chosen = best()
@@ -322,10 +325,10 @@ def main(argv=None) -> int:
                 fails = fails + 1 if not any(v["verdict"] != "NO_VOTE" for v in tally) else 0
                 for v in tally:
                     if v["counts"] != "EXCELLENT" and v["verdict"] != "NO_VOTE":
-                        team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}")
-                open_now = team.open_count(chosen.id)
-                no_shrink = no_shrink + 1 if (prev_open is not None and open_now >= prev_open) else 0
-                prev_open = open_now
+                        team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}", grounded=bool(v.get("grounded")) and v["verdict"] != "UNGROUNDED_APPROVAL")
+                open_now, score = team.open_count(chosen.id), passing(chosen)         # Addendum 5: GROUNDED open objections shrink, or the best position's visible result improves
+                no_shrink = 0 if prev_open is None or open_now < prev_open or score > prev_score else no_shrink + 1
+                prev_open, prev_score = open_now, score
                 cycle += 1
                 if no_shrink >= 3 or cycle >= MAX_VOTE_CYCLES or fails >= 3:
                     guard = "VOTE_NO_SHRINK_3" if no_shrink >= 3 else "VOTE_CYCLES_8" if cycle >= MAX_VOTE_CYCLES else "VOTE_FAILURES_3"

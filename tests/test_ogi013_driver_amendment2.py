@@ -65,3 +65,66 @@ def test_no_progress_guard_stops_after_eight_idle_turns():
     ct.pomelo_call = lambda *a, **k: ("x", False)
     out, _ = ct.agent_loop(ctx, "critic", "h", SB(), {"list_dir"}, gated=False)
     assert out == "STOP:NO_PROGRESS" and "LOOP_GUARD" in events      # the same read repeated is not progress (only the first one is novel)
+
+
+def _session(actions, gated, outputs=None):
+    """Drives agent_loop with a scripted model and fake tools; returns (result, events)."""
+    events, it = [], iter(actions)
+
+    class Ep:
+        def blocking(self): return None
+        def event(self, kind, **k): events.append((kind, k))
+        def step(self, prompt, role, *, exclude=(), prefer=None, sticky_attempts=1):
+            return {"success": True, "output": next(it), "model_key": "m", "independence_key": "m", "receipt_id": "r"}
+
+    class Gate:
+        def record_edit(self, p): pass
+        def record_test_run(self, *a): return {"tests_executed": 1}
+        def check_submit(self): raise AssertionError
+        def _source_diff(self): return ("", False, ())
+
+    class SB:
+        last_run = last_py = None
+        def edit_file(self, **k): return "OK"
+        def read_file(self, **k): return "x"
+        def run_tests(self, modules):
+            self.last_run = (["python", "t.py"] + modules, 1, next(outputs))
+            return "r"
+    ctx = SimpleNamespace(ep=Ep(), deadline=time.monotonic() + 60, keys={}, gate=Gate(), effects=None)
+    ct.pomelo_call = lambda ep, sb, eff, name, args, write: (getattr(sb, name)(**args), False)
+    res, _ = ct.agent_loop(ctx, "author" if gated else "critic", "h", SB(), {"edit_file", "read_file", "run_tests"}, gated=gated)
+    return res, events
+
+
+def _tool(name, **args):
+    import json
+    return json.dumps({"action": "tool", "name": name, "arguments": args})
+
+
+def test_author_edits_alone_are_not_progress():
+    res, ev = _session([_tool("edit_file", path="a.py", old="x", new="y")] * 8, True)
+    assert res == "STOP:NO_PROGRESS" and not any(k == "PROGRESS" for k, _ in ev)
+
+
+def test_author_progress_only_when_visible_tests_strictly_better():
+    good = "a (m.T) ... ok\nb (m.T) ... FAIL\n"
+    better = "a (m.T) ... ok\nb (m.T) ... ok\n"
+    worse = "a (m.T) ... FAIL\nb (m.T) ... ok\n"
+    seq = [_tool("run_tests", modules=["m"])] * 3 + [_tool("edit_file", path="a.py", old="x", new="y")] * 8
+    res, ev = _session(seq, True, iter([good, better, worse]))
+    assert [k["label"] for n, k in ev if n == "PROGRESS"] == ["visible_tests_better", "visible_tests_better"]   # `worse` regresses a passing test: not progress
+    assert res == "STOP:NO_PROGRESS"
+
+
+def test_reader_progress_limited_to_exploration_allowance():
+    seq = [_tool("read_file", path=f"f{i}.py") for i in range(12 + 8)]
+    res, ev = _session(seq, False)
+    assert res == "STOP:NO_PROGRESS" and sum(1 for n, _ in ev if n == "PROGRESS") == ct.EXPLORATION_ALLOWANCE
+
+
+def test_grounded_text():
+    sess = {"cmd_keys": ["admin_views.tests"], "reads": {"django/forms/widgets.py"}}
+    assert ct.grounded_text("ran admin_views.tests: 2 failures", sess)
+    assert ct.grounded_text("bug at django/forms/widgets.py:120", sess)
+    assert not ct.grounded_text("this looks wrong to me", sess)
+    assert not ct.grounded_text("see django/forms/other.py:5", sess)

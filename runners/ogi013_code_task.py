@@ -32,6 +32,7 @@ Tools:
   search     {{"pattern": "<regex>", "path": "<dir or file, default .>"}}      (grep -rn, at most 40 hits)
   edit_file  {{"path": "<file>", "old": "<exact existing text, must occur exactly once>", "new": "<replacement text>"}}      (tests/ is read-only)
   run_tests  {{"modules": ["forms_tests.tests.test_media", ...]}}      (Django test labels; runs tests/runtests.py with the project's Python and returns the tail of the output)
+  run_python {{"code": "<python source>", "label": "<optional: a short name if this is a reproduction check of the issue; exit 0 = the issue is fixed>"}}      (runs a script in the repo root with the project's Python; no network, only the repository is readable/writable)
 <issue>
 {issue}
 </issue>"""
@@ -43,6 +44,7 @@ class Sandbox:
     def __init__(self, workdir: Path, python: str, readonly: bool = False):
         self.root, self.python, self.readonly = workdir.resolve(), python, readonly
         self.last_run: tuple | None = None          # (argv, exit code, full output) of the latest run_tests, for the submit gate
+        self.last_py: tuple | None = None           # (label, exit code, output) of the latest run_python
 
     def _path(self, rel: str) -> Path:
         p = (self.root / rel).resolve()
@@ -96,6 +98,20 @@ class Sandbox:
         r = subprocess.run(argv, cwd=self.root, capture_output=True, text=True, timeout=900, env=env)
         self.last_run = (argv, r.returncode, r.stdout + r.stderr)
         return f"exit={r.returncode}\n" + (r.stdout + r.stderr)[-3000:]
+
+
+    def run_python(self, code: str, label: str = "") -> str:
+        """Addendum 5: reproduction / probe scripts. bwrap: read-only host, network off, only the workspace writable; an audit hook additionally limits open() to the workspace, the interpreter and system libraries."""
+        hook = ("import sys,os\nR=[os.path.realpath(x) for x in (%r,sys.prefix,sys.base_prefix,'/usr','/lib','/lib64','/etc/ld.so.cache','/proc/self','/dev/null','/dev/urandom','/tmp')]\n"
+                "def h(e,a):\n if e=='open' and isinstance(a[0],(str,bytes)) and not isinstance(a[0],int):\n  p=os.path.realpath(os.fsdecode(a[0]))\n  if not any(p==r or p.startswith(r+os.sep) for r in R): raise PermissionError('path outside the repository: '+p)\n"
+                " if e=='subprocess.Popen' and a[1] and (os.path.basename(str(a[1][0]))=='git' or str(a[1][-1]).startswith('git log ')): return\n if e in ('subprocess.Popen','os.system','os.exec','os.posix_spawn','os.fork'): raise PermissionError('process creation is not available')\nsys.addaudithook(h)\n") % str(self.root)
+        env = {"PYTHONWARNINGS": "ignore", "PATH": "/usr/bin:/bin", "PYTHONPATH": f"{self.root}:{self.root}/tests", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"}
+        argv = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp", "--bind", str(self.root), str(self.root), "--unshare-net", "--die-with-parent",
+                "--chdir", str(self.root), self.python, "-c", hook + code]
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=300, env=env)
+        out = (r.stdout + r.stderr)
+        self.last_py = (label, r.returncode, out)
+        return f"exit={r.returncode}\n" + out[-3000:]
 
 
 class _Bridge:
@@ -152,7 +168,7 @@ AUTHOR_NOTE = ("\nWhen the fix is complete and you have run the relevant existin
 CRITIC_HEAD = ("You are an independent code reviewer. The repository in the working directory is a copy that already contains a colleague's proposed change. You may read files, search and run "
                "tests; you cannot edit. Inspect the change and run the relevant existing tests yourself, then finish with a plain message (no tool call) whose FIRST line is exactly "
                "'ISSUES: NONE' or 'ISSUES: FOUND', followed by the specific problems and the evidence you observed (test output, code facts).\n"
-               "Reply with EXACTLY ONE JSON object per step, either a tool call {{\"action\": \"tool\", \"name\": ..., \"arguments\": {{...}}}} with list_dir/read_file/search/run_tests "
+               "Reply with EXACTLY ONE JSON object per step, either a tool call {{\"action\": \"tool\", \"name\": ..., \"arguments\": {{...}}}} with list_dir/read_file/search/run_tests/run_python "
                "(same arguments as in the task description below) or {{\"action\": \"message\", \"content\": ...}}.\n<issue>\n{issue}\n</issue>\n")
 LIMITS = {"author": 40, "critic": 15, "reviser": 25}
 
@@ -170,21 +186,39 @@ HARD_TURNS = 400             # absolute safety bound of one session; reaching it
 NOMINAL_TURNS = 40           # reference length for stall condition (d) "50% of the session's turn limit"
 
 
+EXPLORATION_ALLOWANCE = 12   # Addendum 5 B: distinct read/search calls of a challenger/voter/helper that can count as progress
+TEST_LINE = re.compile(r"^(.+?) \.\.\. (ok|FAIL|ERROR|skipped.*|expected failure|unexpected success)\s*$", re.M)
+
+
+def visible_results(output: str) -> dict:
+    """Per-test outcome of a verbose run_tests output: name -> passed (ok / expected failure). Agent-visible signal only."""
+    return {m.group(1): m.group(2) in ("ok", "expected failure") for m in TEST_LINE.finditer(output or "")}
+
+
+def grounded_text(text: str, sess: dict) -> bool:
+    """Addendum 5 B: grounded = cites a test label / run_python output of a command the session executed itself, or a file:line it read."""
+    if any(k and k in text for k in sess.get("cmd_keys", ())):
+        return True
+    return any(any(r.endswith(m.group(1)) or m.group(1).endswith(r) for r in sess.get("reads", ())) for m in re.finditer(r"([\w./]+\.py):\d+", text))
+
+
 def outcome_key(output: str) -> tuple:
     ran = re.findall(r"^Ran (\d+) tests?", output or "", re.M)
     return (int(ran[-1]) if ran else 0, len(re.findall(r"\.\.\. (?:FAIL|ERROR)\s*$", output or "", re.M)), "OK" in (output or "")[-200:])
 
 
-def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None):
+def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None):
     """One role's tool loop. Returns (final, first_step): final = the accepted SubmitDecision (gated author/reviser) or the critic's message text, or a string 'STOP:<why>'.
     team: shared team state (inserted, hash-logged, into every prompt). helper(cond, wip) -> text|None: asked once per stall condition (Addendum 3 B.3)."""
     ep, transcript, first = ctx.ep, [], None
     gate = gate or ctx.gate
     nominal = limit or NOMINAL_TURNS
-    np_turns, last_outcome, seen_reads = 0, None, set()
-    team_ver = (len(team.objs) + len(team.decisions)) if team else 0
+    np_turns, seen_reads = 0, set()
     stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
-    ctx.last_session = {"test_runs": 0, "turns": 0}
+    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "reads": set(), "progress": [], "role": role}
+    best_vis: dict = {}                                 # Addendum 5: this session's best-so-far visible record (test name -> ever passed)
+    repro: dict = {}                                    # label -> last result (True = exit 0) of the session's own reproduction checks
+    regressed = False
 
     def resolve_watch(recovered: bool):
         w = stall["watch"]
@@ -192,11 +226,11 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
             ep.event("HELP_GIVEN", role=role, condition=w["cond"], helper_model=w["model"], recovered=recovered, turns_after=ctx.last_session["turns"] - w["turn"])
             stall["watch"] = None
 
-    def progress_check(made: bool) -> None:
-        nonlocal np_turns, team_ver
-        ver = (len(team.objs) + len(team.decisions)) if team else 0
-        if ver != team_ver:                                   # a new objection / new grounds / decision reached the shared state
-            team_ver, made = ver, True
+    def progress_check(made) -> None:
+        nonlocal np_turns
+        if made:
+            ctx.last_session["progress"].append(ctx.last_session["turns"])
+            ep.event("PROGRESS", role=role, turn=ctx.last_session["turns"], label=made if isinstance(made, str) else "progress")
         np_turns = 0 if made else np_turns + 1
 
     for turn in range(limit or HARD_TURNS):
@@ -221,7 +255,6 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
                 if answer:
                     transcript.append({"role": "result", "text": "HELP FROM A COLLEAGUE (unverified): " + answer[:3000]})
                     stall["watch"] = {"cond": cond, "turn": turn, "model": hmodel}
-                    np_turns = 0                                              # the answer is new grounds in the shared state
         if np_turns >= NO_PROGRESS_TURNS:
             ep.event("LOOP_GUARD", guard="NO_PROGRESS_8_TURNS", role=role, turn=turn, test_runs=ctx.last_session["test_runs"])
             resolve_watch(False)
@@ -258,6 +291,7 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
             ep.event("SUBMIT_CHECK", role=role, accepted=dec.accepted, reason=dec.reason, sha=dec.diff_sha256)
             if dec.accepted:
                 resolve_watch(True)
+                progress_check("first_gate_accepted_submit")
                 return dec, first
             transcript.append({"role": "call", "text": "submit()"})
             transcript.append({"role": "result", "text": dec.reason})          # the gate's neutral text, verbatim
@@ -274,23 +308,42 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
         transcript.append({"role": "result", "text": text})
         ep.event("TOOL", role=role, name=name, failed=failed, args=json.dumps(args)[:300])
         made = False
-        if name not in ("edit_file", "run_tests"):
+        if name in ("list_dir", "read_file", "search"):
             stall["idle"] += 1
-            if not gated:                                                       # a read-only session explores: a novel read/search counts as progress
-                sig = (name, json.dumps(args, sort_keys=True))
-                made, _ = sig not in seen_reads, seen_reads.add(sig)
-        if name == "edit_file":
-            made = made or not failed
+            sig = (name, json.dumps(args, sort_keys=True))
+            if not gated and sig not in seen_reads:                             # a read-only role explores; only the first EXPLORATION_ALLOWANCE distinct calls can count
+                seen_reads.add(sig)
+                made = "exploration" if len(seen_reads) <= EXPLORATION_ALLOWANCE else False
+            if name == "read_file" and not failed:
+                ctx.last_session["reads"].add(str(args.get("path", "")))
+        elif name == "run_python":
             stall["idle"] = 0
+            ctx.last_session["py_runs"] += 1
+            if sb.last_py:
+                ok_py = sb.last_py[1] == 0
+                lab = (sb.last_py[0] or "").strip()
+                ctx.last_session["cmd_keys"] += [lab or "run_python", "run_python"]
+                if gated and lab:
+                    if repro.get(lab) is False and ok_py and not regressed:     # a reproduction check flips fail -> pass with no visible regression
+                        made = "repro_check_flipped"
+                    repro[lab] = ok_py
+        if name == "edit_file":
+            stall["idle"] = 0                                                   # a syntax-valid edit alone is NOT progress (Addendum 5)
             stall["rejected"] = stall["rejected"] + 1 if (failed and "EDIT_REJECTED" in text) else 0
             if gated and not failed:
                 gate.record_edit(args["path"])
         if name == "run_tests" and sb.last_run:
             stall["idle"] = 0
-            ok_ = outcome_key(sb.last_run[2])
-            made, last_outcome = made or ok_ != last_outcome, ok_
             ctx.last_session["test_runs"] += 1
+            ctx.last_session["cmd_keys"] += list(args.get("modules", []))
             if gated:
+                cur = visible_results(sb.last_run[2])
+                improved = any(ok_ and not best_vis.get(n, False) for n, ok_ in cur.items())
+                regressed = any(best_vis.get(n, False) and not ok_ for n, ok_ in cur.items())
+                for n, ok_ in cur.items():
+                    best_vis[n] = best_vis.get(n, False) or ok_
+                if improved and not regressed:                                  # strictly better than the session's best so far, nothing that passed before fails now
+                    made = "visible_tests_better"
                 entry = gate.record_test_run(*sb.last_run)
                 stall["zero"] = stall["zero"] + 1 if entry["tests_executed"] == 0 else 0
                 if entry["tests_executed"] > 0:
@@ -300,6 +353,15 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
         progress_check(made)
     resolve_watch(False)
     return "STOP:MAX_TURNS", first
+
+
+def agent_loop(ctx: Ctx, role: str, *a, **kw):
+    """Runs one role session and logs its end (Addendum 5 guard audit: turns, progress turns, stop reason)."""
+    res = _agent_loop(ctx, role, *a, **kw)
+    ls = ctx.last_session
+    stop = res[0] if isinstance(res[0], str) and res[0].startswith("STOP:") else "DELIVERED"
+    ctx.ep.event("SESSION_END", role=role, turns=ls.get("turns", 0) + 1, progress_turns=len(ls.get("progress", [])), progress_at=ls.get("progress", []), stop=stop)
+    return res
 
 
 def main(argv=None) -> int:
@@ -332,7 +394,7 @@ def main(argv=None) -> int:
     ep.event("EPISODE_OPENED", work=ep.work, mode=a.mode)
     status, review = "NO_PATCH", None
     try:
-        final, first = agent_loop(ctx, "author", author_head, sb, {"list_dir", "read_file", "search", "edit_file", "run_tests"}, gated=True)
+        final, first = agent_loop(ctx, "author", author_head, sb, {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python"}, gated=True)
         if isinstance(final, str):
             gate.outcome_without_patch(final)
             ep.event("NO_PATCH", limit=final)
@@ -357,7 +419,7 @@ def main(argv=None) -> int:
                                                  exclude=author_keys, gated=False)
                         elif stage == "revise":
                             out, st = agent_loop(ctx, "reviser", author_head + "\n" + p + "\nYour final answer is the repository state: change the files if the criticism is right, re-run the relevant "
-                                                 "tests, then submit.", sb, {"list_dir", "read_file", "search", "edit_file", "run_tests"}, prefer=prefer.split("#")[0] if prefer else None, gated=True)
+                                                 "tests, then submit.", sb, {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python"}, prefer=prefer.split("#")[0] if prefer else None, gated=True)
                             if not isinstance(out, str):
                                 gate.snapshot("P1", out)
                                 out = out.diff
