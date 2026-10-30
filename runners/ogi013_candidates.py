@@ -74,6 +74,8 @@ def quotes_in(text: str) -> list:
 def classify_objection(text: str, task_text: str, check_log: list) -> dict:
     """grounded = (a) the objection reproduces, verbatim, output of a failing command that the critic ran in the sandbox (the command becomes its recorded reproduction), or
     (b) it quotes the task text verbatim (the quote must be a substring of the task text). Everything else is a suggestion."""
+    if re.match(r"\s*\[(UNGROUNDED_APPROVAL|NO_VOTE|APPROVE[^\]]*)\]", text or ""):
+        return {"kind": "suggestion"}                    # an approval, grounded or not, is not an objection
     for ck in reversed(check_log or []):
         if not ck.get("failing"):
             continue
@@ -140,6 +142,10 @@ class CandidateLedger:
         if failing:
             reason = "REPRO_STILL_FAILING:" + ",".join(failing)
             return {"adopted": False, "reason": reason, "cand": self.add(pos, label, new_diff, "REJECTED_REVISION", reason)}
+        inc_res = self.check(inc["diff"])
+        flipped = [o for o in claimed if o in res.get("repro", {}) and res["repro"][o] and not inc_res.get("repro", {}).get(o, True)]
+        if not (self.score(new_diff) > self.score(inc["diff"]) or flipped):          # a revision is adopted only for a VERIFIED improvement: a higher driver-run score or a claimed reproduction that flips fail -> pass
+            return {"adopted": False, "reason": "NO_VERIFIED_IMPROVEMENT", "cand": self.add(pos, label, new_diff, "REJECTED_REVISION", "NO_VERIFIED_IMPROVEMENT")}
         inc["status"] = "SUPERSEDED"
         return {"adopted": True, "reason": "ADOPTED", "cand": self.add(pos, label, new_diff)}
 

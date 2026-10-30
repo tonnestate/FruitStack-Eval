@@ -217,7 +217,9 @@ def main(argv=None) -> int:
     ap.add_argument("--task-json", type=Path, required=True)
     ap.add_argument("--python", required=True)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--mode", choices=["team", "indep", "solo"], required=True)
+    ap.add_argument("--mode", choices=["team", "indep", "solo", "naive"], required=True)
+    ap.add_argument("--n-critiques", type=int, default=0, help="naive (arm N): critique calls, measured from the T episode")
+    ap.add_argument("--n-revisions", type=int, default=0, help="naive (arm N): revise calls, measured from the T episode")
     ap.add_argument("--n-sessions", type=int, default=2, help="indep: number of independent sessions")
     ap.add_argument("--max-calls", type=int, default=int(os.environ.get("OGI013_EP_MAX_CALLS", 1500)))
     ap.add_argument("--max-tokens", type=int, default=int(os.environ.get("OGI013_EP_MAX_TOKENS", 3000000)))
@@ -296,8 +298,9 @@ def main(argv=None) -> int:
         by_text[dec.diff] = p
         if not labels_base and not labels_fallback and p.last_run:
             labels_fallback.extend(x for x in p.last_run[0][2:] if re.fullmatch(r"[\w.]+", x) and not x.isdigit())
-        cand = cled.add(p.id, label, dec.diff)                     # R1: immutable candidate with sha256 and the driver-run visible check
-        team.driver_visible[p.id] = f"{cand['visible'].get('passed')} passed, {cand['visible'].get('failed')} failed (sha256 {cand['sha256'][:12]})"
+        if a.mode != "naive":                                      # arm N has no ledger, no driver-run checks, no rollback
+            cand = cled.add(p.id, label, dec.diff)                 # R1: immutable candidate with sha256 and the driver-run visible check
+            team.driver_visible[p.id] = f"{cand['visible'].get('passed')} passed, {cand['visible'].get('failed')} failed (sha256 {cand['sha256'][:12]})"
 
     def restore_workspace(p: Pos, diff: str) -> None:
         """Roll the position's workspace back to a candidate (the incumbent / protected best): base tree plus that candidate's diff, under django/ only."""
@@ -518,6 +521,30 @@ def main(argv=None) -> int:
         elif a.mode == "indep":
             for i in range(a.n_sessions):
                 work("", "solve")
+        elif a.mode == "naive":
+            # R6 arm N: naive chain. Same eligible supply and pinned author, same number of critique and revise calls as T, same caps; plain "pass the patch, revise on any critique, last patch wins":
+            # no ledger, no grounding rule, no rollback, no arbitration, no vote.
+            p = new_pos("S")
+            p.slot = "solver1"
+            out, st = session(p, author_head)
+            if not isinstance(out, str):
+                freeze(p, out, "first")
+                for i in range(a.n_critiques):
+                    copy = a.out / "naive_critic" / f"{i}_{time.time_ns()}"
+                    shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+                    crit, cst = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + "\n<proposed_change>\n" + p.diff + "\n</proposed_change>\n", ct.Sandbox(copy, a.python, readonly=True), tools_ro,
+                                              exclude=tuple(p.keys), gated=False, roster=roster, role_key="critic")
+                    ep.event("NAIVE_CRITIQUE", i=i, verdict=(crit if isinstance(crit, str) else "")[:60])
+                    if i >= a.n_revisions or not isinstance(crit, str) or crit.startswith("STOP:"):
+                        continue
+                    out, st = session(p, author_head + "\nA colleague reviewed your change. Critique:\n" + crit[:3000] + "\nRevise the code if you think the critique is right, re-run the relevant tests, then submit.")
+                    if not isinstance(out, str):
+                        p.rev += 1
+                        p.gate.snapshot(f"P{p.rev}", out)
+                        (snaps / f"{p.id}_rev{p.rev}.diff").write_text(out.diff)
+                        p.snapshots.append({"label": f"rev{p.rev}", "sha256": out.diff_sha256, "file": f"{p.id}_rev{p.rev}.diff"})
+                        p.diff = out.diff                                  # last patch wins
+                        ep.event("NAIVE_REVISION", rev=p.rev, sha=out.diff_sha256)
         else:
             p = new_pos("S")
             out, st = session(p, author_head)
@@ -610,6 +637,8 @@ def main(argv=None) -> int:
             chosen, cls = protected_best(), oc.release_class(False)
             open_at_stop = [o for o in team.objs if o["open"]]
             ep.event("LOOP_GUARD", guard=guard, open_objections=[o["id"] for o in open_at_stop])
+    elif a.mode == "naive":
+        chosen, cls = (next((q for q in positions.values() if q.diff), None)), "NAIVE_LAST_PATCH"
     elif cled.best() is not None:
         chosen, cls = protected_best(), "CANDIDATE_UNVALIDATED"      # indep / solo: the protected best by the driver-run visible score
     firsts = [positions[k].snapshots[0] for k in positions if positions[k].snapshots and not k.startswith("SP")]

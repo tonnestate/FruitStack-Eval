@@ -75,6 +75,18 @@ def run(mode, db, out, extra=None, wait=True):
     return json.loads(o.strip().splitlines()[-1])
 
 
+def count_writes(db, work_ref=None, label="") -> int:
+    """MangoMe checkpoint writes recorded for the test (reported per test in the repair report; MANGO_COUNTS_OUT=file appends them)."""
+    from mangome.storage.mongo import MongoStore
+    st = MongoStore(URI, db)
+    n = st.db["work_checkpoints"].count_documents({"work_id": work_ref} if work_ref else {})
+    st.client.close()
+    if os.environ.get("MANGO_COUNTS_OUT"):
+        with open(os.environ["MANGO_COUNTS_OUT"], "a") as fh:
+            fh.write(json.dumps({"test": label, "checkpoints": n}) + "\n")
+    return n
+
+
 def drop(db):
     from mangome.storage.mongo import MongoStore
     s = MongoStore(URI, db)
@@ -88,6 +100,7 @@ def test_scripted_episode_is_readable_through_mcp_work_context(tmp_path):
         r = run("full", db, tmp_path)
         assert r["class"] == "RELEASED_UNANIMOUS_EXCELLENT"
         ids = json.loads((tmp_path / "ids.json").read_text())
+        count_writes(db, ids["work"], "scripted_episode_mcp_readback")
         os.environ.update({"MANGOME_BACKEND": "mongo", "MANGOME_MONGODB_URI": URI, "MANGOME_DATABASE": db, "MANGOME_ZERO_TOUCH_BOOTSTRAP": "0"})
         from mcp.client.client import Client
         from mangome import worker_mcp_server
@@ -116,6 +129,7 @@ def test_restart_restores_team_state_byte_identical_from_mangome_alone(tmp_path)
         p.send_signal(signal.SIGKILL)                      # the episode dies after the revision
         p.wait()
         ids = json.loads((tmp_path / "ids.json").read_text())
+        count_writes(db, ids["work"], "restart_restore_before_kill")
         run("restore", db, tmp_path, extra={"WORK": ids["work"], "TURN": ids["turn"]})
         assert (tmp_path / "restored.txt").read_text() == (tmp_path / "before.txt").read_text()
     finally:
@@ -141,6 +155,7 @@ def test_two_episodes_get_distinct_work_and_turn_and_cannot_cross_write_or_read(
         la.write("TEAM_STATE_FULL", "full", {"goal": "A-goal"})
         lb.write("TEAM_STATE_FULL", "full", {"goal": "B-goal"})
         assert la.latest()["goal"] == "A-goal" and lb.latest()["goal"] == "B-goal"        # neither reads the other's checkpoints
+        count_writes(db, wa, "two_episodes_A"); count_writes(db, wb, "two_episodes_B")
         assert ad.turn_authorized(wa, ta, "host") and not ad.turn_authorized(wa, tb, "host") and not ad.turn_authorized(wb, ta, "host")
         with pytest.raises(InfraMangoFailed):                                              # A's work with B's turn: a cross write is refused (fail closed)
             MangoLedger(ad, wa, "host", tb, "X").write("TEAM_STATE_FULL", "full", {"goal": "cross"})

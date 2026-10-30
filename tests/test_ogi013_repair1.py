@@ -206,3 +206,35 @@ def test_r8_two_failed_steps_create_exactly_one_roster_change_and_a_new_pin():
     r = Roster()
     res, prefers, ev = _loop_with_roster([_ok("m-a", READ), FAIL, FAIL, _ok("m-b", MSG)], r)
     assert ev.count("ROSTER_CHANGE") == 1 and r.pinned("critic") == "m-b" and prefers[3][0] is None       # the replacement is chosen by AUTO, then pinned
+
+
+def test_r6_m_protect_counts_prevented_and_unprotected_regressions(tmp_path):
+    import ogi013_protect as op
+    g = lambda f, p: {"f2p_passed": f, "f2p_total": 2, "p2p_passed": p, "p2p_total": 4, "resolved": f == 2 and p == 4}
+    # arm T: first 2/2, rejected revision 1/2 (prevented), adopted revision 2/2
+    (tmp_path / "T").mkdir()
+    (tmp_path / "T" / "run.json").write_text(json.dumps({"status": "CANDIDATE_NO_CONSENSUS", "stats": {"tokens_in": 10, "tokens_out": 5}, "seconds": 1.0, "release": {"votes": [{"counts": "EXCELLENT", "verdict": "EXCELLENT", "pos": "S1"}]},
+        "candidates": [{"id": "S1:first", "pos": "S1", "label": "first", "status": "SUPERSEDED"}, {"id": "S1:rev1", "pos": "S1", "label": "rev1", "status": "REJECTED_REVISION", "reason": "VISIBLE_SCORE_LOWER"},
+                       {"id": "S1:rev2", "pos": "S1", "label": "rev2", "status": "ADOPTED"}]}))
+    (tmp_path / "T" / "grades.json").write_text(json.dumps({"S1_first.diff": g(2, 4), "S1_rev1_REJECTED.diff": g(1, 4), "S1_rev2.diff": g(2, 4), "RELEASED.diff": g(2, 4)}))
+    m = op.measure(tmp_path / "T")
+    assert m["prevented_regressions"] == 1 and m["unprotected_regressions"] == 0 and m["resolved"] and m["approvals_excellent"] == 1
+    # arm N: last patch wins, the second revision regresses (unprotected)
+    (tmp_path / "N").mkdir()
+    (tmp_path / "N" / "run.json").write_text(json.dumps({"status": "NAIVE_LAST_PATCH", "stats": {"tokens_in": 1, "tokens_out": 1}, "seconds": 2.0}))
+    (tmp_path / "N" / "grades.json").write_text(json.dumps({"S1_first.diff": g(2, 4), "S1_rev1.diff": g(2, 4), "S1_rev2.diff": g(1, 4), "RELEASED.diff": g(1, 4)}))
+    assert op.measure(tmp_path / "N")["unprotected_regressions"] == 1
+
+
+def test_r1_tie_without_a_verified_improvement_is_not_adopted_but_a_higher_score_is():
+    led, _ = ledger({"d0": (5, 0, {}), "d1": (5, 0, {}), "d2": (6, 0, {})})
+    led.consider_revision("S1", "first", "d0", [])
+    led.add_repro("O9", {"tool": "run_python"})
+    r1 = led.consider_revision("S1", "rev1", "d1", ["Oquote"])               # quote-grounded claim, nothing verifiable changes
+    assert not r1["adopted"] and r1["reason"] == "NO_VERIFIED_IMPROVEMENT"
+    r2 = led.consider_revision("S1", "rev2", "d2", ["Oquote"])
+    assert r2["adopted"] and led.best()["label"] == "rev2"
+
+
+def test_r2_an_approval_is_never_an_objection():
+    assert oc.classify_objection('[UNGROUNDED_APPROVAL] APPROVE: EXCELLENT "Anything else must raise ValueError" ok', TASK, [])["kind"] == "suggestion"
