@@ -215,7 +215,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
     nominal = limit or NOMINAL_TURNS
     np_turns, seen_reads = 0, set()
     stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
-    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "reads": set(), "progress": [], "role": role}
+    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "check_ns": [], "reads": set(), "progress": [], "role": role}
     best_vis: dict = {}                                 # Addendum 5: this session's best-so-far visible record (test name -> ever passed)
     repro: dict = {}                                    # label -> last result (True = exit 0) of the session's own reproduction checks
     regressed = False
@@ -319,6 +319,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         elif name == "run_python":
             stall["idle"] = 0
             ctx.last_session["py_runs"] += 1
+            ctx.last_session["check_ns"].append(time.monotonic_ns())
             if sb.last_py:
                 ok_py = sb.last_py[1] == 0
                 lab = (sb.last_py[0] or "").strip()
@@ -335,6 +336,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         if name == "run_tests" and sb.last_run:
             stall["idle"] = 0
             ctx.last_session["test_runs"] += 1
+            ctx.last_session["check_ns"].append(time.monotonic_ns())
             ctx.last_session["cmd_keys"] += list(args.get("modules", []))
             if gated:
                 cur = visible_results(sb.last_run[2])
