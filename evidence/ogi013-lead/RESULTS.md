@@ -18,8 +18,7 @@ Verdict: no measured organisational effect; F did not outperform L; N and F both
 
 ## Experiment A-11019 (Addendum 2 section C): can a critique rescue Luna's recorded patch P0?
 
-Label: **case series, K=5 per branch, one task (`django__django-11019`), descriptive only.** It supports no inference about intelligence, no general claim and no leaderboard statement.
-(I did not have the exact wording of Addendum 4 section B.2 in this session; this label is the conservative form of it. Replace with the lead's text if it differs.)
+Label: **"A-11019: P0 is issue-correct; hidden-test defect not derivable from materials"** (Addendum 4 section B.2, exact). Case series, K=5 per branch, one task (`django__django-11019`), descriptive only. It supports no inference about intelligence, no general claim and no leaderboard statement.
 
 P0 = Luna's recorded patch, graded with evaluate_v2.py v2.1: 3/16 F2P, 58/58 P2P, not resolved. Branches: LSR = Luna reviews its own P0 with the CHALLENGE prompt, then revises; LBR = critic from an independent lineage (OpenAI lineage excluded, PlumMe AUTO), then Luna revises.
 Outcome: **10/10 replicates ended with P0 unchanged** (LSR 5, LBR 5; each revision was gate-accepted with `changed_vs_p0 = false`). Classification for all ten: no effect. No revised patch exists, so no per-critique regrade was needed (identical diff = identical grade).
@@ -42,3 +41,7 @@ Reading notes (facts from the retained evidence folders `runs/expA/main/run/{LSR
 | LBR r4 | nemotron-3.5-lightning@default / qwen2.5 | (no verdict line: 'No test files found matching pattern or ') | No test files found matching pattern or search not implemented. | `run_tests --parallel 1 django.forms.widgets` → exit 0 | no (P0_UNCHANGED) | P0 unchanged: 3/16 F2P, 58/58 P2P (not regraded: identical to P0) |
 | LBR r5 | qwen2.5-vl-72b@default / nemotron | FOUND | ISSUES: FOUND\nThe search function encountered an error due to an unexpected keyword argument 'query'. This indicates a potential issue with the search functionality itself rather than the code being reviewed. Further investigation into the search function's implementation is required. | none executed | no (P0_UNCHANGED) | P0 unchanged: 3/16 F2P, 58/58 P2P (not regraded: identical to P0) |
 
+
+
+## FIX: commits (final runbook section 0)
+- FIX 1 (2026-10-30): progress guard. Demonstrated failure: dev06, all three author sessions stopped after 9 exploration turns with no test run. Author-type roles (solver, reviser, specialist) now get the read-only roles' exploration allowance (first 12 distinct read/search calls count as progress) until the session's first `run_tests`; afterwards Addendum 5 quality rules apply unchanged. Test: `test_fix_author_exploration_before_first_test_run_is_progress`. Affected runs: G-dev only (count restarted at episode 1 of 3; dev05, dev06 and the aborted gdev1 are not counted).

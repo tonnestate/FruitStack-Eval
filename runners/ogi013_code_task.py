@@ -238,7 +238,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
     ep, transcript, first = ctx.ep, [], None
     gate = gate or ctx.gate
     nominal = limit or NOMINAL_TURNS
-    np_turns, seen_reads = 0, set()
+    np_turns, seen_reads, tests_run = 0, set(), False
     stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
     ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "check_ns": [], "checks": [], "reads": set(), "progress": [], "role": role}
     best_vis: dict = {}                                 # Addendum 5: this session's best-so-far visible record (test name -> ever passed)
@@ -347,7 +347,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         if name in ("list_dir", "read_file", "search"):
             stall["idle"] += 1
             sig = (name, json.dumps(args, sort_keys=True))
-            if not gated and sig not in seen_reads:                             # a read-only role explores; only the first EXPLORATION_ALLOWANCE distinct calls can count
+            if (not gated or not tests_run) and sig not in seen_reads:           # read-only roles, and author-type roles until their first run_tests (FIX: dev06): the first EXPLORATION_ALLOWANCE distinct calls count
                 seen_reads.add(sig)
                 made = "exploration" if len(seen_reads) <= EXPLORATION_ALLOWANCE else False
             if name == "read_file" and not failed:
@@ -374,6 +374,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         if name == "run_tests" and sb.last_run:
             stall["idle"] = 0
             ctx.last_session["test_runs"] += 1
+            tests_run = True
             ctx.last_session["check_ns"].append(time.monotonic_ns())
             ctx.last_session["checks"].append((time.monotonic_ns(), sb.last_run[2]))
             ctx.last_session["cmd_keys"] += list(args.get("modules", []))

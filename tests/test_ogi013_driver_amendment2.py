@@ -135,3 +135,17 @@ def test_tolerant_code_action_parser():
     assert ct.parse_code_action('```json\n{"action": "edit_file", "path": "a.py", "old": "x", "new": "y"}\n```')["arguments"] == {"path": "a.py", "old": "x", "new": "y"}
     assert ct.parse_code_action('{"action": "tool", "name": "submit", "arguments": {}}')["name"] == "submit"
     assert ct.parse_code_action('{"action": "launch_missiles"}') is None
+
+
+def test_fix_author_exploration_before_first_test_run_is_progress():
+    """dev06: nine reads and no test run stopped every author after 9 turns. Now the first 12 distinct reads count until the first run_tests."""
+    seq = [_tool("read_file", path=f"f{i}.py") for i in range(10)]
+    seq += [_tool("edit_file", path="a.py", old="x", new="y")] * 8       # then edits alone are not progress
+    res, ev = _session(seq, True)
+    labels = [k["label"] for n, k in ev if n == "PROGRESS"]
+    assert labels == ["exploration"] * 10 and res == "STOP:NO_PROGRESS"
+    # after the first run_tests reads no longer count
+    out = "a (m.T) ... FAIL\n"
+    seq = [_tool("run_tests", modules=["m"])] + [_tool("read_file", path=f"g{i}.py") for i in range(8)]
+    res, ev = _session(seq, True, iter([out]))
+    assert res == "STOP:NO_PROGRESS" and not any(k["label"] == "exploration" for n, k in ev if n == "PROGRESS")
