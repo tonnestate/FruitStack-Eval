@@ -1,0 +1,30 @@
+diff --git a/django/utils/lru.py b/django/utils/lru.py
+index 5dd51cf..8b472fa 100644
+--- a/django/utils/lru.py
++++ b/django/utils/lru.py
+@@ -5,14 +5,24 @@ class LRUCache:
+     """A least-recently-used cache holding at most `capacity` entries."""
+ 
+     def __init__(self, capacity):
++        if capacity < 0:
++            raise ValueError("capacity must be non-negative")
+         self.capacity = capacity
+         self._data = OrderedDict()
+ 
+     def get(self, key, default=None):
+-        return self._data.get(key, default)
++        try:
++            value = self._data.pop(key)
++        except KeyError:
++            return default
++        self._data[key] = value
++        return value
+ 
+     def put(self, key, value):
++        if self.capacity == 0:
++            return
+         self._data[key] = value
++        self._data.move_to_end(key)
+         if len(self._data) > self.capacity:
+             self._data.popitem(last=False)
+ 
