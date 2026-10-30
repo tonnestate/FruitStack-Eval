@@ -92,7 +92,7 @@ class Sandbox:
         if not modules or not all(re.fullmatch(r"[\w.]+", m) for m in modules):
             raise ValueError("modules must be Django test labels")
         env = {"PYTHONWARNINGS": "ignore", "PATH": "/usr/bin:/bin", "PYTHONPATH": str(self.root), "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1"}
-        argv = [self.python, "tests/runtests.py", "--parallel", "1", *modules]
+        argv = [self.python, "tests/runtests.py", "--parallel", "1", "-v", "2", *modules]
         r = subprocess.run(argv, cwd=self.root, capture_output=True, text=True, timeout=900, env=env)
         self.last_run = (argv, r.returncode, r.stdout + r.stderr)
         return f"exit={r.returncode}\n" + (r.stdout + r.stderr)[-3000:]
@@ -161,18 +161,53 @@ class Ctx:
     def __init__(self, ep, effects, gate, deadline, out):
         self.ep, self.effects, self.gate, self.deadline, self.out = ep, effects, gate, deadline, out
         self.keys = {"author": set()}
+        self.last_session: dict = {}
 
 
-def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool):
-    """One role's tool loop. Returns (final, first_step): final = the accepted SubmitDecision (gated author/reviser) or the critic's message text, or a string 'STOP:<why>'."""
+STALL_TURNS_WITHOUT_ACTION = 8
+
+
+def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None):
+    """One role's tool loop. Returns (final, first_step): final = the accepted SubmitDecision (gated author/reviser) or the critic's message text, or a string 'STOP:<why>'.
+    team: shared team state (inserted, hash-logged, into every prompt). helper(cond, wip) -> text|None: asked once per stall condition (Addendum 3 B.3)."""
     ep, transcript, first = ctx.ep, [], None
-    for turn in range(LIMITS[role]):
+    gate = gate or ctx.gate
+    limit = limit or LIMITS[role]
+    stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
+    ctx.last_session = {"test_runs": 0, "turns": 0}
+
+    def resolve_watch(recovered: bool):
+        w = stall["watch"]
+        if w:
+            ep.event("HELP_GIVEN", role=role, condition=w["cond"], helper_model=w["model"], recovered=recovered, turns_after=ctx.last_session["turns"] - w["turn"])
+            stall["watch"] = None
+
+    for turn in range(limit):
+        ctx.last_session["turns"] = turn
         if time.monotonic() > ctx.deadline:
+            resolve_watch(False)
             return "STOP:TIME_LIMIT", first
         blocking = ep.blocking()
         if blocking:
             return "STOP:REFLEX_BLOCKED", first
-        prompt = head + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
+        if stall["watch"] and turn - stall["watch"]["turn"] >= 5:
+            resolve_watch(False)
+        if helper and gated:
+            cond = ("zero_tests" if stall["zero"] >= 2 else "edit_rejected" if stall["rejected"] >= 2 else "idle" if stall["idle"] >= STALL_TURNS_WITHOUT_ACTION
+                    else "half_budget" if turn == limit // 2 else None)
+            if cond and cond not in stall["used"]:
+                stall["used"].add(cond)
+                stall.update(zero=0, rejected=0, idle=0)
+                recent = "\n".join(f"{e['text'][:200]}" for e in transcript[-12:])
+                ep.event("HELP_REQUESTED", role=role, condition=cond, turn=turn)
+                answer, hmodel = helper(cond, gate._source_diff()[0], (sb.last_run[2][-3000:] if sb.last_run else "(no test run yet)"), recent)
+                if answer:
+                    transcript.append({"role": "result", "text": "HELP FROM A COLLEAGUE (unverified): " + answer[:3000]})
+                    stall["watch"] = {"cond": cond, "turn": turn, "model": hmodel}
+        ts = team.text() if team else ""
+        if team:
+            ep.event("TEAM_STATE", role=role, sha=hashlib.sha256(ts.encode()).hexdigest(), turn=turn)
+        prompt = head + (f"\n<team_state>\n{ts}\n</team_state>" if ts else "") + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
         pref = prefer if first is None else first["model_key"]            # AMENDMENT-DRIVER-2 R1: one model carries every role through its own session; PlumMe AUTO re-chooses only after 2 consecutive provider failures
         d = ep.step(prompt, role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
         if d["success"] and first is not None and d["model_key"] != first["model_key"]:
@@ -180,8 +215,8 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
             first = {**first, "model_key": d["model_key"]}
         if d["success"] and first is None:
             first = d
-        if d["success"] and role == "author" and d.get("independence_key"):
-            ctx.keys["author"].add(d["independence_key"])
+        if d["success"] and d.get("independence_key"):
+            ctx.keys.setdefault(role, set()).add(d["independence_key"])
         action = parse_action(d["output"]) if d["success"] else None
         if action is None and d["success"]:
             fix = ep.step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
@@ -196,9 +231,10 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
                     return action["content"], first
                 transcript.append({"role": "result", "text": "Error: use a plain message to give your verdict."})
                 continue
-            dec = ctx.gate.check_submit()
+            dec = gate.check_submit()
             ep.event("SUBMIT_CHECK", role=role, accepted=dec.accepted, reason=dec.reason, sha=dec.diff_sha256)
             if dec.accepted:
+                resolve_watch(True)
                 return dec, first
             transcript.append({"role": "call", "text": "submit()"})
             transcript.append({"role": "result", "text": dec.reason})          # the gate's neutral text, verbatim
@@ -212,12 +248,24 @@ def agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exc
         text, failed = pomelo_call(ep, sb, ctx.effects, name, args, write=name == "edit_file")
         transcript.append({"role": "result", "text": text})
         ep.event("TOOL", role=role, name=name, failed=failed, args=json.dumps(args)[:300])
-        if gated and not failed and name == "edit_file":
-            ctx.gate.record_edit(args["path"])
-        if gated and name == "run_tests" and sb.last_run:
-            ctx.gate.record_test_run(*sb.last_run)
-        elif not gated and name == "run_tests" and sb.last_run:
-            ep.event("CRITIC_TEST_RUN", argv=sb.last_run[0][2:], exit_code=sb.last_run[1])
+        if name not in ("edit_file", "run_tests"):
+            stall["idle"] += 1
+        if name == "edit_file":
+            stall["idle"] = 0
+            stall["rejected"] = stall["rejected"] + 1 if (failed and "EDIT_REJECTED" in text) else 0
+            if gated and not failed:
+                gate.record_edit(args["path"])
+        if name == "run_tests" and sb.last_run:
+            stall["idle"] = 0
+            ctx.last_session["test_runs"] += 1
+            if gated:
+                entry = gate.record_test_run(*sb.last_run)
+                stall["zero"] = stall["zero"] + 1 if entry["tests_executed"] == 0 else 0
+                if entry["tests_executed"] > 0:
+                    resolve_watch(True)
+            else:
+                ep.event("CRITIC_TEST_RUN", argv=sb.last_run[0][2:], exit_code=sb.last_run[1])
+    resolve_watch(False)
     return "STOP:MAX_TURNS", first
 
 
