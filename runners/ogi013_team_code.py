@@ -149,6 +149,7 @@ def main(argv=None) -> int:
 
     def freeze(p: Pos, dec, label: str) -> None:
         p.gate.snapshot(f"P{p.rev}", dec)
+        ep.event("SNAPSHOT", pos=p.id, label=label, sha=dec.diff_sha256)
         (snaps / f"{p.id}_{label}.diff").write_text(dec.diff)
         p.snapshots.append({"label": label, "sha256": dec.diff_sha256, "file": f"{p.id}_{label}.diff"})
         p.diff, p.status = dec.diff, p.status if label != "first" else "open"

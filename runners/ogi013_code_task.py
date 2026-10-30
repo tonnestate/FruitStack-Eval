@@ -357,6 +357,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
 
 def agent_loop(ctx: Ctx, role: str, *a, **kw):
     """Runs one role session and logs its end (Addendum 5 guard audit: turns, progress turns, stop reason)."""
+    ctx.ep.event("SESSION_START", role=role)
     res = _agent_loop(ctx, role, *a, **kw)
     ls = ctx.last_session
     stop = res[0] if isinstance(res[0], str) and res[0].startswith("STOP:") else "DELIVERED"
