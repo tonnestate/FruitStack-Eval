@@ -30,7 +30,7 @@ class Ledger:
         oid = f"O{self.n}"
         self.objs.append({"id": oid, "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "grounded": grounded, "raised_ns": time.monotonic_ns(),
                           "state": OPEN, "open": True, "contested": 0, "decided_by": None, "revised_ns": None})
-        self.emit("OBJECTION", id=oid, target=target, lineage=lineage, kind=kind, grounded=grounded)
+        self.emit("OBJECTION", id=oid, target=target, lineage=lineage, okind=kind, grounded=grounded)   # not kind=: Episode.event(kind, ...) takes that name
         return oid
 
     def revise(self, target, rev, changed_code, responding_to, reason="") -> None:

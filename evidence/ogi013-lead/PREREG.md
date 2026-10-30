@@ -24,7 +24,8 @@
 ## FIX: commits after the freeze rule
 | commit | defect | rerun scope |
 |---|---|---|
-| (see RESULTS.md) | dev06: all authors stopped after 9 exploration turns; author-type roles now get the 12-read exploration allowance until their first run_tests | G-dev restarted at episode 1 of 3 |
+| (see RESULTS.md, FIX 2) | gdev1: parser TypeError on non-string name; ledger event keyword clash | G-dev episode 1 rerun |
+| (see RESULTS.md, FIX 1) | dev06: all authors stopped after 9 exploration turns; author-type roles now get the 12-read exploration allowance until their first run_tests | G-dev restarted at episode 1 of 3 |
 
 ## Pre-registered design (fixed 2026-10-30, before any scored run; changes only by a dated erratum that does not touch H, endpoints, n, selection or thresholds)
 

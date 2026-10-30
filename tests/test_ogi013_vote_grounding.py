@@ -120,3 +120,12 @@ def test_o_unchanged_revisions_end_with_no_shrink_3_not_cycles_8():
         guard = vote_stop(no_shrink, cycle, 0, 8)
         led.revise("S1", cycle, False, ["O1"], reason="no change")
     assert guard == "VOTE_NO_SHRINK_3" and cycle < 8
+
+
+def test_ledger_emit_works_with_episode_event_signature():
+    """FIX: OBJECTION used kind= which clashed with Episode.event(kind, ...) (gdev1 TypeError)."""
+    got = []
+    led = Ledger()
+    led.emit = lambda kind, **k: got.append((kind, k))
+    led.objection("S1", "L1", "t")
+    assert got[0][0] == "OBJECTION" and got[0][1]["okind"] == "objection"

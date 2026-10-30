@@ -15,6 +15,7 @@ import re
 import shutil
 import sys
 import time
+import traceback
 from pathlib import Path
 
 import ogi013_code_task as ct
@@ -295,7 +296,7 @@ def main(argv=None) -> int:
         except Exception as exc:  # noqa: BLE001
             if _is_stop(exc):
                 raise
-            ep.event("WORK_ERROR", stage=stage, error=f"{type(exc).__name__}: {str(exc)[:300]}")
+            ep.event("WORK_ERROR", stage=stage, error=f"{type(exc).__name__}: {str(exc)[:300]}", trace=traceback.format_exc()[-1500:])
             return {"success": False, "output": None, "model_key": None, "independence_key": None, "receipt_id": None, "failure_class": (str(exc) or type(exc).__name__)[:80]}
 
     def signature(text: str):

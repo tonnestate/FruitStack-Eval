@@ -149,3 +149,8 @@ def test_fix_author_exploration_before_first_test_run_is_progress():
     seq = [_tool("run_tests", modules=["m"])] + [_tool("read_file", path=f"g{i}.py") for i in range(8)]
     res, ev = _session(seq, True, iter([out]))
     assert res == "STOP:NO_PROGRESS" and not any(k["label"] == "exploration" for n, k in ev if n == "PROGRESS")
+
+
+def test_fix_parser_survives_non_string_names():
+    """FIX: gdev1 TypeError unhashable dict when a model put a dict in "name"."""
+    assert ct.parse_code_action('{"action": {"x": 1}, "name": ["read_file"]}') is None

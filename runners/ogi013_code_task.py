@@ -220,7 +220,7 @@ def parse_code_action(text):
             continue
         if not isinstance(obj, dict):
             continue
-        name = next((obj[k] for k in ("name", "action", "tool") if obj.get(k) in CODE_TOOLS), None)
+        name = next((obj[k] for k in ("name", "action", "tool") if isinstance(obj.get(k), str) and obj[k] in CODE_TOOLS), None)
         if name:
             args = obj["arguments"] if isinstance(obj.get("arguments"), dict) else {k: v for k, v in obj.items() if k not in ("action", "name", "tool", "arguments")}
             return {"action": "tool", "name": name, "arguments": args}
