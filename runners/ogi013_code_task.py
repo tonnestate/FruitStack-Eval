@@ -203,6 +203,30 @@ def grounded_text(text: str, sess: dict) -> bool:
     return any(any(r.endswith(m.group(1)) or m.group(1).endswith(r) for r in sess.get("reads", ())) for m in re.finditer(r"([\w./]+\.py):\d+", text))
 
 
+CODE_TOOLS = {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python", "submit"}
+
+
+def parse_code_action(text):
+    """The strict parser first; otherwise a tolerant reading of the same intent (models often write {"action": "<tool>", ...flat arguments...} or {"action": "tool", "name": ..} with
+    a stray code fence). Format tolerance only: it never invents a tool, an argument or a value. Identical for every arm."""
+    act = parse_action(text)
+    if act is not None or not text:
+        return act
+    decoder = json.JSONDecoder()
+    for m in re.finditer(r"\{", text):
+        try:
+            obj, _ = decoder.raw_decode(text[m.start():])
+        except ValueError:
+            continue
+        if not isinstance(obj, dict):
+            continue
+        name = next((obj[k] for k in ("name", "action", "tool") if obj.get(k) in CODE_TOOLS), None)
+        if name:
+            args = obj["arguments"] if isinstance(obj.get("arguments"), dict) else {k: v for k, v in obj.items() if k not in ("action", "name", "tool", "arguments")}
+            return {"action": "tool", "name": name, "arguments": args}
+    return None
+
+
 def outcome_key(output: str) -> tuple:
     ran = re.findall(r"^Ran (\d+) tests?", output or "", re.M)
     return (int(ran[-1]) if ran else 0, len(re.findall(r"\.\.\. (?:FAIL|ERROR)\s*$", output or "", re.M)), "OK" in (output or "")[-200:])
@@ -284,10 +308,10 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             first = d
         if d["success"] and d.get("independence_key"):
             ctx.keys.setdefault(role, set()).add(d["independence_key"])
-        action = parse_action(d["output"]) if d["success"] else None
+        action = parse_code_action(d["output"]) if d["success"] else None
         if action is None and d["success"]:
             fix = step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
-            action = parse_action(fix["output"]) if fix["success"] else None
+            action = parse_code_action(fix["output"]) if fix["success"] else None
         if action is None:
             ep.event("BAD_ACTION", role=role, model=d.get("model_key"), output=(d.get("output") or "")[:400], failure=d.get("failure_class"))
             transcript.append({"role": "result", "text": "Error: your reply was not a valid action; reply with one JSON object."})

@@ -128,3 +128,10 @@ def test_grounded_text():
     assert ct.grounded_text("bug at django/forms/widgets.py:120", sess)
     assert not ct.grounded_text("this looks wrong to me", sess)
     assert not ct.grounded_text("see django/forms/other.py:5", sess)
+
+
+def test_tolerant_code_action_parser():
+    assert ct.parse_code_action('{"action": "read_file", "name": "read_file", "arguments": {"path": "a.py"}}') == {"action": "tool", "name": "read_file", "arguments": {"path": "a.py"}}
+    assert ct.parse_code_action('```json\n{"action": "edit_file", "path": "a.py", "old": "x", "new": "y"}\n```')["arguments"] == {"path": "a.py", "old": "x", "new": "y"}
+    assert ct.parse_code_action('{"action": "tool", "name": "submit", "arguments": {}}')["name"] == "submit"
+    assert ct.parse_code_action('{"action": "launch_missiles"}') is None
