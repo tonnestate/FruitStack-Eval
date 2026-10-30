@@ -57,3 +57,6 @@ Stop conditions in any step: a circuit breaker hit twice -> stop that step and r
 
 Fixed per-arm resources: loop guards per Addenda 5 and 7 and FIX 1; circuit breaker 3,000,000 tokens / 1,500 requests / 4 h per episode; identical for T, N and S.
 N's session count: fixed per instance so that N's tokens are within +-10% of T's tokens on that instance; measured from T first.
+
+## Restart rule (owner stop order, 2026-10-30)
+G-dev allows at most 3 episode STARTS in total, crashed or stopped episodes included. A 4th start requires an explicit owner decision. No further FIX commit on the team driver and no new episode of any kind until the owner lifts the stop.
