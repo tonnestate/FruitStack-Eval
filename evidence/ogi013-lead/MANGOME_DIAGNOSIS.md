@@ -47,3 +47,35 @@ No defect found so far needs a MangoMe architectural change. D1 is a deployment/
 
 ## Proposed repair scope for 3b (not started; awaiting the report)
 - D4 only, in the MangoMe repository on a new working branch: failing test first (an assertion that the MCP tools' parameters match the service signatures they forward to), then commit the intended `mcp_server.py` change. D1-D3 need an owner decision because they touch the frozen driver or the isolation rule.
+
+---
+# Repair log (owner/lead order 2026-10-30; MangoMe branch `fix/dirty-source-provenance-2026-10-30`)
+
+## D4 — dirty source (done)
+- Backup before any change: `/root/backups/mangome-dirty-2026-10-30/` (tracked.diff, stash0.patch, stash.list, nested_src_MangoMe.tar, the untracked test, status.txt) with `SHA256SUMS`:
+  `3aa6c66a…a912d tracked.diff`, `c5b580e0…aa947 stash0.patch`, `08cbe3bc…aa947 nested_src_MangoMe.tar` (full list in the backup folder).
+- Failing test first: `tests/test_mcp_service_api_contract.py` on a clean `git archive HEAD` copy fails with `TypeError("_Service.prepare_assignment() got an unexpected keyword argument 'work_id'")` (reported as `INPUT_INVALID`). The committed advanced MCP tools forwarded `work_id`/`turn_id` that the service does not accept. Fix = the previously uncommitted `mcp_server.py` change, now committed with the test (`6424c04`).
+- The nested untracked copy `src/MangoMe/` (179 entries, stale duplicate) was removed from the working tree after backup; the stash `codex-uncommitted-vor-handover-001` is untouched (not dropped).
+- Provenance now: component checkouts used by the evaluations are logged with `git describe --always --dirty` and a `-dirty` tree refuses to start (`DIRTY_SOURCE`, `ogi013_host_bootstrap.py`, test `tests/test_ogi013_dirty_source.py`). The evaluation component link `ogi013-org-components/MangoMe` now points to a pinned clean worktree `ogi013-mangome-pinned` (detached at the fixed commit), and the host Python is reinstalled editable from it (`mangome-mcp 0.3.23`).
+- Note for earlier evidence: "MangoMe source was dirty; logged commit does not identify the code that ran" (applies to every run logged `mangome=98009461…`).
+
+## C.1 deployment check (raw outputs in `evidence/ogi013-lead/mangome-c1/`)
+| check | result |
+|---|---|
+| `mangome health` | OK, version 0.3.23, schema 6, database `mangome` state `BOUND` (`health.txt`) |
+| `mangome` on PATH | not on PATH; only in the managed venv `bin/` (used by absolute path) |
+| `importlib.metadata.version('mangome-mcp')` in the managed venv | **0.3.17 (stale dist-info) while the code is 0.3.23** -> defect; fixed by `uv pip install --no-deps -e <source>` (now 0.3.23) |
+| source commit imported by the managed runtime | `/root/tonnestate-repos/MangoMe` at `98009461…` when checked (dirty), now branch `fix/dirty-source-provenance-2026-10-30` |
+| `mangome attest-client claude-code`, workspace `/root` | `CLIENT_READINESS_FAILED: SKILL_VERSION_MISMATCH` (installed skill text older than the source) -> defect; fixed with `mangome doctor --repair --workspace /root --client claude-code` (backup of the skill and `~/.claude.json` in `/root/backups/`); afterwards `PASS`, warning `MONGODB_CREDENTIAL_SOURCE_MISSING` (default loopback, no credential file: informational) |
+| `mangome attest-client claude-code`, workspace = the FruitStack-Eval worktree | `CLIENT_READINESS_FAILED: MCP_NOT_REGISTERED, SKILL_NOT_INSTALLED, AUTOMATIC_INSTRUCTIONS_MISSING, CONFIGURATION_NOT_EFFECTIVE` -> the binding is per workspace; the operator's session binds at `/root` (PASS). Not repaired in the worktree (project-scope files would be written into the evaluation repository). |
+| Mongo integration tests (real MongoDB, loopback) | `tests/test_mongo_integration.py`, `tests/test_mongo_wire.py`: all pass (7 before, 9 after the new tests) |
+| MCP transport behaviour (H6) | not tested in this pass (client/transport concern, out of MangoMe scope per order) |
+
+## H5 — `families.admission_key` (confirmed, fixed)
+Real MongoDB: second keyless family -> `E11000 duplicate key ... index: admission_key_1`. Fix `9dc334f`: partial unique index on string values (`families_admission_key_string_unique_v1`), legacy sparse index dropped by the index bootstrap, keyless families omit the field, `scripts/migrate_admission_key_index.py --collection families`. Tests: two keyless families coexist; migration over a legacy index with an explicit null keeps both documents.
+
+## H1-H3 regression tests on real MongoDB (`f7a1295`, `tests/test_mongo_host_regressions.py`)
+- H1: two concurrent processes, own database and own turn each, 15 authorization re-reads each: both stay authorized; `claim_database` refuses a name held by a live process (`DATABASE_IN_USE`) and releases dead holders. (No failure reproduced: the historical collision remains unidentified.)
+- H2: a second host run on the same work: `RECONCILE_ASSIGNMENT` returns MATCHED with the same WorkIdentity; WorkIdentity count stays 1.
+- H3: failing before the fix (`recommended_next_action` was `RETURN_TO_USER`). Now `RECOVERY_CONTEXT` on admitted work returns `BIND_OR_RECONCILE_CURRENT_TURN`, `current_turn_execution_authorized: false` plus a next-step text; `ENTER_WORK` with `work_ref` binds a current EXECUTE turn without a CONTROL `BIND_WORK_TURN`.
+- Full suite: memory backend all pass; with `MANGOME_TEST_MONGO_URI` all pass.

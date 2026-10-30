@@ -49,3 +49,7 @@ Closed in `a1f9172`: `TASK_VALIDITY.md` and `repro_issue_example.py`; issue-beha
 ## Restart rule (also in PREREG.md)
 G-dev allows at most 3 episode STARTS in total, crashed or stopped episodes included. A 4th start requires an explicit owner decision.
 Counting since FIX 1: 2 starts used (gdev1 crash, gdev1 run 3); the aborted pre-FIX-1 start is not counted. Under a stricter count that includes it, 3 are used.
+
+## Update after the lead's decisions (2026-10-30)
+- G-dev starts: strict reading, 3 of 3 used.
+- Provenance: the MangoMe source the evaluations imported was a dirty working tree; the logged commit `98009461...` does not identify the code that ran for any run so far. Repair in `MANGOME_DIAGNOSIS.md` (D4).

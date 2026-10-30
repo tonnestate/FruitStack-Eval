@@ -16,6 +16,11 @@ import subprocess
 import sys
 import tomllib
 
+def git_describe(checkout) -> str:
+    """`git describe --always --dirty` of a component checkout; a -dirty tree refuses to start (DIRTY_SOURCE)."""
+    return subprocess.run(["git", "-C", str(checkout), "describe", "--always", "--dirty"], capture_output=True, text=True, check=True).stdout.strip()
+
+
 COMPONENTS = {
     "mangome": "MangoMe",
     "orangeme": "OrangeMe",
@@ -122,11 +127,11 @@ def main(argv: list[str] | None = None) -> int:
             install(python, checkout)
         if not is_component_from_checkout(python, module, checkout):
             raise RuntimeError(f"{module} is not installed from canonical checkout {checkout}")
-        head = subprocess.run(
-            ["git", "-C", str(checkout), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
-        print(f"OGI013_SOURCE {module}={head}", flush=True)
+        describe = git_describe(checkout)
+        untracked = subprocess.run(["git", "-C", str(checkout), "status", "--porcelain", "--untracked-files=normal"], capture_output=True, text=True).stdout.count("\n")
+        print(f"OGI013_SOURCE {module}={describe} changed_or_untracked_entries={untracked}", flush=True)
+        if describe.endswith("-dirty"):
+            raise RuntimeError(f"DIRTY_SOURCE: {module} at {checkout} is {describe}; the logged commit would not identify the code that runs")
     print(f"OGI013_RUNTIME python={python}", flush=True)
     run(python, str(runner), *args.runner_args, env=env)
     return 0

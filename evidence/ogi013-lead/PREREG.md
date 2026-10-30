@@ -60,3 +60,5 @@ N's session count: fixed per instance so that N's tokens are within +-10% of T's
 
 ## Restart rule (owner stop order, 2026-10-30)
 G-dev allows at most 3 episode STARTS in total, crashed or stopped episodes included. A 4th start requires an explicit owner decision. No further FIX commit on the team driver and no new episode of any kind until the owner lifts the stop.
+
+Owner/lead decision (2026-10-30, strict reading): G-dev starts used = 3 of 3. Any further G-dev start needs the owner's explicit restart of OGI-013.
