@@ -183,6 +183,7 @@ class Ctx:
 STALL_TURNS_WITHOUT_ACTION = 8
 NO_PROGRESS_TURNS = 8        # Addendum 3 F: a role session stops after this many consecutive turns without progress (replaces the fixed turn cap)
 HARD_TURNS = 400             # absolute safety bound of one session; reaching it is reported as a defect, never expected
+from ogi013_roster import FAILED_STEPS_BEFORE_CHANGE, STICKY_ALL  # noqa: E402
 SUPPLY_WAITS, SUPPLY_WAIT_SECONDS = 10, 60   # NO_ELIGIBLE_NEURON is a supply condition: wait up to 10 minutes per step before the stage fails
 NOMINAL_TURNS = 40           # reference length for stall condition (d) "50% of the session's turn limit"
 
@@ -232,15 +233,15 @@ def outcome_key(output: str) -> tuple:
     return (int(ran[-1]) if ran else 0, len(re.findall(r"\.\.\. (?:FAIL|ERROR)\s*$", output or "", re.M)), "OK" in (output or "")[-200:])
 
 
-def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None, view=None, wait_supply=True):
+def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None, view=None, wait_supply=True, roster=None, role_key=None):
     """One role's tool loop. Returns (final, first_step): final = the accepted SubmitDecision (gated author/reviser) or the critic's message text, or a string 'STOP:<why>'.
     team: shared team state (inserted, hash-logged, into every prompt). helper(cond, wip) -> text|None: asked once per stall condition (Addendum 3 B.3)."""
     ep, transcript, first = ctx.ep, [], None
     gate = gate or ctx.gate
     nominal = limit or NOMINAL_TURNS
-    np_turns, seen_reads, tests_run = 0, set(), False
+    np_turns, seen_reads, tests_run, fail_streak = 0, set(), False, 0
     stall = {"zero": 0, "rejected": 0, "idle": 0, "used": set(), "watch": None}
-    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "check_ns": [], "checks": [], "reads": set(), "progress": [], "role": role}
+    ctx.last_session = {"test_runs": 0, "turns": 0, "py_runs": 0, "cmd_keys": [], "check_ns": [], "checks": [], "check_log": [], "reads": set(), "progress": [], "role": role}
     best_vis: dict = {}                                 # Addendum 5: this session's best-so-far visible record (test name -> ever passed)
     repro: dict = {}                                    # label -> last result (True = exit 0) of the session's own reproduction checks
     regressed = False
@@ -299,9 +300,23 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
         if team:
             ep.event("TEAM_STATE", role=role, sha=hashlib.sha256(ts.encode()).hexdigest(), turn=turn)
         prompt = head + (f"\n<team_state>\n{ts}\n</team_state>" if ts else "") + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
-        pref = prefer if first is None else first["model_key"]            # AMENDMENT-DRIVER-2 R1: one model carries every role through its own session; PlumMe AUTO re-chooses only after 2 consecutive provider failures
-        d = step(prompt, role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
-        if d["success"] and first is not None and d["model_key"] != first["model_key"]:
+        rk = role_key if roster is not None else None
+        pinned = roster.pinned(rk) if rk else None
+        pref = pinned or (prefer if first is None else first["model_key"])   # R8: a roster role keeps ONE model for the whole episode; otherwise AMENDMENT-DRIVER-2 R1 (sticky within the session)
+        sticky = STICKY_ALL if rk else 2
+        d = step(prompt, role, exclude=tuple(exclude), prefer=pref, sticky_attempts=sticky)
+        if rk:
+            if d["success"]:
+                fail_streak = 0
+                roster.note_model(d["model_key"])
+                if roster.pinned(rk) is None:
+                    roster.pin(rk, d["model_key"], d.get("independence_key"))
+            else:
+                fail_streak += 1
+                if pinned and fail_streak >= FAILED_STEPS_BEFORE_CHANGE:     # declared failure of the pinned model: exactly one ROSTER_CHANGE, then AUTO picks the replacement
+                    roster.change(rk, f"{fail_streak} consecutive failed steps on {pinned}: {d.get('failure_class')}")
+                    fail_streak, first = 0, None
+        if d["success"] and first is not None and not rk and d["model_key"] != first["model_key"]:
             ep.event("ROLE_HANDOVER", role=role, label="AUTHOR_HANDOVER" if role == "author" else "ROLE_HANDOVER", from_model=first["model_key"], to_model=d["model_key"], reason="2 consecutive provider failures")
             first = {**first, "model_key": d["model_key"]}
         if d["success"] and first is None:
@@ -310,7 +325,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             ctx.keys.setdefault(role, set()).add(d["independence_key"])
         action = parse_code_action(d["output"]) if d["success"] else None
         if action is None and d["success"]:
-            fix = step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=2)
+            fix = step(prompt + "\nYour previous reply was not a single valid JSON object. Reply with ONE valid JSON object only.", role, exclude=tuple(exclude), prefer=pref, sticky_attempts=sticky)
             action = parse_code_action(fix["output"]) if fix["success"] else None
         if action is None:
             ep.event("BAD_ACTION", role=role, model=d.get("model_key"), output=(d.get("output") or "")[:400], failure=d.get("failure_class"))
@@ -334,6 +349,11 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             progress_check(False)
             continue
         name, args = action["name"], action.get("arguments", {})
+        if name == "decline" and gated and team is not None:                    # R2: the author may decline an objection with a one-line reason (DECLINED_BY_AUTHOR, recorded)
+            transcript.append({"role": "call", "text": f"decline({json.dumps(args, ensure_ascii=False)[:300]})"})
+            transcript.append({"role": "result", "text": team.decline(str(args.get("id", "")), str(args.get("reason", ""))[:300])})
+            progress_check(False)
+            continue
         transcript.append({"role": "call", "text": f"{name}({json.dumps(args, ensure_ascii=False)[:1500]})"})
         if name not in allowed:
             ep.event("BAD_TOOL", role=role, model=d.get("model_key"), name=name)
@@ -358,6 +378,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             if sb.last_py:
                 ctx.last_session["check_ns"].append(time.monotonic_ns())
                 ctx.last_session["checks"].append((time.monotonic_ns(), sb.last_py[2]))
+                ctx.last_session["check_log"].append({"tool": "run_python", "args": {"code": args.get("code", ""), "label": args.get("label", "")}, "output": sb.last_py[2], "failing": sb.last_py[1] != 0})
             if sb.last_py:
                 ok_py = sb.last_py[1] == 0
                 lab = (sb.last_py[0] or "").strip()
@@ -377,6 +398,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             tests_run = True
             ctx.last_session["check_ns"].append(time.monotonic_ns())
             ctx.last_session["checks"].append((time.monotonic_ns(), sb.last_run[2]))
+            ctx.last_session["check_log"].append({"tool": "run_tests", "args": {"modules": list(args.get("modules", []))}, "output": sb.last_run[2], "failing": sb.last_run[1] != 0})
             ctx.last_session["cmd_keys"] += list(args.get("modules", []))
             if gated:
                 cur = visible_results(sb.last_run[2])

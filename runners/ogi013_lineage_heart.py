@@ -14,6 +14,7 @@ from peachme.plumme import PlumMeProvider
 class LineageHeart(PlumMeProvider):
     exclude_independence_keys: tuple = ()      # set per step by Episode.step
     prefer_model_key: str | None = None
+    exclude_small_models: bool = False         # R5: set per step by Episode.step for AUTHOR steps (PlumMe narrows eligibility; never widens)
     min_context_tokens: int | None = None      # set per step by Episode.step: routes that cannot hold the request are not leased (PlumMe screen, request.metadata)
 
     def __init__(self, service, **kw):
@@ -33,7 +34,7 @@ class LineageHeart(PlumMeProvider):
             return NeuronRequest(consumer="peachme", objective=objective, role_id=role_id, cognitive_owner=CognitiveOwner.CONSUMER,
                                  selection_mode=SelectionMode.PINNED_MODEL if pin else SelectionMode.BEST, pinned_model_key=pin, required_skill_ids=list(required_skill_ids),
                                  budget=BudgetEnvelope(max_concurrency=1, max_cost_usd=max_cost_usd),
-                                 metadata={**({"exclude_independence_keys": excluded} if excluded else {}), **({"min_context_tokens": self.min_context_tokens} if self.min_context_tokens else {})})
+                                 metadata={**({"exclude_independence_keys": excluded} if excluded else {}), **({"exclude_small_models": True} if self.exclude_small_models else {}), **({"min_context_tokens": self.min_context_tokens} if self.min_context_tokens else {})})
 
         lease, prefer_met = None, None
         if self.prefer_model_key:

@@ -15,11 +15,15 @@ import re
 import shutil
 import sys
 import time
+import subprocess
+import tempfile
 import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
+import ogi013_candidates as oc
 import ogi013_code_task as ct
+from ogi013_roster import Roster, next_solver_role
 from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
 from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
@@ -32,7 +36,7 @@ HELP_HEAD = ("\nYou are instead a colleague asked for help by a teammate whose w
              "latest test output and recent actions, work out what is blocking them, and finish with a plain message: ISSUES: FOUND followed by concrete observations and suggestions "
              "(facts you verified, not a finished patch).\n<current_diff>\n{diff}\n</current_diff>\n"
              "<latest_test_output>\n{tests}\n</latest_test_output>\n<recent_actions>\n{recent}\n</recent_actions>\n")
-VOTE_HEAD = ("\nYou are instead a member of the team that produced the candidate patch below, casting your RELEASE VOTE. The repository is a copy of the candidate workspace: read, search and run tests; "
+VOTE_HEAD = ("\nYou are instead a member of the team that produced the candidate patch below (sha256 {sha}), casting your RELEASE VOTE. Your vote must cite this sha256. The repository is a copy of the candidate workspace: read, search and run tests; "
              "you cannot edit. Finish with a plain message whose FIRST line is exactly one of 'APPROVE: EXCELLENT', 'APPROVE: ACCEPTABLE' or 'REJECT'. Then state what you checked, which tests you ran "
              "and what they showed, and, in a line starting 'OWN_OBJECTIONS:', either NONE (if you raised no objection) or EVERY objection id you raised with how it was resolved (e.g. 'OWN_OBJECTIONS: O2 fixed in revision 1 (test X now passes); O5 WITHDRAWN'). The host compares this with the ledger. Vote EXCELLENT only if you would stand behind this patch resolving the "
              "issue completely without breaking existing behaviour.\n<candidate_diff>\n{diff}\n</candidate_diff>\n")
@@ -51,6 +55,7 @@ class Pos:
         self.test_tail = ""
         self.last_run: tuple | None = None
         self.rev = 0
+        self.slot = None              # roster slot (solver1 / solver2 / specialist)
         self.exams: list = []          # examinations since the last revision (newest last)
         self.snapshots: list = []
 
@@ -61,11 +66,12 @@ class TeamState(Ledger):
         super().__init__()
         self.goal, self.path, self.pos, self.decisions = goal, path, {}, []
         self.votes, self.release, self.mango, self._written = [], None, None, {}
+        self.howto, self.roster_line, self.driver_visible = "", "", {}       # R4 block, R8 roster line, driver-run visible result per position
         self.on_change = self._objection_changed
         self.independent = False        # Addendum 8: True from episode start until the SOLVE phase ends; a solver (or its helper) then sees only its own position
 
     # ---- MangoMe as the work ledger (AMENDMENT-MANGO-1 / C.3) -------------------------------------------------------------------------------------------------
-    PERSISTED_OBJ_KEYS = ("id", "target", "lineage", "text", "kind", "grounded", "state", "open", "contested", "decided_by", "author_reason")
+    PERSISTED_OBJ_KEYS = ("id", "target", "lineage", "text", "kind", "grounded", "state", "open", "contested", "decided_by", "author_reason", "ground", "declined", "arbitrated")
 
     def _objection_row(self, o) -> dict:
         return {k: o.get(k) for k in self.PERSISTED_OBJ_KEYS}
@@ -77,7 +83,7 @@ class TeamState(Ledger):
             self._written[("obj", o["id"])] = json.dumps(row, sort_keys=True)
 
     def state_dict(self) -> dict:
-        return {"goal": self.goal, "independent": self.independent,
+        return {"goal": self.goal, "independent": self.independent, "howto": self.howto, "roster": self.roster_line, "driver_visible": self.driver_visible,
                 "pos": [{"id": p.id, "model": p.model, "status": p.status, "rev": p.rev, "diff": p.diff, "test_tail": p.test_tail,
                          "sha256": hashlib.sha256((p.diff or "").encode()).hexdigest()} for p in self.pos.values()],
                 "objs": [self._objection_row(o) for o in self.objs], "n": self.n, "decisions": list(self.decisions), "votes": list(self.votes), "release": self.release}
@@ -125,6 +131,7 @@ class TeamState(Ledger):
             raise InfraMangoFailed("RESTORE_NO_TEAM_STATE: the latest checkpoint of the work holds no TEAM_STATE_FULL")
         t = cls(d["goal"], path)
         t.independent, t.n = d.get("independent", False), d.get("n", 0)
+        t.howto, t.roster_line, t.driver_visible = d.get("howto", ""), d.get("roster", ""), dict(d.get("driver_visible", {}))
         for p in d["pos"]:
             t.pos[p["id"]] = SimpleNamespace(id=p["id"], model=p["model"], status=p["status"], rev=p["rev"], diff=p["diff"], test_tail=p["test_tail"])
         t.objs = [{**o, "raised_ns": 0, "revised_ns": None} for o in d["objs"]]
@@ -135,12 +142,12 @@ class TeamState(Ledger):
         self.persist()
         """view: id of the solver position whose session (or helper) is being prompted. During independent solving only that position, its objections and its decisions are shown."""
         solo = self.independent and view is not None
-        out = [f"GOAL:\n{self.goal}\n", "POSITIONS:"]
+        out = [f"GOAL:\n{self.goal}\n"] + ([self.howto + "\n"] if self.howto else []) + ([f"ROSTER (pinned for the whole episode): {self.roster_line}\n"] if self.roster_line else []) + ["POSITIONS:"]
         for p in self.pos.values():
             if solo and p.id != view:
                 out.append(f"- {p.id}: (withheld during independent solving)")
                 continue
-            out.append(f"- {p.id} (model {p.model}, status {p.status}, revision {p.rev})\n  diff:\n{p.diff or '  (no accepted diff yet)'}\n  latest visible test result (tail):\n{p.test_tail or '  (none)'}")
+            out.append(f"- {p.id} (model {p.model}, status {p.status}, revision {p.rev})\n  diff:\n{p.diff or '  (no accepted diff yet)'}\n  latest visible test result (tail):\n{p.test_tail or '  (none)'}\n  driver-run visible check of the current candidate: {self.driver_visible.get(p.id, '(not run yet)')}")
         out.append("OPEN OBJECTIONS / SUGGESTIONS:")
         out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}, {o['state']}]: {o['text']}" for o in self.objs
                 if o["open"] and (not solo or o["target"] == view)] or ["(none)"]
@@ -231,6 +238,31 @@ def main(argv=None) -> int:
     team.emit = ep.event
     team.mango = MangoLedger(stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)      # MangoMe is the work ledger of the episode; a failed write ends it INFRA_MANGOME_FAILED
     infra: list = []
+    labels_base = oc.visible_labels(a.base)
+    labels_fallback: list = []                # tasks whose suite is large: the labels of the first candidate's own relevant run
+    team.howto = oc.howto_block(a.python, labels_base or ["<dotted.test.module>"])         # R4
+
+    def candidate_checker(diff, repros):
+        """R1: the HOST runs the visible tests (and the recorded reproductions of grounded objections) on the candidate tree. Hidden tests are never consulted."""
+        with tempfile.TemporaryDirectory() as tmp:
+            tree = oc.tree_with_diff(a.base, diff, Path(tmp) / "tree")
+            labels = labels_base or labels_fallback
+            res = oc.run_visible(a.python, tree, labels) if labels else {"passed": 0, "failed": 0, "executed": 0, "tail": ""}
+            rp = {}
+            for oid, rep in repros.items():
+                if rep["tool"] == "run_python":
+                    rp[oid] = ct.Sandbox(tree, a.python).run_python(rep["args"].get("code", ""), rep["args"].get("label", "")).startswith("exit=0")
+                else:
+                    r2 = oc.run_visible(a.python, tree, rep["args"].get("modules", []))
+                    rp[oid] = r2["executed"] > 0 and r2["failed"] == 0
+            return {**res, "repro": rp}
+
+    cled = oc.CandidateLedger(candidate_checker, on_write=team.mango.write)
+
+    def roster_emit(kind, **kw):
+        ep.event(kind, **kw)
+        team.roster_line = ", ".join(f"{r}={v['model_key']}" for r, v in sorted(roster.pins.items()))
+    roster = Roster(emit=roster_emit, write=team.mango.write)
     team.independent = a.mode == "team"
     author_head = ct.SYSTEM.format(issue=issue) + ct.AUTHOR_NOTE
     tools_rw = {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python"}
@@ -262,6 +294,19 @@ def main(argv=None) -> int:
         p.test_tail = (p.last_run[2][-3000:] if p.last_run else "")
         team.mango.write("TEAM_SNAPSHOT", f"{p.id}:{label}", {"pos": p.id, "label": label, "rev": p.rev, "sha256": dec.diff_sha256, "files": list(dec.changed_source_files)})
         by_text[dec.diff] = p
+        if not labels_base and not labels_fallback and p.last_run:
+            labels_fallback.extend(x for x in p.last_run[0][2:] if re.fullmatch(r"[\w.]+", x) and not x.isdigit())
+        cand = cled.add(p.id, label, dec.diff)                     # R1: immutable candidate with sha256 and the driver-run visible check
+        team.driver_visible[p.id] = f"{cand['visible'].get('passed')} passed, {cand['visible'].get('failed')} failed (sha256 {cand['sha256'][:12]})"
+
+    def restore_workspace(p: Pos, diff: str) -> None:
+        """Roll the position's workspace back to a candidate (the incumbent / protected best): base tree plus that candidate's diff, under django/ only."""
+        subprocess.run(["git", "checkout", "-q", task["base_commit"], "--", "django"], cwd=p.ws, check=True)
+        subprocess.run(["git", "clean", "-fdq", "--", "django"], cwd=p.ws, check=True)
+        if diff.strip():
+            subprocess.run(["git", "apply", "--whitespace=nowarn", "-"], cwd=p.ws, input=diff, text=True, check=True)
+        p.diff = diff
+        by_text[diff] = p
 
     def result(out, st):
         if isinstance(out, str) and out.startswith("STOP:"):
@@ -278,7 +323,7 @@ def main(argv=None) -> int:
 
             def call(excl):
                 return ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + HELP_HEAD.format(cond=cond, diff=diff[:6000], tests=tests, recent=recent), ct.Sandbox(copy, a.python, readonly=True),
-                                     tools_ro, exclude=excl, gated=False, team=team, view=p.id, wait_supply=not team.independent)
+                                     tools_ro, exclude=excl, gated=False, team=team, view=p.id, wait_supply=not team.independent, roster=roster, role_key="critic")
             got = help_guard(ep, positions, p, team.independent, call)
             hgs = ctx.last_session
             ctx.last_session = saved
@@ -297,8 +342,8 @@ def main(argv=None) -> int:
 
     def session(p: Pos, head: str, turns=None, exclude=()):
         p.session_sb = ct.Sandbox(p.ws, a.python)
-        out, st = ct.agent_loop(ctx, "author", head, p.session_sb, tools_rw, gated=True, gate=p.gate, team=team if a.mode == "team" else None,
-                                helper=helper_for(p) if a.mode == "team" else None, limit=turns, exclude=tuple(exclude), view=p.id)
+        out, st = ct.agent_loop(ctx, "author", head, p.session_sb, tools_rw | {"decline"}, gated=True, gate=p.gate, team=team if a.mode == "team" else None,
+                                helper=helper_for(p) if a.mode == "team" else None, limit=turns, exclude=tuple(exclude), view=p.id, roster=roster, role_key=p.slot)
         if st:
             p.model = p.model or st["model_key"]
             p.keys.add(st["independence_key"])
@@ -312,6 +357,7 @@ def main(argv=None) -> int:
                 team.independent = False                                  # the SOLVE phase is over: full shared state for every role
             if stage == "solve":
                 p = new_pos("S")
+                p.slot = next_solver_role(roster, {q.slot: bool(q.diff) for q in positions.values() if q.slot}) if a.mode == "team" else ("solver1" if a.mode == "solo" else f"solver{len(positions)}")
                 # independent lineages: never a lineage that already holds a position, nor one that helped during independent solving (Addendum 8 B.3)
                 excl = tuple(exclude) + tuple(sorted({k for q in positions.values() for k in q.keys} | helper_lineages)) if a.mode == "team" else ()
                 out, st = session(p, author_head, exclude=excl)
@@ -334,17 +380,21 @@ def main(argv=None) -> int:
                                + "\n".join(f"{o['id']}: {o['text'][:400]}" for o in pending))
                     raiser = {v: k for k, v in holders.items()}.get(pending[0]["lineage"])
                     prefer = prefer or raiser
-                out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=prefer, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team)
+                out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=prefer, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team, roster=roster, role_key="critic")
                 gs = ctx.last_session
                 if isinstance(out, str) and not out.startswith("STOP:"):
                     found = bool(re.match(r"\s*ISSUES:\s*FOUND", out, re.I))
-                    exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": ct.grounded_text(out, gs) and len(out) > 80, "text": out}
+                    exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": False, "text": out}
+                    ground = oc.classify_objection(out, issue, gs["check_log"]) if found else {"kind": "suggestion"}           # R2: only a failing command output or a verbatim task-text quote grounds an objection
+                    exam["grounded"] = oc.is_grounded(ground)
                     tgt.exams.append(exam)
                     holders[st["model_key"]] = st["independence_key"]
                     changes = team.reexamine(tgt.id, out, st["independence_key"], tuple(tgt.keys), gs["checks"]) if pending else []
                     oids = []
                     if found and not any(state == OPEN for _, state in changes):
-                        oids.append(team.objection(tgt.id, exam["lineage"], out, grounded=exam["grounded"]))
+                        oids.append(team.objection(tgt.id, exam["lineage"], out, grounded=exam["grounded"], ground=ground))
+                        if ground.get("kind") == "command":
+                            cled.add_repro(oids[-1], ground["repro"])
                     ep.event("CHALLENGE", pos=tgt.id, rev=tgt.rev, author_lineages=sorted(tgt.keys), verdict=exam["verdict"], lineage=exam["lineage"], model=exam["model"], test_runs=exam["test_runs"], grounded=exam["grounded"],
                              objection_ids=oids, reexamined=changes)
                     if found:
@@ -356,22 +406,59 @@ def main(argv=None) -> int:
             if stage == "revise":
                 p = by_model.get((prefer or "").split("#")[0]) or by_model.get(prefer or "")
                 before = p.diff
-                responding = [o["id"] for o in team.objs if o["state"] == OPEN and o["target"] == p.id and o["kind"] == "objection"]
-                out, st = session(p, author_head + "\n" + prompt + "\nYour final answer is the repository state: change the files if the criticism is right, re-run the relevant tests, then submit.")
+                openo = [o for o in team.objs if o["state"] == OPEN and o["target"] == p.id and o["kind"] == "objection"]
+                grounded = [o for o in openo if o["grounded"] and not o["declined"]]
+                suggestions = [o for o in openo if not o["grounded"]]
+                if not grounded:                                       # R2: an ungrounded objection never forces a revision
+                    ep.event("REVISION_SKIPPED", pos=p.id, reason="NO_GROUNDED_OBJECTION", suggestions=[o["id"] for o in suggestions])
+                    return {"success": True, "output": p.diff, "model_key": p.model, "independence_key": next(iter(sorted(p.keys)), None), "receipt_id": None}
+                crit = "GROUNDED OBJECTIONS (address each, or decline it with the decline tool {\"id\": \"O3\", \"reason\": \"one line\"}):\n" + "\n".join(
+                    f"{o['id']}: {o['text'][:900]}" + (f"\n  reproduction the host will re-run: {json.dumps(o['ground'].get('repro'))}" if (o.get("ground") or {}).get("kind") == "command" else "") for o in grounded)
+                if suggestions:
+                    crit += "\nSUGGESTIONS (optional, may be wrong, ignore freely):\n" + "\n".join(f"{o['id']}: {o['text'][:300]}" for o in suggestions)
+                rev_head = (author_head + "\nThe task text above is authoritative and wins over any opinion of a model, including a reviewer's. Change the code only to satisfy the task text and the grounded objections.\n" + crit +
+                            "\nYour final answer is the repository state: change the files if an objection is right, re-run the relevant tests, then submit.")
+                out, st = session(p, rev_head)
                 if not isinstance(out, str):
                     p.rev += 1
-                    ep.event("REVISION", pos=p.id, rev=p.rev, responding_to=responding, changed_code=out.diff != before, reviser_lineage=st["independence_key"], snapshot=f"{p.id}_rev{p.rev}")
+                    label = f"rev{p.rev}"
+                    declined = [o["id"] for o in grounded if o["declined"]]
+                    claimed = [o["id"] for o in grounded if not o["declined"]]
+                    ep.event("REVISION", pos=p.id, rev=p.rev, responding_to=claimed, declined=declined, changed_code=out.diff != before, reviser_lineage=st["independence_key"], snapshot=f"{p.id}_{label}")
                     p.exams = []
-                    freeze(p, out, f"rev{p.rev}")
-                    team.revise(p.id, p.rev, out.diff != before, responding, reason="revision submitted with unchanged code")
-                    p.status = "revised"
-                    team.decisions.append(f"{p.id} revised after criticism (revision {p.rev}, {'changed' if out.diff != before else 'unchanged'})")
-                    out = out.diff
+                    p.gate.snapshot(f"P{p.rev}", out)
+                    p.changed_ns = time.monotonic_ns()
+                    if out.diff == before:
+                        team.revise(p.id, p.rev, False, claimed, reason="revision submitted with unchanged code")
+                        team.decisions.append(f"{p.id} revision {p.rev}: unchanged code")
+                    else:
+                        dec = cled.consider_revision(p.id, label, out.diff, claimed)
+                        if dec["adopted"]:
+                            (snaps / f"{p.id}_{label}.diff").write_text(out.diff)
+                            p.snapshots.append({"label": label, "sha256": out.diff_sha256, "file": f"{p.id}_{label}.diff"})
+                            p.diff, p.status = out.diff, "revised"
+                            p.last_run = p.session_sb.last_run
+                            p.test_tail = (p.last_run[2][-3000:] if p.last_run else "")
+                            by_text[out.diff] = p
+                            c = dec["cand"]
+                            team.driver_visible[p.id] = f"{c['visible'].get('passed')} passed, {c['visible'].get('failed')} failed (sha256 {c['sha256'][:12]})"
+                            team.mango.write("TEAM_SNAPSHOT", f"{p.id}:{label}", {"pos": p.id, "label": label, "rev": p.rev, "sha256": out.diff_sha256, "files": list(out.changed_source_files)})
+                            team.revise(p.id, p.rev, True, claimed)
+                            team.decisions.append(f"{p.id} revision {p.rev} ADOPTED (driver-run visible score not lower; claimed reproductions pass)")
+                        else:
+                            (snaps / f"{p.id}_{label}_REJECTED.diff").write_text(out.diff)
+                            restore_workspace(p, cled.incumbent(p.id)["diff"])
+                            ep.event("REVISION_REJECTED", pos=p.id, rev=p.rev, reason=dec["reason"], sha=out.diff_sha256, incumbent=cled.incumbent(p.id)["id"])
+                            team.revise(p.id, p.rev, False, claimed, reason=f"REVISION_REJECTED:{dec['reason']}")
+                            team.decisions.append(f"{p.id} revision {p.rev} REJECTED_REVISION ({dec['reason']}); incumbent {cled.incumbent(p.id)['id']} stays")
+                    arbitrate(p)
+                    out = p.diff
                 return result(out, st)
             if stage == "specialist":
                 p = new_pos("SP")
+                p.slot = "specialist"
                 ep.event("SPECIALIST", pos=p.id, lineage=None)
-                out, st = session(p, author_head + "\n" + prompt + "\nYour final answer is the repository state: produce your own change, test it, then submit.")
+                out, st = session(p, author_head + "\n" + prompt + "\nYour final answer is the repository state: produce your own change, test it, then submit.", exclude=tuple(roster.lineages("specialist")))
                 if not isinstance(out, str):
                     freeze(p, out, "first")
                     team.decisions.append(f"specialist {p.id} produced a gate-accepted diff")
@@ -383,6 +470,32 @@ def main(argv=None) -> int:
                 raise
             ep.event("WORK_ERROR", stage=stage, error=f"{type(exc).__name__}: {str(exc)[:300]}", trace=traceback.format_exc()[-1500:])
             return {"success": False, "output": None, "model_key": None, "independence_key": None, "receipt_id": None, "failure_class": (str(exc) or type(exc).__name__)[:80]}
+
+    def arbitrate(p: Pos) -> None:
+        """R2: if the author declined a grounded objection (or contested it twice), ONE independent specialist (not the author, not the raiser's lineage) gets the task text plus both claims, must run a
+        reproduction, and decides. At most one arbitration per objection; the task text wins over any model opinion."""
+        cont = [o for o in team.objs if o["target"] == p.id and o["state"] == OPEN and o["kind"] == "objection" and o["grounded"] and not o["arbitrated"] and (o["declined"] or o["contested"] >= 2)]
+        if not cont:
+            return
+        copy = a.out / "adjudicate" / f"{p.id}_r{p.rev}_{time.time_ns()}"
+        shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        head = (ct.CRITIC_HEAD.format(issue=issue) + "\nYou are the SPECIALIST arbitrating a disagreement between a reviewer and the author. The task text above is authoritative and wins over any model's opinion. Run your own reproduction, then reply "
+                "with one line per id exactly 'O<n>: RESOLVED' (the author is right) or 'O<n>: STILL_OPEN' (the objection stands), then your grounds.\n<candidate_diff>\n" + p.diff + "\n</candidate_diff>\n"
+                + "\n".join(f"{o['id']} (reviewer): {o['text'][:600]}\nAUTHOR'S REASON: {o.get('author_reason', '')}" for o in cont))
+        saved = ctx.last_session
+        out, st = ct.agent_loop(ctx, "critic", head, ct.Sandbox(copy, a.python, readonly=True), tools_ro, exclude=tuple(p.keys) + tuple(o["lineage"] for o in cont) + tuple(roster.lineages("specialist")), gated=False, team=team,
+                                roster=roster, role_key="specialist")
+        gs = ctx.last_session
+        ctx.last_session = saved
+        for o in cont:
+            o["arbitrated"] = True                              # at most one arbitration per objection
+        if isinstance(out, str) and not out.startswith("STOP:"):
+            holders[st["model_key"]] = st["independence_key"]
+            ch = team.reexamine(p.id, out, st["independence_key"], tuple(p.keys), gs["checks"], from_state=OPEN, decided_by="specialist")
+            for o in cont:
+                if o["state"] == OPEN:
+                    o["declined"] = False                       # the objection stands: the author must address it
+            ep.event("SPECIALIST_ADJUDICATION", pos=p.id, lineage=st["independence_key"], objections=[o["id"] for o in cont], decided=ch)
 
     def signature(text: str):
         """Positions disagree when their visible-test outcome vectors differ, or, both passing, when their diffs change different functions."""
@@ -416,66 +529,58 @@ def main(argv=None) -> int:
         ep.event("RUN_STOPPED", exception=type(exc).__name__, error=str(exc)[:400], budget_stop=_is_stop(exc))
 
     # joint release (B.4): unanimous grounded APPROVE: EXCELLENT; hidden tests never consulted
-    def passing(p):
-        o = outcome(p.last_run[2]) if p.last_run else None
-        return (o[0] - o[1]) if o else -1
-
-    def best():
-        acc = [p for p in positions.values() if p.diff]
-        return sorted(acc, key=lambda p: (-passing(p), team.open_count(p.id)))[0] if acc else None
+    def protected_best():
+        """R1: the best of EVERY adopted candidate (driver-run score; ties -> earliest); the position's workspace is rolled back to it if it is not the current incumbent."""
+        c = cled.best()
+        if c is None:
+            return None
+        p = positions[c["pos"]]
+        if p.diff != c["diff"]:
+            restore_workspace(p, c["diff"])
+        return p
 
     def vote(p: Pos, model: str, lineage):
         copy = a.out / "vote" / f"{p.id}_r{p.rev}_{len(votes_log)}_{time.time_ns()}"
         shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         saved = ctx.last_session
-        out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + VOTE_HEAD.format(diff=p.diff), ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=model, exclude=tuple(p.keys), gated=False, team=team)
+        csha = oc.sha256(p.diff)
+        role = next((r for r, v in roster.pins.items() if v["model_key"] == model), None)
+        out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + VOTE_HEAD.format(diff=p.diff, sha=csha), ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=model, exclude=tuple(p.keys), gated=False, team=team,
+                                roster=roster, role_key=role)
         gs = ctx.last_session
         runs = gs["test_runs"] + gs["py_runs"]
         ctx.last_session = saved
         if isinstance(out, str) and out.startswith("STOP:"):
             return {"voter": model, "lineage": lineage, "verdict": "NO_VOTE", "counts": "REJECT", "text": out}
-        j = judge_vote(out, lineage, team.objs, p.id, gs["checks"], getattr(p, "changed_ns", 0), ct.grounded_text(out, gs), returned_lineage=st["independence_key"], author_lineages=tuple(p.keys))
-        return {"voter": model, "lineage": st["independence_key"], "withdrawals": j["withdrawals"], "verdict": j["verdict"], "counts": j["counts"], "text": out, "test_runs": runs, "grounded": ct.grounded_text(out, gs), "reason": j["reason"], "rev": p.rev, "author_lineages": sorted(p.keys)}
+        j = judge_vote(out, lineage, team.objs, p.id, gs["checks"], getattr(p, "changed_ns", 0), ct.grounded_text(out, gs), returned_lineage=st["independence_key"], author_lineages=tuple(p.keys), candidate_sha=csha)
+        return {"check_log": gs["check_log"], "voter": model, "lineage": st["independence_key"], "withdrawals": j["withdrawals"], "verdict": j["verdict"], "counts": j["counts"], "text": out, "test_runs": runs, "grounded": ct.grounded_text(out, gs), "reason": j["reason"], "rev": p.rev, "author_lineages": sorted(p.keys)}
 
     votes_log: list = []
     cls, chosen, guard, open_at_stop, withdrawals = "NO_PATCH", None, None, [], 0
 
-    def adjudicate(p: Pos):
-        """Addendum 7 B.1: a grounded objection CONTESTED_BY_AUTHOR for 2 cycles is adjudicated by a specialist from a third lineage (read + run access)."""
-        cont = [o for o in team.objs if o["target"] == p.id and o["state"] == OPEN and o["kind"] == "objection" and o["grounded"] and o["contested"] >= 2]
-        if not cont:
-            return
-        copy = a.out / "adjudicate" / f"{p.id}_r{p.rev}_{time.time_ns()}"
-        shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-        head = (ct.CRITIC_HEAD.format(issue=issue) + "\nYou are the SPECIALIST adjudicating objections the author contests (it revised without changing code). Run your own check, then reply with one line per id "
-                "exactly 'O<n>: RESOLVED' (the author is right) or 'O<n>: STILL_OPEN', then your grounds.\n<candidate_diff>\n" + p.diff + "\n</candidate_diff>\n"
-                + "\n".join(f"{o['id']}: {o['text'][:500]}\nAUTHOR'S REASON: {o.get('author_reason', '')}" for o in cont))
-        saved = ctx.last_session
-        out, st = ct.agent_loop(ctx, "critic", head, ct.Sandbox(copy, a.python, readonly=True), tools_ro, exclude=tuple(p.keys) + tuple(o["lineage"] for o in cont), gated=False, team=team)
-        gs = ctx.last_session
-        ctx.last_session = saved
-        if isinstance(out, str) and not out.startswith("STOP:"):
-            holders[st["model_key"]] = st["independence_key"]
-            ch = team.reexamine(p.id, out, st["independence_key"], tuple(p.keys), gs["checks"], from_state=OPEN, decided_by="specialist")
-            ep.event("SPECIALIST_ADJUDICATION", pos=p.id, lineage=st["independence_key"], objections=[o["id"] for o in cont], decided=ch)
-    if a.mode == "team" and best() is not None:
+    if a.mode == "team" and cled.best() is not None:
         from cherryme.brother import CHALLENGE, REVISE
         prompt0 = f"Task: resolve this issue in the repository.\n{issue}\n"
-        cycle, no_shrink, prev_open, prev_score, fails = 0, 0, None, -1, 0
+        cycle, no_shrink, prev_open, prev_score, fails = 0, 0, None, (-1, 0), 0
         try:
             while True:
-                chosen = best()
-                votes_now = []
-                for model, lineage in list(holders.items()):
-                    if lineage in chosen.keys:        # Addendum 6 section 4: nobody votes on a position from the author's own lineage; the author's endorsement is its submission
+                chosen = protected_best()
+                votes_now, seen_models = [], set()
+                for role, pin in list(roster.pins.items()):             # R8: the voters are the pinned roster members
+                    model, lineage = pin["model_key"], pin["lineage"]
+                    if lineage in chosen.keys or model in seen_models:   # Addendum 6 section 4: nobody votes on a position from the author's own lineage; the author's endorsement is its submission
                         continue
+                    seen_models.add(model)
                     v = vote(chosen, model, lineage)
                     votes_log.append({"cycle": cycle, "pos": chosen.id, **{k: v[k] for k in v if k != "text"}})
                     team.votes.append(votes_log[-1])
                     team.persist()
                     voids = []
                     if v["counts"] != "EXCELLENT" and v["verdict"] != "NO_VOTE":
-                        voids.append(team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}", grounded=bool(v.get("grounded")) and v["verdict"] != "UNGROUNDED_APPROVAL"))
+                        vground = oc.classify_objection(v["text"], issue, v.get("check_log", [])) if v["verdict"] != "UNGROUNDED_APPROVAL" else {"kind": "suggestion"}
+                        voids.append(team.objection(chosen.id, v["lineage"], f"[{v['verdict']}] {v['text']}", grounded=oc.is_grounded(vground), ground=vground))
+                        if vground.get("kind") == "command":
+                            cled.add_repro(voids[-1], vground["repro"])
                     ep.event("RELEASE_VOTE", objection_ids=voids, withdrawals=v.get("withdrawals", 0), cycle=cycle, pos=chosen.id, voter=v["voter"], lineage=v["lineage"], verdict=v["verdict"], test_runs=v.get("test_runs"), reason=v.get("reason"), rev=v.get("rev"), author_lineages=v.get("author_lineages"))
                     votes_now.append(v)
                     (a.out / "votes").mkdir(exist_ok=True)
@@ -484,14 +589,14 @@ def main(argv=None) -> int:
                     cls, withdrawals = "RELEASED_UNANIMOUS_EXCELLENT", sum(v.get("withdrawals", 0) for v in votes_now)
                     break
                 fails = fails + 1 if not any(v["verdict"] != "NO_VOTE" for v in votes_now) else 0
-                open_now, score = team.open_count(chosen.id), passing(chosen)         # Addendum 5: GROUNDED open objections shrink, or the best position's visible result improves
+                open_now, score = team.open_count(chosen.id), cled.score(chosen.diff)         # Addendum 5: GROUNDED open objections shrink, or the best position's visible result improves
                 no_shrink = next_no_shrink(no_shrink, prev_open, open_now, prev_score, score)
                 prev_open, prev_score = open_now, score
                 cycle += 1
                 guard = vote_stop(no_shrink, cycle, fails, MAX_VOTE_CYCLES)
                 if guard:
                     break
-                adjudicate(chosen)
+                arbitrate(chosen)
                 crit = "\n---\n".join(o["text"] for o in team.objs if o["state"] == OPEN and o["target"] == chosen.id)
                 r = work(REVISE.format(task=prompt0, own=chosen.diff, critique=crit), "revise", prefer=chosen.model)
                 if r["success"]:
@@ -502,21 +607,25 @@ def main(argv=None) -> int:
             guard = f"STOP:{type(exc).__name__}"
             ep.event("LOOP_GUARD", guard="EPISODE_CIRCUIT_BREAKER", exception=type(exc).__name__, error=str(exc)[:300], budget_stop=_is_stop(exc))
         if cls != "RELEASED_UNANIMOUS_EXCELLENT":
-            chosen, cls = best(), "RELEASED_NO_CONSENSUS"
+            chosen, cls = protected_best(), oc.release_class(False)
             open_at_stop = [o for o in team.objs if o["open"]]
             ep.event("LOOP_GUARD", guard=guard, open_objections=[o["id"] for o in open_at_stop])
-    elif best() is not None:
-        chosen, cls = best(), "RELEASED_UNVALIDATED"      # indep / solo: the visible-signal rule (most relevant tests passing)
+    elif cled.best() is not None:
+        chosen, cls = protected_best(), "CANDIDATE_UNVALIDATED"      # indep / solo: the protected best by the driver-run visible score
     firsts = [positions[k].snapshots[0] for k in positions if positions[k].snapshots and not k.startswith("SP")]
     sim = solver_similarity([(snaps / f["file"]).read_text() for f in firsts]) if a.mode == "team" else None
     ep.event("SOLVER_SIMILARITY", jaccard=sim, positions=[f["file"] for f in firsts[:2]])
     team.text()
+    if chosen is None and oc.infra_author_failed(ep.stats, len(cled.cands)):
+        cls = "INFRA_AUTHOR_FAILED"                           # R5: the author's supply failed; infrastructure, never NO_PATCH
+    ep.event("ROSTER_CHECK", **roster.check())
     final = chosen.diff if chosen else ""
     if chosen:
         (snaps / "RELEASED.diff").write_text(final)
     if infra:                                  # C.2: infrastructure, never a result; nothing is released
         return infra_failed_exit(ep, a.out, infra[0], t0)
-    release = {"solver_similarity": sim, "guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
+    release = {"solver_similarity": sim, "guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None,
+               "candidate_sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
     ep.event("RELEASE", **release)
     team.release = release
     try:
@@ -526,7 +635,8 @@ def main(argv=None) -> int:
     status = cls
     ep.close(status)
     (a.out / "final.diff").write_text(final)
-    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "release": release, "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats,
+    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "release": release, "roster": roster.summary(),
+               "candidates": [{k: v for k, v in c.items() if k != "diff"} for c in cled.cands], "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats,
                "positions": {p.id: {"model": p.model, "keys": sorted(k for k in p.keys if k), "status": p.status, "revisions": p.rev, "snapshots": p.snapshots,
                                     "exams": [{k: v for k, v in e.items() if k != "text"} for e in p.exams]} for p in positions.values()},
                "rounds": {"stop": res.stop_reason, "calls": res.calls, "specialist": res.specialist_used} if res else None}

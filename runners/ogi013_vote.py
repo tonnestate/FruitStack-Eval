@@ -27,11 +27,12 @@ class Ledger:
         o.update(info)
         self.on_change(o)
 
-    def objection(self, target, lineage, text, kind="objection", grounded=True) -> str:
+    def objection(self, target, lineage, text, kind="objection", grounded=True, ground=None) -> str:
         self.n += 1
         oid = f"O{self.n}"
         self.objs.append({"id": oid, "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "grounded": grounded, "raised_ns": time.monotonic_ns(),
-                          "state": OPEN, "open": True, "contested": 0, "decided_by": None, "revised_ns": None})
+                          "state": OPEN, "open": True, "contested": 0, "decided_by": None, "revised_ns": None,
+                          "ground": ground, "declined": False, "arbitrated": False})
         self.on_change(self.objs[-1])
         self.emit("OBJECTION", id=oid, target=target, lineage=lineage, okind=kind, grounded=grounded)   # not kind=: Episode.event(kind, ...) takes that name
         return oid
@@ -64,6 +65,18 @@ class Ledger:
             self.emit("OBJECTION_" + o["state"], id=oid, by=examiner_lineage, decided_by=decided_by)
         return changed
 
+    def decline(self, oid: str, reason: str) -> str:
+        """R2: the author may decline an objection with a one-line reason (DECLINED_BY_AUTHOR, recorded); an arbitrated objection is final."""
+        o = next((x for x in self.objs if x["id"] == oid and x["state"] == OPEN), None)
+        if o is None:
+            return f"Error: {oid} is not an open objection"
+        if o["arbitrated"]:
+            return f"{oid} was already arbitrated by a specialist; that decision is final and cannot be declined again"
+        o["declined"], o["author_reason"] = True, reason[:300]
+        self.on_change(o)
+        self.emit("DECLINED_BY_AUTHOR", id=oid, reason=reason[:300])
+        return f"recorded: {oid} DECLINED_BY_AUTHOR"
+
     def open_count(self, target: str) -> int:
         """Addendum 5/7: GROUNDED objections that are OPEN or ADDRESSED_PENDING; ungrounded ones are recorded but neither count nor block."""
         return sum(1 for o in self.objs if o["target"] == target and o["open"] and o["kind"] == "objection" and o["grounded"])
@@ -74,7 +87,7 @@ def _refers(reason: str, outputs: list) -> bool:
     return any(t in out for t in toks for out in outputs)
 
 
-def judge_vote(text: str, lineage, objs: list, target: str, checks: list, change_ns: int, checks_stated: bool, returned_lineage=None, author_lineages=()) -> dict:
+def judge_vote(text: str, lineage, objs: list, target: str, checks: list, change_ns: int, checks_stated: bool, returned_lineage=None, author_lineages=(), candidate_sha=None) -> dict:
     """checks: the voter's own (ns, output) of run_tests/run_python. Returns {verdict, counts, reason, withdrawals}."""
     if returned_lineage is not None and returned_lineage in author_lineages:
         return {"verdict": "NO_VOTE", "counts": "REJECT", "reason": "VOTER_LINEAGE_FALLBACK", "withdrawals": 0}
@@ -90,6 +103,10 @@ def judge_vote(text: str, lineage, objs: list, target: str, checks: list, change
         return bad("no run_tests/run_python by the voter after the candidate's latest change")
     if not checks_stated:
         return bad("the vote does not name what was checked and what it showed")
+    if candidate_sha:                                                    # R3: a grounded approval cites the sha256 of exactly the final candidate
+        t = (text or "").lower()
+        if candidate_sha.lower() not in t and candidate_sha[:12].lower() not in t:
+            return bad("the approval does not cite the sha256 of the final candidate")
     m = FIELD.search(text)
     if not m:
         return bad("OWN_OBJECTIONS field missing")

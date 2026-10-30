@@ -245,6 +245,7 @@ class Episode:
             s = self.stack.store.get(self.sid)
             self.stack.heart.exclude_independence_keys = tuple(x for x in exclude if x)
             self.stack.heart.prefer_model_key = prefer if attempt < sticky_attempts else None
+            self.stack.heart.exclude_small_models = tag == "author"
             self.stack.heart.min_context_tokens = (len(prompt) // 3 + 3000) if os.environ.get("OGI013_PILOT_RUNS") else None      # campaigns only: the request's own size (PlumMe's chars/3 estimate) plus room for the answer
             t0 = time.monotonic()
             try:
