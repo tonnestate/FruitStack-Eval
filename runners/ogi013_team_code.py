@@ -57,18 +57,47 @@ class TeamState(Ledger):
     def __init__(self, goal: str, path: Path):
         super().__init__()
         self.goal, self.path, self.pos, self.decisions = goal, path, {}, []
+        self.independent = False        # Addendum 8: True from episode start until the SOLVE phase ends; a solver (or its helper) then sees only its own position
 
-    def text(self) -> str:
+    def text(self, view=None) -> str:
+        """view: id of the solver position whose session (or helper) is being prompted. During independent solving only that position, its objections and its decisions are shown."""
+        solo = self.independent and view is not None
         out = [f"GOAL:\n{self.goal}\n", "POSITIONS:"]
         for p in self.pos.values():
+            if solo and p.id != view:
+                out.append(f"- {p.id}: (withheld during independent solving)")
+                continue
             out.append(f"- {p.id} (model {p.model}, status {p.status}, revision {p.rev})\n  diff:\n{p.diff or '  (no accepted diff yet)'}\n  latest visible test result (tail):\n{p.test_tail or '  (none)'}")
         out.append("OPEN OBJECTIONS / SUGGESTIONS:")
-        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}, {o['state']}]: {o['text']}" for o in self.objs if o["open"]] or ["(none)"]
+        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}, {o['state']}]: {o['text']}" for o in self.objs
+                if o["open"] and (not solo or o["target"] == view)] or ["(none)"]
         out.append("DECISIONS:")
-        out += [f"- {d}" for d in self.decisions] or ["(none)"]
+        out += [f"- {d}" for d in self.decisions if not solo or d.startswith(f"{view} ")] or ["(none)"]
         s = "\n".join(out)
-        self.path.write_text(s)
+        if not solo:
+            self.path.write_text(s)
         return s
+
+
+def help_guard(ep, positions: dict, p, independent: bool, call):
+    """Addendum 8 B.3: during independent solving a helper must come from neither solver's lineage; with none eligible, no help is given (HELP_UNAVAILABLE_INDEPENDENCE)."""
+    excl = tuple(sorted({k for q in positions.values() for k in q.keys})) if independent else tuple(p.keys)
+    try:
+        return call(excl)
+    except RuntimeError as exc:
+        if independent and "NO_ELIGIBLE_NEURON" in str(exc):
+            ep.event("HELP_UNAVAILABLE_INDEPENDENCE", pos=p.id, excluded=list(excl))
+            return None
+        raise
+
+
+def solver_similarity(diffs: list):
+    """Line-level Jaccard similarity of the solvers' first positions (changed lines only); None with fewer than two positions."""
+    sets = [{l for l in d.splitlines() if l[:1] in "+-" and l[:3] not in ("+++", "---")} for d in diffs[:2]]
+    if len(sets) < 2:
+        return None
+    union = sets[0] | sets[1]
+    return round(len(sets[0] & sets[1]) / len(union), 3) if union else 1.0
 
 
 def outcome(run_output: str):
@@ -117,6 +146,7 @@ def main(argv=None) -> int:
     ctx = ct.Ctx(ep, effects, None, t0 + a.wall_seconds, a.out)
     team = TeamState(issue, a.out / "team_state.md")
     team.emit = ep.event
+    team.independent = a.mode == "team"
     author_head = ct.SYSTEM.format(issue=issue) + ct.AUTHOR_NOTE
     tools_rw = {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_python"}
     tools_ro = {"list_dir", "read_file", "search", "run_tests", "run_python"}
@@ -152,27 +182,37 @@ def main(argv=None) -> int:
             return {"success": False, "output": None, "model_key": st and st["model_key"], "independence_key": st and st["independence_key"], "receipt_id": st and st["receipt_id"], "failure_class": out}
         return {"success": True, "output": out, "model_key": st["model_key"], "independence_key": st["independence_key"], "receipt_id": st["receipt_id"]}
 
+    helper_lineages: set = set()
+
     def helper_for(p: Pos):
         def helper(cond, diff, tests, recent):
             copy = a.out / "help" / f"{p.id}_{cond}_{time.time_ns()}"
             shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
             saved = ctx.last_session
-            out, st = ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + HELP_HEAD.format(cond=cond, diff=diff[:6000], tests=tests, recent=recent), ct.Sandbox(copy, a.python, readonly=True),
-                                    tools_ro, exclude=tuple(p.keys), gated=False, team=team)
+
+            def call(excl):
+                return ct.agent_loop(ctx, "critic", ct.CRITIC_HEAD.format(issue=issue) + HELP_HEAD.format(cond=cond, diff=diff[:6000], tests=tests, recent=recent), ct.Sandbox(copy, a.python, readonly=True),
+                                     tools_ro, exclude=excl, gated=False, team=team, view=p.id, wait_supply=not team.independent)
+            got = help_guard(ep, positions, p, team.independent, call)
             hgs = ctx.last_session
             ctx.last_session = saved
+            if got is None:
+                return None, None
+            out, st = got
             if isinstance(out, str) and out.startswith("STOP:"):
                 return None, None
             hoid = team.objection(p.id, st["independence_key"], out, kind="suggestion", grounded=ct.grounded_text(out, hgs))
             holders[st["model_key"]] = st["independence_key"]
+            if team.independent:
+                helper_lineages.add(st["independence_key"])
             ep.event("HELP_ANSWER", pos=p.id, rev=p.rev, author_lineages=sorted(p.keys), condition=cond, model=st["model_key"], lineage=st["independence_key"], objection_ids=[hoid], text=out[:300])
             return out, st["model_key"]
         return helper
 
-    def session(p: Pos, head: str, turns=None):
+    def session(p: Pos, head: str, turns=None, exclude=()):
         p.session_sb = ct.Sandbox(p.ws, a.python)
         out, st = ct.agent_loop(ctx, "author", head, p.session_sb, tools_rw, gated=True, gate=p.gate, team=team if a.mode == "team" else None,
-                                helper=helper_for(p) if a.mode == "team" else None, limit=turns)
+                                helper=helper_for(p) if a.mode == "team" else None, limit=turns, exclude=tuple(exclude), view=p.id)
         if st:
             p.model = p.model or st["model_key"]
             p.keys.add(st["independence_key"])
@@ -182,14 +222,21 @@ def main(argv=None) -> int:
 
     def work(prompt: str, stage: str, prefer=None, exclude=()):
         try:
+            if stage != "solve":
+                team.independent = False                                  # the SOLVE phase is over: full shared state for every role
             if stage == "solve":
                 p = new_pos("S")
-                out, st = session(p, author_head)
+                # independent lineages: never a lineage that already holds a position, nor one that helped during independent solving (Addendum 8 B.3)
+                excl = tuple(exclude) + tuple(sorted({k for q in positions.values() for k in q.keys} | helper_lineages)) if a.mode == "team" else ()
+                out, st = session(p, author_head, exclude=excl)
                 if not isinstance(out, str):
                     p.rev = 0
                     freeze(p, out, "first")
                     team.decisions.append(f"{p.id} produced its first gate-accepted diff ({out.diff_sha256[:10]})")
                     out = out.diff
+                    if team.independent and sum(1 for q in positions.values() if q.diff) >= 2:
+                        team.independent = False                          # both solvers delivered their first positions
+                        ep.event("INDEPENDENT_PHASE_END", positions=[q.id for q in positions.values() if q.diff])
                 return result(out, st)
             if stage == "challenge":
                 tgt = next((p for t, p in by_text.items() if t and t in prompt), None)
@@ -368,10 +415,14 @@ def main(argv=None) -> int:
             ep.event("LOOP_GUARD", guard=guard, open_objections=[o["id"] for o in open_at_stop])
     elif best() is not None:
         chosen, cls = best(), "RELEASED_UNVALIDATED"      # indep / solo: the visible-signal rule (most relevant tests passing)
+    firsts = [positions[k].snapshots[0] for k in positions if positions[k].snapshots and not k.startswith("SP")]
+    sim = solver_similarity([(snaps / f["file"]).read_text() for f in firsts]) if a.mode == "team" else None
+    ep.event("SOLVER_SIMILARITY", jaccard=sim, positions=[f["file"] for f in firsts[:2]])
+    team.text()
     final = chosen.diff if chosen else ""
     if chosen:
         (snaps / "RELEASED.diff").write_text(final)
-    release = {"guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
+    release = {"solver_similarity": sim, "guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
     ep.event("RELEASE", **release)
     status = cls
     ep.close(status)

@@ -89,4 +89,7 @@ if __name__ == "__main__":
         print("| intervention | pos | objection | C1 | C2 | C3 | C4 | status | tokens | calls |\n|---|---|---|---|---|---|---|---|---|---|")
         for x in rows:
             print(f"| {x['kind']} | {x['pos']} | {x['objection']} | {x['C1']} | {x['C2']} | {x['C3']} | {x['C4']} | {x['status']} | {x['tokens']} | {x['calls']} |")
+        rj = Path(r) / "run.json"
+        sim = json.loads(rj.read_text()).get("release", {}).get("solver_similarity") if rj.exists() else None
+        print(f"\nSolver similarity (line-level Jaccard of the two first positions): {sim}")
         print(f"\nLineage diversity: {json.dumps(d)}\n")

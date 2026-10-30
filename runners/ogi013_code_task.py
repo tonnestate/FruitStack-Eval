@@ -232,7 +232,7 @@ def outcome_key(output: str) -> tuple:
     return (int(ran[-1]) if ran else 0, len(re.findall(r"\.\.\. (?:FAIL|ERROR)\s*$", output or "", re.M)), "OK" in (output or "")[-200:])
 
 
-def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None):
+def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, exclude=(), prefer=None, gated: bool, gate=None, team=None, helper=None, limit=None, view=None, wait_supply=True):
     """One role's tool loop. Returns (final, first_step): final = the accepted SubmitDecision (gated author/reviser) or the critic's message text, or a string 'STOP:<why>'.
     team: shared team state (inserted, hash-logged, into every prompt). helper(cond, wip) -> text|None: asked once per stall condition (Addendum 3 B.3)."""
     ep, transcript, first = ctx.ep, [], None
@@ -253,11 +253,11 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
 
     def step(*a, **k):
         """Infrastructure failures are not evidence about the work: NO_ELIGIBLE_NEURON (supply momentarily exhausted) is waited out, logged, and does not count as a turn."""
-        for waited in range(SUPPLY_WAITS + 1):
+        for waited in range((SUPPLY_WAITS if wait_supply else 0) + 1):
             try:
                 return ep.step(*a, **k)
             except RuntimeError as exc:
-                if "NO_ELIGIBLE_NEURON" not in str(exc) or waited == SUPPLY_WAITS or time.monotonic() + SUPPLY_WAIT_SECONDS > ctx.deadline:
+                if "NO_ELIGIBLE_NEURON" not in str(exc) or waited >= (SUPPLY_WAITS if wait_supply else 0) or time.monotonic() + SUPPLY_WAIT_SECONDS > ctx.deadline:
                     raise
                 ep.event("SUPPLY_WAIT", role=role, waited=waited + 1, seconds=SUPPLY_WAIT_SECONDS)
                 time.sleep(SUPPLY_WAIT_SECONDS)
@@ -295,7 +295,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             ep.event("LOOP_GUARD", guard="NO_PROGRESS_8_TURNS", role=role, turn=turn, test_runs=ctx.last_session["test_runs"])
             resolve_watch(False)
             return "STOP:NO_PROGRESS", first
-        ts = team.text() if team else ""
+        ts = team.text(view) if team else ""
         if team:
             ep.event("TEAM_STATE", role=role, sha=hashlib.sha256(ts.encode()).hexdigest(), turn=turn)
         prompt = head + (f"\n<team_state>\n{ts}\n</team_state>" if ts else "") + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
