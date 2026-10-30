@@ -44,8 +44,24 @@ def test_author_prefers_its_first_model_and_handover_is_logged():
     class SB:
         def list_dir(self, path="."): return "x"
     ctx = SimpleNamespace(ep=Ep(), deadline=time.monotonic() + 60, keys={"author": set()}, gate=None, effects=None)
-    ct.LIMITS["author"] = 3
     ct.pomelo_call = lambda *a, **k: ("x", False)
-    ct.agent_loop(ctx, "author", "h", SB(), {"list_dir"}, gated=False)
+    ct.agent_loop(ctx, "author", "h", SB(), {"list_dir"}, gated=False, limit=3)
     assert [c[0] for c in calls] == [None, "m1", "m1"] and all(c[1] == 2 for c in calls)
     assert [k["to_model"] for kind, k in events if kind == "ROLE_HANDOVER"] == ["m2"]
+
+
+def test_no_progress_guard_stops_after_eight_idle_turns():
+    events = []
+
+    class Ep:
+        def blocking(self): return None
+        def event(self, kind, **k): events.append(kind)
+        def step(self, prompt, role, *, exclude=(), prefer=None, sticky_attempts=1):
+            return {"success": True, "output": '{"action": "tool", "name": "list_dir", "arguments": {"path": "."}}', "model_key": "m", "independence_key": "m", "receipt_id": "r"}
+
+    class SB:
+        def list_dir(self, path="."): return "x"
+    ctx = SimpleNamespace(ep=Ep(), deadline=time.monotonic() + 60, keys={}, gate=None, effects=None)
+    ct.pomelo_call = lambda *a, **k: ("x", False)
+    out, _ = ct.agent_loop(ctx, "critic", "h", SB(), {"list_dir"}, gated=False)
+    assert out == "STOP:NO_PROGRESS" and "LOOP_GUARD" in events      # the same read repeated is not progress (only the first one is novel)
