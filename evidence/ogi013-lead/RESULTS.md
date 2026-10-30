@@ -52,3 +52,13 @@ Critique validity (pre-registered rule): LSR 5/5 valid (grounded NONE); LBR 0/5 
 - `django__django-11019`: not in SWE-bench Verified.
 - `django__django-14855`: in Verified; excluded from the sample as the development task (PREREG exclusion).
 - FIX 2 (2026-10-30): execution crashes found in G-dev episode 1 (`gdev1`): (a) `parse_code_action` raised TypeError when a model put a non-string in `name`/`action`; (b) `OBJECTION` ledger events used the keyword `kind`, clashing with `Episode.event(kind, ...)`, which crashed the helper path. Both fixed (`okind`; type check); `WORK_ERROR` events now carry a traceback. Tests added. Affected run: gdev1 (not counted; G-dev restarts at episode 1 of 3).
+
+
+## Evaluator v2.2 re-grade of the recorded 11019 rows (additional column; v2.1 grades above are unchanged)
+Defect D7 (v2.1): a failing `subTest` leaves its line without status and unittest appends the next result to it, so v2.1 counted both tests as failed (false negatives on F2P; never a false positive on `resolved`). v2.2 splits such lines and lets `FAIL:`/`ERROR:` headers decide.
+| row | v2.1 (recorded) | v2.2 (re-graded 2026-10-30) |
+|---|---|---|
+| L Luna recorded patch (`phase3/L_luna/patch.diff`) | 3/16 F2P, 58/58 P2P, not resolved | **5/16 F2P, 58/58 P2P, not resolved** |
+| A-11019 P0 (same patch; 10/10 LSR/LBR replicates unchanged) | 3/16, 58/58 | 5/16, 58/58 (identical diff) |
+| F driver v1 (defective) | 0/16, 58/58 | not re-gradable: the patch was not retained |
+| F v2 attempts 1 and 3, N | NO_PATCH | n/a (no patch) |
