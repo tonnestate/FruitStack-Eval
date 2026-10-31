@@ -77,6 +77,8 @@ class Ledger:
         self.version += 1
         self.emit("REPLY", id=oid, role=role, action=action, step=step, sha256=sha, evidence=(ground or {}).get("kind"))
         self.on_change(o)
+        if role == "author" and action == "evidence":
+            o["declined"], o["author_reason"] = True, (text or "")[:300]      # the author contests with evidence: the objection is not forced into a revision, the critic answers once
         if action == "withdraw":
             self._set(o, WITHDRAWN, decided_by="withdrawn_with_evidence")
             return {"ok": True, "event": "WITHDRAWN"}

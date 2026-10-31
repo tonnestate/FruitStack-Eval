@@ -17,13 +17,15 @@ import sys
 import time
 import subprocess
 import tempfile
+import threading
 import traceback
 from pathlib import Path
 from types import SimpleNamespace
 
 import ogi013_candidates as oc
+import ogi013_conc as conc
 import ogi013_code_task as ct
-from ogi013_roster import InfraSupply, Roster, next_solver_role
+from ogi013_roster import InfraSupply, Roster
 from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
 from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, locked, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
@@ -233,6 +235,9 @@ def main(argv=None) -> int:
     ap.add_argument("--n-sessions", type=int, default=2, help="indep: number of independent sessions")
     ap.add_argument("--max-calls", type=int, default=int(os.environ.get("OGI013_EP_MAX_CALLS", 1500)))
     ap.add_argument("--max-tokens", type=int, default=int(os.environ.get("OGI013_EP_MAX_TOKENS", 3000000)))
+    ap.add_argument("--max-concurrent-calls", type=int, default=conc.MAX_CONCURRENT_CALLS, help="cap on simultaneous provider calls per episode (P4)")
+    ap.add_argument("--solver-wait", type=float, default=600.0, help="SOLVER_WAIT: seconds after the first submitted position before the reveal barrier opens (P1)")
+    ap.add_argument("--sequential-rounds", action="store_true", help="debug: run the CherryMe rounds without concurrency")
     ap.add_argument("--wall-seconds", type=int, default=int(os.environ.get("OGI013_EP_WALL", 14400)))
     a = ap.parse_args(argv)
     task = json.loads(a.task_json.read_text())
@@ -246,6 +251,12 @@ def main(argv=None) -> int:
     stack.fs.governance.configure(ep.sid, ep.store_revision(stack), max_calls=a.max_calls, max_tokens=a.max_tokens, max_cost_usd=0.0)
     t0 = time.monotonic()
     ctx = ct.Ctx(ep, effects, None, t0 + a.wall_seconds, a.out)
+    timing = conc.TimingRecorder()
+    ep.timing, ep.call_gate = timing, conc.CallGate(a.max_concurrent_calls, timing)
+    ep.token_cap, ep.gov_cfg = a.max_tokens, dict(max_calls=a.max_calls, max_tokens=a.max_tokens, max_cost_usd=0.0)
+    plock = threading.RLock()                 # the episode lock: shared-state mutation and adoption decisions are serialised
+    slot_taken: set = set()
+    solver_sessions: list = []
     team = TeamState(issue, a.out / "team_state.md")
     team.emit = ep.event
     team.mango = MangoLedger(stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)      # MangoMe is the work ledger of the episode; a failed write ends it INFRA_MANGOME_FAILED
@@ -286,14 +297,31 @@ def main(argv=None) -> int:
     snaps = a.out / "snapshots"
     snaps.mkdir(exist_ok=True)
 
-    def new_pos(prefix: str) -> Pos:
-        pid = f"{prefix}{len(positions) + 1}"
-        ws = a.out / "ws" / pid
-        shutil.copytree(a.base, ws)
-        p = Pos(pid, ws, CodingGate(ws, task["base_commit"], a.out / "gate" / pid))
-        positions[pid] = team.pos[pid] = p
-        ep.event("POSITION_OPENED", pos=pid)
-        return p
+    def new_pos(prefix: str, pid: str | None = None) -> Pos:
+        with plock:
+            pid = pid if pid and pid not in positions else f"{prefix}{len(positions) + 1}"
+            ws = a.out / "ws" / pid
+            shutil.copytree(a.base, ws)
+            p = Pos(pid, ws, CodingGate(ws, task["base_commit"], a.out / "gate" / pid))
+            positions[pid] = team.pos[pid] = p
+            ep.event("POSITION_OPENED", pos=pid)
+            return p
+
+    def claim_slot() -> str:
+        """A solve call claims a solver slot atomically (concurrent solvers): the first slot nobody holds, else a slot whose position produced no accepted diff."""
+        with plock:
+            for slot in ("solver1", "solver2"):
+                if slot not in slot_taken:
+                    slot_taken.add(slot)
+                    return slot
+            for slot in ("solver1", "solver2"):
+                if not any(q.diff for q in positions.values() if q.slot == slot):
+                    return slot
+            return "solver1"
+
+    def freeze_locked(p: Pos, dec, label: str) -> None:
+        with plock:
+            freeze(p, dec, label)
 
     def freeze(p: Pos, dec, label: str) -> None:
         p.gate.snapshot(f"P{p.rev}", dec)
@@ -369,14 +397,17 @@ def main(argv=None) -> int:
             if stage != "solve":
                 team.independent = False                                  # the SOLVE phase is over: full shared state for every role
             if stage == "solve":
-                p = new_pos("S")
-                p.slot = next_solver_role(roster, {q.slot: bool(q.diff) for q in positions.values() if q.slot}) if a.mode == "team" else ("solver1" if a.mode == "solo" else f"solver{len(positions)}")
+                slot = claim_slot() if a.mode == "team" else ("solver1" if a.mode == "solo" else f"solver{len(positions) + 1}")
+                p = new_pos("S", {"solver1": "S1", "solver2": "S2"}.get(slot))
+                p.slot = slot
                 # independent lineages: never a lineage that already holds a position, nor one that helped during independent solving (Addendum 8 B.3)
                 excl = tuple(exclude) + tuple(sorted({k for q in positions.values() for k in q.keys} | helper_lineages)) if a.mode == "team" else ()
+                t_s = time.monotonic()
                 out, st = session(p, author_head, exclude=excl)
+                solver_sessions.append((p.id, t_s, time.monotonic()))
                 if not isinstance(out, str):
                     p.rev = 0
-                    freeze(p, out, "first")
+                    freeze_locked(p, out, "first")
                     team.decisions.append(f"{p.id} produced its first gate-accepted diff ({out.diff_sha256[:10]})")
                     out = out.diff
                     if team.independent and sum(1 for q in positions.values() if q.diff) >= 2:
@@ -393,6 +424,10 @@ def main(argv=None) -> int:
                                + "\n".join(f"{o['id']}: {o['text'][:400]}" for o in pending))
                     raiser = {v: k for k, v in holders.items()}.get(pending[0]["lineage"])
                     prefer = prefer or raiser
+                answered = [o for o in team.objs if o["target"] == tgt.id and o["state"] == OPEN and o["exchanges"] == 1]
+                if answered:                                          # exchange 2: the critic responds ONCE to the author's evidence
+                    prompt += ("\nThe author answered these objections with evidence. Respond once to each, on its own line: 'O<n>: WITHDRAW' plus your evidence (a reproduction you ran, or a quote of the task text) if you now agree, "
+                               "or 'O<n>: MAINTAIN' plus NEW evidence if you do not:\n" + "\n".join(f"{o['id']}: {o['replies'][-1]['text'][:400]}" for o in answered))
                 out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=prefer, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team, roster=roster, role_key="critic")
                 gs = ctx.last_session
                 if isinstance(out, str) and not out.startswith("STOP:"):
@@ -403,6 +438,10 @@ def main(argv=None) -> int:
                     tgt.exams.append(exam)
                     holders[st["model_key"]] = st["independence_key"]
                     changes = team.reexamine(tgt.id, out, st["independence_key"], tuple(tgt.keys), gs["checks"]) if pending else []
+                    for o in answered:                                # the critic's single response in the exchange (a reply without evidence is logged UNGROUNDED_REPLY and changes nothing)
+                        m = re.search(rf"^\s*{o['id']}\s*:\s*(WITHDRAW|MAINTAIN)\b(.*?)(?=^\s*O\d+\s*:|\Z)", out, re.I | re.M | re.S)
+                        if m:
+                            team.reply(o["id"], "critic", m.group(1).lower(), m.group(2).strip() or out, oc.classify_objection(m.group(2) + "\n" + out, issue, gs["check_log"]))
                     oids = []
                     if found and not any(state == OPEN for _, state in changes):
                         oids.append(team.objection(tgt.id, exam["lineage"], out, grounded=exam["grounded"], ground=ground))
@@ -433,37 +472,38 @@ def main(argv=None) -> int:
                             "\nYour final answer is the repository state: change the files if an objection is right, re-run the relevant tests, then submit.")
                 out, st = session(p, rev_head)
                 if not isinstance(out, str):
-                    p.rev += 1
-                    label = f"rev{p.rev}"
-                    declined = [o["id"] for o in grounded if o["declined"]]
-                    claimed = [o["id"] for o in grounded if not o["declined"]]
-                    ep.event("REVISION", pos=p.id, rev=p.rev, responding_to=claimed, declined=declined, changed_code=out.diff != before, reviser_lineage=st["independence_key"], snapshot=f"{p.id}_{label}")
-                    p.exams = []
-                    p.gate.snapshot(f"P{p.rev}", out)
-                    p.changed_ns = time.monotonic_ns()
-                    if out.diff == before:
-                        team.revise(p.id, p.rev, False, claimed, reason="revision submitted with unchanged code")
-                        team.decisions.append(f"{p.id} revision {p.rev}: unchanged code")
-                    else:
-                        dec = cled.consider_revision(p.id, label, out.diff, claimed)
-                        if dec["adopted"]:
-                            (snaps / f"{p.id}_{label}.diff").write_text(out.diff)
-                            p.snapshots.append({"label": label, "sha256": out.diff_sha256, "file": f"{p.id}_{label}.diff"})
-                            p.diff, p.status = out.diff, "revised"
-                            p.last_run = p.session_sb.last_run
-                            p.test_tail = (p.last_run[2][-3000:] if p.last_run else "")
-                            by_text[out.diff] = p
-                            c = dec["cand"]
-                            team.driver_visible[p.id] = f"{c['visible'].get('passed')} passed, {c['visible'].get('failed')} failed (sha256 {c['sha256'][:12]})"
-                            team.mango.write("TEAM_SNAPSHOT", f"{p.id}:{label}", {"pos": p.id, "label": label, "rev": p.rev, "sha256": out.diff_sha256, "files": list(out.changed_source_files)})
-                            team.revise(p.id, p.rev, True, claimed)
-                            team.decisions.append(f"{p.id} revision {p.rev} ADOPTED (driver-run visible score not lower; claimed reproductions pass)")
+                    with plock:                               # adoption decisions are serialised: exactly one incumbent per position at any time
+                        p.rev += 1
+                        label = f"rev{p.rev}"
+                        declined = [o["id"] for o in grounded if o["declined"]]
+                        claimed = [o["id"] for o in grounded if not o["declined"]]
+                        ep.event("REVISION", pos=p.id, rev=p.rev, responding_to=claimed, declined=declined, changed_code=out.diff != before, reviser_lineage=st["independence_key"], snapshot=f"{p.id}_{label}")
+                        p.exams = []
+                        p.gate.snapshot(f"P{p.rev}", out)
+                        p.changed_ns = time.monotonic_ns()
+                        if out.diff == before:
+                            team.revise(p.id, p.rev, False, claimed, reason="revision submitted with unchanged code")
+                            team.decisions.append(f"{p.id} revision {p.rev}: unchanged code")
                         else:
-                            (snaps / f"{p.id}_{label}_REJECTED.diff").write_text(out.diff)
-                            restore_workspace(p, cled.incumbent(p.id)["diff"])
-                            ep.event("REVISION_REJECTED", pos=p.id, rev=p.rev, reason=dec["reason"], sha=out.diff_sha256, incumbent=cled.incumbent(p.id)["id"])
-                            team.revise(p.id, p.rev, False, claimed, reason=f"REVISION_REJECTED:{dec['reason']}")
-                            team.decisions.append(f"{p.id} revision {p.rev} REJECTED_REVISION ({dec['reason']}); incumbent {cled.incumbent(p.id)['id']} stays")
+                            dec = cled.consider_revision(p.id, label, out.diff, claimed)
+                            if dec["adopted"]:
+                                (snaps / f"{p.id}_{label}.diff").write_text(out.diff)
+                                p.snapshots.append({"label": label, "sha256": out.diff_sha256, "file": f"{p.id}_{label}.diff"})
+                                p.diff, p.status = out.diff, "revised"
+                                p.last_run = p.session_sb.last_run
+                                p.test_tail = (p.last_run[2][-3000:] if p.last_run else "")
+                                by_text[out.diff] = p
+                                c = dec["cand"]
+                                team.driver_visible[p.id] = f"{c['visible'].get('passed')} passed, {c['visible'].get('failed')} failed (sha256 {c['sha256'][:12]})"
+                                team.mango.write("TEAM_SNAPSHOT", f"{p.id}:{label}", {"pos": p.id, "label": label, "rev": p.rev, "sha256": out.diff_sha256, "files": list(out.changed_source_files)})
+                                team.revise(p.id, p.rev, True, claimed)
+                                team.decisions.append(f"{p.id} revision {p.rev} ADOPTED (driver-run visible score not lower; claimed reproductions pass)")
+                            else:
+                                (snaps / f"{p.id}_{label}_REJECTED.diff").write_text(out.diff)
+                                restore_workspace(p, cled.incumbent(p.id)["diff"])
+                                ep.event("REVISION_REJECTED", pos=p.id, rev=p.rev, reason=dec["reason"], sha=out.diff_sha256, incumbent=cled.incumbent(p.id)["id"])
+                                team.revise(p.id, p.rev, False, claimed, reason=f"REVISION_REJECTED:{dec['reason']}")
+                                team.decisions.append(f"{p.id} revision {p.rev} REJECTED_REVISION ({dec['reason']}); incumbent {cled.incumbent(p.id)['id']} stays")
                     arbitrate(p)
                     out = p.diff
                 return result(out, st)
@@ -473,7 +513,7 @@ def main(argv=None) -> int:
                 ep.event("SPECIALIST", pos=p.id, lineage=None)
                 out, st = session(p, author_head + "\n" + prompt + "\nYour final answer is the repository state: produce your own change, test it, then submit.", exclude=tuple(roster.lineages("specialist")))
                 if not isinstance(out, str):
-                    freeze(p, out, "first")
+                    freeze_locked(p, out, "first")
                     team.decisions.append(f"specialist {p.id} produced a gate-accepted diff")
                     out = out.diff
                 return result(out, st)
@@ -487,7 +527,7 @@ def main(argv=None) -> int:
     def arbitrate(p: Pos) -> None:
         """R2: if the author declined a grounded objection (or contested it twice), ONE independent specialist (not the author, not the raiser's lineage) gets the task text plus both claims, must run a
         reproduction, and decides. At most one arbitration per objection; the task text wins over any model opinion."""
-        cont = [o for o in team.objs if o["target"] == p.id and o["state"] == OPEN and o["kind"] == "objection" and o["grounded"] and not o["arbitrated"] and (o["declined"] or o["contested"] >= 2)]
+        cont = [o for o in team.objs if o["target"] == p.id and o["state"] == OPEN and o["kind"] == "objection" and o["grounded"] and not o["arbitrated"] and (o["needs_arbitration"] or o["contested"] >= 2)]
         if not cont:
             return
         copy = a.out / "adjudicate" / f"{p.id}_r{p.rev}_{time.time_ns()}"
@@ -510,6 +550,37 @@ def main(argv=None) -> int:
                     o["declined"] = False                       # the objection stands: the author must address it
             ep.event("SPECIALIST_ADJUDICATION", pos=p.id, lineage=st["independence_key"], objections=[o["id"] for o in cont], decided=ch)
 
+    def select_roster() -> None:
+        """P1: the roster is fixed FIRST: the two solver lineages are chosen sequentially through PlumMe AUTO exclusion (one tiny ping per solver), before any real call."""
+        used: list = []
+        for role in ("solver1", "solver2"):
+            d = {"success": False}
+            for attempt in range(3):
+                try:
+                    d = ep.step("Reply with the single word READY.", "author", exclude=tuple(used), prefer=None, sticky_attempts=1)
+                except RuntimeError as exc:
+                    if "NO_ELIGIBLE_NEURON" not in str(exc):
+                        raise
+                    d = {"success": False}
+                if d["success"]:
+                    break
+                time.sleep(ct.SUPPLY_WAIT_SECONDS)
+            if not d["success"]:
+                raise InfraSupply(f"roster: the eligible pool cannot fill {role}")
+            roster.pin(role, d["model_key"], d.get("independence_key"))
+            roster.note_model(d["model_key"])
+            holders[d["model_key"]] = d.get("independence_key")
+            used.append(d.get("independence_key"))
+
+    def work_threaded(prompt, stage, **kw):
+        """Every concurrent worker runs on its own forked PeachMe session (same work/turn, shared log/stats/gate)."""
+        child = ep.fork()
+        ctx.bind_thread_ep(child)
+        try:
+            return work(prompt, stage, **kw)
+        finally:
+            ctx.unbind_thread_ep()
+
     def signature(text: str):
         """Positions disagree when their visible-test outcome vectors differ, or, both passing, when their diffs change different functions."""
         p = by_text.get(text)
@@ -526,7 +597,9 @@ def main(argv=None) -> int:
         if a.mode == "team":
             from cherryme.brother import run_rounds
             from cherryme.contributions import ContributionLedger
-            res = run_rounds(task_prompt=f"Task: resolve this issue in the repository.\n{issue}\n", brief="", work=work, ledger=ContributionLedger(), claim_id=ep.claim.id, signature=signature)
+            select_roster()
+            res = run_rounds(task_prompt=f"Task: resolve this issue in the repository.\n{issue}\n", brief="", work=work if a.sequential_rounds else work_threaded, ledger=ContributionLedger(), claim_id=ep.claim.id,
+                             signature=signature, parallel=not a.sequential_rounds, solver_wait=a.solver_wait, max_workers=a.max_concurrent_calls)
             ep.event("TEAM_ROUNDS", stop=res.stop_reason, calls=res.calls, rounds=res.rounds, issues_found=res.issues_found, revised=res.revised, specialist=res.specialist_used, failures=res.failures)
         elif a.mode == "indep":
             for i in range(a.n_sessions):
@@ -538,7 +611,7 @@ def main(argv=None) -> int:
             p.slot = "solver1"
             out, st = session(p, author_head)
             if not isinstance(out, str):
-                freeze(p, out, "first")
+                freeze_locked(p, out, "first")
                 for i in range(a.n_critiques):
                     copy = a.out / "naive_critic" / f"{i}_{time.time_ns()}"
                     shutil.copytree(p.ws, copy, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
@@ -559,7 +632,7 @@ def main(argv=None) -> int:
             p = new_pos("S")
             out, st = session(p, author_head)
             if not isinstance(out, str):
-                freeze(p, out, "first")
+                freeze_locked(p, out, "first")
     except (InfraMangoFailed, InfraSupply) as exc:
         infra.append(exc)
     except BaseException as exc:  # noqa: BLE001 - a stop is recorded; accepted positions stay, nothing is synthesised
@@ -679,6 +752,17 @@ def main(argv=None) -> int:
                "positions": {p.id: {"model": p.model, "keys": sorted(k for k in p.keys if k), "status": p.status, "revisions": p.rev, "snapshots": p.snapshots,
                                     "exams": [{k: v for k, v in e.items() if k != "text"} for e in p.exams]} for p in positions.values()},
                "rounds": {"stop": res.stop_reason, "calls": res.calls, "specialist": res.specialist_used} if res else None}
+    tr = timing.report()
+    tr["max_concurrent_calls"] = a.max_concurrent_calls
+    overlap = 0.0
+    if len(solver_sessions) >= 2:
+        s0, s1 = sorted(solver_sessions, key=lambda x: x[1])[:2]
+        overlap = max(0.0, min(s0[2], s1[2]) - max(s0[1], s1[1]))
+    tr["solver_sessions"] = [{"pos": pid, "start": round(b - timing.t0, 2), "end": round(e - timing.t0, 2)} for pid, b, e in solver_sessions]
+    tr["solver_overlap_seconds"] = round(overlap, 2)
+    tr["max_calls_in_flight_observed"] = ep.call_gate.max_seen
+    (a.out / "timing.json").write_text(json.dumps(tr, indent=1))
+    summary["timing"] = {"max_concurrent_calls": a.max_concurrent_calls, "max_calls_in_flight_observed": ep.call_gate.max_seen, "solver_overlap_seconds": tr["solver_overlap_seconds"], "wall_share": tr["wall_share"]}
     (a.out / "run.json").write_text(json.dumps(summary, indent=1, default=str))
     print(json.dumps({k: summary[k] for k in ("status", "release", "seconds")}, default=str))
     return 0

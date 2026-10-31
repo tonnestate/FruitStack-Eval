@@ -387,12 +387,16 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             progress_check(False)
             continue
         name, args = action["name"], action.get("arguments", {})
-        if name == "decline" and gated and team is not None:                    # R2: the author may decline an objection with a one-line reason (DECLINED_BY_AUTHOR, recorded)
-            transcript.append({"role": "call", "text": f"decline({json.dumps(args, ensure_ascii=False)[:300]})"})
-            transcript.append({"role": "result", "text": team.decline(str(args.get("id", "")), str(args.get("reason", ""))[:300])})
+        if name in ("decline", "reply") and gated and team is not None:           # exchange protocol: the author answers an objection WITH EVIDENCE (a reproduction or a task-text quote) or concedes
+            from ogi013_candidates import classify_objection
+            evidence = str(args.get("evidence") or args.get("reason") or "")
+            transcript.append({"role": "call", "text": f"{name}({json.dumps(args, ensure_ascii=False)[:300]})"})
+            action = "concede" if str(args.get("action", "")).lower() == "concede" else "evidence"
+            r = team.reply(str(args.get("id", "")), "author", action, evidence, classify_objection(evidence, team.goal, ctx.last_session["check_log"]))
+            transcript.append({"role": "result", "text": {"UNGROUNDED_REPLY": "UNGROUNDED_REPLY: a reply needs evidence (the output of a command you ran, or a verbatim quote of the task text); nothing changed.",
+                                                          "REPLY_REFUSED": "reply refused (not an open objection, wrong turn, or the limit of 2 exchanges)."}.get(r["event"], f"recorded: {r['event']}")})
             progress_check(False)
             continue
-        transcript.append({"role": "call", "text": f"{name}({json.dumps(args, ensure_ascii=False)[:1500]})"})
         if name not in allowed:
             ep.event("BAD_TOOL", role=role, model=d.get("model_key"), name=name)
             transcript.append({"role": "result", "text": f"Error: tool {name} is not available to you"})

@@ -187,3 +187,26 @@ def test_1_and_11_concurrent_blind_solvers_see_nothing_and_a_late_solver_stays_b
     assert all("SECRET_ONE_FIX" not in x and "SECRET_ONE_TAIL" not in x for x in seen["S2"][:len(late_before)])
     assert "SECRET_ONE_FIX" in seen["S2"][-1] and "SECOND_FIX" in seen["S2"][-1]    # afterwards it is released into the shared state
     assert "GOAL TEXT" in t.text("S1") and "STATE VERSION" in t.text("S1")
+
+
+def test_12_author_reply_tool_inside_the_agent_loop_runs_the_exchange(tmp_path):
+    import ogi013_code_task as ct
+    import ogi013_team_code as tc
+    t = tc.TeamState("Anything else must raise ValueError for 5x input in the task text", tmp_path / "ts.md")
+    oid = t.objection("S1", "L2", "5x is accepted", ground=EV)
+    t.pos = {"S1": SimpleNamespace(id="S1", model="m", status="open", rev=0, diff="+x", test_tail="", slot="solver1")}
+    ev = []
+    t.emit = lambda k, **kw: ev.append(k)
+    acts = iter(['{"action": "tool", "name": "reply", "arguments": {"id": "%s", "evidence": "I disagree"}}' % oid,
+                 '{"action": "tool", "name": "reply", "arguments": {"id": "%s", "evidence": "the task text says \\"Anything else must raise ValueError\\" and 5x raises it"}}' % oid,
+                 '{"action": "message", "content": "done"}'])
+
+    class Ep:
+        def blocking(self): return None
+        def event(self, kind, **k): ev.append(kind)
+        def step(self, prompt, role, **k):
+            return {"success": True, "output": next(acts), "model_key": "m", "independence_key": "m", "receipt_id": "r"}
+    ctx = SimpleNamespace(ep=Ep(), deadline=time.monotonic() + 60, keys={}, gate=None, effects=None)
+    ct.agent_loop(ctx, "author", "h", SimpleNamespace(), {"read_file"}, gated=True, gate=SimpleNamespace(check_submit=lambda: SimpleNamespace(accepted=True, reason="ok", diff_sha256="x")), team=t, limit=3)
+    assert "UNGROUNDED_REPLY" in ev and "REPLY" in ev                       # the evidence-free reply changed nothing; the quote-grounded one was recorded
+    assert t.objs[0]["exchanges"] == 1 and t.objs[0]["declined"] is True and t.objs[0]["state"] == OPEN
