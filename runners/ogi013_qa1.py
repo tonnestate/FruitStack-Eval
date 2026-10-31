@@ -402,10 +402,10 @@ def run_T(ctx: Context, q: dict) -> dict:
                         for o in answered:
                             m = re.search(rf"^\s*{o['id']}\s*:\s*(WITHDRAW|MAINTAIN)\b(.*?)(?=^\s*O\d+\s*:|\Z)", text, re.I | re.M | re.S)
                             if m:
-                                team.reply(o["id"], "critic", m.group(1).lower(), m.group(2).strip() or text, ag.classify_argument(text, task))
+                                team.reply(o["id"], "critic", m.group(1).lower(), m.group(2).strip() or text, ag.ledger_ground(ag.classify_argument(text, task)))
                         if re.match(r"\s*ISSUES:\s*FOUND", text, re.I) or (not re.match(r"\s*ISSUES:\s*NONE", text, re.I) and len(text) > 40):
                             counters["objections"] += 1
-                            ground = ag.classify_argument(text, task)
+                            ground = ag.ledger_ground(ag.classify_argument(text, task))
                             counters["grounded_objections"] += int(oc.is_grounded(ground))
                             oid = team.objection(tgt.id, d.get("independence_key"), text, grounded=oc.is_grounded(ground), ground=ground)
                             obj_ids_for.setdefault(tgt.id, []).append(oid)
@@ -418,7 +418,7 @@ def run_T(ctx: Context, q: dict) -> dict:
                         old, new = parse_letter(pos.diff, n_opt), parse_letter(d["output"], n_opt)
                         for oid in obj_ids_for.pop(pos.id, []):
                             if new == old:                                      # the author keeps its answer: a reply (needs evidence: a quote of the question; else UNGROUNDED_REPLY)
-                                team.reply(oid, "author", "evidence", d["output"], ag.classify_argument(d["output"], task))
+                                team.reply(oid, "author", "evidence", d["output"], ag.ledger_ground(ag.classify_argument(d["output"], task)))
                             else:
                                 team.reply(oid, "author", "concede", d["output"])
                         if new != old:
@@ -468,6 +468,11 @@ def run_T(ctx: Context, q: dict) -> dict:
     replies = sum(len(o.get("replies", [])) for o in team.objs)
     indep = [o for o in team.objs if o.get("lineage") and o["lineage"] != pos_lin.get(o["target"])]          # a critique from the lineage of the position it judges does not count
     evidenced_replies = sum(1 for o in indep for r in o.get("replies", []) if r.get("evidence") in ("command", "quote"))
+    level = lambda k: {"quote": "formal", "command": "verified"}.get(k)         # noqa: E731 - ledger kind -> evidence level
+    formal_replies = sum(1 for o in indep for r in o.get("replies", []) if level(r.get("evidence")) == "formal")
+    verified_replies = sum(1 for o in indep for r in o.get("replies", []) if level(r.get("evidence")) == "verified")
+    formal_objections = sum(1 for o in indep if (o.get("ground") or {}).get("level") == "formal")
+    verified_objections = sum(1 for o in indep if (o.get("ground") or {}).get("level") == "verified")
     critics = {o["lineage"] for o in team.objs if o.get("lineage")}
     independence_ok = not any(l in set(pos_lin.values()) | critics for l in spec_lin)                                   # a specialist of the same lineage as a position it judges does not count
     (ctx.out / "exchange").mkdir(exist_ok=True)                           # the full exchange for the report (model text; kept out of results.jsonl)
@@ -477,7 +482,7 @@ def run_T(ctx: Context, q: dict) -> dict:
     return {"letter": letter, "how": how, "first_letters": {f"S{i + 1}": l for i, l in enumerate(firsts)}, "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
             "rounds": res.rounds, "stop": res.stop_reason, "late": res.late, "roster_models": [roster.pinned(r) for r in ("solver1", "solver2", "critic", "specialist")], "roster": roster.summary(),
             "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"], "seconds": round(time.monotonic() - t0, 1), "mango_writes": team.mango.writes, "mango_reads": team.mango.reads,
-            "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
+            "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "verified_objections": verified_objections, "formal_replies": formal_replies, "verified_replies": verified_replies, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
             "lineages": {"positions": pos_lin, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")}), "specialist": spec_lin}, "first_by_pos": pos_first,
             "objection_target_first": [pos_first.get(o["target"]) for o in indep], "answer_changes": counters["answer_changes"],
             "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report()}

@@ -7,15 +7,20 @@ An objection or reply is GROUNDED if it has all three labelled parts in its own 
 If EVIDENCE contains runnable code (a fenced python block) the host executes it and checks that the stated `RESULT:` reproduces; a computation that does not run or does not
 reproduce is UNGROUNDED. No model judges another model's evidence; correctness is decided later only by the key.
 
-Result: {"kind": "command"} (executed and reproduced), {"kind": "quote"} (stated evidence, nothing runnable) or {"kind": "suggestion"} (not grounded), plus an "argument" report.
-`command`/`quote` are the kinds the shared ledger accepts as evidence (ogi013_vote); here they mean executed / stated."""
+Two levels, never merged: "formal" = GROUNDED_FORMAL (all three parts present, nothing executed; says nothing about correctness) and "verified" = GROUNDED_VERIFIED (a computation
+executed in the sandbox reproduces the stated result). A computation that runs and does NOT reproduce, overflows or times out is "suggestion" (ungrounded) even if the format is complete.
+`ledger_ground` maps both levels to the kinds the shared ledger accepts as evidence (ogi013_vote: quote / command) while keeping the level."""
 from __future__ import annotations
 
 import ast
+import os
 import re
 import resource
+import selectors
+import signal
 import subprocess
 import sys
+import time
 
 LABELS = ("CLAIM", "EVIDENCE", "CONSEQUENCE")
 MIN_LEN = {"CLAIM": 15, "EVIDENCE": 20, "CONSEQUENCE": 10}
@@ -25,6 +30,7 @@ _APPROVAL = re.compile(r"\s*(\[(UNGROUNDED_APPROVAL|NO_VOTE|APPROVE[^\]]*)\]|ISS
 _ALLOWED_IMPORTS = {"math", "fractions", "decimal", "itertools", "statistics", "cmath"}
 _FORBIDDEN_NAMES = {"open", "exec", "eval", "compile", "__import__", "input", "globals", "locals", "getattr", "setattr", "delattr", "vars", "breakpoint", "exit", "quit"}
 RUN_SECONDS = 5
+OUTPUT_LIMIT = 64 * 1024
 
 CRITIC_INSTRUCTIONS = (
     "\nIf you find an error, write 'ISSUES: FOUND' and then exactly these three labelled parts, each in your own words:\n"
@@ -72,7 +78,6 @@ def _static_ok(code: str) -> str | None:
 def _sandbox_cmd(code: str) -> list | None:
     """bubblewrap: no network/pid/ipc/user namespaces shared, unprivileged uid, empty tmpfs as the only writable and visible home, only the interpreter's prefix and system libraries
     mounted read-only (no host secrets). None when bwrap is missing: fail closed, the argument is then UNGROUNDED. The AST check is a first filter, not the isolation boundary."""
-    import os
     import shutil
     bwrap = shutil.which("bwrap")
     if not bwrap:
@@ -99,11 +104,47 @@ def run_code(code: str) -> tuple[bool, str]:
     cmd = _sandbox_cmd(code)
     if cmd is None:
         return False, "no sandbox available (bwrap): computation not executed"
+    return _run_bounded(cmd, RUN_SECONDS + 2, OUTPUT_LIMIT, limits)
+
+
+def _run_bounded(cmd: list, timeout: float, limit: int, preexec) -> tuple[bool, str]:
+    """Run `cmd` reading at most `limit` bytes of stdout+stderr together; more than that kills the child (the computation does not reproduce)."""
+    p = subprocess.Popen(cmd, env={}, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=preexec, start_new_session=True)
+    sel = selectors.DefaultSelector()
+    sel.register(p.stdout, selectors.EVENT_READ, "out")
+    sel.register(p.stderr, selectors.EVENT_READ, "err")
+    bufs: dict = {"out": [], "err": []}
+    total, deadline = 0, time.monotonic() + timeout
+
+    def kill():
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        p.kill()
+        p.wait()
+    while sel.get_map():
+        left = deadline - time.monotonic()
+        if left <= 0:
+            kill()
+            return False, "timeout"
+        for key, _ in sel.select(min(left, 0.5)):
+            chunk = os.read(key.fd, 65536)
+            if not chunk:
+                sel.unregister(key.fileobj)
+                continue
+            total += len(chunk)
+            if total > limit:
+                kill()
+                return False, f"output overflow (> {limit} bytes): computation killed"
+            bufs[key.data].append(chunk)
     try:
-        p = subprocess.run(cmd, env={}, capture_output=True, text=True, timeout=RUN_SECONDS + 2, preexec_fn=limits)
+        p.wait(timeout=max(0.1, deadline - time.monotonic()))
     except subprocess.TimeoutExpired:
+        kill()
         return False, "timeout"
-    return p.returncode == 0, (p.stdout if p.returncode == 0 else p.stderr)[-500:]
+    out, err = b"".join(bufs["out"]).decode("utf-8", "replace"), b"".join(bufs["err"]).decode("utf-8", "replace")
+    return p.returncode == 0, (out if p.returncode == 0 else err)[-500:]
 
 
 def _norm_value(s: str) -> str:
@@ -146,7 +187,7 @@ def classify_argument(text: str, task_text: str = "") -> dict:
         return {"kind": "suggestion", "argument": {"reason": "consequence names no option"}}
     blocks = re.findall(r"```(?:python|py)?\s*\n(.*?)```", parts["EVIDENCE"], re.S)
     if not blocks:
-        return {"kind": "quote", "argument": {"reason": "stated evidence", "executed": False}}
+        return {"kind": "formal", "argument": {"reason": "complete CLAIM/EVIDENCE/CONSEQUENCE, nothing executed", "executed": False}}
     stated = re.search(r"RESULT\s*[:=]\s*(.+)", parts["EVIDENCE"])
     if not stated:
         return {"kind": "suggestion", "argument": {"reason": "computation without a stated RESULT"}}
@@ -155,5 +196,11 @@ def classify_argument(text: str, task_text: str = "") -> dict:
         ok, why = reproduces(code, stated.group(1))
         detail.append(why)
         if ok:
-            return {"kind": "command", "argument": {"reason": "computation reproduced", "executed": True, "detail": why}}
+            return {"kind": "verified", "argument": {"reason": "computation reproduced in the sandbox", "executed": True, "detail": why}}
     return {"kind": "suggestion", "argument": {"reason": "computation not reproduced", "executed": True, "detail": detail}}
+
+
+def ledger_ground(g: dict) -> dict:
+    """classify_argument result in the shape the shared ledger expects: formal -> quote, verified -> command; `level` keeps the two apart for the counts."""
+    level = g.get("kind")
+    return {**g, "kind": {"formal": "quote", "verified": "command"}.get(level, level), "level": level}

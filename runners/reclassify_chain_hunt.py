@@ -19,18 +19,18 @@ for line in (run / "results.jsonl").read_text().splitlines():
     obj_rows, indep_grounded, ev_replies, ev_withdrawn = [], 0, 0, 0
     for o in ex["objections"]:
         g = ag.classify_argument(o["text"], "")
-        grounded_o = g["kind"] in ("command", "quote")
+        grounded_o = g["kind"] in ("formal", "verified")
         indep = bool(o.get("lineage")) and o["lineage"] != pos_lin.get(o["target"])
         indep_grounded += int(grounded_o and indep)
         reps = []
         for r in o.get("replies", []):
             gr = ag.classify_argument(r.get("text", ""), "")
-            ok = gr["kind"] in ("command", "quote")
+            ok = gr["kind"] in ("formal", "verified")
             if indep:
                 ev_replies += int(ok)
                 ev_withdrawn += int(ok and r.get("action") == "withdraw")
-            reps.append(f"{r['role']}:{r['action']}={'GROUNDED' if ok else gr['argument']['reason']}")
-        obj_rows.append(f"{o['id']}({o.get('lineage')}->{o['target']}) {'GROUNDED' if grounded_o else g['argument']['reason']}" + (f" | replies {reps}" if reps else ""))
+            reps.append(f"{r['role']}:{r['action']}={'GROUNDED_'+gr['kind'].upper() if ok else gr['argument']['reason']}")
+        obj_rows.append(f"{o['id']}({o.get('lineage')}->{o['target']}) {'GROUNDED_'+g['kind'].upper() if grounded_o else g['argument']['reason']}" + (f" | replies {reps}" if reps else ""))
     new = {**row, "independent_grounded_objections": indep_grounded, "evidenced_replies": ev_replies, "evidenced_withdrawn": ev_withdrawn}
     st = chain_stages(new)
     print(f"{row['qid']}: now reaches {st['reached']} (was {chain_stages(row)['reached']}) complete={st['complete']} class={chain_class(new) if st['complete'] else None}")
