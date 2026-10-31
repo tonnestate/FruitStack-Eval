@@ -99,6 +99,44 @@ class Infra(Exception):
         self.kind = kind
 
 
+class Outage:
+    """Systemic-outage rule (deviation D4): infrastructure failures of one arm are held back until a success of that arm shows they were isolated. After OUTAGE_STREAK
+    consecutive failures in an arm the held rows are discarded (not written), the process stops taking new work and exits with RESTART_CODE; a supervisor starts it fresh
+    and every discarded (question, arm) is tried once more (`retried`). A failure of an already retried pair is final."""
+    OUTAGE_STREAK = 5
+    RESTART_CODE = 75
+
+    def __init__(self, retried=()):
+        self.retried = {tuple(x) for x in retried}
+        self.held: dict[str, list] = {}
+        self.tripped = False
+        self.lock = threading.Lock()
+
+    def offer(self, row: dict) -> tuple[list, list]:
+        """Return (rows to write now, qids/arms discarded for a retry)."""
+        arm, key = row["arm"], (row["qid"], row["arm"])
+        with self.lock:
+            if row["status"] == "OK":
+                out = self.held.pop(arm, []) + [row]
+                return out, []
+            if key in self.retried:
+                return self.held.pop(arm, []) + [row], []
+            held = self.held.setdefault(arm, [])
+            held.append(row)
+            if len(held) >= self.OUTAGE_STREAK:
+                self.tripped = True
+                gone = [(r["qid"], r["arm"]) for r in held]
+                self.held[arm] = []
+                return [], gone
+            return [], []
+
+    def flush(self) -> list:
+        with self.lock:
+            rows = [r for h in self.held.values() for r in h]
+            self.held = {}
+            return rows
+
+
 class Context:
     """Process-wide handles shared by all questions. Every (question, arm) gets its OWN MangoMe workspace/project, WorkIdentity and EXECUTE turn (PeachMe aborts a step with CANONICAL_CONTEXT_CHANGED when
     another work is admitted in the same project meanwhile) and its own memory key in the fixed OrangeMe project PeachMe is bound to. OrangeMe's ledger is a git repository: adapter calls are serialised."""
@@ -112,6 +150,8 @@ class Context:
         self.env_lock = threading.RLock()
         self.gate = conc.CallGate(call_cap)
         self.results_lock = threading.Lock()
+        retried_path = out / "retried.jsonl"
+        self.outage = Outage([(r[0], r[1]) for r in (json.loads(l) for l in retried_path.read_text().splitlines())] if retried_path.exists() else [])
         self.actor = os.environ.get("ORANGEME_AGENT_ID", "claude-code-ogi")
         self.orange_lock = threading.RLock()
         for name in ("load", "store"):
@@ -408,6 +448,8 @@ def run_T(ctx: Context, q: dict) -> dict:
         raise Infra("INFRA_SUPPLY", str(exc)) from exc
     check_budget(ep)
     firsts = [parse_letter(r.answer_text, n_opt) for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"]
+    if len(firsts) < 2:                                                  # amendment QA-1b/2: a T row is OK only if two positions (distinct lineages, enforced by the roster) were submitted
+        raise Infra("INFRA_TEAM_INCOMPLETE", f"{len(firsts)} independent position(s) submitted; stop={res.stop_reason}")
     position_letters = {k: parse_letter(v, n_opt) for k, v in res.positions.items() if not k.endswith("#sp")}
     spec_rows = [r for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "SPECIALIST_TIEBREAK"]
     spec_letter = parse_letter(spec_rows[-1].answer_text, n_opt) if spec_rows else None
@@ -453,6 +495,8 @@ def run_arm(fn, q, arm, *args) -> dict:
 
 
 def process_question(ctx: Context, q: dict, arms: set, done: set, sink) -> None:
+    if ctx.outage.tripped:                                               # systemic outage: take no new work, the supervisor restarts the process
+        return
     pool = ThreadPoolExecutor(max_workers=2)
     futs = {}
     if "S" in arms and (q["id"], "S") not in done:
@@ -463,16 +507,36 @@ def process_question(ctx: Context, q: dict, arms: set, done: set, sink) -> None:
     if "T" in arms and (q["id"], "T") not in done:
         t_row = run_arm(run_T, q, "T", ctx, q)
         sink(t_row)
-    if "E" in arms and (q["id"], "E") not in done:
-        if t_row is None:
-            t_row = next((r for r in load_jsonl(ctx.out / "results.jsonl") if r["qid"] == q["id"] and r["arm"] == "T"), None)
-        if t_row and t_row.get("status") == "OK":
-            sink(run_arm(run_E, q, "E", ctx, q, t_row))
-        else:
-            sink({"qid": q["id"], "arm": "E", "key": q["key"], "letter": None, "correct": False, "status": "INFRA_FAILED", "infra_detail": "T failed: E has no k", "rerun": False})
+    elif "E" in arms:
+        t_row = next((r for r in load_jsonl(ctx.out / "results.jsonl") if r["qid"] == q["id"] and r["arm"] == "T"), None)
+    # E starts only after T has a valid result; a T failure is retried by the outage/restart rule and never marks E as failed here (final T failures get their E row in `close_out`)
+    if "E" in arms and (q["id"], "E") not in done and t_row and t_row.get("status") == "OK":
+        sink(run_arm(run_E, q, "E", ctx, q, t_row))
     for arm, f in futs.items():
         sink(f.result())
     pool.shutdown()
+
+
+def close_out(ctx: Context, arms: set, res_path: Path) -> None:
+    """Final T failures (after the retry) leave E without a k: record E as failed because of T, once, at the end."""
+    if "E" not in arms:
+        return
+    rows = load_jsonl(res_path) if res_path.exists() else []
+    have = {(r["qid"], r["arm"]) for r in rows}
+    for r in rows:
+        if r["arm"] == "T" and r["status"] != "OK" and (r["qid"], "E") not in have:
+            with res_path.open("a") as fh:
+                fh.write(json.dumps({"qid": r["qid"], "arm": "E", "key": r["key"], "letter": None, "correct": False, "status": "INFRA_FAILED", "infra_detail": "T failed after retry: E has no k", "rerun": False}) + "\n")
+
+
+def note_restart(ctx: Context, arm: str, pairs: list) -> None:
+    """Log one systemic-outage restart (deviation D4) and remember the discarded pairs so that each is retried once after the restart."""
+    with ctx.results_lock:
+        with (ctx.out / "retried.jsonl").open("a") as fh:
+            for qid, a_ in pairs:
+                fh.write(json.dumps([qid, a_]) + "\n")
+        with (ctx.out / "restarts.jsonl").open("a") as fh:
+            fh.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "arm": arm, "discarded": pairs}) + "\n")
 
 
 def main(argv=None) -> int:
@@ -481,6 +545,9 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--arms", default="T,E,S,L")
     ap.add_argument("--s-model", default=None)
+    ap.add_argument("--diagnose-pin", default=None, help="diagnostic: try to lease the pinned model once and print the exception")
+    ap.add_argument("--probe-calls", type=int, default=10, help="--select-s: availability probe calls per candidate (QA-1b: 30)")
+    ap.add_argument("--probe-interval", type=float, default=0.0, help="--select-s: seconds between probe calls (QA-1b: 60, i.e. 30 calls over 30 minutes)")
     ap.add_argument("--select-s", action="store_true", help="print the model PlumMe AUTO ranks first for the solve role and exit")
     ap.add_argument("--q-par", type=int, default=Q_PAR)
     ap.add_argument("--call-cap", type=int, default=GLOBAL_CALL_CAP)
@@ -488,6 +555,17 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
     ctx = Context(a.out, a.s_model, a.call_cap)
+    if a.diagnose_pin:
+        import asyncio
+        from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
+        req = NeuronRequest(consumer="peachme", objective="diag", role_id="REASONING", cognitive_owner=CognitiveOwner.CONSUMER, selection_mode=SelectionMode.PINNED_MODEL, pinned_model_key=a.diagnose_pin,
+                            required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1, max_cost_usd=0.0), metadata={"exclude_small_models": True})
+        try:
+            lease = asyncio.run(ctx.stack.svc.acquire_neuron(req))
+            print(json.dumps({"pinned": a.diagnose_pin, "ok": True, "route": getattr(lease.route, "model", None)}))
+        except Exception as exc:  # noqa: BLE001
+            print(json.dumps({"pinned": a.diagnose_pin, "ok": False, "error": f"{type(exc).__name__}: {str(exc)[:600]}"}))
+        return 0
     if a.select_s:
         # lock-time selection: the model PlumMe AUTO ranks first for the solve role among models that pass an availability probe of 10 consecutive calls (a free route that cannot serve a 198-question run
         # would turn the S arm and T's solver 1 into infrastructure failures); a failing model's lineage is excluded and AUTO is asked again
@@ -504,11 +582,12 @@ def main(argv=None) -> int:
                 break
             model, lin = d["model_key"], d.get("independence_key")
             ok = 0
-            for _p in range(10):
+            for _p in range(a.probe_calls):
                 r = ep.step("Reply with the single word READY.", "author", prefer=model, sticky_attempts=99)
                 ok += int(r["success"] and r.get("model_key") == model)
+                time.sleep(a.probe_interval)
             log.append({"model": model, "lineage": lin, "probe_ok": ok})
-            if ok == 10:
+            if ok == a.probe_calls:
                 print(json.dumps({"s_model": model, "independence_key": lin, "probe": log, "success": True}))
                 return 0
             excluded.append(lin)
@@ -521,13 +600,26 @@ def main(argv=None) -> int:
     done = {(r["qid"], r["arm"]) for r in (load_jsonl(res_path) if res_path.exists() else [])}
     arms = set(a.arms.split(","))
 
-    def sink(row):
+    def write(rows):
         with ctx.results_lock:
             with res_path.open("a") as fh:
-                fh.write(json.dumps(row) + "\n")
-        print(json.dumps({k: row.get(k) for k in ("qid", "arm", "letter", "correct", "status", "calls", "tokens", "seconds")}), flush=True)
+                for row in rows:
+                    fh.write(json.dumps(row) + "\n")
+        for row in rows:
+            print(json.dumps({k: row.get(k) for k in ("qid", "arm", "letter", "correct", "status", "calls", "tokens", "seconds")}), flush=True)
+
+    def sink(row):
+        rows, gone = ctx.outage.offer(row)
+        write(rows)
+        if gone:
+            note_restart(ctx, row["arm"], gone)
     with ThreadPoolExecutor(max_workers=a.q_par) as pool:
         list(pool.map(lambda q: process_question(ctx, q, arms, done, sink), qs))
+    if ctx.outage.tripped:                                                # in-flight failures of the same outage are retried too
+        note_restart(ctx, "*", [(r["qid"], r["arm"]) for r in ctx.outage.flush()])
+        return Outage.RESTART_CODE
+    write(ctx.outage.flush())
+    close_out(ctx, arms, res_path)
     return 0
 
 

@@ -39,6 +39,21 @@ class LineageHeart(PlumMeProvider):
         """Lineage facts of a lease acquired through this heart: independence_key, model_key, prefer_met (None = no preference was asked)."""
         return dict(self._facts.get(lease_id) or {})
 
+    def _why_unavailable(self, pin: str, exc: Exception) -> None:
+        """Diagnosis (QA-1b): why a pinned lease failed, as one stderr JSON line (exception text, circuit/pool/credential facts for that model)."""
+        import json, sys, time
+        sch = getattr(self.service, "scheduler", None)
+        model = pin.split("@")[0]
+        facts = {}
+        if sch is not None:
+            facts = {"circuit": {k: v for k, v in sch.circuit.snapshot().items() if model in k},
+                     "offers": {o.offer_id: {"health": getattr(o.health, "value", o.health), "since_s_ago": time.time() - sch.store.health_since.get(o.offer_id, 0.0),
+                                             "quota_reset_at": str(getattr(o.quota, "reset_at", None)), "pool": o.quota_pool_id}
+                                for o in sch.store.market.offers.values() if o.model_key == pin},
+                     "pool_blocked": {k: v - time.time() for k, v in getattr(sch, "pool_blocked", {}).items() if v - time.time() > 0},
+                     "pool_state": {k: v.get("status") for k, v in getattr(sch, "pool_state", {}).items()}}
+        print(json.dumps({"pinned_unavailable": pin, "exc": f"{type(exc).__name__}: {str(exc)[:300]}", **facts}, default=str)[:1500], file=sys.stderr, flush=True)
+
     async def acquire(self, *, role_id: str, objective: str, required_skill_ids: tuple[str, ...], max_cost_usd: float | None = None) -> dict:
         from plumme.knowledge import independence_key
         from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
@@ -56,7 +71,8 @@ class LineageHeart(PlumMeProvider):
                 lease, prefer_met = await self.service.acquire_neuron(request(self.prefer_model_key)), True
             except Exception as exc:  # noqa: BLE001 - the preference is soft: no route for that model -> any admissible route, and the miss is recorded
                 if self.strict_prefer:      # a roster-pinned call: the miss is a FAILED step, never a silent handover (the roster rule decides after two failed steps)
-                    raise PeachError("EXECUTION_NOT_PERFORMED_PINNED_MODEL_UNAVAILABLE") from exc
+                    self._why_unavailable(self.prefer_model_key, exc)
+                    raise PeachError("EXECUTION_NOT_PERFORMED_PINNED_MODEL_UNAVAILABLE") from exc  # cause is logged by _why_unavailable
                 lease, prefer_met = None, False
         if lease is None:
             lease = await self.service.acquire_neuron(request(None))

@@ -125,3 +125,34 @@ def test_progress_line_contains_counts_only_no_outcome(tmp_path):
     line = pg.progress(str(f), "2026-10-31T00:00:00Z", now=datetime(2026, 10, 31, 2, 0, tzinfo=timezone.utc))
     assert "rows 40/792" in line and "20.0 rows/h" in line and "ETA 37.6 h" in line and "infra failures 8" in line
     assert "correct" not in line and "letter" not in line and "True" not in line
+
+
+# ---- QA-1b: systemic-outage rule (deviation D4) ----------------------------------------------------------------------------------------------------------------------------
+def _row(qid, arm, ok):
+    return {"qid": qid, "arm": arm, "status": "OK" if ok else "INFRA_FAILED"}
+
+
+def test_outage_isolated_failure_is_written_when_the_arm_succeeds_again():
+    o = q1.Outage()
+    assert o.offer(_row("1", "S", False)) == ([], [])
+    rows, gone = o.offer(_row("2", "S", True))
+    assert [r["qid"] for r in rows] == ["1", "2"] and gone == [] and not o.tripped
+
+
+def test_outage_five_consecutive_failures_discard_and_trip_then_retry_is_final():
+    o = q1.Outage()
+    for i in range(4):
+        assert o.offer(_row(str(i), "T", False)) == ([], [])
+    rows, gone = o.offer(_row("4", "T", False))
+    assert rows == [] and o.tripped and gone == [(str(i), "T") for i in range(5)]
+    o2 = q1.Outage(retried=gone)                                        # fresh process: a retried pair that fails again is final at once
+    rows, gone2 = o2.offer(_row("0", "T", False))
+    assert [r["qid"] for r in rows] == ["0"] and gone2 == [] and not o2.tripped
+
+
+def test_outage_streaks_are_per_arm():
+    o = q1.Outage()
+    for i in range(4):
+        o.offer(_row(str(i), "S", False))
+        o.offer(_row(str(i), "E", False))
+    assert not o.tripped
