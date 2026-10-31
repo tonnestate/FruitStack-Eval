@@ -203,7 +203,8 @@ class Episode:
         fs = stack.fs
         self.actor = os.environ["OGI013_ACTOR_ID"]
         self.work, self.project, self.turn_id = stack.project(f"/ogi013/tau2/{domain}/{mode}")
-        self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")  # PeachMe restores by MangoMe project key (as peachme.mission does)
+        self.memory_ref = os.environ.get("OGI013_MEMORY_REF") or "memory/working"                  # QA-1: one memory key per episode (unique keys never collide on the shared project ledger)
+        self.session = stack.store.open(self.actor, work_ref=self.project, memory_ref=self.memory_ref)  # PeachMe restores by MangoMe project key (as peachme.mission does)
         self.sid = self.session.session_id
         fs.bind_turn_authority(self.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         self.org = None
@@ -255,7 +256,7 @@ class Episode:
     def fork(self) -> "Episode":
         """Parallel organisation: a concurrent worker gets its OWN PeachMe session (sessions are sequential by design) on the same work and turn; log, stats, lock, gate and timing are shared."""
         child = copy.copy(self)
-        child.session = self.stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")
+        child.session = self.stack.store.open(self.actor, work_ref=self.project, memory_ref=self.memory_ref)
         child.sid = child.session.session_id
         self.stack.fs.bind_turn_authority(child.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
         if getattr(self, "gov_cfg", None):
@@ -425,6 +426,12 @@ class Episode:
         from ogi013_pilot_gate import token_limits
         from peachme import PeachError
         limits = token_limits()
+        if getattr(self, "budget_profile", None) == "qa":
+            # QA-1: short prompts must still leave room for PlumMe's own system/skill preamble in its input estimate (the default reserve of prompt bytes + 2048 made every tiny prompt fail with
+            # "total token budget would be exceeded"), and reasoning answers need more than 2048 output tokens
+            snap = self.stack.fs.governance.snapshot(self.sid)
+            need = len(prompt.encode("utf-8")) + 4096 + 3000
+            return 4096, int(need if snap is None or snap["tokens_remaining"] is None else min(need, snap["tokens_remaining"]))
         if limits is None:
             return 2048, self.reserve(prompt)
         est = self.input_tokens(prompt, env)

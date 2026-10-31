@@ -83,3 +83,15 @@ def test_paired_difference_and_infrastructure_failure_counts_as_incorrect_with_a
     assert res["n_questions"] == 20 and res["sensitivity"]["n_questions"] == 19
     h1 = next(c for c in res["primary"]["comparisons"] if c["hypothesis"] == "H1")
     assert h1["b_T_only"] == 5 and h1["c_other_only"] == 1 and abs(h1["diff"] - 0.2) < 1e-9 and abs(h1["p"] - 0.21875) < 1e-12          # T right on 1..14, S on 0..9; T failed (infra) on 0 -> S-only there
+
+
+def test_qa_budget_profile_reserves_room_for_the_system_preamble_and_longer_answers():
+    from types import SimpleNamespace
+    from ogi013_tau2_agent import Episode
+    ep = object.__new__(Episode)
+    ep.sid, ep.budget_profile = "s", "qa"
+    ep.stack = SimpleNamespace(fs=SimpleNamespace(governance=SimpleNamespace(snapshot=lambda sid: {"tokens_remaining": 60000})))
+    max_out, reserve = ep.output_budget("Reply with the single word READY.", {})
+    assert max_out == 4096 and reserve >= 4096 + 3000                       # a 33-byte prompt no longer yields a 2081-token reservation
+    ep.stack.fs.governance.snapshot = lambda sid: {"tokens_remaining": 5000}
+    assert ep.output_budget("x", {})[1] == 5000                             # never more than the session has left
