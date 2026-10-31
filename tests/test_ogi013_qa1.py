@@ -95,3 +95,22 @@ def test_qa_budget_profile_reserves_room_for_the_system_preamble_and_longer_answ
     assert max_out == 4096 and reserve >= 4096 + 3000                       # a 33-byte prompt no longer yields a 2081-token reservation
     ep.stack.fs.governance.snapshot = lambda sid: {"tokens_remaining": 5000}
     assert ep.output_budget("x", {})[1] == 5000                             # never more than the session has left
+
+
+# ---- descriptive trace addendum (synthetic data only; no look at study outcomes) ----------------------------------------------------------------------------------
+import analyze_qa1_trace as tr  # noqa: E402
+
+
+def test_descriptive_trace_addendum_on_synthetic_rows(tmp_path):
+    S = "poolside-laguna-s-2.1@default"
+    rows = []
+    for i in range(6):
+        t = {"qid": str(i), "arm": "T", "key": "A", "status": "OK", "correct": i % 2 == 0, "letter": "A" if i % 2 == 0 else "B", "first_letters": {"S1": "B" if i == 0 else "A", "S2": "C" if i == 0 else "A"},
+             "stop": "NO_SECOND_SOLVER" if i == 5 else "NO_ISSUES", "answer_changes": 1 if i == 3 else 0, "how": "specialist" if i == 0 else "agreed", "specialist_letter": "A" if i == 0 else None, "roster": {"roster": {"solver1": S}, "changes": []}}
+        rows += [t] + [{"qid": str(i), "arm": a, "key": "A", "status": "OK", "correct": (i in (0, 1)) if a == "S" else True} for a in ("E", "S", "L")]
+    f = tmp_path / "r.jsonl"
+    f.write_text("\n".join(json.dumps(r) for r in rows))
+    out = tr.trace(str(f), S)
+    assert out["t_stop_reasons"] == {"specialist_decided": 1, "revision_changed_an_answer": 1, "NO_SECOND_SOLVER": 1, "both_solvers_agreed_challenge_found_nothing": 3}
+    assert out["final_differs_from_both_first_answers"] == 1                         # question 0: final A, first answers B and C
+    assert out["s_pinned_as_solver1_on_every_ok_question"] is True and out["discordant_pairs"]["T vs S"]["discordant_pairs"] > 0
