@@ -112,5 +112,5 @@ def test_descriptive_trace_addendum_on_synthetic_rows(tmp_path):
     f.write_text("\n".join(json.dumps(r) for r in rows))
     out = tr.trace(str(f), S)
     assert out["t_stop_reasons"] == {"specialist_decided": 1, "revision_changed_an_answer": 1, "NO_SECOND_SOLVER": 1, "both_solvers_agreed_challenge_found_nothing": 3}
-    assert out["final_differs_from_both_first_answers"] == 1                         # question 0: final A, first answers B and C
+    assert out["final_differs_from_both_first_answers"] == 4                         # question 0 (final A vs B, C) and questions 1, 3, 5 (final B vs A, A)
     assert out["s_pinned_as_solver1_on_every_ok_question"] is True and out["discordant_pairs"]["T vs S"]["discordant_pairs"] > 0
