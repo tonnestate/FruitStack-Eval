@@ -2,7 +2,7 @@
 # OGI-013 QA-1 launcher. usage: run_qa1.sh DATA.jsonl OUTDIR [runner args...]   (OUTDIR is created; reuse it to resume)
 set -e
 DATA=$1; OUT=$2; shift 2
-PD=/root/fruits/integration/ogi013-collab-proof; B=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013-collab1; T=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/benchmarks/tau2-bench
+PD=${OGI013_PD:-/root/fruits/integration/ogi013-collab-proof}; B=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013-collab1; T=/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013/benchmarks/tau2-bench
 R=$B/runs; H=/root/fruits/integration/ogi013-hostpython-org/bin/python; CR=/root/fruits/integration/ogi013-org-components
 cd "$PD"; source $B/env.sh
 export PYTHONPATH=$PD/runners:$PD:$CR/CherryMe:$CR/PeachMe/src:$CR/PlumMe/src:$CR/AppleMe/src:$CR/MangoMe/src:$CR/OrangeMe/src:$CR/PomeloMe ORANGEME_SOURCE_REPO=$T

@@ -143,6 +143,8 @@ def run_T(ctx: Context, q: dict) -> dict:
     tm = Timing()
     ep = ctx.episode("T", q["id"])
     tm.init_s = time.monotonic() - t0
+    tok_now = lambda: ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0)  # noqa: E731 - EVC logging: tokens / seconds per phase
+    phase_tokens, phase_seconds, per_exchange = {}, {}, []
     n_opt, task = len(q["options"]), question_prompt(q)
     team = TeamState(task, ctx.out / "events" / f"{q['id']}_T_team_state.md")
     team.mango = MangoLedger(ctx.stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)
@@ -186,6 +188,7 @@ def run_T(ctx: Context, q: dict) -> dict:
             raise _fail("INFRA_STEP_FAILED", f"{name} first answer: {d.get('failure_class')}", cnt["calls"])
         members[name].diff, members[name].status = d["output"], "submitted"
     persist()
+    phase_tokens["first"], phase_seconds["first"] = tok_now(), round(time.monotonic() - t0, 2)
     first_letters = {name: letter_of(name) for name in members}
     first_by_pos = {members[n].id: first_letters[n] for n in members}
     team.independent = False
@@ -195,6 +198,8 @@ def run_T(ctx: Context, q: dict) -> dict:
         stop = "NO_CONSENSUS"
         for ex in range(1, MAX_EXCHANGES + 1):
             exchanges = ex
+            ex_t0, ex_tok0, before = time.monotonic(), tok_now(), {n: letter_of(n) for n in members}
+            ex_levels = []
             # cross-critique: each member judges the other's position
             def critique(judge: str, target: str):
                 pos = members[target]
@@ -213,6 +218,7 @@ def run_T(ctx: Context, q: dict) -> dict:
                 cnt["objections"] += 1
                 cnt["grounded_objections"] += int(ground["kind"] in ("quote", "command"))
                 objs_chrono.append({"oid": oid, "author": judge, "target": target, "level": ground.get("level")})
+                ex_levels.append({"author": judge, "target": target, "level": ground.get("level")})
                 filed.append((oid, judge, target))
             persist()
 
@@ -243,6 +249,8 @@ def run_T(ctx: Context, q: dict) -> dict:
                 pos.diff, pos.rev, pos.status = d["output"], pos.rev + 1, "revised"
                 team.decisions.append(f"{pos.id} revised (letter {old} -> {new}) responding to {oid}")
             persist()
+            per_exchange.append({"exchange": ex, "letters_before": before, "letters_after": {n: letter_of(n) for n in members}, "objection_levels": ex_levels,
+                                 "tokens": tok_now() - ex_tok0, "seconds": round(time.monotonic() - ex_t0, 2)})
             if letter_of("luna") and letter_of("luna") == letter_of("nemo"):
                 stop = f"CONSENSUS_EXCHANGE_{ex}"
                 break
@@ -264,7 +272,9 @@ def run_T(ctx: Context, q: dict) -> dict:
            "objection_target_first": [first_by_pos.get(o["target"]) for o in team.objs], "objection_states": [o["state"] for o in team.objs],
            "lineages": {"positions": {m.id: m.lineage for m in members.values()}, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")})},
            "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0), "seconds": round(time.monotonic() - t0, 1),
-           "mango_writes": team.mango.writes, "mango_reads": team.mango.reads, "work_ref": ep.work, "timing": tm.report()}
+           "mango_writes": team.mango.writes, "mango_reads": team.mango.reads, "work_ref": ep.work, "timing": tm.report(),
+           "category": q.get("category"), "phase_tokens": {"first": phase_tokens["first"], "exchange": tok_now() - phase_tokens["first"]},
+           "phase_seconds": {"first": phase_seconds["first"], "exchange": round(time.monotonic() - t0 - phase_seconds["first"], 2)}, "per_exchange": per_exchange}
     (ctx.out / "exchange").mkdir(exist_ok=True)
     (ctx.out / "exchange" / f"{q['id']}.json").write_text(json.dumps({"first_answers": {n: first[n]["output"] for n in first}, "objections": team.objs, "decisions": team.decisions, "final": team.release}, default=str))
     return row
