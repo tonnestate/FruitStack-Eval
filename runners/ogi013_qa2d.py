@@ -123,10 +123,24 @@ def nemo_step(ctx: Context, ep, prompt: str) -> dict:
             ctx.stop = "RUN_CAP"
         elif NEMO_QUOTA.search(msg):
             ctx.stop = "NEMOTRON_LIMIT: " + msg
-        return {**SMALL_FAIL, "failure_class": msg}
+        return {**SMALL_FAIL, "failure_class": msg, "provider_message": provider_message(ctx)}
     if d.get("success") and d.get("model_key") == NEMO_KEY:
         return d
-    return {**SMALL_FAIL, "failure_class": str(d.get("failure_class"))[:200]}
+    return {**SMALL_FAIL, "failure_class": str(d.get("failure_class"))[:200], "provider_message": provider_message(ctx)}
+
+
+def reason(d: dict) -> str:
+    """Why a call failed: PlumMe's failure class plus the provider's own message when one was recorded (timeouts are reported separately from wrong answers)."""
+    return str(d.get("failure_class")) + (f" | {d['provider_message']}" if d.get("provider_message") else "")
+
+
+def provider_message(ctx: Context) -> str | None:
+    """The last error PlumMe's circuit recorded for the pinned model (the provider's own text), for the failure record only."""
+    try:
+        msgs = [v.get("last_error") for k, v in ctx.stack.svc.scheduler.circuit.snapshot().items() if NEMO_KEY.split("@")[0] in k and v.get("last_error")]
+    except Exception:  # noqa: BLE001
+        return None
+    return str(msgs[-1])[:160] if msgs else None
 
 
 def _fail(kind: str, why: str, calls: int):
@@ -185,7 +199,7 @@ def run_T(ctx: Context, q: dict) -> dict:
         first = {"luna": fl.result(), "nemo": fn.result()}
     for name, d in first.items():
         if not d["success"]:
-            raise _fail("INFRA_STEP_FAILED", f"{name} first answer: {d.get('failure_class')}", cnt["calls"])
+            raise _fail("INFRA_STEP_FAILED", f"{name} first answer: {reason(d)}", cnt["calls"])
         members[name].diff, members[name].status = d["output"], "submitted"
     persist()
     phase_tokens["first"], phase_seconds["first"] = tok_now(), round(time.monotonic() - t0, 2)
@@ -209,7 +223,7 @@ def run_T(ctx: Context, q: dict) -> dict:
             filed = []
             for judge, target, d in crits:
                 if not d["success"]:
-                    raise _fail("INFRA_STEP_FAILED", f"{judge} critique: {d.get('failure_class')}", cnt["calls"])
+                    raise _fail("INFRA_STEP_FAILED", f"{judge} critique: {reason(d)}", cnt["calls"])
                 text = d["output"]
                 if re.match(r"\s*ISSUES:\s*NONE", text, re.I) or not (re.match(r"\s*ISSUES:\s*FOUND", text, re.I) or len(text) > 40):
                     continue
@@ -221,6 +235,9 @@ def run_T(ctx: Context, q: dict) -> dict:
                 ex_levels.append({"author": judge, "target": target, "level": ground.get("level")})
                 filed.append((oid, judge, target))
             persist()
+            if not filed:                                                 # nothing to answer: a second identical critique round would only repeat itself (same rule as the facade)
+                per_exchange.append({"exchange": ex, "letters_before": before, "letters_after": before, "objection_levels": [], "tokens": tok_now() - ex_tok0, "seconds": round(time.monotonic() - ex_t0, 2)})
+                break
 
             # replies: each objected member answers once, naming the objection
             def reply(oid: str, target: str):
@@ -232,7 +249,7 @@ def run_T(ctx: Context, q: dict) -> dict:
                 answers = [f.result() for f in [tp.submit(reply, oid, target) for oid, _j, target in filed]]
             for oid, target, d in answers:
                 if not d["success"]:
-                    raise _fail("INFRA_STEP_FAILED", f"{target} reply: {d.get('failure_class')}", cnt["calls"])
+                    raise _fail("INFRA_STEP_FAILED", f"{target} reply: {reason(d)}", cnt["calls"])
                 pos, o = members[target], next(x for x in team.objs if x["id"] == oid)
                 old, new = parse_letter(pos.diff, n_opt), parse_letter(d["output"], n_opt)
                 if new != old:
@@ -302,7 +319,7 @@ def run_E(ctx: Context, q: dict, k: int) -> dict:
         return d
     with ThreadPoolExecutor(2) as tp:
         ds = list(tp.map(draft, order))
-    bad = [(n, d.get("failure_class")) for n, d in zip(order, ds) if not d["success"]]
+    bad = [(n, reason(d)) for n, d in zip(order, ds) if not d["success"]]
     if bad:
         raise _fail("INFRA_STEP_FAILED", f"draft failed: {bad[0]}", k)
     drafts = [(n, parse_letter(d["output"], n_opt)) for n, d in zip(order, ds)]
@@ -315,7 +332,7 @@ def run_SL(ctx: Context, q: dict) -> dict:
     t0, luna0 = time.monotonic(), ctx.luna_tokens
     d = luna_step(ctx, answer_prompt(q))                                     # the identical prompt of the QA-1 L arm and of every first answer
     if not d["success"]:
-        raise _fail("INFRA_LUNA_FAILED", str(d.get("failure_class")), 1)
+        raise _fail("INFRA_LUNA_FAILED", reason(d), 1)
     store_outputs(ctx, q["id"], "SL", {"luna": d["output"]})
     return {"letter": parse_letter(d["output"], len(q["options"])), "calls": 1, "tokens": ctx.luna_tokens - luna0, "seconds": round(time.monotonic() - t0, 1),
             "timing": {"calls": [{"kind": "answer", "member": "luna", "seconds": round(time.monotonic() - t0, 2), "ok": True}]}}
@@ -326,7 +343,7 @@ def run_SN(ctx: Context, q: dict) -> dict:
     ep = ctx.episode("SN", q["id"])
     d = nemo_step(ctx, ep, answer_prompt(q))
     if not d["success"]:
-        raise _fail("INFRA_STEP_FAILED", str(d.get("failure_class")), 1)
+        raise _fail("INFRA_STEP_FAILED", reason(d), 1)
     store_outputs(ctx, q["id"], "SN", {"nemo": d["output"]})
     return {"letter": parse_letter(d["output"], len(q["options"])), "calls": 1, "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"], "seconds": round(time.monotonic() - t0, 1), "work_ref": ep.work,
             "timing": {"calls": [{"kind": "answer", "member": "nemo", "seconds": round(time.monotonic() - t0, 2), "ok": True}]}}

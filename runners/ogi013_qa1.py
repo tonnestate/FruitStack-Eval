@@ -87,7 +87,8 @@ from types import SimpleNamespace  # noqa: E402
 CODEX_HOME = "/root/.plumme/codex-headless-home"
 GLOBAL_CALL_CAP = 6
 Q_PAR = 4
-EPISODE_MAX_TOKENS = {"T": 400_000, "E": 400_000, "S": 60_000}
+DUO_EPISODE_TOKENS = 400_000                      # one explicit ceiling for the duo arms: T (QA-2D protocol) and TC (Code Mode facade) must not differ here
+EPISODE_MAX_TOKENS = {"T": DUO_EPISODE_TOKENS, "TC": DUO_EPISODE_TOKENS, "E": 400_000, "S": 60_000}
 EPISODE_MAX_CALLS = 300
 
 
