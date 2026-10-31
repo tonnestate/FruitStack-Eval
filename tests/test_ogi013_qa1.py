@@ -174,3 +174,21 @@ def test_chain_needs_independent_lineages_and_is_classified_against_the_key():
     assert q1.chain_class({**ok, "first_by_pos": {"S1": "A", "S2": "A"}}) == "PROTECTIVE"
     assert q1.chain_class({**ok, "letter": "C"}) == "HARMFUL"
     assert q1.chain_class({"key": "A", "letter": "C", "first_by_pos": {"S1": "B", "S2": "D"}, "objection_target_first": []}) == "NEUTRAL"
+
+
+# ---- owner concession rule and the three labels ---------------------------------------------------------------------------------------------------------------------
+def test_concession_counts_only_when_independent_substantive_named_and_changed():
+    o = {"id": "O1", "lineage": "qwen3.5", "ground": {"level": "formal"}}
+    assert q1.accepted_concession("O1 is right, the matrix is block triangular. ANSWER: H", o, "qwen2.5", "D", "H")
+    assert not q1.accepted_concession("You are right. ANSWER: H", o, "qwen2.5", "D", "H")                       # does not name the objection
+    assert not q1.accepted_concession("O1 is right. ANSWER: D", o, "qwen2.5", "D", "D")                       # no position change
+    assert not q1.accepted_concession("O1 is right. ANSWER: H", o, "qwen3.5", "D", "H")                        # same lineage: not independent
+    assert not q1.accepted_concession("O1 is right. ANSWER: H", {**o, "ground": {"level": None}}, "qwen2.5", "D", "H")   # not substantive
+
+
+def test_stage_c_accepts_an_accepted_concession_and_the_labels_stay_separate():
+    row = {"first_letters": {"S1": "H", "S2": "D"}, "independent_grounded_objections": 1, "evidenced_replies": 0, "accepted_concessions": 1, "answer_changes": 1, "letter": "H",
+           "key": "H", "first_by_pos": {"S1": "H", "S2": "D"}, "objection_target_first": ["D"], "verified_objections": 0, "verified_replies": 0}
+    assert q1.chain_stages(row)["complete"]
+    assert q1.chain_labels(row) == {"CRITIQUE_ACCEPTED": True, "INDEPENDENTLY_VERIFIED": False, "QUALITY_IMPROVED": True}
+    assert not q1.chain_stages({**row, "accepted_concessions": 0})["complete"]

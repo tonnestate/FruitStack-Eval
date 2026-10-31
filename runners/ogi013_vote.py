@@ -27,6 +27,8 @@ def locked(fn):
     return inner
 
 
+TEXT_CAP_OBJECTION, TEXT_CAP_REPLY = 1500, 400          # stored text caps; the QA runner lifts them (full-length storage), code runs keep these defaults
+
 class Ledger:
     def __init__(self):
         self.lock = threading.RLock()                 # parallel organisation (P3): every ledger operation is serialised; readers get a consistent snapshot
@@ -45,7 +47,7 @@ class Ledger:
     def objection(self, target, lineage, text, kind="objection", grounded=True, ground=None) -> str:
         self.n += 1
         oid = f"O{self.n}"
-        self.objs.append({"id": oid, "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "grounded": grounded, "raised_ns": time.monotonic_ns(),
+        self.objs.append({"id": oid, "target": target, "lineage": lineage, "text": text[:TEXT_CAP_OBJECTION], "kind": kind, "grounded": grounded, "raised_ns": time.monotonic_ns(),
                           "state": OPEN, "open": True, "contested": 0, "decided_by": None, "revised_ns": None,
                           "ground": ground, "declined": False, "arbitrated": False, "exchanges": 0, "replies": [], "needs_arbitration": False})
         self.version += 1
@@ -73,7 +75,7 @@ class Ledger:
             self.emit("UNGROUNDED_REPLY", id=oid, role=role, action=action, sha256=sha)
             return {"ok": False, "event": "UNGROUNDED_REPLY"}
         o["exchanges"] = step
-        o["replies"].append({"step": step, "role": role, "action": action, "sha256": sha, "evidence": (ground or {}).get("kind"), "text": (text or "")[:400]})
+        o["replies"].append({"step": step, "role": role, "action": action, "sha256": sha, "evidence": (ground or {}).get("kind"), "text": (text or "")[:TEXT_CAP_REPLY]})
         self.version += 1
         self.emit("REPLY", id=oid, role=role, action=action, step=step, sha256=sha, evidence=(ground or {}).get("kind"))
         self.on_change(o)
