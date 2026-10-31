@@ -70,6 +70,9 @@ class LineageHeart(PlumMeProvider):
             try:
                 lease, prefer_met = await self.service.acquire_neuron(request(self.prefer_model_key)), True
             except Exception as exc:  # noqa: BLE001 - the preference is soft: no route for that model -> any admissible route, and the miss is recorded
+                from plumme.budget import ParentBudgetExhausted
+                if isinstance(exc, ParentBudgetExhausted):     # a budget refusal is not an unavailable model: never mask it (QA-1 outage was reported as PINNED_MODEL_UNAVAILABLE)
+                    raise
                 if self.strict_prefer:      # a roster-pinned call: the miss is a FAILED step, never a silent handover (the roster rule decides after two failed steps)
                     self._why_unavailable(self.prefer_model_key, exc)
                     raise PeachError("EXECUTION_NOT_PERFORMED_PINNED_MODEL_UNAVAILABLE") from exc  # cause is logged by _why_unavailable
