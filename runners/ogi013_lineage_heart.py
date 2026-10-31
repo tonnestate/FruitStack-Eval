@@ -27,6 +27,7 @@ class LineageHeart(PlumMeProvider):
     exclude_independence_keys = _per_thread("exclude_independence_keys", ())      # set per step by Episode.step
     prefer_model_key = _per_thread("prefer_model_key", None)
     exclude_small_models = _per_thread("exclude_small_models", False)             # lead decision 2026-10-31: applies to all roles (PlumMe narrows eligibility; never widens)
+    strict_prefer = _per_thread("strict_prefer", False)                           # roster-pinned calls: no silent handover to another model when the pinned one cannot be leased
     min_context_tokens = _per_thread("min_context_tokens", None)                  # routes that cannot hold the request are not leased (PlumMe screen, request.metadata)
 
     def __init__(self, service, **kw):
@@ -53,7 +54,9 @@ class LineageHeart(PlumMeProvider):
         if self.prefer_model_key:
             try:
                 lease, prefer_met = await self.service.acquire_neuron(request(self.prefer_model_key)), True
-            except Exception:  # noqa: BLE001 - the preference is soft: no route for that model -> any admissible route, and the miss is recorded
+            except Exception as exc:  # noqa: BLE001 - the preference is soft: no route for that model -> any admissible route, and the miss is recorded
+                if self.strict_prefer:      # a roster-pinned call: the miss is a FAILED step, never a silent handover (the roster rule decides after two failed steps)
+                    raise PeachError("EXECUTION_NOT_PERFORMED_PINNED_MODEL_UNAVAILABLE") from exc
                 lease, prefer_met = None, False
         if lease is None:
             lease = await self.service.acquire_neuron(request(None))

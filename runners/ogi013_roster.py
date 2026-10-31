@@ -14,6 +14,8 @@ class InfraSupply(BaseException):
 
 def reason_class(code) -> str:
     c = (code or "").upper()
+    if c == "HANDOVER":
+        return "handover"
     if "RATE_LIMIT" in c:
         return "rate_limit"
     if "UNAVAILABLE" in c:

@@ -299,7 +299,10 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
                         raise InfraSupply(f"NO_ELIGIBLE_NEURON after {waited} supply waits for role {role_key or role}") from exc
                     raise
                 ep.event("SUPPLY_WAIT", role=role, waited=waited + 1, seconds=SUPPLY_WAIT_SECONDS)
+                t_w = time.monotonic()
                 time.sleep(SUPPLY_WAIT_SECONDS)
+                if getattr(ep, "timing", None) is not None:
+                    ep.timing.add("retry_wait", t_w, time.monotonic(), role=role)
 
     def progress_check(made) -> None:
         nonlocal np_turns
@@ -348,6 +351,9 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
                 fail_streak = 0
                 roster.note_model(d["model_key"])
                 if roster.pinned(rk) is None:
+                    roster.pin(rk, d["model_key"], d.get("independence_key"))
+                elif d["model_key"] != roster.pinned(rk):          # executed by a model other than the pinned one: never silent - a ROSTER_CHANGE with its reason class, then the executed model is the pin
+                    roster.change(rk, f"executed by {d['model_key']} instead of the pinned {roster.pinned(rk)} (receipt {d.get('receipt_id')})", "handover")
                     roster.pin(rk, d["model_key"], d.get("independence_key"))
             else:
                 fail_streak += 1

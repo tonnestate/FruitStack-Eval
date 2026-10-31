@@ -293,3 +293,47 @@ def test_infra_supply_exit_status(tmp_path):
     ep = SimpleNamespace(event=lambda k, **kw: ev.append(k), close=lambda st: ev.append("closed:" + st), work="w", turn_id="t", project="p")
     assert tc.infra_failed_exit(ep, tmp_path, InfraSupply("x"), time.monotonic()) == 3
     assert json.loads((tmp_path / "run.json").read_text())["status"] == "INFRA_SUPPLY" and "closed:INFRA_SUPPLY" in ev
+
+
+# ---- lead decisions on the old-driver smoke: no silent handover, which budget -------------------------------------------------------------------------------------
+def test_scripted_handover_to_another_model_produces_exactly_one_roster_change():
+    r = Roster()
+    res, prefers, ev = _loop_with_roster([_ok("m-a", READ), _ok("m-x", READ), _ok("m-x", MSG)], r)
+    assert ev.count("ROSTER_CHANGE") == 1 and r.changes[0]["reason_class"] == "handover" and "m-a" in r.changes[0]["reason"] and "m-x" in r.changes[0]["reason"]
+    assert r.pinned("critic") == "m-x"                                            # the executed model is the new pin; later calls on it raise no further event
+
+
+def test_strict_prefer_makes_an_unavailable_pinned_model_a_failed_step_not_a_silent_handover(monkeypatch):
+    import asyncio
+    import plumme.knowledge
+    monkeypatch.setattr(plumme.knowledge, "independence_key", lambda route: "k")
+    import ogi013_lineage_heart as lh
+    from peachme import PeachError
+
+    class Lease:
+        lease_id, neuron_id, role_id = "l1", "n1", "REASONING"
+        cognitive_owner = SimpleNamespace(value="CONSUMER")
+        effective_skill_ids = ()
+        route = SimpleNamespace(offer_id="o", model="other", provider="p", model_key="other@default", cost_class=SimpleNamespace(value="FREE"), input_cost_per_million=0, output_cost_per_million=0,
+                                context_window=1000, output_limit_per_response=100)
+
+    class Svc:
+        async def acquire_neuron(self, req):
+            if req.pinned_model_key:
+                raise RuntimeError("no route for the pinned model")
+            return Lease()
+    heart = lh.LineageHeart(Svc())
+    heart.prefer_model_key = "pinned@default"
+    heart.strict_prefer = False
+    asyncio.run(heart.acquire(role_id="REASONING", objective="o", required_skill_ids=()))
+    assert heart._facts["l1"]["prefer_met"] is False                              # soft: silent fallback, recorded as prefer_met False
+    heart.strict_prefer = True
+    with pytest.raises(PeachError, match="PINNED_MODEL_UNAVAILABLE"):
+        asyncio.run(heart.acquire(role_id="REASONING", objective="o", required_skill_ids=()))
+
+
+def test_budget_refusal_kind_tells_the_episodes_own_budget_from_provider_supply():
+    from ogi013_tau2_agent import budget_refusal_kind
+    assert budget_refusal_kind("EXECUTION_NOT_PERFORMED_BUDGET_EXHAUSTED", 9655, 11000) == "episode"        # the old smoke: ~9.6k left, the step must reserve more
+    assert budget_refusal_kind("EXECUTION_NOT_PERFORMED_BUDGET_EXHAUSTED", 200000, 11000) == "provider"
+    assert budget_refusal_kind("EXECUTION_NOT_PERFORMED_RATE_LIMITED", 10, 11000) is None

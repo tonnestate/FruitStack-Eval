@@ -257,6 +257,7 @@ def main(argv=None) -> int:
     plock = threading.RLock()                 # the episode lock: shared-state mutation and adoption decisions are serialised
     slot_taken: set = set()
     solver_sessions: list = []
+    critic_sessions: list = []
     team = TeamState(issue, a.out / "team_state.md")
     team.emit = ep.event
     team.mango = MangoLedger(stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)      # MangoMe is the work ledger of the episode; a failed write ends it INFRA_MANGOME_FAILED
@@ -428,8 +429,10 @@ def main(argv=None) -> int:
                 if answered:                                          # exchange 2: the critic responds ONCE to the author's evidence
                     prompt += ("\nThe author answered these objections with evidence. Respond once to each, on its own line: 'O<n>: WITHDRAW' plus your evidence (a reproduction you ran, or a quote of the task text) if you now agree, "
                                "or 'O<n>: MAINTAIN' plus NEW evidence if you do not:\n" + "\n".join(f"{o['id']}: {o['replies'][-1]['text'][:400]}" for o in answered))
+                t_c = time.monotonic()
                 out, st = ct.agent_loop(ctx, "critic", TEAM_CRITIC_HEAD.format(issue=issue) + "\n" + prompt, ct.Sandbox(copy, a.python, readonly=True), tools_ro, prefer=prefer, exclude=tuple(exclude) + tuple(tgt.keys), gated=False, team=team, roster=roster, role_key="critic")
                 gs = ctx.last_session
+                critic_sessions.append((tgt.id, t_c, time.monotonic()))
                 if isinstance(out, str) and not out.startswith("STOP:"):
                     found = bool(re.match(r"\s*ISSUES:\s*FOUND", out, re.I))
                     exam = {"verdict": "FOUND" if found else "NONE", "lineage": st["independence_key"], "model": st["model_key"], "test_runs": ctx.last_session["test_runs"], "grounded": False, "text": out}
@@ -728,7 +731,9 @@ def main(argv=None) -> int:
     sim = solver_similarity([(snaps / f["file"]).read_text() for f in firsts]) if a.mode == "team" else None
     ep.event("SOLVER_SIMILARITY", jaccard=sim, positions=[f["file"] for f in firsts[:2]])
     team.text()
-    if chosen is None and oc.infra_author_failed(ep.stats, len(cled.cands)):
+    if ep.flags.get("budget_exhausted"):
+        cls = "INFRA_BUDGET_EXHAUSTED"                         # the episode's own token budget ended it at the first refusal; the reason is in run.json
+    elif chosen is None and oc.infra_author_failed(ep.stats, len(cled.cands)):
         cls = "INFRA_AUTHOR_FAILED"                           # R5: the author's supply failed; infrastructure, never NO_PATCH
     ep.event("ROSTER_CHECK", **roster.check())
     final = chosen.diff if chosen else ""
@@ -747,7 +752,7 @@ def main(argv=None) -> int:
     status = cls
     ep.close(status)
     (a.out / "final.diff").write_text(final)
-    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "release": release, "roster": roster.summary(),
+    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "budget_exhausted_reason": ep.flags.get("budget_exhausted"), "release": release, "roster": roster.summary(),
                "candidates": [{k: v for k, v in c.items() if k != "diff"} for c in cled.cands], "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats,
                "positions": {p.id: {"model": p.model, "keys": sorted(k for k in p.keys if k), "status": p.status, "revisions": p.rev, "snapshots": p.snapshots,
                                     "exams": [{k: v for k, v in e.items() if k != "text"} for e in p.exams]} for p in positions.values()},
@@ -761,6 +766,8 @@ def main(argv=None) -> int:
     tr["solver_sessions"] = [{"pos": pid, "start": round(b - timing.t0, 2), "end": round(e - timing.t0, 2)} for pid, b, e in solver_sessions]
     tr["solver_overlap_seconds"] = round(overlap, 2)
     tr["max_calls_in_flight_observed"] = ep.call_gate.max_seen
+    tr["critic_sessions"] = [{"pos": pid, "start": round(b - timing.t0, 2), "end": round(e - timing.t0, 2)} for pid, b, e in critic_sessions]
+    (a.out / "ledger.json").write_text(json.dumps({"objections": [{k: v for k, v in o.items() if k not in ("raised_ns", "revised_ns")} for o in team.objs], "decisions": team.decisions, "version": team.version}, indent=1, default=str))
     (a.out / "timing.json").write_text(json.dumps(tr, indent=1))
     summary["timing"] = {"max_concurrent_calls": a.max_concurrent_calls, "max_calls_in_flight_observed": ep.call_gate.max_seen, "solver_overlap_seconds": tr["solver_overlap_seconds"], "wall_share": tr["wall_share"]}
     (a.out / "run.json").write_text(json.dumps(summary, indent=1, default=str))

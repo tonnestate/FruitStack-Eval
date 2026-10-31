@@ -189,6 +189,14 @@ class Stack:
         return values["OGI013_WORK_REF"], values["OGI013_PROJECT_REF"], values["OGI013_TURN_ID"]
 
 
+def budget_refusal_kind(code: str, remaining, needed) -> str | None:
+    """Which budget does a BUDGET_EXHAUSTED refusal mean? 'episode' = the episode's own PeachMe session token budget (remaining < what the step must reserve): the episode ends at the first refusal
+    (INFRA_BUDGET_EXHAUSTED). 'provider' = provider/trial/parent-level exhaustion: supply, handled by the roster rule."""
+    if "BUDGET_EXHAUSTED" not in (code or ""):
+        return None
+    return "episode" if remaining is not None and (needed is None or remaining < needed) else "provider"
+
+
 class Episode:
     def __init__(self, stack: Stack, mode: str, task_id: str, domain: str, log: Path):
         self.stack, self.mode, self.task_id, self.domain, self.log = stack, mode, task_id, domain, log
@@ -223,6 +231,7 @@ class Episode:
         self.timing = None                             # parallel organisation P5: TimingRecorder, set by the team driver
         self.token_cap = None                          # episode-wide token cap enforced across forks (each fork is its own PeachMe session)
         self.gov_cfg = None
+        self.flags: dict = {}                          # shared by forks: episode-level infrastructure findings (budget exhaustion)
         self.turns = 0
         self.stopped = False
         self.seen_results: set[str] = set()
@@ -271,6 +280,8 @@ class Episode:
     def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None, sticky_attempts: int = 1) -> dict:
         from peachme import PeachError
         fs, last = self.stack.fs, None
+        if self.flags.get("budget_exhausted"):
+            raise PeachError("BUDGET_EPISODE_EXHAUSTED: " + self.flags["budget_exhausted"])
         for attempt in range(6 if os.environ.get("OGI013_PILOT_RUNS") else 4):                              # campaigns: 6 (AMENDMENT-1 X; every attempt is a counted dispatch under the 110-request ceiling, the real bound); the frozen C-conditions keep 4
             try:
                 pilot_gate()                                  # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
@@ -283,6 +294,7 @@ class Episode:
             s = self.stack.store.get(self.sid)
             self.stack.heart.exclude_independence_keys = tuple(x for x in exclude if x)
             self.stack.heart.prefer_model_key = prefer if attempt < sticky_attempts else None
+            self.stack.heart.strict_prefer = prefer is not None and sticky_attempts >= 99      # roster-pinned call (ogi013_roster.STICKY_ALL): no silent handover
             self.stack.heart.exclude_small_models = True      # lead decision 2026-10-31: the small-model exclusion applies to ALL roles; a role the pool cannot fill ends the episode INFRA_SUPPLY
             self.stack.heart.min_context_tokens = (len(prompt) // 3 + 3000) if os.environ.get("OGI013_PILOT_RUNS") else None      # campaigns only: the request's own size (PlumMe's chars/3 estimate) plus room for the answer
             if self.token_cap is not None and self.stats["tokens_in"] + self.stats["tokens_out"] >= self.token_cap:
@@ -305,6 +317,19 @@ class Episode:
                 code = str(exc)
                 last = code
                 self.event("STEP_REFUSED", step=key, code=code, attempt=attempt + 1)
+                if "BUDGET_EXHAUSTED" in code and "SESSION_BUDGET" not in code:
+                    # which budget? the episode's own (PeachMe session budget: remaining tokens below what this step must reserve) ends the episode at the FIRST refusal; a provider-level
+                    # exhaustion is supply and the roster rule handles it
+                    snap = fs.governance.snapshot(self.sid) or {}
+                    rem = snap.get("tokens_remaining")
+                    need = locals().get("reserve")
+                    if budget_refusal_kind(code, rem, need) == "episode":
+                        reason = f"episode token budget: {rem} tokens remaining, the step must reserve {need}"
+                        self.flags["budget_exhausted"] = reason
+                        self.budget_stopped = True
+                        self.event("INFRA_BUDGET_EXHAUSTED", step=key, reason=reason, code=code)
+                        raise PeachError("BUDGET_EPISODE_EXHAUSTED: " + reason)
+                    self.event("BUDGET_REFUSAL_PROVIDER_LEVEL", step=key, code=code, tokens_remaining=rem, reserve=need)
                 if code.startswith("REFLEX_BLOCKED"):
                     raise
                 if code.startswith(("EXECUTION_NOT_PERFORMED", "EXECUTION_OUTPUT_UNUSABLE")):
