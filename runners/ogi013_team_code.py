@@ -68,6 +68,10 @@ class TeamState(Ledger):
         super().__init__()
         self.goal, self.path, self.pos, self.decisions = goal, path, {}, []
         self.votes, self.release, self.mango, self._written = [], None, None, {}
+        self.roster_changes_provider = lambda: []
+        self.candidates_provider = lambda: []                  # set by the driver: the candidate ledger (without diffs) travels with the state
+        self.consistency_guard = True
+        self.diff_report = None
         self.howto, self.roster_line, self.driver_visible = "", "", {}       # R4 block, R8 roster line, driver-run visible result per position
         self.on_change = self._objection_changed
         self.independent = False        # Addendum 8: True from episode start until the SOLVE phase ends; a solver (or its helper) then sees only its own position
@@ -87,7 +91,7 @@ class TeamState(Ledger):
     @locked
     def state_dict(self) -> dict:
         return {"goal": self.goal, "independent": self.independent, "version": self.version, "howto": self.howto, "roster": self.roster_line, "driver_visible": self.driver_visible,
-                "pos": [{"id": p.id, "model": p.model, "status": p.status, "rev": p.rev, "diff": p.diff, "test_tail": p.test_tail,
+                "candidates": self.candidates_provider(), "roster_changes": self.roster_changes_provider(), "pos": [{"id": p.id, "slot": getattr(p, "slot", None), "model": p.model, "status": p.status, "rev": p.rev, "diff": p.diff, "test_tail": p.test_tail,
                          "sha256": hashlib.sha256((p.diff or "").encode()).hexdigest()} for p in self.pos.values()],
                 "objs": [self._objection_row(o) for o in self.objs], "n": self.n, "decisions": list(self.decisions), "votes": list(self.votes), "release": self.release}
 
@@ -128,26 +132,66 @@ class TeamState(Ledger):
             self._written[("full",)] = enc
 
     @classmethod
-    def restore(cls, ledger: MangoLedger, path: Path) -> "TeamState":
-        """Rebuild the team state from MangoMe's work_context alone (restart test, final order C.4 step 3)."""
-        d = ledger.latest()
-        if not d or "goal" not in d:
-            raise InfraMangoFailed("RESTORE_NO_TEAM_STATE: the latest checkpoint of the work holds no TEAM_STATE_FULL")
+    def from_payload(cls, d: dict, path: Path) -> "TeamState":
         t = cls(d["goal"], path)
         t.independent, t.n = d.get("independent", False), d.get("n", 0)
         t.version = d.get("version", 0)
         t.howto, t.roster_line, t.driver_visible = d.get("howto", ""), d.get("roster", ""), dict(d.get("driver_visible", {}))
         for p in d["pos"]:
-            t.pos[p["id"]] = SimpleNamespace(id=p["id"], model=p["model"], status=p["status"], rev=p["rev"], diff=p["diff"], test_tail=p["test_tail"])
+            t.pos[p["id"]] = SimpleNamespace(id=p["id"], slot=p.get("slot"), model=p["model"], status=p["status"], rev=p["rev"], diff=p["diff"], test_tail=p["test_tail"])
         t.objs = [{**o, "raised_ns": 0, "revised_ns": None} for o in d["objs"]]
         t.decisions, t.votes, t.release = list(d["decisions"]), list(d["votes"]), d["release"]
+        t.candidates = list(d.get("candidates", []))
         return t
+
+    @classmethod
+    def restore(cls, ledger: MangoLedger, path: Path) -> "TeamState":
+        """Rebuild the team state from MangoMe's work_context alone (restart test, final order C.4 step 3)."""
+        d = ledger.latest()
+        if not d or "goal" not in d:
+            raise InfraMangoFailed("RESTORE_NO_TEAM_STATE: the latest checkpoint of the work holds no TEAM_STATE_FULL")
+        return cls.from_payload(d, path)
+
+    @locked
+    def prompt(self, view=None, flush=True, guard=True) -> str:
+        """MangoMe as the live shared workspace: the text every agent step sees is RENDERED FROM A MANGOME READ (work_context -> TEAM_STATE_FULL), never from the in-memory state. The in-memory state is
+        only a write buffer: it is flushed first (flush=True), then the host reads back, renders, and compares with the in-memory render; any difference, or a failed/stale read, ends the episode
+        INFRA_MANGOME_FAILED with the diff recorded."""
+        import difflib
+        if self.mango is None:
+            return self.text(view)
+        if flush:
+            self.persist()
+        try:
+            d = self.mango.latest_full()
+        except InfraMangoFailed as exc:
+            if "READ_NOT_TEAM_STATE" not in str(exc):
+                raise
+            self._written.pop(("full",), None)                    # a granular record was the latest checkpoint: write the full state again, then read
+            self.persist()
+            d = self.mango.latest_full()
+        r = TeamState.from_payload(d, self.path)
+        shown = r.render(view)
+        if guard and self.consistency_guard:
+            mine = self.render(view)
+            if mine != shown:
+                self.diff_report = "\n".join(list(difflib.unified_diff(mine.splitlines(), shown.splitlines(), "in-memory", "mangome", lineterm="", n=1))[:60])
+                raise InfraMangoFailed("CONSISTENCY_GUARD: the render from MangoMe differs from the in-memory state")
+        if view is None or not (self.independent and view is not None):
+            self.path.write_text(r.render(None))
+        return shown
 
     @locked
     def text(self, view=None) -> str:
+        self.persist()
+        s = self.render(view)
+        if not (self.independent and view is not None):
+            self.path.write_text(s)
+        return s
+
+    def render(self, view=None) -> str:
         """view: id of the solver position whose session (or helper) is being prompted. A solver that has not yet submitted its first position receives NO team state at all (not even after the reveal
         barrier opened for the others); during independent solving a solver that has submitted sees only its own position, objections and decisions."""
-        self.persist()
         vp = self.pos.get(view) if view is not None else None
         if vp is not None and not vp.diff and getattr(vp, "slot", None) in ("solver1", "solver2"):
             return ""
@@ -164,10 +208,7 @@ class TeamState(Ledger):
                 for o in self.objs if o["open"] and (not solo or o["target"] == view)] or ["(none)"]
         out.append("DECISIONS:")
         out += [f"- {d}" for d in self.decisions if not solo or d.startswith(f"{view} ")] or ["(none)"]
-        s = "\n".join(out)
-        if not solo:
-            self.path.write_text(s)
-        return s
+        return "\n".join(out)
 
 
 def help_guard(ep, positions: dict, p, independent: bool, call):
@@ -212,13 +253,13 @@ def funcs_of(diff: str) -> frozenset:
     return frozenset(out)
 
 
-def infra_failed_exit(ep, out: Path, exc: BaseException, t0: float) -> int:
+def infra_failed_exit(ep, out: Path, exc: BaseException, t0: float, extra: dict | None = None) -> int:
     """C.2 / confirmation order: a failed MangoMe write ends the episode INFRA_MANGOME_FAILED, an unfillable roster INFRA_SUPPLY: infrastructure, never a result, never silently continued."""
     status = "INFRA_SUPPLY" if isinstance(exc, InfraSupply) else "INFRA_MANGOME_FAILED"
     ep.event(status, error=str(exc)[:400])
     ep.close(status)
     (out / "run.json").write_text(json.dumps({"status": status, "error": str(exc)[:400], "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project,
-                                               "seconds": round(time.monotonic() - t0, 1)}, indent=1))
+                                               "seconds": round(time.monotonic() - t0, 1), **(extra or {})}, indent=1))
     print(json.dumps({"status": status}))
     return 3
 
@@ -262,6 +303,9 @@ def main(argv=None) -> int:
     team.emit = ep.event
     team.mango = MangoLedger(stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)      # MangoMe is the work ledger of the episode; a failed write ends it INFRA_MANGOME_FAILED
     infra: list = []
+
+    def infra_extra() -> dict:
+        return {"mango_writes": team.mango.writes, "mango_reads": team.mango.reads, "consistency_guard_diff": team.diff_report}
     labels_base = oc.visible_labels(a.base)
     labels_fallback: list = []                # tasks whose suite is large: the labels of the first candidate's own relevant run
     team.howto = oc.howto_block(a.python, labels_base or ["<dotted.test.module>"])         # R4
@@ -282,6 +326,8 @@ def main(argv=None) -> int:
             return {**res, "repro": rp}
 
     cled = oc.CandidateLedger(candidate_checker, on_write=team.mango.write)
+    team.candidates_provider = lambda: [{k: v for k, v in c.items() if k != "diff"} for c in cled.cands]
+    team.roster_changes_provider = lambda: list(roster.changes)
 
     def roster_emit(kind, **kw):
         ep.event(kind, **kw)
@@ -731,7 +777,7 @@ def main(argv=None) -> int:
     sim = solver_similarity([(snaps / f["file"]).read_text() for f in firsts]) if a.mode == "team" else None
     ep.event("SOLVER_SIMILARITY", jaccard=sim, positions=[f["file"] for f in firsts[:2]])
     team.text()
-    if ep.flags.get("budget_exhausted"):
+    if ep._flags().get("budget_exhausted"):
         cls = "INFRA_BUDGET_EXHAUSTED"                         # the episode's own token budget ended it at the first refusal; the reason is in run.json
     elif chosen is None and oc.infra_author_failed(ep.stats, len(cled.cands)):
         cls = "INFRA_AUTHOR_FAILED"                           # R5: the author's supply failed; infrastructure, never NO_PATCH
@@ -740,7 +786,7 @@ def main(argv=None) -> int:
     if chosen:
         (snaps / "RELEASED.diff").write_text(final)
     if infra:                                  # C.2: infrastructure, never a result; nothing is released
-        return infra_failed_exit(ep, a.out, infra[0], t0)
+        return infra_failed_exit(ep, a.out, infra[0], t0, infra_extra())
     release = {"solver_similarity": sim, "guard": guard, "votes": votes_log, "class": cls, "withdrawals": withdrawals, "released": chosen.id if chosen else None, "sha256": hashlib.sha256(final.encode()).hexdigest() if final else None,
                "candidate_sha256": hashlib.sha256(final.encode()).hexdigest() if final else None}
     ep.event("RELEASE", **release)
@@ -748,11 +794,11 @@ def main(argv=None) -> int:
     try:
         team.persist()
     except InfraMangoFailed as exc:
-        return infra_failed_exit(ep, a.out, exc, t0)
+        return infra_failed_exit(ep, a.out, exc, t0, infra_extra())
     status = cls
     ep.close(status)
     (a.out / "final.diff").write_text(final)
-    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "budget_exhausted_reason": ep.flags.get("budget_exhausted"), "release": release, "roster": roster.summary(),
+    summary = {"status": status, "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project, "mango_writes": team.mango.writes, "mango_reads": team.mango.reads, "consistency_guard_diff": team.diff_report, "budget_exhausted_reason": ep._flags().get("budget_exhausted"), "release": release, "roster": roster.summary(),
                "candidates": [{k: v for k, v in c.items() if k != "diff"} for c in cled.cands], "seconds": round(time.monotonic() - t0, 1), "stats": ep.stats,
                "positions": {p.id: {"model": p.model, "keys": sorted(k for k in p.keys if k), "status": p.status, "revisions": p.rev, "snapshots": p.snapshots,
                                     "exams": [{k: v for k, v in e.items() if k != "text"} for e in p.exams]} for p in positions.values()},

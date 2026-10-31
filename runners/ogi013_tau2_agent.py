@@ -241,6 +241,17 @@ class Episode:
     def store_revision(self, stack: Stack) -> int:
         return stack.store.get(self.sid).revision
 
+    call_gate = None          # class defaults keep Episodes built without __init__ (tests) working
+    timing = None
+    token_cap = None
+    gov_cfg = None
+
+    def _lk(self):
+        return self.__dict__.setdefault("_lock", threading.RLock())
+
+    def _flags(self) -> dict:
+        return self.__dict__.setdefault("flags", {})
+
     def fork(self) -> "Episode":
         """Parallel organisation: a concurrent worker gets its OWN PeachMe session (sessions are sequential by design) on the same work and turn; log, stats, lock, gate and timing are shared."""
         child = copy.copy(self)
@@ -269,19 +280,19 @@ class Episode:
             return out
 
     def bump(self, key: str, n: int = 1) -> None:
-        with self._lock:
+        with self._lk():
             self.stats[key] += n
 
     def event(self, kind: str, **data: Any) -> None:
-        with self._lock, self.log.open("a", encoding="utf-8") as f:
+        with self._lk(), self.log.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "task": self.task_id, "mode": self.mode, "sid": self.sid, "event": kind, **data}, default=str) + "\n")
 
     # one model call = one PeachMe step on the integrated stack; transient supply conditions are handled by PlumMe/PeachMe contracts, not by the benchmark
     def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None, sticky_attempts: int = 1) -> dict:
         from peachme import PeachError
         fs, last = self.stack.fs, None
-        if self.flags.get("budget_exhausted"):
-            raise PeachError("BUDGET_EPISODE_EXHAUSTED: " + self.flags["budget_exhausted"])
+        if self._flags().get("budget_exhausted"):
+            raise PeachError("BUDGET_EPISODE_EXHAUSTED: " + self._flags()["budget_exhausted"])
         for attempt in range(6 if os.environ.get("OGI013_PILOT_RUNS") else 4):                              # campaigns: 6 (AMENDMENT-1 X; every attempt is a counted dispatch under the 110-request ceiling, the real bound); the frozen C-conditions keep 4
             try:
                 pilot_gate()                                  # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
@@ -325,7 +336,7 @@ class Episode:
                     need = locals().get("reserve")
                     if budget_refusal_kind(code, rem, need) == "episode":
                         reason = f"episode token budget: {rem} tokens remaining, the step must reserve {need}"
-                        self.flags["budget_exhausted"] = reason
+                        self._flags()["budget_exhausted"] = reason
                         self.budget_stopped = True
                         self.event("INFRA_BUDGET_EXHAUSTED", step=key, reason=reason, code=code)
                         raise PeachError("BUDGET_EPISODE_EXHAUSTED: " + reason)
@@ -359,7 +370,7 @@ class Episode:
                 self.budget_stopped = True
                 self.event("BUDGET_STOP", source="step_ceiling", code="BUDGET_STEP_CEILING_EXCEEDED", recorded=used, ceiling=lim["per_step"], step=key)
                 raise PeachError("BUDGET_STEP_CEILING_EXCEEDED")
-            with self._lock:
+            with self._lk():
                 self.stats["tokens_in"] += st.input_tokens or 0
                 self.stats["tokens_out"] += st.output_tokens or 0
                 self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1

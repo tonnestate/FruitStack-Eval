@@ -10,17 +10,31 @@ def overlap(a, b):
     return max(0.0, min(a["end"], b["end"]) - max(a["start"], b["start"]))
 
 
-def trace(run: Path) -> str:
+def fetch_state(work_ref: str, database: str | None = None) -> dict:
+    """The episode's state read from MangoMe (work_context -> latest TEAM_STATE_FULL), not from local files. Evaluation database by default."""
+    import os
+    os.environ.setdefault("MANGOME_BACKEND", "mongo")
+    os.environ["MANGOME_DATABASE"] = database or os.environ.get("MANGOME_DATABASE", "mangome_ogi013_collab1")
+    os.environ["MANGOME_EXPECTED_DATABASE"] = os.environ["MANGOME_DATABASE"]
+    os.environ.setdefault("MANGOME_ZERO_TOUCH_BOOTSTRAP", "0")
+    from mangome.runtime import get_service
+    ctx = get_service().work_context(work_ref)
+    return (ctx.get("progressive") or {}).get("latest_checkpoint", {}).get("payload") or {}
+
+
+def trace(run: Path, state: dict | None = None) -> str:
     ev = [json.loads(l) for l in (run / "fruitstack-events.jsonl").read_text().splitlines() if l.startswith("{")]
     rj = json.loads((run / "run.json").read_text())
-    led = json.loads((run / "ledger.json").read_text()) if (run / "ledger.json").exists() else {"objections": []}
+    state = state if state is not None else fetch_state(rj["work_ref"])
+    led = {"objections": state.get("objs", [])}
+    rj = {**rj, "candidates": state.get("candidates", rj.get("candidates", []))}
     tm = json.loads((run / "timing.json").read_text()) if (run / "timing.json").exists() else {}
     objs = [o for o in led["objections"] if o.get("kind") == "objection"]
     grounded = [o for o in objs if o.get("grounded")]
     ungrounded = [o for o in objs if not o.get("grounded")]
     prompted = {i for e in ev if e["event"] == "REVISION" for i in e.get("responding_to", [])}
     replies = [e for e in ev if e["event"] == "REPLY"]
-    out = [f"# Cooperation trace (observations only) — {run.parent.name}", ""]
+    out = [f"# Cooperation trace (observations only; ledger parts read from MangoMe work_context, steps/receipts from the PeachMe event log, intervals from timing.json) — {run.parent.name}", ""]
     out += ["## 1 Counts", f"- grounded objections: {len(grounded)}; ungrounded objections: {len(ungrounded)}; ungrounded that entered a revision prompt: {len(prompted & {o['id'] for o in ungrounded})}",
             f"- REPLY events with evidence: {sum(1 for e in replies if e.get('evidence') in ('command', 'quote'))} (all replies {len(replies)}; UNGROUNDED_REPLY {sum(1 for e in ev if e['event'] == 'UNGROUNDED_REPLY')})",
             f"- evidenced WITHDRAWN: {sum(1 for e in replies if e.get('action') == 'withdraw')}; unresolved objections sent to the specialist: {sum(len(e.get('objections', [])) for e in ev if e['event'] == 'SPECIALIST_ADJUDICATION')}", ""]
@@ -63,9 +77,8 @@ def trace(run: Path) -> str:
         out.append(f"- final state: {ex['state']}")
     out += ["", "## 6 Roster"]
     out.append(f"- roles: {rj.get('roster', {}).get('roster')}; check: {rj.get('roster', {}).get('check')}")
-    for e in ev:
-        if e["event"] == "ROSTER_CHANGE":
-            out.append(f"- ROSTER_CHANGE {e['role']}: {e.get('from_model')} reason class {e.get('reason_class')}: {e.get('reason', '')[:140]}")
+    for e in state.get("roster_changes", []):
+        out.append(f"- ROSTER_CHANGE {e['role']}: {e.get('from_model')} reason class {e.get('reason_class')}: {e.get('reason', '')[:140]}")
     steps = [e for e in ev if e["event"] == "STEP"]
     pins = {v for v in (rj.get("roster", {}).get("roster") or {}).values()} | {e.get("from_model") for e in ev if e["event"] == "ROSTER_CHANGE"} | {e.get("model") for e in ev if e["event"] == "ROSTER_PIN"}
     out.append(f"- executed-model check from the receipts: {len(steps)} steps; prefer_met {dict(collections.Counter(e.get('prefer_met') for e in steps))}; steps by a model outside every pin: "

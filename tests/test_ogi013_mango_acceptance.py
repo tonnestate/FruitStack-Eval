@@ -264,3 +264,113 @@ def test_4_concurrent_solvers_and_critics_write_at_once_no_write_lost_gap_free_s
         st.client.close()
     finally:
         svc.store.client.drop_database(db)
+
+
+# ---- MangoMe as the live shared workspace: prompts come from a MangoMe read -------------------------------------------------------------------------------------
+def _live_team(tmp_path, svc):
+    import ogi013_team_code as tc
+    from ogi013_mango_ledger import MangoLedger
+    from peachme.fruitstack import MangoWorkAdapter
+    e = svc.enter_work(workspace_id=str(tmp_path / f"w{uuid.uuid4().hex[:6]}"), workspace_title="live", actor_id="host", request_text="live shared workspace test " + uuid.uuid4().hex)
+    work, turn = e["work_identity"]["entity_id"], e["turn"]["entity_id"]
+    led = MangoLedger(MangoWorkAdapter(svc), work, "host", turn, "live")
+    t = tc.TeamState("fix the issue", tmp_path / "ts.md")
+    t.mango = led
+    return t, led, work, turn
+
+
+def test_a_prompts_stay_byte_identical_after_the_in_memory_state_is_wiped_so_they_come_from_mangome(tmp_path):
+    from mangome.storage.mongo import MongoStore
+    from mangome.work_control import WorkGovernedMangoMeService
+    db = f"mangome_live_{uuid.uuid4().hex}"
+    svc = WorkGovernedMangoMeService(MongoStore(URI, db))
+    try:
+        t, led, work, turn = _live_team(tmp_path, svc)
+        t.pos["S1"] = SimpleNamespace(id="S1", slot="solver1", model="m", status="open", rev=0, diff="+fix\n", test_tail="Ran 2 tests OK")
+        t.objection("S1", "L2", "case x fails (task text: Anything else must raise ValueError)", ground={"kind": "quote", "quote": "x"})
+        t.decisions.append("S1 produced its first diff")
+        before = [t.prompt("S1"), t.prompt(None)]
+        reads = led.reads
+        t.pos.clear(); t.objs.clear(); t.decisions.clear(); t.votes.clear()                    # wipe the in-memory state
+        t.consistency_guard = False                                                              # the guard would (rightly) object to a wiped memory; the render must still come from MangoMe
+        after = [t.prompt("S1", flush=False), t.prompt(None, flush=False)]
+        assert after == before and "case x fails" in after[1] and led.reads == reads + 2          # byte-identical, and each prompt was a MangoMe read
+    finally:
+        svc.store.client.drop_database(db)
+
+
+def test_b_a_forced_read_error_and_a_consistency_difference_both_end_the_episode_infra_mangome_failed(tmp_path):
+    import ogi013_team_code as tc
+    from mangome.storage.mongo import MongoStore
+    from mangome.work_control import WorkGovernedMangoMeService
+    from ogi013_mango_ledger import InfraMangoFailed
+    db = f"mangome_live2_{uuid.uuid4().hex}"
+    svc = WorkGovernedMangoMeService(MongoStore(URI, db))
+    try:
+        t, led, work, turn = _live_team(tmp_path, svc)
+        t.pos["S1"] = SimpleNamespace(id="S1", slot="solver1", model="m", status="open", rev=0, diff="+fix\n", test_tail="")
+        t.prompt(None)
+        real = led.adapter.service.work_context
+        led.adapter.service.work_context = lambda ref: (_ for _ in ()).throw(RuntimeError("mongo read down"))
+        with pytest.raises(InfraMangoFailed, match="read failed"):
+            t.prompt(None, flush=False)                                                         # fail closed
+        led.adapter.service.work_context = real
+        t.pos["S1"].diff = "+tampered but never flushed\n"                                       # memory differs from MangoMe, and flush=False keeps it that way
+        with pytest.raises(InfraMangoFailed, match="CONSISTENCY_GUARD"):
+            t.prompt(None, flush=False)
+        assert t.diff_report and "tampered" in t.diff_report                                     # the diff is recorded for run.json
+        events = []
+        ep = SimpleNamespace(event=lambda k, **kw: events.append(k), close=lambda s: events.append("closed:" + s), work=work, turn_id=turn, project="p")
+        assert tc.infra_failed_exit(ep, tmp_path, InfraMangoFailed("CONSISTENCY_GUARD"), time.monotonic(), {"consistency_guard_diff": t.diff_report}) == 3
+        rj = json.loads((tmp_path / "run.json").read_text())
+        assert rj["status"] == "INFRA_MANGOME_FAILED" and "tampered" in rj["consistency_guard_diff"]
+    finally:
+        svc.store.client.drop_database(db)
+
+
+def test_c_concurrent_writers_and_prompt_readers_never_see_a_half_written_state(tmp_path):
+    import threading
+    from mangome.storage.mongo import MongoStore
+    from mangome.work_control import WorkGovernedMangoMeService
+    db = f"mangome_live3_{uuid.uuid4().hex}"
+    svc = WorkGovernedMangoMeService(MongoStore(URI, db))
+    try:
+        t, led, work, turn = _live_team(tmp_path, svc)
+        for pid, slot in (("S1", "solver1"), ("S2", "solver2")):
+            t.pos[pid] = SimpleNamespace(id=pid, slot=slot, model="m", status="open", rev=0, diff="+init\n", test_tail="")
+        bad, gate = [], threading.Barrier(4)
+
+        def writer(pid):
+            gate.wait()
+            for i in range(6):
+                t.pos[pid].diff = f"+{pid} v{i}\n"
+                t.prompt(None)                                                                  # flush + read + guard under the state lock
+
+        def reader(pid):
+            gate.wait()
+            for _ in range(6):
+                try:
+                    s = t.prompt(pid)
+                    assert "STATE VERSION" in s
+                except Exception as exc:  # noqa: BLE001
+                    bad.append(repr(exc))
+        ths = [threading.Thread(target=writer, args=("S1",)), threading.Thread(target=writer, args=("S2",)), threading.Thread(target=reader, args=("S1",)), threading.Thread(target=reader, args=("S2",))]
+        [x.start() for x in ths]
+        [x.join() for x in ths]
+        assert bad == [] and led.reads >= 24
+    finally:
+        svc.store.client.drop_database(db)
+
+
+def test_operator_summary_through_the_evaluation_scoped_read_only_mcp(tmp_path):
+    db = f"mangome_summary_{uuid.uuid4().hex}"
+    try:
+        run("full", db, tmp_path)
+        ids = json.loads((tmp_path / "ids.json").read_text())
+        r = subprocess.run([sys.executable, str(Path(RUNNERS) / "ogi013_mcp_summary.py"), ids["work"], db], capture_output=True, text=True, timeout=120,
+                           env={**os.environ, "MANGOME_MONGODB_URI": URI, "MANGOME_BACKEND": "mongo"})
+        assert r.returncode == 0, r.stderr[-800:]
+        lines = r.stdout.strip().splitlines()
+        assert len(lines) <= 10 and "mangome_query" in lines[0] and "mangome_work" not in lines[0] and any(l.startswith("release:") and "RELEASED_UNANIMOUS_EXCELLENT" in l for l in lines)
+    finally:
+        drop(db)

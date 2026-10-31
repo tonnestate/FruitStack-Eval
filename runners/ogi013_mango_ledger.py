@@ -26,6 +26,8 @@ class MangoLedger:
         self.adapter, self.work_ref, self.actor_id, self.turn_id, self.run_id = adapter, work_ref, actor_id, turn_id, run_id
         self.seq = 0
         self.writes = 0
+        self.reads = 0
+        self.last_full_seq = 0
         self.lock = threading.RLock()                 # parallel organisation P3: writes are serialised and versioned (gap-free sequence numbers; the latest checkpoint is the latest state)
 
     def write(self, kind: str, key: str, payload: dict) -> None:
@@ -38,9 +40,25 @@ class MangoLedger:
             except Exception as exc:  # noqa: BLE001 - a MangoMe write failure is infrastructure: fail closed
                 raise InfraMangoFailed(f"{kind}/{key}: {type(exc).__name__}: {str(exc)[:300]}") from exc
             self.writes += 1
+            if kind == "TEAM_STATE_FULL":
+                self.last_full_seq = self.seq
 
     def latest(self) -> dict | None:
-        """The latest checkpoint payload of this work, read back through MangoMe's own work_context."""
-        ctx = self.adapter.service.work_context(self.work_ref)
+        """The latest checkpoint payload of this work, read back through MangoMe's own work_context. A failed read is fail-closed (InfraMangoFailed)."""
+        try:
+            ctx = self.adapter.service.work_context(self.work_ref)
+        except Exception as exc:  # noqa: BLE001 - a MangoMe read failure is infrastructure
+            raise InfraMangoFailed(f"work_context read failed: {type(exc).__name__}: {str(exc)[:300]}") from exc
+        with self.lock:
+            self.reads += 1
         cp = (ctx.get("progressive") or {}).get("latest_checkpoint") or {}
         return cp.get("payload")
+
+    def latest_full(self) -> dict:
+        """The latest TEAM_STATE_FULL, required to carry the highest sequence number this ledger has written for it (a stale or half-written read fails closed)."""
+        d = self.latest()
+        if not d or "goal" not in d:
+            raise InfraMangoFailed("READ_NOT_TEAM_STATE: the latest checkpoint of the work is not a TEAM_STATE_FULL")
+        if d.get("seq", 0) < self.last_full_seq:
+            raise InfraMangoFailed(f"READ_STALE: seq {d.get('seq')} < highest written {self.last_full_seq}")
+        return d

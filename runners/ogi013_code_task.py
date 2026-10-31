@@ -337,7 +337,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             ep.event("LOOP_GUARD", guard="NO_PROGRESS_8_TURNS", role=role, turn=turn, test_runs=ctx.last_session["test_runs"])
             resolve_watch(False)
             return "STOP:NO_PROGRESS", first
-        ts = team.text(view) if team else ""
+        ts = (team.prompt(view) if hasattr(team, "prompt") else team.text(view)) if team else ""      # MangoMe is the live shared workspace: the prompt text comes from a MangoMe read
         if team:
             ep.event("TEAM_STATE", role=role, sha=hashlib.sha256(ts.encode()).hexdigest(), turn=turn)
         prompt = head + (f"\n<team_state>\n{ts}\n</team_state>" if ts else "") + "\n<work_so_far>\n" + render(transcript) + "\n</work_so_far>\nYour next action (one JSON object):"
