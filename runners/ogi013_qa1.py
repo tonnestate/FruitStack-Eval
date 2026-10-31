@@ -467,7 +467,8 @@ def run_T(ctx: Context, q: dict) -> dict:
     replies = sum(len(o.get("replies", [])) for o in team.objs)
     indep = [o for o in team.objs if o.get("lineage") and o["lineage"] != pos_lin.get(o["target"])]          # a critique from the lineage of the position it judges does not count
     evidenced_replies = sum(1 for o in indep for r in o.get("replies", []) if r.get("evidence") in ("command", "quote"))
-    independence_ok = not any(l in pos_lin.values() for l in spec_lin)                                   # a specialist of the same lineage as a position it judges does not count
+    critics = {o["lineage"] for o in team.objs if o.get("lineage")}
+    independence_ok = not any(l in set(pos_lin.values()) | critics for l in spec_lin)                                   # a specialist of the same lineage as a position it judges does not count
     (ctx.out / "exchange").mkdir(exist_ok=True)                           # the full exchange for the report (model text; kept out of results.jsonl)
     (ctx.out / "exchange" / f"{q['id']}.json").write_text(json.dumps({
         "first_answers": [{"slot": r.slot if hasattr(r, "slot") else None, "text": r.answer_text} for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"],
@@ -482,6 +483,20 @@ def run_T(ctx: Context, q: dict) -> dict:
 
 
 # ---- orchestration -------------------------------------------------------------------------------------------------------------------------------------------
+def plum_state(ctx, model: str) -> dict:
+    """Availability of one cognitive model as PlumMe reports it: per offer the health state, retry window, circuit/credential/pool facts (cooldown with expiry vs exhausted)."""
+    sch = ctx.stack.svc.scheduler
+    offers = []
+    for o in sch.store.market.offers.values():
+        if o.model_key != model:
+            continue
+        f = sch.route_state(o)
+        av = sch.availability(o)
+        offers.append({"offer": o.offer_id, "health": getattr(o.health, "value", str(o.health)), "circuit_open": f["circuit_open"], "credential_available": f["credential_available"],
+                       "pool_state": f["pool_state"], "pool_blocked_until": f["pool_blocked_until"], "retry_after_s": av.get("retry_after_seconds"), "quota_exhausted": av["quota_exhausted"]})
+    return {"model": model, "offers": offers}
+
+
 def chain_stages(row: dict) -> dict:
     """Cooperation chain (a)-(e) from one T row: two independent first answers, an objection with evidence from a lineage other than the position's own, a reply with evidence,
     a documented position change or an evidenced withdrawal, a final answer (a specialist of a judged lineage voids the chain). Returns the stages reached and where it stopped."""
@@ -589,6 +604,8 @@ def main(argv=None) -> int:
     ap.add_argument("--diagnose-pin", default=None, help="diagnostic: try to lease the pinned model once and print the exception")
     ap.add_argument("--probe-calls", type=int, default=10, help="--select-s: availability probe calls per candidate (QA-1b: 30)")
     ap.add_argument("--probe-interval", type=float, default=0.0, help="--select-s: seconds between probe calls (QA-1b: 60, i.e. 30 calls over 30 minutes)")
+    ap.add_argument("--run-cap", type=int, default=0, help="QA-1b: ONE run-level PlumMe RunBudget (provider requests incl. failover/continuation/rotation; cost 0) bound for the whole run")
+    ap.add_argument("--capacity", type=float, default=0.0, help="QA-1b: capacity measurement: up to 8 eligible models of distinct lineages, each called at its own pace for this many minutes (in parallel)")
     ap.add_argument("--supply-check", action="store_true", help="QA-1b: T roster supply check (2 solvers of distinct lineages, critic, specialist; 5 of 5 probes each) and exit")
     ap.add_argument("--chain-hunt", type=int, default=0, help="QA-1b: run arm T alone, question by question, until the first complete cooperation chain (a-e) or this many questions")
     ap.add_argument("--select-s", action="store_true", help="print the model PlumMe AUTO ranks first for the solve role and exit")
@@ -598,6 +615,11 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
     ctx = Context(a.out, a.s_model, a.call_cap)
+    run_budget = None
+    if a.run_cap:
+        from plumme.budget import RunBudget
+        run_budget = RunBudget(max_provider_calls=a.run_cap, max_cost_usd=0.0)
+        ctx.stack.svc.set_run_budget(run_budget)
     if a.diagnose_pin:
         import asyncio
         from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
@@ -608,6 +630,50 @@ def main(argv=None) -> int:
             print(json.dumps({"pinned": a.diagnose_pin, "ok": True, "route": getattr(lease.route, "model", None)}))
         except Exception as exc:  # noqa: BLE001
             print(json.dumps({"pinned": a.diagnose_pin, "ok": False, "error": f"{type(exc).__name__}: {str(exc)[:600]}"}))
+        return 0
+    if a.capacity:
+        # Capacity measurement under the call caps (lead, 2026-10-31): per model at most 5 calls, one every 6 minutes; at most 40 calls in all. Single attempt per call (no step retries).
+        # EXHAUSTED (Retry-After > 10 min, or a message naming quota/credit/daily/monthly/exhausted) and UNAVAILABLE (two cooldown refusals in a row) are final for this run: no further call.
+        ep0 = ctx.episode("T", "capacity")
+        found, lins, cnt = [], [], {"n": 0}
+        for _ in range(8):                                                 # discovery: AUTO picks eligible models of distinct lineages (small-model exclusion is applied by the heart); this IS call 1 of each
+            d = ep0.step("Reply with the single word READY.", "author", exclude=tuple(lins), sticky_attempts=1)
+            cnt["n"] += 1
+            if not d["success"]:
+                break
+            found.append((d["model_key"], d.get("independence_key")))
+            lins.append(d.get("independence_key"))
+        table = {m: {"lineage": l, "calls": 1, "successes": 1, "state": "OK", "refusals": []} for m, l in found}
+        tlock, t_start = threading.Lock(), time.monotonic()
+        TERMINAL = {"QUOTA_EXHAUSTED", "AUTH_EXPIRED", "UNAVAILABLE"}      # PlumMe offer health that needs new information (never requalified in-process): exhaustion, not a cooldown
+
+        def measure(m):
+            ep, t = ep0.fork(), table[m]
+            for k in range(1, 5):
+                time.sleep(max(0.0, t_start + k * 360 - time.monotonic()))
+                with tlock:
+                    if cnt["n"] >= 40:
+                        return
+                    cnt["n"] += 1
+                    t["calls"] += 1
+                try:
+                    r = ep.step("Reply with the single word READY.", "author", prefer=m, sticky_attempts=99)
+                    err = None
+                except Exception as exc:  # noqa: BLE001
+                    r, err = {"success": False}, f"{type(exc).__name__}: {str(exc)[:200]}"
+                if r.get("success") and r.get("model_key") == m:
+                    t["successes"] += 1
+                    continue
+                st = plum_state(ctx, m)                                      # availability comes from PlumMe (offer / pool / credential state), not from message text
+                t["refusals"].append({"error": err or str(r.get("failure_class"))[:120], "plumme": st})
+                if st["offers"] and all(o["health"] in TERMINAL or o["pool_state"] == "EXHAUSTED" for o in st["offers"]):
+                    t["state"] = "EXHAUSTED"
+                    return
+        with ThreadPoolExecutor(max_workers=max(1, len(found))) as tp:
+            list(tp.map(measure, [m for m, _ in found]))
+        qual = {m: t for m, t in table.items() if t["successes"] >= 3}
+        print(json.dumps({"capacity": table, "calls_total": cnt["n"], "qualifying": sorted(qual), "distinct_qualifying_lineages": len({t["lineage"] for t in qual.values()}),
+                          "roster_possible": len({t["lineage"] for t in qual.values()}) >= 4}), flush=True)
         return 0
     if a.supply_check:
         ep = ctx.episode("T", "supply")
@@ -671,9 +737,13 @@ def main(argv=None) -> int:
             with res_path.open("a") as fh:
                 fh.write(json.dumps({**full, "chain": ch, "chain_class": chain_class(full) if ch["complete"] else None}) + "\n")
             print(json.dumps({"hunt": i, "qid": q["id"], "category": q.get("category"), "status": full["status"], "detail": (full.get("infra_detail") or "")[:160], "chain": ch, "class": chain_class(full) if ch["complete"] else None,
-                              "stop": full.get("stop"), "correct": full.get("correct"), "work_ref": full.get("work_ref")}), flush=True)
+                              "stop": full.get("stop"), "correct": full.get("correct"), "work_ref": full.get("work_ref"),
+                              "run_budget_used": run_budget.provider_attempt_count if run_budget else None}), flush=True)
             if ch["complete"]:
                 return 0
+            if run_budget is not None and run_budget.provider_attempt_count >= run_budget.max_provider_calls:
+                print(json.dumps({"hunt": "RUN_CAP_REACHED", "used": run_budget.provider_attempt_count}), flush=True)
+                return 4
         return 3
 
     def write(rows):

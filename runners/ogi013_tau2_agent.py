@@ -289,12 +289,12 @@ class Episode:
             f.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "task": self.task_id, "mode": self.mode, "sid": self.sid, "event": kind, **data}, default=str) + "\n")
 
     # one model call = one PeachMe step on the integrated stack; transient supply conditions are handled by PlumMe/PeachMe contracts, not by the benchmark
-    def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None, sticky_attempts: int = 1) -> dict:
+    def step(self, prompt: str, tag: str, *, exclude: tuple = (), prefer: str | None = None, sticky_attempts: int = 1, max_attempts: int | None = None) -> dict:
         from peachme import PeachError
         fs, last = self.stack.fs, None
         if self._flags().get("budget_exhausted"):
             raise PeachError("BUDGET_EPISODE_EXHAUSTED: " + self._flags()["budget_exhausted"])
-        for attempt in range(6 if os.environ.get("OGI013_PILOT_RUNS") else 4):                              # campaigns: 6 (AMENDMENT-1 X; every attempt is a counted dispatch under the 110-request ceiling, the real bound); the frozen C-conditions keep 4
+        for attempt in range(max_attempts or (6 if os.environ.get("OGI013_PILOT_RUNS") else 4)):                              # campaigns: 6 (AMENDMENT-1 X; every attempt is a counted dispatch under the 110-request ceiling, the real bound); the frozen C-conditions keep 4
             try:
                 pilot_gate()                                  # pilot only: refuse BEFORE the provider dispatch when a budget would be crossed or usage is missing
             except PilotBudgetStop as exc:
