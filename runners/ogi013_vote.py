@@ -17,6 +17,7 @@ FIELD = re.compile(r"^[ \t]*OWN_OBJECTIONS:[ \t]*(.*?)(?=^[ \t]*[A-Z][A-Z_]{3,}:
 OBJ_ID = re.compile(r"\bO\d+\b")
 VERDICT_LINE = re.compile(r"^[ \t]*[-*]?[ \t]*(O\d+)[ \t]*[:\-]?[ \t]*(RESOLVED|STILL_OPEN)\b", re.M)
 OPEN, PENDING, RESOLVED, WITHDRAWN = "OPEN", "ADDRESSED_PENDING", "VERIFIED_RESOLVED", "WITHDRAWN"
+ACCEPTED = "ACCEPTED"                    # QA-2D: the author accepted the objection by a linked concession (owner rule) and the position change is logged
 
 
 def locked(fn):
@@ -89,6 +90,16 @@ class Ledger:
             self.on_change(o)
             return {"ok": True, "event": "ARBITRATION_DUE"}
         return {"ok": True, "event": "REPLY"}
+
+    @locked
+    def accept(self, oid: str, **info) -> bool:
+        """An objection accepted by a concession (owner rule: independent, substantive, named, position changed) leaves OPEN for ACCEPTED, in the ledger and in what MangoMe persists."""
+        o = next((x for x in self.objs if x["id"] == oid), None)
+        if o is None or o["state"] != OPEN:
+            return False
+        self._set(o, ACCEPTED, decided_by="accepted_by_concession", **info)
+        self.emit("ACCEPTED", id=oid)
+        return True
 
     @locked
     def arbitration_due(self, target: str) -> list:

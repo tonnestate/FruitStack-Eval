@@ -278,7 +278,7 @@ def run_S(ctx: Context, q: dict) -> dict:
 # ---- arm L ---------------------------------------------------------------------------------------------------------------------------------------------------
 def run_L(ctx: Context, q: dict) -> dict:
     t0 = time.monotonic()
-    prompt = question_prompt(q) + "\nAnswer directly from your own knowledge and reasoning. Do not run commands or read files."
+    prompt = question_prompt(q) + ANSWER_SUFFIX
     with tempfile.TemporaryDirectory() as tmp:
         r = subprocess.run(["codex", "exec", "--skip-git-repo-check", "--ephemeral", "-s", "read-only", "-m", "gpt-6-luna", "-c", 'approval_policy="never"', "-C", tmp, "--json", "-"], input=prompt,
                            capture_output=True, text=True, env={**os.environ, "CODEX_HOME": CODEX_HOME}, timeout=900)
@@ -315,6 +315,7 @@ def run_E(ctx: Context, q: dict, t_rec: dict) -> dict:
 
 
 # ---- arm T ---------------------------------------------------------------------------------------------------------------------------------------------------
+ANSWER_SUFFIX = "\nAnswer directly from your own knowledge and reasoning. Do not run commands or read files."      # identical for L / SL / T / E / SN prompts
 LUNA_KEY, LUNA_LINEAGE = "gpt-6-luna@codex", "luna"
 NEMO_KEY, NEMO_LINEAGE = "nemotron-3-ultra-550b@default", "nemotron"
 LIMIT_MESSAGE = re.compile(r"usage limit|hit your .{0,40}limit|rate.?limit|quota|try again (?:at|in|later)|limit reached", re.I)
@@ -333,7 +334,7 @@ def luna_step(ctx: Context, prompt: str) -> dict:
         return {**SMALL_FAIL, "failure_class": "RUN_CAP"}
     with tempfile.TemporaryDirectory() as tmp:
         r = subprocess.run(["codex", "exec", "--skip-git-repo-check", "--ephemeral", "-s", "read-only", "-m", "gpt-6-luna", "-c", 'approval_policy="never"', "-C", tmp, "--json", "-"],
-                           input=prompt + "\nAnswer from your own knowledge and reasoning. Do not run commands or read files.", capture_output=True, text=True,
+                           input=prompt + ANSWER_SUFFIX, capture_output=True, text=True,
                            env={**os.environ, "CODEX_HOME": CODEX_HOME}, timeout=900)
     events = [json.loads(l) for l in r.stdout.splitlines() if l.startswith("{")]
     msgs = [e["item"]["text"] for e in events if e.get("type") == "item.completed" and e["item"].get("type") == "agent_message"]
@@ -476,6 +477,7 @@ def run_T(ctx: Context, q: dict, duo: bool = False) -> dict:
                                 o = next(x for x in team.objs if x["id"] == oid)
                                 if accepted_concession(d["output"], o, pos_lin.get(o["target"]), old, new):        # owner rule: independent + substantive objection, response names it, position change logged
                                     o["concession"] = {"named": True, "from": old, "to": new}
+                                    team.accept(oid, concession={"from": old, "to": new})
                                     counters["accepted_concessions"] += 1
                         if new != old:
                             counters["answer_changes"] += 1
@@ -613,7 +615,7 @@ def attempt(fn, *a):
     try:
         return {"status": "OK", **fn(*a)}
     except Infra as e:
-        return {"status": e.kind, "detail": str(e)[:300]}
+        return {"status": e.kind, "detail": str(e)[:300], "calls": getattr(e, "calls", None)}
     except Exception as e:  # noqa: BLE001
         return {"status": "INFRA_CRASH", "detail": f"{type(e).__name__}: {str(e)[:300]}"}
 

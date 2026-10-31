@@ -16,4 +16,4 @@ export PLUMME_COST_POLICY=ANY PLUMME_SHARED_HEALTH_DIR=$R OGI013_PILOT_RUNS=$R O
 export OGI013_EFFECT_DB=$OUT/effects.sqlite3 OGI013_SINGLE_E_K=2 OGI013_SINGLE_E_SCOPE=writes
 # the Stack needs one admitted work to start; every (question, arm) then gets its own WorkIdentity + turn from the runner
 eval "$($H runners/ogi013_bind_work.py "OGI-013 QA-1 stack start $(date -u +%FT%TZ)")"
-exec $H runners/ogi013_host_bootstrap.py --host-python $H --tau2-checkout $T --components-root $CR --runner runners/ogi013_qa1.py --data $DATA --out $OUT/run "$@"
+exec $H runners/ogi013_host_bootstrap.py --host-python $H --tau2-checkout $T --components-root $CR --runner ${OGI013_RUNNER:-runners/ogi013_qa1.py} --data $DATA --out $OUT/run "$@"
