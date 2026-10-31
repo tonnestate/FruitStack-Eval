@@ -47,3 +47,41 @@ def test_analysis_runs_the_two_confirmatory_tests_with_holm(tmp_path):
     h1l, h1c = res["confirmatory"]
     assert (h1l["b_T_only"], h1l["c_other_only"]) == (8, 0) and h1l["p_holm"] >= h1l["p"] and h1c["hypothesis"] == "H1c"
     assert "QA-2D analysis" in an.render(res)
+
+
+def test_arm_table_reports_latency_percentiles_and_cost_per_success(tmp_path):
+    res = an.analyze(_rows(tmp_path))
+    t = res["arms"][0]
+    assert t["calls_per_success"] == 60 / 18 and t["tokens_per_success"] == 2000 / 18
+    assert an.pct([1, 2, 3, 4, 100], 0.5) == 3 and an.pct([], 0.5) is None
+    assert "latency P50/P95" in an.render(res)
+
+
+def test_first_answer_prompt_is_byte_identical_in_every_arm(tmp_path, monkeypatch):
+    import inspect
+    from types import SimpleNamespace
+    q = {"id": "1", "question": "What is 2+2?", "options": ["3", "4", "5"], "key": "B"}
+    seen = []
+
+    def fake(ctx, *a):
+        seen.append(a[-1])
+        return {"success": True, "output": "ANSWER: B", "model_key": q2.NEMO_KEY}
+    monkeypatch.setattr(q2, "luna_step", lambda ctx, prompt: fake(ctx, prompt))
+    monkeypatch.setattr(q2, "nemo_step", lambda ctx, ep, prompt: fake(ctx, ep, prompt))
+    ep = SimpleNamespace(stats={"tokens_in": 0, "tokens_out": 0}, work="w")
+    ctx = SimpleNamespace(luna_tokens=0, out=tmp_path, episode=lambda arm, qid: ep)
+    q2.run_SL(ctx, q)
+    q2.run_SN(ctx, q)
+    q2.run_E(ctx, q, 2)                                               # one Luna and one nemotron draft
+    assert len(seen) == 4 and len(set(seen)) == 1 and seen[0] == q2.answer_prompt(q)
+    src = inspect.getsource(q2.run_T)
+    assert src.count('answer_prompt(q), "first"') == 2                # both T members get the same prompt
+
+
+def test_cooldown_wait_is_scheduling_for_short_cooldowns_only():
+    ok = {"health": "AVAILABLE", "circuit_open": False, "credential_available": True, "retry_after_s": None}
+    assert q2.cooldown_wait([ok]) == 0.0
+    assert q2.cooldown_wait([{**ok, "health": "RATE_LIMITED", "circuit_open": True, "retry_after_s": 47.0}]) == 49.0
+    assert q2.cooldown_wait([{**ok, "health": "DEGRADED", "retry_after_s": None}]) == 62.0
+    assert q2.cooldown_wait([{**ok, "health": "QUOTA_EXHAUSTED"}]) == 0.0                 # exhausted: no wait (the run pauses instead)
+    assert q2.cooldown_wait([{**ok, "health": "RATE_LIMITED", "retry_after_s": 4000.0}]) == 0.0   # too long to wait for

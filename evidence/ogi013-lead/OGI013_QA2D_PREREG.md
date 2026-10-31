@@ -15,6 +15,7 @@ On MMLU-Pro (test split), does the Luna + nemotron duo, organised as a blind-ans
 - **E (equal effort):** k blind drafts alternating Luna / nemotron (Luna first), k = T's call count on that question (at least 2), majority vote of the parsed letters, tie goes to the tied letter Luna gave first.
 - **SL:** Luna alone, 1 call. For the 198 QA-1 ids the QA-1 L rows are reused (identical prompt and model); the other 202 are run with the identical prompt.
 - **SN:** nemotron-3-ultra-550b alone, 1 call (same prompt).
+- The first-answer prompt is byte-identical for T (both members), E, SL and SN: `QUESTION_PROMPT.format(question, options) + ANSWER_SUFFIX`; its template sha256 is recorded in the lock.
 - Answer format: strict `ANSWER: <letter>`, last occurrence, option-range check (as QA-1). An infrastructure failure of any call makes that arm-row INFRA_FAILED (no rerun, no hidden retry); it counts as incorrect.
 
 ## Tests
@@ -27,6 +28,12 @@ Descriptive (outside the family): T vs SN; disagreement rate; chains with their 
 Sequential questions; PlumMe `RunBudget` hard cap of 3,000 invocations (nemotron provider attempts incl. route failover, plus Luna invocations); no hidden retries. The run pauses (exit 76) and reports on
 a subscription or provider limit message, on an infrastructure-failure share above 10 % in any arm after 40 questions of the current process, or when the run cap is reached. A pause is not a failure: the run
 resumes on the same lock without re-running finished rows (a row interrupted by a limit message is discarded and re-run).
+
+## Execution notes fixed before the lock
+- **Cooldown scheduling (not a retry):** before a nemotron call, PlumMe's own availability facts are read (`requalify()`, offer health, retry window). If the offer is in a SHORT cooldown (rate limited /
+  degraded, retry window at most 300 s) the runner waits once for the PlumMe-reported window and then makes the call once. An offer that is quota-exhausted, auth-expired or unavailable ends the run's use of the
+  model: the run pauses at once with PlumMe's state as the reason. Total waiting is reported (`cooldown_waits`, `cooldown_wait_s`).
+- A call that fails (timeout, provider error) is final: INFRA_FAILED for that arm-row, no rerun.
 
 ## Claim boundary
 The only allowed statements are of the form: "On QA-2D (MMLU-Pro test, n = <n>, <date>), T answered x % correctly vs y % (SL) and z % (E); paired differences with CI and Holm-adjusted p." No sentence says the

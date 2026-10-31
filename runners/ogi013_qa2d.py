@@ -54,10 +54,67 @@ def final_unresolved(objections: list, current: dict) -> tuple:
     return current["luna"], "luna_default"
 
 
+TERMINAL_HEALTH = {"QUOTA_EXHAUSTED", "AUTH_EXPIRED", "UNAVAILABLE"}
+
+
+def nemo_terminal(ctx: Context) -> str | None:
+    """PlumMe's own availability facts for the pinned model after its network-free requalify(): terminal offer health (exhausted / auth / unavailable) means the model leaves the run
+    (a quota-exhausted model is never called again) and the run pauses. Cooldown states are left to the call (it fails once, counted as infrastructure)."""
+    try:
+        ctx.stack.svc.scheduler.requalify()
+    except Exception:  # noqa: BLE001
+        pass
+    offers = q1.plum_state(ctx, NEMO_KEY)["offers"]
+    if offers and all(o["health"] in TERMINAL_HEALTH for o in offers):
+        return "NEMOTRON_" + "/".join(sorted({o["health"] for o in offers}))
+    return None
+
+
+MAX_COOLDOWN_WAIT_S = 300
+
+
+def cooldown_wait(offers: list) -> float:
+    """Seconds to wait BEFORE a call while PlumMe reports the pinned model in a short cooldown (not exhausted): the longest PlumMe-reported retry window plus the requalify dwell margin.
+    This is scheduling, not a retry: the call is made once, after the window. 0 when the offer is available; a window above MAX_COOLDOWN_WAIT_S is not waited for (the call fails once)."""
+    if not offers or any(o["health"] in TERMINAL_HEALTH for o in offers):
+        return 0.0
+    if all(o["health"] == "AVAILABLE" and not o["circuit_open"] and o["credential_available"] for o in offers):
+        return 0.0
+    windows = [o.get("retry_after_s") for o in offers if o.get("retry_after_s")]
+    wait = (max(windows) if windows else 60.0) + 2.0
+    return wait if wait <= MAX_COOLDOWN_WAIT_S else 0.0
+
+
+class Timing:
+    """Per-arm timing records (Phase C is built on them): every call with its kind, member, seconds and outcome, plus prompt-building and persistence time."""
+
+    def __init__(self):
+        self.calls, self.build_s, self.persist_s, self.init_s = [], 0.0, 0.0, 0.0
+        self.lock = threading.Lock()
+
+    def add(self, kind: str, member: str, seconds: float, ok: bool):
+        with self.lock:
+            self.calls.append({"kind": kind, "member": member, "seconds": round(seconds, 2), "ok": ok})
+
+    def report(self) -> dict:
+        return {"calls": self.calls, "prompt_build_s": round(self.build_s, 3), "persist_s": round(self.persist_s, 3), "init_s": round(self.init_s, 2)}
+
+
 def nemo_step(ctx: Context, ep, prompt: str) -> dict:
     """One nemotron invocation through PlumMe (pinned model, single attempt, no sticky retry; route failover inside the model is PlumMe's and charged to the run budget)."""
     if ctx.stop:
         return {**SMALL_FAIL, "failure_class": "RUN_STOPPED"}
+    why = nemo_terminal(ctx)
+    if why:
+        ctx.stop = why
+        return {**SMALL_FAIL, "failure_class": why}
+    wait = cooldown_wait(q1.plum_state(ctx, NEMO_KEY)["offers"])
+    if wait:
+        with ctx.results_lock:
+            ctx.cooldown_waits = getattr(ctx, "cooldown_waits", 0) + 1
+            ctx.cooldown_wait_s = getattr(ctx, "cooldown_wait_s", 0.0) + wait
+        time.sleep(wait)
+        nemo_terminal(ctx)                                                 # requalify() after the window
     try:
         d = ep.fork().step(prompt, "author", prefer=NEMO_KEY, sticky_attempts=99, max_attempts=1)
     except Exception as exc:  # noqa: BLE001
@@ -83,7 +140,9 @@ def run_T(ctx: Context, q: dict) -> dict:
     from ogi013_mango_ledger import MangoLedger
     from ogi013_team_code import TeamState
     t0, luna0 = time.monotonic(), ctx.luna_tokens
+    tm = Timing()
     ep = ctx.episode("T", q["id"])
+    tm.init_s = time.monotonic() - t0
     n_opt, task = len(q["options"]), question_prompt(q)
     team = TeamState(task, ctx.out / "events" / f"{q['id']}_T_team_state.md")
     team.mango = MangoLedger(ctx.stack.fs.mango, ep.work, ep.actor, ep.turn_id, ep.sid)
@@ -97,26 +156,36 @@ def run_T(ctx: Context, q: dict) -> dict:
     other = {"luna": "nemo", "nemo": "luna"}
 
     def view(base: str) -> str:
+        t = time.monotonic()
         ts = team.prompt(None)                                           # MangoMe is the live workspace
+        tm.build_s += time.monotonic() - t
         return base + (f"\n<team_state>\n{ts}\n</team_state>\n" if ts else "")
 
-    def ask(name: str, prompt: str) -> dict:
+    def persist():
+        t = time.monotonic()
+        team.persist()
+        tm.persist_s += time.monotonic() - t
+
+    def ask(name: str, prompt: str, kind: str = "call") -> dict:
         with clock:
             cnt["calls"] += 1
-        return luna_step(ctx, prompt) if name == "luna" else nemo_step(ctx, ep, prompt)
+        t = time.monotonic()
+        d = luna_step(ctx, prompt) if name == "luna" else nemo_step(ctx, ep, prompt)
+        tm.add(kind, name, time.monotonic() - t, bool(d.get("success")))
+        return d
 
     def letter_of(name: str):
         return parse_letter(members[name].diff, n_opt)
 
     # blind first answers (parallel; 2 calls)
     with ThreadPoolExecutor(2) as tp:
-        fl, fn = tp.submit(ask, "luna", answer_prompt(q)), tp.submit(ask, "nemo", answer_prompt(q))
+        fl, fn = tp.submit(ask, "luna", answer_prompt(q), "first"), tp.submit(ask, "nemo", answer_prompt(q), "first")
         first = {"luna": fl.result(), "nemo": fn.result()}
     for name, d in first.items():
         if not d["success"]:
             raise _fail("INFRA_STEP_FAILED", f"{name} first answer: {d.get('failure_class')}", cnt["calls"])
         members[name].diff, members[name].status = d["output"], "submitted"
-    team.persist()
+    persist()
     first_letters = {name: letter_of(name) for name in members}
     first_by_pos = {members[n].id: first_letters[n] for n in members}
     team.independent = False
@@ -129,7 +198,7 @@ def run_T(ctx: Context, q: dict) -> dict:
             # cross-critique: each member judges the other's position
             def critique(judge: str, target: str):
                 pos = members[target]
-                return judge, target, ask(judge, view(f"{task}\n\nA colleague's answer to this question:\n{pos.diff}\n" + ag.CRITIC_INSTRUCTIONS))
+                return judge, target, ask(judge, view(f"{task}\n\nA colleague's answer to this question:\n{pos.diff}\n" + ag.CRITIC_INSTRUCTIONS + ANSWER_SUFFIX), "critique")
             with ThreadPoolExecutor(2) as tp:
                 crits = [f.result() for f in [tp.submit(critique, "luna", "nemo"), tp.submit(critique, "nemo", "luna")]]
             filed = []
@@ -145,14 +214,14 @@ def run_T(ctx: Context, q: dict) -> dict:
                 cnt["grounded_objections"] += int(ground["kind"] in ("quote", "command"))
                 objs_chrono.append({"oid": oid, "author": judge, "target": target, "level": ground.get("level")})
                 filed.append((oid, judge, target))
-            team.persist()
+            persist()
 
             # replies: each objected member answers once, naming the objection
             def reply(oid: str, target: str):
                 o = next(x for x in team.objs if x["id"] == oid)
                 pos = members[target]
-                prompt = view(f"{task}\n\nYour answer so far:\n{pos.diff}\n\nObjection {oid} against your answer:\n{o['text']}\n\nYou are answering objection {oid}: name it by its id.\n" + ag.REPLY_INSTRUCTIONS)
-                return oid, target, ask(target, prompt)
+                prompt = view(f"{task}\n\nYour answer so far:\n{pos.diff}\n\nObjection {oid} against your answer:\n{o['text']}\n\nYou are answering objection {oid}: name it by its id.\n" + ag.REPLY_INSTRUCTIONS + ANSWER_SUFFIX)
+                return oid, target, ask(target, prompt, "reply")
             with ThreadPoolExecutor(2) as tp:
                 answers = [f.result() for f in [tp.submit(reply, oid, target) for oid, _j, target in filed]]
             for oid, target, d in answers:
@@ -173,7 +242,7 @@ def run_T(ctx: Context, q: dict) -> dict:
                     cnt["evidenced_replies"] += int(bool(r.get("ok")))
                 pos.diff, pos.rev, pos.status = d["output"], pos.rev + 1, "revised"
                 team.decisions.append(f"{pos.id} revised (letter {old} -> {new}) responding to {oid}")
-            team.persist()
+            persist()
             if letter_of("luna") and letter_of("luna") == letter_of("nemo"):
                 stop = f"CONSENSUS_EXCHANGE_{ex}"
                 break
@@ -195,10 +264,16 @@ def run_T(ctx: Context, q: dict) -> dict:
            "objection_target_first": [first_by_pos.get(o["target"]) for o in team.objs], "objection_states": [o["state"] for o in team.objs],
            "lineages": {"positions": {m.id: m.lineage for m in members.values()}, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")})},
            "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0), "seconds": round(time.monotonic() - t0, 1),
-           "mango_writes": team.mango.writes, "mango_reads": team.mango.reads, "work_ref": ep.work}
+           "mango_writes": team.mango.writes, "mango_reads": team.mango.reads, "work_ref": ep.work, "timing": tm.report()}
     (ctx.out / "exchange").mkdir(exist_ok=True)
     (ctx.out / "exchange" / f"{q['id']}.json").write_text(json.dumps({"first_answers": {n: first[n]["output"] for n in first}, "objections": team.objs, "decisions": team.decisions, "final": team.release}, default=str))
     return row
+
+
+def store_outputs(ctx: Context, qid: str, arm: str, outputs: dict) -> None:
+    """Every answer is stored in full (not in results.jsonl; never committed)."""
+    (ctx.out / "exchange").mkdir(exist_ok=True)
+    (ctx.out / "exchange" / f"{qid}_{arm}.json").write_text(json.dumps(outputs))
 
 
 # ---- arms E / SL / SN ---------------------------------------------------------------------------------------------------------------------------------------
@@ -208,24 +283,32 @@ def run_E(ctx: Context, q: dict, k: int) -> dict:
     n_opt, prompt = len(q["options"]), answer_prompt(q)
     order = ["luna" if i % 2 == 0 else "nemo" for i in range(k)]            # alternating, Luna first
 
+    tm = Timing()
+
     def draft(name):
-        return luna_step(ctx, prompt) if name == "luna" else nemo_step(ctx, ep, prompt)
+        t = time.monotonic()
+        d = luna_step(ctx, prompt) if name == "luna" else nemo_step(ctx, ep, prompt)
+        tm.add("draft", name, time.monotonic() - t, bool(d.get("success")))
+        return d
     with ThreadPoolExecutor(2) as tp:
         ds = list(tp.map(draft, order))
     bad = [(n, d.get("failure_class")) for n, d in zip(order, ds) if not d["success"]]
     if bad:
         raise _fail("INFRA_STEP_FAILED", f"draft failed: {bad[0]}", k)
     drafts = [(n, parse_letter(d["output"], n_opt)) for n, d in zip(order, ds)]
-    return {"letter": majority_tie_luna(drafts), "draft_letters": [l for _n, l in drafts], "k": k, "calls": k, "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0),
+    store_outputs(ctx, q["id"], "E", {n + str(i): d["output"] for i, (n, d) in enumerate(zip(order, ds))})
+    return {"letter": majority_tie_luna(drafts), "draft_letters": [l for _n, l in drafts], "k": k, "calls": k, "timing": tm.report(), "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0),
             "seconds": round(time.monotonic() - t0, 1), "work_ref": ep.work}
 
 
 def run_SL(ctx: Context, q: dict) -> dict:
     t0, luna0 = time.monotonic(), ctx.luna_tokens
-    d = luna_step(ctx, question_prompt(q))                                   # luna_step appends ANSWER_SUFFIX: the identical prompt of the QA-1 L arm
+    d = luna_step(ctx, answer_prompt(q))                                     # the identical prompt of the QA-1 L arm and of every first answer
     if not d["success"]:
         raise _fail("INFRA_LUNA_FAILED", str(d.get("failure_class")), 1)
-    return {"letter": parse_letter(d["output"], len(q["options"])), "calls": 1, "tokens": ctx.luna_tokens - luna0, "seconds": round(time.monotonic() - t0, 1)}
+    store_outputs(ctx, q["id"], "SL", {"luna": d["output"]})
+    return {"letter": parse_letter(d["output"], len(q["options"])), "calls": 1, "tokens": ctx.luna_tokens - luna0, "seconds": round(time.monotonic() - t0, 1),
+            "timing": {"calls": [{"kind": "answer", "member": "luna", "seconds": round(time.monotonic() - t0, 2), "ok": True}]}}
 
 
 def run_SN(ctx: Context, q: dict) -> dict:
@@ -234,7 +317,9 @@ def run_SN(ctx: Context, q: dict) -> dict:
     d = nemo_step(ctx, ep, answer_prompt(q))
     if not d["success"]:
         raise _fail("INFRA_STEP_FAILED", str(d.get("failure_class")), 1)
-    return {"letter": parse_letter(d["output"], len(q["options"])), "calls": 1, "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"], "seconds": round(time.monotonic() - t0, 1), "work_ref": ep.work}
+    store_outputs(ctx, q["id"], "SN", {"nemo": d["output"]})
+    return {"letter": parse_letter(d["output"], len(q["options"])), "calls": 1, "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"], "seconds": round(time.monotonic() - t0, 1), "work_ref": ep.work,
+            "timing": {"calls": [{"kind": "answer", "member": "nemo", "seconds": round(time.monotonic() - t0, 2), "ok": True}]}}
 
 
 # ---- driver -------------------------------------------------------------------------------------------------------------------------------------------------
@@ -263,6 +348,10 @@ def main(argv=None) -> int:
     ctx.run_budget = budget
     import ogi013_vote
     ogi013_vote.TEXT_CAP_OBJECTION = ogi013_vote.TEXT_CAP_REPLY = 10 ** 6
+    why = nemo_terminal(ctx)
+    if why:                                                               # nothing is called: the pinned model is unavailable at start (e.g. a gateway cooldown at discovery)
+        print(json.dumps({"pause": why, "after_question": None, "used": budget.provider_attempt_count, "plumme": q1.plum_state(ctx, NEMO_KEY)}, default=str), flush=True)
+        return PAUSE_CODE
     qs = load_jsonl(a.data)[: a.limit or None]
     res_path = a.out / "results.jsonl"
     res_path.parent.mkdir(parents=True, exist_ok=True)

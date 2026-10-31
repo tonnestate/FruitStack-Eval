@@ -35,12 +35,25 @@ def confirmatory(rows: dict, qids: list) -> list:
     return res
 
 
+def pct(xs: list, p: float):
+    xs = sorted(x for x in xs if x is not None)
+    if not xs:
+        return None
+    k = (len(xs) - 1) * p
+    lo, hi = int(k), min(int(k) + 1, len(xs) - 1)
+    return round(xs[lo] + (xs[hi] - xs[lo]) * (k - lo), 2)
+
+
 def arm_table(rows: dict, qids: list) -> list:
     out = []
     for a in ARMS:
         rs = [rows[(q, a)] for q in qids]
-        out.append({"arm": a, "n": len(rs), "correct": sum(bool(r["correct"]) for r in rs), "infra_failures": sum(r["status"] != "OK" for r in rs),
-                    "tokens": sum(r.get("tokens") or 0 for r in rs), "calls": sum(r.get("calls") or 0 for r in rs), "reused": sum(1 for r in rs if r.get("reused_from"))})
+        ok = sum(bool(r["correct"]) for r in rs)
+        tokens, calls, secs = (sum(r.get(k) or 0 for r in rs) for k in ("tokens", "calls", "seconds"))
+        lat = [r.get("seconds") for r in rs if r["status"] == "OK"]
+        out.append({"arm": a, "n": len(rs), "correct": ok, "infra_failures": sum(r["status"] != "OK" for r in rs), "tokens": tokens, "calls": calls, "reused": sum(1 for r in rs if r.get("reused_from")),
+                    "latency_p50_s": pct(lat, 0.5), "latency_p95_s": pct(lat, 0.95), "tokens_per_success": (tokens / ok) if ok else None, "calls_per_success": (calls / ok) if ok else None,
+                    "seconds_per_success": (secs / ok) if ok else None})
     return out
 
 
@@ -66,8 +79,9 @@ def analyze(path) -> dict:
 
 
 def render(res: dict) -> str:
-    L = [f"# QA-2D analysis ({res['n_questions']} questions)", "", "## Arm table (primary)", "| arm | correct | n | infra failures | tokens | calls | reused |", "|---|---|---|---|---|---|---|"]
-    L += [f"| {a['arm']} | {a['correct']} | {a['n']} | {a['infra_failures']} | {a['tokens']} | {a['calls']} | {a['reused']} |" for a in res["arms"]]
+    L = [f"# QA-2D analysis ({res['n_questions']} questions)", "", "## Arm table (primary)", "| arm | correct | n | infra failures | tokens | calls | reused | latency P50/P95 s | tokens / calls / s per correct answer |", "|---|---|---|---|---|---|---|---|---|"]
+    f = lambda v: "-" if v is None else f"{v:.1f}"  # noqa: E731
+    L += [f"| {a['arm']} | {a['correct']} | {a['n']} | {a['infra_failures']} | {a['tokens']} | {a['calls']} | {a['reused']} | {f(a['latency_p50_s'])} / {f(a['latency_p95_s'])} | {f(a['tokens_per_success'])} / {f(a['calls_per_success'])} / {f(a['seconds_per_success'])} |" for a in res["arms"]]
     for title, block in (("Confirmatory (primary), Holm over 2", res["confirmatory"]), (f"Sensitivity (questions without infrastructure failure: {res['sensitivity_n']})", res["sensitivity"])):
         L += ["", f"## {title}", "| hypothesis | pair | T-only | other-only | paired diff | 95% CI | p (exact McNemar) | p (Holm) |", "|---|---|---|---|---|---|---|---|"]
         L += [f"| {r['hypothesis']} | {r['pair']} | {r['b_T_only']} | {r['c_other_only']} | {100 * r['diff']:+.1f} pts | [{100 * r['ci_low']:+.1f}, {100 * r['ci_high']:+.1f}] | {r['p']:.4f} | {r['p_holm']:.4f} |" for r in block]

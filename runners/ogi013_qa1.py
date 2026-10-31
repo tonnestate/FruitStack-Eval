@@ -334,7 +334,7 @@ def luna_step(ctx: Context, prompt: str) -> dict:
         return {**SMALL_FAIL, "failure_class": "RUN_CAP"}
     with tempfile.TemporaryDirectory() as tmp:
         r = subprocess.run(["codex", "exec", "--skip-git-repo-check", "--ephemeral", "-s", "read-only", "-m", "gpt-6-luna", "-c", 'approval_policy="never"', "-C", tmp, "--json", "-"],
-                           input=prompt + ANSWER_SUFFIX, capture_output=True, text=True,
+                           input=prompt, capture_output=True, text=True,
                            env={**os.environ, "CODEX_HOME": CODEX_HOME}, timeout=900)
     events = [json.loads(l) for l in r.stdout.splitlines() if l.startswith("{")]
     msgs = [e["item"]["text"] for e in events if e.get("type") == "item.completed" and e["item"].get("type") == "agent_message"]
@@ -543,7 +543,7 @@ def run_T(ctx: Context, q: dict, duo: bool = False) -> dict:
     (ctx.out / "exchange" / f"{q['id']}.json").write_text(json.dumps({
         "first_answers": [{"slot": r.slot if hasattr(r, "slot") else None, "text": r.answer_text} for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"],
         "objections": team.objs, "decisions": team.decisions, "final": {"letter": letter, "how": how}}, default=str))
-    return {"letter": letter, "how": how, "first_letters": {f"S{i + 1}": l for i, l in enumerate(firsts)}, "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
+    return {"letter": letter, "how": how, "first_letters": dict(pos_first), "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
             "rounds": res.rounds, "stop": res.stop_reason, "late": res.late, "roster_models": [roster.pinned(r) for r in ("solver1", "solver2", "critic", "specialist")], "roster": roster.summary(),
             "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0), "seconds": round(time.monotonic() - t0, 1), "mango_writes": team.mango.writes, "mango_reads": team.mango.reads,
             "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "verified_objections": verified_objections, "formal_replies": formal_replies, "verified_replies": verified_replies, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,

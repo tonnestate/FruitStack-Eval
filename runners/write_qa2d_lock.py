@@ -42,6 +42,7 @@ def main(items, ids_path, dataset, out) -> int:
              f"ids: n={len(ids)} sha256={hashlib.sha256((chr(10).join(ids) + chr(10)).encode()).hexdigest()} order=sha256('OGI013-QA1|'+id)",
              f"dataset: {Path(dataset).name} sha256={sha_file(dataset)}",
              f"prompts sha256={hashlib.sha256(json.dumps(prompts, sort_keys=True).encode()).hexdigest()} " + " ".join(f"{k}={hashlib.sha256(v.encode()).hexdigest()[:12]}" for k, v in prompts.items()),
+             f"first-answer prompt (byte-identical for T both members, E, SL, SN) = QUESTION_PROMPT.format(question, options) + ANSWER_SUFFIX; template sha256={hashlib.sha256((q1.QUESTION_PROMPT + q1.ANSWER_SUFFIX).encode()).hexdigest()}",
              f"prereg sha256={sha_file(ROOT / 'evidence/ogi013-lead/OGI013_QA2D_PREREG.md')}",
              f"analyze_qa2d.py sha256={sha_file(RUNNERS / 'analyze_qa2d.py')}", f"analyze_qa1.py sha256={sha_file(RUNNERS / 'analyze_qa1.py')} (imported: paired, holm, McNemar)"]
     lines += [f"{f} sha256={sha_file(RUNNERS / f)}" for f in ("ogi013_qa2d.py", "ogi013_qa1.py", "ogi013_argument.py", "ogi013_vote.py", "ogi013_team_code.py")]
