@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -141,6 +142,9 @@ def render(transcript: list[dict]) -> str:
     return "\n".join(out)
 
 
+_POMELO_LOCK = threading.RLock()
+
+
 def pomelo_call(ep: Episode, sb: Sandbox, effects, name: str, args: dict, write: bool) -> tuple[str, bool]:
     from peachme.pomelo import effect_identity
     from pomelome.models import EffectClass
@@ -148,11 +152,12 @@ def pomelo_call(ep: Episode, sb: Sandbox, effects, name: str, args: dict, write:
     if fn is None or name.startswith("_"):
         return f"Error: unknown tool {name}", True
     key = f"{name}-{uuid.uuid4().hex[:10]}"
-    effects.gateway.adapters[name] = _Bridge(fn, args)
-    rev = ep.stack.store.get(ep.sid).revision
-    ep.stack.fs.execute_effect(ep.sid, rev, effect_key=key, tool=name, effect_class=(EffectClass.IRREVERSIBLE if write else EffectClass.READ).value, args=args,
-                               required_capabilities=(f"tool:{name}",))
-    rec = effects.gateway.store.get_effect(effect_identity(ep.sid, key))
+    with _POMELO_LOCK:          # the gateway's adapter registry is keyed by tool name: concurrent workers must not overwrite each other's bridge between registration and execution
+        effects.gateway.adapters[name] = _Bridge(fn, args)
+        rev = ep.stack.store.get(ep.sid).revision
+        ep.stack.fs.execute_effect(ep.sid, rev, effect_key=key, tool=name, effect_class=(EffectClass.IRREVERSIBLE if write else EffectClass.READ).value, args=args,
+                                   required_capabilities=(f"tool:{name}",))
+        rec = effects.gateway.store.get_effect(effect_identity(ep.sid, key))
     obs = rec.get("observation") if rec else None
     if not obs:
         return "Error: the execution gate returned no observation", True
@@ -174,10 +179,39 @@ LIMITS = {"author": 40, "critic": 15, "reviser": 25}
 
 
 class Ctx:
+    """Per-thread views (parallel organisation): `ep` and `last_session` are thread-local when a worker thread binds its own forked episode; the main thread keeps the original."""
     def __init__(self, ep, effects, gate, deadline, out):
-        self.ep, self.effects, self.gate, self.deadline, self.out = ep, effects, gate, deadline, out
+        self._tl = threading.local()
+        self._ep = ep
+        self.effects, self.gate, self.deadline, self.out = effects, gate, deadline, out
         self.keys = {"author": set()}
-        self.last_session: dict = {}
+        self._ls_main: dict = {}
+
+    @property
+    def ep(self):
+        return getattr(self._tl, "ep", None) or self._ep
+
+    @ep.setter
+    def ep(self, value):
+        self._ep = value
+
+    def bind_thread_ep(self, ep) -> None:
+        self._tl.ep = ep
+        self._tl.last_session = {}
+
+    def unbind_thread_ep(self) -> None:
+        self._tl.ep = None
+
+    @property
+    def last_session(self) -> dict:
+        return getattr(self._tl, "last_session", None) if getattr(self._tl, "ep", None) is not None else self._ls_main
+
+    @last_session.setter
+    def last_session(self, value: dict) -> None:
+        if getattr(self._tl, "ep", None) is not None:
+            self._tl.last_session = value
+        else:
+            self._ls_main = value
 
 
 STALL_TURNS_WITHOUT_ACTION = 8

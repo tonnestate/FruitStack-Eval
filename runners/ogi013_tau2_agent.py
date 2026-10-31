@@ -16,10 +16,12 @@ Usage: imported by ogi013_tau2_run.py (registers the agent factory)."""
 from __future__ import annotations
 
 import asyncio
+import copy
 import hashlib
 import json
 import os
 import re
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -216,6 +218,11 @@ class Episode:
         self.run_id = self.signal.target_run_id
         self.assurance_id = self.signal.assurance_id
         self.step_n = 0
+        self._lock = threading.RLock()                 # shared by forks: log appends and stats updates are serialised
+        self.call_gate = None                          # parallel organisation P4: CallGate (cap on simultaneous provider calls), set by the team driver
+        self.timing = None                             # parallel organisation P5: TimingRecorder, set by the team driver
+        self.token_cap = None                          # episode-wide token cap enforced across forks (each fork is its own PeachMe session)
+        self.gov_cfg = None
         self.turns = 0
         self.stopped = False
         self.seen_results: set[str] = set()
@@ -225,8 +232,39 @@ class Episode:
     def store_revision(self, stack: Stack) -> int:
         return stack.store.get(self.sid).revision
 
+    def fork(self) -> "Episode":
+        """Parallel organisation: a concurrent worker gets its OWN PeachMe session (sessions are sequential by design) on the same work and turn; log, stats, lock, gate and timing are shared."""
+        child = copy.copy(self)
+        child.session = self.stack.store.open(self.actor, work_ref=self.project, memory_ref="memory/working")
+        child.sid = child.session.session_id
+        self.stack.fs.bind_turn_authority(child.sid, work_ref=self.work, turn_id=self.turn_id, actor_id=self.actor)
+        if getattr(self, "gov_cfg", None):
+            self.stack.fs.governance.configure(child.sid, child.store_revision(self.stack), **self.gov_cfg)
+        child.step_n = 0
+        return child
+
+    def _gated(self, fn, role: str):
+        """P4/P5: the provider call itself runs inside the cap on simultaneous calls; queue wait, latency and outcome class are recorded as wall-clock intervals."""
+        from contextlib import nullcontext
+        from ogi013_conc import outcome_class
+        with (self.call_gate.slot() if self.call_gate is not None else nullcontext()):
+            t = time.monotonic()
+            try:
+                out = fn()
+            except Exception as exc:  # noqa: BLE001
+                if self.timing is not None:
+                    self.timing.add(outcome_class(str(exc)), t, time.monotonic(), role=role)
+                raise
+            if self.timing is not None:
+                self.timing.add("ok", t, time.monotonic(), role=role)
+            return out
+
+    def bump(self, key: str, n: int = 1) -> None:
+        with self._lock:
+            self.stats[key] += n
+
     def event(self, kind: str, **data: Any) -> None:
-        with self.log.open("a", encoding="utf-8") as f:
+        with self._lock, self.log.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "task": self.task_id, "mode": self.mode, "sid": self.sid, "event": kind, **data}, default=str) + "\n")
 
     # one model call = one PeachMe step on the integrated stack; transient supply conditions are handled by PlumMe/PeachMe contracts, not by the benchmark
@@ -247,6 +285,10 @@ class Episode:
             self.stack.heart.prefer_model_key = prefer if attempt < sticky_attempts else None
             self.stack.heart.exclude_small_models = True      # lead decision 2026-10-31: the small-model exclusion applies to ALL roles; a role the pool cannot fill ends the episode INFRA_SUPPLY
             self.stack.heart.min_context_tokens = (len(prompt) // 3 + 3000) if os.environ.get("OGI013_PILOT_RUNS") else None      # campaigns only: the request's own size (PlumMe's chars/3 estimate) plus room for the answer
+            if self.token_cap is not None and self.stats["tokens_in"] + self.stats["tokens_out"] >= self.token_cap:
+                self.budget_stopped = True
+                self.event("BUDGET_STOP", source="episode_token_cap", cap=self.token_cap)
+                raise PeachError("BUDGET_EPISODE_TOKEN_CAP")
             t0 = time.monotonic()
             try:
                 turn = asyncio.run(fs.prepare(self.sid, s.revision, role_id="REASONING", objective=f"tau2 {self.domain} turn"))
@@ -255,7 +297,7 @@ class Episode:
                 max_out, reserve = self.output_budget(prompt, env)
                 tokens, calls = self.step_authorization()
                 with step_parent_budget(self.stack.svc, tokens, calls, account_to=getattr(getattr(self.stack, "out", None), "parent", None), who=key) as parent:           # pilot: the step's tokens AND provider requests are enforced across continuations and retries
-                    out = asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve))
+                    out = self._gated(lambda: asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve)), tag)
                     if parent is not None:
                         parent.receipted = True
                 self._step_parent = parent.snapshot() if parent is not None else None
@@ -266,10 +308,10 @@ class Episode:
                 if code.startswith("REFLEX_BLOCKED"):
                     raise
                 if code.startswith(("EXECUTION_NOT_PERFORMED", "EXECUTION_OUTPUT_UNUSABLE")):
-                    self.stats["step_retries"] += 1
+                    self.bump("step_retries")
                     continue
                 if code.startswith("EXECUTION_NOT_CONFIRMED"):
-                    self.stats["unknown_steps"] += 1
+                    self.bump("unknown_steps")
                     # UNKNOWN retains its reservation until host reconciliation. An inference step has no external effect, so the host (this harness)
                     # records it ABANDONED (lost / possibly billed; stays in the books and is reported as an unknown step) and continues with a NEW step key.
                     try:
@@ -283,7 +325,7 @@ class Episode:
                     self.budget_stopped = True
                     self.event("BUDGET_STOP", source="peachme_governance", code=code)
                 raise
-            self.stats["steps"] += 1
+            self.bump("steps")
             st = out.step
             from ogi013_pilot_gate import token_limits
             lim = token_limits()
@@ -292,9 +334,10 @@ class Episode:
                 self.budget_stopped = True
                 self.event("BUDGET_STOP", source="step_ceiling", code="BUDGET_STEP_CEILING_EXCEEDED", recorded=used, ceiling=lim["per_step"], step=key)
                 raise PeachError("BUDGET_STEP_CEILING_EXCEEDED")
-            self.stats["tokens_in"] += st.input_tokens or 0
-            self.stats["tokens_out"] += st.output_tokens or 0
-            self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
+            with self._lock:
+                self.stats["tokens_in"] += st.input_tokens or 0
+                self.stats["tokens_out"] += st.output_tokens or 0
+                self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
             self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2), input_estimate=(getattr(self, "_input_estimate", None) or {}), step_requests=(getattr(self, "_step_parent", None) or {}).get("provider_attempt_count"), step_tokens_charged=(getattr(self, "_step_parent", None) or {}).get("charged_tokens"),
                        independence_key=facts.get("independence_key"), model_key=facts.get("model_key"), prefer_met=facts.get("prefer_met"))
             return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id}

@@ -2,8 +2,10 @@
 Everything here is decided by the host (driver-run checks), never by a model's claim, and never from hidden tests. Pure logic: the checker / runners are injected, so scripted tests need no model."""
 from __future__ import annotations
 
+import functools
 import hashlib
 import re
+import threading
 import shutil
 import subprocess
 from pathlib import Path
@@ -92,16 +94,33 @@ def is_grounded(ground) -> bool:
 
 
 # ---- R1: candidate ledger with a protected best --------------------------------------------------------------------------------------------------------
+def _locked(fn):
+    @functools.wraps(fn)
+    def inner(self, *a, **k):
+        with self.lock:
+            return fn(self, *a, **k)
+    return inner
+
+
+def rank_of(pos: str, label: str) -> tuple:
+    """Deterministic order for ties, independent of arrival time (parallel order): lower revision first, then position id."""
+    m = re.fullmatch(r"rev(\d+)", label)
+    return (int(m.group(1)) if m else 0, pos)
+
+
 class CandidateLedger:
     """checker(diff, repros) -> {"passed": int, "failed": int, "repro": {objection_id: bool}}. Score = passes minus nothing: (passes of visible tests + recorded reproductions, -failures)."""
 
     def __init__(self, checker, on_write=None):
+        self.lock = threading.RLock()            # adoption decisions are serialised under one episode lock: exactly one incumbent per position at any time
         self.checker, self.on_write = checker, on_write or (lambda kind, key, payload: None)
         self.cands, self.repros, self._cache = [], {}, {}
 
+    @_locked
     def add_repro(self, oid: str, repro: dict) -> None:
         self.repros[oid] = repro
 
+    @_locked
     def check(self, diff: str, repros=None) -> dict:
         reps = self.repros if repros is None else repros
         key = (sha256(diff), tuple(sorted(reps)))
@@ -115,17 +134,20 @@ class CandidateLedger:
         rf = len(r.get("repro", {})) - rp
         return (r["passed"] + rp, -(r["failed"] + rf))
 
+    @_locked
     def add(self, pos: str, label: str, diff: str, status: str = "ADOPTED", reason: str = "") -> dict:
-        c = {"id": f"{pos}:{label}", "pos": pos, "label": label, "sha256": sha256(diff), "diff": diff, "seq": len(self.cands), "status": status, "reason": reason}
+        c = {"id": f"{pos}:{label}", "pos": pos, "label": label, "sha256": sha256(diff), "diff": diff, "seq": len(self.cands), "rank": rank_of(pos, label), "status": status, "reason": reason}
         c["visible"] = {k: v for k, v in self.check(diff).items() if k != "tail"} if status != "REJECTED_REVISION" else {}
         self.cands.append(c)
         self.on_write("TEAM_CANDIDATE", c["id"], {k: v for k, v in c.items() if k != "diff"} | {"diff_sha256": c["sha256"]})
         return c
 
+    @_locked
     def incumbent(self, pos: str) -> dict | None:
         mine = [c for c in self.cands if c["pos"] == pos and c["status"] == "ADOPTED"]
         return mine[-1] if mine else None
 
+    @_locked
     def consider_revision(self, pos: str, label: str, new_diff: str, claimed: list) -> dict:
         """claimed: ids of the GROUNDED objections the revision claims to address. Adopted only if (a) driver-run score >= the incumbent's and (b) every claimed reproduction passes."""
         inc = self.incumbent(pos)
@@ -147,10 +169,11 @@ class CandidateLedger:
         inc["status"] = "SUPERSEDED"
         return {"adopted": True, "reason": "ADOPTED", "cand": self.add(pos, label, new_diff)}
 
+    @_locked
     def best(self) -> dict | None:
         """The protected best: over EVERY adopted candidate ever accepted (superseded ones included), by driver-run score, ties -> earliest. Hidden tests are never consulted."""
         pool = [c for c in self.cands if c["status"] in ("ADOPTED", "SUPERSEDED")]
-        return min(pool, key=lambda c: (tuple(-x for x in self.score(c["diff"])), c["seq"])) if pool else None
+        return min(pool, key=lambda c: (tuple(-x for x in self.score(c["diff"])), c["rank"])) if pool else None
 
 
 # ---- R3: release semantics -----------------------------------------------------------------------------------------------------------------------------

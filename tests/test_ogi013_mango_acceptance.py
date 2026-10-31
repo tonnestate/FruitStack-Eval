@@ -216,3 +216,51 @@ def test_eval_scoped_mcp_is_read_only_and_reads_the_evaluation_database(tmp_path
         assert refused.returncode != 0 and "REFUSED" in (refused.stderr + refused.stdout)
     finally:
         drop(db)
+
+
+def test_4_concurrent_solvers_and_critics_write_at_once_no_write_lost_gap_free_sequence_and_identical_restore(tmp_path):
+    """Parallel order test 4: two solvers and two critics hit the ledger at the same time against real MongoDB."""
+    import threading
+
+    import ogi013_team_code as tc
+    from mangome.storage.mongo import MongoStore
+    from mangome.work_control import WorkGovernedMangoMeService
+    from ogi013_mango_ledger import MangoLedger
+    from peachme.fruitstack import MangoWorkAdapter
+    db = f"mangome_conc_{uuid.uuid4().hex}"
+    svc = WorkGovernedMangoMeService(MongoStore(URI, db))
+    try:
+        e = svc.enter_work(workspace_id=str(tmp_path / "w"), workspace_title="conc", actor_id="host", request_text="concurrent ledger writes test")
+        work, turn = e["work_identity"]["entity_id"], e["turn"]["entity_id"]
+        led = MangoLedger(MangoWorkAdapter(svc), work, "host", turn, "conc")
+        t = tc.TeamState("goal", tmp_path / "ts.md")
+        t.mango = led
+        for pid in ("S1", "S2"):
+            t.pos[pid] = SimpleNamespace(id=pid, model="m", status="open", rev=0, diff="", test_tail="", slot="solver1" if pid == "S1" else "solver2")
+        gate = threading.Barrier(4)
+
+        def solver(pid):
+            gate.wait()
+            for i in range(5):
+                t.pos[pid].diff = f"+{pid} v{i}\n"
+                t.pos[pid].test_tail = f"Ran {i} tests"
+                t.persist()
+
+        def critic(n):
+            gate.wait()
+            for i in range(5):
+                t.objection("S1" if n == 0 else "S2", f"lin{n}", f"critic {n} objection {i}", ground={"kind": "quote", "quote": "x"})
+        ths = [threading.Thread(target=solver, args=("S1",)), threading.Thread(target=solver, args=("S2",)), threading.Thread(target=critic, args=(0,)), threading.Thread(target=critic, args=(1,))]
+        [x.start() for x in ths]
+        [x.join() for x in ths]
+        t.persist()
+        st = MongoStore(URI, db)
+        rows = list(st.db["work_checkpoints"].find({"work_id": work}))
+        seqs = sorted(r["payload"]["seq"] for r in rows)
+        assert len(rows) == led.writes and seqs == list(range(1, led.writes + 1))              # nothing lost, sequence numbers gap-free
+        live = t.text()
+        restored = tc.TeamState.restore(MangoLedger(MangoWorkAdapter(svc), work, "host", turn, "restore"), tmp_path / "ts2.md")
+        assert restored.text() == live and len(restored.objs) == 10                               # rendered from MangoMe alone == the live state
+        st.client.close()
+    finally:
+        svc.store.client.drop_database(db)

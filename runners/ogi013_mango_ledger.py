@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 
 
 class InfraMangoFailed(BaseException):
@@ -25,16 +26,18 @@ class MangoLedger:
         self.adapter, self.work_ref, self.actor_id, self.turn_id, self.run_id = adapter, work_ref, actor_id, turn_id, run_id
         self.seq = 0
         self.writes = 0
+        self.lock = threading.RLock()                 # parallel organisation P3: writes are serialised and versioned (gap-free sequence numbers; the latest checkpoint is the latest state)
 
     def write(self, kind: str, key: str, payload: dict) -> None:
-        self.seq += 1
-        body = {**payload, "run_id": self.run_id, "key": key, "seq": self.seq}
-        body["idempotency_key"] = f"{self.run_id}:{kind}:{key}:{_digest(payload)[:24]}"
-        try:
-            self.adapter.checkpoint(self.work_ref, self.actor_id, kind, body, turn_id=self.turn_id)
-        except Exception as exc:  # noqa: BLE001 - a MangoMe write failure is infrastructure: fail closed
-            raise InfraMangoFailed(f"{kind}/{key}: {type(exc).__name__}: {str(exc)[:300]}") from exc
-        self.writes += 1
+        with self.lock:
+            self.seq += 1
+            body = {**payload, "run_id": self.run_id, "key": key, "seq": self.seq}
+            body["idempotency_key"] = f"{self.run_id}:{kind}:{key}:{_digest(payload)[:24]}"
+            try:
+                self.adapter.checkpoint(self.work_ref, self.actor_id, kind, body, turn_id=self.turn_id)
+            except Exception as exc:  # noqa: BLE001 - a MangoMe write failure is infrastructure: fail closed
+                raise InfraMangoFailed(f"{kind}/{key}: {type(exc).__name__}: {str(exc)[:300]}") from exc
+            self.writes += 1
 
     def latest(self) -> dict | None:
         """The latest checkpoint payload of this work, read back through MangoMe's own work_context."""

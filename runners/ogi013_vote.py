@@ -7,7 +7,10 @@ Objection lifecycle (Addendum 7 B.1):
   WITHDRAWN          only inside a vote, with a stated reason AND a check by that voter executed after the objection was raised whose output the reason refers to
 An 'APPROVE: EXCELLENT' is grounded iff: fresh own check after the candidate's latest change; stated checks; OWN_OBJECTIONS agrees with the ledger (NONE if the voter has no row,
 else every id with a resolution and the ledger state VERIFIED_RESOLVED / valid WITHDRAWN). An UNGROUNDED_APPROVAL counts as REJECT."""
+import functools
+import hashlib
 import re
+import threading
 import time
 
 FIELD = re.compile(r"^[ \t]*OWN_OBJECTIONS:[ \t]*(.*?)(?=^[ \t]*[A-Z][A-Z_]{3,}:|\Z)", re.M | re.S)
@@ -16,27 +19,78 @@ VERDICT_LINE = re.compile(r"^[ \t]*[-*]?[ \t]*(O\d+)[ \t]*[:\-]?[ \t]*(RESOLVED|
 OPEN, PENDING, RESOLVED, WITHDRAWN = "OPEN", "ADDRESSED_PENDING", "VERIFIED_RESOLVED", "WITHDRAWN"
 
 
+def locked(fn):
+    @functools.wraps(fn)
+    def inner(self, *a, **k):
+        with self.lock:
+            return fn(self, *a, **k)
+    return inner
+
+
 class Ledger:
     def __init__(self):
+        self.lock = threading.RLock()                 # parallel organisation (P3): every ledger operation is serialised; readers get a consistent snapshot
+        self.version = 0                              # state version, bumped on every mutation
         self.objs, self.n = [], 0
         self.emit = lambda *a, **k: None
         self.on_change = lambda o: None          # called after every objection state change (the audit trail of the ledger)
 
     def _set(self, o, state, **info):
+        self.version += 1
         o["state"], o["open"] = state, state in (OPEN, PENDING)
         o.update(info)
         self.on_change(o)
 
+    @locked
     def objection(self, target, lineage, text, kind="objection", grounded=True, ground=None) -> str:
         self.n += 1
         oid = f"O{self.n}"
         self.objs.append({"id": oid, "target": target, "lineage": lineage, "text": text[:1500], "kind": kind, "grounded": grounded, "raised_ns": time.monotonic_ns(),
                           "state": OPEN, "open": True, "contested": 0, "decided_by": None, "revised_ns": None,
-                          "ground": ground, "declined": False, "arbitrated": False})
+                          "ground": ground, "declined": False, "arbitrated": False, "exchanges": 0, "replies": [], "needs_arbitration": False})
+        self.version += 1
         self.on_change(self.objs[-1])
         self.emit("OBJECTION", id=oid, target=target, lineage=lineage, okind=kind, grounded=grounded)   # not kind=: Episode.event(kind, ...) takes that name
         return oid
 
+    @locked
+    def reply(self, oid: str, role: str, action: str, text: str, ground=None) -> dict:
+        """Exchange protocol (parallel order P2): an objection is a conversation with a hard limit of 2 exchanges.
+        (1) the AUTHOR answers with evidence (a reproduction or a task-text quote) or concedes and revises; (2) the CRITIC responds once: withdraws with evidence, or maintains with new evidence.
+        An objection still unresolved after 2 exchanges is due for ONE specialist arbitration. A reply without evidence is logged UNGROUNDED_REPLY and changes nothing."""
+        o = next((x for x in self.objs if x["id"] == oid), None)
+        sha = hashlib.sha256((text or "").encode()).hexdigest()
+        if o is None or o["state"] != OPEN or o["exchanges"] >= 2:
+            self.emit("REPLY_REFUSED", id=oid, role=role, action=action, sha256=sha)
+            return {"ok": False, "event": "REPLY_REFUSED"}
+        step = o["exchanges"] + 1
+        evidenced = bool(ground) and ground.get("kind") in ("command", "quote")
+        allowed = {(1, "author"): ("evidence", "concede"), (2, "critic"): ("withdraw", "maintain")}.get((step, role), ())
+        if action not in allowed:
+            self.emit("REPLY_REFUSED", id=oid, role=role, action=action, sha256=sha)
+            return {"ok": False, "event": "REPLY_REFUSED"}
+        if action != "concede" and not evidenced:
+            self.emit("UNGROUNDED_REPLY", id=oid, role=role, action=action, sha256=sha)
+            return {"ok": False, "event": "UNGROUNDED_REPLY"}
+        o["exchanges"] = step
+        o["replies"].append({"step": step, "role": role, "action": action, "sha256": sha, "evidence": (ground or {}).get("kind"), "text": (text or "")[:400]})
+        self.version += 1
+        self.emit("REPLY", id=oid, role=role, action=action, step=step, sha256=sha, evidence=(ground or {}).get("kind"))
+        self.on_change(o)
+        if action == "withdraw":
+            self._set(o, WITHDRAWN, decided_by="withdrawn_with_evidence")
+            return {"ok": True, "event": "WITHDRAWN"}
+        if action == "maintain" and not o["arbitrated"]:
+            o["needs_arbitration"] = True
+            self.on_change(o)
+            return {"ok": True, "event": "ARBITRATION_DUE"}
+        return {"ok": True, "event": "REPLY"}
+
+    @locked
+    def arbitration_due(self, target: str) -> list:
+        return [o for o in self.objs if o["target"] == target and o["state"] == OPEN and o["needs_arbitration"] and not o["arbitrated"]]
+
+    @locked
     def revise(self, target, rev, changed_code, responding_to, reason="") -> None:
         for o in self.objs:
             if o["id"] in responding_to and o["target"] == target and o["state"] == OPEN:
@@ -48,6 +102,7 @@ class Ledger:
                     self.on_change(o)
                 self.emit("OBJECTION_REVISED", id=o["id"], rev=rev, state=o["state"], contested=o["contested"])
 
+    @locked
     def reexamine(self, target, text, examiner_lineage, excluded_lineages, checks, from_state=PENDING, decided_by="reexamination") -> list:
         """text: per id 'O3: RESOLVED' / 'O3: STILL_OPEN'. A verdict counts only from a lineage not in excluded_lineages (the reviser/author) and with a check executed after the revision."""
         if examiner_lineage in excluded_lineages:
@@ -65,6 +120,7 @@ class Ledger:
             self.emit("OBJECTION_" + o["state"], id=oid, by=examiner_lineage, decided_by=decided_by)
         return changed
 
+    @locked
     def decline(self, oid: str, reason: str) -> str:
         """R2: the author may decline an objection with a one-line reason (DECLINED_BY_AUTHOR, recorded); an arbitrated objection is final."""
         o = next((x for x in self.objs if x["id"] == oid and x["state"] == OPEN), None)
@@ -77,6 +133,7 @@ class Ledger:
         self.emit("DECLINED_BY_AUTHOR", id=oid, reason=reason[:300])
         return f"recorded: {oid} DECLINED_BY_AUTHOR"
 
+    @locked
     def open_count(self, target: str) -> int:
         """Addendum 5/7: GROUNDED objections that are OPEN or ADDRESSED_PENDING; ungrounded ones are recorded but neither count nor block."""
         return sum(1 for o in self.objs if o["target"] == target and o["open"] and o["kind"] == "objection" and o["grounded"])

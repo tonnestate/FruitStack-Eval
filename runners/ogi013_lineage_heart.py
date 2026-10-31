@@ -7,18 +7,31 @@ uses), pins the author's model for a revision when a route exists (any admissibl
 will not. PlumMe still decides eligibility, cost class and the route."""
 from __future__ import annotations
 
+import threading
+
 from peachme import PeachError
 from peachme.plumme import PlumMeProvider
 
 
+def _per_thread(name, default):
+    """Per-step routing attributes are thread-local (parallel organisation): concurrent workers set and read them on their own thread (asyncio.run executes acquire() on the calling thread)."""
+    def get(self):
+        return getattr(self._tl, name, default)
+
+    def put(self, value):
+        setattr(self._tl, name, value)
+    return property(get, put)
+
+
 class LineageHeart(PlumMeProvider):
-    exclude_independence_keys: tuple = ()      # set per step by Episode.step
-    prefer_model_key: str | None = None
-    exclude_small_models: bool = False         # R5: set per step by Episode.step for AUTHOR steps (PlumMe narrows eligibility; never widens)
-    min_context_tokens: int | None = None      # set per step by Episode.step: routes that cannot hold the request are not leased (PlumMe screen, request.metadata)
+    exclude_independence_keys = _per_thread("exclude_independence_keys", ())      # set per step by Episode.step
+    prefer_model_key = _per_thread("prefer_model_key", None)
+    exclude_small_models = _per_thread("exclude_small_models", False)             # lead decision 2026-10-31: applies to all roles (PlumMe narrows eligibility; never widens)
+    min_context_tokens = _per_thread("min_context_tokens", None)                  # routes that cannot hold the request are not leased (PlumMe screen, request.metadata)
 
     def __init__(self, service, **kw):
         super().__init__(service, **kw)
+        self._tl = threading.local()
         self._facts: dict[str, dict] = {}
 
     def lease_facts(self, lease_id: str | None) -> dict:

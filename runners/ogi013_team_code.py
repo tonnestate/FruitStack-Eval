@@ -25,7 +25,7 @@ import ogi013_candidates as oc
 import ogi013_code_task as ct
 from ogi013_roster import InfraSupply, Roster, next_solver_role
 from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
-from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, tally as release_tally, vote_stop, next_no_shrink
+from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, locked, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
 from ogi013_tau2_agent import Episode, Stack, _is_stop
 
@@ -71,7 +71,7 @@ class TeamState(Ledger):
         self.independent = False        # Addendum 8: True from episode start until the SOLVE phase ends; a solver (or its helper) then sees only its own position
 
     # ---- MangoMe as the work ledger (AMENDMENT-MANGO-1 / C.3) -------------------------------------------------------------------------------------------------
-    PERSISTED_OBJ_KEYS = ("id", "target", "lineage", "text", "kind", "grounded", "state", "open", "contested", "decided_by", "author_reason", "ground", "declined", "arbitrated")
+    PERSISTED_OBJ_KEYS = ("id", "target", "lineage", "text", "kind", "grounded", "state", "open", "contested", "decided_by", "author_reason", "ground", "declined", "arbitrated", "exchanges", "replies", "needs_arbitration")
 
     def _objection_row(self, o) -> dict:
         return {k: o.get(k) for k in self.PERSISTED_OBJ_KEYS}
@@ -82,12 +82,14 @@ class TeamState(Ledger):
             self.mango.write("TEAM_OBJECTION", f"{o['id']}:{o['state']}:{o.get('contested', 0)}:{self.mango.seq}", row)
             self._written[("obj", o["id"])] = json.dumps(row, sort_keys=True)
 
+    @locked
     def state_dict(self) -> dict:
-        return {"goal": self.goal, "independent": self.independent, "howto": self.howto, "roster": self.roster_line, "driver_visible": self.driver_visible,
+        return {"goal": self.goal, "independent": self.independent, "version": self.version, "howto": self.howto, "roster": self.roster_line, "driver_visible": self.driver_visible,
                 "pos": [{"id": p.id, "model": p.model, "status": p.status, "rev": p.rev, "diff": p.diff, "test_tail": p.test_tail,
                          "sha256": hashlib.sha256((p.diff or "").encode()).hexdigest()} for p in self.pos.values()],
                 "objs": [self._objection_row(o) for o in self.objs], "n": self.n, "decisions": list(self.decisions), "votes": list(self.votes), "release": self.release}
 
+    @locked
     def persist(self) -> None:
         """Granular records for every changed row, then the full structured state as the LAST checkpoint (work_context returns only the latest one)."""
         if self.mango is None:
@@ -131,6 +133,7 @@ class TeamState(Ledger):
             raise InfraMangoFailed("RESTORE_NO_TEAM_STATE: the latest checkpoint of the work holds no TEAM_STATE_FULL")
         t = cls(d["goal"], path)
         t.independent, t.n = d.get("independent", False), d.get("n", 0)
+        t.version = d.get("version", 0)
         t.howto, t.roster_line, t.driver_visible = d.get("howto", ""), d.get("roster", ""), dict(d.get("driver_visible", {}))
         for p in d["pos"]:
             t.pos[p["id"]] = SimpleNamespace(id=p["id"], model=p["model"], status=p["status"], rev=p["rev"], diff=p["diff"], test_tail=p["test_tail"])
@@ -138,19 +141,25 @@ class TeamState(Ledger):
         t.decisions, t.votes, t.release = list(d["decisions"]), list(d["votes"]), d["release"]
         return t
 
+    @locked
     def text(self, view=None) -> str:
+        """view: id of the solver position whose session (or helper) is being prompted. A solver that has not yet submitted its first position receives NO team state at all (not even after the reveal
+        barrier opened for the others); during independent solving a solver that has submitted sees only its own position, objections and decisions."""
         self.persist()
-        """view: id of the solver position whose session (or helper) is being prompted. During independent solving only that position, its objections and its decisions are shown."""
+        vp = self.pos.get(view) if view is not None else None
+        if vp is not None and not vp.diff and getattr(vp, "slot", None) in ("solver1", "solver2"):
+            return ""
         solo = self.independent and view is not None
-        out = [f"GOAL:\n{self.goal}\n"] + ([self.howto + "\n"] if self.howto else []) + ([f"ROSTER (pinned for the whole episode): {self.roster_line}\n"] if self.roster_line else []) + ["POSITIONS:"]
+        out = [f"GOAL:\n{self.goal}\n", f"STATE VERSION: {self.version}\n"] + ([self.howto + "\n"] if self.howto else []) + ([f"ROSTER (pinned for the whole episode): {self.roster_line}\n"] if self.roster_line else []) + ["POSITIONS:"]
         for p in self.pos.values():
             if solo and p.id != view:
                 out.append(f"- {p.id}: (withheld during independent solving)")
                 continue
             out.append(f"- {p.id} (model {p.model}, status {p.status}, revision {p.rev})\n  diff:\n{p.diff or '  (no accepted diff yet)'}\n  latest visible test result (tail):\n{p.test_tail or '  (none)'}\n  driver-run visible check of the current candidate: {self.driver_visible.get(p.id, '(not run yet)')}")
         out.append("OPEN OBJECTIONS / SUGGESTIONS:")
-        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}, {o['state']}]: {o['text']}" for o in self.objs
-                if o["open"] and (not solo or o["target"] == view)] or ["(none)"]
+        out += [f"- {o['id']} on {o['target']} from {o['lineage']} [{o['kind']}{'' if o['grounded'] else ', UNGROUNDED'}, {o['state']}]: {o['text']}"
+                + "".join(f"\n    REPLY {r['step']} ({r['role']}, {r['action']}, evidence {r['evidence']}, sha256 {r['sha256'][:12]}): {r['text'][:200]}" for r in o.get("replies", []))
+                for o in self.objs if o["open"] and (not solo or o["target"] == view)] or ["(none)"]
         out.append("DECISIONS:")
         out += [f"- {d}" for d in self.decisions if not solo or d.startswith(f"{view} ")] or ["(none)"]
         s = "\n".join(out)
