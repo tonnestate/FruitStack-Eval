@@ -114,3 +114,14 @@ def test_descriptive_trace_addendum_on_synthetic_rows(tmp_path):
     assert out["t_stop_reasons"] == {"specialist_decided": 1, "revision_changed_an_answer": 1, "NO_SECOND_SOLVER": 1, "both_solvers_agreed_challenge_found_nothing": 3}
     assert out["final_differs_from_both_first_answers"] == 4                         # question 0 (final A vs B, C) and questions 1, 3, 5 (final B vs A, A)
     assert out["s_pinned_as_solver1_on_every_ok_question"] is True and out["discordant_pairs"]["T vs S"]["discordant_pairs"] > 0
+
+
+def test_progress_line_contains_counts_only_no_outcome(tmp_path):
+    from datetime import datetime, timezone
+    import qa1_progress as pg
+    rows = [{"qid": str(i), "arm": "TESL"[i % 4], "status": "OK" if i % 5 else "INFRA_FAILED", "correct": True, "letter": "B", "key": "A"} for i in range(40)]
+    f = tmp_path / "r.jsonl"
+    f.write_text("\n".join(json.dumps(r) for r in rows))
+    line = pg.progress(str(f), "2026-10-31T00:00:00Z", now=datetime(2026, 10, 31, 2, 0, tzinfo=timezone.utc))
+    assert "rows 40/792" in line and "20.0 rows/h" in line and "ETA 37.6 h" in line and "infra failures 8" in line
+    assert "correct" not in line and "letter" not in line and "True" not in line
