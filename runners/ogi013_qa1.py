@@ -317,6 +317,7 @@ def run_E(ctx: Context, q: dict, t_rec: dict) -> dict:
 def run_T(ctx: Context, q: dict) -> dict:
     from cherryme.brother import run_rounds
     from cherryme.contributions import ContributionLedger
+    import ogi013_argument as ag
     import ogi013_candidates as oc
     from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
     from ogi013_roster import InfraSupply, Roster
@@ -394,30 +395,30 @@ def run_T(ctx: Context, q: dict) -> dict:
                 if answered:
                     extra = ("\nThe author answered these objections. Respond once to each, on its own line: 'O<n>: WITHDRAW' plus your evidence if you now agree, or 'O<n>: MAINTAIN' plus new evidence if not:\n"
                              + "\n".join(f"{o['id']}: {o['replies'][-1]['text'][:300]}" for o in answered))
-                d = pinned_step(child, roster, "critic", view_prompt(prompt + extra, None), "critic", exclude=tuple(exclude) + roster.lineages("critic"))
+                d = pinned_step(child, roster, "critic", view_prompt(prompt + extra + ag.CRITIC_INSTRUCTIONS, None), "critic", exclude=tuple(exclude) + roster.lineages("critic"))
                 if d["success"] and tgt is not None:
                     text = d["output"]
                     with plock:
                         for o in answered:
                             m = re.search(rf"^\s*{o['id']}\s*:\s*(WITHDRAW|MAINTAIN)\b(.*?)(?=^\s*O\d+\s*:|\Z)", text, re.I | re.M | re.S)
                             if m:
-                                team.reply(o["id"], "critic", m.group(1).lower(), m.group(2).strip() or text, oc.classify_objection(text, task, []))
+                                team.reply(o["id"], "critic", m.group(1).lower(), m.group(2).strip() or text, ag.classify_argument(text, task))
                         if re.match(r"\s*ISSUES:\s*FOUND", text, re.I) or (not re.match(r"\s*ISSUES:\s*NONE", text, re.I) and len(text) > 40):
                             counters["objections"] += 1
-                            ground = oc.classify_objection(text, task, [])
+                            ground = ag.classify_argument(text, task)
                             counters["grounded_objections"] += int(oc.is_grounded(ground))
                             oid = team.objection(tgt.id, d.get("independence_key"), text, grounded=oc.is_grounded(ground), ground=ground)
                             obj_ids_for.setdefault(tgt.id, []).append(oid)
                 return d
             if stage == "revise":
                 pos = by_model.get(prefer) or next(iter(team.pos.values()))
-                d = pinned_step(child, roster, pos.slot, view_prompt(prompt, None), "author", exclude=exclude)
+                d = pinned_step(child, roster, pos.slot, view_prompt(prompt + ag.REPLY_INSTRUCTIONS, None), "author", exclude=exclude)
                 if d["success"]:
                     with plock:
                         old, new = parse_letter(pos.diff, n_opt), parse_letter(d["output"], n_opt)
                         for oid in obj_ids_for.pop(pos.id, []):
                             if new == old:                                      # the author keeps its answer: a reply (needs evidence: a quote of the question; else UNGROUNDED_REPLY)
-                                team.reply(oid, "author", "evidence", d["output"], oc.classify_objection(d["output"], task, []))
+                                team.reply(oid, "author", "evidence", d["output"], ag.classify_argument(d["output"], task))
                             else:
                                 team.reply(oid, "author", "concede", d["output"])
                         if new != old:
