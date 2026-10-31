@@ -1,0 +1,36 @@
+QA-1 LOCK (written 2026-10-31, before the first study call; the smoke used 3 questions outside the study set)
+
+DATASET
+  choice: MMLU-Pro (test split), the pre-registered fallback. GPQA Diamond is gated on Hugging Face; the host has no Hugging Face token (env, ~/.cache/huggingface/token, ~/.huggingface/token: none) and no terms were accepted on the owner's behalf.
+  file: TIGER-Lab/MMLU-Pro data/test-00000-of-00001.parquet
+  file sha256: 0e24a191921c2f453518a537a8b2117bd137e7714d4ef1565e9ba06c1ecb9ad8   (12,032 questions)
+  selection: ascending sha256("OGI013-QA1|" + question_id), first 198; study ids (newline-joined, in that order) sha256: 14fa7e0f86f47ad3627ed6c99ecb8daebd6c8076ed32506271243c80a56b3eac
+  smoke questions (not in the study set; ranks 199-201 of the same ordering): 6889, 10368, 1799
+  question texts are kept outside the repository (/root/fruits/research/OGI013-QA1/data), never committed
+
+S MODEL (arm S and T's solver 1)
+  poolside-laguna-s-2.1@default
+  lock-time selection (runner --select-s): the model PlumMe AUTO ranks first for the solve role AMONG models that pass an availability probe of 10 consecutive calls (a free route that cannot serve a
+  198-question run would turn S and T's solver 1 into infrastructure failures). Probe log: mistral-small-3.2-24b@default 1/10 (excluded), qwen3.6-27b@default 1/10 (excluded), poolside-laguna-s-2.1@default 10/10 (selected).
+  An earlier AUTO pick (dots-3-note-preview@vision, an OpenRouter free route) became unavailable within hours; that is why the probe was added before the lock.
+
+SEALED FILES (sha256)
+  evidence/ogi013-lead/OGI013_QA1_PREREG.md : 95c7a023f857d838b2b457a7b57d5a99c78910560976f8429823c1435c598bb2
+  runners/analyze_qa1.py                    : d5803210feba3fc40803a5b8f94c089a8e90085ff49e06223b03227a85e79d6c
+
+COMMITS (none -dirty)
+  FruitStack-Eval : b9927823392f10c20a59320c58b8cd03e60dc384  (branch ogi013-collab-proof; contains the runner, launcher, pre-registration and analysis)
+  CherryMe        : c9055391a7879b77f709b275671c3fab828c8bbb  (branch ogi013-org-cherry; run_rounds(parallel=True))
+  PlumMe          : 763ded562b48852cb924bffeb732d675936a9032  (branch ogi013-org-plum; small-model exclusion for all roles)
+  PeachMe         : efa9bab63ea11cfccc1457aa5f36cf8c65764720
+  MangoMe         : 835d8bef5119fc8266ed8a18f2bd99e105f4bea9  (branch fix/dirty-source-provenance-2026-10-30, pinned worktree)
+
+IMPLEMENTATION CHOICES RECORDED AT LOCK (not changes of arms, prompts or tests)
+  - Answer parsing: strict `ANSWER: <letter>` (capital A-J within the option count), last occurrence; anything else is unparsable = incorrect.
+  - T: roster pinned per question (solver1 = S model; solver2 = a distinct lineage chosen through AUTO; critic and specialist on first use); fail-closed pins; every T prompt's team state is rendered from a MangoMe
+    work_context read with a consistency guard; one WorkIdentity and EXECUTE turn per (question, arm). T's "calls" = CherryMe work calls (roster-selection pings are excluded from k, included in tokens).
+  - Specialist: runs when the final positions' letters differ; a letter that is not an existing final position is rejected and the earliest solver's letter stands.
+  - Reply exchange: an author who keeps its letter after a critique files a REPLY (evidence = a verbatim quote of the question, else UNGROUNDED_REPLY); a critic's single response is parsed on the next challenge round.
+  - E: the roster models T pinned for the question, round-robin, k = T's calls, strict preference with retries; majority vote, ties to the earliest draft.
+  - Episode budgets: T/E 400,000 tokens, S 60,000, 300 calls each; first own-budget refusal ends that attempt (infrastructure failure, one rerun, then incorrect). Q_PAR = 4 questions, 6 concurrent provider calls.
+  - Supply: free routes plus Luna via subscription; 0 EUR cash.
