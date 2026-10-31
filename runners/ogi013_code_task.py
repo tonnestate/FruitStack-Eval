@@ -183,7 +183,7 @@ class Ctx:
 STALL_TURNS_WITHOUT_ACTION = 8
 NO_PROGRESS_TURNS = 8        # Addendum 3 F: a role session stops after this many consecutive turns without progress (replaces the fixed turn cap)
 HARD_TURNS = 400             # absolute safety bound of one session; reaching it is reported as a defect, never expected
-from ogi013_roster import FAILED_STEPS_BEFORE_CHANGE, STICKY_ALL  # noqa: E402
+from ogi013_roster import FAILED_STEPS_BEFORE_CHANGE, STICKY_ALL, InfraSupply, reason_class  # noqa: E402
 SUPPLY_WAITS, SUPPLY_WAIT_SECONDS = 10, 60   # NO_ELIGIBLE_NEURON is a supply condition: wait up to 10 minutes per step before the stage fails
 NOMINAL_TURNS = 40           # reference length for stall condition (d) "50% of the session's turn limit"
 
@@ -258,7 +258,11 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             try:
                 return ep.step(*a, **k)
             except RuntimeError as exc:
-                if "NO_ELIGIBLE_NEURON" not in str(exc) or waited >= (SUPPLY_WAITS if wait_supply else 0) or time.monotonic() + SUPPLY_WAIT_SECONDS > ctx.deadline:
+                if "NO_ELIGIBLE_NEURON" not in str(exc):
+                    raise
+                if waited >= (SUPPLY_WAITS if wait_supply else 0) or time.monotonic() + SUPPLY_WAIT_SECONDS > ctx.deadline:
+                    if wait_supply:
+                        raise InfraSupply(f"NO_ELIGIBLE_NEURON after {waited} supply waits for role {role_key or role}") from exc
                     raise
                 ep.event("SUPPLY_WAIT", role=role, waited=waited + 1, seconds=SUPPLY_WAIT_SECONDS)
                 time.sleep(SUPPLY_WAIT_SECONDS)
@@ -314,7 +318,7 @@ def _agent_loop(ctx: Ctx, role: str, head: str, sb: Sandbox, allowed: set, *, ex
             else:
                 fail_streak += 1
                 if pinned and fail_streak >= FAILED_STEPS_BEFORE_CHANGE:     # declared failure of the pinned model: exactly one ROSTER_CHANGE, then AUTO picks the replacement
-                    roster.change(rk, f"{fail_streak} consecutive failed steps on {pinned}: {d.get('failure_class')}")
+                    roster.change(rk, f"{fail_streak} consecutive failed steps on {pinned}: {d.get('failure_class')}", reason_class(d.get("failure_class")))
                     fail_streak, first = 0, None
         if d["success"] and first is not None and not rk and d["model_key"] != first["model_key"]:
             ep.event("ROLE_HANDOVER", role=role, label="AUTHOR_HANDOVER" if role == "author" else "ROLE_HANDOVER", from_model=first["model_key"], to_model=d["model_key"], reason="2 consecutive provider failures")

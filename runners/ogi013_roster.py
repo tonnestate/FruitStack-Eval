@@ -8,6 +8,21 @@ FAILED_STEPS_BEFORE_CHANGE = 2
 STICKY_ALL = 99                      # every retry of a step stays on the pinned model (Episode.step: prefer applies while attempt < sticky_attempts)
 
 
+class InfraSupply(BaseException):
+    """The eligible pool cannot fill a roster role after the supply wait: the episode ends INFRA_SUPPLY (infrastructure, never a result). An excluded model never fills a role."""
+
+
+def reason_class(code) -> str:
+    c = (code or "").upper()
+    if "RATE_LIMIT" in c:
+        return "rate_limit"
+    if "UNAVAILABLE" in c:
+        return "provider_unavailable"
+    if "UNUSABLE" in c:
+        return "unusable_output"
+    return "other"
+
+
 class Roster:
     def __init__(self, emit=None, write=None):
         self.pins: dict = {}                     # role -> {"model_key", "lineage"}
@@ -34,9 +49,9 @@ class Roster:
         self.emit("ROSTER_PIN", role=role, model=model_key, lineage=lineage)
         self.write("ROSTER_PIN", role, {"role": role, "model": model_key, "lineage": lineage})
 
-    def change(self, role: str, reason: str) -> None:
+    def change(self, role: str, reason: str, reason_class: str = "other") -> None:
         old = self.pins.pop(role, None)
-        row = {"role": role, "from_model": old["model_key"] if old else None, "reason": reason, "n": len(self.changes) + 1}
+        row = {"role": role, "from_model": old["model_key"] if old else None, "reason": reason, "reason_class": reason_class, "n": len(self.changes) + 1}
         self.changes.append(row)
         self.emit("ROSTER_CHANGE", **row)
         self.write("ROSTER_CHANGE", f"{role}:{row['n']}", row)

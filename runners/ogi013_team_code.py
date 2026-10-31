@@ -23,7 +23,7 @@ from types import SimpleNamespace
 
 import ogi013_candidates as oc
 import ogi013_code_task as ct
-from ogi013_roster import Roster, next_solver_role
+from ogi013_roster import InfraSupply, Roster, next_solver_role
 from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
 from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
@@ -202,12 +202,13 @@ def funcs_of(diff: str) -> frozenset:
 
 
 def infra_failed_exit(ep, out: Path, exc: BaseException, t0: float) -> int:
-    """C.2: a failed MangoMe write ends the episode as INFRA_MANGOME_FAILED: infrastructure, never a result, never silently continued."""
-    ep.event("INFRA_MANGOME_FAILED", error=str(exc)[:400])
-    ep.close("INFRA_MANGOME_FAILED")
-    (out / "run.json").write_text(json.dumps({"status": "INFRA_MANGOME_FAILED", "error": str(exc)[:400], "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project,
+    """C.2 / confirmation order: a failed MangoMe write ends the episode INFRA_MANGOME_FAILED, an unfillable roster INFRA_SUPPLY: infrastructure, never a result, never silently continued."""
+    status = "INFRA_SUPPLY" if isinstance(exc, InfraSupply) else "INFRA_MANGOME_FAILED"
+    ep.event(status, error=str(exc)[:400])
+    ep.close(status)
+    (out / "run.json").write_text(json.dumps({"status": status, "error": str(exc)[:400], "work_ref": ep.work, "turn_id": ep.turn_id, "project_ref": ep.project,
                                                "seconds": round(time.monotonic() - t0, 1)}, indent=1))
-    print(json.dumps({"status": "INFRA_MANGOME_FAILED"}))
+    print(json.dumps({"status": status}))
     return 3
 
 
@@ -550,7 +551,7 @@ def main(argv=None) -> int:
             out, st = session(p, author_head)
             if not isinstance(out, str):
                 freeze(p, out, "first")
-    except InfraMangoFailed as exc:
+    except (InfraMangoFailed, InfraSupply) as exc:
         infra.append(exc)
     except BaseException as exc:  # noqa: BLE001 - a stop is recorded; accepted positions stay, nothing is synthesised
         ep.event("RUN_STOPPED", exception=type(exc).__name__, error=str(exc)[:400], budget_stop=_is_stop(exc))
@@ -628,7 +629,7 @@ def main(argv=None) -> int:
                 r = work(REVISE.format(task=prompt0, own=chosen.diff, critique=crit), "revise", prefer=chosen.model)
                 if r["success"]:
                     work(CHALLENGE.format(task=prompt0, work=chosen.diff), "challenge", exclude=tuple(chosen.keys))
-        except InfraMangoFailed as exc:
+        except (InfraMangoFailed, InfraSupply) as exc:
             infra.append(exc)
         except BaseException as exc:  # noqa: BLE001
             guard = f"STOP:{type(exc).__name__}"

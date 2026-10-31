@@ -238,3 +238,58 @@ def test_r1_tie_without_a_verified_improvement_is_not_adopted_but_a_higher_score
 
 def test_r2_an_approval_is_never_an_objection():
     assert oc.classify_objection('[UNGROUNDED_APPROVAL] APPROVE: EXCELLENT "Anything else must raise ValueError" ok', TASK, [])["kind"] == "suggestion"
+
+
+# ---- confirmation order, lead decisions 3 and 5 -------------------------------------------------------------------------------------------------------------
+def test_roster_change_records_the_reason_class():
+    from ogi013_roster import reason_class
+    assert reason_class("EXECUTION_NOT_PERFORMED_RATE_LIMITED") == "rate_limit"
+    assert reason_class("EXECUTION_NOT_PERFORMED_PROVIDER_UNAVAILABLE") == "provider_unavailable"
+    assert reason_class("EXECUTION_OUTPUT_UNUSABLE_SEMANTIC_OUTPUT_FAILURE") == "unusable_output"
+    assert reason_class("EXECUTION_NOT_PERFORMED_FORBIDDEN") == "other" and reason_class(None) == "other"
+    ev = []
+    r = Roster(emit=lambda k, **kw: ev.append((k, kw)))
+    r.pin("critic", "m", "M")
+    r.change("critic", "2 consecutive failed steps", "rate_limit")
+    assert ev[-1][0] == "ROSTER_CHANGE" and ev[-1][1]["reason_class"] == "rate_limit" and r.changes[0]["reason_class"] == "rate_limit"
+
+
+def test_roster_change_reason_class_flows_from_the_failed_step():
+    r = Roster()
+    res, prefers, ev = _loop_with_roster([_ok("m-a", READ), FAIL, FAIL, _ok("m-b", MSG)], r)
+    assert r.changes[0]["reason_class"] == "rate_limit"                      # FAIL carries EXECUTION_NOT_PERFORMED_RATE_LIMITED
+
+
+def test_unfillable_pool_after_the_supply_wait_ends_the_episode_as_infra_supply():
+    import time
+    import ogi013_code_task as ct
+    from ogi013_roster import InfraSupply
+    ct.SUPPLY_WAITS, ct.SUPPLY_WAIT_SECONDS = 2, 0
+    n = {"calls": 0}
+
+    class Ep:
+        def blocking(self): return None
+        def event(self, kind, **k): pass
+        def step(self, prompt, role, **k):
+            n["calls"] += 1
+            raise RuntimeError("NO_ELIGIBLE_NEURON")
+    ctx = SimpleNamespace(ep=Ep(), deadline=time.monotonic() + 60, keys={}, gate=None, effects=None)
+    with pytest.raises(InfraSupply):
+        ct.agent_loop(ctx, "critic", "h", SimpleNamespace(), {"read_file"}, gated=False, roster=Roster(), role_key="critic")
+    assert n["calls"] == 3                                                   # initial attempt + 2 waits; an excluded model is never used as a filler
+    assert not issubclass(InfraSupply, Exception)
+
+
+def test_small_model_exclusion_is_requested_for_every_role():
+    src = (Path(__file__).resolve().parent.parent / "runners/ogi013_tau2_agent.py").read_text()
+    assert "self.stack.heart.exclude_small_models = True" in src and 'tag == "author"' not in src
+
+
+def test_infra_supply_exit_status(tmp_path):
+    import time
+    import ogi013_team_code as tc
+    from ogi013_roster import InfraSupply
+    ev = []
+    ep = SimpleNamespace(event=lambda k, **kw: ev.append(k), close=lambda st: ev.append("closed:" + st), work="w", turn_id="t", project="p")
+    assert tc.infra_failed_exit(ep, tmp_path, InfraSupply("x"), time.monotonic()) == 3
+    assert json.loads((tmp_path / "run.json").read_text())["status"] == "INFRA_SUPPLY" and "closed:INFRA_SUPPLY" in ev
