@@ -333,6 +333,9 @@ def run_T(ctx: Context, q: dict) -> dict:
     plock = threading.RLock()
     slots_taken: set = set()
     by_model: dict = {}
+    pos_lin: dict = {}                                                   # position id -> lineage of its author (receipts); pos_first: its first letter
+    pos_first: dict = {}
+    spec_lin: list = []
     obj_ids_for: dict = {}
     counters = Counter()
 
@@ -380,6 +383,7 @@ def run_T(ctx: Context, q: dict) -> dict:
                 if d["success"]:
                     with plock:
                         pos.model, pos.diff, pos.status = d["model_key"], d["output"], "submitted"
+                        pos_lin[pid], pos_first[pid] = d.get("independence_key"), parse_letter(d["output"], n_opt)
                         by_model[d["model_key"]] = pos
                         team.decisions.append(f"{pid} submitted its first answer")
                 return d
@@ -423,6 +427,8 @@ def run_T(ctx: Context, q: dict) -> dict:
                 return d
             if stage == "specialist":
                 d = pinned_step(child, roster, "specialist", view_prompt(prompt, None), "critic", exclude=tuple(exclude) + roster.lineages("specialist"))
+                if d.get("success"):
+                    spec_lin.append(d.get("independence_key"))
                 return d
             return {"success": False, "output": None, "failure_class": f"STAGE_NOT_USED:{stage}"}
         except (Infra, InfraMangoFailed, InfraSupply):
@@ -459,14 +465,49 @@ def run_T(ctx: Context, q: dict) -> dict:
     team.release = {"class": "QA1_FINAL", "letter": letter, "how": how}
     team.persist()
     replies = sum(len(o.get("replies", [])) for o in team.objs)
+    indep = [o for o in team.objs if o.get("lineage") and o["lineage"] != pos_lin.get(o["target"])]          # a critique from the lineage of the position it judges does not count
+    evidenced_replies = sum(1 for o in indep for r in o.get("replies", []) if r.get("evidence") in ("command", "quote"))
+    independence_ok = not any(l in pos_lin.values() for l in spec_lin)                                   # a specialist of the same lineage as a position it judges does not count
+    (ctx.out / "exchange").mkdir(exist_ok=True)                           # the full exchange for the report (model text; kept out of results.jsonl)
+    (ctx.out / "exchange" / f"{q['id']}.json").write_text(json.dumps({
+        "first_answers": [{"slot": r.slot if hasattr(r, "slot") else None, "text": r.answer_text} for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"],
+        "objections": team.objs, "decisions": team.decisions, "final": {"letter": letter, "how": how}}, default=str))
     return {"letter": letter, "how": how, "first_letters": {f"S{i + 1}": l for i, l in enumerate(firsts)}, "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
             "rounds": res.rounds, "stop": res.stop_reason, "late": res.late, "roster_models": [roster.pinned(r) for r in ("solver1", "solver2", "critic", "specialist")], "roster": roster.summary(),
             "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"], "seconds": round(time.monotonic() - t0, 1), "mango_writes": team.mango.writes, "mango_reads": team.mango.reads,
-            "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "answer_changes": counters["answer_changes"],
+            "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
+            "lineages": {"positions": pos_lin, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")}), "specialist": spec_lin}, "first_by_pos": pos_first,
+            "objection_target_first": [pos_first.get(o["target"]) for o in indep], "answer_changes": counters["answer_changes"],
             "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report()}
 
 
 # ---- orchestration -------------------------------------------------------------------------------------------------------------------------------------------
+def chain_stages(row: dict) -> dict:
+    """Cooperation chain (a)-(e) from one T row: two independent first answers, an objection with evidence from a lineage other than the position's own, a reply with evidence,
+    a documented position change or an evidenced withdrawal, a final answer (a specialist of a judged lineage voids the chain). Returns the stages reached and where it stopped."""
+    st = {"a": len(row.get("first_letters") or {}) >= 2, "b": (row.get("independent_grounded_objections") or 0) >= 1, "c": (row.get("evidenced_replies") or 0) >= 1,
+          "d": (row.get("answer_changes") or 0) >= 1 or (row.get("evidenced_withdrawn") or 0) >= 1, "e": row.get("letter") is not None and row.get("independence_ok", True)}
+    reached = ""
+    for k in "abcde":
+        if not st[k]:
+            break
+        reached += k
+    return {**st, "reached": reached or "-", "complete": reached == "abcde"}
+
+
+def chain_class(row: dict) -> str:
+    """After checking the key: HARMFUL (a first answer right, final wrong) > IMPROVING (a first answer wrong, final right) > PROTECTIVE (an objection against a right first answer, final right) > NEUTRAL."""
+    key, final = row.get("key"), row.get("letter")
+    firsts = [l for l in (row.get("first_by_pos") or {}).values() if l]
+    if any(l == key for l in firsts) and final != key:
+        return "HARMFUL"
+    if final == key and any(l != key for l in firsts):
+        return "IMPROVING"
+    if final == key and any(l == key for l in (row.get("objection_target_first") or [])):
+        return "PROTECTIVE"
+    return "NEUTRAL"
+
+
 def attempt(fn, *a):
     """One arm attempt; infrastructure failures (and crashes) are classified, never raised."""
     try:
@@ -548,6 +589,8 @@ def main(argv=None) -> int:
     ap.add_argument("--diagnose-pin", default=None, help="diagnostic: try to lease the pinned model once and print the exception")
     ap.add_argument("--probe-calls", type=int, default=10, help="--select-s: availability probe calls per candidate (QA-1b: 30)")
     ap.add_argument("--probe-interval", type=float, default=0.0, help="--select-s: seconds between probe calls (QA-1b: 60, i.e. 30 calls over 30 minutes)")
+    ap.add_argument("--supply-check", action="store_true", help="QA-1b: T roster supply check (2 solvers of distinct lineages, critic, specialist; 5 of 5 probes each) and exit")
+    ap.add_argument("--chain-hunt", type=int, default=0, help="QA-1b: run arm T alone, question by question, until the first complete cooperation chain (a-e) or this many questions")
     ap.add_argument("--select-s", action="store_true", help="print the model PlumMe AUTO ranks first for the solve role and exit")
     ap.add_argument("--q-par", type=int, default=Q_PAR)
     ap.add_argument("--call-cap", type=int, default=GLOBAL_CALL_CAP)
@@ -565,6 +608,27 @@ def main(argv=None) -> int:
             print(json.dumps({"pinned": a.diagnose_pin, "ok": True, "route": getattr(lease.route, "model", None)}))
         except Exception as exc:  # noqa: BLE001
             print(json.dumps({"pinned": a.diagnose_pin, "ok": False, "error": f"{type(exc).__name__}: {str(exc)[:600]}"}))
+        return 0
+    if a.supply_check:
+        ep = ctx.episode("T", "supply")
+        picked, rows, lins = {}, [], []
+        for role in ("solver1", "solver2", "critic", "specialist"):
+            d = ep.step("Reply with the single word READY.", "author", exclude=tuple(lins if role != "solver1" else ()), sticky_attempts=1)
+            if not d["success"]:
+                rows.append({"role": role, "model": None, "ok": 0})
+                continue
+            m = d["model_key"]
+            picked[role] = m
+            if role in ("solver1", "solver2"):
+                lins.append(d.get("independence_key"))
+            ok = 0
+            for _p in range(5):
+                r = ep.step("Reply with the single word READY.", "author", prefer=m, sticky_attempts=99)
+                ok += int(r["success"] and r.get("model_key") == m)
+                time.sleep(a.probe_interval)
+            rows.append({"role": role, "model": m, "lineage": d.get("independence_key"), "ok_of_5": ok})
+        distinct = len({r.get("lineage") for r in rows[:2]}) == 2
+        print(json.dumps({"supply": rows, "solver_lineages_distinct": distinct, "pass": distinct and all(r.get("ok_of_5") == 5 for r in rows)}))
         return 0
     if a.select_s:
         # lock-time selection: the model PlumMe AUTO ranks first for the solve role among models that pass an availability probe of 10 consecutive calls (a free route that cannot serve a 198-question run
@@ -599,6 +663,18 @@ def main(argv=None) -> int:
     res_path = a.out / "results.jsonl"
     done = {(r["qid"], r["arm"]) for r in (load_jsonl(res_path) if res_path.exists() else [])}
     arms = set(a.arms.split(","))
+    if a.chain_hunt:
+        for i, q in enumerate(qs[: a.chain_hunt], 1):
+            row = attempt(run_T, ctx, q)
+            full = finish(q, "T", row, False)
+            ch = chain_stages(full)
+            with res_path.open("a") as fh:
+                fh.write(json.dumps({**full, "chain": ch, "chain_class": chain_class(full) if ch["complete"] else None}) + "\n")
+            print(json.dumps({"hunt": i, "qid": q["id"], "category": q.get("category"), "status": full["status"], "detail": (full.get("infra_detail") or "")[:160], "chain": ch, "class": chain_class(full) if ch["complete"] else None,
+                              "stop": full.get("stop"), "correct": full.get("correct"), "work_ref": full.get("work_ref")}), flush=True)
+            if ch["complete"]:
+                return 0
+        return 3
 
     def write(rows):
         with ctx.results_lock:

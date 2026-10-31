@@ -156,3 +156,21 @@ def test_outage_streaks_are_per_arm():
         o.offer(_row(str(i), "S", False))
         o.offer(_row(str(i), "E", False))
     assert not o.tripped
+
+
+def test_chain_stages_stop_at_the_first_missing_stage():
+    row = {"first_letters": {"S1": "A", "S2": "B"}, "independent_grounded_objections": 1, "evidenced_replies": 1, "answer_changes": 0, "evidenced_withdrawn": 0, "letter": "A"}
+    assert q1.chain_stages(row)["reached"] == "abc" and not q1.chain_stages(row)["complete"]
+    row["evidenced_withdrawn"] = 1
+    assert q1.chain_stages(row)["complete"]
+    assert q1.chain_stages({"first_letters": {"S1": "A"}})["reached"] == "-"
+
+
+def test_chain_needs_independent_lineages_and_is_classified_against_the_key():
+    row = {"first_letters": {"S1": "A", "S2": "B"}, "independent_grounded_objections": 0, "grounded_objections": 1, "evidenced_replies": 1, "answer_changes": 1, "letter": "A"}
+    assert q1.chain_stages(row)["reached"] == "a"                        # an objection from the judged position's own lineage does not count
+    ok = {"key": "A", "letter": "A", "first_by_pos": {"S1": "B", "S2": "A"}, "objection_target_first": ["A"]}
+    assert q1.chain_class(ok) == "IMPROVING"
+    assert q1.chain_class({**ok, "first_by_pos": {"S1": "A", "S2": "A"}}) == "PROTECTIVE"
+    assert q1.chain_class({**ok, "letter": "C"}) == "HARMFUL"
+    assert q1.chain_class({"key": "A", "letter": "C", "first_by_pos": {"S1": "B", "S2": "D"}, "objection_target_first": []}) == "NEUTRAL"
