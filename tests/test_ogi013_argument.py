@@ -58,3 +58,13 @@ def test_approval_is_never_an_objection_and_unsafe_code_is_not_run():
     assert kind("ISSUES: NONE") == "suggestion" and kind("[APPROVE: EXCELLENT]") == "suggestion"
     evil = COMPUTATION.replace("print(2*(2*6-5*3))", "import os\nprint(os.getcwd())")
     assert ag.classify_argument(evil)["kind"] == "suggestion"
+
+
+def test_hardening_and_sandbox_boundaries():
+    for bad in ("import functools\nprint(1)", "import operator\nprint(1)", "print(().__class__)", "print('__builtins__')", "x = __builtins__\nprint(1)"):
+        ok, why = ag.run_code(bad)
+        assert not ok, bad
+    ok, out = ag.run_code("import math\nprint(math.factorial(5))")           # runs inside bubblewrap (fails closed if bwrap is missing)
+    assert ok and out.strip() == "120"
+    cmd = ag._sandbox_cmd("print(1)")
+    assert "--unshare-all" in cmd and "--ro-bind" in cmd and "/root" not in cmd

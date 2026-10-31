@@ -16,14 +16,13 @@ import re
 import resource
 import subprocess
 import sys
-import tempfile
 
 LABELS = ("CLAIM", "EVIDENCE", "CONSEQUENCE")
 MIN_LEN = {"CLAIM": 15, "EVIDENCE": 20, "CONSEQUENCE": 10}
 _LABEL = re.compile(r"^[ \t>*_#-]*(CLAIM|EVIDENCE|CONSEQUENCE)[ \t*_]*[:\-][ \t*_]*", re.I | re.M)
 _OPTION = re.compile(r"(?:option|answer|choice)\s*\(?\s*([A-J])\b|\(([A-J])\)")
 _APPROVAL = re.compile(r"\s*(\[(UNGROUNDED_APPROVAL|NO_VOTE|APPROVE[^\]]*)\]|ISSUES:\s*NONE|APPROVE)", re.I)
-_ALLOWED_IMPORTS = {"math", "fractions", "decimal", "itertools", "functools", "statistics", "cmath", "operator"}
+_ALLOWED_IMPORTS = {"math", "fractions", "decimal", "itertools", "statistics", "cmath"}
 _FORBIDDEN_NAMES = {"open", "exec", "eval", "compile", "__import__", "input", "globals", "locals", "getattr", "setattr", "delattr", "vars", "breakpoint", "exit", "quit"}
 RUN_SECONDS = 5
 
@@ -61,13 +60,34 @@ def _static_ok(code: str) -> str | None:
                 return f"import not allowed: {names}"
         if isinstance(node, ast.Name) and node.id in _FORBIDDEN_NAMES:
             return f"name not allowed: {node.id}"
-        if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
+        if isinstance(node, ast.Attribute) and node.attr.startswith("_"):
             return f"attribute not allowed: {node.attr}"
+        if isinstance(node, ast.Name) and node.id.startswith("__"):
+            return f"name not allowed: {node.id}"
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value.startswith("__"):
+            return "string not allowed"
     return None
 
 
+def _sandbox_cmd(code: str) -> list | None:
+    """bubblewrap: no network/pid/ipc/user namespaces shared, unprivileged uid, empty tmpfs as the only writable and visible home, only the interpreter's prefix and system libraries
+    mounted read-only (no host secrets). None when bwrap is missing: fail closed, the argument is then UNGROUNDED. The AST check is a first filter, not the isolation boundary."""
+    import os
+    import shutil
+    bwrap = shutil.which("bwrap")
+    if not bwrap:
+        return None
+    real = os.path.realpath(sys.executable)
+    prefix = os.path.realpath(sys.base_prefix)
+    cmd = [bwrap, "--unshare-all", "--die-with-parent", "--new-session", "--uid", "65534", "--gid", "65534", "--tmpfs", "/tmp", "--chdir", "/tmp", "--dev", "/dev", "--proc", "/proc"]
+    for path in sorted({prefix, "/usr", "/lib", "/lib64", "/bin"}):
+        if os.path.exists(path):
+            cmd += ["--ro-bind", path, path]
+    return cmd + [real, "-I", "-S", "-c", code]
+
+
 def run_code(code: str) -> tuple[bool, str]:
-    """Host execution of a computation: allow-listed imports, a fresh interpreter in an empty directory, CPU/memory/time limits, no environment."""
+    """Host execution of a computation: AST pre-filter, then bubblewrap isolation (see _sandbox_cmd), CPU/memory/time limits, no environment."""
     bad = _static_ok(code)
     if bad:
         return False, bad
@@ -76,11 +96,13 @@ def run_code(code: str) -> tuple[bool, str]:
         resource.setrlimit(resource.RLIMIT_CPU, (RUN_SECONDS, RUN_SECONDS))
         resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024))
         resource.setrlimit(resource.RLIMIT_FSIZE, (1024 * 1024, 1024 * 1024))
-    with tempfile.TemporaryDirectory() as d:
-        try:
-            p = subprocess.run([sys.executable, "-I", "-S", "-c", code], cwd=d, env={}, capture_output=True, text=True, timeout=RUN_SECONDS + 2, preexec_fn=limits)
-        except subprocess.TimeoutExpired:
-            return False, "timeout"
+    cmd = _sandbox_cmd(code)
+    if cmd is None:
+        return False, "no sandbox available (bwrap): computation not executed"
+    try:
+        p = subprocess.run(cmd, env={}, capture_output=True, text=True, timeout=RUN_SECONDS + 2, preexec_fn=limits)
+    except subprocess.TimeoutExpired:
+        return False, "timeout"
     return p.returncode == 0, (p.stdout if p.returncode == 0 else p.stderr)[-500:]
 
 
