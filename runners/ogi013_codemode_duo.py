@@ -33,7 +33,7 @@ def run_T_codemode(ctx, q: dict, policy=None) -> dict:
         return d
 
     def on_event(ev: dict) -> None:
-        led.write("CODEMODE_OP", f"{q['id']}:{ev['seq']}:{ev['op']}", {k: v for k, v in ev.items() if k != "points"} | ({"points": ev["points"]} if "points" in ev else {}))
+        led.write("CODEMODE_OP", f"{q['id']}:{ev['seq']}:{ev['op']}", dict(ev))
 
     try:
         r = run_duo(question_prompt(q), answer_prompt(q), len(q["options"]), ask, lineages={"luna": LUNA_LINEAGE, "nemo": NEMO_LINEAGE},
