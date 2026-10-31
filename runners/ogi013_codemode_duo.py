@@ -11,7 +11,7 @@ from fs_codemode.duo import DuoInfra, run_duo
 from fs_codemode.evc import AlwaysCritique
 
 
-def run_T_codemode(ctx, q: dict, policy=None) -> dict:
+def run_T_codemode(ctx, q: dict, policy=None, parity: bool = False) -> dict:
     import ogi013_argument as ag
     from ogi013_mango_ledger import MangoLedger
     from ogi013_qa1 import ANSWER_SUFFIX, LUNA_LINEAGE, NEMO_LINEAGE, Infra, grade, luna_step, question_prompt
@@ -38,7 +38,7 @@ def run_T_codemode(ctx, q: dict, policy=None) -> dict:
     try:
         r = run_duo(question_prompt(q), answer_prompt(q), len(q["options"]), ask, lineages={"luna": LUNA_LINEAGE, "nemo": NEMO_LINEAGE},
                     verifier=ag.classify_argument, policy=policy or AlwaysCritique(), category=q.get("category") or "all", on_event=on_event,
-                    budget_ok=lambda: not ctx.stop, critic_instructions=ag.CRITIC_INSTRUCTIONS + ANSWER_SUFFIX, reply_instructions=ag.REPLY_INSTRUCTIONS + ANSWER_SUFFIX)    # same trailing text as the QA-2D T prompts
+                    budget_ok=lambda: not ctx.stop, critic_instructions=ag.CRITIC_INSTRUCTIONS + ANSWER_SUFFIX, reply_instructions=ag.REPLY_INSTRUCTIONS + ANSWER_SUFFIX, parity=parity)    # same trailing text as the QA-2D T prompts
     except DuoInfra as exc:
         e = Infra("INFRA_STEP_FAILED", str(exc))
         e.calls = exc.calls

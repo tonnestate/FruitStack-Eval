@@ -29,10 +29,11 @@ def main(argv) -> int:
     ctx = Context(a.out, None, 2)
     import ogi013_vote
     ogi013_vote.TEXT_CAP_OBJECTION = ogi013_vote.TEXT_CAP_REPLY = 10 ** 6
-    sent, arm_now = [], {"arm": None}
+    sent, arm_now, dump = [], {"arm": None}, []
 
     def script(member: str, prompt: str) -> dict:
-        sent.append({"arm": arm_now["arm"], "member": member, "chars": len(prompt), "sha": hashlib.sha256(prompt.encode()).hexdigest()})
+        sent.append({"arm": arm_now["arm"], "member": member, "chars": len(prompt), "sha": hashlib.sha256(prompt.encode()).hexdigest(), "state_chars": (len(prompt.split("<team_state>")[1].split("</team_state>")[0]) if "<team_state>" in prompt else 0)})
+        dump.append({"arm": arm_now["arm"], "member": member, "prompt": prompt})
         if prompt.startswith(q2.answer_prompt(q)) and "colleague" not in prompt:
             out = luna_first if member == "luna" else nemo_first
         elif "A colleague's answer to this question" in prompt:
@@ -47,7 +48,7 @@ def main(argv) -> int:
     q2.luna_step = lambda c, p: script("luna", p)
     q2.nemo_step = lambda c, ep, p: script("nemo", p)
     rows = []
-    for arm, fn in (("T", q2.run_T), ("TC", cm.run_T_codemode)):
+    for arm, fn in (("T", q2.run_T), ("TC", cm.run_T_codemode), ("TCP", lambda c, qq: cm.run_T_codemode(c, qq, parity=True))):
         arm_now["arm"] = arm
         n0, t0 = len(sent), time.monotonic()
         res = attempt(fn, ctx, q)
@@ -56,11 +57,12 @@ def main(argv) -> int:
                      "n_prompts": len(mine), "prompt_chars_sent": sum(m["chars"] for m in mine), "first_prompt_sha256": sorted({m["sha"] for m in mine[:2]}),
                      "objections": res.get("objections"), "verified_objections": res.get("verified_objections"), "formal_objections": res.get("formal_objections"),
                      "accepted_concessions": res.get("accepted_concessions"), "answer_changes": res.get("answer_changes"),
-                     "objection_states": res.get("objection_states"), "mango_writes": res.get("mango_writes"), "provenance_ops": len(res.get("provenance") or []),
+                     "objection_states": res.get("objection_states"), "mango_writes": res.get("mango_writes"), "mango_reads": res.get("mango_reads"), "state_chars_per_prompt": [m["state_chars"] for m in mine], "provenance_ops": len(res.get("provenance") or []),
                      "communication": res.get("communication"), "ops": [e.get("op") for e in (res.get("provenance") or [])], "seconds": round(time.monotonic() - t0, 1)})
         print(json.dumps(rows[-1], default=str), flush=True)
+    (a.out / "replay_prompts.json").write_text(json.dumps(dump))
     print(json.dumps({"summary": True, "label": "DETERMINISTIC_REPLAY (integration test, not benchmark evidence)", "model_calls": 0,
-                      "first_prompts_identical": rows[0]["first_prompt_sha256"] == rows[1]["first_prompt_sha256"] and len(rows[0]["first_prompt_sha256"]) == 1}), flush=True)
+                      "first_prompts_identical": len({tuple(r["first_prompt_sha256"]) for r in rows}) == 1 and len(rows[0]["first_prompt_sha256"]) == 1}), flush=True)
     return 0
 
 

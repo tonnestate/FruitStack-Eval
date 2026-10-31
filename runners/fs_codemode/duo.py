@@ -31,7 +31,9 @@ class DuoInfra(RuntimeError):
 def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, str], dict], *, lineages: Dict[str, str],
             verifier: Optional[Callable[[str], dict]] = None, policy=None, category: str = "all", on_event=None, budget_ok=None,
             critic_instructions: str = CRITIC_FALLBACK, reply_instructions: str = REPLY_FALLBACK, max_exchanges: int = 2,
-            compact_chars: int = 1200, members=("luna", "nemo")) -> dict:
+            compact_chars: int = 1200, members=("luna", "nemo"), parity: bool = False) -> dict:
+    # parity=True: the prompts carry the task-relevant information the T arm's shared state gives (own answer, colleague's answer, objection); nothing is dropped or compacted, because
+    # every call is stateless ("already shown" never holds across calls). Savings can then be attributed to typing and compaction only (parity=False is the lead's original mode).
     policy = policy or AlwaysCritique()
     fac = Facade(ask, verifier=verifier, on_event=on_event, budget_ok=budget_ok, max_parallel=2)
     other = {members[0]: members[1], members[1]: members[0]}
@@ -39,6 +41,8 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
     stats = {"compacted": 0, "dropped": 0, "chars_saved": 0}
 
     def send(receiver: str, mid: str, text: str, claim: str = "", result: Optional[str] = None) -> str:
+        if parity:
+            return text
         res = sv.sieve([{"id": mid, "claim": claim, "result": result, "text": text}], delivered, receiver, compact_chars)[0]
         if res["action"] == "drop":
             stats["dropped"] += 1
@@ -73,7 +77,8 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
             for judge in members:
                 target = other[judge]
                 body = send(judge, f"A-{target}-r{ex}", text[target], result=letters[target])
-                jobs.append((judge, f"{task}\n\nA colleague's answer to this question:\n{body}\n" + critic_instructions, f"critique-{ex}"))
+                own_note = f"\nYour own current answer (for reference):\n{text[judge]}\n" if parity else ""
+                jobs.append((judge, f"{task}\n\nA colleague's answer to this question:\n{body}\n{own_note}" + critic_instructions, f"critique-{ex}"))
             crits = fac.parallel(jobs)
             filed = []
             for (judge, _p, _t), d in zip(jobs, crits):
@@ -100,7 +105,8 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
                 tgt = o["target"]
                 own = send(tgt, f"own-{tgt}-r{ex}", text[tgt], result=letters[tgt])
                 ob = send(tgt, o["id"], o["text"], claim=Msg.from_output("OBJECTION", o["author"], o["lineage"], o["text"], n_options).claim)
-                rjobs.append((tgt, f"{task}\n\nYour answer so far:\n{own}\n\nObjection {o['id']} against your answer:\n{ob}\n\n"
+                colleague = f"Colleague's current answer:\n{text[o['author']]}\n\n" if parity else ""
+                rjobs.append((tgt, f"{task}\n\nYour answer so far:\n{own}\n\n{colleague}Objection {o['id']} against your answer:\n{ob}\n\n"
                                    f"You are answering objection {o['id']}: name it by its id.\n" + reply_instructions, f"reply-{ex}"))
             replies = fac.parallel(rjobs)
             for o, (tgt, _p, _t), d in zip(filed, rjobs, replies):
@@ -131,5 +137,5 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
             "calls": fac.totals.calls, "tokens": fac.totals.tokens, "seconds": fac.totals.seconds,
             "phase_tokens": {"first": first_tokens, "exchange": fac.totals.tokens - first_tokens},
             "phase_seconds": {"first": first_seconds, "exchange": round(fac.totals.seconds - first_seconds, 3)},
-            "communication": stats, "messages": msgs, "objection_states": [o.get("state", "OPEN") for o in objections],
+            "communication": stats, "parity": parity, "messages": msgs, "objection_states": [o.get("state", "OPEN") for o in objections],
             "provenance": fac.provenance}
