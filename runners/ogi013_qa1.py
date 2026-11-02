@@ -349,7 +349,7 @@ def luna_step(ctx: Context, prompt: str) -> dict:
     return {"success": True, "output": msgs[-1], "model_key": LUNA_KEY, "independence_key": LUNA_LINEAGE, "receipt_id": sha(msgs[-1])[:12]}
 
 
-def run_T(ctx: Context, q: dict, duo: bool = False) -> dict:
+def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     from cherryme.brother import run_rounds
     from cherryme.contributions import ContributionLedger
     import ogi013_argument as ag
@@ -446,6 +446,7 @@ def run_T(ctx: Context, q: dict, duo: bool = False) -> dict:
                     d = pinned_step(child, roster, "critic", full, "critic", exclude=tuple(exclude) + roster.lineages("critic"))
                 if d["success"]:
                     text = d["output"]
+                    d = {**d, "verification": ag.ledger_ground(ag.classify_argument(text, task)).get("level") or "none"}      # the host's level of this critique, for the closed loop
                     with plock:
                         for o in answered:
                             if o["lineage"] != d.get("independence_key"):
@@ -510,9 +511,13 @@ def run_T(ctx: Context, q: dict, duo: bool = False) -> dict:
         d1 = ping("solver1", (), prefer=ctx.s_model)
         ping("solver2", (d1.get("independence_key"),))
     ledger = ContributionLedger()
+    control = None
+    if loop:                                                         # Brother Mode closed loop: decisions and weights are written to MangoMe (ogi013_brother_loop)
+        from ogi013_brother_loop import make_control
+        control = make_control(team.mango, q["id"])
     try:
         res = run_rounds(task_prompt=task, brief="", work=work_wrapped, ledger=ledger, claim_id=ep.claim.id, signature=lambda text: parse_letter(text, n_opt) or "?", parallel=True, solver_wait=600,
-                         max_workers=2)
+                         max_workers=2, control=control)
         team.persist()
     except InfraMangoFailed as exc:
         raise Infra("INFRA_MANGOME_FAILED", f"{exc} | diff: {team.diff_report}") from exc
@@ -550,7 +555,7 @@ def run_T(ctx: Context, q: dict, duo: bool = False) -> dict:
             "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "verified_objections": verified_objections, "formal_replies": formal_replies, "verified_replies": verified_replies, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
             "lineages": {"positions": pos_lin, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")}), "specialist": spec_lin}, "first_by_pos": pos_first,
             "objection_target_first": [pos_first.get(o["target"]) for o in indep], "answer_changes": counters["answer_changes"], "accepted_concessions": counters["accepted_concessions"],
-            "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report()}
+            "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report(), "loop_decisions": res.decisions, "loop_closing": res.closing}
 
 
 # ---- orchestration -------------------------------------------------------------------------------------------------------------------------------------------
