@@ -16,15 +16,12 @@ The F3 runner requires AppleMe assurance and a configured composer offer before 
 | --- | --- | --- |
 | `fse power` | Sample sizes for the paired or unpaired non-inferiority test | §5.4 |
 | `fse ope evaluate` / `fse ope review` | Independent IPS/SNIPS over a PlumMe DecisionLog export, with weight clipping, minimum support per action, effective sample size, seeded bootstrap interval, and evaluation of ensemble worker counts | §5.3, H1, H3 |
-
-
 | `fse costaudit` | Post-hoc zero-cost audit: every chosen offer must have an allowed cost class, no outcome may be billed | Gate G3 |
 | `fse drift` | Drift epochs per offer from the per-call `model_fingerprint`; a fingerprint change opens a new epoch | Threat 1 |
 | `fse interventions add` / `summary` | Typed log of human acts: AUTHORITY (allowed) vs COGNITIVE (a deviation in the confirmatory phase), with minutes | Threat 3, H8, gate G5 |
 | `fse tasks validate` / `commit` / `verify` | Task registry; prompts and references are published only as hashes and salted commitments | Gate G4 |
 | `fse compare` | Recomputes utilities from raw evidence with rubric FSE-RUBRIC/1 and tests H4 with a paired cluster bootstrap | Gate G6, H4 |
 | `fse ablation` | Which organizational component causes which gain: leave-one-out effects with Holm-adjusted bootstrap p-values, an interaction residual, Shapley attribution, pairwise Shapley indices and exact Harsanyi higher-order interaction dividends (full factorial, up to 6 components) | §5.6, Tonn-AGI §11.4 |
-
 | `fse attribution` | Share of the current code written by each builder (git blame), separately for critical modules | Threat 4 |
 | `fse protected` | Rejects system-authored commits on protected paths; lists builder commits there for host review | Learning loop 4 |
 | `fse lite check` | Verifies that FruitStack-Lite clones sit at their pinned commits | Gate G6 |
