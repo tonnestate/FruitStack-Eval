@@ -16,6 +16,9 @@ The F3 runner requires AppleMe assurance and a configured composer offer before 
 | --- | --- | --- |
 | `fse power` | Sample sizes for the paired or unpaired non-inferiority test | §5.4 |
 | `fse ope evaluate` / `fse ope review` | Independent IPS/SNIPS over a PlumMe DecisionLog export, with weight clipping, minimum support per action, effective sample size, seeded bootstrap interval, and evaluation of ensemble worker counts | §5.3, H1, H3 |
+
+**OPE promotion-review comparability:** Candidate and incumbent must carry the same recorded task-family selector (`family_key` and `family`); otherwise the review returns `EVALUATION_SCOPE_MISMATCH` and cannot report eligibility, even when a candidate has a high confidence bound. The check uses the evaluated results' own scope, not a review caller override. This avoids interpreting improvement on one task family as evidence of superiority on a different one. It does not establish identical task membership or a real held-out experiment; those require independent host evidence.
+
 | `fse costaudit` | Post-hoc zero-cost audit: every chosen offer must have an allowed cost class, no outcome may be billed | Gate G3 |
 | `fse drift` | Drift epochs per offer from the per-call `model_fingerprint`; a fingerprint change opens a new epoch | Threat 1 |
 | `fse interventions add` / `summary` | Typed log of human acts: AUTHORITY (allowed) vs COGNITIVE (a deviation in the confirmatory phase), with minutes | Threat 3, H8, gate G5 |
