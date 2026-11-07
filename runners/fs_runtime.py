@@ -171,12 +171,16 @@ def operational_service():
     return svc
 
 
-def supply_shortage(svc, n_solvers: int) -> dict | None:
+def supply_shortage(svc, n_solvers: int, max_cost_usd: float | None = None) -> dict | None:
+    """Brother Mode needs `n_solvers` independent workers: PlumMe must offer that many distinct QUALIFIED lineages for the role now (eligible under the host's admission policy and
+    not shown unsuitable since their last success), not merely one eligible route. Read-only; no acquisition, no provider call."""
     r = svc.adapter_readiness()
-    eligible = sum(e["routes_eligible_now"] for e in r["entries"])
-    if not r["discovery_completed"] or eligible < 1:
-        return {"code": "SUPPLY_UNAVAILABLE", "eligible_routes": eligible, "adapters": [{k: e[k] for k in ("adapter", "state", "reasons")} for e in r["entries"]],
-                "needed": f">=1 eligible route ({n_solvers} distinct lineages for Brother Mode)"}
+    supply = svc.workforce_supply("REASONING", n_solvers, max_cost_usd=max_cost_usd) if r["discovery_completed"] else {"qualified": 0, "proven": 0, "lineages": {}}
+    if supply["qualified"] < n_solvers:
+        return {"code": "SUPPLY_UNAVAILABLE", "eligible_routes": sum(e["routes_eligible_now"] for e in r["entries"]), "qualified_lineages": supply["qualified"],
+                "proven_lineages": supply["proven"], "shortfall": n_solvers - supply["qualified"], "lineages": supply["lineages"],
+                "adapters": [{k: e[k] for k in ("adapter", "state", "reasons")} for e in r["entries"]],
+                "needed": f"{n_solvers} distinct qualified lineages for Brother Mode"}
     return None
 
 
@@ -188,7 +192,10 @@ def success_contract(record: dict, *, analyses: int, check: bool, receipts: int)
         missing += [] if "TOOL_EVIDENCE" in types else ["TOOL_EVIDENCE"]
     if check:
         missing += [] if "CANDIDATE_VERIFIED" in types else ["CANDIDATE_VERIFIED"]
-    failed = [e for e in record["events"] if e["type"] in ("RESEARCH_STEP_FAILED", "MISSION_BLOCKED", "MISSION_ERROR", "VERIFIER_FAILED")]
+    evs = record["events"]
+    # a worker failure that retired the worker (PeachMe replaced it with another lineage) is recovered, not a broken integration path
+    recovered = {id(e) for e, nxt in zip(evs, evs[1:]) if e["type"] == "RESEARCH_STEP_FAILED" and nxt["type"] == "RESEARCH_WORKER_RETIRED"}
+    failed = [e for e in evs if e["type"] in ("RESEARCH_STEP_FAILED", "MISSION_BLOCKED", "MISSION_ERROR", "VERIFIER_FAILED") and id(e) not in recovered]
     checkpoint = next((e.get("mangome") or {} for e in record["events"] if e["type"] == "STATE_RETURNED"), {}).get("checkpoint_id")
     steps = types.count("RESEARCH_STEP")
     problems = ([f"missing:{m}" for m in missing] + [f"failed:{e['type']}" for e in failed] + ([] if checkpoint else ["no_mangome_checkpoint"])
@@ -199,7 +206,7 @@ def success_contract(record: dict, *, analyses: int, check: bool, receipts: int)
     candidate_verdict = verdicts[-1] if verdicts else None                                                    # the workers' candidate answer, as judged by the host verifier
     candidate_ok = not check or candidate_verdict == "SUPPORTS"                                              # a CONTRADICTS candidate is a wrong answer even if its claim is verified
     return {"integration_path_ok": not problems, "integration_problems": problems, "mission_success": record["state"] == "COMPLETED" and answered and candidate_ok, "mission_state": record["state"],
-            "candidate_verdict": candidate_verdict, "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint}
+            "candidate_verdict": candidate_verdict, "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint, "worker_failures_recovered": len(recovered)}
 
 
 def _git_repo(path: Path) -> str:
@@ -274,7 +281,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
 
     def mission(task: dict, tag: str, apply: bool, capture: bool) -> dict:
         fixture["answer"] = task.get("fixture_answer")
-        shortage = supply_shortage(svc, n_solvers)
+        shortage = supply_shortage(svc, n_solvers, (plan_cfg.get("worker_budget") or {}).get("max_cost_usd"))
         if shortage:                                          # checked BEFORE MangoMe/OrangeMe are touched: nothing is entered, nothing is written
             row = {"tag": tag, "task": task["id"], "state": "NOT_STARTED", "error_code": shortage["code"], "shortage": shortage, "integration_path_ok": False,
                    "mission_success": False}
