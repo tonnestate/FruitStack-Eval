@@ -18,7 +18,6 @@ import argparse
 import hashlib
 import json
 import re
-import shutil
 from pathlib import Path
 
 LETTER = re.compile(r"ANSWER:\s*\(?([A-J])\b")
@@ -135,14 +134,12 @@ def main() -> None:
     a = ap.parse_args()
     runs, out = Path(a.runs), Path(a.out)
     eps = build(runs, json.loads(Path(a.reclass).read_text()))
-    (out / "sources").mkdir(parents=True, exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
     manifest = {}
-    for e in eps:                                         # preserve the raw per-episode exchange next to the analysis, with hashes
+    for e in eps:                                         # raw exchanges stay where they are (they restate benchmark question text, which no committed file may contain); hash + origin only
         base = {"S1": "s1/run1/out", "QA2D-v2": "qa2d_v2/out/run"}.get(e["source"], "qa1b/hostcheck1/run")
         src = runs / base / e["evidence_file"]
-        dst = out / "sources" / f"{e['source'].split('(')[0]}_{e['qid']}.json"
-        shutil.copyfile(src, dst)
-        manifest[dst.name] = {"origin": f"{base}/{e['evidence_file']}", "sha256": sha(src)}
+        manifest[f"{e['source'].split('(')[0]}_{e['qid']}"] = {"origin": f"research/OGI013-QA1/runs/{base}/{e['evidence_file']}", "sha256": sha(src)}
     (out / "EPISODES.json").write_text(json.dumps({"episodes": eps, "summary": summary(eps), "manifest": manifest}, indent=1, sort_keys=True))
     print(json.dumps(summary(eps), indent=1, sort_keys=True))
 

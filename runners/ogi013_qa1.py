@@ -393,7 +393,8 @@ def luna_step(ctx: Context, prompt: str) -> dict:
     return {"success": True, "output": msgs[-1], "model_key": LUNA_KEY, "independence_key": LUNA_LINEAGE, "receipt_id": sha(msgs[-1])[:12], "decision_id": None}
 
 
-def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
+def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False, learning=None) -> dict:
+    """learning: optional runners.ogi013_learning_hook.LearningHook. None (every frozen arm/driver) leaves behaviour and result rows unchanged."""
     from cherryme.brother import run_rounds
     from cherryme.contributions import ContributionLedger
     import ogi013_argument as ag
@@ -569,8 +570,9 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
                                decision_log=decisions, task_class=q.get("question_type") or "QA1_MC")
     if control is not None:
         control.primary_first = lambda: pos_first.get("S1")             # the designated primary's first answer is the initial answer the controller must not override without evidence
+    learn_brief, learn_used = learning.brief(q["id"], task) if learning is not None else ("", [])
     try:
-        res = run_rounds(task_prompt=task, brief="", work=work_wrapped, ledger=ledger, claim_id=ep.claim.id, signature=lambda text: parse_letter(text, n_opt) or "?", parallel=True, solver_wait=600,
+        res = run_rounds(task_prompt=task, brief=learn_brief, work=work_wrapped, ledger=ledger, claim_id=ep.claim.id, signature=lambda text: parse_letter(text, n_opt) or "?", parallel=True, solver_wait=600,
                          max_workers=2, control=control)
         team.persist()
     except InfraMangoFailed as exc:
@@ -618,7 +620,14 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     (ctx.out / "exchange" / f"{q['id']}.json").write_text(json.dumps({
         "first_answers": [{"slot": r.slot if hasattr(r, "slot") else None, "text": r.answer_text} for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"],
         "objections": team.objs, "decisions": team.decisions, "final": {"letter": letter, "how": how}}, default=str))
-    return {"letter": letter, "how": how, "first_letters": dict(pos_first), "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
+    learn_row = {}
+    if learning is not None:                                              # passive capture AFTER the decision; a failure here is reported, never allowed to change the answer
+        try:
+            learn_row = {"learning": {"run": learning.run_id, "retrieved": learn_used, "applied": bool(learn_used), "captured": learning.capture(
+                q["id"], objections=team.objs, final_letter=letter, first_letter=pos_first.get("S1"), how=how, identities=identities)}}
+        except Exception as exc:  # noqa: BLE001
+            learn_row = {"learning": {"run": learning.run_id, "retrieved": learn_used, "applied": bool(learn_used), "error": f"{type(exc).__name__}: {str(exc)[:120]}"}}
+    return {**learn_row, "letter": letter, "how": how, "first_letters": dict(pos_first), "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
             "rounds": res.rounds, "stop": res.stop_reason, "late": res.late, "roster_models": [roster.pinned(r) for r in ("solver1", "solver2", "critic", "specialist")], "roster": roster.summary(),
             "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0), "seconds": round(time.monotonic() - t0, 1), "mango_writes": team.mango.writes, "mango_reads": team.mango.reads,
             "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "reproduced_objections": reproduced_objections, "independently_confirmed_objections": independently_confirmed_objections, "verified_objections": 0, "formal_replies": formal_replies, "reproduced_replies": reproduced_replies, "independently_confirmed_replies": independently_confirmed_replies, "verified_replies": 0, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,

@@ -36,11 +36,13 @@ def test_full_cycle_benefit_harm_and_falsified(tmp_path):
     led.apply(d, run="R1", task="q2", how="in prompt")
     assert led.status(d)["state"] == "APPLIED"
     with pytest.raises(ValueError):
-        led.outcome(d, run="R2", task="q2", reward=1, control_reward=0, grader="g", control_run="C")   # no application in R2
-    led.outcome(d, run="R1", task="q2", reward=1, control_reward=0, grader="g", control_run="C1")
+        led.outcome(d, run="R2", task="q2", reward=1, control_reward=0, grader="official_grader", control_run="C")   # no application in R2
+    led.outcome(d, run="R1", task="q2", reward=1, control_reward=0, grader="official_grader", control_run="C1")
     assert led.status(d)["state"] == "BENEFIT_OBSERVED" and led.report()["organizational_learning_instances"] == [d]
-    led.outcome(d, run="R1", task="q3", reward=0, control_reward=1, grader="g", control_run="C1")
-    led.outcome(d, run="R1", task="q4", reward=0, control_reward=1, grader="g", control_run="C1")
+    led.apply(d, run="R1", task="q3", how="x")
+    led.apply(d, run="R1", task="q4", how="x")
+    led.outcome(d, run="R1", task="q3", reward=0, control_reward=1, grader="official_grader", control_run="C1")
+    led.outcome(d, run="R1", task="q4", reward=0, control_reward=1, grader="official_grader", control_run="C1")
     assert led.status(d)["state"] == "HARM_OBSERVED"
     led.verify(d, verdict="CONTRADICTS", verifier="executed", evidence_ref="k2")
     assert led.status(d)["state"] == "CONTRADICTED"                                   # both verifications kept

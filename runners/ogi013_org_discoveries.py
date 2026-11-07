@@ -24,14 +24,21 @@ VERIFIERS = {"dataset_key", "executed", "official_grader"}        # independent 
 KINDS = {"DISCOVERY", "VERIFICATION", "RETRIEVAL", "APPLICATION", "OUTCOME"}
 
 
+def _terms(text: str) -> set[str]:
+    import re
+    return {t for t in re.findall(r"[a-z0-9][a-z0-9.\-]+", (text or "").lower()) if len(t) > 2}
+
+
 def _h(obj) -> str:
     return hashlib.sha256(json.dumps(obj, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 class Ledger:
-    def __init__(self, path):
+    def __init__(self, path, mirror=None):
+        """`mirror(kind, key, payload)` (optional) copies every appended row to MangoMe (MangoLedger.write); the local chain is written first and stays the source of truth."""
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.mirror = mirror
 
     def rows(self) -> list[dict]:
         out, prev = [], "0" * 64
@@ -52,20 +59,22 @@ class Ledger:
         row = {**body, "chain": _h({"prev": rows[-1]["chain"] if rows else "0" * 64, "body": body})}
         with self.path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+        if self.mirror is not None:
+            self.mirror("ORG_LEARNING_" + kind, str(row["seq"]), row)
         return row
 
     def _known(self, did: str) -> None:
         if not any(r["kind"] == "DISCOVERY" and r["id"] == did for r in self.rows()):
             raise KeyError(f"unknown discovery {did}")
 
-    def discover(self, *, claim: str, origin_run: str, origin_task: str, proposer: str, applicability: str, evidence_ref: str) -> str:
+    def discover(self, *, claim: str, origin_run: str, origin_task: str, proposer: str, applicability: str, evidence_ref: str, provenance: dict | None = None) -> str:
         """Record a model-asserted claim. `applicability` states when it may be reused (e.g. 'same question only'); `evidence_ref` points at the raw source record."""
         if not (claim and origin_run and applicability and evidence_ref):
             raise ValueError("claim, origin_run, applicability and evidence_ref are required")
         did = "D-" + _h([claim, origin_run, origin_task])[:16]
         if not any(r["kind"] == "DISCOVERY" and r["id"] == did for r in self.rows()):
             self._add("DISCOVERY", {"id": did, "claim": claim, "origin_run": origin_run, "origin_task": origin_task, "proposer": proposer,
-                                    "applicability": applicability, "evidence_ref": evidence_ref})
+                                    "applicability": applicability, "evidence_ref": evidence_ref, "provenance": provenance or {}})
         return did
 
     def verify(self, did: str, *, verdict: str, verifier: str, evidence_ref: str) -> None:
@@ -88,8 +97,12 @@ class Ledger:
     def outcome(self, did: str, *, run: str, task: str, reward: float, control_reward: float, grader: str, control_run: str) -> None:
         """Applied-vs-control result of a LATER run. The control is the same task without the stored discovery; both come from the same grader."""
         self._known(did)
-        if not any(r["kind"] == "APPLICATION" and r["id"] == did and r["run"] == run for r in self.rows()):
-            raise ValueError("an outcome needs a recorded APPLICATION in that run")
+        if not any(r["kind"] == "APPLICATION" and r["id"] == did and r["run"] == run and r["task"] == task for r in self.rows()):
+            raise ValueError("an outcome needs a recorded APPLICATION of this discovery in that run and task")
+        if grader not in VERIFIERS:
+            raise ValueError(f"the outcome grader must be independent of the models: one of {sorted(VERIFIERS)}")
+        if control_run == run:
+            raise ValueError("the control must be a different run (same task without the stored discovery)")
         self._add("OUTCOME", {"id": did, "run": run, "task": task, "reward": float(reward), "control_reward": float(control_reward),
                               "grader": grader, "control_run": control_run})
 
@@ -123,6 +136,25 @@ class Ledger:
                 "retrievals": len(ret), "applications": len(app), "outcomes": len(out),
                 "gain_sum": round(sum(o["reward"] - o["control_reward"] for o in out), 6) if out else None}
 
+    def retrievable(self, task: str, run: str, task_text: str = "", min_overlap: float = 0.34) -> list[dict]:
+        """Discoveries that may be shown to a LATER episode. Leak guard: a discovery verified only post hoc (dataset key / official grader) is never shown for the task
+        it came from, nor when its applicability is 'same question only'; a grading result must not enter a live reasoning context. FALSIFIED/CONTRADICTED/ASSERTED never qualify."""
+        want = _terms(task_text)
+        out = []
+        for did in [r["id"] for r in self.rows() if r["kind"] == "DISCOVERY"]:
+            rows = [r for r in self.rows() if r.get("id") == did]
+            d = next(r for r in rows if r["kind"] == "DISCOVERY")
+            ver = [r for r in rows if r["kind"] == "VERIFICATION"]
+            if not ver or any(v["verdict"] == "CONTRADICTS" for v in ver) or d["origin_run"] == run:
+                continue
+            post_hoc = all(v["verifier"] in ("dataset_key", "official_grader") for v in ver)
+            if post_hoc and (d["origin_task"] == task or d["applicability"].lower().startswith("same question")):
+                continue
+            if want and len(want & _terms(d["claim"])) / max(1, len(_terms(d["claim"]))) < min_overlap:
+                continue
+            out.append({"id": did, "claim": d["claim"], "applicability": d["applicability"], "verifiers": sorted({v["verifier"] for v in ver})})
+        return out
+
     def report(self) -> dict:
         ids = [r["id"] for r in self.rows() if r["kind"] == "DISCOVERY"]
         sts = [self.status(i) for i in ids]
@@ -133,7 +165,7 @@ class Ledger:
         return {"discoveries": len(ids), "by_state": counts, "organizational_learning_instances": learned, "statuses": sts}
 
 
-def ingest_episodes(ledger: Ledger, episodes_json: str, manifest_dir: str = "evidence/ogi013-reconstruction/sources") -> list[str]:
+def ingest_episodes(ledger: Ledger, episodes_json: str) -> list[str]:
     """Offline seed from the reconstruction: every genuine-duo episode in which collaboration moved or conceded an answer becomes a DISCOVERY,
     verified ONLY against the dataset key. Same-lineage (Luna-only) episodes are not collaboration and are skipped. No retrieval/application is invented."""
     data = json.loads(Path(episodes_json).read_text())
@@ -145,7 +177,8 @@ def ingest_episodes(ledger: Ledger, episodes_json: str, manifest_dir: str = "evi
         first_primary = e["first_letters"].get(e["primary"]) if e["primary"] else None
         if not accepted and (e["primary"] is None or e["final_letter"] == first_primary):
             continue
-        src = f"{manifest_dir}/{e['source'].split('(')[0]}_{e['qid']}.json"
+        m = data["manifest"][f"{e['source'].split('(')[0]}_{e['qid']}"]
+        src = f"{m['origin']}@sha256:{m['sha256'][:16]}"
         did = led_id = ledger.discover(
             claim=f"option {e['final_letter']} is the correct answer to question {e['qid']}", origin_run=e["source"], origin_task=e["qid"],
             proposer=(accepted[0]["raised_by_lineage"] if accepted else "collaboration"), applicability="same question only (multiple-choice item; no transfer to other items)",
