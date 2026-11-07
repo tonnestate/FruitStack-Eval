@@ -97,6 +97,7 @@ class LineageHeart(PlumMeProvider):
         return {
             "lease_id": lease.lease_id, "neuron_id": lease.neuron_id, "role_id": lease.role_id, "cognitive_owner": lease.cognitive_owner.value,
             "effective_skill_ids": list(lease.effective_skill_ids), "offer_id": route.offer_id, "model_id": route.model, "provider_id": route.provider,
+            "independence_key": key,    # PeachMe's own provider returns it and PeachRuntime.attach() stores it; the lease must keep every field
             "cost_class": getattr(getattr(route, "cost_class", None), "value", getattr(route, "cost_class", None)),
             "input_cost_per_million": getattr(route, "input_cost_per_million", None), "output_cost_per_million": getattr(route, "output_cost_per_million", None),
             "context_window": getattr(route, "context_window", None),
