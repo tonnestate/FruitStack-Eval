@@ -106,6 +106,52 @@ def test_code_grader_times_out_and_limits_memory():
 
 
 @needs_bwrap
+def test_dataset_tests_can_import_the_stdlib_modules_the_grader_dir_would_shadow(monkeypatch):
+    """The evaluator must keep its own directory off sys.path: ogi_tasks/code.py shadows the stdlib `code`
+    module that pdb imports - and so does doctest, which many dataset test modules import."""
+    monkeypatch.setitem(T.ELIGIBILITY, "Fixture/stdlib", {"status": "ELIGIBLE", "reason": None})
+    tests = ("import unittest, doctest, pdb, code\nclass TestCases(unittest.TestCase):\n"
+             "    def test_a(self):\n        self.assertEqual(task_func(3), 9)\n"
+             "    def test_b(self):\n        self.assertEqual(code.__name__, 'code')\n")
+    assert T.grade(T.make_task("code", code_row("Fixture/stdlib", tests)), SOLUTION)["grade"] == "PASS"
+
+
+@needs_bwrap
+def test_numpy_and_pandas_values_cross_the_boundary_in_both_directions(monkeypatch):
+    """The declared numpy/pandas encoding: a DataFrame argument reaches the candidate and an ndarray /
+    DataFrame / numpy scalar return reaches the tests, rebuilt by the evaluator from plain builtins."""
+    pytest.importorskip("pandas")
+    monkeypatch.setitem(T.ELIGIBILITY, "Fixture/np", {"status": "ELIGIBLE", "reason": None})
+    tests = ("import unittest, numpy as np, pandas as pd\n"
+             "class TestCases(unittest.TestCase):\n"
+             "    def test_frame(self):\n"
+             "        df = pd.DataFrame({'a': [1, 2], 'b': [0.5, np.nan]}, index=pd.Index(['x', 'y'], name='i'))\n"
+             "        out = task_func(df)\n"
+             "        pd.testing.assert_frame_equal(out, df * 2)\n"
+             "    def test_array(self):\n"
+             "        np.testing.assert_array_equal(task_func(np.arange(6).reshape(2, 3)),\n"
+             "                                      np.arange(6).reshape(2, 3) * 2)\n"
+             "    def test_scalar(self):\n"
+             "        self.assertEqual(task_func(np.int64(21)), 42)\n"
+             "    def test_series(self):\n"
+             "        pd.testing.assert_series_equal(task_func(pd.Series([1.0], name='s')), pd.Series([2.0], name='s'))\n"
+             "    def test_datetimes(self):\n"
+             "        ix = pd.DatetimeIndex(['2020-01-01', 'NaT'])\n"
+             "        out = task_func(pd.Series(ix - ix[0], index=ix))\n"
+             "        pd.testing.assert_series_equal(out, pd.Series((ix - ix[0]) * 2, index=ix))\n")
+    t = T.make_task("code", {"task_id": "Fixture/np", "instruct_prompt": "double", "test": tests,
+                             "entry_point": "task_func", "canonical_solution": "    return x * 2\n",
+                             "code_prompt": "def task_func(x):\n"})
+    r = T.grade(t, "def task_func(x):\n    return x * 2\n")
+    assert r["grade"] == "PASS", (r["evidence"].get("faults"), r["evidence"]["stderr_tail"][-400:])
+    # matplotlib Axes still cannot cross: the return is unserializable, so the test fails as a boundary fault
+    bad = T.grade(t, "import matplotlib\nmatplotlib.use('Agg')\nimport matplotlib.pyplot as plt\n"
+                     "def task_func(x):\n    return plt.subplots()[1]\n")
+    assert bad["grade"] == "ERROR" and any("UNSERIALIZABLE_RETURN" in f for fs in bad["evidence"]["faults"].values()
+                                           for f in fs)
+
+
+@needs_bwrap
 def test_sandbox_has_no_network_and_hides_root():
     r = sandbox.run_python({"a.py": "import socket, os, json\ns = socket.socket(); s.settimeout(2)\n"
                             "json.dump({'net': s.connect_ex(('1.1.1.1', 80)), 'data': os.path.exists("

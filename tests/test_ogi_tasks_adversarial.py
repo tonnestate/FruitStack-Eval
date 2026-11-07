@@ -152,6 +152,69 @@ def test_a_crash_or_hang_never_satisfies_assertRaises(src):
     assert_not_pass(T.grade(task(RAISES, "Adv/raises"), src, timeout=2))
 
 
+def test_a_pickled_lookalike_return_never_runs_code_in_the_evaluator(tmp_path):
+    """The numpy/pandas encoding must not be a deserializer. The candidate sends a pickle whose __reduce__
+    both touches `flag` and evaluates to the answer the test wants, so this FAILS (and the flag appears)
+    the moment the evaluator unpickles anything it is handed."""
+    flag = tmp_path / "pwned"
+    src = ("import os, pickle, base64\n"
+           f"FLAG = {str(flag)!r}\n"
+           "class Boom:\n"
+           "    def __init__(self, v): self.v = v\n"
+           "    def __reduce__(self):\n"
+           "        return (eval, (f\"[__import__('os').system('touch {FLAG}'), {self.v}][1]\",))\n"
+           "def task_func(x):\n"
+           "    blob = base64.b64encode(pickle.dumps(Boom(x * x))).decode()\n"
+           "    os.write(3, ('{\"ok\": {\"$\": \"pickle\", \"v\": \"' + blob + '\"}}\\n').encode())\n"
+           "    os._exit(0)\n")
+    assert_not_pass(T.grade(task(), src))
+    assert not flag.exists()
+
+
+@pytest.mark.parametrize("ok", [
+    '{"$": "ndarray", "dtype": "V8", "shape": [1], "v": [VAL]}',            # void/structured dtype: not allowed
+    '{"$": "ndarray", "dtype": "<i8,<f8", "shape": [1], "v": [VAL]}',
+    '{"$": "ndarray", "dtype": "<M8[zz]", "shape": [1], "v": [VAL]}',       # not a datetime64 unit
+    '{"$": "ndarray", "dtype": "<M8[ns]", "shape": [1], "v": ["2020-01-01"]}',    # no date string is ever parsed
+    '{"$": "ndarray", "dtype": "<f8", "shape": [1048576, 1048576], "v": [VAL]}',  # huge shape, no data to match it
+    '{"$": "ndarray", "dtype": "<i8", "shape": [-1], "v": [VAL]}',
+    '{"$": "series", "dtype": "|O", "name": null, "index": {"dtype": "<i8", "name": null, "v": [0, 1]},'
+    ' "v": [VAL]}',                                                        # index/value length disagree
+    '{"$": "dataframe", "columns": ["a"], "index": {"range": [0, 1, 0], "name": null}, "dtypes": ["|O"],'
+    ' "v": [[{"$": "obj", "module": "os", "name": "system"}]]}',           # unknown leaf tag inside a column
+    '{"$": "dataframe", "columns": ["a"], "index": {"dtype": "category", "name": null, "v": [0]},'
+    ' "dtypes": ["|O"], "v": [[VAL]]}',                                    # extension dtype on the index
+    '{"$": "index", "v": {"dtype": "<i8", "name": null, "v": [VAL], "extra": 1}}',
+    # payloads that WOULD decode to exactly the value the test wants, rejected only for their key set or tag:
+    # a tag's key set is matched exactly, never as a subset, and an unknown tag is never decoded
+    '{"$": "ndarray", "dtype": "<i8", "shape": [], "v": [VAL], "extra": 1}',
+    '{"$": "ndarray0d", "dtype": "<i8", "shape": [], "v": [VAL]}'])
+def test_forged_numpy_pandas_payloads_are_boundary_faults(ok):
+    # the candidate fills VAL with the answer the test wants, so only the boundary's rejection can fail it
+    src = ("import os\n"
+           "PAYLOAD = " + repr(ok) + "\n"
+           "def task_func(x):\n"
+           "    os.write(3, ('{\"ok\": ' + PAYLOAD.replace('VAL', str(x * x)) + '}\\n').encode())\n"
+           "    os._exit(0)\n")
+    assert_not_pass(T.grade(task(), src))
+
+
+@pytest.mark.parametrize("src", [
+    # a lookalike that claims numpy's module and answers True to every comparison: it must not be encoded at all
+    "class Fake:\n    __module__ = 'numpy'\n    def __eq__(self, o): return True\n    def __ne__(self, o): return False\n"
+    "    __hash__ = object.__hash__\n    def __getattr__(self, n): return self\n"
+    "def task_func(x):\n    return Fake()\n",
+    "class Fake:\n    __module__ = 'pandas.core.frame'\n    __qualname__ = 'DataFrame'\n"
+    "    def __eq__(self, o): return True\n    __hash__ = object.__hash__\n"
+    "def task_func(x):\n    return Fake()\n",
+    # self-referential: the encoder walks it until it runs out of depth/stack, it never reaches the evaluator
+    "class Loop(list):\n    __module__ = 'numpy'\n"
+    "def task_func(x):\n    L = Loop()\n    L.append(L)\n    return L\n",
+    "import numpy as np\ndef task_func(x):\n    d = {}\n    d['self'] = d\n    return np.array([d], dtype=object)\n"])
+def test_numpy_pandas_lookalike_objects_never_pass(src):
+    assert_not_pass(T.grade(task(), src))
+
+
 def test_math_grading_never_executes_the_answer(tmp_path):
     flag = tmp_path / "pwned"
     m = T.make_task("math", {"unique_id": "m/x", "problem": "1+1?", "answer": "2", "level": 5, "solution": "2"})
