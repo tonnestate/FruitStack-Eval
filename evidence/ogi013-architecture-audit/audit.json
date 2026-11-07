@@ -1,0 +1,266 @@
+{
+ "title": "OGI-013 architecture-vs-execution audit",
+ "date": "2026-11-02",
+ "source": "FruitStack-Eval ogi013-collab-proof; zero provider calls",
+ "components": [
+  {
+   "component": "CherryMe adaptive control (Brother Mode run_rounds/_run_parallel, ACE orchestrator/ensemble)",
+   "implemented": {
+    "v": true,
+    "proof": "cherryme/brother.py:77 run_rounds, :196 _run_parallel; cherryme/orchestrator.py, ensemble.py (CherryMe c905539)"
+   },
+   "tested": {
+    "v": true,
+    "proof": "CherryMe tests test_brother_rounds/parallel/handoff: 16 passed; test_ensemble_v026 etc.: 36 passed (run 2026-11-02)"
+   },
+   "active_in_qa2d_v2": {
+    "v": false,
+    "proof": "runners/ogi013_qa2d.py:11-23 imports no cherryme; own loop run_T:153; only reference ogi013_qa1.py:353 (qa1.run_T, not called by qa2d). Chain: run_T:153 -> ask:189 -> luna_step qa1:326 / nemo_step qa2d:103"
+   },
+   "verified_real_data": {
+    "v": true,
+    "proof": "outside QA-2D only: QA-1 original T rows (6 OK of 198), QA-1b hunt1 (6 OK of 10) and hunt2 (1 of 1)"
+   }
+  },
+  {
+   "component": "EVC (fs_codemode/evc.py)",
+   "implemented": {
+    "v": true,
+    "proof": "runners/fs_codemode/evc.py:64 EVCTable, :107 EVCPolicy, :118 replay, :156 evaluate"
+   },
+   "tested": {
+    "v": true,
+    "proof": "tests/test_fs_codemode.py::test_evc_learns_where_critique_pays_and_beats_baseline_on_held_out_half, ::test_mcnemar_exact_values (synthetic data only); 36 passed"
+   },
+   "active_in_qa2d_v2": {
+    "v": false,
+    "proof": "runners/ogi013_qa2d.py imports no evc; adapter ogi013_codemode_duo.py:11 imports only AlwaysCritique; TC is not a QA-2D arm"
+   },
+   "verified_real_data": {
+    "v": false,
+    "proof": "4 recorded disagreement rows (fit half has 3): cannot be calibrated or evaluated"
+   }
+  },
+  {
+   "component": "Shapley (fs_codemode/shapley.py)",
+   "implemented": {
+    "v": true,
+    "proof": "runners/fs_codemode/shapley.py:20 shapley, :35 duo_game"
+   },
+   "tested": {
+    "v": true,
+    "proof": "tests/test_fs_codemode.py::test_shapley_efficiency_and_duo_game"
+   },
+   "active_in_qa2d_v2": {
+    "v": false,
+    "proof": "no import in runners/ogi013_qa2d.py; post-hoc attribution only"
+   },
+   "verified_real_data": {
+    "v": false,
+    "proof": "computed offline in this audit on the 40 OK T rows (post-hoc, outside any decision); depends on a stated assumption"
+   }
+  },
+  {
+   "component": "Code Mode facade / duo / sieve / contract",
+   "implemented": {
+    "v": true,
+    "proof": "fs_codemode/facade.py:21, duo.py:31, sieve.py:45, contract.py:50; adapter ogi013_codemode_duo.py:14"
+   },
+   "tested": {
+    "v": true,
+    "proof": "tests/test_fs_codemode.py (12) + test_fs_codemode_parity.py (3): passed"
+   },
+   "active_in_qa2d_v2": {
+    "v": false,
+    "proof": "no import of fs_codemode in runners/ogi013_qa2d.py; TC/TCP are not arms of QA-2D"
+   },
+   "verified_real_data": {
+    "v": true,
+    "proof": "engineering host check only: 10 runs (hostcheck1 6, hostcheck2 4) incl. one TC run with a real disagreement (8512); not study data"
+   }
+  },
+  {
+   "component": "PlumMe model and route selection",
+   "implemented": {
+    "v": true,
+    "proof": "PlumMe a81546c scheduler.py:155/:234 _acquire_model; policy.py:117 KerasShadowPolicy; SelectionMode.BEST exists"
+   },
+   "tested": {
+    "v": true,
+    "proof": "PlumMe suite: 499 passed, 7 skipped (run 2026-11-02)"
+   },
+   "active_in_qa2d_v2": {
+    "v": "partial",
+    "proof": "only pinned-model acquisition and route failover for nemotron: ogi013_lineage_heart.py:64 SelectionMode.PINNED_MODEL; nemo_step qa2d:103 -> Episode.step tau2_agent:292 (prefer :308-309). No adaptive model choice, no Keras policy. Luna bypasses PlumMe (luna_step qa1:326 -> codex exec)"
+   },
+   "verified_real_data": {
+    "v": true,
+    "proof": "179 nemotron provider receipts in the v2 windows (144 success, 35 failed)"
+   }
+  },
+  {
+   "component": "MangoMe shared state",
+   "implemented": {
+    "v": true,
+    "proof": "MangoMe 835d8be; ogi013_mango_ledger.py:53 reads counter, :57 latest_full; ogi013_team_code.py:65 TeamState, :156 prompt (reads MangoMe)"
+   },
+   "tested": {
+    "v": "partial",
+    "proof": "tests/test_ogi013_parallel.py, independent_solving, repair1: 45 passed; tests/test_ogi013_mango_acceptance.py: 10 SKIPPED (MANGOME_TEST_MONGO_URI not configured)"
+   },
+   "active_in_qa2d_v2": {
+    "v": "partial",
+    "proof": "T only: runners/ogi013_qa2d.py:163-164 TeamState + MangoLedger, view() -> team.prompt. E/SL/SN only open a work identity via Context.episode (ogi013_qa1.py:173); they never read shared state"
+   },
+   "verified_real_data": {
+    "v": true,
+    "proof": "T OK rows: 19 reads / 331 writes"
+   }
+  },
+  {
+   "component": "CogC (context compilation)",
+   "implemented": {
+    "v": true,
+    "proof": "CherryMe cherryme/cogc.py:52 compile_packet; /root/CogC skill"
+   },
+   "tested": {
+    "v": "not run",
+    "proof": "not exercised in this audit"
+   },
+   "active_in_qa2d_v2": {
+    "v": false,
+    "proof": "no cogc import in runners/ogi013_qa2d.py or ogi013_qa1.py; only a docstring mention in fs_codemode/sieve.py:3"
+   },
+   "verified_real_data": {
+    "v": false,
+    "proof": "none in QA-2D"
+   }
+  },
+  {
+   "component": "Argument verification (classify_argument + sandbox)",
+   "implemented": {
+    "v": true,
+    "proof": "runners/ogi013_argument.py:175 classify_argument, :203 ledger_ground, :94 run_code (bubblewrap :78)"
+   },
+   "tested": {
+    "v": true,
+    "proof": "tests/test_ogi013_argument.py (9 tests) passed"
+   },
+   "active_in_qa2d_v2": {
+    "v": true,
+    "proof": "runners/ogi013_qa2d.py:230 (critique) and :263 (reply); accepted_concession :258; chain: run_T -> ag.classify_argument -> run_code (verified level)"
+   },
+   "verified_real_data": {
+    "v": "partial",
+    "proof": "9 objections in 4 exchange rows: 3 formal, 0 verified (sandbox path not reached in QA-2D rows); verified level seen only in hunt2 / host check"
+   }
+  },
+  {
+   "component": "Evidence-weighted answer fusion",
+   "implemented": {
+    "v": "partial",
+    "proof": "no fusion in the QA-2D runner. CherryMe cherryme/responsibility.py:3-9, :190 escalation (need x independence x competence - cost), :260 consolidate (counts correlated models as one voice; evidence gate decides status). Fixed rules in QA-2D: majority_tie_luna qa2d:37, final_unresolved qa2d:50"
+   },
+   "tested": {
+    "v": true,
+    "proof": "CherryMe test_cognitive_recovery_e2e / test_fs_ogi_recovery_014 / test_cognitive_integration_002: 36 passed (responsibility mechanics)"
+   },
+   "active_in_qa2d_v2": {
+    "v": false,
+    "proof": "runners/ogi013_qa2d.py does not import cherryme.responsibility; the closing rule is the fixed final_unresolved (verified last objection, else Luna)"
+   },
+   "verified_real_data": {
+    "v": false,
+    "proof": "not exercised on QA-2D rows; use in other studies not examined here"
+   }
+  }
+ ],
+ "offline_analysis": {
+  "label": "descriptive; selected sample (the 40 OK T rows of 53 questions; infrastructure-failed rows excluded)",
+  "n": 40,
+  "correct": {
+   "luna_first": {
+    "k": 34,
+    "n": 40,
+    "ci95": [
+     0.7016,
+     0.9429
+    ]
+   },
+   "nemotron_first": {
+    "k": 38,
+    "n": 40,
+    "ci95": [
+     0.8308,
+     0.9939
+    ]
+   },
+   "team_final": {
+    "k": 36,
+    "n": 40,
+    "ci95": [
+     0.7634,
+     0.9721
+    ]
+   }
+  },
+  "disagreement_rows": {
+   "n": 4,
+   "qids": [
+    "8284",
+    "7661",
+    "517",
+    "7855"
+   ],
+   "luna_first_correct": 0,
+   "nemo_first_correct": 4,
+   "team_final_correct": 2
+  },
+  "shapley": {
+   "assumption": "a critique link with a single member is inert: v({m, link}) = v({m})",
+   "reference_luna (duo_game as shipped)": {
+    "shapley_points": {
+     "luna": 39.17,
+     "nemo": 49.17,
+     "link": 1.67
+    },
+    "coalition_values_points": {
+     "{}": 0.0,
+     "luna": 85.0,
+     "nemo": 95.0,
+     "link": 0.0,
+     "luna,nemo": 85.0,
+     "link,luna,nemo": 90.0,
+     "link,luna": 85.0,
+     "link,nemo": 95.0
+    }
+   },
+   "reference_nemotron (alternative)": {
+    "shapley_points": {
+     "luna": 40.83,
+     "nemo": 50.83,
+     "link": -1.67
+    },
+    "coalition_values_points": {
+     "{}": 0.0,
+     "luna": 85.0,
+     "nemo": 95.0,
+     "link": 0.0,
+     "luna,nemo": 95.0,
+     "link,luna,nemo": 90.0,
+     "link,luna": 85.0,
+     "link,nemo": 95.0
+    }
+   },
+   "note": "the contribution of the link depends on this stated assumption: it is the difference between the final accuracy and the chosen no-critique reference, split by symmetry"
+  },
+  "evc_replay": {
+   "recorded_disagreement_rows": 4,
+   "n_fit": 21,
+   "n_eval": 19,
+   "fit_disagreements": 3,
+   "statement": "EVC is not calibrated or evaluated on these rows: the fit half has too few disagreement rows (the table needs min_n per cell). No policy comparison is reported."
+  }
+ },
+ "does_not_support": "QA-2D v2 executed a simplified baseline (two first answers, one critique exchange, fixed closing rule); it is not a test of the intended adaptive organisation."
+}

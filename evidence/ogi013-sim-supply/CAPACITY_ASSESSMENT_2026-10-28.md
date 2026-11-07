@@ -1,0 +1,7 @@
+# Capacity assessment before the Phase A release (2026-10-28)
+
+Measured (demonstration runs d1/d2, this day): per episode 33-77 provider calls (17-65 successful), 43k-196k tokens (lower bound, receipts without usage excluded), 10-17 simulator calls (20-23k tokens), 26-31 min wall.
+Two complete episodes in 58 min after the Google free-tier reset; successful calls came from google (28), kilo-gateway (32), groq (18), pollinations (3), openrouter (1).
+Confirmed limits seen in provider messages: OpenRouter 50 free requests/day (exhausted earlier today), Groq gpt-oss 200,000 tokens/day, kilo-gateway promotional cap (PROMOTION_MODEL_LIMIT_REACHED), Google free tier resets 00:00 Pacific. Credit routes listed in the catalogue are not executable (nvidia FORBIDDEN, others no credential). No local model capacity (CPU only). The FreeLLMAPI instance needs a key not available here (unverified).
+Estimated (not confirmed): phase A 46 episodes ~ 25 h pure runtime, ~2.5-4k calls; phase B ~112-126 episodes ~ 60 h, ~6-11k calls; discards add up to 2 extra attempts per task. Whether daily quotas sustain this is NOT confirmed.
+Decision: phase A is released because the protocol's own stop rules bound the waste: max 3 attempts per task (INFRA_INCOMPLETE), cooldown-aware simulator selection (no retries against known-exhausted routes), and a halt when ORG-GATE/1 min_tasks=40 can no longer be met. No new limit is introduced.
