@@ -333,6 +333,7 @@ def test_strict_prefer_makes_an_unavailable_pinned_model_a_failed_step_not_a_sil
 
 
 def test_budget_refusal_kind_tells_the_episodes_own_budget_from_provider_supply():
+    pytest.importorskip("tau2", reason="the runner imports the official tau2-bench runtime at module level")
     from ogi013_tau2_agent import budget_refusal_kind
     assert budget_refusal_kind("EXECUTION_NOT_PERFORMED_BUDGET_EXHAUSTED", 9655, 11000) == "episode"        # the old smoke: ~9.6k left, the step must reserve more
     assert budget_refusal_kind("EXECUTION_NOT_PERFORMED_BUDGET_EXHAUSTED", 200000, 11000) == "provider"

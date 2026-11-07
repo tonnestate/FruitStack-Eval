@@ -189,6 +189,7 @@ def test_report_accepts_the_legacy_labels(tmp_path):
 # ---------- simulator cooldown logic (infrastructure; offline, fake service objects) -------------------------------------------------------------------------
 
 def test_earliest_retry_uses_plumme_gate_and_cooldown_state():
+    pytest.importorskip("tau2", reason="the runner imports the official tau2-bench runtime at module level")
     import sys
     import types
     from ogi013_sim_supply import _earliest_retry
@@ -220,6 +221,7 @@ def test_earliest_retry_uses_plumme_gate_and_cooldown_state():
 
 
 def test_selection_pool_without_exhausted_credentials_is_the_whole_allowlist_and_old_windows_exclude_nothing(tmp_path):
+    pytest.importorskip("tau2", reason="the runner imports the official tau2-bench runtime at module level")
     from ogi013_sim_supply import _selection_pool
     (tmp_path / "sim_allowlist.json").write_text(json.dumps({"model_keys": ["b", "a", "c"]}))
     (tmp_path / "sim_exhausted.jsonl").write_text(json.dumps({"ts": 1, "model_key": "a", "until": 9e12}) + "\n")      # evidence only: no time-based exclusion

@@ -217,6 +217,7 @@ def offers(*pairs):
 
 def pool(tmp, exhausted_handles, svc, providers=None):
     """Allowlist of two models; the registry marks the given providers' credentials exhausted."""
+    pytest.importorskip("tau2", reason="the runner imports the official tau2-bench runtime at module level")
     import ogi013_sim_supply as sim
     (tmp / "sim_allowlist.json").write_text(json.dumps({"model_keys": ["gpt-oss-20b@default", "laguna-s-2.1@default"]}))
     srcs = {f"h-{p}": {"provider": p, "handle": f"h-{p}"} for p in (providers or ["groq", "nvidia", "openrouter"])}
