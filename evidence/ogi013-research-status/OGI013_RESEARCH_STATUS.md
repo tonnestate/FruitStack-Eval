@@ -2,7 +2,7 @@
 
 Offline work only. No provider call, no new experiment, no archived record changed. Branch `ogi013-collab-proof`.
 Reproduce the reconstruction: `runners/ogi013_reconstruct.py --runs /root/fruits/research/OGI013-QA1/runs --out evidence/ogi013-reconstruction`
-(generated: `evidence/ogi013-reconstruction/EPISODES.json`, raw per-episode exchange copies in `sources/` with sha256, `discoveries.jsonl`).
+(generated: `evidence/ogi013-reconstruction/EPISODES.json`, a sha256 + origin manifest of the raw per-episode exchange files (the files themselves stay outside the repo: they restate benchmark question text, which no committed file may contain; `tests/test_ogi013_qa1.py::test_no_question_text_in_any_committed_file` enforces it; the first commit of this branch work briefly contained copies, removed in the integration commit), `discoveries.jsonl`).
 Ground truth in every table below is the benchmark answer key of the question. A model's statement that it is right is never used as proof.
 
 ## A. Brother Mode implementation audit (code facts)
@@ -15,7 +15,7 @@ Ground truth in every table below is the benchmark answer key of the question. A
 | replies, concessions, revisions | reply actions `concede`, `evidence`, `withdraw`; REVISION rows | IMPLEMENTED, exercised (concessions in 605, 8284, 517, 7661, 7855, 8512) |
 | decision / closing | `runners/fs_codemode/loop.py` `CooperationControl` (WeightBook, `close()`), corrected in `a10d7c9`, `d2c1116` | IMPLEMENTED, corrected. Evidence-free weights can no longer decide (`UNRESOLVED_PRIMARY_RETAINED`); same-lineage samples are one member |
 | model selection and execution | PlumMe AUTO, `ogi013_lineage_heart.py` pins models; receipts per call | IMPLEMENTED; identity now validated from receipts (`INFRA_INCOMPLETE` fail-closed) |
-| evidence persistence | MangoMe work identity + ledgers, `MangoLedger`/`TeamState`; per-episode events and exchange files | IMPLEMENTED (archived outside the repo under `/root/fruits/research/OGI013-QA1/runs/`, now copied per episode into `evidence/ogi013-reconstruction/sources/`) |
+| evidence persistence | MangoMe work identity + ledgers, `MangoLedger`/`TeamState`; per-episode events and exchange files | IMPLEMENTED (archived outside the repo under `/root/fruits/research/OGI013-QA1/runs/`, hashed per episode in `EPISODES.json` (manifest)) |
 | organizational knowledge | CherryMe `knowledge.py` `KnowledgeStore` + `KnowledgeFirstGrounder`: quote-verified source facts, hash chain, `lookup`, reuse counter | PARTIAL: stores and reuses grounded document facts; no link from a stored item to a later outcome; not wired into QA-1/QA-2D/S1 |
 | learning of team structure | `ogi013_org_learning.py`, `evidence/ogi013-learning/SPEC.md`, `ORG_GATE_V1.json` (RANDOMIZED structure arms, Keras policy, gate) | IMPLEMENTED as contract + store + tests; NO data (no randomized verified episodes) |
 | EVC / Shapley / CogC | `fs_codemode/evc.py`, `shapley.py`; CogC | IMPLEMENTED and tested, NOT active in QA-2D/S1 (audit 2026-11-02), no calibration data (4 disagreement rows) |
@@ -25,7 +25,7 @@ Missing: (1) a verified-discovery ledger with retrieval/application/outcome (add
 
 ## B. Evidence reconstruction (57 recoverable episodes)
 
-The earlier statement "archived S1 records do not contain the complete critique history" is corrected: the per-episode exchange files survive in the run directories (`s1/run1/out/exchange/*.json`, `events/*.jsonl`) and hold first answers, every objection (target, lineage, level, state, decision path), every reply and the controller decision. They are now preserved in the repo with hashes. In S1 only 605 and 693 contain objections; the 12 Luna-only episodes contain none.
+The earlier statement "archived S1 records do not contain the complete critique history" is corrected: the per-episode exchange files survive in the run directories (`s1/run1/out/exchange/*.json`, `events/*.jsonl`) and hold first answers, every objection (target, lineage, level, state, decision path), every reply and the controller decision. They are referenced with hashes in `EPISODES.json`. In S1 only 605 and 693 contain objections; the 12 Luna-only episodes contain none.
 
 Sources: S1 16 T episodes (12 Luna-only duplication, 4 genuine duo), QA-2D v2 40 OK T episodes (genuine duo), 1 engineering host check (8512). QA-1 (198 rows) stored a single first answer per row: no collaboration to reconstruct. COLLAB-1 / pilot / tau2 episodes were not reconstructed (not part of the multiple-choice line; no per-episode exchange examined).
 
@@ -106,3 +106,18 @@ Structural limit found: for multiple-choice items no objection can be executed, 
 | The earlier negative S1 conclusion about Brother Mode | INVALID OR INSUFFICIENT EVIDENCE | controller and identity defects; the replay is hypothetical and proves nothing positive either |
 
 No status was changed by the repair of an implementation defect. What would settle the questions (not started, needs an order): a task family with executable verification so objections can be independently confirmed; a Nemotron supply that does not exceed the 10 percent failure threshold (or a second reliable lineage); a repeated-knowledge task set with a no-store control for EVAL-002.
+
+## G. Integration into the Brother Mode execution path (added after the reconstruction)
+
+`runners/ogi013_learning_hook.py` + `run_T(..., learning=LearningHook(...))` in `runners/ogi013_qa1.py`; ledger extended in `runners/ogi013_org_discoveries.py`. Opt-in: with `learning=None` (all frozen drivers: S1, QA-2D, QA-1) prompts, decisions and result rows are byte-identical (test `test_without_a_hook_nothing_changes`).
+
+| lifecycle step | mechanism |
+|---|---|
+| discovery | `capture` after the decision: accepted objections become DISCOVERY (claim, proposer lineage, model/receipt identities, ground level); state ASSERTED |
+| independent verification | only an objection whose argument was executed in the episode becomes VERIFIED (`executed`). Model agreement is refused as a verifier; post-hoc grading (`dataset_key`, `official_grader`) can verify only from the grader side |
+| persistent storage | append-only hash-chained JSONL (tamper detected); optional `mirror` writes every row to MangoMe via `MangoLedger.write` (`ORG_LEARNING_*`); falsified/contradicted entries are kept |
+| retrieval later | `brief()` passes verified, applicable discoveries from OTHER runs as `brief` of cherryme `run_rounds` (the `{brief}` slot of the solve prompt), at most 3; records RETRIEVAL + APPLICATION |
+| leak guard | a discovery verified only post hoc is never shown for its own task nor when scoped "same question only"; ASSERTED/FALSIFIED/CONTRADICTED/same-run never shown; the key/grade never enters `capture` or `brief` |
+| independently measured outcome | `outcomes()` from the grading side: needs a recorded APPLICATION for that run+task, an independent grader and a control run different from the applied run |
+
+Tests: `tests/test_ogi013_learning_hook.py` (7) plus ledger tests; 86 passed with the QA-1 and loop suites. Not run: provider calls, any experiment. No discovery has been retrieved or applied in any real run, so EVAL-001/002/003 statuses in section F are unchanged. `ogi013_org_learning.py` (team-structure learner) is a separate mechanism and untouched.
