@@ -11,6 +11,7 @@ of organizational gain by itself.
 """
 from __future__ import annotations
 
+import hashlib
 import time
 from collections import Counter
 from dataclasses import dataclass
@@ -27,6 +28,7 @@ class Task:
     signature: Callable[[str], str | None]          # final-answer extraction from a position text
     grade: Callable[[str | None], float]            # independent grader in [0, 1]; called only after the episode
     grader: str                                     # verifier kind of the grader (ogi013_org_discoveries.VERIFIERS)
+    score: Callable[[str], float] | None = None     # VISIBLE checks only (e.g. visible-test pass count), the same for every arm; None -> plurality
 
 
 def _lineage(row) -> str | None:
@@ -66,13 +68,32 @@ def capture_brother(hook: LearningHook, task_ref: str, rows, signature) -> list[
     return hook.capture(task_ref, objections=objections, final_letter=None, first_letter=None, how="brother_mode", identities=ids)
 
 
-def final_answer(res, signature) -> tuple[str | None, str]:
-    """Agreement of all positions -> CONSENSUS; otherwise the first solver's position is retained and labelled provisional (never a vote, never order luck)."""
-    sigs = [signature(t) for t in res.positions.values()]
-    if sigs and len(set(sigs)) == 1:
-        return sigs[0], "CONSENSUS"
-    first = next(iter(res.positions.values()), None)
-    return (signature(first) if first else None), "UNRESOLVED_PRIMARY_RETAINED"
+def select_answer(task_ref: str, texts: list[str], signature, score: Callable[[str], float] | None = None) -> tuple[str | None, str]:
+    """THE answer selector of every study arm (T, E_div, R_mono): one rule, applied to the arm's final candidate set.
+    1. score (the task's VISIBLE checks, e.g. visible-test pass count; never the hidden grader) when the task has one: highest score;
+    2. among those, plurality of the parsed answers (unparseable candidates only count when nothing parses);
+    3. remaining tie: smallest sha256(task_ref, answer). Order-, model- and position-independent, so neither the first solver nor registration order can win a tie."""
+    cands = [(signature(t), t) for t in texts]
+    parsed = [c for c in cands if c[0] is not None]
+    if not parsed:
+        return None, "NO_PARSEABLE_CANDIDATE"
+    if len({s for s, _ in cands}) == 1:
+        return cands[0][0], "CONSENSUS"
+    if score is not None:
+        best = max(score(t) for _, t in parsed)
+        parsed = [c for c in parsed if score(c[1]) == best]
+    counts = Counter(s for s, _ in parsed)
+    top = max(counts.values())
+    tied = [s for s, n in counts.items() if n == top]
+    if len(tied) == 1:
+        return tied[0], "SELECTED"
+    return min(tied, key=lambda s: hashlib.sha256(f"{task_ref}\0{s}".encode()).hexdigest()), "SELECTED_HASH_TIE"
+
+
+def final_answer(res, signature, task_ref: str = "", score=None) -> tuple[str | None, str]:
+    """T's final answer = select_answer over the final positions (the same selector as the controls). The old rule (first solver's position retained on disagreement)
+    is reported as `primary_retained` for continuity only; it never decides."""
+    return select_answer(task_ref, list(res.positions.values()), signature, score)
 
 
 def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: int = 2, max_rounds: int = 3, control=None) -> dict:
@@ -83,12 +104,14 @@ def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: in
     cl = ContributionLedger()
     res = run_rounds(task_prompt=task.prompt, brief=brief, work=work, ledger=cl, claim_id=f"{hook.run_id}:{task.task_ref}", n_solvers=n_solvers, max_rounds=max_rounds,
                      signature=task.signature, control=control)
-    answer, how = final_answer(res, task.signature)
+    answer, how = final_answer(res, task.signature, task.task_ref, task.score)
+    first = next(iter(res.positions.values()), None)
     try:                                                   # capture never changes the answer; failures are reported
         captured, cap_err = capture_brother(hook, task.task_ref, cl.rows, task.signature), None
     except Exception as exc:  # noqa: BLE001
         captured, cap_err = [], f"{type(exc).__name__}: {str(exc)[:120]}"
-    return {"task": task.task_ref, "arm": arm, "run": hook.run_id, "answer": answer, "how": how, "stop": res.stop_reason, "calls": res.calls, "rounds": res.rounds,
+    return {"task": task.task_ref, "arm": arm, "run": hook.run_id, "answer": answer, "how": how,
+            "primary_retained": task.signature(first) if first else None, "stop": res.stop_reason, "calls": res.calls, "rounds": res.rounds,
             "failures": len(res.failures), "seconds": round(time.monotonic() - t0, 3), "retrieved": used, "captured": captured, "capture_error": cap_err,
             "brief_errors": list(hook.errors), "lineages": sorted({_lineage(r) for r in cl.rows if r.kind == "SOLUTION" and _lineage(r)}),
             "row_kinds": dict(Counter(r.kind for r in cl.rows))}

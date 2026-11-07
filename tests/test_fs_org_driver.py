@@ -134,3 +134,18 @@ def test_capture_brother_ignores_same_lineage_critique(tmp_path):
            reason="REVISION", answer_text="ANSWER: 9", detail={"revises": s.id, "responding_to": [c.id]}, identity={"independence_key": "luna"})
     led = Ledger(tmp_path / "l.jsonl")
     assert capture_brother(LearningHook(led, "R1"), "t", cl.rows, sig) == []
+
+
+def test_the_selector_is_order_independent_and_identical_for_every_arm():
+    """Selector parity: the first solver's position no longer wins a disagreement; ties are broken by a fixed hash of (task, answer), not by order or model."""
+    from types import SimpleNamespace
+    from runners.fs_org_driver import final_answer, select_answer
+    a, b = "ANSWER: 7", "ANSWER: 9"
+    tie_ab, tie_ba = select_answer("t1", [a, b], sig), select_answer("t1", [b, a], sig)
+    assert tie_ab == tie_ba and tie_ab[1] == "SELECTED_HASH_TIE"
+    assert select_answer("t1", [a, b, b], sig) == select_answer("t1", [b, a, b], sig) == ("9", "SELECTED")       # plurality
+    assert select_answer("t1", [a, a], sig) == ("7", "CONSENSUS")
+    assert select_answer("t1", ["no answer", b], sig) == ("9", "SELECTED")                                       # unparseable never beats a parsed answer
+    assert select_answer("t1", [a, b, b], sig, score=lambda t: 1.0 if "7" in t else 0.0) == ("7", "SELECTED")    # visible checks first
+    for order in ({"L": a, "N": b}, {"N": b, "L": a}):                                                            # T uses the same selector
+        assert final_answer(SimpleNamespace(positions=order), sig, "t1") == tie_ab
