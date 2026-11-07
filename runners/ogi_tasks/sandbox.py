@@ -58,14 +58,17 @@ def run_python(files: dict[str, str], argv: list[str], *, python: str = sys.exec
         for name, text in files.items():
             Path(d, name).write_text(text, encoding="utf-8")
         cmd = [python, "-E", "-s", *argv]
-        isolation = "rlimit-only"
         if shutil.which("bwrap"):
-            isolation = "bwrap-netns-rlimit"
+            isolation = "bwrap-unshare-all-rlimit"
             binds = _exposed(python)
             hide = [a for r in HIDDEN_ROOTS if os.path.isdir(r) for a in ("--tmpfs", r)]
             cmd = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp",
-                   *hide, *binds, "--bind", d, d, "--unshare-net", "--unshare-pid", "--die-with-parent",
+                   *hide, *binds, "--bind", d, d, "--unshare-all", "--cap-drop", "ALL", "--die-with-parent",
                    "--new-session", "--chdir", d, *cmd]
+        elif os.environ.get("OGI_ALLOW_UNSANDBOXED") == "1":   # explicit opt-in only; recorded in evidence
+            isolation = "rlimit-only"
+        else:                                                    # fail closed: never run untrusted candidate code unisolated by default
+            raise RuntimeError("SANDBOX_UNAVAILABLE: bwrap not found; set OGI_ALLOW_UNSANDBOXED=1 to run with rlimits only")
         env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "HOME": d, "PYTHONDONTWRITEBYTECODE": "1",
                "MPLBACKEND": "Agg", "PYTHONHASHSEED": "0"}
         p = subprocess.Popen(cmd, cwd=d, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,

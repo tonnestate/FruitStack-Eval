@@ -100,7 +100,7 @@ def test_sandbox_has_no_network_and_hides_root():
                            ["a.py"])
     import json
     out = json.loads(r["outputs"]["o.json"])
-    assert r["isolation"] == "bwrap-netns-rlimit" and out["net"] != 0 and out["data"] is False
+    assert r["isolation"] == "bwrap-unshare-all-rlimit" and out["net"] != 0 and out["data"] is False
 
 
 # ---- selector ----
@@ -132,3 +132,13 @@ def test_math_selector_plurality_ties_earliest():
     assert T.select_by_visible(t, ["\\boxed{3}", "\\boxed{0.5}", "\\boxed{1/2}", "\\boxed{3}", "\\boxed{\\frac12}"]) == 1
     assert T.select_by_visible(t, ["\\boxed{3}", "\\boxed{4}"]) == 0
     assert T.select_by_visible(t, ["nothing", "\\boxed{4}"]) == 1
+
+
+def test_sandbox_fails_closed_without_bwrap(monkeypatch):
+    import shutil as _sh
+    import pytest
+    from runners.ogi_tasks import sandbox
+    monkeypatch.setattr(_sh, "which", lambda name: None)
+    monkeypatch.delenv("OGI_ALLOW_UNSANDBOXED", raising=False)
+    with pytest.raises(RuntimeError, match="SANDBOX_UNAVAILABLE"):
+        sandbox.run_python({"a.py": "print(1)"}, ["a.py"])
