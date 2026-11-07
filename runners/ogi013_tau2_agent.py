@@ -19,6 +19,7 @@ import asyncio
 import copy
 import hashlib
 import json
+import math
 import os
 import re
 import threading
@@ -320,8 +321,28 @@ class Episode:
                 facts = getattr(self.stack.heart, "lease_facts", lambda _id: {})(env.get("lease_id"))        # PeachMe stores only a whitelist of lease fields: the lineage comes from the heart
                 max_out, reserve = self.output_budget(prompt, env)
                 tokens, calls = self.step_authorization()
+                reserve_cost = None
+                if fs.governance.snapshot(self.sid) is not None:
+                    from peachme.cherry_accounting import NO_BILLED_USD_CLASSES
+                    cost_class = facts.get("cost_class", env.get("cost_class"))
+                    cost_class = str(getattr(cost_class, "value", cost_class))
+                    from plumme.models import CostClass
+                    if cost_class not in {item.value for item in CostClass}:
+                        raise PeachError("BUDGET_COST_RESERVATION_UNAVAILABLE")
+                    if cost_class in NO_BILLED_USD_CLASSES:
+                        reserve_cost = 0.0
+                    else:
+                        input_rate, output_rate = facts.get("input_cost_per_million"), facts.get("output_cost_per_million")
+                        output_tokens = max_out or facts.get("output_limit")
+                        if output_tokens is None and facts.get("context_window"):
+                            output_tokens = max(1, int(facts["context_window"]) - len(prompt.encode("utf-8")))
+                        if any(isinstance(rate, bool) or not isinstance(rate, (int, float)) or not math.isfinite(rate) or rate < 0
+                               for rate in (input_rate, output_rate)) or (output_tokens is None and output_rate > 0):
+                            raise PeachError("BUDGET_COST_RESERVATION_UNAVAILABLE")
+                        input_tokens = self.input_tokens(prompt, env)["bound"]
+                        reserve_cost = (input_tokens * input_rate + (output_tokens or 0) * output_rate) / 1_000_000
                 with step_parent_budget(self.stack.svc, tokens, calls, account_to=getattr(getattr(self.stack, "out", None), "parent", None), who=key) as parent:           # pilot: the step's tokens AND provider requests are enforced across continuations and retries
-                    out = self._gated(lambda: asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve)), tag)
+                    out = self._gated(lambda: asyncio.run(fs.infer(turn, step_key=key, task=prompt, max_output_tokens=max_out, reserve_tokens=reserve, reserve_cost_usd=reserve_cost)), tag)
                     if parent is not None:
                         parent.receipted = True
                 self._step_parent = parent.snapshot() if parent is not None else None
@@ -375,9 +396,9 @@ class Episode:
                 self.stats["tokens_in"] += st.input_tokens or 0
                 self.stats["tokens_out"] += st.output_tokens or 0
                 self.stats["models"][out.model] = self.stats["models"].get(out.model, 0) + 1
-            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2), input_estimate=(getattr(self, "_input_estimate", None) or {}), step_requests=(getattr(self, "_step_parent", None) or {}).get("provider_attempt_count"), step_tokens_charged=(getattr(self, "_step_parent", None) or {}).get("charged_tokens"),
+            self.event("STEP", step=key, tag=tag, model=out.model, receipt=st.receipt_id, decision_id=getattr(out, "decision_id", None), tokens_in=st.input_tokens, tokens_out=st.output_tokens, seconds=round(time.monotonic() - t0, 2), input_estimate=(getattr(self, "_input_estimate", None) or {}), step_requests=(getattr(self, "_step_parent", None) or {}).get("provider_attempt_count"), step_tokens_charged=(getattr(self, "_step_parent", None) or {}).get("charged_tokens"),
                        independence_key=facts.get("independence_key"), model_key=facts.get("model_key"), prefer_met=facts.get("prefer_met"))
-            return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id}
+            return {"success": True, "output": out.output, "model_key": facts.get("model_key") or out.model, "independence_key": facts.get("independence_key"), "receipt_id": st.receipt_id, "decision_id": getattr(out, "decision_id", None)}
         return {"success": False, "output": None, "failure_class": last or "NO_ADMISSIBLE_WORKER"}
 
     MIN_ANSWER_TOKENS = 2048    # pilot: a step that cannot afford at least this much answer is not dispatched (a budget stop, not a truncated answer)
@@ -691,8 +712,15 @@ class FruitStackTau2Agent(HalfDuplexAgent[dict]):
         seed = {"text": draft["output"], "model_key": draft.get("model_key"), "independence_key": draft.get("independence_key"), "receipt_id": draft.get("receipt_id")}
         task_prompt = prompt + "\n(Reminder for any reviewer: the reply must stay a single valid JSON action and must comply with the policy and the tool documentation.)"
         try:
+            scheduler = getattr(getattr(getattr(ep, "stack", None), "svc", None), "scheduler", None)
+            control = None
+            if scheduler is not None:
+                from ogi013_brother_loop import make_control
+                control = make_control(None, ep.claim.id, (draft.get("model_key"),) if draft.get("model_key") else (),
+                                       decision_log=getattr(scheduler, "decisions", None), task_class=getattr(ep, "task_class", ep.domain),
+                                       log_sink=lambda record: ep.event("BROTHER_CONTROL", record=record))
             out = collaborate(task_prompt=task_prompt, seed=seed, work=work, ledger=ep.ledger, claim_id=ep.claim.id, parse=parse_action, digest=_action_digest,
-                              terminating=_is_terminating, policy_text=self.domain_policy, continuity=ep.continuity)
+                              terminating=_is_terminating, policy_text=self.domain_policy, continuity=ep.continuity, control=control)
         except Exception as exc:  # noqa: BLE001 - visible; the benchmark outcome must not depend on the collaboration layer
             if _is_stop(exc):
                 ep.budget_stopped = True

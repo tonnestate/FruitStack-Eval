@@ -7,7 +7,7 @@ import pytest
 pytest.importorskip("tau2")
 pytest.importorskip("plumme")
 from cherryme.continuity import ContinuityLedger  # noqa: E402
-from ogi013_scripted_stack import FOUND, GOOD, J, NONE_WITH_GROUNDS, events, make_agent, say  # noqa: E402
+from ogi013_scripted_stack import FOUND, GOOD, J, NONE_WITH_GROUNDS, events, make_agent, route, say  # noqa: E402
 from ogi013_tau2_agent import DECLINE_ACTION  # noqa: E402
 
 TRANSFER = {"action": "tool", "name": "transfer_to_human_agents", "arguments": {"summary": "the cancellation is not possible"}}
@@ -29,7 +29,18 @@ def pilot4_script(termination):
 @pytest.fixture(params=["fake", "real"])
 def mk(request, monkeypatch, tmp_path):
     def build(script, policy=POLICY):
-        return make_agent(monkeypatch, tmp_path / request.param, script, real=request.param == "real", policy=policy)
+        result = make_agent(monkeypatch, tmp_path / request.param, script, real=request.param == "real", policy=policy, budget=(50, 100000, 0.0))
+        agent = result[0]
+        step = agent.ep.step
+
+        def verified_scripted_critique(prompt, stage, **kwargs):
+            answer = step(prompt, stage, **kwargs)
+            if stage == "challenge" and answer.get("success") and answer.get("output") in {CRITIC_PROPOSES_TRANSFER, NONE_WITH_GROUNDS}:
+                answer.update(verification="independently_confirmed", relevance_assessed=True, independent_confirmation=True)
+            return answer
+
+        agent.ep.step = verified_scripted_critique  # fixture verifier; model text alone is not evidence
+        return result
     return build
 
 
@@ -99,6 +110,15 @@ def test_a_correct_action_that_needs_no_correction_is_untouched(mk):
     assert action == GOOD and collab_event(out)["termination"] is None and not (out / "continuity.json").exists()
 
 
+def test_metered_routes_fail_closed_without_a_cost_reservation(monkeypatch, tmp_path):
+    from peachme import PeachError
+
+    agent, state, stack, _ = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, routes=[route("alpha@x", "L-alpha", "METERED", 1.0)], budget=(50, 100000, 0.01))
+    with pytest.raises(PeachError, match="BUDGET_COST_RESERVATION_UNAVAILABLE"):
+        say(agent, state)
+    assert not stack.svc.executed
+
+
 def test_the_frozen_path_is_unchanged_without_a_terminating_hook():
     from ogi013_org_collab import collaborate
     import inspect
@@ -110,7 +130,16 @@ def test_after_the_correction_the_next_step_still_sees_the_open_objective_whiche
     """Worker replacement / continuation: the second turn is answered by a different lineage (the first lineage is excluded by the scripted pool) and its prompt carries the preserved objective and the rejection."""
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD), J({"action": "message", "content": "Let us look at flights."})],
                                                                   "challenge": [CRITIC_PROPOSES_TRANSFER, NONE_WITH_GROUNDS], "revise": [J(TRANSFER)], "termination": [term(alt=J(CONTINUE_MSG))]},
-                                          real=True, policy=POLICY)
+                                          real=True, policy=POLICY, budget=(50, 100000, 0.0))
+    step = agent.ep.step
+
+    def verify_scripted_critique(prompt, stage, **kwargs):
+        answer = step(prompt, stage, **kwargs)
+        if stage == "challenge" and answer.get("success") and answer.get("output") in {CRITIC_PROPOSES_TRANSFER, NONE_WITH_GROUNDS}:
+            answer.update(verification="independently_confirmed", relevance_assessed=True, independent_confirmation=True)
+        return answer
+
+    agent.ep.step = verify_scripted_critique
     say(agent, state)
     assert [o["text"] for o in agent.ep.continuity.open_objectives()] == ["book a new round trip"]
     say(agent, state, text="Thanks. Now please book the round trip.")

@@ -8,11 +8,11 @@ from test_ogi013_org_collab import BAD, GOOD, Workers, digest, run
 CHECKS = "ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."
 FOUND = "ISSUES: FOUND\nThe reservation id WRONG1 is not the customer's booking; use HAT001 (see CONVERSATION)."
 SCENARIOS = [
-    ("A. Sound answer: one independent assessment with stated grounds", Workers(challenge=[CHECKS]), GOOD),
-    ("B. Flawed answer: challenged, revised, the revision examined again", Workers(challenge=[FOUND, CHECKS], revise=[json.dumps(GOOD)]), BAD),
-    ("C. Unresolved disagreement: the author rejects, the specialist backs the author, the objection stays", Workers(challenge=[FOUND], revise=[json.dumps(BAD)], specialist=[json.dumps(BAD)]), BAD),
+    ("A. Sound answer: one independent assessment with stated grounds", Workers(independently_confirmed=[CHECKS], challenge=[CHECKS]), GOOD),
+    ("B. Flawed answer: challenged, revised, the revision examined again", Workers(independently_confirmed=[FOUND, CHECKS], challenge=[FOUND, CHECKS], revise=[json.dumps(GOOD)]), BAD),
+    ("C. Unresolved disagreement: the author rejects, the specialist backs the author, the objection stays", Workers(independently_confirmed=[FOUND], challenge=[FOUND], revise=[json.dumps(BAD)], specialist=[json.dumps(BAD)]), BAD),
     ("D. Author overruled: the specialist backs the critic, its answer is reviewed once more by a new lineage",
-     Workers(challenge=[FOUND, CHECKS], revise=[json.dumps(BAD) + " "], specialist=[json.dumps(GOOD)]), BAD),
+     Workers(independently_confirmed=[FOUND, CHECKS], challenge=[FOUND, CHECKS], revise=[json.dumps(BAD) + " "], specialist=[json.dumps(GOOD)]), BAD),
 ]
 
 

@@ -15,6 +15,7 @@ from ogi013_lineage_heart import LineageHeart
 from peachme import PeachError
 from peachme.plumme import PlumMeProvider
 from plumme.models import SelectionMode
+from plumme.budget import BudgetExceeded
 
 
 def route(model_key, group, provider="prov"):
@@ -28,8 +29,9 @@ class FakePlumMe:
     def __init__(self, routes, ignore_exclusion=False):
         self.routes, self.requests, self.ignore = routes, [], ignore_exclusion
 
-    async def acquire_neuron(self, req):
+    async def acquire_neuron(self, req, *, min_context_tokens=None):
         self.requests.append(req)
+        self.min_context_tokens = min_context_tokens
         excluded = set(req.metadata.get("exclude_independence_keys") or []) if not self.ignore else set()
         pool = [r for r in self.routes if r.independence_group not in excluded]
         if req.selection_mode == SelectionMode.PINNED_MODEL:
@@ -54,10 +56,21 @@ def test_the_exclusion_reaches_plumme_and_the_lease_carries_the_lineage():
     lease = acquire(heart)
     assert svc.requests[0].metadata == {"exclude_independence_keys": ["lineage-alpha"]}      # PlumMe's own mechanism (the one CherryMe's bridge uses), empty/None keys dropped
     facts = heart.lease_facts(lease["lease_id"])
-    assert facts == {"independence_key": "lineage-beta", "model_key": "beta@x", "prefer_met": None}      # PeachMe stores only a whitelist of lease fields: the heart keeps the lineage itself
+    assert facts == {"independence_key": "lineage-beta", "model_key": "beta@x", "prefer_met": None,
+                     "cost_class": "FREE_TIER", "input_cost_per_million": 0.0, "output_cost_per_million": 0.0,
+                     "context_window": 32000, "output_limit": 4096}
     heart.exclude_independence_keys = ("lineage-alpha", "lineage-beta")
     assert heart.lease_facts(acquire(heart)["lease_id"])["independence_key"] == "lineage-gamma"          # a third lineage when two are used
     assert heart.lease_facts("unknown-lease") == {} and heart.lease_facts(None) == {}
+
+
+def test_context_floor_is_bound_to_acquisition_and_route_limit_comes_from_the_lease():
+    svc = FakePlumMe(ROUTES)
+    heart = LineageHeart(svc)
+    heart.min_context_tokens = 24000
+    lease = acquire(heart)
+    assert svc.min_context_tokens == 24000
+    assert heart.lease_facts(lease["lease_id"])["output_limit"] == 4096
 
 
 def test_without_a_lineage_left_the_acquisition_fails_instead_of_reviewing_ones_own_work():
@@ -86,7 +99,23 @@ def test_the_authors_model_is_preferred_for_a_revision_and_a_miss_is_recorded():
     assert facts["prefer_met"] is False and facts["model_key"] == "alpha@x" and svc.requests[-1].selection_mode == SelectionMode.BEST      # any admissible route, the miss is on record
 
 
+@pytest.mark.parametrize("error", [BudgetExceeded("call budget exhausted"), type("ParentBudgetExhausted", (RuntimeError,), {})("parent budget exhausted")])
+def test_a_budget_refusal_does_not_fall_back_to_another_model(error):
+    class BudgetService(FakePlumMe):
+        async def acquire_neuron(self, req, *, min_context_tokens=None):
+            self.requests.append(req)
+            self.min_context_tokens = min_context_tokens
+            raise error
+
+    heart = LineageHeart(BudgetService(ROUTES))
+    heart.prefer_model_key = "gamma@x"
+    with pytest.raises(type(error)):
+        acquire(heart)
+    assert len(heart.service.requests) == 1
+    assert heart.service.requests[0].selection_mode == SelectionMode.PINNED_MODEL
+
+
 def test_the_lease_keeps_every_field_peachmes_own_provider_returns():
     base = asyncio.run(PlumMeProvider(FakePlumMe(ROUTES)).acquire(role_id="REASONING", objective="o", required_skill_ids=()))
     mine = acquire(LineageHeart(FakePlumMe(ROUTES)))
-    assert mine == base                                                                       # exactly what PeachMe's own provider returns (cost class etc. are what its budget reads)
+    assert mine.keys() >= base.keys() and all(mine[k] == v for k, v in base.items())

@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Callable, Dict, List, Optional
 
 KINDS = ("ANSWER", "OBJECTION", "REPLY", "VERDICT")
-VERIFICATION = ("none", "formal", "verified", "failed")
+VERIFICATION = ("none", "formal", "reproduced", "independently_confirmed", "failed")
 _LABEL = re.compile(r"^[ \t>*_#-]*(CLAIM|EVIDENCE|CONSEQUENCE)[ \t*_]*[:\-][ \t*_]*", re.I | re.M)
 ANSWER_RE = re.compile(r"ANSWER:\s*\(?([A-J])\)?")
 LETTERS = "ABCDEFGHIJ"
@@ -102,8 +102,12 @@ class Msg:
 def verification_level(classified: dict) -> str:
     """Map an ogi013_argument.classify_argument result to the contract's verification field."""
     kind = (classified or {}).get("kind")
-    if kind == "verified":
-        return "verified"
+    if kind == "independently_confirmed":
+        checks = (classified or {}).get("checks") or classified or {}
+        return ("independently_confirmed" if checks.get("relevance_assessed") is True
+                and checks.get("independent_confirmation") is True else "none")
+    if kind in ("verified", "reproduced"):
+        return "reproduced"
     if kind == "formal":
         return "formal"
     if (classified or {}).get("argument", {}).get("executed"):

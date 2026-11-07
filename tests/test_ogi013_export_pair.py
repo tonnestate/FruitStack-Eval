@@ -113,3 +113,41 @@ def test_cli_compare_accepts_rows(tmp_path):
     summary = json.loads(proc.stdout)
     assert summary["observation_rows"] == 4
     assert summary["paired_tasks"] == 2
+
+
+def test_four_arm_design_exports_each_pair_for_confirmatory_analysis(tmp_path):
+    arms = ("SINGLE", "SINGLE-E", "FIXED", "BROTHER")
+    camp = tmp_path / "four-arm-campaign"
+    for task_idx, task in enumerate(("SYN-1", "SYN-2")):
+        for i, arm in enumerate(arms):
+            _run(camp, task, arm, reward=1.0 if (i + task_idx) % 2 == 0 else 0.0)
+
+    pair_paths = {}
+    for i, left in enumerate(arms):
+        for right in arms[i + 1:]:
+            rows, mapping = export(str(camp), left, right)
+            assert mapping["paired"] == ["SYN-1", "SYN-2"]
+            assert mapping["conditions"] == {
+                "A": {"name": left, "role": "FIXED"},
+                "B": {"name": right, "role": "ADAPTIVE"},
+            }
+            name = f"{left}__{right}"
+            path = tmp_path / f"{name}.jsonl"
+            path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+            pair_paths[name] = path
+
+    expected = {
+        "SINGLE__SINGLE-E", "SINGLE__FIXED", "SINGLE__BROTHER",
+        "SINGLE-E__FIXED", "SINGLE-E__BROTHER", "FIXED__BROTHER",
+    }
+    assert set(pair_paths) == expected
+    result_path = tmp_path / "confirmatory.json"
+    proc = subprocess.run(
+        [sys.executable, str(REPO / "runners" / "ogi013_confirmatory.py"),
+         "--out", str(result_path),
+         *(f"{name}={path}" for name, path in pair_paths.items())],
+        capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0, proc.stderr
+    result = json.loads(result_path.read_text(encoding="utf-8"))
+    assert set(result["results"]) == expected
+    assert all(row["pairs"] == 2 for row in result["results"].values())

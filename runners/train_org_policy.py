@@ -162,14 +162,21 @@ def _evaluate(train: list[dict], test: list[dict], gate: dict) -> tuple[list, fl
 
 def _versions() -> dict:
     """Recorded in every attestation. A refusal (INSUFFICIENT_EVIDENCE) needs no Keras, so a host without it records None instead of crashing before the refusal is written."""
-    import numpy
+    from importlib.metadata import PackageNotFoundError, version
     import plumme
+
+    def installed(name: str) -> str | None:
+        try:
+            return version(name)
+        except PackageNotFoundError:
+            return None
+
     try:
         import keras
         kv, backend = keras.__version__, keras.backend.backend()
     except ImportError:
         kv = backend = None
-    return {"python": platform.python_version(), "keras": kv, "backend": backend, "numpy": numpy.__version__, "plumme": getattr(plumme, "__version__", None)}
+    return {"python": platform.python_version(), "keras": kv, "backend": backend, "numpy": installed("numpy"), "plumme": getattr(plumme, "__version__", None)}
 
 
 def _finish(out: Path, gate: dict, verdict: str, checks: dict, counts: dict, data_sha: str, split: dict | None,

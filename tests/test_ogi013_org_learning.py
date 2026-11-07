@@ -31,10 +31,15 @@ class FakeService:
 
     def __init__(self):
         self.calls = []
+        self.feedback = {}
 
     def record_decision_feedback(self, **kw):
         self.calls.append(kw)
+        self.feedback.setdefault(kw["decision_id"], []).append(kw)
         return {"ok": True}
+
+    def decision_view(self, decision_id):
+        return {"feedback": list(self.feedback.get(decision_id, []))}
 
 
 def _features(rng, kind="READ"):
@@ -73,6 +78,84 @@ def test_attribution_credits_each_decision_once_and_is_idempotent(tmp_path):
     assert second == first
     lines = (tmp_path / "training" / "outcomes.jsonl").read_text().splitlines()
     assert len(lines) == 1 and json.loads(lines[0])["schema"] == OUTCOME_SCHEMA
+
+
+def test_attribution_retry_deduplicates_feedback_after_partial_failure(tmp_path):
+    class FailOnceAfterPersist(FakeService):
+        failed = False
+
+        def record_decision_feedback(self, **kw):
+            result = super().record_decision_feedback(**kw)
+            if kw["decision_id"] == "d1" and not self.failed:
+                self.failed = True
+                raise RuntimeError("simulated interruption after durable feedback append")
+            return result
+
+    svc = FailOnceAfterPersist()
+    kw = dict(task_ref="T-retry", domain="synthetic", reward=0.75, grader_ref="tau2-official-grader",
+              result_sha256="ef" * 32, decision_ids=["d1", "d2"], store_dir=tmp_path)
+    with pytest.raises(RuntimeError, match="simulated interruption"):
+        attribute_episode_outcome(svc, **kw)
+
+    row = attribute_episode_outcome(svc, **kw)
+    assert [call["decision_id"] for call in svc.calls] == ["d1", "d2"]
+    assert all(call["scope"] == "ENSEMBLE" for call in svc.calls)
+    assert len((tmp_path / "training" / "outcomes.jsonl").read_text().splitlines()) == 1
+    assert row["decision_ids"] == ["d1", "d2"]
+
+
+def test_verified_episode_feedback_replays_through_plumme_across_tasks(tmp_path):
+    from types import SimpleNamespace
+
+    from plumme.decisions import DecisionLog
+    from plumme.policy import KerasShadowPolicy
+    from plumme.service import PlumMeService
+
+    decision_path = tmp_path / "plumme-decisions.jsonl"
+
+    def service():
+        out = object.__new__(PlumMeService)
+        out.scheduler = SimpleNamespace(decisions=DecisionLog(decision_path))
+        out.scheduler.decisions.subscribe(KerasShadowPolicy())
+        return out
+
+    svc = service()
+    ids = []
+    for task_ref, reward in (("task-one", 1.0), ("task-two", 0.0)):
+        decision = svc.record_consumer_ensemble_decision(
+            question_id=task_ref, claim_revision=0, question_type="SCIENCE", skill_digest="d" * 64,
+            topology="SINGLE", worker_count=1, candidate_offer_ids=["model-a"], independent_groups=["family-a"],
+            available_counts=[0, 1], selected_model_keys=["model-a"],
+        )
+        ids.append(decision["decision_id"])
+        attribute_episode_outcome(
+            svc, task_ref=task_ref, domain="offline", reward=reward, grader_ref="tau2-official-grader",
+            result_sha256=("a" if reward else "b") * 64, decision_ids=[decision["decision_id"]],
+            store_dir=tmp_path / "ogi-store",
+        )
+
+    resumed = service()
+    assert [resumed.decision_view(did)["verified_utility"] for did in ids] == [1.0, 0.0]
+    shadow = resumed.scheduler.decisions.subscribers[0]
+    assert [row["verified_utility"] for row in shadow.ensemble_rows] == [1.0, 0.0]
+    assert shadow.model_quality == {}  # ensemble outcomes do not fabricate worker competence
+
+
+@pytest.mark.parametrize("field,value", [
+    ("domain", "other-domain"),
+    ("reward", 0.25),
+    ("grader_ref", "other-grader"),
+    ("decision_ids", ["d2"]),
+])
+def test_same_result_hash_rejects_conflicting_verified_outcome(tmp_path, field, value):
+    svc = FakeService()
+    kw = dict(task_ref="T-conflict", domain="synthetic", reward=0.75, grader_ref="tau2-official-grader",
+              result_sha256="cd" * 32, decision_ids=["d1"], store_dir=tmp_path)
+    attribute_episode_outcome(svc, **kw)
+
+    with pytest.raises(ValueError, match="CONFLICTING_EPISODE_OUTCOME"):
+        attribute_episode_outcome(svc, **{**kw, field: value})
+    assert [call["decision_id"] for call in svc.calls] == ["d1"]
 
 
 @pytest.mark.parametrize("bad", [1.5, -0.1, float("nan"), True, "1.0"])

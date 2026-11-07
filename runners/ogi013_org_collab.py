@@ -109,13 +109,14 @@ class Collab:
     final_reviewed: bool = False                            # an independent reviewer examined exactly the final answer and found nothing
     independent_review: bool = False                        # a critique was delivered by a KNOWN lineage different from the author's (an unknown lineage proves nothing)
     termination: dict | None = None                         # the review of a terminating replacement (termination_review), None when no rejection ended in a terminating action
+    closing: dict | None = None                             # final admissible action selected by the same controller that governed the exchanges
     declined: bool = False                                  # the rejected action is declined WITHOUT ending: the host's generic decline replaces it
     trail: list = field(default_factory=list)               # every ledger row in order: the draft, each critique (with its text), each revision, the specialist - who, which lineage, what
 
 
 def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledger, claim_id: str, parse: Callable[[str], dict | None],
                 digest: Callable[[dict], str], max_rounds: int = MAX_ROUNDS, terminating: Callable[[dict], bool] | None = None, policy_text: str = "",
-                continuity=None) -> Collab:
+                continuity=None, control=None) -> Collab:
     def sig(text: str) -> str | None:
         action = parse(text) if text else None
         return digest(action) if action is not None else None
@@ -125,7 +126,7 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
 
     seed_sig = sig(seed["text"])
     res = run_rounds(task_prompt=task_prompt, brief="", work=asked, ledger=ledger, claim_id=claim_id, n_solvers=1, review_single=True, seed_solution=seed,
-                     max_rounds=max_rounds, signature=sig)
+                     max_rounds=max_rounds, signature=sig, control=control, defer_close=control is not None)
     rows = list(res.rows)
     by_id = {r.id: r for r in rows}
     crits = [r for r in rows if r.kind == "CRITIQUE"]
@@ -140,7 +141,10 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
             break
 
     # unresolved objection after the rounds -> ONE specialist of a further lineage adjudicates (justified by substantive disagreement; Brother Mode's own tie-break needs several authors)
-    unresolved_ids = {r.id for r in found}
+    verified_objection_ids = {r.id for r in found if (r.detail.get("verification") == "independently_confirmed"
+                                                       and r.detail.get("relevance_assessed") is True
+                                                       and r.detail.get("independent_confirmation") is True)}
+    unresolved_ids = set(verified_objection_ids)
     for rv in rows:
         if rv.kind == "REVISION":
             prev = by_id.get(rv.detail.get("revises"))
@@ -149,38 +153,47 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
     specialist_used = False
     overruled: list = []
     if unresolved_ids and sig(final_text) == seed_sig and res.stop_reason != "LOOP_GUARD_FAILURES":
-        dossier = f"- position of the author:\n{final_text}\n" + "\n".join(f"- criticism (DISSENT):\n{r.answer_text}" for r in found if r.id in unresolved_ids)
-        used = tuple(k for k in {seed.get("independence_key"), *[r.identity.get("independence_key") for r in crits]} if k)
-        res.calls += 1
-        c = work(SPECIALIST.format(task=task_prompt, dossier=dossier), "specialist", exclude=used)
-        text = _ok(c)
-        if text is not None:
-            row = _add(ledger, claim_id, "SOLUTION", c, text, "UNVERIFIED", "SPECIALIST_TIEBREAK", {"resolves": [seed.get("receipt_id")] + [r.id for r in found]})
-            rows.append(row)
-            by_id[row.id] = row
-            specialist_used = True
-            if parse(text) is not None:
-                final_text, final_action = text, parse(text)
-            if sig(final_text) != seed_sig and parse(text) is not None:       # the specialist moved the answer: nobody has examined it yet -> one renewed review by a lineage not yet involved
-                last_rev = next((r for r in reversed(rows) if r.kind == "REVISION"), None)
-                overruled.append({"author": seed.get("model_key"), "author_position": seed_sig, "overruled_by": row.worker,
-                                  "author_grounds": (last_rev.answer_text or "")[:400] if last_rev else ""})
-                res.calls += 1
-                c2 = asked(CHALLENGE.format(task=task_prompt, work=final_text), "challenge", exclude=used + ((row.identity.get("independence_key"),) if row.identity.get("independence_key") else ()))
-                t2 = _ok(c2)
-                if t2 is not None:
-                    hit = bool(_FOUND.search(t2)) or (not _NONE.search(t2) and len(t2) > 40)
-                    r2 = _add(ledger, claim_id, "CRITIQUE", c2, t2, "DISSENT" if hit else "UNVERIFIED", "CRITICISM_FOUND" if hit else "NO_ISSUES_FOUND",
-                              {"targets": row.id, "round": res.rounds + 1, "reexamines": "SPECIALIST"})
-                    rows.append(r2)
-                    by_id[r2.id] = r2
-                    crits.append(r2)
-                    if hit:
-                        found.append(r2)
-                else:
-                    res.failures.append({"stage": "specialist_review", "class": c2.get("failure_class") or "NO_ADMISSIBLE_WORKER", "model": c2.get("model_key")})
-        else:
-            res.failures.append({"stage": "specialist", "class": c.get("failure_class") or "NO_ADMISSIBLE_WORKER", "model": c.get("model_key")})
+        specialists = True
+        if control is not None:
+            author = next((r.worker for r in reversed(rows) if r.kind in ("SOLUTION", "REVISION")), seed.get("model_key")) or "author"
+            critics = list(dict.fromkeys(r.worker for r in found if r.id in unresolved_ids and r.worker and r.worker != author))
+            critic = critics[0] if critics else "independent_reviewer"
+            specialists = control.decide({"point": "SPECIALIST_OR_FINISH", "options": [SPECIALIST, "FINISH"], "baseline": SPECIALIST,
+                                          "models": [author, critic], "signatures": {author: seed_sig, critic: "dissent"}, "disagree": True,
+                                          "author": author, "verifications": [r.detail for r in found if r.id in unresolved_ids]}) == SPECIALIST
+        if specialists:
+            dossier = f"- position of the author:\n{final_text}\n" + "\n".join(f"- criticism (DISSENT):\n{r.answer_text}" for r in found if r.id in unresolved_ids)
+            used = tuple(k for k in {seed.get("independence_key"), *[r.identity.get("independence_key") for r in crits]} if k)
+            res.calls += 1
+            c = work(SPECIALIST.format(task=task_prompt, dossier=dossier), "specialist", exclude=used)
+            text = _ok(c)
+            if text is not None:
+                row = _add(ledger, claim_id, "SOLUTION", c, text, "UNVERIFIED", "SPECIALIST_TIEBREAK", {"resolves": [seed.get("receipt_id")] + [r.id for r in found]})
+                rows.append(row)
+                by_id[row.id] = row
+                specialist_used = True
+                if parse(text) is not None:
+                    final_text, final_action = text, parse(text)
+                if sig(final_text) != seed_sig and parse(text) is not None:       # the specialist moved the answer: nobody has examined it yet -> one renewed review by a lineage not yet involved
+                    last_rev = next((r for r in reversed(rows) if r.kind == "REVISION"), None)
+                    overruled.append({"author": seed.get("model_key"), "author_position": seed_sig, "overruled_by": row.worker,
+                                      "author_grounds": (last_rev.answer_text or "")[:400] if last_rev else ""})
+                    res.calls += 1
+                    c2 = asked(CHALLENGE.format(task=task_prompt, work=final_text), "challenge", exclude=used + ((row.identity.get("independence_key"),) if row.identity.get("independence_key") else ()))
+                    t2 = _ok(c2)
+                    if t2 is not None:
+                        hit = bool(_FOUND.search(t2)) or (not _NONE.search(t2) and len(t2) > 40)
+                        r2 = _add(ledger, claim_id, "CRITIQUE", c2, t2, "DISSENT" if hit else "UNVERIFIED", "CRITICISM_FOUND" if hit else "NO_ISSUES_FOUND",
+                                  {"targets": row.id, "round": res.rounds + 1, "reexamines": "SPECIALIST"})
+                        rows.append(r2)
+                        by_id[r2.id] = r2
+                        crits.append(r2)
+                        if hit:
+                            found.append(r2)
+                    else:
+                        res.failures.append({"stage": "specialist_review", "class": c2.get("failure_class") or "NO_ADMISSIBLE_WORKER", "model": c2.get("model_key")})
+            else:
+                res.failures.append({"stage": "specialist", "class": c.get("failure_class") or "NO_ADMISSIBLE_WORKER", "model": c.get("model_key")})
 
     termination, declined = None, False
     seed_action = parse(seed["text"])
@@ -201,12 +214,12 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
             prev = by_id.get(rv.detail.get("revises"))
             moved = sig(rv.answer_text or "") != (sig(prev.answer_text or "") if prev else seed_sig)
             if moved:
-                material_critics.update(rv.detail.get("responding_to", []))
+                material_critics.update(rid for rid in rv.detail.get("responding_to", []) if rid in verified_objection_ids)
             attribution.append({"role": "revision", "model": rv.worker, "lineage": rv.identity.get("independence_key"), "changed_action": moved})
         elif rv.kind == "SOLUTION" and rv.reason == "SPECIALIST_TIEBREAK":
             moved = sig(rv.answer_text or "") != seed_sig
             if moved and sig(rv.answer_text or "") == sig(final_text):
-                material_critics.update(rv.detail.get("resolves", []))
+                material_critics.update(rid for rid in rv.detail.get("resolves", []) if rid in verified_objection_ids)
             attribution.append({"role": "specialist", "model": rv.worker, "lineage": rv.identity.get("independence_key"), "changed_action": moved, "grounds": (rv.answer_text or "")[:400]})
     final_sig = sig(final_text)
     agreement = []
@@ -225,6 +238,21 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
     if termination is not None:
         trail.append({"stage": "TERMINATION_REVIEW", "reason": termination["outcome"], "model": termination.get("model"), "lineage": termination.get("lineage"), "status": "UNVERIFIED",
                       "text": ("open: " + " | ".join(termination.get("open_requests", [])) + f"; clause verified: {termination.get('clause_verified')}; verdict: {termination.get('verdict')}")[:600]})
+    if sig(final_text) != seed_sig and not material_critics and not (termination and termination.get("outcome") in ("TERMINATE_APPROVED", "CONTINUE_ADOPTED")):
+        final_text, final_action = seed["text"], parse(seed["text"])
+    closing = None
+    if control is not None:
+        final_model = next((r.worker for r in reversed(rows) if r.kind in ("SOLUTION", "REVISION") and sig(r.answer_text or "") == final_sig), seed.get("model_key")) or "final"
+        if declined:
+            final_action, final_text, final_sig = ({"action": "message", "content": "I cannot perform that action."}, "", None)
+        signatures = {final_model: final_sig} if final_sig is not None else {}
+        closing = control.close({"signatures": signatures, "models": list(signatures), "disagree": False,
+                                 "first": {seed.get("model_key") or "seed": seed_sig} if not declined else {},
+                                 "levels": {}, "stop_reason": res.stop_reason})
+        if not declined:
+            selected = closing.get("final_answer")
+            if selected != final_sig or final_action is None:
+                raise ValueError("controller closing did not select the executed admissible final candidate")
     author = seed.get("independence_key")
     independent_review = any(c.identity.get("independence_key") and c.identity.get("independence_key") != author for c in crits)
     grounded = any(a["grounds_stated"] for a in agreement)
@@ -232,4 +260,4 @@ def collaborate(*, task_prompt: str, seed: dict, work: Callable[..., dict], ledg
     return Collab(final_text=final_text, final_action=final_action, changed=changed, improved=improved, validated=bool(crits) and not found and not changed and grounded,
                   review_unavailable=not crits, unresolved=unresolved, termination=termination, declined=declined, attribution=attribution, calls=res.calls, rounds=res.rounds, stop_reason=res.stop_reason,
                   specialist_used=specialist_used, failures=res.failures, agreement=agreement,
-                  ungrounded_agreement=bool(agreement) and not grounded, overruled=overruled, final_reviewed=final_reviewed, independent_review=independent_review, trail=trail)
+                  ungrounded_agreement=bool(agreement) and not grounded, overruled=overruled, final_reviewed=final_reviewed, independent_review=independent_review, trail=trail, closing=closing)

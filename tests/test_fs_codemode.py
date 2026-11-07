@@ -25,7 +25,11 @@ def test_contract_parses_parts_and_letter_and_refuses_simulated_uncertainty():
     with pytest.raises(ValueError):
         Msg("ANSWER", "luna", "openai", uncertainty={"value": 0.9})
     assert parse_letter("ANSWER: K", 10) is None and parse_letter("ANSWER: B ... ANSWER: C", 4) == "C"
-    assert verification_level({"kind": "verified"}) == "verified"
+    assert verification_level({"kind": "verified"}) == "reproduced"  # legacy label only proves that the calculation ran
+    assert verification_level({"kind": "reproduced"}) == "reproduced"
+    assert verification_level({"kind": "independently_confirmed"}) == "none"  # labels alone cannot establish relevance or independent confirmation
+    assert verification_level({"kind": "independently_confirmed", "checks": {
+        "relevance_assessed": True, "independent_confirmation": True}}) == "independently_confirmed"
     assert verification_level({"kind": "suggestion", "argument": {"executed": True}}) == "failed"
 
 
@@ -108,7 +112,7 @@ class Script:
         return r if isinstance(r, dict) else {"success": True, "output": r, "tokens": 100}
 
 
-VERIFIED = lambda text: {"kind": "verified", "argument": {"executed": True}} if "```python" in text else {"kind": "formal", "argument": {"executed": False}}  # noqa: E731
+VERIFIED = lambda text: {"kind": "reproduced", "argument": {"executed": True}} if "```python" in text else {"kind": "formal", "argument": {"executed": False}}  # noqa: E731
 OBJ = ("ISSUES: FOUND\nCLAIM: The colleague's answer A is wrong because the order of 5 mod 8 is 2.\nEVIDENCE: 5^2 = 25 = 1 mod 8.\n```python\nprint(2)\n```\n"
        "RESULT: 2\nCONSEQUENCE: The correct answer is option F, not option A.\nANSWER: F")
 
@@ -126,7 +130,8 @@ def test_duo_chain_like_8512_accepted_concession_and_consensus():
                 ("luna", "reply"): "O1 accepted: my order 3 was wrong. ANSWER: F"})
     r = run_duo("task", "PROMPT", 10, s, lineages=LINEAGES, verifier=VERIFIED)
     assert r["letter"] == "F" and r["stop"] == "CONSENSUS_EXCHANGE_1" and r["how"] == "agreed"
-    assert r["verified_objections"] == 1 and r["accepted_concessions"] == 1 and r["objection_states"] == ["ACCEPTED"]
+    assert r["reproduced_objections"] == 1 and r["independently_confirmed_objections"] == 0
+    assert r["accepted_concessions"] == 1 and r["objection_states"] == ["ACCEPTED"]
     assert r["calls"] == 5 and r["phase_tokens"]["first"] == 200 and r["phase_tokens"]["exchange"] == 300
     assert any(e["op"] == "verify" for e in r["provenance"])
 
@@ -135,6 +140,30 @@ def test_duo_never_critique_policy_finishes_on_luna_without_exchange():
     s = Script({("luna", "first"): "ANSWER: A", ("nemo", "first"): "ANSWER: F"})
     r = run_duo("task", "PROMPT", 10, s, lineages=LINEAGES, verifier=VERIFIED, policy=evc.NeverCritique())
     assert r["stop"] == "POLICY_FINISH" and r["letter"] == "A" and r["how"] == "luna_default" and r["calls"] == 2
+
+
+@pytest.mark.parametrize(("level", "expected", "how"), [
+    ("reproduced", "A", "luna_default"),
+    ("independently_confirmed", "F", "independently_confirmed_last_objection"),
+])
+def test_only_independently_confirmed_objection_can_settle_unresolved_conflict(level, expected, how):
+    s = Script({("luna", "first"): "ANSWER: A", ("nemo", "first"): "ANSWER: F",
+                ("luna", "critique"): "ISSUES: NONE", ("nemo", "critique"): OBJ,
+                ("luna", "reply"): "I retain my answer. ANSWER: A"})
+    verifier = lambda _text: {"kind": level, "argument": {"executed": True}, "checks": {  # noqa: E731
+        "relevance_assessed": level == "independently_confirmed",
+        "independent_confirmation": level == "independently_confirmed"}}
+    r = run_duo("task", "PROMPT", 10, s, lineages=LINEAGES, verifier=verifier)
+    assert r["stop"] == "NO_CONSENSUS" and r["letter"] == expected and r["how"] == how
+    assert r["verified_objections"] == 2 * int(level == "independently_confirmed")
+
+
+def test_facade_does_not_treat_reproduced_objection_as_settled():
+    fac = Facade(lambda _m, _p: {"success": True, "output": ""})
+    points = fac.conflicts({"luna": "A", "nemo": "F"}, [{"target": "luna", "level": "reproduced"}])
+    assert points[0]["verified_against"] == 0
+    points = fac.conflicts({"luna": "A", "nemo": "F"}, [{"target": "luna", "level": "independently_confirmed"}])
+    assert points[0]["verified_against"] == 1
 
 
 def test_duo_infra_failure_is_raised_not_hidden():

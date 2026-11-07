@@ -7,6 +7,7 @@ Files under <store_dir>/training/: decisions.jsonl (OGI013-ORG-DECISION/1), deci
 from __future__ import annotations
 
 import json
+from hashlib import sha256
 import math
 from datetime import datetime, timezone
 from pathlib import Path
@@ -46,9 +47,7 @@ def attribute_episode_outcome(service, *, task_ref, domain, reward, grader_ref, 
                               tokens=None, calls=None, wall_seconds=None, economic=None) -> dict:
     """Credit one verified episode reward to every decision of the episode, then log one outcome row.
 
-    Idempotent per (task_ref, result_sha256): a repeat call returns the earlier row and writes nothing.
-    ponytail: if the service fails midway the row is not written, so a retry re-appends feedback
-    for the decisions already credited. The PlumMe feedback log is append-only; accepted, not deduplicated here.
+    Idempotent per (task_ref, result_sha256), including retries after partial feedback writes.
     """
     if not (task_ref and grader_ref and result_sha256):
         raise ValueError("task_ref, grader_ref and result_sha256 are required")
@@ -59,10 +58,18 @@ def attribute_episode_outcome(service, *, task_ref, domain, reward, grader_ref, 
     path = Path(store_dir) / "training" / "outcomes.jsonl"
     for row in _read(path):
         if row.get("task_ref") == task_ref and row.get("grader_result_sha256") == result_sha256:
+            if any(row.get(key) != value for key, value in {
+                "domain": domain, "reward": r, "grader": grader_ref, "decision_ids": ids,
+            }.items()):
+                raise ValueError("CONFLICTING_EPISODE_OUTCOME")
             return row
     for did in ids:
+        note = "OGI013-EPISODE-OUTCOME/1:" + sha256(f"{task_ref}|{result_sha256}|{did}".encode()).hexdigest()
+        existing = service.decision_view(did).get("feedback", [])
+        if any(item.get("note") == note for item in existing):
+            continue
         service.record_decision_feedback(decision_id=did, epistemic_state="VERIFIED", verified_utility=r, verifier=grader_ref,
-                                         scope="ENSEMBLE", attribution_basis="EPISODE_OFFICIAL_GRADER")
+                                         note=note, scope="ENSEMBLE", attribution_basis="EPISODE_OFFICIAL_GRADER")
     row = {"schema": OUTCOME_SCHEMA, "task_ref": task_ref, "domain": domain, "reward": r, "epistemic_state": "VERIFIED",
            "grader": grader_ref, "grader_result_sha256": result_sha256, "decision_ids": ids, "tokens": tokens, "calls": calls,
            "wall_seconds": wall_seconds, "economic": economic or {"cash_known_usd": None, "entitlement_value_usd_est": None},

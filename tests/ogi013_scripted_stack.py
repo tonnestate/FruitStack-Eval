@@ -52,8 +52,9 @@ class ScriptedPlumMe:
         self.routes, self.requests, self.executed, self.leases, self.n = routes, [], [], {}, 0
         self.tokens_per_call = tokens_per_call
 
-    async def acquire_neuron(self, req):
+    async def acquire_neuron(self, req, *, min_context_tokens=None):
         self.requests.append(req)
+        self.min_context_tokens = min_context_tokens
         excluded = set(req.metadata.get("exclude_independence_keys") or [])
         pool = [r for r in self.routes if r.independence_group not in excluded]
         if req.selection_mode == SelectionMode.PINNED_MODEL:
@@ -74,18 +75,18 @@ class ScriptedPlumMe:
         rid = f"rcpt-{len(self.executed)}"
         tin, tout = self.tokens_per_call
         if isinstance(item, dict) and "fail" in item:
-            return SimpleNamespace(success=False, output=None, receipt=SimpleNamespace(receipt_id=rid, model=route_.model, usage=None), route_attempts=[{"failure_class": item["fail"]}], no_equivalent_route=False,
+            return SimpleNamespace(success=False, output=None, receipt=SimpleNamespace(receipt_id=rid, decision_id=None, model=route_.model, usage=None), route_attempts=[{"failure_class": item["fail"]}], no_equivalent_route=False,
                                    verification="NOT_VERIFIED", failure_class=item["fail"], execution_certainty="NOT_EXECUTED")
         if isinstance(item, dict) and item.get("timeout"):
-            return SimpleNamespace(success=False, output=None, receipt=SimpleNamespace(receipt_id=rid, model=route_.model, usage=None), route_attempts=[{"failure_class": "TIMEOUT"}], no_equivalent_route=False,
+            return SimpleNamespace(success=False, output=None, receipt=SimpleNamespace(receipt_id=rid, decision_id=None, model=route_.model, usage=None), route_attempts=[{"failure_class": "TIMEOUT"}], no_equivalent_route=False,
                                    verification="NOT_VERIFIED", failure_class="TIMEOUT", execution_certainty="UNCERTAIN")
         text = item["nousage"] if isinstance(item, dict) else item
         usage = SimpleNamespace(input_tokens=None, output_tokens=None, cost_usd=None) if isinstance(item, dict) else SimpleNamespace(input_tokens=tin, output_tokens=tout, cost_usd=0.0)
-        return SimpleNamespace(success=True, output=text, receipt=SimpleNamespace(receipt_id=rid, model=route_.model, usage=usage), route_attempts=[{"failure_class": None}], no_equivalent_route=False,
+        return SimpleNamespace(success=True, output=text, receipt=SimpleNamespace(receipt_id=rid, decision_id=f"decision-{len(self.executed)}", model=route_.model, usage=usage), route_attempts=[{"failure_class": None}], no_equivalent_route=False,
                                verification="NOT_VERIFIED", failure_class=None, execution_certainty="EXECUTED")
 
 
-def real_plumme(tmp: Path, script, models=("alpha-1", "beta-1", "gamma-1", "delta-1"), tokens=(400, 100), costs=None):
+def real_plumme(tmp: Path, script, models=("alpha-1", "beta-1", "gamma-1", "delta-1"), tokens=(400, 100), costs=None, context_window=8000, route_output_limit=None):
     """The REAL PlumMeService + SwarmScheduler + ReceiptStore (PlumMe's own offline test harness, tests/test_v014*.py / test_v0111*.py) over a scripted provider adapter: selection, lineage
     exclusion, PINNED_MODEL, cooldowns, receipts and failure classification are PlumMe's own code. Each model is its own family (= lineage) on its own provider. No network."""
     import plumme
@@ -103,6 +104,13 @@ def real_plumme(tmp: Path, script, models=("alpha-1", "beta-1", "gamma-1", "delt
         def __init__(self, offers):
             super().__init__(offers)
             self.script, self.executed = {k: list(v) for k, v in script.items()}, []
+
+        async def discover(self, credential=None):
+            routes = await super().discover(credential)
+            if route_output_limit is not None:
+                for route_ in routes:
+                    route_.max_output_tokens = route_output_limit
+            return routes
 
         async def execute(self, route_, messages, max_output_tokens, credential):
             task = "\n".join(str(m.get("content", "")) for m in messages)
@@ -129,9 +137,9 @@ def real_plumme(tmp: Path, script, models=("alpha-1", "beta-1", "gamma-1", "delt
             usage = None if isinstance(item, dict) else Usage(input_tokens=tokens[0], output_tokens=tokens[1], total_tokens=sum(tokens), cost_usd=None)
             return AdapterResult(text=text, usage=usage, provider_request_id=f"req-{len(self.executed)}", metadata={"finish_reason": "stop"})
 
-    adapter = ScriptedRoutes([offer(m, f"prov-{m.split('-')[0]}", cost=(costs or {}).get(m, CostClass.FREE_TIER)) for m in models])
+    adapter = ScriptedRoutes([offer(m, f"prov-{m.split('-')[0]}", cost=(costs or {}).get(m, CostClass.FREE_TIER), ctx=context_window) for m in models])
     sched = _scheduler(tmp, adapter)
-    sched.allowed_cost_classes, sched.cost_policy = cost_policy_classes("AUTO"), "AUTO"          # as the arms run: PlumMe ignores PLUMME_COST_POLICY=ANY and applies budget-aware AUTO
+    sched.allowed_cost_classes, sched.cost_policy = cost_policy_classes("AUTO"), "AUTO"
     for o in adapter._offers:
         sched.credentials.put(o["provider"], "k")
     sched.decisions = DecisionLog(tmp / "decisions.jsonl")
@@ -234,6 +242,10 @@ def make_agent(monkeypatch, tmp: Path, script, *, mode="rg2", collab=True, budge
     monkeypatch.setenv("OGI013_ORG_COLLAB", "1") if collab else monkeypatch.delenv("OGI013_ORG_COLLAB", raising=False)
     for k in ("OGI013_ORG_ECONOMY", "OGI013_PILOT_BUDGET", "OGI013_SESSION_MAX_CALLS", "OGI013_SESSION_MAX_TOKENS", "OGI013_SESSION_MAX_COST_USD"):
         monkeypatch.delenv(k, raising=False)
+    if budget is None:                                                  # ordinary offline tests still exercise PeachMe admission without enabling the pilot gate
+        monkeypatch.setenv("OGI013_SESSION_MAX_CALLS", "1000")
+        monkeypatch.setenv("OGI013_SESSION_MAX_TOKENS", "1000000")
+        monkeypatch.setenv("OGI013_SESSION_MAX_COST_USD", "0.0")
     if budget:                                                        # the pilot's own configuration: PeachMe session ceilings AND the pre-dispatch gate (over an empty provider ledger)
         from ogi013_pilot_fixtures import BUDGET, PILOT
         runs = tmp / "runs"

@@ -45,7 +45,7 @@ class _ContractService:
         _check_execution_budget(self.terms[ex.lease_id], ex.budget)           # raises AuthorityDenied("LEASE_BUDGET_EXPANSION") exactly where PlumMe would
         self.checked.append(ex.lease_id)
         usage = SimpleNamespace(input_tokens=10, output_tokens=5, cost_usd=0.0)
-        return SimpleNamespace(success=True, output="contract ok", receipt=SimpleNamespace(receipt_id=f"rcpt-{len(self.checked)}", model="contract-model", usage=usage),
+        return SimpleNamespace(success=True, output="contract ok", receipt=SimpleNamespace(receipt_id=f"rcpt-{len(self.checked)}", decision_id=None, model="contract-model", usage=usage),
                                route_attempts=[{"failure_class": None}], no_equivalent_route=False, verification="NOT_VERIFIED", failure_class=None, execution_certainty="EXECUTED")
 
 

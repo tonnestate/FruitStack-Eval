@@ -32,6 +32,146 @@ def test_a_specialist_cannot_introduce_a_new_letter():
     assert q1.final_answer({"S1": "A", "S2": None}, None, earliest="A")[1] == "no_agreement_no_specialist"
 
 
+def test_controlled_answer_uses_only_a_valid_logged_decision_and_existing_candidates():
+    closing = {"rule": "CONSENSUS", "final_model": "S1", "final_answer": "B"}
+    assert q1.controlled_answer(closing, {"A", "B"}) == ("B", "controller:CONSENSUS")
+    with pytest.raises(ValueError, match="inadmissible"):
+        q1.controlled_answer({**closing, "final_answer": "C"}, {"A", "B"})
+    with pytest.raises(ValueError, match="inadmissible"):
+        q1.controlled_answer({**closing, "final_answer": None}, {None, "A"})
+    with pytest.raises(ValueError, match="valid closing"):
+        q1.controlled_answer({**closing, "rule": "UNRECOGNIZED"}, {"A", "B"})
+    with pytest.raises(ValueError, match="valid closing"):
+        q1.controlled_answer(None, {"A", "B"})
+    with pytest.raises(ValueError, match="valid closing"):
+        q1.controlled_answer([closing], {"A", "B"})
+
+
+def test_normal_team_arm_activates_brother_controller(monkeypatch, tmp_path):
+    calls = []
+
+    def run_team(ctx, question, *, loop=False):
+        calls.append(loop)
+        return {"letter": "A", "correct": True}
+
+    monkeypatch.setattr(q1, "run_T", run_team)
+    monkeypatch.setattr(q1, "load_jsonl", lambda _path: [])
+    rows = []
+    ctx = type("Ctx", (), {"outage": type("OutageState", (), {"tripped": False})(), "out": tmp_path})()
+    q1.process_question(ctx, {"id": "q1", "key": "A"}, {"T"}, set(), rows.append)
+    assert calls == [True]
+    assert rows[0]["arm"] == "T" and rows[0]["status"] == "OK"
+
+
+@pytest.mark.parametrize(
+    ("initial", "challenged", "revision", "expected", "expected_rule", "changed", "accepted_concession"),
+    [
+        ({"model.alpha": "A", "model.beta": "B"}, "A", "B", "B", "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE", 1, 1),
+        ({"model.alpha": "B", "model.beta": "A"}, "B", "B", "B", "WEIGHTS_DECIDE_UNVERIFIED", 0, 0),
+    ],
+)
+def test_normal_brother_path_corrects_errors_and_resists_false_criticism(
+    monkeypatch, tmp_path, initial, challenged, revision, expected, expected_rule, changed, accepted_concession
+):
+    """Synthetic host/provider: exercise run_T and CherryMe's real closed loop, not only the decision helper."""
+    import threading
+    from types import SimpleNamespace
+    from cherryme import brother
+
+    contribution_decisions = []
+    add_contribution = brother._add
+
+    def capture_decision_id(*args, **kwargs):
+        contribution_decisions.append(args[3].get("decision_id"))
+        return add_contribution(*args, **kwargs)
+
+    monkeypatch.setattr(brother, "_add", capture_decision_id)
+
+    class MangoService:
+        def __init__(self):
+            self.latest = {}
+
+        def checkpoint(self, work_ref, actor_id, kind, body, *, turn_id):
+            self.latest[work_ref] = {"progressive": {"latest_checkpoint": {"kind": kind, "payload": body}}}
+
+        def work_context(self, work_ref):
+            return self.latest.get(work_ref, {})
+
+    class Episode:
+        def __init__(self):
+            self.work, self.actor, self.turn_id, self.sid = "synthetic-work", "synthetic-actor", "synthetic-turn", "synthetic-session"
+            self.claim, self.stats = SimpleNamespace(id="claim-1"), {"tokens_in": 0, "tokens_out": 0}
+            self.timing = SimpleNamespace(report=lambda: {})
+            self.lock, self.events, self.calls = threading.Lock(), [], 0
+
+        def fork(self):
+            return self
+
+        def event(self, name, **details):
+            self.events.append((name, details))
+
+        def _flags(self):
+            return {}
+
+        def step(self, prompt, tag, *, exclude=(), prefer=None, **_kwargs):
+            if "single word READY" in prompt:
+                model = prefer or next((m for m in ("model.alpha", "model.beta") if m not in exclude), "model.alpha")
+            else:
+                model = prefer or "model.critic"
+            with self.lock:
+                self.calls += 1
+                self.stats["tokens_in"] += len(prompt.split())
+                self.stats["tokens_out"] += 2
+            if "single word READY" in prompt:
+                output = "READY"
+            elif "Solve the task yourself, independently." in prompt:
+                output = f"ANSWER: {initial[model]}"
+            elif "Your earlier solution:" in prompt:
+                    output = f"O1: the supplied task facts support the revision.\nANSWER: {revision}"
+            elif "A colleague proposed this solution (UNVERIFIED):" in prompt:
+                import re
+                match = re.search(r"--- colleague solution ---\s*(.*?)\s*--- end ---", prompt, re.S)
+                target = q1.parse_letter(match.group(1) if match else "", 2)
+                if target == challenged:
+                    other = "B" if target == "A" else "A"
+                    output = (f"ISSUES: FOUND\nCLAIM: Answer {target} is incorrect based on the stated task facts.\n"
+                              f"EVIDENCE: The supplied task facts support answer {other} as the correct option.\n"
+                              f"CONSEQUENCE: Therefore option ({other}) follows instead of option ({target}).")
+                else:
+                    output = "ISSUES: NONE"
+            else:
+                output = "ANSWER: B"
+            return {"success": True, "output": output,
+                    "model_key": model, "independence_key": model, "receipt_id": f"receipt-{model}", "decision_id": f"decision-{self.calls}"}
+
+    (tmp_path / "events").mkdir()
+    service, episode = MangoService(), Episode()
+    monkeypatch.setattr(q1.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(q1, "check_budget", lambda _episode: None)
+    adapter = SimpleNamespace(service=service, checkpoint=service.checkpoint)
+    ctx = SimpleNamespace(out=tmp_path, s_model="model.alpha", luna_tokens=0, stop=None,
+                          episode=lambda *_args, **_kwargs: episode,
+                          stack=SimpleNamespace(fs=SimpleNamespace(mango=adapter)))
+
+    result = q1.run_T_brother(ctx, {"id": "offline", "question": "Choose the supported option.",
+                                    "options": ["A is unsupported", "B is supported"]})
+
+    assert result["letter"] == expected and result["how"].startswith("controller:")
+    assert result["loop_closing"]["final_answer"] == result["letter"]
+    assert result["loop_closing"]["rule"] == expected_rule, result["loop_closing"]
+    assert len(result["loop_closing"]["concessions"]) == changed
+    assert result["rounds"] >= 1 and result["objections"] >= 1
+    assert result["answer_changes"] == changed and result["accepted_concessions"] == accepted_concession
+    assert result["formal_objections"] >= 1 and result["independently_confirmed_objections"] == 0
+    assert result["loop_decisions"] and all(d["choice"] in d["options"] for d in result["loop_decisions"])
+    assert result["loop_decisions"][0]["choice"] == "CRITIQUE"
+    assert result["calls"] > 0 and episode.calls >= result["calls"]  # READY roster checks are included in episode calls, not loop calls
+    assert result["tokens"] == episode.stats["tokens_in"] + episode.stats["tokens_out"]
+    assert result["mango_writes"] > 0 and result["mango_reads"] > 0
+    assert result["roster_models"][:2] == ["model.alpha", "model.beta"]
+    assert len(contribution_decisions) >= 2 and all(contribution_decisions)
+
+
 def test_e_draft_count_equals_the_call_count_recorded_for_t():
     assert q1.e_draft_count({"calls": 7}) == 7 and q1.e_draft_count({"calls": "5"}) == 5
 
@@ -86,6 +226,7 @@ def test_paired_difference_and_infrastructure_failure_counts_as_incorrect_with_a
 
 
 def test_qa_budget_profile_reserves_room_for_the_system_preamble_and_longer_answers():
+    pytest.importorskip("tau2", reason="needs the official tau2-bench runtime")
     from types import SimpleNamespace
     from ogi013_tau2_agent import Episode
     ep = object.__new__(Episode)
@@ -180,6 +321,7 @@ def test_chain_needs_independent_lineages_and_is_classified_against_the_key():
 def test_concession_counts_only_when_independent_substantive_named_and_changed():
     o = {"id": "O1", "lineage": "qwen3.5", "ground": {"level": "formal"}}
     assert q1.accepted_concession("O1 is right, the matrix is block triangular. ANSWER: H", o, "qwen2.5", "D", "H")
+    assert not q1.accepted_concession("O1 is right. ANSWER: H", {**o, "ground": {"level": "reproduced"}}, "qwen2.5", "D", "H")
     assert not q1.accepted_concession("You are right. ANSWER: H", o, "qwen2.5", "D", "H")                       # does not name the objection
     assert not q1.accepted_concession("O1 is right. ANSWER: D", o, "qwen2.5", "D", "D")                       # no position change
     assert not q1.accepted_concession("O1 is right. ANSWER: H", o, "qwen3.5", "D", "H")                        # same lineage: not independent
@@ -191,4 +333,6 @@ def test_stage_c_accepts_an_accepted_concession_and_the_labels_stay_separate():
            "key": "H", "first_by_pos": {"S1": "H", "S2": "D"}, "objection_target_first": ["D"], "verified_objections": 0, "verified_replies": 0}
     assert q1.chain_stages(row)["complete"]
     assert q1.chain_labels(row) == {"CRITIQUE_ACCEPTED": True, "INDEPENDENTLY_VERIFIED": False, "QUALITY_IMPROVED": True}
+    assert q1.chain_labels({**row, "verified_objections": 1})["INDEPENDENTLY_VERIFIED"] is False
+    assert q1.chain_labels({**row, "independently_confirmed_objections": 1})["INDEPENDENTLY_VERIFIED"] is True
     assert not q1.chain_stages({**row, "accepted_concessions": 0})["complete"]

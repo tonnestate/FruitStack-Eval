@@ -7,9 +7,8 @@ An objection or reply is GROUNDED if it has all three labelled parts in its own 
 If EVIDENCE contains runnable code (a fenced python block) the host executes it and checks that the stated `RESULT:` reproduces; a computation that does not run or does not
 reproduce is UNGROUNDED. No model judges another model's evidence; correctness is decided later only by the key.
 
-Two levels, never merged: "formal" = GROUNDED_FORMAL (all three parts present, nothing executed; says nothing about correctness) and "verified" = GROUNDED_VERIFIED (a computation
-executed in the sandbox reproduces the stated result). A computation that runs and does NOT reproduce, overflows or times out is "suggestion" (ungrounded) even if the format is complete.
-`ledger_ground` maps both levels to the kinds the shared ledger accepts as evidence (ogi013_vote: quote / command) while keeping the level."""
+    A complete argument is only `formal`; a matching computation is only `reproduced`. Neither establishes relevance, true premises, valid inference, or independent confirmation.
+    Those facts stay explicit as unassessed until an independent verifier supplies them. `ledger_ground` maps the evidence form to the shared ledger kind while preserving these checks."""
 from __future__ import annotations
 
 import ast
@@ -174,33 +173,39 @@ def reproduces(code: str, stated: str) -> tuple[bool, str]:
 
 def classify_argument(text: str, task_text: str = "") -> dict:
     """See the module docstring. `task_text` is accepted for call compatibility with classify_objection; it plays no role (a verbatim quote is not an argument)."""
+    checks = {"formal_complete": False, "computation_reproduced": None,
+              "relevance_assessed": False, "independent_confirmation": False}
     if _APPROVAL.match(text or ""):
-        return {"kind": "suggestion", "argument": {"reason": "approval"}}
+        return {"kind": "suggestion", "argument": {"reason": "approval"}, "checks": checks}
     parts = parse_parts(text)
     missing = [k for k in LABELS if k not in parts]
     if missing:
-        return {"kind": "suggestion", "argument": {"reason": f"missing parts {missing}"}}
+        return {"kind": "suggestion", "argument": {"reason": f"missing parts {missing}"}, "checks": checks}
     short = [k for k in LABELS if len(parts[k]) < MIN_LEN[k]]
     if short:
-        return {"kind": "suggestion", "argument": {"reason": f"parts too short {short}"}}
+        return {"kind": "suggestion", "argument": {"reason": f"parts too short {short}"}, "checks": checks}
     if not _OPTION.search(parts["CONSEQUENCE"]):
-        return {"kind": "suggestion", "argument": {"reason": "consequence names no option"}}
+        return {"kind": "suggestion", "argument": {"reason": "consequence names no option"}, "checks": checks}
+    checks["formal_complete"] = True
     blocks = re.findall(r"```(?:python|py)?\s*\n(.*?)```", parts["EVIDENCE"], re.S)
     if not blocks:
-        return {"kind": "formal", "argument": {"reason": "complete CLAIM/EVIDENCE/CONSEQUENCE, nothing executed", "executed": False}}
+        return {"kind": "formal", "argument": {"reason": "complete CLAIM/EVIDENCE/CONSEQUENCE, nothing executed", "executed": False}, "checks": checks}
     stated = re.search(r"RESULT\s*[:=]\s*(.+)", parts["EVIDENCE"])
     if not stated:
-        return {"kind": "suggestion", "argument": {"reason": "computation without a stated RESULT"}}
+        checks["computation_reproduced"] = False
+        return {"kind": "suggestion", "argument": {"reason": "computation without a stated RESULT"}, "checks": checks}
     detail = []
     for code in blocks:
         ok, why = reproduces(code, stated.group(1))
         detail.append(why)
         if ok:
-            return {"kind": "verified", "argument": {"reason": "computation reproduced in the sandbox", "executed": True, "detail": why}}
-    return {"kind": "suggestion", "argument": {"reason": "computation not reproduced", "executed": True, "detail": detail}}
+            checks["computation_reproduced"] = True
+            return {"kind": "reproduced", "argument": {"reason": "computation reproduced in the sandbox; relevance and conclusion not assessed", "executed": True, "detail": why}, "checks": checks}
+    checks["computation_reproduced"] = False
+    return {"kind": "suggestion", "argument": {"reason": "computation not reproduced", "executed": True, "detail": detail}, "checks": checks}
 
 
 def ledger_ground(g: dict) -> dict:
-    """classify_argument result in the shape the shared ledger expects: formal -> quote, verified -> command; `level` keeps the two apart for the counts."""
+    """Keep argument status distinct from the ledger's quote/command evidence kind."""
     level = g.get("kind")
-    return {**g, "kind": {"formal": "quote", "verified": "command"}.get(level, level), "level": level}
+    return {**g, "kind": {"formal": "quote", "reproduced": "command"}.get(level, level), "level": level}

@@ -57,6 +57,16 @@ def final_answer(position_letters: dict, specialist_letter: str | None, earliest
     return (earliest or (existing[0] if existing else None)), "no_agreement_no_specialist"
 
 
+def controlled_answer(closing: dict | None, candidates: set[str]) -> tuple[str, str]:
+    """Accept only the answer recorded by the active controller and already present in an admissible position."""
+    if not isinstance(closing, dict) or closing.get("rule") not in {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS", "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE", "WEIGHTS_DECIDE_UNVERIFIED"} or not closing.get("final_model"):
+        raise ValueError("controller did not produce a valid closing decision")
+    letter = closing.get("final_answer")
+    if not isinstance(letter, str) or letter not in candidates:
+        raise ValueError(f"controller selected an inadmissible answer: {letter!r}")
+    return letter, f"controller:{closing['rule']}"
+
+
 def e_draft_count(t_record: dict) -> int:
     """E's k = the number of model calls T used on that question (CherryMe calls recorded by T)."""
     return int(t_record["calls"])
@@ -320,7 +330,7 @@ ANSWER_SUFFIX = "\nAnswer directly from your own knowledge and reasoning. Do not
 LUNA_KEY, LUNA_LINEAGE = "gpt-6-luna@codex", "luna"
 NEMO_KEY, NEMO_LINEAGE = "nemotron-3-ultra-550b@default", "nemotron"
 LIMIT_MESSAGE = re.compile(r"usage limit|hit your .{0,40}limit|rate.?limit|quota|try again (?:at|in|later)|limit reached", re.I)
-SMALL_FAIL = {"success": False, "output": None, "model_key": None, "independence_key": None, "receipt_id": None}
+SMALL_FAIL = {"success": False, "output": None, "model_key": None, "independence_key": None, "receipt_id": None, "decision_id": None}
 
 
 def luna_step(ctx: Context, prompt: str) -> dict:
@@ -346,7 +356,7 @@ def luna_step(ctx: Context, prompt: str) -> dict:
         return {**SMALL_FAIL, "failure_class": "LUNA_FAILED", "detail": blob[-200:]}
     tok = sum((e.get("usage", {}).get("input_tokens", 0) + e.get("usage", {}).get("output_tokens", 0)) for e in events if e.get("type") == "turn.completed")
     ctx.luna_tokens += tok
-    return {"success": True, "output": msgs[-1], "model_key": LUNA_KEY, "independence_key": LUNA_LINEAGE, "receipt_id": sha(msgs[-1])[:12]}
+    return {"success": True, "output": msgs[-1], "model_key": LUNA_KEY, "independence_key": LUNA_LINEAGE, "receipt_id": sha(msgs[-1])[:12], "decision_id": None}
 
 
 def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
@@ -446,7 +456,11 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
                     d = pinned_step(child, roster, "critic", full, "critic", exclude=tuple(exclude) + roster.lineages("critic"))
                 if d["success"]:
                     text = d["output"]
-                    d = {**d, "verification": ag.ledger_ground(ag.classify_argument(text, task)).get("level") or "none"}      # the host's level of this critique, for the closed loop
+                    ground = ag.ledger_ground(ag.classify_argument(text, task))
+                    checks = ground.get("checks") or {}
+                    d = {**d, "verification": ground.get("level") or "none",
+                         "relevance_assessed": checks.get("relevance_assessed") is True,
+                         "independent_confirmation": checks.get("independent_confirmation") is True}      # reproduction alone is not host verification
                     with plock:
                         for o in answered:
                             if o["lineage"] != d.get("independence_key"):
@@ -501,7 +515,7 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
 
     def work_wrapped(prompt, stage, **kw):
         out = work(prompt, stage, **kw)
-        return {**out, "model_key": out.get("model_key"), "independence_key": out.get("independence_key"), "receipt_id": out.get("receipt_id")}
+        return {**out, "model_key": out.get("model_key"), "independence_key": out.get("independence_key"), "receipt_id": out.get("receipt_id"), "decision_id": out.get("decision_id")}
 
     # roster FIRST (P1): solver1 is the fixed best constituent (S), solver2 a distinct lineage
     if duo:                                                              # owner/lead roster without Claude: solver A = Luna (Codex heart), solver B = nemotron (PlumMe, free); cross-critique, no specialist
@@ -514,7 +528,9 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     control = None
     if loop:                                                         # Brother Mode closed loop: decisions and weights are written to MangoMe (ogi013_brother_loop)
         from ogi013_brother_loop import make_control
-        control = make_control(team.mango, q["id"])
+        decisions = getattr(getattr(getattr(getattr(ctx, "stack", None), "svc", None), "scheduler", None), "decisions", None)
+        control = make_control(team.mango, q["id"], models=tuple(roster.pinned(role) for role in ("solver1", "solver2") if roster.pinned(role)),
+                               decision_log=decisions, task_class=q.get("question_type") or "QA1_MC")
     try:
         res = run_rounds(task_prompt=task, brief="", work=work_wrapped, ledger=ledger, claim_id=ep.claim.id, signature=lambda text: parse_letter(text, n_opt) or "?", parallel=True, solver_wait=600,
                          max_workers=2, control=control)
@@ -526,23 +542,34 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     check_budget(ep)
     firsts = [parse_letter(r.answer_text, n_opt) for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"]
     if len(firsts) < 2:                                                  # amendment QA-1b/2: a T row is OK only if two positions (distinct lineages, enforced by the roster) were submitted
-        raise Infra("INFRA_TEAM_INCOMPLETE", f"{len(firsts)} independent position(s) submitted; stop={res.stop_reason}")
+        raise Infra("INFRA_TEAM_INCOMPLETE", f"{len(firsts)} independent position(s) submitted; stop={res.stop_reason}; failures={res.failures}")
     position_letters = {k: parse_letter(v, n_opt) for k, v in res.positions.items() if not k.endswith("#sp")}
     spec_rows = [r for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "SPECIALIST_TIEBREAK"]
     spec_letter = parse_letter(spec_rows[-1].answer_text, n_opt) if spec_rows else None
     earliest = firsts[0] if firsts else None
-    letter, how = final_answer(position_letters, spec_letter, earliest=earliest)
+    if control is None:
+        letter, how = final_answer(position_letters, spec_letter, earliest=earliest)
+    else:
+        specialist_model = spec_rows[-1].worker if spec_rows else None
+        admissible_positions = {letter for model, letter in position_letters.items()
+                                if letter and model != specialist_model and not model.endswith("#sp")}
+        try:
+            letter, how = controlled_answer(res.closing, admissible_positions | set(firsts))
+        except ValueError as exc:
+            raise Infra("INFRA_CONTROLLER_INVALID", str(exc)) from exc
     team.decisions.append(f"final answer {letter} ({how})")
     team.release = {"class": "QA1_FINAL", "letter": letter, "how": how}
     team.persist()
     replies = sum(len(o.get("replies", [])) for o in team.objs)
     indep = [o for o in team.objs if o.get("lineage") and o["lineage"] != pos_lin.get(o["target"])]          # a critique from the lineage of the position it judges does not count
     evidenced_replies = sum(1 for o in indep for r in o.get("replies", []) if r.get("evidence") in ("command", "quote"))
-    level = lambda k: {"quote": "formal", "command": "verified"}.get(k)         # noqa: E731 - ledger kind -> evidence level
+    level = lambda k: {"quote": "formal", "command": "reproduced"}.get(k)      # noqa: E731 - ledger kind -> evidence level
     formal_replies = sum(1 for o in indep for r in o.get("replies", []) if level(r.get("evidence")) == "formal")
-    verified_replies = sum(1 for o in indep for r in o.get("replies", []) if level(r.get("evidence")) == "verified")
+    reproduced_replies = sum(1 for o in indep for r in o.get("replies", []) if level(r.get("evidence")) == "reproduced")
     formal_objections = sum(1 for o in indep if (o.get("ground") or {}).get("level") == "formal")
-    verified_objections = sum(1 for o in indep if (o.get("ground") or {}).get("level") == "verified")
+    reproduced_objections = sum(1 for o in indep if (o.get("ground") or {}).get("level") == "reproduced")
+    independently_confirmed_replies = sum(1 for o in indep for r in o.get("replies", []) if level(r.get("evidence")) == "independently_confirmed")
+    independently_confirmed_objections = sum(1 for o in indep if (o.get("ground") or {}).get("level") == "independently_confirmed")
     critics = {o["lineage"] for o in team.objs if o.get("lineage")}
     independence_ok = not any(l in set(pos_lin.values()) | critics for l in spec_lin)                                   # a specialist of the same lineage as a position it judges does not count
     (ctx.out / "exchange").mkdir(exist_ok=True)                           # the full exchange for the report (model text; kept out of results.jsonl)
@@ -552,13 +579,18 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     return {"letter": letter, "how": how, "first_letters": dict(pos_first), "final_positions": position_letters, "specialist_letter": spec_letter, "calls": res.calls,
             "rounds": res.rounds, "stop": res.stop_reason, "late": res.late, "roster_models": [roster.pinned(r) for r in ("solver1", "solver2", "critic", "specialist")], "roster": roster.summary(),
             "tokens": ep.stats["tokens_in"] + ep.stats["tokens_out"] + (ctx.luna_tokens - luna0), "seconds": round(time.monotonic() - t0, 1), "mango_writes": team.mango.writes, "mango_reads": team.mango.reads,
-            "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "verified_objections": verified_objections, "formal_replies": formal_replies, "verified_replies": verified_replies, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
+            "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "reproduced_objections": reproduced_objections, "independently_confirmed_objections": independently_confirmed_objections, "verified_objections": 0, "formal_replies": formal_replies, "reproduced_replies": reproduced_replies, "independently_confirmed_replies": independently_confirmed_replies, "verified_replies": 0, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
             "lineages": {"positions": pos_lin, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")}), "specialist": spec_lin}, "first_by_pos": pos_first,
             "objection_target_first": [pos_first.get(o["target"]) for o in indep], "answer_changes": counters["answer_changes"], "accepted_concessions": counters["accepted_concessions"],
             "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report(), "loop_decisions": res.decisions, "loop_closing": res.closing}
 
 
 # ---- orchestration -------------------------------------------------------------------------------------------------------------------------------------------
+def run_T_brother(ctx: Context, q: dict) -> dict:
+    """Run the normal QA-1 team arm with its Brother Mode controller enabled."""
+    return run_T(ctx, q, loop=True)
+
+
 def plum_state(ctx, model: str) -> dict:
     """Availability of one cognitive model as PlumMe reports it: per offer the health state, retry window, circuit/credential/pool facts (cooldown with expiry vs exhausted)."""
     sch = ctx.stack.svc.scheduler
@@ -591,7 +623,7 @@ def accepted_concession(output: str, o: dict, author_lineage, old, new) -> bool:
     names that objection, and the position really changed (the caller logs it). No restated derivation is required; a letter change not linked to an objection never counts."""
     named = bool(re.search(rf"\b{re.escape(o['id'])}\b", output or ""))
     independent = bool(o.get("lineage")) and o["lineage"] != author_lineage
-    substantive = (o.get("ground") or {}).get("level") in ("formal", "verified")
+    substantive = (o.get("ground") or {}).get("level") in ("formal", "independently_confirmed")
     return named and independent and substantive and new != old
 
 
@@ -599,7 +631,7 @@ def chain_labels(row: dict) -> dict:
     """Three separate labels per chain, never merged: CRITIQUE_ACCEPTED (an independent, substantive objection was accepted: a linked concession with a logged position change, or an
     evidenced withdrawal), INDEPENDENTLY_VERIFIED (an executed computation in the sandbox reproduced its stated result), QUALITY_IMPROVED (key-based class IMPROVING)."""
     return {"CRITIQUE_ACCEPTED": (row.get("accepted_concessions") or 0) >= 1 or (row.get("evidenced_withdrawn") or 0) >= 1,
-            "INDEPENDENTLY_VERIFIED": ((row.get("verified_objections") or 0) + (row.get("verified_replies") or 0)) >= 1,
+            "INDEPENDENTLY_VERIFIED": ((row.get("independently_confirmed_objections") or 0) + (row.get("independently_confirmed_replies") or 0)) >= 1,
             "QUALITY_IMPROVED": chain_class(row) == "IMPROVING"}
 
 
@@ -654,7 +686,7 @@ def process_question(ctx: Context, q: dict, arms: set, done: set, sink) -> None:
         futs["L"] = pool.submit(run_arm, run_L, q, "L", ctx, q)
     t_row = None
     if "T" in arms and (q["id"], "T") not in done:
-        t_row = run_arm(run_T, q, "T", ctx, q)
+        t_row = run_arm(run_T_brother, q, "T", ctx, q)
         sink(t_row)
     elif "E" in arms:
         t_row = next((r for r in load_jsonl(ctx.out / "results.jsonl") if r["qid"] == q["id"] and r["arm"] == "T"), None)

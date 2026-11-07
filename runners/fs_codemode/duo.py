@@ -1,7 +1,7 @@
 """The QA duo executed through the Code Mode facade, with a pluggable activation policy.
 
 With `AlwaysCritique` the decision semantics equal the QA-2D T arm (blind parallel first answers; on disagreement cross-critique, replies/concessions
-under the owner rule, at most 2 exchanges; NO_CONSENSUS -> the member whose last objection was verified, else Luna). What changes is communication:
+under the owner rule, at most 2 exchanges; NO_CONSENSUS -> the member whose last objection was independently confirmed, else Luna). What changes is communication:
 messages are typed (contract.Msg), long reasoning is compacted under invariants (sieve), duplicates to the same receiver are dropped, verification runs
 deterministically in the host verifier, and every operation is in the facade's provenance. With an `EVCPolicy` the first exchange is activated only
 when its estimated EVC is positive.
@@ -62,7 +62,8 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
     first_tokens, first_seconds = fac.totals.tokens, fac.totals.seconds
     msgs: List[dict] = [Msg.from_output("ANSWER", m, lineages[m], text[m], n_options, msg_id=f"A-{m}").to_dict() for m in members]
     objections: List[dict] = []
-    counts = {"objections": 0, "formal_objections": 0, "verified_objections": 0, "replies": 0, "accepted_concessions": 0, "answer_changes": 0}
+    counts = {"objections": 0, "formal_objections": 0, "reproduced_objections": 0, "independently_confirmed_objections": 0,
+              "verified_objections": 0, "replies": 0, "accepted_concessions": 0, "answer_changes": 0}
     letters = dict(first_letters)
     stop, exchanges = "AGREED_FIRST", 0
 
@@ -96,7 +97,9 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
                 msgs.append(m.to_dict())
                 counts["objections"] += 1
                 counts["formal_objections"] += int(level == "formal")
-                counts["verified_objections"] += int(level == "verified")
+                counts["reproduced_objections"] += int(level == "reproduced")
+                counts["independently_confirmed_objections"] += int(level == "independently_confirmed")
+                counts["verified_objections"] += int(level == "independently_confirmed")
                 filed.append(o)
             if not filed:
                 break
@@ -117,7 +120,7 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
                 if new != old:
                     counts["answer_changes"] += 1
                     named = bool(re.search(rf"\b{re.escape(o['id'])}\b", d["output"]))
-                    if named and o["lineage"] != lineages[tgt] and o["level"] in ("formal", "verified"):
+                    if named and o["lineage"] != lineages[tgt] and o["level"] in ("formal", "reproduced", "independently_confirmed"):
                         o["state"] = "ACCEPTED"
                         counts["accepted_concessions"] += 1
                 letters[tgt], text[tgt] = new, d["output"]
@@ -128,8 +131,8 @@ def run_duo(task: str, answer_prompt: str, n_options: int, ask: Callable[[str, s
 
     if stop == "AGREED_FIRST" or stop.startswith("CONSENSUS"):
         letter, how = letters[members[0]], "agreed"
-    elif objections and objections[-1]["level"] == "verified":
-        letter, how = letters[objections[-1]["author"]], "verified_last_objection"
+    elif objections and objections[-1]["level"] == "independently_confirmed":
+        letter, how = letters[objections[-1]["author"]], "independently_confirmed_last_objection"
     else:
         letter, how = letters[members[0]], "luna_default"
     return {"letter": letter, "how": how, "stop": stop, "exchanges": exchanges, "policy": getattr(policy, "name", str(policy)),

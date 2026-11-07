@@ -3,6 +3,7 @@ import asyncio
 import sys
 import threading
 import time
+from contextvars import ContextVar
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,7 @@ from plumme.scheduler import SwarmScheduler  # noqa: E402
 class Svc:                                          # PlumMeService's set_parent_budget / parent_budget / acquire-time check on the real scheduler slot
     def __init__(self):
         self.scheduler = SwarmScheduler.__new__(SwarmScheduler)
+        self.scheduler._parent_budget = ContextVar(f"plumme_parent_budget_test_{id(self)}", default=None)
 
     def set_parent_budget(self, p):
         self.scheduler.parent_budget = p

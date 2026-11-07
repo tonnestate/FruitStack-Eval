@@ -86,6 +86,89 @@ def test_single_e_requires_k(tmp_path):
     assert cond(tmp_path, args, {"OGI013_SINGLE_E_K": "3"}).returncode == 0
 
 
+def test_brother_condition_activates_controller_and_clears_inherited_flag(tmp_path):
+    args = [CAMP, "task", "airline", "BROTHER", "A"]
+    result = cond(tmp_path, args, {"OGI013_ORG_COLLAB": "1"})
+    assert result.returncode == 0, result.stderr
+    assert "ENV OGI013_ORG_COLLAB=1" in result.stdout
+    assert "ENV OGI013_ORG_POLICY_MODE=OFF" in result.stdout
+    assert "CMD " in result.stdout and "c3-test/task/BROTHER task airline rg2" in result.stdout
+    assert "OGI013_ORG_COLLAB" in next(line for line in result.stdout.splitlines() if line.startswith("UNSET "))
+
+
+def test_non_brother_condition_clears_inherited_collaboration_flag(tmp_path):
+    result = cond(tmp_path, [CAMP, "task", "airline", "SINGLE", "A"], {"OGI013_ORG_COLLAB": "1"})
+    assert result.returncode == 0
+    assert "OGI013_ORG_COLLAB" in next(line for line in result.stdout.splitlines() if line.startswith("UNSET "))
+    assert "ENV OGI013_ORG_COLLAB=1" not in result.stdout
+
+
+def test_brother_flag_reaches_the_live_queue_launcher_without_provider_calls(tmp_path):
+    launcher = tmp_path / "launcher.sh"
+    launcher.write_text(
+        '#!/bin/bash\n'
+        'printf "%s|%s|%s\\n" "$2" "$4" "${OGI013_ORG_COLLAB:-unset}" >> "$RUNS_DIR/launcher-env.txt"\n'
+        'mkdir -p "$RUNS_DIR/$1/tasks/$2"\n'
+        'echo \'{"reward_info":null}\' > "$RUNS_DIR/$1/tasks/$2/official-result.json"\n'
+    )
+    launcher.chmod(0o755)
+    env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS="BROTHER", LAUNCHER=str(launcher), OGI013_ORG_COLLAB="1")
+    result = subprocess.run(
+        ["bash", str(BLOCK), CAMP, "airline", "A", "1013", "task1"],
+        env=env, capture_output=True, text=True, timeout=60,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "launcher-env.txt").read_text().strip() == "task1|rg2|1"
+    assert (tmp_path / CAMP / "task1" / "BLOCK_DONE").is_file()
+
+
+def test_research_arms_share_one_offline_queue_block(tmp_path):
+    launcher = tmp_path / "launcher.sh"
+    launcher.write_text(
+        '#!/bin/bash\n'
+        'condition="${1##*/}"\n'
+        'printf "%s|%s|%s|%s|%s|%s|%s\\n" "$condition" "$2" "$4" "${OGI013_ORG_COLLAB:-unset}" '
+        '"${OGI013_SINGLE_E_K:-unset}" "${OGI013_ORG_POLICY_MODE:-unset}" "${OGI013_ORG_STATE_DIR:-unset}" >> "$RUNS_DIR/arms.txt"\n'
+        'mkdir -p "$RUNS_DIR/$1/tasks/$2"\n'
+        'echo \'{"reward_info":null}\' > "$RUNS_DIR/$1/tasks/$2/official-result.json"\n'
+    )
+    launcher.chmod(0o755)
+    conditions = "SINGLE SINGLE-E FIXED BROTHER"
+    env = dict(BASE, RUNS_DIR=str(tmp_path), CONDITIONS=conditions, LAUNCHER=str(launcher),
+               OGI013_SINGLE_E_K="3", OGI013_ORG_COLLAB="1")
+
+    result = subprocess.run(
+        ["bash", str(BLOCK), CAMP, "airline", "A", "1013", "task1", "task2"],
+        env=env, capture_output=True, text=True, timeout=60,
+    )
+
+    assert result.returncode == 0, result.stderr
+    records = {
+        (row[1], row[0]): row
+        for line in (tmp_path / "arms.txt").read_text().splitlines()
+        for row in [line.split("|")]
+    }
+    assert len(records) == 8
+    assert {condition: records[("task1", condition)][2] for condition in conditions.split()} == {
+        "SINGLE": "single", "SINGLE-E": "single_e", "FIXED": "fixed", "BROTHER": "rg2"
+    }
+    for task in ("task1", "task2"):
+        assert records[(task, "SINGLE")][3:6] == ["unset", "unset", "unset"]
+        assert records[(task, "SINGLE-E")][3:6] == ["unset", "3", "unset"]
+        assert records[(task, "FIXED")][3:6] == ["unset", "unset", "unset"]
+        assert records[(task, "BROTHER")][3:6] == ["1", "unset", "OFF"]
+        block_dir = tmp_path / CAMP / task
+        assert (block_dir / "BLOCK_DONE").is_file()
+        for condition in conditions.split():
+            assert json.loads((block_dir / condition / "tasks" / task / "official-result.json").read_text()) == {"reward_info": None}
+    brother_state = records[("task1", "BROTHER")][6]
+    assert brother_state == records[("task2", "BROTHER")][6]
+    assert brother_state == str(tmp_path / CAMP / "state" / "BROTHER")
+    progress = (tmp_path / CAMP / "progress.txt").read_text()
+    assert all(f"{task} {condition} attempt=1 exit=0" in progress for task in ("task1", "task2") for condition in conditions.split())
+    assert "QUEUE_DONE" in progress
+
+
 def test_no_forbidden_references(tmp_path):
     block(tmp_path, [CAMP, "airline", "A", "1013", "t1", "t2"], extra=GOOD)
     for p in tmp_path.rglob("*"):

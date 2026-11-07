@@ -318,7 +318,7 @@ def test_strict_prefer_makes_an_unavailable_pinned_model_a_failed_step_not_a_sil
                                 context_window=1000, output_limit_per_response=100)
 
     class Svc:
-        async def acquire_neuron(self, req):
+        async def acquire_neuron(self, req, *, min_context_tokens=None):
             if req.pinned_model_key:
                 raise RuntimeError("no route for the pinned model")
             return Lease()

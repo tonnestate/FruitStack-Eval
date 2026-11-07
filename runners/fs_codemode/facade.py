@@ -92,12 +92,11 @@ class Facade:
         return res
 
     def conflicts(self, letters: Dict[str, Optional[str]], objections: Sequence[dict]) -> List[dict]:
-        """The conflicts that still need CherryMe: members disagree, and no verified objection already settles the point. An objection settles it only
-        if it is verified AND no verified objection exists against the answer it supports (no automatic decision on contested verified evidence)."""
+        """Conflicts without an independently confirmed objection. Reproduction alone does not settle a domain claim."""
         cmp = self.compare(letters)
         if cmp["agree"]:
             return []
-        verified = [o for o in objections if o.get("level") == "verified"]
+        verified = [o for o in objections if o.get("level") == "independently_confirmed"]
         open_points = []
         for m in sorted(letters):
             against = [o for o in verified if o.get("target") == m]

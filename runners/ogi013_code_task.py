@@ -21,8 +21,6 @@ import uuid
 from pathlib import Path
 
 from ogi013_coding_gate import CodingGate, GateError
-from ogi013_tau2_agent import Episode, Stack, _is_stop, parse_action
-
 SYSTEM = """You are a software engineer fixing an issue in the repository checked out in the working directory. Work in steps; each step is exactly ONE action.
 Reply with EXACTLY ONE JSON object and nothing else. A tool call ALWAYS has this shape (the tool name goes in "name", its parameters in "arguments"):
   {{"action": "tool", "name": "read_file", "arguments": {{"path": "django/forms/widgets.py", "start": 1, "end": 120}}}}
@@ -242,11 +240,10 @@ CODE_TOOLS = {"list_dir", "read_file", "search", "edit_file", "run_tests", "run_
 
 
 def parse_code_action(text):
-    """The strict parser first; otherwise a tolerant reading of the same intent (models often write {"action": "<tool>", ...flat arguments...} or {"action": "tool", "name": ..} with
+    """Read strict tau2 actions plus a tolerant encoding of the same intent (models often write {"action": "<tool>", ...flat arguments...} or {"action": "tool", "name": ..} with
     a stray code fence). Format tolerance only: it never invents a tool, an argument or a value. Identical for every arm."""
-    act = parse_action(text)
-    if act is not None or not text:
-        return act
+    if not text:
+        return None
     decoder = json.JSONDecoder()
     for m in re.finditer(r"\{", text):
         try:
@@ -255,6 +252,11 @@ def parse_code_action(text):
             continue
         if not isinstance(obj, dict):
             continue
+        if obj.get("action") == "message" and isinstance(obj.get("content"), str):
+            return obj
+        if obj.get("action") == "tool" and isinstance(obj.get("name"), str) and isinstance(obj.get("arguments", {}), dict):
+            obj.setdefault("arguments", {})
+            return obj
         name = next((obj[k] for k in ("name", "action", "tool") if isinstance(obj.get(k), str) and obj[k] in CODE_TOOLS), None)
         if name:
             args = obj["arguments"] if isinstance(obj.get("arguments"), dict) else {k: v for k, v in obj.items() if k not in ("action", "name", "tool", "arguments")}
@@ -478,6 +480,7 @@ def agent_loop(ctx: Ctx, role: str, *a, **kw):
 
 
 def main(argv=None) -> int:
+    from ogi013_tau2_agent import Episode, Stack, _is_stop
     ap = argparse.ArgumentParser()
     ap.add_argument("--workdir", type=Path, required=True)
     ap.add_argument("--task-json", type=Path, required=True)

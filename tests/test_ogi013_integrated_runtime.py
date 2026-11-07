@@ -22,6 +22,19 @@ def collab_event(out):
     return found[0]
 
 
+def host_verify(agent, predicate):
+    """Supply deterministic verifier evidence; scripted model text is never itself verification."""
+    original_step = agent.ep.step
+
+    def verified_step(prompt, stage, **kwargs):
+        result = original_step(prompt, stage, **kwargs)
+        if predicate(stage, result):
+            result.update(verification="independently_confirmed", relevance_assessed=True, independent_confirmation=True)
+        return result
+
+    agent.ep.step = verified_step
+
+
 # ---- 0. the collaboration path is the one that runs --------------------------------------------------------------------------------------------------------------
 
 def test_the_collaboration_flag_selects_the_collaboration_path_not_the_legacy_one(monkeypatch, tmp_path):
@@ -39,6 +52,98 @@ def test_the_collaboration_flag_selects_the_collaboration_path_not_the_legacy_on
     agent2, state2, _, out2 = make_agent(monkeypatch, tmp_path / "b", {"draft": [J(GOOD)]}, collab=False)
     (tmp_path / "b").mkdir(exist_ok=True)
     assert say(agent2, state2)[0] == GOOD and marker["legacy"] == GOOD                    # without the flag the unchanged RG/2 path runs and the collaboration is never invoked
+
+
+def test_the_actual_tau2_collaboration_path_uses_the_controller_for_its_output(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from plumme.decisions import DecisionLog
+
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(GOOD)]})
+    stack.svc.scheduler = SimpleNamespace(decisions=DecisionLog(tmp_path / "decisions.jsonl"))
+    action, _ = say(agent, state)
+    control = [e for e in events(out) if e["event"] == "BROTHER_CONTROL"]
+    closing = [e["record"] for e in control if e.get("record", {}).get("type") == "CLOSING"]
+    assert action == BAD and closing                       # an unverified dissent is insufficient to authorize the changed action
+    assert closing[-1]["final_answer"] == _action_digest(action)
+    assert any(e.get("record", {}).get("type") == "ACTION" for e in control)
+    assert not [e for e in control if e.get("record", {}).get("type") == "WEIGHT_UPDATE" and e["record"].get("step", 0) > 0]
+
+
+def test_unverified_criticism_cannot_authorize_a_revision_without_a_controller(monkeypatch, tmp_path):
+    agent, state, _stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(GOOD)]})
+    assert say(agent, state)[0] == BAD
+    collab = collab_event(out)
+    assert collab["unresolved"] and not collab["improved"]
+
+
+def test_integrated_steps_preserve_plumme_decision_provenance(monkeypatch, tmp_path):
+    agent, state, _stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)], "challenge": [NONE_WITH_GROUNDS]})
+    assert say(agent, state)[0] == GOOD
+    steps = [e for e in events(out) if e["event"] == "STEP"]
+    assert [e["decision_id"] for e in steps] == ["decision-1", "decision-2"]
+
+
+def test_a_host_verified_objection_can_change_the_action_through_the_controller(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from plumme.decisions import DecisionLog
+
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(GOOD)]})
+    stack.svc.scheduler = SimpleNamespace(decisions=DecisionLog(tmp_path / "decisions.jsonl"))
+    host_verify(agent, lambda stage, result: stage == "challenge" and result.get("output") == FOUND)
+    action, _ = say(agent, state)
+    control = [e["record"] for e in events(out) if e["event"] == "BROTHER_CONTROL"]
+    closing = [r for r in control if r.get("type") == "CLOSING"]
+    assert action == GOOD and closing and closing[-1]["final_answer"] == _action_digest(action)
+    assert any(r.get("type") == "WEIGHT_UPDATE" and r.get("step", 0) > 0 for r in control)
+
+
+def test_verified_plumme_review_history_changes_the_next_real_brother_decision(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from plumme.decisions import DecisionLog
+    from plumme.service import PlumMeService
+
+    decisions_path = tmp_path / "plumme-decisions.jsonl"
+    service = object.__new__(PlumMeService)
+    service.scheduler = SimpleNamespace(decisions=DecisionLog(decisions_path), cost_policy=None,
+                                        supply_regime_id="offline-test", policy_stack={})
+    service.skills = None
+    for i in range(40):
+        decision = service.record_consumer_ensemble_decision(
+            question_id=f"prior-{i}", claim_revision=0, question_type="airline",
+            skill_digest="a" * 64, topology="SEQUENTIAL_INDEPENDENT", worker_count=2,
+            candidate_offer_ids=[], independent_groups=["L-beta", "L-alpha"], available_counts=[0, 1, 2],
+            candidate_model_keys=["beta@x", "alpha@x"], selected_model_keys=["beta@x", "alpha@x"],
+        )
+        service.record_review_feedback(
+            decision["decision_id"], reviewer_model_key="beta@x", proposer_model_key="alpha@x",
+            task_class="airline", improved_outcome=False, verifier="independent-offline-grader",
+        )
+
+    # A new process reconstructs the same canonical PlumMe decision log before the next task.
+    replayed = DecisionLog(decisions_path)
+    from ogi013_brother_loop import _reviewer_history
+    assert _reviewer_history(replayed, "airline") == {("beta@x", "alpha@x"): {"n": 40, "improved": 0, "task_class": "airline"}}
+    agent, state, stack, out = make_agent(
+        monkeypatch, tmp_path / "run", {"draft": [J(BAD)], "challenge": [FOUND]},
+    )
+    stack.svc.scheduler = SimpleNamespace(decisions=replayed)
+    original_step = agent.ep.step
+
+    def reproduced_but_unconfirmed(prompt, stage, **kwargs):
+        result = original_step(prompt, stage, **kwargs)
+        if stage == "challenge":
+            result["verification"] = "reproduced"
+        return result
+
+    agent.ep.step = reproduced_but_unconfirmed
+    action, _ = say(agent, state)
+
+    decisions = [e["record"] for e in events(out) if e["event"] == "BROTHER_CONTROL" and e.get("record", {}).get("type") == "ACTION"]
+    reply = next(e for e in decisions if e["point"] == "REPLY_OR_FINISH")
+    assert reply["choice"] == "FINISH" and reply["review_history"] == [{"n": 40, "improved": 0, "task_class": "airline"}]
+    assert reply["scores"]["REPLY"] < 0 and reply["calibrated"] is False
+    assert action == BAD
+    assert [x["stage"] for x in stack.svc.executed] == ["draft", "challenge"]  # learned EVC skips an unhelpful revision
 
 
 # ---- 1. a correct answer is independently assessed -----------------------------------------------------------------------------------------------------------------
@@ -67,6 +172,7 @@ def test_a_bare_agreement_is_recorded_but_does_not_count_as_validation(monkeypat
 
 def test_a_wrong_answer_is_criticised_revised_and_the_revision_examined_again(monkeypatch, tmp_path):
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(GOOD)]})
+    host_verify(agent, lambda stage, result: stage == "challenge" and result.get("output") == FOUND)
     action, _ = say(agent, state)
     ex = stack.svc.executed
     assert action == GOOD and [e["stage"] for e in ex] == ["draft", "challenge", "revise", "challenge"]
@@ -89,6 +195,7 @@ def test_a_wrong_answer_is_criticised_revised_and_the_revision_examined_again(mo
 
 def test_a_specialist_that_overrules_the_author_is_itself_reviewed_by_a_new_lineage(monkeypatch, tmp_path):
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(BAD) + " "], "specialist": [J(GOOD)]})
+    host_verify(agent, lambda stage, result: stage == "challenge" and result.get("output") == FOUND)
     action, _ = say(agent, state)
     ex = stack.svc.executed
     assert action == GOOD and [e["stage"] for e in ex] == ["draft", "challenge", "revise", "specialist", "challenge"]
@@ -107,6 +214,7 @@ def test_disagreement_that_the_specialist_does_not_settle_stays_visible(monkeypa
     assert not [x for x in events(out) if x["event"] == "ORG_REVISION"]                          # nothing improved, so nothing is reported as a revision
     pool_one_round = {"draft": [J(BAD)], "challenge": [FOUND, "ISSUES: FOUND\nHAT001 is a flight number, not a reservation id."], "revise": [J(BAD)], "specialist": [J(GOOD)]}
     agent2, state2, stack2, out2 = make_agent(monkeypatch, tmp_path / "b", pool_one_round)
+    host_verify(agent2, lambda stage, result: stage == "challenge" and result.get("output") == FOUND)
     action2, _ = say(agent2, state2)
     e2 = collab_event(out2)
     assert action2 == GOOD and e2["changed"] and not e2["final_reviewed"] and any("flight number" in u["objection"] for u in e2["unresolved"])      # the re-review's objection to the specialist is kept
@@ -187,7 +295,7 @@ def test_a_route_with_unknown_cost_class_is_refused_fail_closed(monkeypatch, tmp
     unknown = route("mystery@x", "L-mystery")
     unknown.cost_class = None
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(GOOD)]}, routes=[unknown], budget=(50, 100000, 0.0))
-    with pytest.raises(PeachError, match="BUDGET_RESERVATION_REQUIRED"):
+    with pytest.raises(PeachError, match="BUDGET_COST_RESERVATION_UNAVAILABLE"):
         say(agent, state)
     assert stack.svc.executed == [] and "BUDGET_STOP" in [e["event"] for e in events(out)]
 

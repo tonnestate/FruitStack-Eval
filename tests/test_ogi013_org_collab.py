@@ -30,8 +30,9 @@ def digest(action):
 class Workers:
     """Scripted worker pool: `script[stage]` is a list of outputs consumed in order (a string, or None = provider failure). Records every call."""
 
-    def __init__(self, **script):
+    def __init__(self, *, independently_confirmed=(), **script):
         self.script = {k: list(v) for k, v in script.items()}
+        self.independently_confirmed = set(independently_confirmed)
         self.calls = []
         self.n = 0
 
@@ -42,7 +43,10 @@ class Workers:
         out = queue.pop(0) if queue else None
         if out is None:
             return {"success": False, "output": "", "model_key": f"unavailable-{self.n}", "independence_key": None, "receipt_id": f"r{self.n}", "failure_class": "RATE_LIMITED"}
-        return {"success": True, "output": out, "model_key": f"{stage}-model-{self.n}", "independence_key": f"lineage-{stage}-{self.n}", "receipt_id": f"r{self.n}", "failure_class": None}
+        result = {"success": True, "output": out, "model_key": f"{stage}-model-{self.n}", "independence_key": f"lineage-{stage}-{self.n}", "receipt_id": f"r{self.n}", "failure_class": None}
+        if out in self.independently_confirmed:
+            result.update(verification="independently_confirmed", relevance_assessed=True, independent_confirmation=True)
+        return result
 
     def stages(self):
         return [c["stage"] for c in self.calls]
@@ -79,7 +83,9 @@ def test_a_bare_agreement_is_recorded_but_is_not_validation():
 
 
 def test_flawed_solution_is_criticised_improved_and_the_revision_is_examined_again():
-    w = Workers(challenge=["ISSUES: FOUND\nThe reservation id WRONG1 is not the customer's booking; use HAT001 (see CONVERSATION).", "ISSUES: NONE"], revise=[json.dumps(GOOD)])
+    found = "ISSUES: FOUND\nThe reservation id WRONG1 is not the customer's booking; use HAT001 (see CONVERSATION)."
+    checked = "ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."
+    w = Workers(independently_confirmed=[found, checked], challenge=[found, checked], revise=[json.dumps(GOOD)])
     out, ledger = run(w)
     assert w.stages() == ["challenge", "revise", "challenge"]                       # SOLVE(seed) -> CHALLENGE -> REVISE -> CHALLENGE again
     assert PROMPT in w.calls[0]["prompt"] and "WRONG1" in w.calls[0]["prompt"]       # the reviewer sees the task MATERIALS and the actual proposed solution
@@ -93,13 +99,16 @@ def test_flawed_solution_is_criticised_improved_and_the_revision_is_examined_aga
 
 
 def test_unresolved_disagreement_stays_visible_and_one_specialist_adjudicates():
-    w = Workers(challenge=["ISSUES: FOUND\nUse HAT001, WRONG1 is not the booking."], revise=[json.dumps(BAD)], specialist=[json.dumps(BAD)])        # the author rejects, the specialist agrees with the author
+    found = "ISSUES: FOUND\nUse HAT001, WRONG1 is not the booking."
+    w = Workers(independently_confirmed=[found], challenge=[found], revise=[json.dumps(BAD)], specialist=[json.dumps(BAD)])        # the author rejects, the specialist agrees with the author
     out, ledger = run(w)
     assert w.stages() == ["challenge", "revise", "specialist"] and out.specialist_used
     assert "Use HAT001" in w.calls[2]["prompt"] and set(w.calls[2]["exclude"]) >= {"lineage-draft", "lineage-challenge-1"}       # the dossier carries the objection; further lineages only
     assert not out.changed and not out.improved and not out.validated
     assert len(out.unresolved) == 1 and "HAT001" in out.unresolved[0]["objection"]                  # the objection is NOT dropped
-    w2 = Workers(challenge=["ISSUES: FOUND\nUse HAT001.", "ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."], revise=[json.dumps(BAD) + " "], specialist=[json.dumps(GOOD)])      # the author rejects, the specialist sides with the critic
+    found2 = "ISSUES: FOUND\nUse HAT001."
+    checked = "ISSUES: NONE\nPolicy 24h window: booking made 2h ago is inside it; HAT001 is the reservation named in the CONVERSATION."
+    w2 = Workers(independently_confirmed=[found2, checked], challenge=[found2, checked], revise=[json.dumps(BAD) + " "], specialist=[json.dumps(GOOD)])      # the author rejects, the specialist sides with the critic
     out2, _ = run(w2)
     assert w2.stages() == ["challenge", "revise", "specialist", "challenge"]                                              # the specialist's answer is examined once more
     assert set(w2.calls[3]["exclude"]) >= {"lineage-draft", "lineage-challenge-1", "lineage-specialist-3"} and json.dumps(GOOD) in w2.calls[3]["prompt"]
@@ -107,7 +116,7 @@ def test_unresolved_disagreement_stays_visible_and_one_specialist_adjudicates():
     assert out2.overruled == [{"author": "draft-model", "author_position": digest(BAD), "overruled_by": "specialist-model-3", "author_grounds": json.dumps(BAD) + " "}]      # the author's rejection is kept
     assert next(a for a in out2.attribution if a["role"] == "specialist") == {"role": "specialist", "model": "specialist-model-3", "lineage": "lineage-specialist-3",
                                                                               "changed_action": True, "grounds": json.dumps(GOOD)}
-    w3 = Workers(challenge=["ISSUES: FOUND\nUse HAT001.", "ISSUES: FOUND\nHAT001 is a flight number, not a reservation id."], revise=[json.dumps(BAD)], specialist=[json.dumps(GOOD)])
+    w3 = Workers(independently_confirmed=[found2], challenge=[found2, "ISSUES: FOUND\nHAT001 is a flight number, not a reservation id."], revise=[json.dumps(BAD)], specialist=[json.dumps(GOOD)])
     out3, _ = run(w3)                                                                                                    # the re-review objects to the specialist's answer: it stays visible, the answer is not called reviewed
     assert out3.changed and not out3.final_reviewed and len(out3.unresolved) == 1 and "flight number" in out3.unresolved[0]["objection"]
 
@@ -167,7 +176,8 @@ def _agent_collab(workers, action, gate=None, uncertain=False):
 
 
 def test_agent_hook_escalates_a_write_improves_it_and_records_the_causal_revision():
-    w = Workers(challenge=["ISSUES: FOUND\nuse HAT001", "ISSUES: NONE"], revise=[json.dumps(GOOD)])
+    found = "ISSUES: FOUND\nuse HAT001"
+    w = Workers(independently_confirmed=[found], challenge=[found, "ISSUES: NONE"], revise=[json.dumps(GOOD)])
     out, events, ep = _agent_collab(w, BAD)
     kinds = [k for k, _ in events]
     assert out == GOOD and kinds == ["ORG_COLLAB", "ORG_REVISION"] and ep.collab_issues == 1

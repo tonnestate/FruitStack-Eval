@@ -29,7 +29,11 @@ from ogi013_roster import InfraSupply, Roster
 from ogi013_mango_ledger import InfraMangoFailed, MangoLedger
 from ogi013_vote import OPEN, PENDING, Ledger, judge_vote, locked, tally as release_tally, vote_stop, next_no_shrink
 from ogi013_coding_gate import CodingGate
-from ogi013_tau2_agent import Episode, Stack, _is_stop
+
+
+def _is_stop(exc):
+    from ogi013_tau2_agent import _is_stop as tau2_is_stop
+    return tau2_is_stop(exc)
 
 GROUNDS_RULE = ("After that first line give a GROUNDS section: every check you made and what each showed, including the test commands you ran and their results. "
                 "A verdict without grounds is not accepted as an examination.\n")
@@ -265,6 +269,7 @@ def infra_failed_exit(ep, out: Path, exc: BaseException, t0: float, extra: dict 
 
 
 def main(argv=None) -> int:
+    from ogi013_tau2_agent import Episode, Stack
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", type=Path, required=True)
     ap.add_argument("--task-json", type=Path, required=True)

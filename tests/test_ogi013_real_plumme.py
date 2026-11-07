@@ -9,8 +9,21 @@ pytest.importorskip("plumme")
 from ogi013_scripted_stack import FOUND, GOOD, BAD, J, NONE_WITH_GROUNDS, events, make_agent, say  # noqa: E402
 
 
+def _confirm_scripted_critique(agent):
+    step = agent.ep.step
+
+    def verify(prompt, stage, **kwargs):
+        answer = step(prompt, stage, **kwargs)
+        if stage == "challenge" and answer.get("success") and answer.get("output") in {FOUND, NONE_WITH_GROUNDS}:
+            answer.update(verification="independently_confirmed", relevance_assessed=True, independent_confirmation=True)
+        return answer
+
+    agent.ep.step = verify  # deterministic verifier fixture; model text alone cannot promote a revision
+
+
 def test_the_real_scheduler_keeps_reviewers_off_the_authors_lineage_and_pins_the_author_for_the_revision(monkeypatch, tmp_path):
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(GOOD)]}, real=True)
+    _confirm_scripted_critique(agent)
     action, _ = say(agent, state)
     ex = stack.adapter.executed
     assert action == GOOD and [e["stage"] for e in ex] == ["draft", "challenge", "revise", "challenge"]
@@ -28,7 +41,7 @@ LONG = "Reasoning: " + "x" * 5200 + "\n" + J(GOOD)       # an answer far beyond 
 
 
 def test_in_the_pilot_a_long_answer_is_delivered_whole_with_its_real_usage(monkeypatch, tmp_path):
-    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": LONG}], "challenge": [NONE_WITH_GROUNDS]}, real=True, budget=(50, 100000, 0.0))
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": LONG}], "challenge": [NONE_WITH_GROUNDS]}, real=True, real_kw={"route_output_limit": 8192}, budget=(50, 100000, 0.0))
     action, _ = say(agent, state)
     draft = stack.adapter.executed[0]
     assert action == GOOD and draft["max_output_tokens"] != 2048                       # no fixed output cap: PlumMe applied the route's own limit
@@ -71,6 +84,7 @@ def test_a_paid_only_world_gets_no_dispatch_at_all(monkeypatch, tmp_path):
 def test_with_free_and_paid_routes_only_free_ones_ever_execute(monkeypatch, tmp_path):
     kw = _paid(("alpha-1", "beta-1", "paid-1", "gamma-1", "paid-2"), ("paid-1", "paid-2"))
     agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [J(BAD)], "challenge": [FOUND, NONE_WITH_GROUNDS], "revise": [J(GOOD)]}, real=True, budget=(50, 100000, 0.0), real_kw=kw)
+    _confirm_scripted_critique(agent)
     action, _ = say(agent, state)
     assert action == GOOD and stack.adapter.executed and not [e for e in stack.adapter.executed if e["model_key"].startswith("paid")]
     receipts = [json.loads(line) for line in (tmp_path / "receipts.jsonl").read_text().splitlines()]
@@ -225,7 +239,7 @@ def test_plumme_enforces_max_total_tokens_before_dispatch_against_its_own_estima
 
 def test_a_continuation_the_remaining_authorization_cannot_accommodate_is_refused_before_dispatch(monkeypatch, tmp_path):
     """The long answer does not fit what the step may still use: the first response is cut at the route's limit, the continuation is refused by the step's ParentBudget BEFORE dispatch - one request only."""
-    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": "Reasoning: " + "x" * 8500 + "\n" + J(GOOD)}]}, real=True, budget=(50, 9000, 0.0))
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": "Reasoning: " + "x" * 8500 + "\n" + J(GOOD)}]}, real=True, real_kw={"route_output_limit": 8192}, budget=(50, 9000, 0.0))
     try:
         say(agent, state)
     except Exception:                                                  # the exhausted session then refuses the next step: also fine, nothing more is sent
@@ -238,7 +252,7 @@ def test_a_continuation_the_remaining_authorization_cannot_accommodate_is_refuse
 def test_a_cut_off_answer_continues_inside_the_step_authorization_and_is_delivered_whole(monkeypatch, tmp_path):
     """The legitimate case: the route cuts the answer at its limit, PlumMe continues, every request is pre-checked against the step's 24,000 tokens, the whole answer arrives."""
     answer = "Reasoning: " + "x" * 15000 + "\n" + J(GOOD)
-    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": answer}], "challenge": [NONE_WITH_GROUNDS]}, real=True, budget=(50, 100000, 0.0))
+    agent, state, stack, out = make_agent(monkeypatch, tmp_path, {"draft": [{"long": answer}], "challenge": [NONE_WITH_GROUNDS]}, real=True, real_kw={"context_window": 64000, "route_output_limit": 4096}, budget=(50, 100000, 0.0))
     action, _ = say(agent, state)
     step = next(e for e in events(out) if e["event"] == "STEP" and e["tag"] == "draft")
     assert action == GOOD and step["step_requests"] >= 2 and step["step_tokens_charged"] <= 24000        # several provider requests, one step, inside the authorization
@@ -247,18 +261,20 @@ def test_a_cut_off_answer_continues_inside_the_step_authorization_and_is_deliver
 
 # ---- the owner's per-step authorization across multi-request executions (continuations, retries) ------------------------------------------------------------------
 
-def _long_answer_world(tmp_path, chars=40000):
+def _long_answer_world(tmp_path, chars=50000):
     import asyncio
 
     from ogi013_scripted_stack import real_plumme
     from peachme.plumme import PlumMeProvider
     from plumme.models import BudgetEnvelope, CognitiveOwner, NeuronRequest, SelectionMode
-    svc, adapter = real_plumme(tmp_path, {"draft": [{"long": "z" * chars}]}, tokens=(400, 100))      # 1 character = 1 output token; the provider stops at each response limit and PlumMe continues
+    svc, adapter = real_plumme(tmp_path, {"draft": [{"long": "z" * chars}]}, tokens=(400, 100), context_window=64000, route_output_limit=7000)      # four allowed responses exceed the step ceiling without a parent budget
     prov = PlumMeProvider(svc)
 
     def execute(**kw):
         lease = asyncio.run(svc.acquire_neuron(NeuronRequest(consumer="t", objective="o", role_id="REASONING", cognitive_owner=CognitiveOwner.CONSUMER, selection_mode=SelectionMode.BEST,
-                                                              required_skill_ids=[], budget=BudgetEnvelope(max_concurrency=1, max_cost_usd=0.0))))
+                                                              required_skill_ids=[],
+                                                              budget=BudgetEnvelope(max_concurrency=1, max_cost_usd=0.0),
+                                                              allow_route_output_limit=True)))
         return asyncio.run(prov.execute(lease_id=lease.lease_id, task="question " * 20, max_cost_usd=0.0, **kw))
     return svc, adapter, execute
 
