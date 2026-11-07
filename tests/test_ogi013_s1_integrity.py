@@ -41,7 +41,7 @@ def test_unverified_weights_close_as_provisional_with_the_disagreement_preserved
     c = CooperationControl(LoopParams(), models=("L", "N"))
     c.book.competence["L"] = 0.95                                              # weights without any verified evidence
     r = c.close({"signatures": {"L": "A", "N": "F"}, "first": {"L": "A", "N": "F"}})
-    assert r["rule"] == "WEIGHTS_DECIDE_UNVERIFIED" and r["provisional"] and r["verified_improvement"] is False
+    assert r["rule"] == "UNRESOLVED_PRIMARY_RETAINED" and r["provisional"] and r["verified_improvement"] is False and r["final_answer"] == "A"
     assert {x["answer"] for x in r["unresolved_disagreement"]} == {"A", "F"}
     assert q1.selection_status(r) == "PROVISIONAL_UNVERIFIED"
     agree = c.close({"signatures": {"L": "A", "N": "A"}, "first": {"L": "A", "N": "A"}})
@@ -142,3 +142,71 @@ def test_duo_row_records_actual_identities_and_marks_the_unverified_selection_pr
     assert row["selection_status"] == "PROVISIONAL_UNVERIFIED" and row["verified_improvement"] is False
     assert {x["answer"] for x in row["unresolved_disagreement"]} == {"A", "B"}
     assert s1.classify_t_row({"status": "OK", **row})["cooperation"] == "GENUINE_LUNA_NEMOTRON"
+
+
+# ---- controller regression observed in the 12 Luna-only S1 rows (initial 8/12, observed final 6/12) -----------------------------------------------------
+def _archive():
+    return {r["qid"]: r for r in (json.loads(l) for l in (HERE / "s1_results" / "results.jsonl").open()) if r["arm"] == "T"}
+
+
+@pytest.mark.parametrize(("qid", "key", "initial", "observed"), [("11613", "H", "H", "F"), ("11894", "D", "D", "H"), ("1659", "H", "H", "G"), ("464", "E", "F", "E")])
+def test_observed_s1_cases_the_second_same_lineage_sample_no_longer_overrides_the_initial_answer(qid, key, initial, observed):
+    row = _archive()[qid]
+    assert row["key"] == key and row["first_by_pos"]["S1"] == initial and row["letter"] == observed          # the archived observation is unchanged
+    cf = s1.counterfactual_t_row(row)
+    assert cf["hypothetical_final"] == initial and cf["hypothetical_rule"] == "SAME_LINEAGE_NO_INDEPENDENCE"
+    assert cf["independent_collaboration"] is False and cf["verified_improvement"] is False
+    assert {x["answer"] for x in cf["unresolved_disagreement"]} == {initial, observed}                       # the disagreement is preserved with its status
+    assert all(x["source"] == "same_lineage_sample_not_evidence" for x in cf["unresolved_disagreement"])
+
+
+def test_counterfactual_tallies_are_labelled_hypothetical_and_distinguish_observed_from_replayed():
+    cf = s1.counterfactual(list(_archive().values()) and [json.loads(l) for l in (HERE / "s1_results" / "results.jsonl").open()], json.loads((HERE / "selection.json").read_text()))
+    assert cf["luna_only_12"] == {"initial": "8/12", "observed_final": "6/12", "hypothetical_final": "8/12"}
+    assert cf["lost_by_observed"] == ["11613", "11894", "1659"] and cf["recovered_by_observed"] == ["464"]
+    assert cf["genuine_4"] == {"initial": "2/4", "observed_final": "3/4", "hypothetical_final": "3/4"}      # genuine rows unchanged (605 keeps its documented concession path)
+    assert cf["LABEL"].startswith("observed = archived result; hypothetical")
+
+
+def ctl_with(models=("L", "N")):
+    return CooperationControl(LoopParams(), models=models)
+
+
+def test_the_choice_does_not_depend_on_which_sample_registered_first():
+    for sigs in ({"L": "F", "L#1": "H"}, {"L": "H", "L#1": "F"}):
+        c = ctl_with(("L",))
+        c.primary_first = lambda: "H"
+        r = c.close({"signatures": sigs, "first": dict(sigs), "models": list(sigs)})
+        assert r["final_answer"] == "H" and r["rule"] == "SAME_LINEAGE_NO_INDEPENDENCE"                       # the old tie-break returned whichever sample finished first
+
+
+def test_same_lineage_agreement_is_not_independent_consensus():
+    r = ctl_with(("L",)).close({"signatures": {"L": "A", "L#1": "A"}, "first": {"L": "A", "L#1": "A"}, "models": ["L", "L#1"]})
+    assert r["rule"] == "SAME_LINEAGE_NO_INDEPENDENCE" and r["independent_collaboration"] is False and r["verified_improvement"] is False and q1.selection_status(r) == "SAME_LINEAGE_NOT_INDEPENDENT"
+
+
+def test_a_critique_between_two_samples_of_one_model_cannot_move_weights_or_count_as_verified():
+    c = ctl_with(("L", "N"))
+    ev = {"kind": "CRITIQUE", "critic": "L#1", "target": "L", "verification": "independently_confirmed", "relevance_assessed": True, "independent_confirmation": True, "hit": True, "row": "x"}
+    c.observe(ev)
+    assert c.book.comp("L") == LoopParams().prior_competence
+    r = c.close({"signatures": {"L": "A", "L#1": "B", "N": "A"}, "first": {"L": "A", "L#1": "B", "N": "A"}, "models": ["L", "L#1", "N"]})
+    assert r["verified_improvement"] is False and r["rule"] != "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION"
+
+
+def test_genuine_independent_confirmed_criticism_can_still_change_the_initial_answer():
+    c = ctl_with(("L", "N"))
+    c.observe({"kind": "CRITIQUE", "critic": "N", "target": "L", "verification": "independently_confirmed", "relevance_assessed": True, "independent_confirmation": True, "hit": True, "row": "r1"})
+    r = c.close({"signatures": {"L": "A", "N": "F"}, "first": {"L": "A", "N": "F"}, "models": ["L", "N"]})
+    assert r["rule"] == "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION" and r["final_answer"] == "F" and r["verified_improvement"] is True and r["independent_collaboration"] is True
+
+
+def test_weights_without_evidence_retain_the_initial_answer_and_weights_with_evidence_are_still_provisional():
+    base = {"signatures": {"L": "A", "N": "F"}, "first": {"L": "A", "N": "F"}, "models": ["L", "N"]}
+    equal = ctl_with().close(base)
+    assert equal["rule"] == "UNRESOLVED_PRIMARY_RETAINED" and equal["final_answer"] == "A" and equal["provisional"] and equal["verified_improvement"] is False
+    assert {x["answer"] for x in equal["unresolved_disagreement"]} == {"A", "F"}
+    c = ctl_with()
+    c.book.competence["N"] = 0.7                                     # a margin of at least one verified update (0.10) over the primary
+    r = c.close(base)
+    assert r["rule"] == "WEIGHTS_DECIDE_UNVERIFIED" and r["final_answer"] == "F" and r["provisional"] and r["verified_improvement"] is False

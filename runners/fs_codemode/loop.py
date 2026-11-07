@@ -4,6 +4,7 @@ Everything here is deterministic. Defaults are fixed constants (LoopParams) and 
 Invariants: weights never override or suppress an independently confirmed objection; formal concessions remain separate and unverified."""
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass
 from typing import Callable, Dict, List, Optional
 
@@ -36,6 +37,11 @@ def independently_confirmed(evidence: dict) -> bool:
             and evidence.get("verification") == "independently_confirmed"
             and evidence.get("relevance_assessed") is True
             and evidence.get("independent_confirmation") is True)
+
+
+def _member(key) -> str:
+    """The member behind a signature key: CherryMe suffixes a second sample of the SAME model key with '#<n>'; such a sample is the same member (same lineage), never an independent one."""
+    return re.sub(r"#\d+$", "", str(key))
 
 
 class WeightBook:
@@ -93,12 +99,14 @@ class CooperationControl:
         self.reviewer_history = reviewer_history or {}
         self.events: List[dict] = []
         self.concessions: List[dict] = []
+        self.primary_first: Optional[Callable[[], Optional[str]]] = None          # optional: the designated primary's first answer (solver1's), not the first-finished sample
 
     # ---- link 1: observe -> weights -----------------------------------------------------------------------------------------------------------------------
     def observe(self, event: dict) -> None:
         self.events.append(event)
         self.log({"type": "EVIDENCE_OBSERVED", **event})
-        if event.get("kind") == "CRITIQUE" and event.get("hit") and event.get("critic") and event.get("target"):
+        if (event.get("kind") == "CRITIQUE" and event.get("hit") and event.get("critic") and event.get("target")
+                and _member(event["critic"]) != _member(event["target"])):                  # a critique between two samples of one model cannot move any weight
             self.book.update(event["critic"], event["target"], event.get("verification") or "none",
                              relevance_assessed=event.get("relevance_assessed") is True,
                              independent_confirmation=event.get("independent_confirmation") is True,
@@ -185,32 +193,58 @@ class CooperationControl:
 
     # ---- link 3: explicit closing rule, evidence over weights ------------------------------------------------------------------------------------------
     def close(self, state: dict) -> dict:
-        sig, first = state.get("signatures") or {}, state.get("first") or {}
-        order = [m for m in (self.models or tuple(sig)) if m in sig] + [m for m in sig if m not in self.models]
-        confirmed = [e for e in self.events if e.get("kind") == "CRITIQUE" and e.get("hit") and independently_confirmed(e) and e.get("critic") in sig and e.get("target") in sig]
+        sig_all, first_all = state.get("signatures") or {}, state.get("first") or {}
+        reg = [k for k in (state.get("models") or []) if k in sig_all] + [k for k in sig_all if k not in (state.get("models") or [])]
+        canon: dict = {}
+        for k in reg:
+            canon.setdefault(_member(k), k)                   # one member = one lineage; its canonical sample is the first registered
+        sig = {m: sig_all[k] for m, k in canon.items()}
+        first = {m: first_all[k] for m, k in canon.items() if first_all.get(k) is not None}
+        order = [m for m in self.models if m in sig] + [m for m in sig if m not in self.models]
+        primary = order[0] if order else None
+        pf = self.primary_first() if callable(self.primary_first) else None
+        if primary is not None and pf:
+            first[primary] = pf                               # the designated initial answer, not whichever sample finished first
+        extra = [{"member": _member(k), "sample": k, "answer": sig_all[k], "status": "same_lineage_sample_not_evidence"} for k in reg if k not in canon.values()]
+        independent = len(order) >= 2                         # same-lineage duplication is never independent collaboration
+        confirmed = [e for e in self.events if e.get("kind") == "CRITIQUE" and e.get("hit") and independently_confirmed(e)
+                     and _member(e.get("critic")) in sig and _member(e.get("target")) in sig and _member(e.get("critic")) != _member(e.get("target"))]
         rule, final, detail = None, None, {}
         distinct_now = len(set(sig.values())) > 1
-        if confirmed and distinct_now:
-            last = confirmed[-1]                            # weights cannot overrule an independently confirmed objection
-            rule, final, detail = "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", last["critic"], {"objection": last.get("row"), "target": last["target"]}
+        if not independent and len(reg) >= 2:                # several samples of ONE lineage (a single executed candidate passed through by a caller is not duplication)
+            rule, final = "SAME_LINEAGE_NO_INDEPENDENCE", primary
+            detail = {"chosen_answer": first.get(primary, sig.get(primary)), "samples": [{"sample": k, "answer": sig_all[k]} for k in reg]}
+        elif confirmed and distinct_now:
+            last = confirmed[-1]                            # weights cannot overrule an independently confirmed objection; this is how a justified change of the first answer happens
+            rule, final, detail = "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", _member(last["critic"]), {"objection": last.get("row"), "target": last["target"]}
         else:
             cands = [(m, sig[m], "current") for m in order]
             if not confirmed:
                 for c in self.concessions:                  # a conceder's first answer stays a candidate: a formal concession alone does not discard it
-                    m = c["author"]
+                    m = _member(c["author"])
                     if m in first and first[m] not in {x[1] for x in cands if x[0] == m}:
                         cands.append((m, first[m], "first_answer_kept_after_CONCEDED_TO_FORMAL"))
             if len({x[1] for x in cands}) <= 1:
                 rule, final = "CONSENSUS", order[0] if order else None
             else:
                 best = max(cands, key=lambda x: (self.book.comp(x[0]), -order.index(x[0]) if x[0] in order else -99))
-                rule, final = ("FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE" if self.concessions else "WEIGHTS_DECIDE_UNVERIFIED"), best[0]
-                detail = {"candidates": [{"model": m, "answer": s, "source": src, "competence": self.book.comp(m)} for m, s, src in cands], "chosen_answer": best[1]}
+                if self.concessions:
+                    rule = "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE"
+                elif self.book.comp(best[0]) - self.book.comp(primary) < self.p.step_verified:   # weights without evidence worth one verified update never override the initial answer
+                    best, rule = (primary, first.get(primary, sig[primary]), "primary_initial"), "UNRESOLVED_PRIMARY_RETAINED"
+                else:
+                    rule = "WEIGHTS_DECIDE_UNVERIFIED"
+                final = best[0]
+                detail = {"candidates": [{"model": m, "answer": s_, "source": src, "competence": self.book.comp(m)} for m, s_, src in cands], "chosen_answer": best[1]}
         answer = detail.get("chosen_answer", sig.get(final))
-        rec = {"type": "CLOSING", "rule": rule, "final_model": final, "final_answer": answer, "detail": detail, "signatures": sig, "first": first,
-               "concessions": list(self.concessions), "independently_confirmed_objections": len(confirmed), "weights_consulted": rule != "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION",
-               "provisional": rule not in ("INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS"), "verified_improvement": rule == "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION",
-               "unresolved_disagreement": detail.get("candidates", []) if rule not in ("INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS") else []}
+        provisional = rule not in ("INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS")
+        disagreement = (detail.get("candidates", []) if rule not in ("SAME_LINEAGE_NO_INDEPENDENCE", "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS") else []) + extra
+        if rule == "SAME_LINEAGE_NO_INDEPENDENCE" and len({x["answer"] for x in detail["samples"]}) > 1:
+            disagreement = [{"model": x["sample"], "answer": x["answer"], "source": "same_lineage_sample_not_evidence"} for x in detail["samples"]]
+        rec = {"type": "CLOSING", "rule": rule, "final_model": final, "final_answer": answer, "detail": detail, "signatures": sig_all, "first": first_all,
+               "concessions": list(self.concessions), "independently_confirmed_objections": len(confirmed), "weights_consulted": rule not in ("INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "SAME_LINEAGE_NO_INDEPENDENCE", "UNRESOLVED_PRIMARY_RETAINED"),
+               "independent_collaboration": independent, "provisional": provisional, "verified_improvement": rule == "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION",
+               "unresolved_disagreement": disagreement if provisional else []}
         self.log(rec)
         return rec
 

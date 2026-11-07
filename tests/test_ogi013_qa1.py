@@ -67,7 +67,7 @@ def test_normal_team_arm_activates_brother_controller(monkeypatch, tmp_path):
     ("initial", "challenged", "revision", "expected", "expected_rule", "changed", "accepted_concession"),
     [
         ({"model.alpha": "A", "model.beta": "B"}, "A", "B", "B", "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE", 1, 1),
-        ({"model.alpha": "B", "model.beta": "A"}, "B", "B", "B", "WEIGHTS_DECIDE_UNVERIFIED", 0, 0),
+        ({"model.alpha": "B", "model.beta": "A"}, "B", "B", "B", "UNRESOLVED_PRIMARY_RETAINED", 0, 0),
     ],
 )
 def test_normal_brother_path_corrects_errors_and_resists_false_criticism(

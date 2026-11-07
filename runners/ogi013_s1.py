@@ -74,6 +74,37 @@ def reclassify(rows: list, sel: dict) -> dict:
             "valid_duo_rows": [x["qid"] for x in out if x["valid_duo"]]}
 
 
+def counterfactual_t_row(row: dict) -> dict:
+    """HYPOTHETICAL decision: the archived closing state of a T row replayed through the corrected CooperationControl.close(). Observed fields are never modified. Critique events were not archived
+    (all 16 stored closings have 0 independently confirmed objections), so only concessions are replayed."""
+    from fs_codemode.loop import CooperationControl, LoopParams
+    c = row["loop_closing"]
+    ctl = CooperationControl(LoopParams(), models=(q1.LUNA_KEY, q1.NEMO_KEY))
+    ctl.concessions = list(c.get("concessions") or [])
+    s1_first = (row.get("first_by_pos") or {}).get("S1")
+    ctl.primary_first = lambda: s1_first
+    new = ctl.close({"signatures": c["signatures"], "first": c["first"], "models": list(c["signatures"])})
+    return {"qid": row["qid"], "key": row["key"], "initial_answer": s1_first, "observed_final": row.get("letter"), "observed_rule": c.get("rule"), "hypothetical_final": new["final_answer"],
+            "hypothetical_rule": new["rule"], "independent_collaboration": new["independent_collaboration"], "verified_improvement": new["verified_improvement"],
+            "unresolved_disagreement": new["unresolved_disagreement"]}
+
+
+def counterfactual(rows: list, sel: dict) -> dict:
+    out = []
+    for r in rows:
+        if r["arm"] == "T" and r.get("status") == "OK":
+            out.append({**counterfactual_t_row(r), **{k: classify_t_row(r)[k] for k in ("cooperation",)}})
+    def acc(group, field):
+        return f"{sum(1 for x in group if x[field] == x['key'])}/{len(group)}"
+    luna_only = [x for x in out if x["cooperation"] == "LUNA_ONLY_DUPLICATION"]
+    genuine = [x for x in out if x["cooperation"] == "GENUINE_LUNA_NEMOTRON"]
+    return {"LABEL": "observed = archived result; hypothetical = corrected rule replayed offline, NOT an experiment", "rows": out,
+            "luna_only_12": {"initial": acc(luna_only, "initial_answer"), "observed_final": acc(luna_only, "observed_final"), "hypothetical_final": acc(luna_only, "hypothetical_final")},
+            "genuine_4": {"initial": acc(genuine, "initial_answer"), "observed_final": acc(genuine, "observed_final"), "hypothetical_final": acc(genuine, "hypothetical_final")},
+            "lost_by_observed": [x["qid"] for x in luna_only if x["initial_answer"] == x["key"] != x["observed_final"]],
+            "recovered_by_observed": [x["qid"] for x in luna_only if x["initial_answer"] != x["key"] == x["observed_final"]]}
+
+
 def analyze(out: Path, sel: dict) -> None:
     rows = {(r["qid"], r["arm"]): r for r in load_jsonl(out / "results.jsonl")}
     for arm in ("T", "SN"):
@@ -93,11 +124,15 @@ def main() -> int:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--run-cap", type=int, default=500)
     ap.add_argument("--analyze", action="store_true")
+    ap.add_argument("--counterfactual", action="store_true", help="offline: replay the archived closings through the corrected controller (hypothetical, no provider call)")
     ap.add_argument("--reclassify", action="store_true", help="offline validity classification of the stored T rows (no provider call)")
     a = ap.parse_args()
     sel = json.loads(a.selection.read_text())
     if a.analyze:
         analyze(a.out, sel)
+        return 0
+    if a.counterfactual:
+        print(json.dumps(counterfactual(load_jsonl(a.out / "results.jsonl"), sel), indent=1))
         return 0
     if a.reclassify:
         print(json.dumps(reclassify(load_jsonl(a.out / "results.jsonl"), sel), indent=1))

@@ -76,7 +76,7 @@ def test_unattested_or_irrelevant_reproduction_cannot_update_weights_or_override
     c.observe({"kind": "CRITIQUE", "critic": "N", "target": "L", "verification": "independently_confirmed", "hit": True, "row": "forged"})
     c.observe({"kind": "CRITIQUE", "critic": "N", "target": "L", "verification": "independently_confirmed", "relevance_assessed": False, "independent_confirmation": True, "hit": True, "row": "irrelevant"})
     assert c.book.comp("N") == P.prior_competence
-    assert c.close({"signatures": {"L": "A", "N": "F"}, "first": {"L": "A", "N": "F"}})["rule"] == "WEIGHTS_DECIDE_UNVERIFIED"
+    assert c.close({"signatures": {"L": "A", "N": "F"}, "first": {"L": "A", "N": "F"}})["rule"] == "UNRESOLVED_PRIMARY_RETAINED"
 
 
 def test_verified_contribution_is_applied_once_and_audits_all_checks():
@@ -108,11 +108,14 @@ def test_unverified_contribution_can_be_promoted_before_its_single_learning_upda
 # ---- scripted runs through the real Brother Mode path ------------------------------------------------------------------------------------------------------------
 class Org:
     def __init__(self, behave):
-        self.behave, self.log = behave, []
+        self.behave, self.log, self.n_solve, self.lock = behave, [], 0, __import__("threading").Lock()
 
     def __call__(self, prompt, stage, prefer=None, exclude=()):
         pool = ["L", "N"]
         pick = prefer if prefer in pool else next((m for m in pool if m not in exclude), None)
+        if stage == "solve" and prefer not in pool and not exclude:           # concurrent solves are routed to DISTINCT members, as a real router does (the old mock gave both to L)
+            with self.lock:
+                pick, self.n_solve = pool[self.n_solve % len(pool)], self.n_solve + 1
         out = self.behave(pick, stage, prompt)
         text, verification, checks = (*out, {}) if isinstance(out, tuple) and len(out) == 2 else out if isinstance(out, tuple) else (out, None, {})
         self.log.append((pick, stage))
@@ -192,7 +195,7 @@ def test_high_weights_cannot_skip_the_mandatory_independent_critique():
         return "ISSUES: NONE"
     res = run(no_issue, ctl)
     assert res.decisions[0]["choice"] == "CRITIQUE" and res.rounds == 1
-    assert res.stop_reason == "NO_ISSUES" and res.closing["rule"] == "WEIGHTS_DECIDE_UNVERIFIED"
+    assert res.stop_reason == "NO_ISSUES" and res.closing["rule"] == "UNRESOLVED_PRIMARY_RETAINED"
 
 
 def test_evc_stops_optional_revision_after_the_mandatory_critique():

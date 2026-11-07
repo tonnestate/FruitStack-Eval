@@ -88,12 +88,12 @@ def solver_identity_problems(positions: dict, required_lineages=None, required_m
 def selection_status(closing) -> str:
     """VERIFIED (independently confirmed objection) | CONSENSUS | PROVISIONAL_UNVERIFIED (weights or a formal concession chose among unverified candidates: not evidence of improvement)."""
     rule = closing.get("rule") if isinstance(closing, dict) else None
-    return {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION": "VERIFIED", "CONSENSUS": "CONSENSUS"}.get(rule, "PROVISIONAL_UNVERIFIED")
+    return {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION": "VERIFIED", "CONSENSUS": "CONSENSUS", "SAME_LINEAGE_NO_INDEPENDENCE": "SAME_LINEAGE_NOT_INDEPENDENT"}.get(rule, "PROVISIONAL_UNVERIFIED")
 
 
 def controlled_answer(closing: dict | None, candidates: set[str]) -> tuple[str, str]:
     """Accept only the answer recorded by the active controller and already present in an admissible position."""
-    if not isinstance(closing, dict) or closing.get("rule") not in {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS", "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE", "WEIGHTS_DECIDE_UNVERIFIED"} or not closing.get("final_model"):
+    if not isinstance(closing, dict) or closing.get("rule") not in {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS", "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE", "WEIGHTS_DECIDE_UNVERIFIED", "UNRESOLVED_PRIMARY_RETAINED", "SAME_LINEAGE_NO_INDEPENDENCE"} or not closing.get("final_model"):
         raise ValueError("controller did not produce a valid closing decision")
     letter = closing.get("final_answer")
     if not isinstance(letter, str) or letter not in candidates:
@@ -567,6 +567,8 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
         decisions = getattr(getattr(getattr(getattr(ctx, "stack", None), "svc", None), "scheduler", None), "decisions", None)
         control = make_control(team.mango, q["id"], models=tuple(roster.pinned(role) for role in ("solver1", "solver2") if roster.pinned(role)),
                                decision_log=decisions, task_class=q.get("question_type") or "QA1_MC")
+    if control is not None:
+        control.primary_first = lambda: pos_first.get("S1")             # the designated primary's first answer is the initial answer the controller must not override without evidence
     try:
         res = run_rounds(task_prompt=task, brief="", work=work_wrapped, ledger=ledger, claim_id=ep.claim.id, signature=lambda text: parse_letter(text, n_opt) or "?", parallel=True, solver_wait=600,
                          max_workers=2, control=control)
