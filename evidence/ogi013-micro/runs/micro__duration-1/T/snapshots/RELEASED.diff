@@ -1,0 +1,17 @@
+diff --git a/django/utils/durations.py b/django/utils/durations.py
+index 72ad355..fedaac7 100644
+--- a/django/utils/durations.py
++++ b/django/utils/durations.py
+@@ -6,4 +6,11 @@ _FACTOR = {"h": 3600, "m": 60, "s": 1}
+ 
+ def parse_duration(text):
+     """Parse durations like '1h30m' or '45s' into seconds."""
+-    return sum(int(n) * _FACTOR[u] for n, u in _PART.findall(text))
++    if not text:
++        raise ValueError('Invalid duration: {}.'.format(text))
++    text = text.lower()
++    pattern = r'^(\s*\d+h\s*)?(\s*\d+m\s*)?(\s*\d+s\s*)?$'
++    match = re.match(pattern, text)
++    if not match:
++        raise ValueError('Invalid duration: {}.'.format(text))
++    return sum(int(n) * _FACTOR[u] for n, u in re.findall(r'(\d+)([hms])', text, re.IGNORECASE))

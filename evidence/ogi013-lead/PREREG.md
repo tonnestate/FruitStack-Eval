@@ -1,0 +1,89 @@
+# OGI-013 PREREG (team driver) — written 2026-10-30, completed with the driver commit and sha256 at the G-dev freeze
+
+## Claim boundary (Addendum 5 section D, verbatim in substance)
+- The study measures task performance, as resolved instances under official hidden tests, and attributes changes to specific organisational interventions.
+- It does not measure intelligence of any model or of the organisation; no result may be described that way.
+- A positive result supports only: on these task families, under these conditions, the organised team resolved more tasks than the same models without organisation (N), than its member alone (S), and/or than Luna (L), and these named interventions caused these measured corrections.
+- A claim beyond one task family needs a consistent effect on two independent families: SWE-bench Verified and Terminal-Bench 2.1.
+
+## Recorded interpretations and tooling decisions
+1. Progress guard (Addenda 3 F, 5 B, FIX below): per-role quality definitions; read-only roles: 12 distinct read/search calls; verdict delivered ends the session.
+2. `run_python` tool added to the coding driver because Addendum 5 refers to it: bwrap (read-only host, no network, workspace-only write), plus an audit hook limiting `open()` to the workspace, interpreter and system libraries and blocking process creation (except `git`). Identical for every arm. Not a hard jail.
+3. A candidate's author lineage does not vote on its own candidate (Addendum 6 section 4 versus B.4); unanimity = every other role-holder; the author's endorsement is its submission.
+4. Tolerant action parser (`parse_code_action`): format tolerance only (execution defect: valid intent rejected as BAD_ACTION). Identical for every arm.
+5. `NO_ELIGIBLE_NEURON` is waited out (10 x 60 s per step, logged `SUPPLY_WAIT`, not a turn); infrastructure failures are not evidence about the work.
+6. Withdrawal evidence: a reason of >= 20 characters sharing an identifier (>= 6 chars) with the output of a check the voter executed after the objection was raised.
+7. Development task: smallest `sha256("OGI013-DEV-1|"+instance_id)` among SWE-bench Lite django/django excluding `django__django-11019` and the 50-instance Verified sample (`django__django-14855`; the exclusion against the not-yet-drawn Verified sample is checked when it is drawn). Its outcome is never reported as a result; hidden grades of it are used only for the guard audit and tool checks.
+
+## A-11019 label (Addendum 4 section B.2, exact)
+"A-11019: P0 is issue-correct; hidden-test defect not derivable from materials". Kept together with: case series, descriptive only.
+
+## Experiment A on Verified: critique validity (lead decision 2026-10-30)
+`ISSUES: FOUND` is a valid critique only if it cites an executed check (run_tests / run_python output) or a `file:line` it read, and is not caused by the critic's own tool errors. Otherwise `INVALID_CRITIQUE`, kept in the table; the branch then counts as "no valid critique". A missing verdict line is `INVALID_CRITIQUE`. Valid and invalid critiques are reported per branch (LSR vs LBR): critique quality per lineage is part of the H1 result.
+
+## FIX: commits after the freeze rule
+| commit | defect | rerun scope |
+|---|---|---|
+| (see RESULTS.md, FIX 2) | gdev1: parser TypeError on non-string name; ledger event keyword clash | G-dev episode 1 rerun |
+| (see RESULTS.md, FIX 1) | dev06: all authors stopped after 9 exploration turns; author-type roles now get the 12-read exploration allowance until their first run_tests | G-dev restarted at episode 1 of 3 |
+
+## Pre-registered design (fixed 2026-10-30, before any scored run; changes only by a dated erratum that does not touch H, endpoints, n, selection or thresholds)
+
+Hypotheses
+- H1 (Experiment A): from the same failed Luna P0, revision after a VALID independent-lineage critique (LBR) rescues more often than after Luna's own critique (LSR).
+  Unit: (instance, replicate). Endpoint: rescue = hidden-test resolved after revision while P0 not resolved. Test: exact two-sided McNemar on discordant LBR/LSR pairs, alpha 0.05.
+  Secondary: partial improvement (F2P up, P2P not worse), harm, valid vs INVALID_CRITIQUE counts per branch.
+- H2 (Experiment B): team T resolves more instances than the same supply without organisation N. Unit: instance. Exact McNemar T vs N. Secondary: T vs S (McNemar), T vs L (descriptive, Wilson 95% CI).
+- H3 (mechanism): >= 1 COMPLETE C1-C4 chain occurs per gate window (definitions: Addendum 6 section 3, Addendum 7, Addendum 8).
+- H4 (cost): additional tokens and calls per additional resolved instance (T-N, T-S); tokens per complete chain. Descriptive.
+
+Samples
+- Verified pool: princeton-nlp/SWE-bench_Verified, test split, dataset revision recorded at draw time.
+  Order: ascending sha256("OGI013-SWEV-1|" + instance_id). Exclusions applied BEFORE taking positions:
+  django__django-14855 (development task), django__django-11019, and any instance whose gold patch fails the official harness (HARNESS_INVALID).
+  Sample = first 50 after exclusions. Positions 1-5 = window W5, 1-15 = window W15. Commit the list and its sha256 when drawn, before any run on it.
+- Terminal-Bench 2.1: Harbor dataset terminal-bench/terminal-bench-2-1, order ascending sha256("OGI013-TB21-1|" + task_id), first 20.
+- Development task: django__django-14855 (SWE-bench Lite), never reported as a result.
+
+Sequence and gates (owner decision "cheapest evidence first", 2026-10-30)
+1. G-dev: <= 3 episodes after FIX 1. PASS requires all Addendum 3 C items, Addendum 6 section 4 diversity, Addendum 5 C guard audit (wasted tail <= 40%),
+   AND >= 1 COMPLETE C1-C4 chain in at least one episode. FAIL -> stop the study after REPORT 1 (finding: no verified correction by the organisation under current supply).
+2. W5: T, N, L on positions 1-5, K = 1. CONTINUE iff >= 1 COMPLETE chain in T AND T resolved >= N resolved on W5. Else stop after REPORT 2.
+3. W15: T, N, S, L on positions 6-15, K = 1 (W5 results are reused; S added on 1-15). Experiment A on Luna-failed instances within W15, K = 2.
+   CONTINUE to the full program iff the McNemar T vs N on W15 has more T-only than N-only resolutions AND >= 3 COMPLETE chains on W15. Else write FINAL.md from existing data.
+4. Full program (only after a positive W15): L on positions 16-50; Terminal-Bench 2.1 (20 tasks, L and T, 1 run each); 11019 closure (T, N, S once each); FINAL.md.
+
+Stop conditions in any step: a circuit breaker hit twice -> stop that step and report it as a defect. A stop is a reported result.
+
+Fixed per-arm resources: loop guards per Addenda 5 and 7 and FIX 1; circuit breaker 3,000,000 tokens / 1,500 requests / 4 h per episode; identical for T, N and S.
+N's session count: fixed per instance so that N's tokens are within +-10% of T's tokens on that instance; measured from T first.
+
+## Restart rule (owner stop order, 2026-10-30)
+G-dev allows at most 3 episode STARTS in total, crashed or stopped episodes included. A 4th start requires an explicit owner decision. No further FIX commit on the team driver and no new episode of any kind until the owner lifts the stop.
+
+Owner/lead decision (2026-10-30, strict reading): G-dev starts used = 3 of 3. Any further G-dev start needs the owner's explicit restart of OGI-013.
+
+## AMENDMENT-MANGO-1 (owner/lead order 2026-10-30; pre-freeze; no episode start)
+MangoMe is the work ledger of the team episode: checkpoints (`checkpoint_work`, idempotency key per record) for every gate-accepted snapshot (sha256), objection state change, release vote and the release record, plus one `TEAM_STATE_FULL` checkpoint after every persist so that `work_context` alone rebuilds `team_state.md` byte-identically. A failed MangoMe write ends the episode `INFRA_MANGOME_FAILED` (infrastructure, not a result). One WorkIdentity and one EXECUTE turn per episode, admitted by the launcher before the episode starts; ids written to `run.json`. Component sources are logged with `git describe --always --dirty`; a `-dirty` tree refuses to start (`DIRTY_SOURCE`). Evaluations never write the canonical database; their state is read through the read-only evaluation-scoped MCP instance (`runners/mangome_eval_mcp.py`). Tested only by scripted acceptance on real MongoDB (`tests/test_ogi013_mango_acceptance.py`); no model runs.
+
+## Owner decision 2026-10-30: MangoMe repair accepted; restart under the frozen rules
+- Pinned evaluation source (fetchable): `https://github.com/tonnestate/MangoMe.git`, branch `fix/dirty-source-provenance-2026-10-30`, commit `835d8bef5119fc8266ed8a18f2bd99e105f4bea9` (pushed 2026-10-30; the pinned worktree `ogi013-mangome-pinned` is detached at this commit).
+- Probe work `01M66W27S2SG718MZEERXM1QB2` (canonical database) closed through MangoMe's worker path: `CLAIM_DONE` on slice `01M66W27VVJZ617CFCMA7SJXPB` (state DONE_CLAIMED, assurance UNVERIFIED: a claim, not a verification; the probe has no deliverable) and `CLOSE_PLAN` on plan `01M66W27VFM6MKNTTQQANHJ7KJ` (status CLOSED). The control-plane `SUPERSEDE_WORK` needs a controller identity the operator does not hold and was not used.
+- New G-dev budget: at most 3 episode STARTS in total, crashed or stopped included; full stack with the MangoMe ledger (AMENDMENT-MANGO-1) and the DIRTY_SOURCE guard; no rule changes; a FIX only for a demonstrated crash, counted against the same 3 starts. Pass needs every G-dev criterion incl. >= 1 COMPLETE C1-C4 chain; fail -> FINAL.md as a negative finding ("with current PlumMe supply, the organisation produced no verified correction") and stop.
+- Superseding order (micro pilot, same day): before any G-dev start, a capped micro pilot runs first; G-dev starts used so far in this budget: 0.
+
+## Evaluator v2.2 (micro pilot order, defect D7)
+`evaluate_v2.py` v2.2 installed from the package (sha256 `7ed2e5404ff625eabe94acf6c500095614dbe1e7e9caefb728ed8d0f5dea33eb`, verified); v2.1 kept as `evaluate_v2_1.py` (sha256 `8c1d5015...`). `CALIBRATION_v2_2.json` reproduced on the VPS: 9/9 rows (3 tasks x base/gold/wrong) match exactly (`/root/fruits/research/OGI013-MICRO/CALIBRATION_v2_2_reproduced.json`). Recorded grades are never overwritten; v2.2 is an additional column.
+
+
+## REPAIR-1 (lead repair order 2026-10-30; one bounded repair cycle, scripted tests only; no model episode starts before the owner's go for Part 4)
+The micro pilot outcome stays as recorded (`PILOT.md`, `19bb3c5`: STOP); its numbers are not re-scored. The three pilot tasks are now seen and serve only as scripted replay (development). Confirmation uses new tasks from the lead.
+Repairs: R1 candidate ledger with protected best and driver-run checks; R2 grounded critique only, decline, one arbitration per objection; R3 `CANDIDATE_NO_CONSENSUS` and sha-cited approvals; R4 HOW TO RUN CHECKS block; R5 author eligibility (<= 12B, nemotron-lightning/nano class) and `INFRA_AUTHOR_FAILED`; R6 arm N (naive chain) and measures M-fix, M-protect, M-confirm, M-cost; R8 pinned roster with `ROSTER_CHANGE`, at most 5 models per episode unless explained.
+Interpretations recorded (for the lead to confirm before Part 4):
+1. Candidate check suite = the host-run visible tests plus the recorded reproductions of grounded objections; score = passes, -failures. Candidates are re-scored when a new reproduction is recorded.
+2. A revision is adopted only for a VERIFIED improvement: (a) score not lower, (b) every claimed reproduction passes, and (c) either the score is strictly higher or a claimed reproduction flips fail -> pass. A revision that claims only quote-grounded objections and changes nothing measurable is `REJECTED_REVISION` (`NO_VERIFIED_IMPROVEMENT`). This is stricter than "(a) score >= incumbent" and is what makes the intervals-1 / lru-1 replay adopt no revision.
+3. A grounded objection is either (a) verbatim output of a failing sandbox command the critic ran (that command becomes its recorded reproduction) or (b) a verbatim quote (>= 15 characters) that is a substring of the task text. An approval is never an objection.
+4. The protected best is chosen over every adopted candidate ever accepted (superseded ones included), ties -> earliest; the position's workspace is rolled back to it when it is not the current incumbent.
+5. Roster: roles are pinned at first use through PlumMe AUTO (solver1, solver2, critic, specialist); every retry of a step stays on the pinned model (`sticky_attempts` = all attempts); replacement after 2 consecutive failed steps, logged `ROSTER_CHANGE` and written to MangoMe. Voters are the pinned members except the candidate's author lineages.
+6. Arm N: author `solver1` and critic roles pinned like T; critique calls and revise calls equal to T's measured counts (`--n-critiques`, `--n-revisions`; the first K_r critiques are followed by a revise call); the last patch wins; no ledger scoring, grounding rule, rollback, arbitration or vote.
+7. R5 hook: PlumMe `small_model_reason` (declared `parameters_b`, else the size in the model id, plus the nemotron-lightning/nano and mistral-nemo class) applied to AUTHOR steps through `request.metadata["exclude_small_models"]` (PlumMe branch `ogi013-org-plum`, `1aa4fab`).

@@ -1,0 +1,24 @@
+diff --git a/django/utils/durations.py b/django/utils/durations.py
+index 72ad355..7b11e2f 100644
+--- a/django/utils/durations.py
++++ b/django/utils/durations.py
+@@ -1,9 +1,17 @@
+ import re
+ 
+-_PART = re.compile(r"(\d+)([hms])")
++_PART = re.compile(r"(\d+)([hms])", re.IGNORECASE)
+ _FACTOR = {"h": 3600, "m": 60, "s": 1}
+ 
+ 
+ def parse_duration(text):
+     """Parse durations like '1h30m' or '45s' into seconds."""
+-    return sum(int(n) * _FACTOR[u] for n, u in _PART.findall(text))
++    parts = list(_PART.finditer(text))
++    if not parts or "".join(part.group() for part in parts) != text:
++        raise ValueError("Invalid duration: %r" % text)
++
++    units = [part.group(2).lower() for part in parts]
++    if units != sorted(set(units), key="hms".index):
++        raise ValueError("Invalid duration: %r" % text)
++
++    return sum(int(part.group(1)) * _FACTOR[unit] for part, unit in zip(parts, units))

@@ -16,6 +16,11 @@ import subprocess
 import sys
 import tomllib
 
+def git_describe(checkout) -> str:
+    """`git describe --always --dirty` of a component checkout; a -dirty tree refuses to start (DIRTY_SOURCE)."""
+    return subprocess.run(["git", "-C", str(checkout), "describe", "--always", "--dirty"], capture_output=True, text=True, check=True).stdout.strip()
+
+
 COMPONENTS = {
     "mangome": "MangoMe",
     "orangeme": "OrangeMe",
@@ -29,6 +34,15 @@ COMPONENTS = {
 
 def run(*args: str, env: dict[str, str] | None = None) -> None:
     subprocess.run(args, check=True, env=env)
+
+
+def verify_python(python: str) -> None:
+    result = subprocess.run(
+        [python, "-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"],
+        capture_output=True, text=True, check=True,
+    )
+    if result.stdout.strip() not in {"3.12", "3.13"}:
+        raise RuntimeError(f"Official tau2-bench requires Python 3.12 or 3.13; got {result.stdout.strip()}")
 
 
 def in_python(python: str, statement: str, *, env: dict[str, str] | None = None) -> bool:
@@ -87,12 +101,14 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse(argv)
-    python = str(args.host_python.resolve())
+    # Keep the venv entrypoint: resolving it dereferences the symlink to base Python.
+    python = os.path.abspath(args.host_python)
     source = args.tau2_checkout.resolve()
     root = args.components_root.resolve()
     runner = args.runner.resolve()
     if not Path(python).is_file() or not runner.is_file():
         raise FileNotFoundError("Host Python or requested OGI-013 runner does not exist")
+    verify_python(python)
     verify_tau2_source(source)
     if not root.is_dir():
         raise FileNotFoundError("Canonical component checkout root does not exist")
@@ -111,11 +127,11 @@ def main(argv: list[str] | None = None) -> int:
             install(python, checkout)
         if not is_component_from_checkout(python, module, checkout):
             raise RuntimeError(f"{module} is not installed from canonical checkout {checkout}")
-        head = subprocess.run(
-            ["git", "-C", str(checkout), "rev-parse", "HEAD"],
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
-        print(f"OGI013_SOURCE {module}={head}", flush=True)
+        describe = git_describe(checkout)
+        untracked = subprocess.run(["git", "-C", str(checkout), "status", "--porcelain", "--untracked-files=normal"], capture_output=True, text=True).stdout.count("\n")
+        print(f"OGI013_SOURCE {module}={describe} changed_or_untracked_entries={untracked}", flush=True)
+        if describe.endswith("-dirty"):
+            raise RuntimeError(f"DIRTY_SOURCE: {module} at {checkout} is {describe}; the logged commit would not identify the code that runs")
     print(f"OGI013_RUNTIME python={python}", flush=True)
     run(python, str(runner), *args.runner_args, env=env)
     return 0
