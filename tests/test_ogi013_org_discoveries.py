@@ -1,5 +1,10 @@
 import pytest
-from runners.ogi013_org_discoveries import Ledger
+from runners.ogi013_org_discoveries import Ledger, execution_receipt
+
+
+def RC(relation="SUPPORTS"):
+    """A trusted execution receipt as host code issues it after running a check (ogi013_org_discoveries.execution_receipt)."""
+    return execution_receipt("fs_runtime.CHECKS[test]", {"relation": relation}, verifier_lineage="host-executed-check")
 
 
 def mk(tmp_path):
@@ -10,27 +15,27 @@ def mk(tmp_path):
 
 def test_model_assertion_alone_is_not_knowledge(tmp_path):
     led, d = mk(tmp_path)
-    assert led.status(d)["state"] == "ASSERTED"
+    assert led.status(d)["state"] == "MODEL_ASSERTED"
     with pytest.raises(ValueError):
         led.verify(d, verdict="SUPPORTS", verifier="nemotron", evidence_ref="y")      # a model cannot verify
 
 
 def test_verified_but_unused_is_not_learning(tmp_path):
     led, d = mk(tmp_path)
-    led.verify(d, verdict="SUPPORTS", verifier="dataset_key", evidence_ref="k")
-    assert led.status(d)["state"] == "STORED_NOT_REUSED" and led.report()["organizational_learning_instances"] == []
+    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="k", receipt=RC())
+    assert led.status(d)["state"] == "INDEPENDENTLY_CHECKED" and led.report()["organizational_learning_instances"] == []
 
 
 def test_same_run_reuse_does_not_count(tmp_path):
     led, d = mk(tmp_path)
-    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="k")
+    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="k", receipt=RC("SUPPORTS"))
     led.retrieve(d, run="R0", task="q1")
-    assert led.status(d)["state"] == "STORED_NOT_REUSED"
+    assert led.status(d)["state"] == "INDEPENDENTLY_CHECKED"
 
 
 def test_full_cycle_benefit_harm_and_falsified(tmp_path):
     led, d = mk(tmp_path)
-    led.verify(d, verdict="SUPPORTS", verifier="official_grader", evidence_ref="k")
+    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="k", receipt=RC())
     led.retrieve(d, run="R1", task="q2")
     assert led.status(d)["state"] == "RETRIEVED"
     led.apply(d, run="R1", task="q2", how="in prompt")
@@ -38,19 +43,19 @@ def test_full_cycle_benefit_harm_and_falsified(tmp_path):
     with pytest.raises(ValueError):
         led.outcome(d, run="R2", task="q2", reward=1, control_reward=0, grader="official_grader", control_run="C")   # no application in R2
     led.outcome(d, run="R1", task="q2", reward=1, control_reward=0, grader="official_grader", control_run="C1")
-    assert led.status(d)["state"] == "BENEFIT_OBSERVED" and led.report()["organizational_learning_instances"] == [d]
+    assert (led.status(d)["state"], led.status(d)["effect"]) == ("OUTCOME_MEASURED", "BENEFIT_OBSERVED") and led.report()["organizational_learning_instances"] == [d]
     led.apply(d, run="R1", task="q3", how="x")
     led.apply(d, run="R1", task="q4", how="x")
     led.outcome(d, run="R1", task="q3", reward=0, control_reward=1, grader="official_grader", control_run="C1")
     led.outcome(d, run="R1", task="q4", reward=0, control_reward=1, grader="official_grader", control_run="C1")
-    assert led.status(d)["state"] == "HARM_OBSERVED"
-    led.verify(d, verdict="CONTRADICTS", verifier="executed", evidence_ref="k2")
+    assert led.status(d)["effect"] == "HARM_OBSERVED"
+    led.verify(d, verdict="CONTRADICTS", verifier="executed", evidence_ref="k2", receipt=RC("CONTRADICTS"))
     assert led.status(d)["state"] == "CONTRADICTED"                                   # both verifications kept
 
 
 def test_falsified_is_kept(tmp_path):
     led, d = mk(tmp_path)
-    led.verify(d, verdict="CONTRADICTS", verifier="dataset_key", evidence_ref="k")
+    led.verify(d, verdict="CONTRADICTS", verifier="executed", evidence_ref="k", receipt=RC("CONTRADICTS"))
     assert led.status(d)["state"] == "FALSIFIED" and len(led.rows()) == 2
 
 

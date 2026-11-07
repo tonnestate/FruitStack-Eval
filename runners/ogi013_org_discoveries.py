@@ -3,15 +3,15 @@
 Append-only, hash-chained JSONL. Nothing here calls a model or a provider. It sits NEXT TO CherryMe's KnowledgeStore (which stores quote-grounded
 source facts and counts reuse, but links no later outcome) and never edits it or any archived row.
 
-A discovery is only ever *derived* into one state (see `status`); no caller can assert "learned":
-  ASSERTED          model-asserted claim, nothing independent behind it (never counts as knowledge)
-  VERIFIED          an independent check supports it (verifier kind: dataset_key | executed | official_grader); a model's own agreement is not a verifier
-  FALSIFIED         an independent check contradicts it (kept as a negative finding, never deleted)
-  CONTRADICTED      verified, but a later verified contradiction exists (both kept)
-  STORED_NOT_REUSED verified, never retrieved for a later run
-  RETRIEVED         retrieved for a later run, not shown to have been applied
-  APPLIED           applied in a later run, no outcome with a control yet
-  BENEFIT_OBSERVED / NO_EFFECT_OBSERVED / HARM_OBSERVED   measured applied-vs-control outcome(s) on later runs (counts only, no significance claim)
+A discovery is only ever *derived* into one state (see `status`); no caller can assert "learned" and no model text can make a claim knowledge:
+  MODEL_ASSERTED            a claim without a trusted check behind it. A VERIFICATION without a valid execution receipt (e.g. a worker reporting
+                            verification="verified" or a high ground level) is kept but counts only as model-asserted.
+  INDEPENDENTLY_CHECKED     a trusted execution receipt SUPPORTS it (see `receipt_problem`), no trusted contradiction
+  FALSIFIED / CONTRADICTED  a trusted receipt contradicts it (with / without a trusted support as well; both kept, never deleted)
+  VERIFIED_TASK_IRRELEVANT  independently checked, but not retrievable for the task asked about (status/report with `task=`); the EVAL-002 placebo pool
+  RETRIEVED / APPLIED       retrieved / applied in a later run
+  OUTCOME_MEASURED          applied-vs-control outcome(s) on later runs; `effect` BENEFIT_OBSERVED | NO_EFFECT_OBSERVED | HARM_OBSERVED (counts only, no significance claim)
+Grader verdicts (dataset_key, official_grader) are GRADER_ONLY: kept for analysis, never a state change and never in-study retrieval.
 """
 from __future__ import annotations
 
@@ -24,7 +24,10 @@ import time
 from pathlib import Path
 
 VERIFIERS = {"dataset_key", "executed", "official_grader"}        # independent of the model that made the claim
+GRADERS = {"dataset_key", "official_grader"}                      # grading results: never in-study memory
 KINDS = {"DISCOVERY", "VERIFICATION", "RETRIEVAL", "APPLICATION", "OUTCOME"}
+STATES = ("MODEL_ASSERTED", "INDEPENDENTLY_CHECKED", "FALSIFIED", "CONTRADICTED", "VERIFIED_TASK_IRRELEVANT", "RETRIEVED", "APPLIED", "OUTCOME_MEASURED")
+TRUSTED_TOOLS = ("fs_runtime.CHECKS[", "physalisme:")              # code that executes a check; a model is never one of them
 
 
 def _terms(text: str) -> set[str]:
@@ -32,8 +35,52 @@ def _terms(text: str) -> set[str]:
     return {t for t in re.findall(r"[a-z0-9][a-z0-9.\-]+", (text or "").lower()) if len(t) > 2}
 
 
+def overlap(want: set[str], claim: str) -> float:
+    """Share of the claim's terms found in `want` (THE overlap of retrieval and of the placebo leak guard)."""
+    ct = _terms(claim)
+    return len(want & ct) / max(1, len(ct))
+
+
 def _h(obj) -> str:
     return hashlib.sha256(json.dumps(obj, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def content_sha256(payload) -> str:
+    """sha256 of the executed result; identical to CherryMe tool_evidence.analyze's result_sha256 for a PhysalisMe result."""
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+
+
+def _receipt_id(tool, sha, lineage, ref) -> str:
+    return "XR-" + _h([tool, sha, lineage, ref])[:24]
+
+
+def execution_receipt(tool: str, payload, *, verifier_lineage: str, ref: str | None = None) -> dict:
+    """Issued ONLY by trusted code right after it executed `tool` (a host check, a PhysalisMe tool through the gateway, `ref` = its gateway receipt id).
+    Never built from a model's text or a worker's self-reported fields."""
+    sha = content_sha256(payload)
+    return {"receipt_id": _receipt_id(tool, sha, verifier_lineage, ref), "tool": tool, "executed": True, "content_sha256": sha, "payload": payload,
+            "verifier_lineage": verifier_lineage, "ref": ref}
+
+
+def receipt_problem(receipt, proposer: str | None) -> str | None:
+    """None when `receipt` is a trusted execution receipt for a claim made by `proposer`, else the reason it is not."""
+    if not isinstance(receipt, dict) or receipt.get("payload") is None:
+        return "NO_RECEIPT"
+    if receipt.get("executed") is not True or not str(receipt.get("tool") or "").startswith(TRUSTED_TOOLS):
+        return "UNTRUSTED_TOOL"
+    sha = content_sha256(receipt["payload"])
+    if receipt.get("content_sha256") != sha or receipt.get("receipt_id") != _receipt_id(receipt["tool"], sha, receipt.get("verifier_lineage"), receipt.get("ref")):
+        return "HASH_MISMATCH"
+    lineage = str(receipt.get("verifier_lineage") or "").strip().lower()
+    if not lineage or lineage == str(proposer or "").strip().lower():
+        return "PROPOSER_LINEAGE"
+    return None
+
+
+def _trust(v: dict, d: dict) -> str:
+    if v["verifier"] in GRADERS:
+        return "GRADER_ONLY"
+    return "INDEPENDENT" if receipt_problem(v.get("receipt"), d["proposer"]) is None else "MODEL_ASSERTED"
 
 
 class Ledger:
@@ -107,14 +154,20 @@ class Ledger:
                                     "applicability": applicability, "evidence_ref": evidence_ref, "provenance": provenance or {}})
         return did
 
-    def verify(self, did: str, *, verdict: str, verifier: str, evidence_ref: str) -> None:
-        """verdict SUPPORTS|CONTRADICTS from an independent verifier. A model verifying a model is rejected."""
-        self._known(did)
+    def verify(self, did: str, *, verdict: str, verifier: str, evidence_ref: str, receipt: dict | None = None) -> str:
+        """verdict SUPPORTS|CONTRADICTS. Returns the trust the row carries: INDEPENDENT only with a valid execution receipt from outside the proposer's
+        lineage; without one the row is kept as MODEL_ASSERTED; dataset_key / official_grader rows are GRADER_ONLY. An invalid receipt is rejected."""
+        d = next((r for r in self.rows() if r["kind"] == "DISCOVERY" and r["id"] == did), None)
+        if d is None:
+            raise KeyError(f"unknown discovery {did}")
         if verifier not in VERIFIERS:
             raise ValueError(f"verifier must be one of {sorted(VERIFIERS)}; model agreement is not verification")
         if verdict not in ("SUPPORTS", "CONTRADICTS"):
             raise ValueError("verdict must be SUPPORTS or CONTRADICTS")
-        self._add("VERIFICATION", {"id": did, "verdict": verdict, "verifier": verifier, "evidence_ref": evidence_ref})
+        if receipt is not None and (verifier in GRADERS or (problem := receipt_problem(receipt, d["proposer"]))):
+            raise ValueError(f"RECEIPT_REJECTED: {'a grader verdict takes no execution receipt' if verifier in GRADERS else problem}")
+        row = self._add("VERIFICATION", {"id": did, "verdict": verdict, "verifier": verifier, "evidence_ref": evidence_ref, "receipt": receipt})
+        return _trust(row, d)
 
     def retrieve(self, did: str, *, run: str, task: str) -> None:
         self._known(did)
@@ -141,67 +194,86 @@ class Ledger:
             self._add("OUTCOME", {"id": did, "run": run, "task": task, "reward": float(reward), "control_reward": float(control_reward),
                                   "grader": grader, "control_run": control_run})
 
-    def status(self, did: str) -> dict:
-        rows = [r for r in self.rows() if r.get("id") == did]
-        d = next((r for r in rows if r["kind"] == "DISCOVERY"), None)
+    def _checked(self, rows: list[dict], did: str):
+        """-> (discovery, own rows, trusted SUPPORTS, trusted CONTRADICTS, all VERIFICATION rows) for one discovery."""
+        own = [r for r in rows if r.get("id") == did]
+        d = next((r for r in own if r["kind"] == "DISCOVERY"), None)
         if d is None:
             raise KeyError(did)
-        ver = [r for r in rows if r["kind"] == "VERIFICATION"]
-        sup, con = [r for r in ver if r["verdict"] == "SUPPORTS"], [r for r in ver if r["verdict"] == "CONTRADICTS"]
+        ver = [r for r in own if r["kind"] == "VERIFICATION"]
+        ind = [v for v in ver if _trust(v, d) == "INDEPENDENT"]
+        return d, own, [v for v in ind if v["verdict"] == "SUPPORTS"], [v for v in ind if v["verdict"] == "CONTRADICTS"], ver
+
+    def status(self, did: str, task: str | None = None, run: str = "", task_text: str = "") -> dict:
+        """Derived state. With `task`, an independently checked discovery that `retrievable(task, run, task_text)` would not return is VERIFIED_TASK_IRRELEVANT."""
+        all_rows = self.rows()
+        d, rows, sup, con, ver = self._checked(all_rows, did)
         later = lambda r: r["run"] != d["origin_run"]                                   # reuse only counts in a run other than the one that produced it
         ret = [r for r in rows if r["kind"] == "RETRIEVAL" and later(r)]
         app = [r for r in rows if r["kind"] == "APPLICATION" and later(r)]
         out = [r for r in rows if r["kind"] == "OUTCOME" and later(r)]
-        if not ver:
-            state = "ASSERTED"
-        elif con and not sup:
-            state = "FALSIFIED"
-        elif con and sup:
-            state = "CONTRADICTED"
+        gain = sum(o["reward"] - o["control_reward"] for o in out)
+        if con:
+            state = "CONTRADICTED" if sup else "FALSIFIED"
+        elif not sup:
+            state = "MODEL_ASSERTED"
         elif out:
-            gain = [o["reward"] - o["control_reward"] for o in out]
-            state = "BENEFIT_OBSERVED" if sum(gain) > 0 else "HARM_OBSERVED" if sum(gain) < 0 else "NO_EFFECT_OBSERVED"
+            state = "OUTCOME_MEASURED"
         elif app:
             state = "APPLIED"
         elif ret:
             state = "RETRIEVED"
+        elif task is not None and did not in {i["id"] for i in self.retrievable(task, run, task_text, _rows=all_rows)}:
+            state = "VERIFIED_TASK_IRRELEVANT"
         else:
-            state = "STORED_NOT_REUSED"
+            state = "INDEPENDENTLY_CHECKED"
+        trust = [_trust(v, d) for v in ver]
         return {"id": did, "state": state, "claim": d["claim"], "applicability": d["applicability"], "verifications": len(ver),
+                "independent_checks": trust.count("INDEPENDENT"), "model_asserted_verifications": trust.count("MODEL_ASSERTED"), "grader_only_verifications": trust.count("GRADER_ONLY"),
                 "retrievals": len(ret), "applications": len(app), "outcomes": len(out),
-                "gain_sum": round(sum(o["reward"] - o["control_reward"] for o in out), 6) if out else None}
+                "effect": (("BENEFIT_OBSERVED" if gain > 0 else "HARM_OBSERVED" if gain < 0 else "NO_EFFECT_OBSERVED") if out else None),
+                "control_runs": sorted({o["control_run"] for o in out}), "gain_sum": round(gain, 6) if out else None}
 
-    def retrievable(self, task: str, run: str, task_text: str = "", min_overlap: float = 0.34) -> list[dict]:
-        """Discoveries that may be shown to a LATER episode. Leak guard: no discovery is ever shown to the task it came from (otherwise the applied arm is a memorised-answer arm), and 'same question only'
-        scope is never retrievable; a grading result must not enter a live reasoning context. FALSIFIED/CONTRADICTED/ASSERTED never qualify."""
+    def retrievable(self, task: str, run: str, task_text: str = "", min_overlap: float = 0.34, _rows: list[dict] | None = None) -> list[dict]:
+        """Discoveries that may be shown to a LATER episode: only INDEPENDENTLY_CHECKED ones (a trusted execution receipt; never model-asserted or grader-only),
+        never one with any contradiction. Leak guard: no discovery is ever shown to the task it came from (otherwise the applied arm is a memorised-answer arm), and
+        'same question only' scope is never retrievable; a grading result must not enter a live reasoning context."""
+        rows = self.rows() if _rows is None else _rows
         want = _terms(task_text)
         out = []
-        for did in [r["id"] for r in self.rows() if r["kind"] == "DISCOVERY"]:
-            rows = [r for r in self.rows() if r.get("id") == did]
-            d = next(r for r in rows if r["kind"] == "DISCOVERY")
-            ver = [r for r in rows if r["kind"] == "VERIFICATION"]
-            if not ver or any(v["verdict"] == "CONTRADICTS" for v in ver) or d["origin_run"] == run:
+        for did in [r["id"] for r in rows if r["kind"] == "DISCOVERY"]:
+            d, _own, sup, _con, ver = self._checked(rows, did)
+            if not sup or any(v["verdict"] == "CONTRADICTS" for v in ver) or d["origin_run"] == run:
                 continue
             if d["origin_task"] == task or d["applicability"].lower().startswith("same question"):
                 continue                                                  # never shown to the task it came from (any verifier), and task-bound scope is not transferable
-            if want and len(want & _terms(d["claim"])) / max(1, len(_terms(d["claim"]))) < min_overlap:
+            if want and overlap(want, d["claim"]) < min_overlap:
                 continue
-            out.append({"id": did, "claim": d["claim"], "applicability": d["applicability"], "verifiers": sorted({v["verifier"] for v in ver})})
+            out.append({"id": did, "claim": d["claim"], "applicability": d["applicability"], "verifiers": sorted({v["verifier"] for v in sup}),
+                        "receipts": [v["receipt"]["receipt_id"] for v in sup]})
         return out
 
-    def report(self) -> dict:
-        ids = [r["id"] for r in self.rows() if r["kind"] == "DISCOVERY"]
-        sts = [self.status(i) for i in ids]
-        counts: dict[str, int] = {}
+    def report(self, task: str | None = None, run: str = "", task_text: str = "") -> dict:
+        """Every state of STATES with its count (zeros included), the outcome effects, the trust of every verification row and the grader-only discoveries."""
+        rows = self.rows()
+        ids = [r["id"] for r in rows if r["kind"] == "DISCOVERY"]
+        sts = [self.status(i, task, run, task_text) for i in ids]
+        counts = {s: 0 for s in STATES}
+        effects = {"BENEFIT_OBSERVED": 0, "NO_EFFECT_OBSERVED": 0, "HARM_OBSERVED": 0}
         for s in sts:
-            counts[s["state"]] = counts.get(s["state"], 0) + 1
-        learned = [s["id"] for s in sts if s["state"] == "BENEFIT_OBSERVED"]
-        return {"discoveries": len(ids), "by_state": counts, "organizational_learning_instances": learned, "statuses": sts}
+            counts[s["state"]] += 1
+            if s["effect"]:
+                effects[s["effect"]] += 1
+        trust = {"INDEPENDENT": sum(s["independent_checks"] for s in sts), "MODEL_ASSERTED": sum(s["model_asserted_verifications"] for s in sts),
+                 "GRADER_ONLY": sum(s["grader_only_verifications"] for s in sts)}
+        learned = [s["id"] for s in sts if s["state"] == "OUTCOME_MEASURED" and s["effect"] == "BENEFIT_OBSERVED"]
+        return {"discoveries": len(ids), "by_state": counts, "effects": effects, "verification_trust": trust,
+                "grader_only_discoveries": [s["id"] for s in sts if s["grader_only_verifications"]], "organizational_learning_instances": learned, "statuses": sts}
 
 
 def ingest_episodes(ledger: Ledger, episodes_json: str) -> list[str]:
     """Offline seed from the reconstruction: every genuine-duo episode in which collaboration moved or conceded an answer becomes a DISCOVERY,
-    verified ONLY against the dataset key. Same-lineage (Luna-only) episodes are not collaboration and are skipped. No retrieval/application is invented."""
+    verified ONLY against the dataset key (GRADER_ONLY: analysis data, never in-study memory or retrieval). Same-lineage (Luna-only) episodes are not collaboration and are skipped. No retrieval/application is invented."""
     data = json.loads(Path(episodes_json).read_text())
     ids = []
     for e in data["episodes"]:

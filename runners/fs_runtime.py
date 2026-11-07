@@ -249,7 +249,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
     from peachme.research import ResearchPlan
 
     from ogi013_learning_hook import LearningHook
-    from ogi013_org_discoveries import Ledger
+    from ogi013_org_discoveries import Ledger, execution_receipt
     from ogi013_org_memory import OrangeKnowledgeProjection
 
     summary: dict = {"mode": FIXTURE_LABEL if mode == "offline-fixture" else "OPERATIONAL: real PlumMe supply", "missions": [], "learning": {}}
@@ -313,12 +313,18 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
                                  call_budget=int(mcfg.get("call_budget", 10)), session_budget=mcfg.get("session_budget", {"max_calls": 14, "max_tokens": 120000, "max_cost_usd": 1.0}))
         standing = StandingAuthority(work_ref=work, allowed={"READ": ("physalis_*",)}, max_autonomous_effect="READ")
         hook = LearningHook(learning, run_id=request.mission_id, apply=apply, task=task["id"])
+        receipts: dict = {}                                      # evidence id -> trusted execution receipt, issued here where the check executes
+
+        def checked(candidate, _check=check):
+            res = _check(candidate)
+            receipts[res["evidence_id"]] = execution_receipt(res["source"], {"candidate": candidate, **res}, verifier_lineage="host-executed-check")
+            return res
         tree_path = rdir / "research_tree.jsonl"
         captured: list = []
         plan = ResearchPlan(worker_budget=plan_cfg.get("worker_budget", {"max_calls": 12, "max_tokens": 60000, "max_cost_usd": 0.5}), lsd=bool(plan_cfg.get("lsd", True)),
                             n_solvers=n_solvers, max_rounds=int(plan_cfg.get("max_rounds", 1)), analyses=analyses, registry=registry, authority=standing,
-                            journal_path=str(rdir / "tool_receipts.jsonl"), tree_path=str(tree_path), learning=hook, signature=sig, verifier=check,
-                            after=(lambda tree, **_: captured.extend(hook.capture_tree(task["id"], tree, evidence_ref=str(tree_path.relative_to(out))))) if capture else None)
+                            journal_path=str(rdir / "tool_receipts.jsonl"), tree_path=str(tree_path), learning=hook, signature=sig, verifier=checked if check else None,
+                            after=(lambda tree, **_: captured.extend(hook.capture_tree(task["id"], tree, evidence_ref=str(tree_path.relative_to(out)), receipts=receipts))) if capture else None)
         record = run_mission(rt, authority, request, knowledge_store=knowledge, research=plan)
         (rdir / "mission_record.json").write_text(json.dumps(record, indent=1, default=str))
         receipts_file = rdir / "tool_receipts.jsonl"

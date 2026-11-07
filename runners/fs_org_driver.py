@@ -17,7 +17,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Callable
 
-from ogi013_learning_hook import LearningHook, format_brief
+from ogi013_learning_hook import LearningHook, format_brief, placebo_brief
 from ogi013_org_discoveries import VERIFIERS, Ledger
 
 
@@ -311,25 +311,10 @@ def task_order(task_refs: list[str], seed) -> list[str]:
     return sorted(task_refs, key=lambda t: _h(seed, "task", t))
 
 
-def sham_brief(ledger: Ledger, task: Task, run: str, length: int, seed) -> str:
-    """EVAL-002 sham arm: a brief of the memory brief's form and length made ONLY from independently verified, never-contradicted discoveries of
-    unrelated tasks (true but irrelevant; unverified or falsified items are excluded), never from this task's own discoveries. Read-only (records no retrieval or application). Empty when the pool is."""
-    real = {i["id"] for i in ledger.retrievable(task.task_ref, run, task.prompt)}
-    ver = {}
-    for v in (r for r in ledger.rows() if r["kind"] == "VERIFICATION"):
-        ver.setdefault(v["id"], []).append(v["verdict"])
-    # Clean placebo: only independently SUPPORTED, never contradicted discoveries from unrelated tasks (true but irrelevant), so the sham arm
-    # measures relevance, not susceptibility to misinformation.
-    pool = [r for r in ledger.rows() if r["kind"] == "DISCOVERY" and r["id"] not in real and r["origin_task"] != task.task_ref
-            and "SUPPORTS" in ver.get(r["id"], []) and "CONTRADICTS" not in ver.get(r["id"], [])]
-    pool.sort(key=lambda r: _h(seed, task.task_ref, r["id"]))
-    if not pool or length <= 0:
-        return ""
-    items, text = [], ""
-    while len(text) < length:                                # cycles the pool when it is shorter than the memory brief
-        items.append(pool[len(items) % len(pool)])
-        text = format_brief(items)
-    return text[:length]                                     # exact character-length match
+def sham_brief(ledger: Ledger, task: Task, run: str, length: int, seed, n_items: int = 3) -> dict:
+    """EVAL-002 sham arm: ogi013_learning_hook.placebo_brief (INDEPENDENTLY_CHECKED, never-contradicted, leak-checked discoveries of unrelated tasks, same
+    formatter, item count and length as the memory brief). -> {"text", "ids", "items", "chars", ...}. Read-only."""
+    return placebo_brief(ledger, task.task_ref, run, task.prompt, length=length, n_items=n_items, seed=seed)
 
 
 def run_pair(task: Task, *, work, ledger: Ledger, tag: str, projection=None, results=None, sham: bool = False, seed=None, roster: dict | None = None,
@@ -345,8 +330,9 @@ def run_pair(task: Task, *, work, ledger: Ledger, tag: str, projection=None, res
     prompts: dict[str, list] = {a: [] for a in arms}
     hooks = {a: LearningHook(ledger, run_id=f"{tag}:{a}", apply=a == "applied") for a in arms}
     hook = hooks["applied"]
-    fixed = {"sham": sham_brief(ledger, task, hook.run_id, len(format_brief(ledger.retrievable(task.task_ref, hook.run_id, task.prompt)[: hook.max_items])),
-                                seed)} if sham else {}
+    real = ledger.retrievable(task.task_ref, hook.run_id, task.prompt)[: hook.max_items]
+    placebo = sham_brief(ledger, task, hook.run_id, len(format_brief(real)), seed, n_items=len(real)) if sham else None
+    fixed = {"sham": placebo["text"]} if sham else {}
 
     def recording(arm):
         def w(prompt, stage, **kw):
@@ -354,6 +340,10 @@ def run_pair(task: Task, *, work, ledger: Ledger, tag: str, projection=None, res
             return work(prompt, stage, **kw)
         return w
     rows = {a: run_episode(task, work=recording(a), hook=hooks[a], arm=a, brief=fixed.get(a), roster=roster, specialist=specialist) for a in arms}
+    for a in arms:                                         # presentation parity, recorded in every row
+        rows[a]["brief_items"] = placebo["items"] if a == "sham" else len(rows[a]["retrieved"])
+    if sham:
+        rows["sham"]["sham_brief"] = {k: v for k, v in placebo.items() if k != "text"}
     ctl, app = rows["control"], rows["applied"]
     for row in rows.values():
         grade_after(row, task)
