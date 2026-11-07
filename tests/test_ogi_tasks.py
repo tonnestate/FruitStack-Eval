@@ -14,6 +14,18 @@ TEST_SRC = "import unittest\nclass TestCases(unittest.TestCase):\n" + "".join(
 SOLUTION = "```python\ndef task_func(x):\n    return x * x\n```"
 
 
+def suite_src(n):
+    return "import unittest\nclass TestCases(unittest.TestCase):\n" + "".join(
+        f"    def test_case_{k}(self):\n        self.assertEqual(task_func({k}), {k * k})\n" for k in range(n))
+
+
+@pytest.fixture(autouse=True)
+def fixtures_eligible(monkeypatch):
+    """Fixture tasks are not in eligibility.json; mark them ELIGIBLE so confirmatory grading (the default) runs."""
+    for tid in ("Fixture/1", "Fixture/2", "Fixture/raises"):
+        monkeypatch.setitem(T.ELIGIBILITY, tid, {"status": "ELIGIBLE", "reason": None})
+
+
 def code_row(task_id="Fixture/1", test=TEST_SRC):
     return {"task_id": task_id, "instruct_prompt": "Write task_func(x) returning the square of x.", "test": test,
             "entry_point": "task_func", "canonical_solution": "    return x * x\n", "code_prompt": "def task_func(x):\n"}
@@ -85,9 +97,10 @@ def test_code_grader_uses_hidden_tests():
 
 
 def test_code_grader_times_out_and_limits_memory():
+    t = T.make_task("code", code_row("Fixture/2", suite_src(2)))
+    slow = T.grade(t, "def task_func(x):\n    while True: pass\n", timeout=2)
+    assert slow["evidence"]["timeout"] and not slow["correct"] and slow["grade"] == "ERROR"
     t = T.make_task("code", code_row())
-    slow = T.grade(t, "def task_func(x):\n    while True: pass\n", timeout=3)
-    assert slow["evidence"]["timeout"] and not slow["correct"]
     hog = T.grade(t, "b = bytearray(8 << 30)\ndef task_func(x):\n    return x * x\n", mem_mb=1024)
     assert not hog["correct"] and hog["evidence"]["load_error"] == "MemoryError"
 
@@ -135,10 +148,44 @@ def test_math_selector_plurality_ties_earliest():
 
 
 def test_sandbox_fails_closed_without_bwrap(monkeypatch):
-    import shutil as _sh
-    import pytest
-    from runners.ogi_tasks import sandbox
-    monkeypatch.setattr(_sh, "which", lambda name: None)
+    monkeypatch.setattr(shutil, "which", lambda name: None)
     monkeypatch.delenv("OGI_ALLOW_UNSANDBOXED", raising=False)
     with pytest.raises(RuntimeError, match="SANDBOX_UNAVAILABLE"):
         sandbox.run_python({"a.py": "print(1)"}, ["a.py"])
+    t = T.make_task("code", code_row())
+    with pytest.raises(RuntimeError, match="SANDBOX_UNAVAILABLE"):
+        T.grade(t, SOLUTION, mode="dev")
+
+
+def test_confirmatory_ignores_allow_unsandboxed_and_dev_rows_say_so(monkeypatch):
+    t = T.make_task("code", code_row())
+    monkeypatch.setattr(shutil, "which", lambda name: None)
+    monkeypatch.setenv("OGI_ALLOW_UNSANDBOXED", "1")
+    with pytest.raises(RuntimeError, match="SANDBOX_UNAVAILABLE: confirmatory"):
+        T.grade(t, SOLUTION)
+    with pytest.raises(ValueError, match="mode"):
+        T.grade(t, SOLUTION, mode="lenient")
+    dev = T.grade(t, SOLUTION, mode="dev")             # allowed, and the row is marked as dev
+    assert dev["mode"] == "dev" and dev["correct"]
+
+
+def test_ineligible_tasks_are_excluded_from_confirmatory_not_graded(monkeypatch):
+    t = T.make_task("code", code_row("Fixture/unlisted"))
+    r = T.grade(t, SOLUTION)
+    assert r["correct"] is None and r["grade"] == "INELIGIBLE_CONFIRMATORY" and r["evidence"]["reason"] == "NOT_CLASSIFIED"
+    monkeypatch.setitem(T.ELIGIBILITY, t.id, {"status": "INELIGIBLE_CONFIRMATORY", "reason": "IN_PROCESS_MOCK_PATCH"})
+    assert T.grade(t, SOLUTION)["evidence"]["reason"] == "IN_PROCESS_MOCK_PATCH"
+    assert T.grade(t, SOLUTION, mode="dev")["correct"] is True
+
+
+@pytest.mark.parametrize("test_src,reason", [
+    ("from unittest.mock import patch\nclass T(unittest.TestCase):\n    @patch('m.f')\n    def test_a(self, f): pass", "IN_PROCESS_MOCK_PATCH"),
+    ("import os\nclass T(unittest.TestCase):\n    def test_a(self): os.makedirs('x')", "FILESYSTEM_SIDE_EFFECTS_INSPECTED_IN_PROCESS"),
+    ("class T(unittest.TestCase):\n    def test_a(self):\n        with open('f') as f: pass", "FILESYSTEM_SIDE_EFFECTS_INSPECTED_IN_PROCESS"),
+    ("import sys\nclass T(unittest.TestCase):\n    def test_a(self): sys.stdout.getvalue()", "IN_PROCESS_STREAM_CAPTURE"),
+    ("from faker import Faker\nclass T(unittest.TestCase):\n    def test_a(self): pass", "UNDECLARED_TEST_DEPENDENCY:faker"),
+    ("import zzz_not_installed\nclass T(unittest.TestCase):\n    def test_a(self): pass", "DEPENDENCY_UNAVAILABLE_IN_GRADER_ENV:zzz_not_installed"),
+    ("class T(unittest.TestCase):\n    def test_a(self): self.assertEqual(task_func(2), 4)", None)])
+def test_static_eligibility_rules(test_src, reason):
+    assert code.ineligibility([], "import unittest\n" + test_src, "", frozenset({"zzz_not_installed"})
+                              if "zzz" in test_src else frozenset()) == reason
