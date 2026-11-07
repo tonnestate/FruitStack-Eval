@@ -19,16 +19,16 @@ Does FruitStack's **organization** add capability beyond what the same models pr
 - Internal precedent: in S1, 12 of 16 "multi-model" episodes were Luna twice, and the controller changed answers by registration order. That defect motivates the identity and selector rules in §4 and §6.
 
 ## 3. Arms
-M = 3 members with pairwise distinct `independence_key` values, pinned at lock. With fewer than 3 qualified lineages, M = 2 is used and the reduction is reported.
+M = 3 solver members plus one declared **specialist** member, all with pairwise distinct `independence_key` values, pinned at lock as ONE roster that is the same for every multi-model arm (T, E_div, G_mas; decision in §6). With fewer than 4 qualified lineages, M = 2 solvers + specialist is used and the reduction is reported. S_m and R_mono draw their single member from this roster; the specialist member is one of the S_m.
 
 | arm | definition | runner (offline-tested) |
 |---|---|---|
 | S_1..S_M | each member alone, one draft (with the shared tool loop, §4) | `run_samples(arm="S", roster={m: lineage}, cycle=[m], k=1)` |
 | R_mono | one pinned member (the best on a *disjoint* dev set, chosen at lock), repeated independent drafts at T's token budget, uniform selector | `run_samples(arm="R_mono", roster={pin: lineage}, cycle=[pin], k, token_budget)` |
-| E_div | the same model mix as T: independent drafts round-robin over the members, at T's token budget, with no critique, exchange or revision, and the uniform selector (**diversity-only control**) | `run_samples(arm="E_div", roster=T's roster, cycle=list(roster), k, token_budget)` |
-| G_multi | **generic multi-agent control**: a lead/orchestrator plus parallel workers and central synthesis, with the same model mix, tokens and tools. It has no FruitStack mechanisms: no Brother Mode adversarial critique or evidence-based revision, no AppleMe, Research Tree, LSD room or persistent memory. Uniform selector over the synthesized candidates | **not built** (follow-up; required before G_multi hypotheses are locked) |
+| E_div | the same model mix as T: independent drafts round-robin over all roster members (specialist included), at T's token budget, with no critique, exchange or revision, and the uniform selector (**diversity-only control**) | `run_samples(arm="E_div", roster=T's roster, cycle=list(roster), k, token_budget, specialist=...)` |
+| G_mas | **generic multi-agent control** (Anthropic orchestrator-worker pattern): the lead (a roster member, default the first) writes a brief; workers solve independently from T's solve prompt with that brief in its `{brief}` slot, round-robin over the roster, none sees another's work; the lead synthesizes. Same roster, token budget (one call reserved for the synthesis: a worker is drawn only while spent + 2 × mean call ≤ budget; without token counts lead + workers + synthesis = k), tools and visible checks. No Brother Mode critique or revision, no specialist, no AppleMe, Research Tree, LSD room or memory. Uniform selector over the workers' drafts plus the synthesis | `run_multi(roster=T's roster, cycle=list(roster), k, token_budget, specialist=...)` |
 | T | the organized team: CherryMe Brother Mode, blind parallel first answers, cross-lineage critique backed by executed checks, revision, uniform selector | `run_episode(arm="T", roster=...)` |
-| EVAL-002 arms | memory / no-memory / sham-brief (§7) | `run_pair` (memory and no-memory); sham-brief is a follow-up |
+| EVAL-002 arms | memory / no-memory / sham-brief, seeded arm and task order (§7) | `run_pair(sham=True, seed)`, `run_transfer(seed)` |
 
 Ablations (component attribution, one mechanism per study; full factorial is unaffordable on free supply):
 - **T−exec**: critique without executed evidence. Tests whether evidence-based critique matters, or only persuasion. Planned first.
@@ -66,7 +66,11 @@ Validity is enforced in code, not only recorded. `fs_org_driver.identity_check` 
 
 `split_valid` excludes invalid rows and keeps them with their reason. Those rows count as infrastructure failures under the package's §8 rule (C1–C5, pause above 10%).
 
-Note: Brother Mode's specialist tie-break asks a lineage that none of the solvers used. With a roster of M = solver count, that call falls outside the roster and the row is excluded. At lock, either the specialist lineage is a declared roster member for every arm, or the specialist step is disabled through `control`.
+**Specialist decision (coordinator default, 2026-11-07).** Brother Mode's specialist tie-break asks a lineage that none of the solvers used. That lineage is a **declared member of the same roster for every arm**, so every arm has the identical model mix and the team gets no extra model. In code (`identity_check(..., roles={"specialist": member})`, `run_episode/run_samples/run_multi(specialist=...)`):
+- the specialist call is routed to the declared member (`metered` sets `prefer`); a successful specialist call from any other lineage is `ROLE_MISMATCH`;
+- the specialist lineage is optional for the solve calls: a T row that never needs the tie-break, or a control that never calls it, stays valid; every other declared lineage must still be realised;
+- an undeclared specialist (the old roster = solvers only) stays `LINEAGE_OUTSIDE_ROSTER`.
+- G_mas: the lead's brief and synthesis calls must come from the declared lead member (`ROLE_MISMATCH` otherwise).
 
 ## 7. Hypotheses
 Each family uses exact two-sided conditional McNemar with Holm, the intersection-union test for "beats every member", and the two-family rule, as in `evidence/ogi-study-package/PREREG_DRAFT.md` §6.
@@ -75,16 +79,16 @@ Each family uses exact two-sided conditional McNemar with Holm, the intersection
 - **H1 (primary): T vs E_div at matched tokens**, the organizational effect over diversity.
 - H2: T vs best single member. T must beat the **best** S_m at matched tokens, through the intersection-union test over all S_m and against R_mono, not the average member. This is the "better individual model" explanation.
 - H3 (secondary): E_div vs R_mono (diversity effect). R_mono vs best S_m (compute / repeated-sampling effect).
-- H4 (after G_multi exists): G_multi vs E_div (generic multi-agent organization) and T vs G_multi (FruitStack-specific mechanisms).
+- H4: G_mas vs E_div (generic multi-agent organization) and T vs G_mas (FruitStack-specific mechanisms).
 - Secondary analysis: a logistic model of correctness on arm plus log(tokens), or the accuracy-vs-tokens curves, as a token-covariate check of H1.
 
 **EVAL-002 (organizational learning).** Seeding is done by A's discovery, verified by an executed check:
 - `capture_brother` now passes the executed ground. Verification by a *different* lineage or by a grader on another seed task is the stronger rule and is preferred at lock.
-- Three arms per transfer task:
-  - **memory**: the verified brief is applied.
+- Three arms per transfer task (`run_pair(sham=True, seed)`):
+  - **memory**: verified discoveries retrieved for the task (LearningHook / `Ledger.retrievable`) are applied as the brief.
   - **no-memory**: no brief.
-  - **sham-brief**: a verified but non-applicable discovery of equal length.
-- **Arm order per task is randomized** by sha256(task_ref, lock salt).
+  - **sham-brief** (`sham_brief`): the same form and the same character length as the memory brief, built only from discoveries that are not retrievable as verified knowledge for this task (unverified, falsified, or verified for unrelated tasks) and never from the task's own discoveries; the pool is cycled when shorter. It records no retrieval or application. When the memory brief is empty, the sham is empty.
+- **Arm order per task** is a permutation fixed by sha256(seed, task_ref, arm); **task order** is `task_order(seed)` = sort by sha256(seed, task_ref). Both are recorded in every result row. The seed is the lock salt.
 - Eligibility is locked before any transfer run. If fewer than 120 pairs are eligible, the study stops with a report.
 - Hypotheses: memory > no-memory, and memory > sham.
 
@@ -108,7 +112,7 @@ The grader is read only after the episode. Hidden tests, keys and expected state
 - Power: `evidence/ogi-study-package/power.py` gives n = n_for(p_d, π = 0.75, α, 0.8) for exact McNemar. p_d is **not assumed**: it is measured by the pilot.
 - **Pilot OGI-STUDY-0** (descriptive, no confirmatory claim):
   - Tasks: 40 code-debugging/BigCodeBench-Hard and 40 MATH-500 L5 items, disjoint from every OGI-013 task and from the later confirmatory draw.
-  - Arms: S_1..3, R_mono, E_div, T (all under §4).
+  - Arms: S_1..S_M and S_specialist, R_mono, E_div, G_mas, T (all under §4). G_mas is not in the §11 estimate (about one more E_div-sized arm).
   - Outputs:
     - p_d for T vs E_div per family;
     - infrastructure share by arm;
@@ -131,7 +135,7 @@ Before the first call, the lock fixes:
 - task id lists and their hashes;
 - dataset revisions and licenses;
 - the visible/hidden split;
-- the roster with each member's `independence_key`;
+- the roster with each member's `independence_key`, the specialist member and the G_mas lead;
 - the R_mono pin and its dev-set evidence;
 - the prompt template sha256;
 - the `fs_org_driver.py` sha256 and the analysis + PhysalisMe script hashes;
@@ -141,8 +145,6 @@ Before the first call, the lock fixes:
 The lock follows the approval-by-hash rule and the DIRTY_SOURCE refusal.
 
 ## 13. Open prerequisites (not built in this change)
-- G_multi runner;
-- the sham-brief arm and randomized EVAL-002 order in `run_pair`;
 - the T−exec switch;
 - dataset adapters and the visible/hidden split;
 - the analysis script and the PhysalisMe cross-check;
