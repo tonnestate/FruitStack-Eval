@@ -204,3 +204,55 @@ def test_operational_supply_needs_n_solvers_distinct_qualified_lineages(env, tmp
     assert (a["state"], a["error_code"]) == ("NOT_STARTED", "SUPPLY_UNAVAILABLE")
     assert a["shortage"]["qualified_lineages"] == 1 and a["shortage"]["shortfall"] == 1 and "work_ref" not in a
     assert fr.exit_code(summary) == 2
+
+
+# ---- review findings on PR #15: "recovered" needs a replacement's success in the same stage; uncertain spend on a route that can bill is never recovered ----
+def _with(*evs):
+    rec = _record()
+    rec["events"] += [dict(e) for e in evs]
+    return fr.success_contract(rec, analyses=0, check=False, receipts=0)
+
+
+FAIL = {"type": "RESEARCH_STEP_FAILED", "stage": "solve", "error_code": "EXECUTION_OUTPUT_UNUSABLE_SEMANTIC_OUTPUT_FAILURE"}
+RETIRED = {"type": "RESEARCH_WORKER_RETIRED", "lineage": "dots", "reason": "EXECUTION_OUTPUT_UNUSABLE_SEMANTIC_OUTPUT_FAILURE"}
+
+
+def test_a_failure_is_recovered_only_by_a_replacement_success_in_the_same_stage():
+    ok = _with(FAIL, RETIRED, {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "gpt", "success": True})
+    assert ok["integration_path_ok"] and ok["worker_failures_recovered"] == 1
+    for later in ({"type": "RESEARCH_STEP", "stage": "challenge", "lineage": "gpt", "success": True},      # other stage
+                  {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "gpt", "success": False},         # replacement failed too
+                  {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "dots", "success": True}):        # not a replacement
+        c = _with(FAIL, RETIRED, later)
+        assert not c["integration_path_ok"] and c["worker_failures_recovered"] == 0, later
+    assert not _with(FAIL, RETIRED)["integration_path_ok"]
+    lsd = {**FAIL, "stage": "lsd:psychedelic_researcher"}                                               # LSD personas are one stage: another persona's success recovers it
+    assert _with(lsd, RETIRED, {"type": "RESEARCH_STEP", "stage": "lsd:worst_mathematician", "lineage": "gpt", "success": True})["integration_path_ok"]
+
+
+def test_uncertain_spend_on_a_route_that_can_bill_is_never_recovered():
+    replaced = ({"type": "RESEARCH_WORKER_RETIRED", "lineage": "qwen"}, {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "gpt", "success": True})
+    unsettled = {"type": "RESEARCH_STEP_FAILED", "stage": "solve", "error_code": "EXECUTION_NOT_CONFIRMED_TIMEOUT"}
+    assert not _with(unsettled, *replaced)["integration_path_ok"]
+    settled = {**unsettled, "settled": "ZERO_CHARGE_CLASS"}                                             # PeachMe settled it under the egress-route cost-class rule
+    assert _with(settled, *replaced)["integration_path_ok"]
+    halted = _with({"type": "RESEARCH_STEP_FAILED", "stage": "solve", "error_code": "UNCERTAIN_CHARGEABLE"}, {"type": "RESEARCH_HALTED", "reason": "UNCERTAIN_CHARGEABLE"})
+    assert not halted["integration_path_ok"] and "failed:RESEARCH_HALTED" in halted["integration_problems"]
+
+
+def test_supply_check_reads_the_same_effective_worker_budget_as_the_plan(env, tmp_path):
+    seen = []
+
+    class Svc:
+        def adapter_readiness(self):
+            return {"discovery_completed": True, "entries": []}
+
+        def workforce_supply(self, role, count, max_cost_usd=None):
+            seen.append(max_cost_usd)
+            return {"qualified": 0, "proven": 0, "lineages": {}}
+
+    cfg = fr.load_config(CONFIG)
+    cfg["tasks"] = cfg["tasks"][:1]
+    cfg.setdefault("plan", {}).pop("worker_budget", None)
+    fr.run(cfg, tmp_path / "out", "operational", service_factory=Svc)
+    assert seen == [fr.DEFAULT_WORKER_BUDGET["max_cost_usd"]]
