@@ -24,7 +24,7 @@ def sig(text):
     return None
 
 
-def scripted(seen, *, l_first="7", n_first="9", n_critique=True, l_concedes=True):
+def scripted(seen, *, l_first="7", n_first="9", n_critique=True, l_concedes=True, verification=None):
     """Lineage L (luna) solves first; N (nemotron) solves second; each challenge comes from the other lineage; a revision goes back to its author."""
     def work(prompt, stage, prefer=None, exclude=()):
         seen.append((stage, prompt))
@@ -33,7 +33,8 @@ def scripted(seen, *, l_first="7", n_first="9", n_critique=True, l_concedes=True
             return ok(other, f"ANSWER: {l_first if other == 'L' else n_first}")
         if stage == "challenge":
             if other == "N" and n_critique:
-                return ok("N", "ISSUES: FOUND\nCLAIM: summing the even terms twice overcounts the series\nEVIDENCE: recount\nANSWER: 9")
+                return {**ok("N", "ISSUES: FOUND\nCLAIM: summing the even terms twice overcounts the series\nEVIDENCE: recount\nANSWER: 9"),
+                        **({"verification": verification} if verification else {})}
             return ok(other, "ISSUES: NONE")
         if stage == "revise":
             who = "L" if prefer == "L-model" else "N"
@@ -72,6 +73,21 @@ def test_brother_episode_captures_a_critique_that_changed_the_answer_as_an_unver
     assert ids and all(led.status(i)["state"] == "ASSERTED" for i in ids)              # a model's critique is never knowledge by itself
     row = next(r for r in led.rows() if r["kind"] == "DISCOVERY")
     assert row["proposer"] == "nemotron" and "overcounts" in row["claim"]
+
+
+def test_a_critique_backed_by_an_executed_check_becomes_a_verified_retrievable_discovery(tmp_path):
+    """EVAL-002 defect: capture_brother passed ground={'level': ...} only, so LearningHook (which needs argument.executed) never verified a Brother Mode discovery."""
+    led = Ledger(tmp_path / "l.jsonl")
+    out = run_episode(Task("t1", "Sum of the series?", sig, lambda a: 0.0, "executed"), work=scripted([], verification="verified"),
+                      hook=LearningHook(led, run_id="R1"), arm="T")
+    ids = out["captured"]
+    assert ids and all(led.status(i)["state"] == "STORED_NOT_REUSED" for i in ids)                   # verified, not yet reused
+    assert {r["verifier"] for r in led.rows() if r["kind"] == "VERIFICATION"} == {"executed"}
+    assert led.retrievable("t-other", "R2", "series summation with even terms overcounts")         # reusable on a later task by another run
+    led2 = Ledger(tmp_path / "l2.jsonl")                                                             # model-asserted critique: still never knowledge
+    ids2 = run_episode(Task("t1", "Sum?", sig, lambda a: 0.0, "executed"), work=scripted([], verification="model_asserted"),
+                       hook=LearningHook(led2, run_id="R1"), arm="T")["captured"]
+    assert ids2 and all(led2.status(i)["state"] == "ASSERTED" for i in ids2)
 
 
 def test_pair_reuses_verified_knowledge_in_the_applied_arm_only_and_records_the_outcome_against_control(tmp_path, monkeypatch, orange):

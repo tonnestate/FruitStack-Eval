@@ -33,8 +33,22 @@ def _lineage(row) -> str | None:
     return (getattr(row, "identity", None) or {}).get("independence_key")
 
 
+def critique_ground(detail: dict | None) -> dict:
+    """Brother Mode critique host facts -> objection ground in the LearningHook vocabulary. CherryMe's own mapping (appleme_bridge.critique_level) decides the level;
+    `verification == "verified"` means the critic's check was EXECUTED (ogi013 level `reproduced`). Only an executed check sets argument.executed, so a model-asserted or
+    merely 'independent' critique stays ASSERTED (EVAL-002 defect: the ground used to carry the level only, and LearningHook never verified anything)."""
+    from cherryme.appleme_bridge import critique_level
+    d = detail or {}
+    executed = d.get("verification") == "verified"
+    level = {"executed": "reproduced"}.get(critique_level(d), critique_level(d))
+    if level == "none":
+        level = d.get("verification") or "model_asserted"
+    return {"level": level, "argument": {"executed": executed, "source": "cherryme.brother critique verification"}}
+
+
 def capture_brother(hook: LearningHook, task_ref: str, rows, signature) -> list[str]:
-    """A CRITIQUE from a DIFFERENT lineage that a later REVISION answered with a changed answer is a candidate discovery (ASSERTED). Same-lineage critique is ignored."""
+    """A CRITIQUE from a DIFFERENT lineage that a later REVISION answered with a changed answer is a candidate discovery (ASSERTED; VERIFIED only when the critique was backed
+    by an executed check, see critique_ground). Same-lineage critique is ignored."""
     by_id = {r.id: r for r in rows}
     objections = []
     for rev in (r for r in rows if r.kind == "REVISION"):
@@ -45,7 +59,7 @@ def capture_brother(hook: LearningHook, task_ref: str, rows, signature) -> list[
                 continue
             if signature(rev.answer_text) != signature(before.answer_text):
                 objections.append({"id": crit.id, "state": "ACCEPTED", "lineage": _lineage(crit), "target": before.id, "text": crit.answer_text or "",
-                                   "ground": {"level": (crit.detail or {}).get("verification") or "model_asserted"}})
+                                   "ground": critique_ground(crit.detail)})
     if not objections:
         return []
     ids = {r.worker: {"model": r.worker, "lineage": _lineage(r), "receipt": r.receipt} for r in rows if r.kind == "SOLUTION"}
