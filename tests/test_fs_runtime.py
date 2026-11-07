@@ -29,11 +29,13 @@ def test_executed_checks_run_the_candidate():
         assert fr.exact_isqrt(unsafe)["relation"] == "CONTRADICTS"           # only callables of the math module are ever executed
 
 
-def _record(state="UNRESOLVED", drop=(), extra=(), statuses=("SUPPORTED",)):
+def _record(state="UNRESOLVED", drop=(), extra=(), statuses=("SUPPORTED",), verdict="SUPPORTS"):
     events = [{"type": t} for t in fr.REQUIRED_EVENTS + ("TOOL_EVIDENCE", "CANDIDATE_VERIFIED", "RESEARCH_STEP") if t not in drop] + [{"type": t} for t in extra]
     for e in events:
         if e["type"] == "STATE_RETURNED":
             e["mangome"] = {"checkpoint_id": "CP-1"}
+        if e["type"] == "CANDIDATE_VERIFIED":
+            e["relation"] = verdict                  # PeachMe research.py emits the verifier verdict as `relation`
     return {"state": state, "events": events, "findings": [{"status": s} for s in statuses]}
 
 
@@ -43,6 +45,14 @@ def test_unresolved_is_a_valid_integration_path_but_never_success():
     assert fr.success_contract(_record("COMPLETED"), analyses=1, check=True, receipts=1)["mission_success"]
     assert not fr.success_contract(_record("COMPLETED", statuses=("REFUTED",)), analyses=1, check=True, receipts=1)["mission_success"]   # settled, but no verified answer
     assert not fr.success_contract(_record("COMPLETED", statuses=()), analyses=1, check=True, receipts=1)["mission_success"]
+
+
+def test_mission_success_requires_the_workers_candidate_verified_supports():
+    # all findings SUPPORTED, but the workers' candidate answer was CONTRADICTED by the verifier: not a success
+    wrong = fr.success_contract(_record("COMPLETED", verdict="CONTRADICTS"), analyses=1, check=True, receipts=1)
+    assert wrong["candidate_verdict"] == "CONTRADICTS" and not wrong["mission_success"]
+    right = fr.success_contract(_record("COMPLETED", verdict="SUPPORTS"), analyses=1, check=True, receipts=1)
+    assert right["candidate_verdict"] == "SUPPORTS" and right["mission_success"]
 
 
 def test_executed_check_tool_runs_the_candidate_the_claim_names():
