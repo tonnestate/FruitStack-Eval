@@ -21,7 +21,12 @@ from functools import lru_cache
 import numpy as np
 from scipy.stats import beta, binomtest
 
-ROLES = {"team": "T", "same_mix": "E", "generic": "G", "single_prefix": "S_"}
+ROLES = {"team": "T", "same_mix": "E", "generic": "G", "single_prefix": "S_",
+         "mono": "R_mono", "gmas": "G_mas"}
+# Arm names of the real study rows (runners/fs_org_driver.py); see ogi_rows_adapter.py.
+STUDY_ROLES = {"team": "T", "same_mix": "E_div", "mono": "R_mono", "gmas": "G_mas"}
+# One Holm family per task family holds every contrast below. PRIMARY (the single confirmatory
+# hypothesis) is "primary:T_vs_E" = team vs E_div (same-mix diversity control); all others are secondary.
 TOKEN_BAND = 0.10
 
 
@@ -59,9 +64,11 @@ def split_valid(rows: list[dict]) -> tuple[list[dict], dict]:
     ok = [r for r in rows if r.get("valid", True)]
     bad = [r for r in rows if not r.get("valid", True)]
     by_arm: dict[str, int] = defaultdict(int)
+    reasons: dict[str, int] = defaultdict(int)
     for r in bad:
         by_arm[r["arm"]] += 1
-    return ok, {"n_excluded": len(bad), "by_arm": dict(by_arm),
+        reasons[r.get("exclusion") or "UNSPECIFIED"] += 1
+    return ok, {"n_excluded": len(bad), "by_arm": dict(by_arm), "by_reason": dict(reasons),
                 "task_ids": sorted({r["task_id"] for r in bad})}
 
 
@@ -99,20 +106,30 @@ def paired(idx: dict, a: str, b: str, band: float | None = None) -> dict:
 # ---------- contrasts per family ----------
 def contrasts(idx: dict, roles: dict, best_single: str | None, band: float | None = None) -> dict:
     T, E, G = roles["team"], roles["same_mix"], roles["generic"]
+    R, M = roles["mono"], roles["gmas"]
     singles = sorted(a for a in idx if a.startswith(roles["single_prefix"]))
     tests: dict[str, dict] = {}
+    if singles and best_single is None:  # post hoc: optimistic for the comparator, flagged below
+        best_single = max(singles, key=lambda s: sum(r["correct"] for r in idx[s].values()) / max(1, len(idx[s])))
+        posthoc = True
+    else:
+        posthoc = False
     if E in idx:
         tests["primary:T_vs_E"] = paired(idx, T, E, band)
     if G in idx and E in idx:
         tests["secondary:G_vs_E"] = paired(idx, G, E, band)
     if G in idx:
         tests["secondary:T_vs_G"] = paired(idx, T, G, band)
+    if R in idx and E in idx:  # H3: does diversity beat repeated sampling at matched compute?
+        tests["secondary:H3_E_vs_R_mono"] = paired(idx, E, R, band)
+    if R in idx and singles:   # H3: does repeated sampling beat the best single member?
+        tests["secondary:H3_R_mono_vs_best_single"] = {**paired(idx, R, best_single, band),
+                                                      "best_single": best_single, "best_single_posthoc": posthoc}
+    if M in idx and E in idx:
+        tests["secondary:G_mas_vs_E"] = paired(idx, M, E, band)
+    if M in idx:
+        tests["secondary:T_vs_G_mas"] = paired(idx, T, M, band)
     if singles:
-        if best_single is None:  # post hoc: optimistic for the comparator, flagged below
-            best_single = max(singles, key=lambda s: sum(r["correct"] for r in idx[s].values()) / max(1, len(idx[s])))
-            posthoc = True
-        else:
-            posthoc = False
         tests["secondary:T_vs_best_single"] = {**paired(idx, T, best_single, band),
                                                "best_single": best_single, "best_single_posthoc": posthoc}
         # intersection-union: reject only if every T-vs-single test rejects in T's favour
