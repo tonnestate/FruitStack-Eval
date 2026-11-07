@@ -46,6 +46,34 @@ def estimate(rows: dict, sel: dict, arm: str, worst: bool) -> dict:
             "ci95_conservative": [round(f(rl, hu), 4), round(f(ru, hl), 4)], "luna_alone": round(POP_LUNA_OK / POP_N, 4)}
 
 
+def classify_t_row(row: dict) -> dict:
+    """Offline validity classification of a stored S1 T row (corrected protocol 2026-11-07; original verdict untouched).
+    cooperation: INFRA_FAILED | LUNA_ONLY_DUPLICATION (no nemotron position, or one lineage twice) | GENUINE_LUNA_NEMOTRON (both lineages submitted a first answer).
+    controller: CONSENSUS | VERIFIED_OBJECTION | PROVISIONAL_UNVERIFIED (weights / formal concession chose among unverified candidates) | NONE."""
+    if row.get("status") != "OK":
+        return {"cooperation": "INFRA_FAILED", "controller": "NONE", "valid_duo": False}
+    lins = list((row.get("lineages") or {}).get("positions", {}).values())
+    fin = list((row.get("final_positions") or {}).keys())
+    luna_twice = sum(1 for m in fin if str(m).startswith("gpt-6-luna")) >= 2
+    genuine = "luna" in lins and "nemotron" in lins and not luna_twice
+    rule = (row.get("loop_closing") or {}).get("rule")
+    ctl = {"CONSENSUS": "CONSENSUS", "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION": "VERIFIED_OBJECTION"}.get(rule, "PROVISIONAL_UNVERIFIED" if rule else "NONE")
+    return {"cooperation": "GENUINE_LUNA_NEMOTRON" if genuine else "LUNA_ONLY_DUPLICATION", "controller": ctl, "valid_duo": genuine, "luna_twice_in_final_positions": luna_twice}
+
+
+def reclassify(rows: list, sel: dict) -> dict:
+    out = []
+    for r in rows:
+        if r["arm"] != "T":
+            continue
+        c = classify_t_row(r)
+        out.append({"qid": r["qid"], "stratum": "W" if r["qid"] in sel["W"] else "R", "correct": r["correct"], "letter": r.get("letter"), **c})
+    tally = {k: sum(1 for x in out if x["cooperation"] == k) for k in ("GENUINE_LUNA_NEMOTRON", "LUNA_ONLY_DUPLICATION", "INFRA_FAILED")}
+    ctl = {k: sum(1 for x in out if x["controller"] == k) for k in ("CONSENSUS", "VERIFIED_OBJECTION", "PROVISIONAL_UNVERIFIED", "NONE")}
+    return {"rows": out, "cooperation_tally": tally, "controller_tally": ctl, "luna_twice_rows": sum(1 for x in out if x.get("luna_twice_in_final_positions")),
+            "valid_duo_rows": [x["qid"] for x in out if x["valid_duo"]]}
+
+
 def analyze(out: Path, sel: dict) -> None:
     rows = {(r["qid"], r["arm"]): r for r in load_jsonl(out / "results.jsonl")}
     for arm in ("T", "SN"):
@@ -65,10 +93,14 @@ def main() -> int:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--run-cap", type=int, default=500)
     ap.add_argument("--analyze", action="store_true")
+    ap.add_argument("--reclassify", action="store_true", help="offline validity classification of the stored T rows (no provider call)")
     a = ap.parse_args()
     sel = json.loads(a.selection.read_text())
     if a.analyze:
         analyze(a.out, sel)
+        return 0
+    if a.reclassify:
+        print(json.dumps(reclassify(load_jsonl(a.out / "results.jsonl"), sel), indent=1))
         return 0
     a.out.mkdir(parents=True, exist_ok=True)
     ctx = Context(a.out, None, 2)

@@ -208,7 +208,9 @@ class CooperationControl:
                 detail = {"candidates": [{"model": m, "answer": s, "source": src, "competence": self.book.comp(m)} for m, s, src in cands], "chosen_answer": best[1]}
         answer = detail.get("chosen_answer", sig.get(final))
         rec = {"type": "CLOSING", "rule": rule, "final_model": final, "final_answer": answer, "detail": detail, "signatures": sig, "first": first,
-               "concessions": list(self.concessions), "independently_confirmed_objections": len(confirmed), "weights_consulted": rule != "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION"}
+               "concessions": list(self.concessions), "independently_confirmed_objections": len(confirmed), "weights_consulted": rule != "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION",
+               "provisional": rule not in ("INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS"), "verified_improvement": rule == "INDEPENDENTLY_CONFIRMED_LAST_OBJECTION",
+               "unresolved_disagreement": detail.get("candidates", []) if rule not in ("INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS") else []}
         self.log(rec)
         return rec
 

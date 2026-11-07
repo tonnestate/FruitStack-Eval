@@ -57,6 +57,40 @@ def final_answer(position_letters: dict, specialist_letter: str | None, earliest
     return (earliest or (existing[0] if existing else None)), "no_agreement_no_specialist"
 
 
+class SolverSlots:
+    """The two solver slots of a team run. Each slot is claimed at most once; a further claim (e.g. the retry of a failed solve) returns None and is never assigned to another member."""
+
+    def __init__(self, names=("solver1", "solver2")):
+        self._free, self._lock = list(names), threading.Lock()
+
+    def claim(self):
+        with self._lock:
+            return self._free.pop(0) if self._free else None
+
+
+def solver_identity_problems(positions: dict, required_lineages=None, required_models=None) -> list:
+    """Validate the solver identities from what was actually executed (model key, lineage and receipt of each submitted position), not from the intended roster or the number of solution rows."""
+    sub = {pid: p for pid, p in positions.items() if p.get("submitted")}
+    problems = [f"{len(sub)} submitted position(s), 2 required"] if len(sub) < 2 else []
+    for pid, p in sorted(sub.items()):
+        if not (p.get("model") and p.get("lineage") and p.get("receipt")):
+            problems.append(f"{pid}: no execution receipt/lineage/model")
+    lins = [p.get("lineage") for p in sub.values() if p.get("lineage")]
+    if len(set(lins)) < 2:
+        problems.append(f"solver lineages not distinct: {sorted(lins)}")
+    for want, have in ((required_lineages, lins), (required_models, [p.get("model") for p in sub.values()])):
+        miss = [w for w in (want or ()) if w not in have]
+        if miss:
+            problems.append(f"required independent member(s) did not contribute: {miss}")
+    return problems
+
+
+def selection_status(closing) -> str:
+    """VERIFIED (independently confirmed objection) | CONSENSUS | PROVISIONAL_UNVERIFIED (weights or a formal concession chose among unverified candidates: not evidence of improvement)."""
+    rule = closing.get("rule") if isinstance(closing, dict) else None
+    return {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION": "VERIFIED", "CONSENSUS": "CONSENSUS"}.get(rule, "PROVISIONAL_UNVERIFIED")
+
+
 def controlled_answer(closing: dict | None, candidates: set[str]) -> tuple[str, str]:
     """Accept only the answer recorded by the active controller and already present in an admissible position."""
     if not isinstance(closing, dict) or closing.get("rule") not in {"INDEPENDENTLY_CONFIRMED_LAST_OBJECTION", "CONSENSUS", "FORMAL_CONCESSION_KEEPS_FIRST_ANSWER_CANDIDATE", "WEIGHTS_DECIDE_UNVERIFIED"} or not closing.get("final_model"):
@@ -377,10 +411,11 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     team.roster_changes_provider = lambda: list(roster.changes)
     team.independent = True
     plock = threading.RLock()
-    slots_taken: set = set()
     by_model: dict = {}
     pos_lin: dict = {}                                                   # position id -> lineage of its author (receipts); pos_first: its first letter
     pos_first: dict = {}
+    pos_submitted: set = set()                                           # positions whose solve actually executed and submitted (a later revision changes pos.status, so it is recorded here)
+    pos_receipt: dict = {}                                               # position id -> receipt id of the execution that produced it
     spec_lin: list = []
     obj_ids_for: dict = {}
     counters = Counter()
@@ -402,13 +437,10 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
         roster.pin(role, d["model_key"], d.get("independence_key"))
         return d
 
-    def claim_slot() -> str:
-        with plock:
-            for s in ("solver1", "solver2"):
-                if s not in slots_taken:
-                    slots_taken.add(s)
-                    return s
-            return "solver1"
+    slots = SolverSlots()
+
+    def claim_slot() -> str | None:
+        return slots.claim()                                                 # each solver slot is claimed once; a retry NEVER falls back to solver1 (S1 defect)
 
     def view_prompt(base: str, view):
         ts = team.prompt(view)                                            # MangoMe is the live workspace: the state comes from a work_context read
@@ -423,6 +455,8 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
         try:
             if stage == "solve":
                 slot = claim_slot()
+                if slot is None:                                          # both slots already used: no extra solver attempt for any member, no provider call
+                    return {**SMALL_FAIL, "failure_class": "SOLVER_SLOT_EXHAUSTED"}
                 pid = {"solver1": "S1", "solver2": "S2"}[slot]
                 with plock:
                     pos = SimpleNamespace(id=pid, slot=slot, model=roster.pinned(slot), status="open", rev=0, diff="", test_tail="")
@@ -431,6 +465,8 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
                 if d["success"]:
                     with plock:
                         pos.model, pos.diff, pos.status = d["model_key"], d["output"], "submitted"
+                        pos_receipt[pid] = d.get("receipt_id")
+                        pos_submitted.add(pid)
                         pos_lin[pid], pos_first[pid] = d.get("independence_key"), parse_letter(d["output"], n_opt)
                         by_model[d["model_key"]] = pos
                         team.decisions.append(f"{pid} submitted its first answer")
@@ -540,9 +576,13 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
     except InfraSupply as exc:
         raise Infra("INFRA_SUPPLY", str(exc)) from exc
     check_budget(ep)
+    identities = {pid: {"model": getattr(p, "model", None), "lineage": pos_lin.get(pid), "receipt": pos_receipt.get(pid), "submitted": pid in pos_submitted} for pid, p in team.pos.items()}
+    problems = solver_identity_problems(identities, (LUNA_LINEAGE, NEMO_LINEAGE) if duo else None, (LUNA_KEY, NEMO_KEY) if duo else None)
+    if problems:                                                         # fail closed: the required independent model did not contribute (actual receipts and lineages, not the intended roster)
+        raise Infra("INFRA_INCOMPLETE", "; ".join(problems) + f" | stop={res.stop_reason}; failures={res.failures}")
     firsts = [parse_letter(r.answer_text, n_opt) for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"]
     if len(firsts) < 2:                                                  # amendment QA-1b/2: a T row is OK only if two positions (distinct lineages, enforced by the roster) were submitted
-        raise Infra("INFRA_TEAM_INCOMPLETE", f"{len(firsts)} independent position(s) submitted; stop={res.stop_reason}; failures={res.failures}")
+        raise Infra("INFRA_INCOMPLETE", f"{len(firsts)} independent position(s) submitted; stop={res.stop_reason}; failures={res.failures}")
     position_letters = {k: parse_letter(v, n_opt) for k, v in res.positions.items() if not k.endswith("#sp")}
     spec_rows = [r for r in ledger.rows if r.kind == "SOLUTION" and r.reason == "SPECIALIST_TIEBREAK"]
     spec_letter = parse_letter(spec_rows[-1].answer_text, n_opt) if spec_rows else None
@@ -582,7 +622,9 @@ def run_T(ctx: Context, q: dict, duo: bool = False, loop: bool = False) -> dict:
             "objections": counters["objections"], "grounded_objections": counters["grounded_objections"], "replies": replies, "evidenced_replies": evidenced_replies, "formal_objections": formal_objections, "reproduced_objections": reproduced_objections, "independently_confirmed_objections": independently_confirmed_objections, "verified_objections": 0, "formal_replies": formal_replies, "reproduced_replies": reproduced_replies, "independently_confirmed_replies": independently_confirmed_replies, "verified_replies": 0, "independent_grounded_objections": sum(1 for o in indep if o.get("grounded")), "independence_ok": independence_ok,
             "lineages": {"positions": pos_lin, "critics": sorted({o["lineage"] for o in team.objs if o.get("lineage")}), "specialist": spec_lin}, "first_by_pos": pos_first,
             "objection_target_first": [pos_first.get(o["target"]) for o in indep], "answer_changes": counters["answer_changes"], "accepted_concessions": counters["accepted_concessions"],
-            "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report(), "loop_decisions": res.decisions, "loop_closing": res.closing}
+            "evidenced_withdrawn": sum(1 for o in team.objs if o.get("decided_by") == "withdrawn_with_evidence"), "work_ref": ep.work, "timing": ep.timing.report(), "loop_decisions": res.decisions, "loop_closing": res.closing,
+            "solver_identities": identities, "selection_status": selection_status(res.closing), "verified_improvement": bool(isinstance(res.closing, dict) and res.closing.get("verified_improvement")),
+            "unresolved_disagreement": (res.closing or {}).get("unresolved_disagreement", []) if isinstance(res.closing, dict) else []}
 
 
 # ---- orchestration -------------------------------------------------------------------------------------------------------------------------------------------
