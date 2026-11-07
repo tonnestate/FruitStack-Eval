@@ -152,6 +152,36 @@ def split_valid(rows: list) -> tuple[list, list]:
     return valid, [r for r in rows if r not in valid]
 
 
+def member_answers(rows, signature) -> list[dict]:
+    """Each blind solver's FIRST answer and the final answer of the same position (following its REVISION chain). Specialist tie-break rows are not members' first answers."""
+    nxt = {(r.detail or {}).get("revises"): r for r in rows if r.kind == "REVISION"}
+    out = []
+    for s in (r for r in rows if r.kind == "SOLUTION" and r.reason == "INDEPENDENT_SOLUTION"):
+        last = s
+        while last.id in nxt:
+            last = nxt[last.id]
+        out.append({"lineage": _lineage(s), "first": signature(s.answer_text), "final": signature(last.answer_text)})
+    return out
+
+
+def grade_after(row: dict, task: Task) -> dict:
+    """AFTER the episode only (no grading result ever enters a live context): reward of the selected answer, and the collaboration-effect metrics (prereg DRAFT §5):
+      correct := grade == 1.0
+      episode class  CORRECTED  no member's first answer correct, final correct      (wrong -> right)
+                     DAMAGED    >=1 member's first answer correct, final wrong       (right -> wrong; for E_div/R_mono: a correct draft was not selected)
+                     HELD       >=1 first correct, final correct;   UNSOLVED  no first correct, final wrong
+      member counts  corrected_members: first wrong, that member's final position right; damaged_members: first right, final position wrong (0 for controls)."""
+    ok = lambda a: task.grade(a) == 1.0          # noqa: E731
+    members = row.get("members") or []
+    any_first, final = any(ok(m["first"]) for m in members), ok(row["answer"])
+    row["reward"] = task.grade(row["answer"])
+    row["effect"] = {"class": ("HELD" if final else "DAMAGED") if any_first else ("CORRECTED" if final else "UNSOLVED"),
+                     "corrected_members": sum(not ok(m["first"]) and ok(m["final"]) for m in members),
+                     "damaged_members": sum(ok(m["first"]) and not ok(m["final"]) for m in members),
+                     "first_correct": sum(ok(m["first"]) for m in members), "members": len(members)}
+    return row
+
+
 def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: int = 2, max_rounds: int = 3, control=None, roster: dict | None = None) -> dict:
     from cherryme.brother import run_rounds
     from cherryme.contributions import ContributionLedger
@@ -170,7 +200,7 @@ def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: in
             "primary_retained": task.signature(first) if first else None, "stop": res.stop_reason, "calls": res.calls, "rounds": res.rounds,
             "failures": len(res.failures), "seconds": round(time.monotonic() - t0, 3), "retrieved": used, "captured": captured, "capture_error": cap_err,
             "brief_errors": list(hook.errors), "lineages": sorted({_lineage(r) for r in cl.rows if r.kind == "SOLUTION" and _lineage(r)}),
-            "row_kinds": dict(Counter(r.kind for r in cl.rows)), "receipts": receipts, "tokens": tokens(receipts), **_identity(arm, receipts, roster)}
+            "row_kinds": dict(Counter(r.kind for r in cl.rows)), "members": member_answers(cl.rows, task.signature), "receipts": receipts, "tokens": tokens(receipts), **_identity(arm, receipts, roster)}
 
 
 def run_samples(task: Task, *, work, arm: str, roster: dict, cycle: list, k: int, token_budget: int | None = None, max_calls: int | None = None) -> dict:
@@ -198,7 +228,8 @@ def run_samples(task: Task, *, work, arm: str, roster: dict, cycle: list, k: int
             texts.append(c["output"])
     answer, how = select_answer(task.task_ref, texts, task.signature, task.score)
     return {"task": task.task_ref, "arm": arm, "answer": answer, "how": how, "calls": len(receipts), "failures": sum(not r["ok"] for r in receipts),
-            "seconds": round(time.monotonic() - t0, 3), "drafts": len(texts), "receipts": receipts, "tokens": tokens(receipts),
+            "seconds": round(time.monotonic() - t0, 3), "drafts": len(texts), "members": [{"lineage": r["independence_key"], "first": task.signature(t), "final": task.signature(t)}
+                                                                            for r, t in zip([r for r in receipts if r["ok"]], texts)], "receipts": receipts, "tokens": tokens(receipts),
             **_identity(arm, receipts, roster, cycle)}
 
 
@@ -216,7 +247,7 @@ def run_pair(task: Task, *, work, ledger: Ledger, tag: str, projection=None, res
     ctl = run_episode(task, work=recording("control"), hook=LearningHook(ledger, run_id=f"{tag}:control", apply=False), arm="control")
     hook = LearningHook(ledger, run_id=f"{tag}:applied", apply=True)
     app = run_episode(task, work=recording("applied"), hook=hook, arm="applied")
-    ctl["reward"], app["reward"] = task.grade(ctl["answer"]), task.grade(app["answer"])
+    grade_after(ctl, task), grade_after(app, task)
     if app["retrieved"]:
         hook.outcomes(task.task_ref, reward=app["reward"], control_reward=ctl["reward"], control_run=ctl["run"], grader=task.grader)
     out = {"task": task.task_ref, "control": ctl, "applied": app, "prompts": prompts}

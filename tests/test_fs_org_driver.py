@@ -192,3 +192,19 @@ def test_controls_are_compute_matched_to_t_and_share_its_selector_and_identity_g
     assert handover["exclusion"] == "INFRA_IDENTITY:LINEAGE_OUTSIDE_ROSTER"
     e_mono = run_samples(task, work=lambda p, s, prefer=None, exclude=(): ok("L", "ANSWER: 7"), arm="E_div", roster=ROSTER, cycle=list(ROSTER), k=2)
     assert e_mono["exclusion"] == "INFRA_IDENTITY:PLAN_MISMATCH"                        # a one-model 'diversity' control no longer passes silently
+
+
+def test_corrected_and_damage_are_counted_from_graded_first_answers_after_the_episode(tmp_path):
+    """L answers 7, N answers 9, N's critique makes L concede to 9. If 9 is right: L was corrected (wrong->right). If 7 is right: collaboration damage (right->wrong)."""
+    from runners.fs_org_driver import grade_after
+    def episode(right):
+        task = Task("t1", "Sum?", sig, lambda a: 1.0 if a == right else 0.0, "executed")
+        row = run_episode(task, work=scripted([]), hook=LearningHook(Ledger(tmp_path / f"{right}.jsonl"), run_id="R"), arm="T", roster=ROSTER)
+        assert "reward" not in row and "effect" not in row                               # nothing graded inside the episode
+        assert sorted((m["lineage"], m["first"], m["final"]) for m in row["members"]) == [("luna", "7", "9"), ("nemotron", "9", "9")]
+        return grade_after(row, task)["effect"]
+    assert episode("9") == {"class": "HELD", "corrected_members": 1, "damaged_members": 0, "first_correct": 1, "members": 2}
+    assert episode("7") == {"class": "DAMAGED", "corrected_members": 0, "damaged_members": 1, "first_correct": 1, "members": 2}
+    t = Task("t", "q", sig, lambda a: 1.0 if a == "3" else 0.0, "executed")
+    assert grade_after({"answer": "3", "members": [{"first": "1", "final": "3"}, {"first": "2", "final": "3"}]}, t)["effect"]["class"] == "CORRECTED"
+    assert grade_after({"answer": "1", "members": [{"first": "1", "final": "1"}, {"first": "3", "final": "3"}]}, t)["effect"]["class"] == "DAMAGED"   # control: right draft not selected
