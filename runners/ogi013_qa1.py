@@ -730,6 +730,7 @@ def main(argv=None) -> int:
     ap.add_argument("--probe-calls", type=int, default=10, help="--select-s: availability probe calls per candidate (QA-1b: 30)")
     ap.add_argument("--probe-interval", type=float, default=0.0, help="--select-s: seconds between probe calls (QA-1b: 60, i.e. 30 calls over 30 minutes)")
     ap.add_argument("--duo", action="store_true", help="QA-1b chain hunt roster without Claude: solver A = Luna (Codex), solver B = nemotron (PlumMe); cross-critique, no specialist")
+    ap.add_argument("--loop", action="store_true", help="with --chain-hunt: arm T runs under the Brother Mode closed-loop controller (small-test path)")
     ap.add_argument("--run-cap", type=int, default=0, help="QA-1b: ONE run-level PlumMe RunBudget (provider requests incl. failover/continuation/rotation; cost 0) bound for the whole run")
     ap.add_argument("--capacity", type=float, default=0.0, help="QA-1b: capacity measurement: up to 8 eligible models of distinct lineages, each called at its own pace for this many minutes (in parallel)")
     ap.add_argument("--supply-check", action="store_true", help="QA-1b: T roster supply check (2 solvers of distinct lineages, critic, specialist; 5 of 5 probes each) and exit")
@@ -860,7 +861,7 @@ def main(argv=None) -> int:
     arms = set(a.arms.split(","))
     if a.chain_hunt:
         for i, q in enumerate(qs[: a.chain_hunt], 1):
-            row = attempt(run_T, ctx, q, a.duo)
+            row = attempt(run_T, ctx, q, a.duo, a.loop)
             full = finish(q, "T", row, False)
             ch = chain_stages(full)
             with res_path.open("a") as fh:
