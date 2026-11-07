@@ -43,6 +43,9 @@ def scripted(seen, *, l_first="7", n_first="9", n_critique=True, l_concedes=True
     return work
 
 
+ROSTER = {"L-model": "luna", "N-model": "nemotron"}
+
+
 def ok(who, out):
     return {"success": True, "output": out, "model_key": f"{who}-model", "independence_key": {"L": "luna", "N": "nemotron"}[who], "receipt_id": f"r-{who}"}
 
@@ -79,14 +82,14 @@ def test_a_critique_backed_by_an_executed_check_becomes_a_verified_retrievable_d
     """EVAL-002 defect: capture_brother passed ground={'level': ...} only, so LearningHook (which needs argument.executed) never verified a Brother Mode discovery."""
     led = Ledger(tmp_path / "l.jsonl")
     out = run_episode(Task("t1", "Sum of the series?", sig, lambda a: 0.0, "executed"), work=scripted([], verification="verified"),
-                      hook=LearningHook(led, run_id="R1"), arm="T")
+                      hook=LearningHook(led, run_id="R1"), arm="T", roster=ROSTER)
     ids = out["captured"]
     assert ids and all(led.status(i)["state"] == "STORED_NOT_REUSED" for i in ids)                   # verified, not yet reused
     assert {r["verifier"] for r in led.rows() if r["kind"] == "VERIFICATION"} == {"executed"}
     assert led.retrievable("t-other", "R2", "series summation with even terms overcounts")         # reusable on a later task by another run
     led2 = Ledger(tmp_path / "l2.jsonl")                                                             # model-asserted critique: still never knowledge
     ids2 = run_episode(Task("t1", "Sum?", sig, lambda a: 0.0, "executed"), work=scripted([], verification="model_asserted"),
-                       hook=LearningHook(led2, run_id="R1"), arm="T")["captured"]
+                       hook=LearningHook(led2, run_id="R1"), arm="T", roster=ROSTER)["captured"]
     assert ids2 and all(led2.status(i)["state"] == "ASSERTED" for i in ids2)
 
 
@@ -149,3 +152,18 @@ def test_the_selector_is_order_independent_and_identical_for_every_arm():
     assert select_answer("t1", [a, b, b], sig, score=lambda t: 1.0 if "7" in t else 0.0) == ("7", "SELECTED")    # visible checks first
     for order in ({"L": a, "N": b}, {"N": b, "L": a}):                                                            # T uses the same selector
         assert final_answer(SimpleNamespace(positions=order), sig, "t1") == tie_ab
+
+
+def test_a_luna_twice_team_row_is_invalid_and_excluded_from_analysis(tmp_path):
+    """S1 replay: the roster declares luna + nemotron, but every executed receipt is luna. The row must be INFRA_IDENTITY, not a 'multi-model' result."""
+    from runners.fs_org_driver import split_valid
+    def luna_twice(prompt, stage, prefer=None, exclude=()):
+        return ok("L", "ISSUES: NONE" if stage == "challenge" else "ANSWER: 7")
+    task = Task("t1", "Sum?", sig, lambda a: 0.0, "executed")
+    bad = run_episode(task, work=luna_twice, hook=LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R"), arm="T", roster=ROSTER)
+    good = run_episode(task, work=scripted([]), hook=LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R"), arm="T", roster=ROSTER)
+    assert bad["identity_valid"] is False and bad["exclusion"] == "INFRA_IDENTITY:SINGLE_LINEAGE_ROW"
+    assert good["identity_valid"] is True and good["exclusion"] is None
+    assert split_valid([bad, good]) == ([good], [bad])
+    with pytest.raises(ValueError):                                                     # a study arm cannot skip the check
+        run_episode(task, work=scripted([]), hook=LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R"), arm="T")

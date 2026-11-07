@@ -96,14 +96,70 @@ def final_answer(res, signature, task_ref: str = "", score=None) -> tuple[str | 
     return select_answer(task_ref, list(res.positions.values()), signature, score)
 
 
-def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: int = 2, max_rounds: int = 3, control=None) -> dict:
+STUDY_ARMS = {"T", "E_div", "R_mono", "S"}          # rows of these arms are analysable only with a passed row-level identity check
+
+
+def metered(work, log: list):
+    """Every call's identity and tokens as the worker reports them from its PlumMe receipt / lease facts (model_key, independence_key, receipt_id, input/output tokens)."""
+    def w(prompt, stage, **kw):
+        c = work(prompt, stage, **kw)
+        log.append({"stage": stage, "ok": bool(c.get("success") and (c.get("output") or "").strip()), "model_key": c.get("model_key"),
+                    "independence_key": c.get("independence_key"), "receipt_id": c.get("receipt_id"), "prefer": kw.get("prefer"),
+                    "input_tokens": c.get("input_tokens"), "output_tokens": c.get("output_tokens")})
+        return c
+    return w
+
+
+def tokens(receipts: list) -> dict:
+    known = [r for r in receipts if r["input_tokens"] is not None or r["output_tokens"] is not None]
+    return {"input": sum(r["input_tokens"] or 0 for r in known), "output": sum(r["output_tokens"] or 0 for r in known), "calls_without_tokens": len(receipts) - len(known)}
+
+
+def identity_check(receipts: list, roster: dict, cycle: list | None = None) -> str | None:
+    """Row-level S1 guard, enforced from the executed receipts (None = valid, else the INFRA_IDENTITY reason).
+    roster: the arm's declared members {model_key: independence_key}, pinned at lock. The successful solve calls must realise EXACTLY the declared distinct lineages
+    (a declared multi-model roster run on one lineage, e.g. Luna twice, is invalid); no successful call may come from outside the roster; with a `cycle` (E_div/R_mono)
+    the i-th successful solve call must be the planned member's lineage."""
+    declared = set(roster.values())
+    if None in declared or len(declared) != len(roster):
+        return "DECLARED_ROSTER_NOT_DISTINCT"
+    ok = [r for r in receipts if r["ok"]]
+    if any(r["independence_key"] is None for r in ok):
+        return "RECEIPT_WITHOUT_LINEAGE"
+    if any(r["independence_key"] not in declared for r in ok):
+        return "LINEAGE_OUTSIDE_ROSTER"
+    solve = [r for r in receipts if r["stage"] == "solve"]
+    if cycle is not None and any(r["ok"] and r["independence_key"] != roster[cycle[i % len(cycle)]] for i, r in enumerate(solve)):
+        return "PLAN_MISMATCH"
+    realised = {r["independence_key"] for r in solve if r["ok"]}
+    if realised != declared:
+        return "SINGLE_LINEAGE_ROW" if len(realised) == 1 and len(declared) > 1 else "ROSTER_NOT_REALISED"
+    return None
+
+
+def _identity(arm: str, receipts: list, roster: dict | None, cycle=None) -> dict:
+    if roster is None:
+        if arm in STUDY_ARMS:
+            raise ValueError(f"arm {arm} needs its declared roster for the row-level identity check")
+        return {"identity_valid": None, "exclusion": None}
+    why = identity_check(receipts, roster, cycle)
+    return {"identity_valid": why is None, "exclusion": None if why is None else f"INFRA_IDENTITY:{why}"}
+
+
+def split_valid(rows: list) -> tuple[list, list]:
+    """Analysis entry: rows with a failed identity check are excluded (kept with their reason); unchecked rows of study arms never count."""
+    valid = [r for r in rows if r.get("identity_valid") is True]
+    return valid, [r for r in rows if r not in valid]
+
+
+def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: int = 2, max_rounds: int = 3, control=None, roster: dict | None = None) -> dict:
     from cherryme.brother import run_rounds
     from cherryme.contributions import ContributionLedger
     t0 = time.monotonic()
     brief, used = hook.brief(task.task_ref, task.prompt)
-    cl = ContributionLedger()
-    res = run_rounds(task_prompt=task.prompt, brief=brief, work=work, ledger=cl, claim_id=f"{hook.run_id}:{task.task_ref}", n_solvers=n_solvers, max_rounds=max_rounds,
-                     signature=task.signature, control=control)
+    cl, receipts = ContributionLedger(), []
+    res = run_rounds(task_prompt=task.prompt, brief=brief, work=metered(work, receipts), ledger=cl, claim_id=f"{hook.run_id}:{task.task_ref}", n_solvers=n_solvers,
+                     max_rounds=max_rounds, signature=task.signature, control=control)
     answer, how = final_answer(res, task.signature, task.task_ref, task.score)
     first = next(iter(res.positions.values()), None)
     try:                                                   # capture never changes the answer; failures are reported
@@ -114,7 +170,7 @@ def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: in
             "primary_retained": task.signature(first) if first else None, "stop": res.stop_reason, "calls": res.calls, "rounds": res.rounds,
             "failures": len(res.failures), "seconds": round(time.monotonic() - t0, 3), "retrieved": used, "captured": captured, "capture_error": cap_err,
             "brief_errors": list(hook.errors), "lineages": sorted({_lineage(r) for r in cl.rows if r.kind == "SOLUTION" and _lineage(r)}),
-            "row_kinds": dict(Counter(r.kind for r in cl.rows))}
+            "row_kinds": dict(Counter(r.kind for r in cl.rows)), "receipts": receipts, "tokens": tokens(receipts), **_identity(arm, receipts, roster)}
 
 
 def run_pair(task: Task, *, work, ledger: Ledger, tag: str, projection=None, results=None) -> dict:
