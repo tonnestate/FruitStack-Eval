@@ -29,18 +29,33 @@ def test_executed_checks_run_the_candidate():
         assert fr.exact_isqrt(unsafe)["relation"] == "CONTRADICTS"           # only callables of the math module are ever executed
 
 
-def _record(state="UNRESOLVED", drop=(), extra=()):
+def _record(state="UNRESOLVED", drop=(), extra=(), statuses=("SUPPORTED",)):
     events = [{"type": t} for t in fr.REQUIRED_EVENTS + ("TOOL_EVIDENCE", "CANDIDATE_VERIFIED", "RESEARCH_STEP") if t not in drop] + [{"type": t} for t in extra]
     for e in events:
         if e["type"] == "STATE_RETURNED":
             e["mangome"] = {"checkpoint_id": "CP-1"}
-    return {"state": state, "events": events}
+    return {"state": state, "events": events, "findings": [{"status": s} for s in statuses]}
 
 
 def test_unresolved_is_a_valid_integration_path_but_never_success():
     c = fr.success_contract(_record("UNRESOLVED"), analyses=1, check=True, receipts=1)
     assert c["integration_path_ok"] and not c["mission_success"]
     assert fr.success_contract(_record("COMPLETED"), analyses=1, check=True, receipts=1)["mission_success"]
+    assert not fr.success_contract(_record("COMPLETED", statuses=("REFUTED",)), analyses=1, check=True, receipts=1)["mission_success"]   # settled, but no verified answer
+    assert not fr.success_contract(_record("COMPLETED", statuses=()), analyses=1, check=True, receipts=1)["mission_success"]
+
+
+def test_executed_check_tool_runs_the_candidate_the_claim_names():
+    from types import SimpleNamespace as NS
+    from cherryme.models import EvidenceVerdict
+    tool = fr.ExecutedCheckTool("exact_isqrt", fr.exact_isqrt)
+    good, bad = NS(text="math.isqrt computes the exact integer square root."), NS(text="math.sqrt computes the exact integer square root.")
+    assert tool.applies(good, {}) and tool.applies(bad, {})
+    (e,) = tool.run(good, {})
+    assert (e.verdict, e.grounded, e.source_ref) == (EvidenceVerdict.PASS, True, fr.exact_isqrt("math.isqrt")["evidence_id"])
+    assert [x.verdict for x in tool.run(bad, {})] == [EvidenceVerdict.CONTRADICT]
+    for vague in ("The square root is computed exactly.", "math.isqrt or math.sqrt computes it.", "os.system computes it."):
+        assert not tool.applies(NS(text=vague), {})                          # no candidate (or no single one): the check does not apply, nothing is invented
 
 
 @pytest.mark.parametrize("record,receipts,problem", [
@@ -78,10 +93,28 @@ def test_offline_fixture_end_to_end_learning_lifecycle_without_scripted_benefit(
     assert [m["tag"] for m in summary["missions"]] == ["A", "B", "B-control"]
     assert summary["integration_path_ok"], [m["integration_problems"] for m in summary["missions"]]
     assert fr.exit_code(summary) == 0
-    assert all(m["state"] in ("UNRESOLVED", "COMPLETED") and m["mission_success"] == (m["state"] == "COMPLETED") for m in summary["missions"])
     a, b, ctl = summary["missions"]
+    # the executed check reaches the claim through CherryMe's evidence gate: verified candidate -> COMPLETED through the real run_mission lifecycle
+    assert [(m["state"], m["mission_success"], [f["status"] for f in m["findings"]]) for m in summary["missions"]] == [("COMPLETED", True, ["SUPPORTED"])] * 3
+    rec = __import__("json").loads((tmp_path / "out" / "A" / "mission_record.json").read_text())
+    assert [e["source_ref"] for e in rec["findings"][0]["evidence"]] == [rec["research"]["verification"]["evidence_id"]]    # same executed check, same evidence id
+    rows = summary["learning"]["events"]
+    assert [r["kind"] for r in rows if r["kind"] != "DISCOVERY" and r["kind"] != "VERIFICATION"] == ["RETRIEVAL", "APPLICATION", "OUTCOME"]
+    assert {r["task"] for r in rows if r["kind"] in ("RETRIEVAL", "APPLICATION", "OUTCOME")} == {"B"}          # the host task id, not the mission id
     assert a["captured_discoveries"] and b["knowledge_applied"] == a["captured_discoveries"] and ctl["knowledge_applied"] == []
     states = summary["learning"]["report"]["by_state"]
     assert states.get("NO_EFFECT_OBSERVED") == 1 and "BENEFIT_OBSERVED" not in states
     out = summary["learning"]["outcomes"][0]
     assert out["reward"] == out["control_reward"] and out["grader"] == "executed"
+
+
+def test_contradicted_candidate_is_never_success_and_without_a_check_model_claims_settle_nothing(env, tmp_path):
+    cfg = fr.load_config(CONFIG)
+    a = cfg["tasks"][0]
+    cfg["tasks"] = [dict(a, id="W", claim="math.sqrt computes the exact integer square root of a non-negative integer.", fixture_answer="math.sqrt"),
+                    {k: v for k, v in a.items() if k != "check"} | {"id": "N"}]
+    summary = fr.run(cfg, tmp_path / "out", "offline-fixture")
+    w, n = summary["missions"]
+    assert w["integration_path_ok"] and not w["mission_success"] and [f["status"] for f in w["findings"]] == ["REFUTED"]
+    assert w["research"]["verification"]["relation"] == "CONTRADICTS" and w["research"]["verification"]["status"] == "FALSIFIED"
+    assert (n["state"], n["mission_success"], [f["status"] for f in n["findings"]]) == ("UNRESOLVED", False, ["UNKNOWN"])   # no check + UNKNOWN investigator

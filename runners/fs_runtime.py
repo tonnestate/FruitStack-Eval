@@ -14,8 +14,12 @@ Modes
 Success contract (per mission)
   integration_path_ok  every stage executed (required events), no BLOCKED/ERROR, no failed research step, tool receipts for every configured analysis, a MangoMe checkpoint,
                        and - when a check is configured - the executed verifier ran.
-  mission_success      run_mission state COMPLETED (settled claims via admissible evidence AND completed mandatory responsibilities). UNRESOLVED is a valid research
-                       outcome, never success.
+  mission_success      run_mission state COMPLETED (settled claims via admissible evidence AND completed mandatory responsibilities) AND every claim SUPPORTED. A claim the
+                       executed check contradicts is REFUTED: run_mission settles it (COMPLETED), but the objective has no verified answer, so it is never success.
+                       UNRESOLVED is a valid research outcome, never success.
+  Executed checks      a task's `check` runs (a) as a CherryMe deterministic tool on the candidate the CLAIM names (ExecutedCheckTool: grounded PASS/CONTRADICT through
+                       CherryMe's evidence gate, zero provider calls) and (b) as ResearchPlan.verifier on Brother Mode's candidate (Research Tree `executed` evidence).
+                       Same check + same candidate = same evidence id. Without a check, model statements alone never settle a claim.
   Exit code: 0 iff every mission's integration path is ok; 2 if supply was unavailable; 1 otherwise. mission_success never changes the exit code.
 
 Usage: fs_runtime.py --config CONFIG.toml|json OUT_DIR [--mode offline-fixture|operational]
@@ -72,6 +76,35 @@ def exact_comb(candidate: str) -> dict:
 
 
 CHECKS = {"exact_isqrt": exact_isqrt, "exact_comb": exact_comb}
+
+
+class ExecutedCheckTool:
+    """The host's executed check offered to CherryMe as a deterministic tool (CherryMe `deterministic_tools`), so it reaches the claim through CherryMe's own evidence gate.
+    It applies only to a claim naming exactly one runnable candidate, executes that candidate and returns ONE grounded PASS (SUPPORTS) or CONTRADICT (CONTRADICTS) evidence item
+    whose source_ref is the executed check's evidence id. A model's statement never enters here."""
+    skills = None
+
+    def __init__(self, name: str, check):
+        self.name, self.check = name, check
+
+    def candidate(self, text: str) -> str | None:
+        found = set()
+        for tok in text.split():
+            try:
+                _math_callable(tok.strip(".,;:()'\"`"))
+                found.add(tok.strip(".,;:()'\"`").removesuffix("()"))
+            except LookupError:
+                pass
+        return found.pop() if len(found) == 1 else None
+
+    def applies(self, claim, node) -> bool:
+        return self.candidate(claim.text) is not None
+
+    def run(self, claim, node) -> list:
+        from cherryme.models import Evidence, EvidenceVerdict
+        res = self.check(self.candidate(claim.text))
+        verdict = {"SUPPORTS": EvidenceVerdict.PASS, "CONTRADICTS": EvidenceVerdict.CONTRADICT}[res["relation"]]
+        return [Evidence(source_ref=res["evidence_id"], summary=f"{res['summary']} [{res['source']}]", verdict=verdict, grounded=True, independent_group="host-executed-check")]
 
 
 # ---- configuration ----
@@ -161,7 +194,8 @@ def success_contract(record: dict, *, analyses: int, check: bool, receipts: int)
     problems = ([f"missing:{m}" for m in missing] + [f"failed:{e['type']}" for e in failed] + ([] if checkpoint else ["no_mangome_checkpoint"])
                 + ([] if receipts >= analyses else [f"tool_receipts:{receipts}<{analyses}"]) + ([] if steps else ["no_research_step"])
                 + ([] if record["state"] not in ("BLOCKED", "ERROR") else [f"state:{record['state']}"]))
-    return {"integration_path_ok": not problems, "integration_problems": problems, "mission_success": record["state"] == "COMPLETED", "mission_state": record["state"],
+    answered = bool(record.get("findings")) and all(f["status"] == "SUPPORTED" for f in record["findings"])   # a REFUTED claim settles the mission but answers nothing
+    return {"integration_path_ok": not problems, "integration_problems": problems, "mission_success": record["state"] == "COMPLETED" and answered, "mission_state": record["state"],
             "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint}
 
 
@@ -256,7 +290,9 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
         registry_ci, investigator = connect_plumme(service=svc, refresh=True)
         nodes = [{"id": "ANSWER", "mandate": "answer the question and state the claim's status", "skills": ["reasoning"]},
                  {"id": "CHECK", "mandate": "check the claim independently and judge it", "skills": ["falsify"], "function": "VERIFY", "depends_on": ["ANSWER"]}]
-        runtime = responsibility_runtime(tools=(), frame={"responsibility_context": {"responsibilities": nodes}})
+        check = CHECKS[task["check"]] if task.get("check") else None
+        tools = (ExecutedCheckTool(task["check"], check),) if check else ()      # the executed check reaches the claim through CherryMe's evidence gate (zero provider calls)
+        runtime = responsibility_runtime(tools=tools, frame={"responsibility_context": {"responsibilities": nodes}})
         frame = {k: v for k, v in runtime["frame"].items() if k != "responsibility_triage"}
         rdir = out / tag
         assurance = connect_appleme(workspace_root=rdir / "cherry")
@@ -273,14 +309,13 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
         request = MissionRequest(mission_id=f"{tag}-{uuid.uuid4().hex[:6]}", objective=task["objective"], claims=((task["claim"], 0.5),), budget=int(mcfg.get("budget", 2)),
                                  call_budget=int(mcfg.get("call_budget", 10)), session_budget=mcfg.get("session_budget", {"max_calls": 14, "max_tokens": 120000, "max_cost_usd": 1.0}))
         standing = StandingAuthority(work_ref=work, allowed={"READ": ("physalis_*",)}, max_autonomous_effect="READ")
-        hook = LearningHook(learning, run_id=request.mission_id, apply=apply)
+        hook = LearningHook(learning, run_id=request.mission_id, apply=apply, task=task["id"])
         tree_path = rdir / "research_tree.jsonl"
         captured: list = []
-        check = CHECKS[task["check"]] if task.get("check") else None
         plan = ResearchPlan(worker_budget=plan_cfg.get("worker_budget", {"max_calls": 12, "max_tokens": 60000, "max_cost_usd": 0.5}), lsd=bool(plan_cfg.get("lsd", True)),
                             n_solvers=n_solvers, max_rounds=int(plan_cfg.get("max_rounds", 1)), analyses=analyses, registry=registry, authority=standing,
                             journal_path=str(rdir / "tool_receipts.jsonl"), tree_path=str(tree_path), learning=hook, signature=sig, verifier=check,
-                            after=(lambda tree, **_: captured.extend(hook.capture_tree(request.mission_id, tree, evidence_ref=str(tree_path.relative_to(out))))) if capture else None)
+                            after=(lambda tree, **_: captured.extend(hook.capture_tree(task["id"], tree, evidence_ref=str(tree_path.relative_to(out))))) if capture else None)
         record = run_mission(rt, authority, request, knowledge_store=knowledge, research=plan)
         (rdir / "mission_record.json").write_text(json.dumps(record, indent=1, default=str))
         receipts_file = rdir / "tool_receipts.jsonl"
@@ -305,7 +340,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
             ctl = mission(task, task["id"] + "-control", apply=False, capture=False)
             if ctl["state"] != "NOT_STARTED" and task.get("check"):
                 reward, control_reward = grade(task, row), grade(task, ctl)
-                outcomes = row["_hook"].outcomes(row["mission_id"], reward=reward, control_reward=control_reward, control_run=ctl["mission_id"], grader="executed")
+                outcomes = row["_hook"].outcomes(task["id"], reward=reward, control_reward=control_reward, control_run=ctl["mission_id"], grader="executed")
                 summary["learning"].setdefault("outcomes", []).append({"task": task["id"], "run": row["mission_id"], "control_run": ctl["mission_id"], "reward": reward,
                                                                       "control_reward": control_reward, "grader": "executed", "discoveries": outcomes})
     projects = [m["project"] for m in summary["missions"] if m.get("project")]

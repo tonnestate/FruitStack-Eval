@@ -24,6 +24,7 @@ class LearningHook:
     apply: bool = False
     max_items: int = 3
     errors: list = None
+    task: str | None = None                                               # the host's task id; overrides the task_ref a caller passes to brief (PeachMe passes its mission id)
 
     def __post_init__(self):
         self.errors = []
@@ -31,6 +32,7 @@ class LearningHook:
     def brief(self, task_ref: str, task_text: str) -> tuple[str, list[str]]:
         if not self.apply:
             return "", []
+        task_ref = self.task or task_ref
         try:                                                              # learning must never cost a question: any failure means "no brief" and is recorded
             items = self.ledger.retrievable(task_ref, self.run_id, task_text)[: self.max_items]
             for it in items:
