@@ -13,13 +13,13 @@ orangeme = pytest.importorskip("orangeme.project")
 
 from runners.fs_org_driver import Task, run_episode, run_pair, capture_brother  # noqa: E402
 from runners.ogi013_learning_hook import LearningHook  # noqa: E402
-from runners.ogi013_org_discoveries import Ledger, execution_receipt  # noqa: E402
+from runners.ogi013_org_discoveries import Ledger  # noqa: E402
 from runners.ogi013_org_memory import OrangeKnowledgeProjection  # noqa: E402
 
 
-def RC(relation="SUPPORTS"):
+def RC(led, relation="SUPPORTS"):
     """A trusted execution receipt as host code issues it after running a check (ogi013_org_discoveries.execution_receipt)."""
-    return execution_receipt("fs_runtime.CHECKS[test]", {"relation": relation}, verifier_lineage="host-executed-check")
+    return led.issue_receipt("fs_runtime.CHECKS[test]", {"relation": relation}, verifier_lineage="host-executed-check")
 
 
 def sig(text):
@@ -104,7 +104,7 @@ def test_pair_reuses_verified_knowledge_in_the_applied_arm_only_and_records_the_
     led = Ledger(tmp_path / "l.jsonl")
     d = led.discover(claim="summing the even terms of the series twice overcounts", origin_run="R0", origin_task="t0", proposer="nemotron",
                      applicability="series summation", evidence_ref="tool:pytest#1")
-    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1", receipt=RC("SUPPORTS"))
+    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1", receipt=RC(led, "SUPPORTS"))
     seen = []
     res = run_pair(Task("t2", "Sum of the series with even terms?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed"),
                    work=scripted(seen, n_critique=False), ledger=led, tag="P1", projection=OrangeKnowledgeProjection(orange))
@@ -123,11 +123,11 @@ def test_orange_projection_keeps_falsified_and_contradicted_and_is_append_only(t
     monkeypatch.setenv("ORANGEME_NO_PUSH", "1")
     led = Ledger(tmp_path / "l.jsonl")
     a = led.discover(claim="alpha holds", origin_run="R0", origin_task="q", proposer="p", applicability="any", evidence_ref="e")
-    led.verify(a, verdict="CONTRADICTS", verifier="executed", evidence_ref="v", receipt=RC("CONTRADICTS"))
+    led.verify(a, verdict="CONTRADICTS", verifier="executed", evidence_ref="v", receipt=RC(led, "CONTRADICTS"))
     proj = OrangeKnowledgeProjection(orange)
     assert proj.publish(led) == [a]
     assert proj.publish(led) == []                                                    # unchanged state: no new revision
-    led.verify(a, verdict="SUPPORTS", verifier="executed", evidence_ref="w", receipt=RC())
+    led.verify(a, verdict="SUPPORTS", verifier="executed", evidence_ref="w", receipt=RC(led))
     assert proj.publish(led) == [a]
     assert orange.get(f"knowledge/{a}")["value"]["state"] == "CONTRADICTED" and len(orange.history(f"knowledge/{a}")) == 2
 
@@ -280,13 +280,13 @@ def test_eval002_sham_brief_is_length_matched_never_verified_for_the_task_and_or
     led = Ledger(tmp_path / "l.jsonl")
     good = led.discover(claim="summing the even terms of the series twice overcounts", origin_run="R0", origin_task="t0", proposer="nemotron",
                         applicability="series summation", evidence_ref="tool:pytest#1")
-    led.verify(good, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1", receipt=RC("SUPPORTS"))
+    led.verify(good, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1", receipt=RC(led, "SUPPORTS"))
     for i, claim in enumerate(["a cached DNS entry outlives its TTL", "sorting is stable in this library"]):   # verified but unrelated: the placebo pool
         d = led.discover(claim=claim, origin_run="R0", origin_task=f"u{i}", proposer="luna", applicability="any", evidence_ref="e")
-        led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="e", receipt=RC("SUPPORTS"))
+        led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="e", receipt=RC(led, "SUPPORTS"))
     led.discover(claim="unverified rumour about caches", origin_run="R0", origin_task="u8", proposer="luna", applicability="any", evidence_ref="e")
     bad = led.discover(claim="falsified claim about sorting", origin_run="R0", origin_task="u9", proposer="luna", applicability="any", evidence_ref="e")
-    led.verify(bad, verdict="CONTRADICTS", verifier="executed", evidence_ref="e", receipt=RC("CONTRADICTS"))
+    led.verify(bad, verdict="CONTRADICTS", verifier="executed", evidence_ref="e", receipt=RC(led, "CONTRADICTS"))
     own = led.discover(claim="the series answer is 9", origin_run="R0", origin_task="t2", proposer="luna", applicability="any", evidence_ref="e")
     task = Task("t2", "Sum of the series with even terms?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed")
     sham = sham_brief(led, task, "P:applied", 200, seed=1, n_items=2)["text"]

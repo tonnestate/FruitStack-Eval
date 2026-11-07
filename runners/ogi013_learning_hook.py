@@ -1,8 +1,9 @@
 """Brother Mode <-> organizational-learning ledger (runners/ogi013_org_discoveries.py). Opt-in: run_T(..., learning=LearningHook(...)); without it nothing changes.
 
 capture   after an episode: model-asserted claims (accepted objections, answers changed by cooperation) are recorded as DISCOVERY with model/lineage/receipt provenance.
-          A claim becomes INDEPENDENTLY_CHECKED only through a trusted execution receipt (ground["receipt"], ledger.execution_receipt); a worker's self-reported
-          verification / ground level without one is recorded as a MODEL_ASSERTED verification and never makes the claim knowledge.
+          A claim becomes INDEPENDENTLY_CHECKED only through a host-issued execution receipt (Ledger.issue_receipt, HMAC under a host-only key) passed in the
+          host channel `receipts={objection id: receipt}`. Objection/ground data comes from worker output and is never a receipt source: a `receipt` in it is
+          ignored, and a worker's self-reported verification / ground level is recorded as a MODEL_ASSERTED verification only.
 brief     before a later episode: verified, applicable discoveries (ledger.retrievable, with its leak guard) become the `brief` of cherryme run_rounds (the solve prompt slot
           `{brief}`), labelled as organizational knowledge that must still fit the task. RETRIEVAL and APPLICATION are recorded. apply=False records nothing and injects nothing.
 outcomes  after grading, from the grader's side only (never in the live context): applied-vs-control reward per applied discovery. Benchmark keys / grading results are never
@@ -99,7 +100,8 @@ class LearningHook:
             return "", []
         return format_brief(items), [i["id"] for i in items]
 
-    def capture(self, task_ref: str, *, objections: list[dict], final_letter: str | None, first_letter: str | None, how: str, identities: dict) -> list[str]:
+    def capture(self, task_ref: str, *, objections: list[dict], final_letter: str | None, first_letter: str | None, how: str, identities: dict,
+                receipts: dict | None = None) -> list[str]:
         """objections = the episode's objection records (team.objs). Returns the ids of the discoveries recorded."""
         prov = {"final_how": how, "identities": identities}
         made = []
@@ -113,17 +115,16 @@ class LearningHook:
                                        applicability="the situation described in the claim; re-check against the task",
                                        evidence_ref=f"objection:{o.get('id')}", provenance={**prov, "objection": o.get("id"), "target": o.get("target"),
                                                                                               "ground_level": (o.get("ground") or {}).get("level")})
-            self._verify(did, o.get("ground") or {}, f"objection:{o.get('id')}:executed")
+            self._verify(did, o.get("ground") or {}, f"objection:{o.get('id')}:executed", (receipts or {}).get(o.get("id")))
             made.append(did)
         if final_letter and first_letter and final_letter != first_letter and not accepted:
             made.append(self.ledger.discover(claim=f"the answer moved from {first_letter} to {final_letter} through cooperation", origin_run=self.run_id,
                                              origin_task=task_ref, proposer="collaboration", applicability="same question only", evidence_ref="closing", provenance=prov))
         return made
 
-    def _verify(self, did: str, ground: dict, ref: str) -> None:
+    def _verify(self, did: str, ground: dict, ref: str, receipt: dict | None) -> None:
         """A trusted receipt verifies with the verdict of its own executed payload; a claimed execution without one is kept as a MODEL_ASSERTED verification.
         A rejected receipt (forged, proposer's lineage, untrusted tool) records nothing and is reported in `errors`."""
-        receipt = ground.get("receipt")
         claimed = (ground.get("argument") or {}).get("executed") and ground.get("level") in ("reproduced", "independently_confirmed")
         if receipt is None and not claimed:
             return

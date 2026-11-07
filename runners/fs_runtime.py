@@ -249,7 +249,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
     from peachme.research import ResearchPlan
 
     from ogi013_learning_hook import LearningHook
-    from ogi013_org_discoveries import Ledger, execution_receipt
+    from ogi013_org_discoveries import Ledger
     from ogi013_org_memory import OrangeKnowledgeProjection
 
     summary: dict = {"mode": FIXTURE_LABEL if mode == "offline-fixture" else "OPERATIONAL: real PlumMe supply", "missions": [], "learning": {}}
@@ -317,7 +317,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
 
         def checked(candidate, _check=check):
             res = _check(candidate)
-            receipts[res["evidence_id"]] = execution_receipt(res["source"], {"candidate": candidate, **res}, verifier_lineage="host-executed-check")
+            receipts[res["evidence_id"]] = learning.issue_receipt(res["source"], {"candidate": candidate, **res}, verifier_lineage="host-executed-check")
             return res
         tree_path = rdir / "research_tree.jsonl"
         captured: list = []

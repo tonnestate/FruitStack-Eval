@@ -17,8 +17,11 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import hmac
 import json
 import math
+import os
+import secrets
 import threading
 import time
 from pathlib import Path
@@ -50,26 +53,20 @@ def content_sha256(payload) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
 
-def _receipt_id(tool, sha, lineage, ref) -> str:
-    return "XR-" + _h([tool, sha, lineage, ref])[:24]
+def _receipt_id(key: bytes, tool, sha, lineage, ref) -> str:
+    """HMAC-SHA256 under the ledger's host-only key: the public fields alone cannot produce it (a worker can recompute any unkeyed hash)."""
+    return "XR-" + hmac.new(key, json.dumps([tool, sha, lineage, ref], sort_keys=True, default=str).encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def execution_receipt(tool: str, payload, *, verifier_lineage: str, ref: str | None = None) -> dict:
-    """Issued ONLY by trusted code right after it executed `tool` (a host check, a PhysalisMe tool through the gateway, `ref` = its gateway receipt id).
-    Never built from a model's text or a worker's self-reported fields."""
-    sha = content_sha256(payload)
-    return {"receipt_id": _receipt_id(tool, sha, verifier_lineage, ref), "tool": tool, "executed": True, "content_sha256": sha, "payload": payload,
-            "verifier_lineage": verifier_lineage, "ref": ref}
-
-
-def receipt_problem(receipt, proposer: str | None) -> str | None:
-    """None when `receipt` is a trusted execution receipt for a claim made by `proposer`, else the reason it is not."""
+def receipt_problem(key: bytes, receipt, proposer: str | None) -> str | None:
+    """None when `receipt` is a host-issued execution receipt (Ledger.issue_receipt) for a claim made by `proposer`, else the reason it is not."""
     if not isinstance(receipt, dict) or receipt.get("payload") is None:
         return "NO_RECEIPT"
     if receipt.get("executed") is not True or not str(receipt.get("tool") or "").startswith(TRUSTED_TOOLS):
         return "UNTRUSTED_TOOL"
     sha = content_sha256(receipt["payload"])
-    if receipt.get("content_sha256") != sha or receipt.get("receipt_id") != _receipt_id(receipt["tool"], sha, receipt.get("verifier_lineage"), receipt.get("ref")):
+    if receipt.get("content_sha256") != sha or not hmac.compare_digest(str(receipt.get("receipt_id") or ""),
+                                                                       _receipt_id(key, receipt["tool"], sha, receipt.get("verifier_lineage"), receipt.get("ref"))):
         return "HASH_MISMATCH"
     lineage = str(receipt.get("verifier_lineage") or "").strip().lower()
     if not lineage or lineage == str(proposer or "").strip().lower():
@@ -77,17 +74,20 @@ def receipt_problem(receipt, proposer: str | None) -> str | None:
     return None
 
 
-def _trust(v: dict, d: dict) -> str:
+def _trust(key: bytes, v: dict, d: dict) -> str:
     if v["verifier"] in GRADERS:
         return "GRADER_ONLY"
-    return "INDEPENDENT" if receipt_problem(v.get("receipt"), d["proposer"]) is None else "MODEL_ASSERTED"
+    return "INDEPENDENT" if receipt_problem(key, v.get("receipt"), d["proposer"]) is None else "MODEL_ASSERTED"
 
 
 class Ledger:
-    def __init__(self, path, mirror=None):
-        """`mirror(kind, key, payload)` (optional) copies every appended row to MangoMe (MangoLedger.write); the local chain is written first and stays the source of truth."""
+    def __init__(self, path, mirror=None, key: bytes | None = None):
+        """`mirror(kind, key, payload)` (optional) copies every appended row to MangoMe (MangoLedger.write); the local chain is written first and stays the source of truth.
+        `key`: the host-only receipt HMAC key; default <ledger>.key (0600, created once with secrets.token_bytes), so receipts verify again after a reload.
+        A lost key file fails closed: every earlier receipt becomes MODEL_ASSERTED."""
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._key = key
         self.mirror = mirror
         self.mirror_errors: list[str] = []
         self._tl, self._depth = threading.RLock(), 0
@@ -111,6 +111,25 @@ class Ledger:
                     ledger._fh.close()
                 ledger._tl.release()
         return _Ctx()
+
+    @property
+    def key(self) -> bytes:
+        if self._key is None:
+            kp = Path(str(self.path) + ".key")
+            with self._locked():
+                if not kp.exists():
+                    fd = os.open(kp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                    with os.fdopen(fd, "wb") as f:
+                        f.write(secrets.token_bytes(32))
+                self._key = kp.read_bytes()
+        return self._key
+
+    def issue_receipt(self, tool: str, payload, *, verifier_lineage: str, ref: str | None = None) -> dict:
+        """Called ONLY by host code right after it executed `tool` (a host check, a PhysalisMe tool through the gateway, `ref` = its gateway receipt id).
+        Never built from a model's text or a worker's fields; the key never leaves the host."""
+        sha = content_sha256(payload)
+        return {"receipt_id": _receipt_id(self.key, tool, sha, verifier_lineage, ref), "tool": tool, "executed": True, "content_sha256": sha, "payload": payload,
+                "verifier_lineage": verifier_lineage, "ref": ref}
 
     def rows(self) -> list[dict]:
         out, prev = [], "0" * 64
@@ -164,10 +183,10 @@ class Ledger:
             raise ValueError(f"verifier must be one of {sorted(VERIFIERS)}; model agreement is not verification")
         if verdict not in ("SUPPORTS", "CONTRADICTS"):
             raise ValueError("verdict must be SUPPORTS or CONTRADICTS")
-        if receipt is not None and (verifier in GRADERS or (problem := receipt_problem(receipt, d["proposer"]))):
+        if receipt is not None and (verifier in GRADERS or (problem := receipt_problem(self.key, receipt, d["proposer"]))):
             raise ValueError(f"RECEIPT_REJECTED: {'a grader verdict takes no execution receipt' if verifier in GRADERS else problem}")
         row = self._add("VERIFICATION", {"id": did, "verdict": verdict, "verifier": verifier, "evidence_ref": evidence_ref, "receipt": receipt})
-        return _trust(row, d)
+        return _trust(self.key, row, d)
 
     def retrieve(self, did: str, *, run: str, task: str) -> None:
         self._known(did)
@@ -201,7 +220,7 @@ class Ledger:
         if d is None:
             raise KeyError(did)
         ver = [r for r in own if r["kind"] == "VERIFICATION"]
-        ind = [v for v in ver if _trust(v, d) == "INDEPENDENT"]
+        ind = [v for v in ver if _trust(self.key, v, d) == "INDEPENDENT"]
         return d, own, [v for v in ind if v["verdict"] == "SUPPORTS"], [v for v in ind if v["verdict"] == "CONTRADICTS"], ver
 
     def status(self, did: str, task: str | None = None, run: str = "", task_text: str = "") -> dict:
@@ -227,7 +246,7 @@ class Ledger:
             state = "VERIFIED_TASK_IRRELEVANT"
         else:
             state = "INDEPENDENTLY_CHECKED"
-        trust = [_trust(v, d) for v in ver]
+        trust = [_trust(self.key, v, d) for v in ver]
         return {"id": did, "state": state, "claim": d["claim"], "applicability": d["applicability"], "verifications": len(ver),
                 "independent_checks": trust.count("INDEPENDENT"), "model_asserted_verifications": trust.count("MODEL_ASSERTED"), "grader_only_verifications": trust.count("GRADER_ONLY"),
                 "retrievals": len(ret), "applications": len(app), "outcomes": len(out),
