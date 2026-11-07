@@ -1,0 +1,83 @@
+{
+ "schema": "OGI-STUDY-RUNNER-CONFIG/1",
+ "status": "TEMPLATE - copy to runner_config.json, fill every <...> at lock; refuses to run while any <...> remains or without an owner approval file",
+ "study": "OGI-STUDY-1",
+ "stage": "<A | B | C>",
+ "entrypoint": {
+  "intended": "runners/fs_runtime.py",
+  "note": "FruitStack runtime entrypoint under construction by another agent; not implemented here. It must load this file, check the approval, the lock and the caps, and dispatch each arm through the drivers below",
+  "invocation": "python runners/fs_runtime.py --config evidence/ogi-study-package/runner_config.json --approval <approval file>"
+ },
+ "authorization": {
+  "required": true,
+  "approval_file": "<path; contains sha256 of runner_config.json and budget.md>",
+  "budget_md_sha256": "<sha256 of the locked budget.md>",
+  "refuse_without_approval": true
+ },
+ "lock": {
+  "file": "evidence/ogi-study-package/STUDY_LOCK.txt",
+  "prereg_sha256": "<sha256 of the locked PREREG>",
+  "arms_sha256": "<sha256 of arms.json>",
+  "analyze_sha256": "<sha256 of analyze.py>",
+  "components": {"cherryme": "<commit>", "plumme": "<commit>", "peachme": "<commit>", "mangome": "<commit>", "fruitstack_eval": "<commit>"},
+  "refuse_dirty_source": true
+ },
+ "roster": {"luna": {"route": "subscription (INCLUDED)", "independence_key": "<from receipt>"},
+            "member_2": {"canonical_model_id": "<PlumMe AUTO at lock>", "independence_key": "<distinct from luna>"}},
+ "drivers": {
+  "prompt_tasks": {
+   "module": "runners/fs_org_driver.py",
+   "T": "run_episode(task, work=<PlumMe-backed work fn>, hook=LearningHook(ledger, run_id=<tag>:T, apply=False), arm='T', n_solvers=2, max_rounds=3)",
+   "EVAL-002": "run_pair(task, work=<work fn>, ledger=<Ledger>, tag=<tag>, results=<results path>)",
+   "task_adapter": "fs_org_driver.Task(task_ref, prompt, signature, grade, grader) with grader in ogi013_org_discoveries.VERIFIERS",
+   "domains": ["D2", "D2-hard", "D4"]
+  },
+  "interactive_tasks": {
+   "module": "<tau2 adapter in runners/fs_runtime.py (not built); reference: runners/ogi013_tau2_run.py>",
+   "domains": ["D1"],
+   "grader": "tau2-official-grader"
+  },
+  "E": "<fs_runtime: k drafts round-robin, k from T receipts; selection per arms.json>",
+  "V": "<analysis-side vote over E drafts; no provider call>",
+  "S": "<fs_runtime: single member, pinned>",
+  "L": "<fs_runtime: Luna subscription route>"
+ },
+ "tasks": {
+  "D1": {"ids": "<tasks/ogi-study/D1_ids.json>", "sha256": "<...>", "order": "sha256('OGI-STUDY-1|D1|'+task_id)", "n": "<all airline+retail test tasks>"},
+  "D2": {"ids": "<tasks/ogi-study/D2_ids.json>", "sha256": "<...>", "order": "sha256('OGI-STUDY-1|D2|'+task_id)", "eval001_positions": [1, 200], "eval002_positions": [201, 400], "exclude": "D2-hard ids"},
+  "D2-hard": {"ids": "<tasks/ogi-study/D2hard_ids.json>", "sha256": "<...>", "n": "<all, expected 148>"},
+  "D4": {"ids": "<tasks/ogi-study/D4_ids.json>", "sha256": "<...>", "n": "<all level-5 items>"}
+ },
+ "ledgers": {
+  "learning": "<state dir>/ogi-study/discoveries.jsonl",
+  "learning_mirror": "MangoLedger (ORG_LEARNING_*) under the stage's WorkIdentity",
+  "results": "<state dir>/ogi-study/<stage>/results.jsonl",
+  "receipts": "PlumMe receipts; receipt-window id hash into the closing manifest"
+ },
+ "caps": {
+  "A": {"max_requests": 25784, "max_tokens": 162432000},
+  "B": {"max_requests": 72160, "max_tokens": 131200000},
+  "C": {"max_requests": 4500, "max_tokens": 25200000},
+  "per_episode": {"D1": {"T": [110, 200000], "E": [110, 200000], "S": [110, 200000], "L": [110, 200000]},
+                  "D2": {"T": [20, 120000], "E": [20, 120000], "S": [3, 24000], "L": [3, 24000]},
+                  "D4": {"T": [12, 60000], "E": [12, 60000], "S": [3, 24000], "L": [3, 24000]}},
+  "max_cash_usd": 0.0,
+  "allowed_cost_classes": ["ANONYMOUS_FREE", "FREE_TIER", "LOCAL", "TRIAL_CREDIT", "INCLUDED"],
+  "reserve_tokens_per_failed_dispatch": 4000,
+  "max_episode_minutes": 90,
+  "max_stage_days": 14
+ },
+ "pause_rules": {
+  "infra_share_above": 0.10,
+  "after_tasks_in_process": 40,
+  "exit_code_pause": 76,
+  "exit_code_cap": 3,
+  "no_hidden_retries": true,
+  "limit_message_row": "discard and re-run once",
+  "cooldown_wait_max_s": 300
+ },
+ "identity": {
+  "T_min_distinct_independence_keys": 2,
+  "mismatch": "INFRA_IDENTITY (counted as infrastructure failure)"
+ }
+}

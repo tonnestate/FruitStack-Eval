@@ -1,0 +1,66 @@
+{
+ "schema": "OGI-STUDY-ARMS/1",
+ "status": "DRAFT - not locked, not authorized. Nothing runs from this file without an owner authorization (budget.md).",
+ "roster": {
+  "members": ["luna", "member_2"],
+  "rule": "Pinned at lock via PlumMe AUTO for the solve role; member_2 must have an independence_key different from Luna's. The canonical_model_id and independence_key of every member are written into the lock. Every retry stays on the pinned model (sticky). A replacement is logged as ROSTER_CHANGE and makes the affected rows INFRA_IDENTITY.",
+  "small_model_exclusion": "AUTHOR/solve steps exclude models of 12B or less and the nemotron-lightning/nano class (PlumMe small_model_reason), as in OGI-013 REPAIR-1 R5",
+  "scaling": "with M members: one S arm per member; E round-robin over all M; budget.md scales linearly in M"
+ },
+ "arms": {
+  "T": {
+   "what": "organized team: CherryMe Brother Mode, blind parallel first answers, cross-lineage critique, replies, revision",
+   "driver": "runners/fs_org_driver.py run_episode(task, work, hook, arm='T', n_solvers=2, max_rounds=3)",
+   "final_answer": "fs_org_driver.final_answer: CONSENSUS, else UNRESOLVED_PRIMARY_RETAINED (never a vote, never order luck)",
+   "learning": "EVAL-001/003: LearningHook(apply=False). Nothing is retrieved or injected, but captures are recorded and serve as EVAL-002 seeding. EVAL-002: see the applied/control arms",
+   "runs_first_on_each_task": true
+  },
+  "E": {
+   "what": "compute-matched non-collaborative control: the same roster members, independent drafts, no critique, no exchange, no revision",
+   "k": "k = the number of provider calls T made on that task (at least 2), read from T's PlumMe receipts; drafts alternate round-robin over the roster, Luna first",
+   "selection": {
+    "D1_tau2": "step-level self-consistency: at each agent step, k_step independent proposals (k_step = T's dispatches for that step, at least 2); the plurality action is executed, ties go to the earliest proposal",
+    "D2_D3_code": "every draft is run against the task's VISIBLE tests (the same ones T can run); the draft passing the most wins, ties go to the earliest",
+    "D4_math": "plurality of the normalized final answers (math-verify equivalence classes), ties go to the earliest",
+    "D5_claims": "plurality of the claim verdict, ties go to the earliest"
+   }
+  },
+  "V": {
+   "what": "majority-vote control (EVAL-003 only): computed from E's drafts at no extra provider cost",
+   "selection": {
+    "D2_D3_code": "behavioral plurality: drafts are clustered by their output signature on the visible test inputs; one draft from the largest cluster wins, ties go to the earliest",
+    "D4_math": "identical to E's plurality rule; V is reported separately only for code"
+   }
+  },
+  "S": {
+   "what": "each roster member alone (one arm per member: S_luna, S_member_2)",
+   "calls": "single episode with the member's own tool loop when the domain has one (tau2, code with visible tests), otherwise one call",
+   "note": "S_luna and L coincide whenever Luna is a roster member. It is run once and reported under both labels."
+  },
+  "L": {
+   "what": "Luna alone through the subscription route (INCLUDED), with the same prompt and tool access as S",
+   "role": "fixed external reference control across all studies (continuity with QA-1, QA-2D and S1)"
+  },
+  "applied": {
+   "what": "EVAL-002: a T-shaped episode with LearningHook(apply=True). Verified, applicable discoveries from OTHER tasks are shown as the brief (at most 3), and RETRIEVAL and APPLICATION are recorded",
+   "driver": "runners/fs_org_driver.py run_pair(..., ledger, tag): applied arm"
+  },
+  "control": {
+   "what": "EVAL-002: the same task, workers and protocol, LearningHook(apply=False), no brief",
+   "driver": "runners/fs_org_driver.py run_pair: control arm (runs first)"
+  }
+ },
+ "compute_matching": {
+  "unit": "provider calls (PlumMe receipts: provider_attempt_count, at least 1) and recorded input+output tokens",
+  "rule_calls": "E uses exactly T's call count on the same task (k as above)",
+  "rule_tokens": "E's per-call max_output_tokens equals T's. E's total tokens must be within +-10% of T's on that task (the N rule of evidence/ogi013-lead/PREREG.md). Rows outside the band are kept, flagged COMPUTE_MISMATCH, and removed only in a labelled sensitivity analysis",
+  "order": "T first on every task. E's budget is derived from T's receipts and is never tuned on outcomes",
+  "S_L": "not compute-matched by design (they are the single-model references). Tokens and calls are reported per arm",
+  "applied_vs_control": "identical episode caps. The brief's tokens are counted in the applied arm"
+ },
+ "studies": {
+  "EVAL-001": {"domains": ["D1", "D2"], "secondary": ["D4"], "arms": ["T", "E", "S_luna(=L)", "S_member_2"]},
+  "EVAL-002": {"domains": ["D2"], "secondary": ["D1 (needs a tau2 adapter in runners/fs_runtime.py)"], "arms": ["control", "applied"], "seeding": "EVAL-001 D2 T episodes (captures only)"},
+  "EVAL-003": {"domains": ["D2-hard"], "secondary": ["D3 (separate authorization)"], "phase_1": "S_luna and S_member_2, r = 3 independent attempts each, on every pool task", "phase_2_on_U": ["T", "E", "V"]}
+ }
+}
