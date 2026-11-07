@@ -14,7 +14,7 @@ Modes
 Success contract (per mission)
   integration_path_ok  every stage executed (required events), no BLOCKED/ERROR, no failed research step, tool receipts for every configured analysis, a MangoMe checkpoint,
                        and - when a check is configured - the executed verifier ran.
-  mission_success      run_mission state COMPLETED (settled claims via admissible evidence AND completed mandatory responsibilities) AND every claim SUPPORTED. A claim the
+  mission_success      run_mission state COMPLETED (settled claims via admissible evidence AND completed mandatory responsibilities) AND every claim SUPPORTED AND (when a check is configured) the workers' candidate verdict is SUPPORTS. A claim the
                        executed check contradicts is REFUTED: run_mission settles it (COMPLETED), but the objective has no verified answer, so it is never success.
                        UNRESOLVED is a valid research outcome, never success.
   Executed checks      a task's `check` runs (a) as a CherryMe deterministic tool on the candidate the CLAIM names (ExecutedCheckTool: grounded PASS/CONTRADICT through
@@ -195,8 +195,11 @@ def success_contract(record: dict, *, analyses: int, check: bool, receipts: int)
                 + ([] if receipts >= analyses else [f"tool_receipts:{receipts}<{analyses}"]) + ([] if steps else ["no_research_step"])
                 + ([] if record["state"] not in ("BLOCKED", "ERROR") else [f"state:{record['state']}"]))
     answered = bool(record.get("findings")) and all(f["status"] == "SUPPORTED" for f in record["findings"])   # a REFUTED claim settles the mission but answers nothing
-    return {"integration_path_ok": not problems, "integration_problems": problems, "mission_success": record["state"] == "COMPLETED" and answered, "mission_state": record["state"],
-            "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint}
+    verdicts = [e.get("relation") for e in record["events"] if e["type"] == "CANDIDATE_VERIFIED"]
+    candidate_verdict = verdicts[-1] if verdicts else None                                                    # the workers' candidate answer, as judged by the host verifier
+    candidate_ok = not check or candidate_verdict == "SUPPORTS"                                              # a CONTRADICTS candidate is a wrong answer even if its claim is verified
+    return {"integration_path_ok": not problems, "integration_problems": problems, "mission_success": record["state"] == "COMPLETED" and answered and candidate_ok, "mission_state": record["state"],
+            "candidate_verdict": candidate_verdict, "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint}
 
 
 def _git_repo(path: Path) -> str:
