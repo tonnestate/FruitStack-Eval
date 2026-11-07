@@ -1,0 +1,55 @@
+# FruitStack runtime configuration (runners/fs_runtime.py). Relative paths resolve against THIS file's directory, except the [learning]/[physalis] state paths,
+# which resolve against the run's OUT directory. ${VAR} is expanded from the environment.
+#   python runners/fs_runtime.py --config config/fs_runtime/offline_fixture.toml OUT_DIR [--mode offline-fixture|operational]
+# offline-fixture: the providers behind PlumMe are a scripted fixture adapter (public PlumMe ProviderAdapter interface); its texts are fixed per task,
+#                  identical in applied and control runs. Never evidence of capability or organizational gain.
+# operational:     real PlumMe supply from Settings.load(); missing supply stops the affected mission before any MangoMe/OrangeMe write. No simulated fallback.
+mode = "offline-fixture"
+actor = "fruitstack-runtime"
+registry = "physalisme_registry.json"   # host-pinned PeachMe ToolGateway registry (copy of PeachMe/examples/physalisme_registry.json)
+
+[mangome]
+backend = "memory"                      # sets MANGOME_BACKEND unless the environment already does
+
+[orangeme]
+local_ledger = true                     # local git ledgers under OUT, no push; false = use the ORANGEME_* environment as configured
+
+[learning]
+ledger = "learning.jsonl"
+knowledge = "knowledge.jsonl"
+
+[physalis]
+data_dir = "physalis-data"              # host-owned dataset directory (SYNTHETIC rows from PhysalisMe examples/generate_synthetic.py, seed 7)
+state_dir = "physalis-state"
+
+[mission]
+budget = 2
+call_budget = 10
+session_budget = { max_calls = 14, max_tokens = 120000, max_cost_usd = 1.0 }
+
+[plan]
+worker_budget = { max_calls = 12, max_tokens = 60000, max_cost_usd = 0.5 }
+lsd = true
+n_solvers = 2
+max_rounds = 1
+
+[[plan.analyses]]
+server = "physalisme"
+tool = "physalis_analyze"
+relation = "SUPPORTS"
+arguments = { dataset_id = "synthetic_runs", method = "random_forest", task = "classification", target = "verified_success", features = ["complexity", "context_quality", "workers", "tokens"], group_column = "task_id", seed = 42 }
+
+[[tasks]]
+id = "A"
+objective = "Which Python standard-library call computes the exact integer square root of a non-negative integer?"
+claim = "math.isqrt computes the exact integer square root of a non-negative integer."
+check = "exact_isqrt"
+fixture_answer = "math.isqrt"
+
+[[tasks]]
+id = "B"
+objective = "Which Python standard-library call computes the exact integer binomial coefficient (n choose k) for non-negative integers?"
+claim = "math.comb computes the exact integer binomial coefficient for non-negative integers."
+check = "exact_comb"
+fixture_answer = "math.comb"
+control = true                          # also run without stored knowledge (LearningHook apply=False) and record the applied-vs-control outcome

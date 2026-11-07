@@ -67,6 +67,23 @@ class LearningHook:
                                              origin_task=task_ref, proposer="collaboration", applicability="same question only", evidence_ref="closing", provenance=prov))
         return made
 
+    def capture_tree(self, task_ref: str, tree, *, evidence_ref: str) -> list[str]:
+        """After a research phase (ResearchPlan.after): every Research Tree node SUPPORTED or FALSIFIED by executed / independently_confirmed evidence becomes a DISCOVERY
+        verified by that evidence (kind 'executed'); falsified nodes are kept as negative findings. Model-level evidence never verifies. Idempotent."""
+        made = []
+        for n in tree.nodes.values():
+            rel = "SUPPORTS" if n.status == "SUPPORTED" else "CONTRADICTS" if n.status == "FALSIFIED" else None
+            strong = [e for e in n.evidence if e["relation"] == rel and e["level"] in ("executed", "independently_confirmed")]
+            if n.kind == "ROOT" or not strong:
+                continue
+            did = self.ledger.discover(claim=n.text, origin_run=self.run_id, origin_task=task_ref, proposer=n.origin, applicability="related questions; re-check against the task",
+                                       evidence_ref=f"{evidence_ref}#{n.id}", provenance={"node": n.id, "status": n.status, "evidence": strong[0]["id"]})
+            ref = f"{evidence_ref}#{n.id}:{strong[0]['id']}"
+            if not any(r["kind"] == "VERIFICATION" and r["id"] == did and r["evidence_ref"] == ref for r in self.ledger.rows()):
+                self.ledger.verify(did, verdict=rel, verifier="executed", evidence_ref=ref)
+            made.append(did)
+        return made
+
     def outcomes(self, task_ref: str, *, reward: float, control_reward: float, control_run: str, grader: str) -> list[str]:
         """Called by the grading side. One OUTCOME per discovery applied in this run for this task."""
         done = []

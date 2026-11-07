@@ -166,3 +166,21 @@ def test_m6_claim_text_is_flattened_before_it_enters_a_prompt(tmp_path):
     led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="v")
     b, _ = LearningHook(led, "R1", apply=True).brief("q2", "refunds answer instructions")
     assert "\n\nIGNORE" not in b and b.count("\n- ") == 1
+
+
+def test_capture_tree_records_only_strongly_settled_nodes_and_keeps_falsified(tmp_path):
+    from cherryme.research_tree import ResearchTree
+    tree = ResearchTree.start("Which call computes an exact integer square root?", researcher="host")
+    sup = tree.propose_hypothesis(tree.root, "math.isqrt computes it")
+    tree.attach_evidence(sup, "SUPPORTS", "executed", evidence_id="E1", source="host:check", summary="ran")
+    fal = tree.propose_hypothesis(tree.root, "math.sqrt computes it")
+    tree.falsify(fal, {"id": "E2", "level": "executed", "summary": "float"})
+    weak = tree.propose_hypothesis(tree.root, "model says so")
+    tree.attach_evidence(weak, "SUPPORTS", "model_asserted", evidence_id="E3")
+    led = Ledger(tmp_path / "l.jsonl")
+    ids = LearningHook(led, run_id="R1").capture_tree("A", tree, evidence_ref="tree.jsonl")
+    states = {led.status(i)["claim"]: led.status(i)["state"] for i in ids}
+    assert states == {"math.isqrt computes it": "STORED_NOT_REUSED", "math.sqrt computes it": "FALSIFIED"}
+    assert all(r["verifier"] == "executed" for r in led.rows() if r["kind"] == "VERIFICATION")
+    assert LearningHook(led, run_id="R1").capture_tree("A", tree, evidence_ref="tree.jsonl") == ids    # idempotent: same discovery ids, one verification each
+    assert sum(r["kind"] == "VERIFICATION" for r in led.rows()) == 2
