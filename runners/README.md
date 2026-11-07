@@ -1,5 +1,15 @@
 # Harness runners
 
+## FruitStack host entrypoint (`fs_runtime.py`)
+
+`python runners/fs_runtime.py --config config/fs_runtime/offline_fixture.toml OUT_DIR [--mode offline-fixture|operational]`
+runs the configured PEACH-MISSION/1 missions (tasks, executed checks, learning ledger, registry, MangoMe/OrangeMe settings, plan options all come from the
+TOML/JSON config; relative paths resolve against the config file or OUT_DIR). `offline-fixture` uses a scripted PlumMe adapter through the public
+`ProviderAdapter` interface (identical answers in applied and control runs; never evidence of gain). `operational` uses real PlumMe supply; without an eligible
+route a mission is reported `SUPPLY_UNAVAILABLE` before any MangoMe/OrangeMe write, with no simulated fallback. Each mission reports `integration_path_ok`
+(exit code: 0 ok, 2 supply shortage, 1 otherwise) separately from `mission_success` (state COMPLETED only; UNRESOLVED is never success).
+`fs_fullstack_e2e.py OUT_DIR` is the thin offline regression fixture.
+
 ## OGI-013 tau2 host prototype
 
 `ogi013_tau2_run.py` drives one official tau2 task with the installed FruitStack
