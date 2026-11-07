@@ -17,6 +17,14 @@ from ogi013_org_discoveries import Ledger
 _CLAIM = re.compile(r"CLAIM:\s*(.+?)(?:\n\s*(?:EVIDENCE|CONSEQUENCE):|\Z)", re.S)
 
 
+def format_brief(items: list[dict]) -> str:
+    """The brief text shown in the solve prompt's `{brief}` slot (shared by the memory arm and the EVAL-002 sham arm, so both have the same form)."""
+    if not items:
+        return ""
+    lines = "\n".join(f"- {' '.join(i['claim'].split())[:300]} (applies: {i['applicability']}; independently verified)" for i in items)
+    return "Organizational knowledge from earlier verified work (check that it fits this task before using it):\n" + lines + "\n\n"
+
+
 @dataclass
 class LearningHook:
     ledger: Ledger
@@ -41,10 +49,7 @@ class LearningHook:
         except Exception as exc:  # noqa: BLE001
             self.errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
             return "", []
-        if not items:
-            return "", []
-        lines = "\n".join(f"- {' '.join(i['claim'].split())[:300]} (applies: {i['applicability']}; independently verified)" for i in items)
-        return "Organizational knowledge from earlier verified work (check that it fits this task before using it):\n" + lines + "\n\n", [i["id"] for i in items]
+        return format_brief(items), [i["id"] for i in items]
 
     def capture(self, task_ref: str, *, objections: list[dict], final_letter: str | None, first_letter: str | None, how: str, identities: dict) -> list[str]:
         """objections = the episode's objection records (team.objs). Returns the ids of the discoveries recorded."""

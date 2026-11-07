@@ -208,3 +208,90 @@ def test_corrected_and_damage_are_counted_from_graded_first_answers_after_the_ep
     t = Task("t", "q", sig, lambda a: 1.0 if a == "3" else 0.0, "executed")
     assert grade_after({"answer": "3", "members": [{"first": "1", "final": "3"}, {"first": "2", "final": "3"}]}, t)["effect"]["class"] == "CORRECTED"
     assert grade_after({"answer": "1", "members": [{"first": "1", "final": "1"}, {"first": "3", "final": "3"}]}, t)["effect"]["class"] == "DAMAGED"   # control: right draft not selected
+
+
+ROSTER3 = {**ROSTER, "S-model": "sage"}                                                   # the same roster for every arm, specialist declared (prereg §6)
+
+
+def with_specialist(base, lineage="sage"):
+    def work(prompt, stage, prefer=None, exclude=()):
+        if stage == "specialist":
+            return {"success": True, "output": "ANSWER: 9", "model_key": prefer or "?", "independence_key": lineage, "receipt_id": "r-S"}
+        return base(prompt, stage, prefer=prefer, exclude=exclude)
+    return work
+
+
+def test_specialist_is_a_declared_roster_member_of_every_arm(tmp_path):
+    """T rows that use the specialist stay valid, a T row that converges without it stays valid, and a control that never calls it stays valid on the same roster."""
+    from runners.fs_org_driver import run_samples
+    task = Task("t1", "Sum?", sig, lambda a: 0.0, "executed")
+    hook = lambda: LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R")             # noqa: E731
+    used = run_episode(task, work=with_specialist(scripted([], l_concedes=False)), hook=hook(), arm="T", roster=ROSTER3, specialist="S-model")
+    assert used["specialist_used"] and used["identity_valid"] is True
+    assert next(r for r in used["receipts"] if r["stage"] == "specialist")["prefer"] == "S-model"        # routed to the declared member
+    calm = run_episode(task, work=with_specialist(scripted([])), hook=hook(), arm="T", roster=ROSTER3, specialist="S-model")
+    assert not calm["specialist_used"] and calm["identity_valid"] is True
+    drafts = lambda p, s, prefer=None, exclude=(): ok("L" if prefer == "L-model" else "N", "ANSWER: 7")   # noqa: E731
+    e = run_samples(task, work=drafts, arm="E_div", roster=ROSTER3, cycle=list(ROSTER), k=2, specialist="S-model")
+    assert e["identity_valid"] is True                                                 # never calls the specialist, still valid
+    assert run_samples(task, work=drafts, arm="E_div", roster=ROSTER3, cycle=list(ROSTER), k=2)["exclusion"] == "INFRA_IDENTITY:ROSTER_NOT_REALISED"
+    old = run_episode(task, work=with_specialist(scripted([], l_concedes=False)), hook=hook(), arm="T", roster=ROSTER)
+    assert old["exclusion"] == "INFRA_IDENTITY:LINEAGE_OUTSIDE_ROSTER"                  # an undeclared extra model is never a valid team row
+    wrong = run_episode(task, work=with_specialist(scripted([], l_concedes=False), lineage="nemotron"), hook=hook(), arm="T", roster=ROSTER3, specialist="S-model")
+    assert wrong["exclusion"] == "INFRA_IDENTITY:ROLE_MISMATCH"
+
+
+def test_generic_multi_agent_control_is_token_matched_guarded_and_has_no_critique(tmp_path):
+    from runners.fs_org_driver import run_multi, select_answer
+    seen = []
+
+    def team(prompt, stage, prefer=None, exclude=()):
+        seen.append((stage, prompt))
+        who = {"L-model": "L", "N-model": "N"}[prefer]
+        out = {"lead": "Split the series into odd and even terms.", "synthesize": "ANSWER: 9"}.get(stage, f"ANSWER: {7 if who == 'L' else 9}")
+        return {**ok(who, out), "input_tokens": 100, "output_tokens": 50}
+    task = Task("t1", "Sum?", sig, lambda a: 0.0, "executed")
+    t_row = run_episode(task, work=lambda p, s, **kw: {**scripted([])(p, s, **kw), "input_tokens": 100, "output_tokens": 50},
+                        hook=LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R"), arm="T", roster=ROSTER)
+    budget = t_row["tokens"]["input"] + t_row["tokens"]["output"]
+    g = run_multi(task, work=team, roster=ROSTER, cycle=list(ROSTER), k=t_row["calls"], token_budget=budget)
+    spent = g["tokens"]["input"] + g["tokens"]["output"]
+    assert g["identity_valid"] is True and abs(spent - budget) <= 0.1 * budget                       # token parity within the ±10% tolerance
+    assert set(g["stages"]) == {"lead", "solve", "synthesize"} and g["stages"]["lead"] == g["stages"]["synthesize"] == 1
+    assert not {"challenge", "revise", "specialist"} & {s for s, _ in seen}                           # no critique / revision events
+    assert all("Split the series" in p for s, p in seen if s == "solve")                              # the lead's brief reaches every worker
+    texts = [p for s, p in seen if s == "solve"]
+    assert not any("ANSWER: " in p for p in texts)                                                     # a worker never sees another's draft
+    drafts = [f"ANSWER: {7 if i % 2 == 0 else 9}" for i in range(g["drafts"])]
+    assert (g["answer"], g["how"]) == select_answer("t1", drafts + ["ANSWER: 9"], sig) and g["synthesis"] == "9"
+    assert run_multi(task, work=team, roster=ROSTER, cycle=list(ROSTER), k=5)["calls"] == 5            # no token counts -> call budget, synthesis included
+    luna = run_multi(task, work=lambda p, s, prefer=None, exclude=(): ok("L", "ANSWER: 7"), roster=ROSTER, cycle=list(ROSTER), k=4)
+    assert luna["identity_valid"] is False and luna["exclusion"].startswith("INFRA_IDENTITY:")       # the row-level guard applies
+
+
+def test_eval002_sham_brief_is_length_matched_never_verified_for_the_task_and_order_is_seeded(tmp_path):
+    from runners.fs_org_driver import sham_brief, task_order, run_transfer
+    led = Ledger(tmp_path / "l.jsonl")
+    good = led.discover(claim="summing the even terms of the series twice overcounts", origin_run="R0", origin_task="t0", proposer="nemotron",
+                        applicability="series summation", evidence_ref="tool:pytest#1")
+    led.verify(good, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1")
+    for i, claim in enumerate(["a cached DNS entry outlives its TTL", "sorting is stable in this library"]):
+        led.discover(claim=claim, origin_run="R0", origin_task=f"u{i}", proposer="luna", applicability="any", evidence_ref="e")       # unverified
+    own = led.discover(claim="the series answer is 9", origin_run="R0", origin_task="t2", proposer="luna", applicability="any", evidence_ref="e")
+    task = Task("t2", "Sum of the series with even terms?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed")
+    sham = sham_brief(led, task, "P:applied", 200, seed=1)
+    assert len(sham) == 200 and "overcounts" not in sham and "answer is 9" not in sham               # never the task's verified (or own) items
+    assert sham == sham_brief(led, task, "P:applied", 200, seed=1)
+    seen = []
+    res = run_pair(task, work=scripted(seen, n_critique=False), ledger=led, tag="P", sham=True, seed=7)
+    assert res["applied"]["retrieved"] == [good] and res["sham"]["retrieved"] == [] and res["control"]["brief_chars"] == 0
+    assert res["sham"]["brief_chars"] == res["applied"]["brief_chars"] > 0
+    assert sorted(res["order"]) == ["applied", "control", "sham"] and res["order"] == run_pair(task, work=scripted([], n_critique=False), ledger=led, tag="Q",
+                                                                                                sham=True, seed=7)["order"]
+    sham_prompts = [p for a, s, p in ((a, s, p) for a in ("sham",) for s, p in res["prompts"][a]) if s == "solve"]
+    assert sham_prompts and not any("overcounts" in p for p in sham_prompts) and led.status(own)["retrievals"] == 0
+    refs = [f"t{i}" for i in range(10)]
+    assert task_order(refs, 3) == task_order(refs, 3) != task_order(refs, 4) and sorted(task_order(refs, 3)) == refs
+    tasks = [Task(r, "Sum?", sig, lambda a: 0.0, "executed") for r in ("a", "b", "c")]
+    out = run_transfer(tasks, seed=3, tag="X", work=scripted([]), ledger=Ledger(tmp_path / "x.jsonl"), sham=True)
+    assert out["order"] == task_order(["a", "b", "c"], 3) == [p["task"] for p in out["pairs"]]
