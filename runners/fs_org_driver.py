@@ -312,10 +312,16 @@ def task_order(task_refs: list[str], seed) -> list[str]:
 
 
 def sham_brief(ledger: Ledger, task: Task, run: str, length: int, seed) -> str:
-    """EVAL-002 sham arm: a brief of the memory brief's form and length made ONLY from discoveries that are not retrievable as verified knowledge for this task (unverified,
-    falsified, or verified for unrelated tasks), never from this task's own discoveries. Read-only (records no retrieval or application). Empty when the pool is."""
+    """EVAL-002 sham arm: a brief of the memory brief's form and length made ONLY from independently verified, never-contradicted discoveries of
+    unrelated tasks (true but irrelevant; unverified or falsified items are excluded), never from this task's own discoveries. Read-only (records no retrieval or application). Empty when the pool is."""
     real = {i["id"] for i in ledger.retrievable(task.task_ref, run, task.prompt)}
-    pool = [r for r in ledger.rows() if r["kind"] == "DISCOVERY" and r["id"] not in real and r["origin_task"] != task.task_ref]
+    ver = {}
+    for v in (r for r in ledger.rows() if r["kind"] == "VERIFICATION"):
+        ver.setdefault(v["id"], []).append(v["verdict"])
+    # Clean placebo: only independently SUPPORTED, never contradicted discoveries from unrelated tasks (true but irrelevant), so the sham arm
+    # measures relevance, not susceptibility to misinformation.
+    pool = [r for r in ledger.rows() if r["kind"] == "DISCOVERY" and r["id"] not in real and r["origin_task"] != task.task_ref
+            and "SUPPORTS" in ver.get(r["id"], []) and "CONTRADICTS" not in ver.get(r["id"], [])]
     pool.sort(key=lambda r: _h(seed, task.task_ref, r["id"]))
     if not pool or length <= 0:
         return ""

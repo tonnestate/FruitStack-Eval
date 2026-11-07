@@ -275,12 +275,17 @@ def test_eval002_sham_brief_is_length_matched_never_verified_for_the_task_and_or
     good = led.discover(claim="summing the even terms of the series twice overcounts", origin_run="R0", origin_task="t0", proposer="nemotron",
                         applicability="series summation", evidence_ref="tool:pytest#1")
     led.verify(good, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1")
-    for i, claim in enumerate(["a cached DNS entry outlives its TTL", "sorting is stable in this library"]):
-        led.discover(claim=claim, origin_run="R0", origin_task=f"u{i}", proposer="luna", applicability="any", evidence_ref="e")       # unverified
+    for i, claim in enumerate(["a cached DNS entry outlives its TTL", "sorting is stable in this library"]):   # verified but unrelated: the placebo pool
+        d = led.discover(claim=claim, origin_run="R0", origin_task=f"u{i}", proposer="luna", applicability="any", evidence_ref="e")
+        led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="e")
+    led.discover(claim="unverified rumour about caches", origin_run="R0", origin_task="u8", proposer="luna", applicability="any", evidence_ref="e")
+    bad = led.discover(claim="falsified claim about sorting", origin_run="R0", origin_task="u9", proposer="luna", applicability="any", evidence_ref="e")
+    led.verify(bad, verdict="CONTRADICTS", verifier="executed", evidence_ref="e")
     own = led.discover(claim="the series answer is 9", origin_run="R0", origin_task="t2", proposer="luna", applicability="any", evidence_ref="e")
     task = Task("t2", "Sum of the series with even terms?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed")
     sham = sham_brief(led, task, "P:applied", 200, seed=1)
     assert len(sham) == 200 and "overcounts" not in sham and "answer is 9" not in sham               # never the task's verified (or own) items
+    assert "rumour" not in sham and "falsified" not in sham                                          # clean placebo: no misinformation
     assert sham == sham_brief(led, task, "P:applied", 200, seed=1)
     seen = []
     res = run_pair(task, work=scripted(seen, n_critique=False), ledger=led, tag="P", sham=True, seed=7)
