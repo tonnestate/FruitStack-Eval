@@ -132,7 +132,7 @@ def fixture_service(state_dir: Path, current: dict):
     def respond(prompt: str) -> str:
         """Fixed text per task: the answer of the task the host is running (`current["answer"]`), whatever the prompt contains (a brief cannot change it), so applied and
         control runs get identical texts. Format-correct for each CherryMe contract; the investigator answer is UNKNOWN without evidence because the fixture has no grounded
-        source (claims therefore stay unsettled offline)."""
+        source (only the executed check, as a CherryMe deterministic tool, can settle a claim offline)."""
         if '"protocol":"CHERRY-INVESTIGATOR/3"' in prompt:
             return json.dumps({"status_proposal": "UNKNOWN", "evidence": [], "note": "offline fixture: no grounded source available"})
         ans = current.get("answer") or "UNKNOWN"
