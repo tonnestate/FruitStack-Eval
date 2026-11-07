@@ -167,3 +167,28 @@ def test_a_luna_twice_team_row_is_invalid_and_excluded_from_analysis(tmp_path):
     assert split_valid([bad, good]) == ([good], [bad])
     with pytest.raises(ValueError):                                                     # a study arm cannot skip the check
         run_episode(task, work=scripted([]), hook=LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R"), arm="T")
+
+
+def test_controls_are_compute_matched_to_t_and_share_its_selector_and_identity_guard(tmp_path):
+    """E_div = same models round-robin, R_mono = one model repeated, both with T's call/token budget and the uniform selector; a handover is PLAN_MISMATCH."""
+    from runners.fs_org_driver import run_samples, select_answer
+    def drafts(prompt, stage, prefer=None, exclude=()):
+        who = "L" if prefer == "L-model" else "N"
+        return {**ok(who, f"ANSWER: {7 if who == 'L' else 9}"), "input_tokens": 100, "output_tokens": 50}
+    task = Task("t1", "Sum?", sig, lambda a: 0.0, "executed")
+    t_row = run_episode(task, work=lambda p, s, **kw: {**scripted([])(p, s, **kw), "input_tokens": 100, "output_tokens": 50},
+                        hook=LearningHook(Ledger(tmp_path / "l.jsonl"), run_id="R"), arm="T", roster=ROSTER)
+    k, budget = t_row["calls"], t_row["tokens"]["input"] + t_row["tokens"]["output"]
+    e = run_samples(task, work=drafts, arm="E_div", roster=ROSTER, cycle=list(ROSTER), k=k, token_budget=budget)
+    r = run_samples(task, work=drafts, arm="R_mono", roster={"N-model": "nemotron"}, cycle=["N-model"], k=k, token_budget=budget)
+    for row in (e, r):
+        assert row["identity_valid"] is True and row["calls"] == k and row["tokens"]["input"] + row["tokens"]["output"] == budget
+    assert [x["independence_key"] for x in e["receipts"]][:2] == ["luna", "nemotron"] and {x["independence_key"] for x in r["receipts"]} == {"nemotron"}
+    texts = [f"ANSWER: {7 if i % 2 == 0 else 9}" for i in range(k)]
+    assert (e["answer"], e["how"]) == select_answer("t1", texts, sig)                    # the same selector T uses
+    assert run_samples(task, work=drafts, arm="E_div", roster=ROSTER, cycle=list(ROSTER), k=3)["calls"] == 3      # no token counts -> call budget
+    handover = run_samples(task, work=lambda p, s, prefer=None, exclude=(): ok("L", "ANSWER: 7"), arm="R_mono",
+                           roster={"N-model": "nemotron"}, cycle=["N-model"], k=2)
+    assert handover["exclusion"] == "INFRA_IDENTITY:LINEAGE_OUTSIDE_ROSTER"
+    e_mono = run_samples(task, work=lambda p, s, prefer=None, exclude=(): ok("L", "ANSWER: 7"), arm="E_div", roster=ROSTER, cycle=list(ROSTER), k=2)
+    assert e_mono["exclusion"] == "INFRA_IDENTITY:PLAN_MISMATCH"                        # a one-model 'diversity' control no longer passes silently

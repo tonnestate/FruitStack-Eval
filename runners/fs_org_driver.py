@@ -173,6 +173,35 @@ def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: in
             "row_kinds": dict(Counter(r.kind for r in cl.rows)), "receipts": receipts, "tokens": tokens(receipts), **_identity(arm, receipts, roster)}
 
 
+def run_samples(task: Task, *, work, arm: str, roster: dict, cycle: list, k: int, token_budget: int | None = None, max_calls: int | None = None) -> dict:
+    """Non-collaborative controls with T's selector: independent drafts from the SAME solve prompt T's solvers get (no brief, no critique, exchange or revision),
+    then select_answer. One runner, three arms:
+      E_div  (diversity-only, primary contrast to T): roster = T's roster, cycle = list(roster)  -> round-robin over the same models
+      R_mono (same-model repeated sampling):          roster = {pin: lineage}, cycle = [pin]      -> one model, same budget
+      S      (single member):                          roster = {m: lineage},   cycle = [m], k = 1
+    Budget: with token_budget (T's receipted input+output tokens on this task) drafts are drawn until it is reached; when a receipt carries no token count the call
+    count k (T's receipted calls) decides. max_calls (default 3k) caps either rule. Never tuned on outcomes: k and token_budget come from T's receipts."""
+    from cherryme.brother import SOLVE
+    t0, receipts, texts = time.monotonic(), [], []
+    w, prompt, cap = metered(work, receipts), SOLVE.format(task=task.prompt, brief=""), max_calls or 3 * max(1, k)
+
+    def more() -> bool:
+        if len(receipts) >= cap:
+            return False
+        t = tokens(receipts)
+        if token_budget is None or t["calls_without_tokens"]:
+            return len(receipts) < k
+        return t["input"] + t["output"] < token_budget
+    while more():
+        c = w(prompt, "solve", prefer=cycle[len(receipts) % len(cycle)])
+        if receipts[-1]["ok"]:
+            texts.append(c["output"])
+    answer, how = select_answer(task.task_ref, texts, task.signature, task.score)
+    return {"task": task.task_ref, "arm": arm, "answer": answer, "how": how, "calls": len(receipts), "failures": sum(not r["ok"] for r in receipts),
+            "seconds": round(time.monotonic() - t0, 3), "drafts": len(texts), "receipts": receipts, "tokens": tokens(receipts),
+            **_identity(arm, receipts, roster, cycle)}
+
+
 def run_pair(task: Task, *, work, ledger: Ledger, tag: str, projection=None, results=None) -> dict:
     """Control first, then applied, on the same task; independent grading afterwards; outcome recorded for every discovery applied in the applied arm."""
     if task.grader not in VERIFIERS:
