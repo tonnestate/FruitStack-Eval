@@ -23,17 +23,25 @@ class LearningHook:
     run_id: str
     apply: bool = False
     max_items: int = 3
+    errors: list = None
+
+    def __post_init__(self):
+        self.errors = []
 
     def brief(self, task_ref: str, task_text: str) -> tuple[str, list[str]]:
         if not self.apply:
             return "", []
-        items = self.ledger.retrievable(task_ref, self.run_id, task_text)[: self.max_items]
-        for it in items:
-            self.ledger.retrieve(it["id"], run=self.run_id, task=task_ref)
-            self.ledger.apply(it["id"], run=self.run_id, task=task_ref, how="shown as brief in the solve prompt")
+        try:                                                              # learning must never cost a question: any failure means "no brief" and is recorded
+            items = self.ledger.retrievable(task_ref, self.run_id, task_text)[: self.max_items]
+            for it in items:
+                self.ledger.retrieve(it["id"], run=self.run_id, task=task_ref)
+                self.ledger.apply(it["id"], run=self.run_id, task=task_ref, how="shown as brief in the solve prompt")
+        except Exception as exc:  # noqa: BLE001
+            self.errors.append(f"{type(exc).__name__}: {str(exc)[:160]}")
+            return "", []
         if not items:
             return "", []
-        lines = "\n".join(f"- {i['claim']} (applies: {i['applicability']}; independently verified by {', '.join(i['verifiers'])})" for i in items)
+        lines = "\n".join(f"- {' '.join(i['claim'].split())[:300]} (applies: {i['applicability']}; independently verified)" for i in items)
         return "Organizational knowledge from earlier verified work (check that it fits this task before using it):\n" + lines + "\n\n", [i["id"] for i in items]
 
     def capture(self, task_ref: str, *, objections: list[dict], final_letter: str | None, first_letter: str | None, how: str, identities: dict) -> list[str]:
@@ -63,7 +71,7 @@ class LearningHook:
         """Called by the grading side. One OUTCOME per discovery applied in this run for this task."""
         done = []
         for r in self.ledger.rows():
-            if r["kind"] == "APPLICATION" and r["run"] == self.run_id and r["task"] == task_ref:
+            if r["kind"] == "APPLICATION" and r["run"] == self.run_id and r["task"] == task_ref and r["id"] not in done:
                 self.ledger.outcome(r["id"], run=self.run_id, task=task_ref, reward=reward, control_reward=control_reward, grader=grader, control_run=control_run)
                 done.append(r["id"])
         return done

@@ -15,8 +15,11 @@ A discovery is only ever *derived* into one state (see `status`); no caller can 
 """
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
+import math
+import threading
 import time
 from pathlib import Path
 
@@ -39,6 +42,28 @@ class Ledger:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.mirror = mirror
+        self.mirror_errors: list[str] = []
+        self._tl, self._depth = threading.RLock(), 0
+
+    def _locked(self):
+        """One writer at a time: a thread lock (run_T runs questions in parallel) and an flock on <ledger>.lock (several processes). Re-entrant."""
+        ledger = self
+
+        class _Ctx:
+            def __enter__(_s):
+                ledger._tl.acquire()
+                if ledger._depth == 0:
+                    ledger._fh = open(str(ledger.path) + ".lock", "a")
+                    fcntl.flock(ledger._fh, fcntl.LOCK_EX)
+                ledger._depth += 1
+
+            def __exit__(_s, *a):
+                ledger._depth -= 1
+                if ledger._depth == 0:
+                    fcntl.flock(ledger._fh, fcntl.LOCK_UN)
+                    ledger._fh.close()
+                ledger._tl.release()
+        return _Ctx()
 
     def rows(self) -> list[dict]:
         out, prev = [], "0" * 64
@@ -54,13 +79,17 @@ class Ledger:
 
     def _add(self, kind: str, body: dict) -> dict:
         assert kind in KINDS
-        rows = self.rows()
-        body = {"kind": kind, "seq": len(rows) + 1, "at": time.time(), **body}
-        row = {**body, "chain": _h({"prev": rows[-1]["chain"] if rows else "0" * 64, "body": body})}
-        with self.path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
-        if self.mirror is not None:
-            self.mirror("ORG_LEARNING_" + kind, str(row["seq"]), row)
+        with self._locked():
+            rows = self.rows()
+            body = {"kind": kind, "seq": len(rows) + 1, "at": time.time(), **body}
+            row = {**body, "chain": _h({"prev": rows[-1]["chain"] if rows else "0" * 64, "body": body})}
+            with self.path.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+        if self.mirror is not None:                                       # the local chain is the source of truth; a MangoMe failure is recorded, never raised
+            try:
+                self.mirror("ORG_LEARNING_" + kind, str(row["seq"]), row)
+            except Exception as exc:  # noqa: BLE001
+                self.mirror_errors.append(f"{kind}#{row['seq']}: {type(exc).__name__}: {str(exc)[:120]}")
         return row
 
     def _known(self, did: str) -> None:
@@ -72,7 +101,8 @@ class Ledger:
         if not (claim and origin_run and applicability and evidence_ref):
             raise ValueError("claim, origin_run, applicability and evidence_ref are required")
         did = "D-" + _h([claim, origin_run, origin_task])[:16]
-        if not any(r["kind"] == "DISCOVERY" and r["id"] == did for r in self.rows()):
+        with self._locked():
+          if not any(r["kind"] == "DISCOVERY" and r["id"] == did for r in self.rows()):
             self._add("DISCOVERY", {"id": did, "claim": claim, "origin_run": origin_run, "origin_task": origin_task, "proposer": proposer,
                                     "applicability": applicability, "evidence_ref": evidence_ref, "provenance": provenance or {}})
         return did
@@ -103,8 +133,13 @@ class Ledger:
             raise ValueError(f"the outcome grader must be independent of the models: one of {sorted(VERIFIERS)}")
         if control_run == run:
             raise ValueError("the control must be a different run (same task without the stored discovery)")
-        self._add("OUTCOME", {"id": did, "run": run, "task": task, "reward": float(reward), "control_reward": float(control_reward),
-                              "grader": grader, "control_run": control_run})
+        if not all(isinstance(x, (int, float)) and math.isfinite(x) and 0.0 <= x <= 1.0 for x in (reward, control_reward)):
+            raise ValueError("rewards must be finite and lie in [0, 1]")
+        with self._locked():
+            if any(r["kind"] == "OUTCOME" and r["id"] == did and r["run"] == run and r["task"] == task for r in self.rows()):
+                return                                                    # idempotent: one OUTCOME per discovery, run and task
+            self._add("OUTCOME", {"id": did, "run": run, "task": task, "reward": float(reward), "control_reward": float(control_reward),
+                                  "grader": grader, "control_run": control_run})
 
     def status(self, did: str) -> dict:
         rows = [r for r in self.rows() if r.get("id") == did]
@@ -137,8 +172,8 @@ class Ledger:
                 "gain_sum": round(sum(o["reward"] - o["control_reward"] for o in out), 6) if out else None}
 
     def retrievable(self, task: str, run: str, task_text: str = "", min_overlap: float = 0.34) -> list[dict]:
-        """Discoveries that may be shown to a LATER episode. Leak guard: a discovery verified only post hoc (dataset key / official grader) is never shown for the task
-        it came from, nor when its applicability is 'same question only'; a grading result must not enter a live reasoning context. FALSIFIED/CONTRADICTED/ASSERTED never qualify."""
+        """Discoveries that may be shown to a LATER episode. Leak guard: no discovery is ever shown to the task it came from (otherwise the applied arm is a memorised-answer arm), and 'same question only'
+        scope is never retrievable; a grading result must not enter a live reasoning context. FALSIFIED/CONTRADICTED/ASSERTED never qualify."""
         want = _terms(task_text)
         out = []
         for did in [r["id"] for r in self.rows() if r["kind"] == "DISCOVERY"]:
@@ -147,9 +182,8 @@ class Ledger:
             ver = [r for r in rows if r["kind"] == "VERIFICATION"]
             if not ver or any(v["verdict"] == "CONTRADICTS" for v in ver) or d["origin_run"] == run:
                 continue
-            post_hoc = all(v["verifier"] in ("dataset_key", "official_grader") for v in ver)
-            if post_hoc and (d["origin_task"] == task or d["applicability"].lower().startswith("same question")):
-                continue
+            if d["origin_task"] == task or d["applicability"].lower().startswith("same question"):
+                continue                                                  # never shown to the task it came from (any verifier), and task-bound scope is not transferable
             if want and len(want & _terms(d["claim"])) / max(1, len(_terms(d["claim"]))) < min_overlap:
                 continue
             out.append({"id": did, "claim": d["claim"], "applicability": d["applicability"], "verifiers": sorted({v["verifier"] for v in ver})})
