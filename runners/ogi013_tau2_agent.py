@@ -373,7 +373,8 @@ class Episode:
                     # UNKNOWN retains its reservation until host reconciliation. An inference step has no external effect, so the host (this harness)
                     # records it ABANDONED (lost / possibly billed; stays in the books and is reported as an unknown step) and continues with a NEW step key.
                     try:
-                        fs.steps.reconcile(self.sid, self.stack.store.get(self.sid).revision, key, verdict="ABANDONED")
+                        if key in fs.steps.unresolved(self.sid):    # PeachMe >= #37 settles a zero-charge-class unconfirmed step itself; settled steps are not reconcilable
+                            fs.steps.reconcile(self.sid, self.stack.store.get(self.sid).revision, key, verdict="ABANDONED")
                     except PeachError as rec_exc:
                         self.event("STEP_RECONCILE_FAILED", step=key, error=str(rec_exc)[:200])
                         raise

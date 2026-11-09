@@ -15,6 +15,7 @@ import hashlib
 import time
 from collections import Counter
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Callable
 
 from ogi013_learning_hook import LearningHook, format_brief, placebo_brief
@@ -252,8 +253,8 @@ def _executed_critique(w, check, ev):
     return c
 
 
-def run_team(task: Task, *, work, hook: LearningHook, roster: dict, components=TEAM_COMPONENTS, cycle: list | None = None, n_solvers: int = 2, max_rounds: int = 3,
-             advice_rounds: int = 1, specialist: str | None = None, arm: str | None = None) -> dict:
+def run_team(task: Task, *, work=None, hook: LearningHook, roster: dict, components=TEAM_COMPONENTS, cycle: list | None = None, n_solvers: int = 2, max_rounds: int = 3,
+             advice_rounds: int = 1, specialist: str | None = None, arm: str | None = None, research=None) -> dict:
     """T, the full FruitStack team, through CherryMe's research path in the order of peachme.research.run_research (Research Tree -> memory brief -> LSD Room ->
     Brother Mode on the root -> AppleMe diagnosis -> apply_advice -> prioritized re-investigation -> finalize). The study's `work` stays the worker (receipts, tokens, identity
     guard on EVERY call incl. LSD; the tree and AppleMe make no model calls). run_research itself is not called: its WorkerPool is bound to a PeachMe runtime and its results
@@ -264,7 +265,10 @@ def run_team(task: Task, *, work, hook: LearningHook, roster: dict, components=T
       memory            off: no LearningHook brief, no capture
       plumme_selection  off: fixed roster rule (_fixed_roster) instead of PlumMe's AUTO pick
       executed_critique off: critics get no executed visible-check report (also a no-op when the task has no `check`, recorded as NO_VISIBLE_CHECK)
-    Final answer: select_answer over the final positions of every Brother Mode investigation."""
+    Final answer: select_answer over the final positions of every Brother Mode investigation.
+    research (study path, see peach_host): T runs the REAL peachme.research.run_research on a PeachMe session; the study's metering, fixed roster and executed critique wrap
+    PeachMe's own WorkerPool (plan.wrap_work), so every call keeps its PeachMe step, PlumMe lease and receipt. `work` is then unused. The research_tree ablation has no
+    equivalent there (run_research is tree-bound) and is refused rather than silently run on another path."""
     from cherryme.appleme_bridge import AdvisoryControl, doctor_advice, research_tree_events
     from cherryme.brother import run_rounds
     from cherryme.contributions import ContributionLedger
@@ -281,13 +285,18 @@ def run_team(task: Task, *, work, hook: LearningHook, roster: dict, components=T
     t0, events, receipts = time.monotonic(), [], []
     ev = lambda kind, **kw: events.append({"type": kind, **kw})          # noqa: E731
     roles = {"specialist": specialist} if specialist else None
-    w = metered(work, receipts, roles)
-    if "plumme_selection" not in comps:
-        w = _fixed_roster(w, roster, cycle or list(roster), roles)
-    ev("SELECTION", mode="plumme" if "plumme_selection" in comps else "fixed_roster")
     critique = "ON" if "executed_critique" in comps and task.check else "NO_VISIBLE_CHECK" if "executed_critique" in comps else "OFF"
-    if critique == "ON":
-        w = _executed_critique(w, task.check, ev)
+
+    def wrap(base):
+        w = metered(base, receipts, roles)
+        if "plumme_selection" not in comps:
+            w = _fixed_roster(w, roster, cycle or list(roster), roles)
+        return _executed_critique(w, task.check, ev) if critique == "ON" else w
+    ev("SELECTION", mode="plumme" if "plumme_selection" in comps else "fixed_roster")
+    if research is not None:
+        return _team_row(task, hook, roster, comps, off, arm, critique, roles, t0, events, receipts, *_research_path(task, hook, comps, research, wrap, ev, n_solvers=n_solvers,
+                                                                                                                       max_rounds=max_rounds, advice_rounds=advice_rounds))
+    w = wrap(work)
     brief, used = hook.brief(task.task_ref, task.prompt) if "memory" in comps else ("", [])
     if "memory" in comps:
         ev("MEMORY_BRIEF", retrieved=list(used), chars=len(brief))
@@ -320,20 +329,98 @@ def run_team(task: Task, *, work, hook: LearningHook, roster: dict, components=T
     if tree is not None:
         final = tree.finalize(reason="fs_org_driver.run_team")
         ev("RESEARCH_FINALIZED", node=final.get("node"), status=final.get("status"), provisional=final.get("provisional"))
+    return _team_row(task, hook, roster, comps, off, arm, critique, roles, t0, events, receipts, results, len(hyps), list(used), len(brief), cl.rows, None)
+
+
+def _research_path(task: Task, hook, comps, research, wrap, ev, *, n_solvers, max_rounds, advice_rounds):
+    """T on the real PeachMe research path. Returns (investigations, n_hypotheses, retrieved, brief_chars, contribution rows, infra_error)."""
+    if "research_tree" not in comps:
+        raise ValueError("T-research_tree cannot run on the PeachMe research path (run_research is tree-bound); it is not a confirmatory ablation")
+    got, used, chars = {}, [], [0]
+
+    class _Brief:                                              # run_research asks brief(mission_id, objective); the leakage exclusion needs the study's task_ref
+        def brief(self, _mission_id, text):
+            b, u = hook.brief(task.task_ref, text)
+            used.extend(u)
+            chars[0] = len(b)
+            return b, u
+    plan = dict(wrap_work=wrap, lsd="lsd" in comps, appleme="appleme" in comps, advice_rounds=advice_rounds, learning=_Brief() if "memory" in comps else None,
+                n_solvers=n_solvers, max_rounds=max_rounds, signature=task.signature, after=lambda **kw: got.update(kw))
+    err = None
+    try:
+        record, peach_events = research(task, plan)
+    except Exception as exc:  # noqa: BLE001 - a halted research (unresolved step, no lease) is an infrastructure outcome of this row, never a wrong answer
+        record, peach_events, err = {}, [], f"{type(exc).__name__}: {str(exc)[:200]}"
+    for e in peach_events:
+        ev(f"PEACHME:{e['type']}", **{k: v for k, v in e.items() if k != "type"})
+    if "memory" in comps:
+        ev("MEMORY_BRIEF", retrieved=list(used), chars=chars[0])
+    results = got.get("investigations") or []
+    return results, int(record.get("hypotheses") or 0), list(used), chars[0], [r for b in results for r in b.rows], err
+
+
+def _team_row(task, hook, roster, comps, off, arm, critique, roles, t0, events, receipts, results, n_hyps, used, brief_chars, rows, infra_error):
     answer, how = select_answer(task.task_ref, [t for r in results for t in r.positions.values()], task.signature, task.score)
     captured, cap_err = [], None
-    if "memory" in comps:
+    if "memory" in comps and rows:
         try:                                                   # capture never changes the answer; failures are reported
-            captured = capture_brother(hook, task.task_ref, cl.rows, task.signature)
+            captured = capture_brother(hook, task.task_ref, rows, task.signature)
         except Exception as exc:  # noqa: BLE001
             cap_err = f"{type(exc).__name__}: {str(exc)[:120]}"
-    return {"task": task.task_ref, "arm": arm, "run": hook.run_id, "components": sorted(comps), "ablated": off[0] if len(off) == 1 else off or None,
+    return {"infra_error": infra_error, "path": "peachme.research.run_research" if any(e["type"].startswith("PEACHME:") for e in events) or infra_error else "fs_org_driver.mirror",
+            "task": task.task_ref, "arm": arm, "run": hook.run_id, "components": sorted(comps), "ablated": off[0] if len(off) == 1 else off or None,
             "executed_critique": critique, "answer": answer, "how": how, "calls": len(receipts), "failures": sum(not r["ok"] for r in receipts),
-            "investigations": len(results), "hypotheses": len(hyps), "seconds": round(time.monotonic() - t0, 3), "retrieved": list(used), "brief_chars": len(brief),
+            "investigations": len(results), "hypotheses": n_hyps, "seconds": round(time.monotonic() - t0, 3), "retrieved": used, "brief_chars": brief_chars,
             "captured": captured, "capture_error": cap_err, "events": events, "stages": dict(Counter(r["stage"].split(":")[0] for r in receipts)),
-            "lineages": sorted({_lineage(r) for r in cl.rows if r.kind == "SOLUTION" and _lineage(r)}), "row_kinds": dict(Counter(r.kind for r in cl.rows)),
-            "members": member_answers(cl.rows, task.signature), "receipts": receipts, "tokens": tokens(receipts),
+            "lineages": sorted({_lineage(r) for r in rows if r.kind == "SOLUTION" and _lineage(r)}), "row_kinds": dict(Counter(r.kind for r in rows)),
+            "members": member_answers(rows, task.signature), "receipts": receipts, "tokens": tokens(receipts),
             "specialist_used": any(r.specialist_used for r in results), **_identity(arm, receipts, roster, roles=roles)}
+
+
+def peach_host(svc, state_dir, *, worker_budget: dict, run_budget: dict | None = None, max_workers: int = 3, max_replacements: int = 2, max_output_tokens: int = 2000):
+    """The T arm's host on the real path: per episode a fresh PeachMe FruitStackSession over the given PlumMe service, a MangoMe-governed EXECUTE turn, and
+    peachme.research.run_research. MangoMe is an in-memory instance: per OGI-RESEARCH-STATE-OWNERSHIP-2026-11-08 the experiment gets no canonical MangoMe identity.
+    run_research never reads OrangeMe (memory reaches it only through the LearningHook brief), so the session's OrangeMe port is an empty ledger.
+    Returns research(task, plan_kw) -> (run_research record, PeachMe events)."""
+    import itertools
+    from pathlib import Path
+
+    from mangome.storage.memory import InMemoryStore
+    from mangome.work_control import WorkGovernedMangoMeService
+    from peachme import SessionStore
+    from peachme.fruitstack import FruitStackSession, MangoWorkAdapter, OrangeMemoryAdapter
+    from peachme.mission import MissionAuthority
+    from peachme.plumme import PlumMeProvider
+    from peachme.research import ResearchPlan, run_research
+
+    class _Ledger:
+        def get(self, key):
+            return {"revision": 1, "event": "OGI-STUDY", "value": {}}
+
+    class _Orange:
+        def project_ledger(self, project):
+            return _Ledger()
+    seq = itertools.count()
+
+    def research(task: Task, plan_kw: dict):
+        n = next(seq)
+        d = Path(state_dir) / f"{n:05d}-{_h(task.task_ref)[:8]}"
+        d.mkdir(parents=True, exist_ok=True)
+        mango = WorkGovernedMangoMeService(InMemoryStore())
+        actor = "ogi-study-host"
+        entered = mango.enter_work(workspace_id=f"/ogi-study/{d.name}", workspace_title="OGI study episode", actor_id=actor, request_text=task.task_ref)
+        work, project = entered["work_identity"]["entity_id"], entered["project"]["project_key"]
+        rt = FruitStackSession(SessionStore(d / "peachme.sqlite3"), PlumMeProvider(svc), MangoWorkAdapter(mango), OrangeMemoryAdapter(_Orange()),
+                               authorize_model_input=lambda text, view: text)
+        turn = rt.mango.bind_turn(work, "research", actor, "EXECUTE", actor)["turn"]["entity_id"]
+        authority = MissionAuthority(work_ref=work, project_ref=project, memory_ref="memory/working", actor_id=actor, authorized_by=actor)
+        request = SimpleNamespace(owner="ogi-study", objective=task.prompt, mission_id=f"ogi-{d.name}")
+        events: list = []
+        plan = ResearchPlan(worker_budget=worker_budget, run_budget=run_budget, max_workers=max_workers, max_replacements=max_replacements,
+                            max_output_tokens=max_output_tokens, tree_path=str(d / "research_tree.jsonl"), **plan_kw)
+        record = run_research(rt, None, authority, request, turn, plan, lambda kind, **kw: events.append({"type": kind, **kw}))
+        return record, events
+    return research
 
 
 def run_samples(task: Task, *, work, arm: str, roster: dict, cycle: list, k: int, token_budget: int | None = None, max_calls: int | None = None,
