@@ -20,3 +20,12 @@ full task text, so every long item failed with INVALID_OBJECTIVE before any disp
 Fixed in PeachMe `fsi/pool-objective-hint` (PR #40, af9246e). The 2 INFRA rows stay in rows.jsonl; each is re-run exactly once
 (`--rerun-host-defect INVALID_OBJECTIVE`), the re-run row carries `rerun_of`, and the S0 report uses the latest row per (candidate, item).
 Item draw, candidates, caps and grading are unchanged. The 26 graded rows were checked only for parsability (all parsable), not used for any decision.
+
+## S0 amendment S0-A2 (2026-11-09T14:14:46Z) — restart on the repaired supply, rules fixed before any S0 accuracy was read
+The first S0 (rows in /root/fruits/research/OGI013-CONFIRMATORY/s0, 99 rows) is SUPERSEDED, not deleted: (1) PlumMe served a pinned qwen3.8 call with
+claude-haiku because PeachMe never declared a strict pin (fixed: PeachMe PR #41, pin_binding=PINNED for every measurement); (2) candidates were chosen by
+PlumMe's ranking before the supply repairs of 2026-11-09 (paywall rule, probe-decides-text, NVIDIA key, C-kernel text bit), so several could not run at all.
+Its graded rows were checked for parsability only; no accuracy from it is used.
+New candidate rule: PlumMe's own reliability report (24 h, RELIABLE = >= 3 receipts, >= 80 % usable, no identity mismatch), one model per
+foundation-model lineage (FOUNDATION_LINEAGES in runners/ogi_s0_qualify.py; community fine-tunes with an undetermined base are excluded), owner-allowed
+subscription lineages first, up to 8. Items, grading, caps (360 calls / 1.1 M tokens / USD 0) and feedback unchanged. Output: s0-a2.
