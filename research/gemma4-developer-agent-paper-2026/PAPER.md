@@ -4,12 +4,12 @@
 
 **Kaggle Gemma 4 Developer Agent Paper Track — research writeup**
 **Version:** 0.2, ⟦TBD: date of final submission⟧
-**Research system:** FruitStack, a multi-model agent stack; the coding agent's model is chosen per step by its router among authorized cost-0 models, and the participating models are logged and reported. **Isolated Gemma arm:** Gemma 4 31B instruction-tuned (`gemma-4-31b-it`) as the recognition filter of H3 arm C.
+**Research system:** FruitStack, a multi-model agent stack; the coding agent's model is chosen per step by its router among authorized cost-0 models, and the participating models are logged and reported.
 **Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit (H3): `b6131d3`
 
 ### Abstract
 
-Coding agents that work under tight step budgets have little room for wasted steps. Two failure modes are especially costly: they look in the wrong place first, and they keep patching the wrong place after the evidence has turned against it. We study one mechanism that addresses both, **Selective Evidence Reactivation (SER)**. First, a localization prior ranks repository symbols by fusing lexical and dense retrieval with Personalized PageRank (PPR) over the repository's code graph. In an isolated arm, Gemma 4 31B acts as a recognition filter that removes irrelevant seed symbols before propagation. Second, during repair, the agent keeps a ledger of localization hypotheses and the checkable assumptions behind them. When an executed test refutes such an assumption, a deterministic trigger marks the current hypothesis as refuted and reactivates a small, eligible set of previously ranked but abandoned candidates. We test three preregistered hypotheses on SWE-bench Verified tasks, with a multi-model research agent whose model is chosen by a router, not fixed. H3 asks whether graph propagation improves localization recall. H1 asks whether event-triggered reactivation improves verified repair over an identical retrieval policy without the trigger. H2 asks whether this selective disclosure matches or beats a full-history agent under the same budget. ⟦TBD: one sentence per hypothesis with effect size and 95% CI, including null results.⟧
+Coding agents that work under tight step budgets have little room for wasted steps. Two failure modes are especially costly: they look in the wrong place first, and they keep patching the wrong place after the evidence has turned against it. We study one mechanism that addresses both, **Selective Evidence Reactivation (SER)**. First, a localization prior ranks repository symbols by fusing lexical and dense retrieval with Personalized PageRank (PPR) over the repository's code graph. A language model chosen by the router acts as a recognition filter that removes irrelevant seed symbols before propagation. Second, during repair, the agent keeps a ledger of localization hypotheses and the checkable assumptions behind them. When an executed test refutes such an assumption, a deterministic trigger marks the current hypothesis as refuted and reactivates a small, eligible set of previously ranked but abandoned candidates. We test three preregistered hypotheses on SWE-bench Verified tasks, with a multi-model research agent whose model is chosen by a router, not fixed. H3 asks whether graph propagation improves localization recall. H1 asks whether event-triggered reactivation improves verified repair over an identical retrieval policy without the trigger. H2 asks whether this selective disclosure matches or beats a full-history agent under the same budget. ⟦TBD: one sentence per hypothesis with effect size and 95% CI, including null results.⟧
 
 ### 1. Introduction
 
@@ -21,7 +21,7 @@ We therefore separate two questions. *Where should the agent look first?* That i
 
 **Hypotheses (H3 preregistered, commit `b6131d3`):**
 
-- **H3 — Structural localization.** Adding seeded PPR over the code graph to hybrid lexical–dense retrieval increases symbol-level Recall@10 of gold-patch locations. Adding a Gemma 4 recognition filter on the seeds increases it further. Neither addition lowers recall on tasks where the gold symbol is directly retrievable (non-inferiority margin: 2 percentage points).
+- **H3 — Structural localization.** Adding seeded PPR over the code graph to hybrid lexical–dense retrieval increases symbol-level Recall@10 of gold-patch locations. Adding a language-model recognition filter on the seeds increases it further. Neither addition lowers recall on tasks where the gold symbol is directly retrievable (non-inferiority margin: 2 percentage points).
 - **H1 — Coupling.** Event-triggered reactivation (arm E) resolves more tasks than the same agent receiving the same number of retrieved candidates at the same checkpoints without the trigger (arm E⁻).
 - **H2 — Selective disclosure.** Arm E resolves at least as many tasks as a full-history agent (arm D*) under the same turn, token and time budget.
 
@@ -55,7 +55,7 @@ p = (1 − α) s + α Pᵀ p,
 
 where s is uniform over the seeds and P is the row-normalized transition matrix over **content edges only**: containment, calls, imports and inheritance, symmetrized. α = 0.5 is fixed in advance. Nothing derived from usage, popularity or agent behaviour ever becomes an edge. The final score fuses the arm-A rank and the PPR rank by RRF. A *direct-retrieval safety path* keeps arm A's top 3 symbols in the output regardless of their PPR score, so a highly central node cannot displace the strongest direct hit.
 
-**Arm C, + Gemma recognition filter.** Before propagation, Gemma 4 receives the issue and the seed list (qualified name and signature only, no bodies) and returns the subset it judges relevant to the issue. It can only *remove* seeds, never add symbols, so the filter cannot inject knowledge about the repository from outside the graph. If it removes all seeds, the unfiltered seeds are used and the event is logged. The prompt is frozen at the preregistration commit.
+**Arm C, + LLM recognition filter (router-chosen model).** Before propagation, a model selected per call by the router receives the issue and the seed list (qualified name and signature only, no bodies) and returns the subset it judges relevant to the issue. It can only *remove* seeds, never add symbols, so the filter cannot inject knowledge about the repository from outside the graph. If it removes all seeds, the unfiltered seeds are used and the event is logged. The prompt is frozen at the preregistration commit.
 
 #### 3.3 Episode ledger and verified events (H1, H2)
 
@@ -118,7 +118,7 @@ E versus E⁻ isolates the trigger. E versus D\* tests selective disclosure agai
 |---|---|---|---|---|
 | A hybrid | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
 | B + PPR | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
-| C + Gemma filter | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
+| C + LLM filter | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
 
 Paired differences: B − A = ⟦TBD⟧ (95% CI ⟦TBD⟧); C − B = ⟦TBD⟧ (95% CI ⟦TBD⟧). Seeds removed by the filter: median ⟦TBD⟧; fallback to unfiltered seeds in ⟦TBD⟧ tasks.
 
@@ -146,7 +146,7 @@ Discordant pairs: E-only ⟦TBD⟧, E⁻-only ⟦TBD⟧ (McNemar p = ⟦TBD⟧).
 
 **Event validity.** PATCH_NO_EFFECT can misfire when the active symbol is correct but the edit is wrong. We report how often a refuted symbol was in fact a gold symbol.
 
-**Filter risk.** The Gemma 4 recognition filter can remove the correct seed. The safety path limits, but does not eliminate, this risk.
+**Filter risk.** The recognition filter can remove the correct seed, and its model varies per call. The safety path limits, but does not eliminate, this risk.
 
 **Cross-task memory.** The broader idea, reactivating evidence from *other* tasks when a verified assumption changes, needs task families with controlled assumption changes. It is outside the scope of this study.
 
