@@ -18,8 +18,25 @@ from ogi013_pilot_fixtures import PILOT, ROOT
 pytest.importorskip("plumme")        # needs the real components in the interpreter that runs pytest (not in the CI replica, which has none)
 
 REAL = Path("/root/fruits/research/FRUITSTACK-EVAL-004/ogi-013")
+
+
+COMPONENTS = Path(os.environ.get("PILOT_COMPONENTS", "/root/fruits/integration/ogi013-org-components"))
+
+
+def _dirty_components() -> list[str]:
+    """Component checkouts the real launcher would resolve (run_arm.sh: PILOT_COMPONENTS) that carry uncommitted changes."""
+    if not COMPONENTS.is_dir():
+        return []                                                                                  # reported separately as a missing directory, not as dirty
+    return [d.name for d in sorted(COMPONENTS.iterdir()) if (d / ".git").exists() and subprocess.run(["git", "-C", str(d), "status", "--porcelain"], capture_output=True, text=True).stdout.strip()]
+
+
+_DIRTY = _dirty_components()
+
+
 pytestmark = [pytest.mark.skipif(not (REAL / "env.sh").is_file() or not (REAL / "runs/work.env").is_file() or not (REAL / "benchmarks/tau2-bench").is_dir() or not shutil.which("mongosh"),
-                                 reason="needs the ogi-013 evaluation base, the tau2 checkout and a local MongoDB")]
+                                 reason="needs the ogi-013 evaluation base, the tau2 checkout and a local MongoDB"),
+              pytest.mark.skipif(not COMPONENTS.is_dir(), reason=f"PILOT_COMPONENTS directory does not exist: {COMPONENTS}"),
+              pytest.mark.skipif(bool(_DIRTY), reason="the host bootstrap refuses a DIRTY_SOURCE component checkout (its logged commit would not identify the code that runs); dirty: " + ", ".join(_DIRTY))]
 
 
 def _mongosh(js: str) -> str:
