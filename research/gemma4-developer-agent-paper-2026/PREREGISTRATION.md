@@ -104,3 +104,13 @@ The critic only runs when the author submits a patch (existing runner behaviour)
 The 4 single-mode episodes (`h1/runs_single_mode_disclosed`, tasks django__django-11211/-11292) are reported separately
 and excluded from H1/H2. The confirmatory set restarts at the beginning of the manifest order, including those two tasks.
 Everything else in the H1/H2 section is unchanged.
+
+## Amendment A2 (2026-11-09 ~22:25 UTC) — PlumMe budget-aware AUTO (correction)
+
+The driver had copied OGI-013 session ceilings (110 calls, 200k tokens, **USD 0**) and the arm-C adapter passed
+`max_cost_usd=0`. Both contradict the standing owner order of 2026-10-27 (PlumMe budget-aware AUTO over all authorized
+supply; no zero-dollar, call or token ceilings) and pushed PlumMe onto free tiers. Removed: no session ceilings; free,
+trial-credit and included supply are eligible; cash routes stay off because no owner-approved cash budget exists.
+The wall-clock limit (3600 s per episode) is unchanged and identical across arms. Episodes running under the ceilings were
+aborted after a few steps with no outcome inspected (`h1/runs_aborted_costcap_20261109`); arm C had produced no
+completed task (`h3c/out_aborted_costcap`). Both restart from the beginning of their manifest order.
