@@ -70,3 +70,10 @@ Recorded from the row: PeachMe events (`PEACHME:*`), receipts with lineage/token
 
 ## 12. Lock contents
 `STUDY_LOCK.txt` = sha256 of: this file, `STAGE_BUDGET.md`, `runners/fs_org_driver.py`, `runners/ogi_tasks/*.py`, `runners/ogi_tasks/datasets.json`, `runners/ogi_tasks/eligibility.json`, `analysis/ogi_analyze.py`, CherryMe `brother.py` prompt templates, the task id lists per family, the S0 qualification report, the roster (model_key → independence_key, specialist, G_mas lead, R_mono pin); clean commits of FruitStack-Eval, CherryMe, PeachMe, PlumMe, AppleMe, OrangeMe, MangoMe; seed/salt. `MANIFEST_PRELOCK.sha256` in this directory is the pre-lock hash snapshot of the code as of this commit.
+
+## 13. Pre-outcome clarification A1 (2026-11-09T08:57:50Z, written while S0 runs, before any S0 row was read)
+Roster lineage rule. PlumMe's `independence_key` is version-level (`qwen3.8` and `qwen3.5` are distinct keys). The mandate requires genuinely different
+model lineages, so roster members must differ in **vendor lineage** = the independence_key with trailing version digits/dots removed
+(`qwen3.8`, `qwen3.5` → `qwen`). Among qualified candidates of the same vendor lineage only the one with the higher S0 accuracy is eligible
+(ties: smaller sha256 of model_key). Roster order after that: S0 accuracy, descending; the first three are solvers, the fourth the specialist;
+the R_mono pin and "best S_m" are the first solver; the G_mas lead is the first solver. This rule uses only S0 outcomes, never study outcomes.
