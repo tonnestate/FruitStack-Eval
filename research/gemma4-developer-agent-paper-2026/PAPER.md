@@ -118,11 +118,11 @@ E versus E⁻ isolates the trigger. E versus D\* tests selective disclosure agai
 
 | Arm | Symbol R@10 | File R@1 | File R@5 | Direct subset R@10 |
 |---|---|---|---|---|
-| A hybrid | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
-| B + PPR | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
+| A hybrid (BM25) | 0.386 | 0.292 | 0.614 | 0.826 |
+| B + PPR | 0.401 | 0.297 | 0.635 | 0.831 |
 | C + LLM filter | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
 
-Paired differences: B − A = ⟦TBD⟧ (95% CI ⟦TBD⟧); C − B = ⟦TBD⟧ (95% CI ⟦TBD⟧). Seeds removed by the filter: median ⟦TBD⟧; fallback to unfiltered seeds in ⟦TBD⟧ tasks.
+Rows A and B: 497 confirmatory tasks (478 with a gold symbol for symbol recall; direct subset n = 223). Paired differences: B − A symbol Recall@10 = +0.016 (95% CI +0.007 to +0.026; Wilcoxon p = 6.0 × 10⁻⁴; B better on 15 tasks, worse on none). B found a gold symbol in its top 10 that A missed on 9 tasks. On the direct subset, B − A = +0.005 (95% CI +0.001 to +0.010), so B is non-inferior at the preregistered margin of −0.02. File Recall@5: +0.021 (95% CI +0.002 to +0.042); file Recall@1: +0.005 (95% CI −0.029 to +0.040). Scoring all 497 tasks for A and B took 54 min on 8 CPU cores, with no GPU. C − B = ⟦TBD⟧ (95% CI ⟦TBD⟧). Seeds removed by the filter: median ⟦TBD⟧; fallback to unfiltered seeds in ⟦TBD⟧ tasks.
 
 #### 5.2 H1 and H2 — Repair
 
