@@ -34,13 +34,13 @@ Roster: M = 3 solvers + 1 specialist, pairwise distinct `independence_key`, all 
 | family | dataset (pinned in `runners/ogi_tasks/datasets.json`) | grader | n | status |
 |---|---|---|---|---|
 | F1 | MATH-500 level 5, rev 6e4ed1a2 | math-verify 0.9.0 equivalence to the boxed key, after the episode | 134 (all) | confirmatory |
-| F2 | BigCodeBench-Hard v0.1.4, rev 298d2cc7 | hidden tests (2/3 of methods, fixed split), executed in bwrap after the episode | all ELIGIBLE ids under the grader chosen in `STAGE_BUDGET.md` §0-D2 | confirmatory if n ≥ 100, otherwise descriptive only |
+| F2 | BigCodeBench-Hard v0.1.4, rev 298d2cc7 | hidden tests (2/3 of methods, fixed split), official in-process semantics in bwrap + static tamper audit (owner D2), after the episode; the visible-check selector and executed critique use the same semantics | 130 ELIGIBLE (`runners/ogi_tasks/eligibility.json`) | confirmatory |
 | tau2 airline/retail | — | official | — | **excluded**: run_team answers a single prompt; the interactive tool loop is not wired into T or the controls. Not substituted. |
 | SWE-bench Verified | — | official harness | — | **excluded**: no harness, no per-instance container environment on this host. Not substituted. |
 | PhysalisMe D5 / scientific claims | — | none validated | — | **excluded** from confirmatory; exploratory only |
 | OGI-RH (PR #20) | — | Lean absent | — | separate exploratory track, no shared budget |
 
-Licences: both datasets are `LICENSE_UNCONFIRMED` in `datasets.json`. The lock requires the owner's licence confirmation (D1 in `STAGE_BUDGET.md`).
+Licences: confirmed by the owner 2026-11-09 (D1, `OWNER_DECISIONS_2026-11-09.md`).
 
 ## 5. Hypotheses (confirmatory; α = 0.05 two-sided; exact McNemar; Holm within each listed family)
 Per family F ∈ {F1, F2}:
@@ -62,7 +62,7 @@ Package §8 (C1–C5, no hidden retries, pause at > 10 % infra share after 40 ta
 Recorded from the row: PeachMe events (`PEACHME:*`), receipts with lineage/tokens, LSD hypotheses, Brother Mode rows (first answers, challenges, revisions, specialist), AppleMe advisory and actions, Research Tree file (`research_tree.jsonl`, negative knowledge kept), memory retrieval/application. Every CORRECTED and DAMAGED task is listed with its row chain. No mechanism is credited for a row whose event is absent.
 
 ## 9. Power (stated, not adjusted later)
-`evidence/ogi-study-package/power.py`, exact McNemar, α = 0.05, π = 0.75: n = 170 for p_d = 0.20, n = 120 for p_d = 0.30. F1 n = 134 gives ≈ 0.70 power at p_d 0.20. A non-rejection is reported as "not established", never as "no effect". No re-estimation, no interim efficacy look.
+`evidence/ogi-study-package/power.py`, exact McNemar, α = 0.05, π = 0.75: n = 170 for p_d = 0.20, n = 120 for p_d = 0.30. F1 n = 134 gives ≈ 0.70 power and F2 n = 130 ≈ 0.68 at p_d 0.20. A non-rejection is reported as "not established", never as "no effect". No re-estimation, no interim efficacy look.
 
 ## 10. Leakage — package §10 unchanged. Grader material lives in `ogi_tasks` registries, never in `Task`; tested by the leak-guard tests of #18.
 
@@ -70,3 +70,10 @@ Recorded from the row: PeachMe events (`PEACHME:*`), receipts with lineage/token
 
 ## 12. Lock contents
 `STUDY_LOCK.txt` = sha256 of: this file, `STAGE_BUDGET.md`, `runners/fs_org_driver.py`, `runners/ogi_tasks/*.py`, `runners/ogi_tasks/datasets.json`, `runners/ogi_tasks/eligibility.json`, `analysis/ogi_analyze.py`, CherryMe `brother.py` prompt templates, the task id lists per family, the S0 qualification report, the roster (model_key → independence_key, specialist, G_mas lead, R_mono pin); clean commits of FruitStack-Eval, CherryMe, PeachMe, PlumMe, AppleMe, OrangeMe, MangoMe; seed/salt. `MANIFEST_PRELOCK.sha256` in this directory is the pre-lock hash snapshot of the code as of this commit.
+
+## 13. Pre-outcome clarification A1 (2026-11-09T08:57:50Z, written while S0 runs, before any S0 row was read)
+Roster lineage rule. PlumMe's `independence_key` is version-level (`qwen3.8` and `qwen3.5` are distinct keys). The mandate requires genuinely different
+model lineages, so roster members must differ in **vendor lineage** = the independence_key with trailing version digits/dots removed
+(`qwen3.8`, `qwen3.5` → `qwen`). Among qualified candidates of the same vendor lineage only the one with the higher S0 accuracy is eligible
+(ties: smaller sha256 of model_key). Roster order after that: S0 accuracy, descending; the first three are solvers, the fourth the specialist;
+the R_mono pin and "best S_m" are the first solver; the G_mas lead is the first solver. This rule uses only S0 outcomes, never study outcomes.
