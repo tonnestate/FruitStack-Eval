@@ -4,7 +4,7 @@
 
 **Kaggle Gemma 4 Developer Agent Paper Track — research writeup**
 **Version:** 0.2, ⟦TBD: date of final submission⟧
-**Model:** `⟦TBD: gemma-4-31b-it-qat-w4a16-ct | gemma-4-e4b-it-qat-w4a16-ct⟧`, run offline on Kaggle L4×4 with internet disabled
+**Model:** `gemma-4-31b-it-qat-w4a16-ct` (locked for all arms; not yet executed), run offline on Kaggle L4×4 with internet disabled
 **Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit: `⟦TBD: SHA⟧`
 
 ### Abstract
