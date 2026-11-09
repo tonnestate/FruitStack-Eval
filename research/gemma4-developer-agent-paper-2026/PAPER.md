@@ -1,163 +1,178 @@
-# Selective Evidence Reactivation for Agentic Software Engineering
+# Selective Evidence Reactivation for Offline Coding Agents
 
-## Problem–Solution Coupling, Graph Retrieval, and Controlled Disclosure for Cross-Task Repair Knowledge
+## Graph-Seeded Localization and Event-Triggered Revisiting of Abandoned Hypotheses with Gemma 4
 
-**Research manuscript — Kaggle Gemma 4 Developer Agent Paper Track**  
-**Version:** 0.1 research draft, 9 November 2026  
-**Scientific status:** Original, unpublished proposal with a specified experimental protocol. No confirmatory outcome is asserted in this version.
+**Kaggle Gemma 4 Developer Agent Paper Track — research writeup**
+**Version:** 0.2, ⟦TBD: date of final submission⟧
+**Model:** `⟦TBD: gemma-4-31b-it-qat-w4a16-ct | gemma-4-e4b-it-qat-w4a16-ct⟧`, run offline on Kaggle L4×4 with internet disabled
+**Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit: `⟦TBD: SHA⟧`
 
 ### Abstract
 
-Autonomous software-engineering agents repeatedly encounter related failures, changed assumptions, unsuccessful repairs, and partially transferable solutions. Conventional retrieval can supply relevant text but does not necessarily recognize when a verified change to a problem constraint invalidates a previous repair or warrants revisiting an abandoned strategy. Conversely, indiscriminate disclosure of prior solutions can bias independent exploration. We propose **problem–solution-coupled evidence reactivation**: a versioned, provenance-aware experience graph whose typed links connect changed requirements, solution hypotheses, and evidence scoped to explicit assumptions. A deterministic trigger selects a small set of applicable or historically contrasting experiences; hybrid lexical–semantic retrieval and problem-seeded Personalized PageRank (PPR) provide complementary structural discovery. We separate scientific validity from retrieval ranking and distinguish verified, conditional, falsified, and unknown findings. The proposed study tests a coupled reactivation policy against an otherwise identical uncoupled retrieval policy, and tests selective disclosure against a matched-budget full-history control. The primary endpoint is independently verified successful repair of software defects, not memory retrieval accuracy, model self-assessment, token savings, or the performance of the research infrastructure itself. We specify data lineage, blinding, negative controls, analysis, and limitations. Empirical results remain to be collected.
+Coding agents that run offline on a small open model have little room for wasted steps. Two failure modes are especially costly: they look in the wrong place first, and they keep patching the wrong place after the evidence has turned against it. We study one mechanism that addresses both, **Selective Evidence Reactivation (SER)**. First, a localization prior ranks repository symbols by fusing lexical and dense retrieval with Personalized PageRank (PPR) over the competition's code graph. Gemma 4 acts as a recognition filter that removes irrelevant seed symbols before propagation. Second, during repair, the agent keeps a ledger of localization hypotheses and the checkable assumptions behind them. When an executed test refutes such an assumption, a deterministic trigger marks the current hypothesis as refuted and reactivates a small, eligible set of previously ranked but abandoned candidates. We test three preregistered hypotheses on the competition's development tasks. H3 asks whether graph propagation improves localization recall. H1 asks whether event-triggered reactivation improves verified repair over an identical retrieval policy without the trigger. H2 asks whether this selective disclosure matches or beats a full-history agent under the same budget. ⟦TBD: one sentence per hypothesis with effect size and 95% CI, including null results.⟧
 
 ### 1. Introduction
 
-Coding agents can navigate repositories, edit files, and run tests, yet many executions begin without operational access to the evidence accumulated during prior, related tasks. A stored patch may solve a failure only under a particular dependency version, input contract, or concurrency invariant. A failed patch can also be informative: it may refute an approach under one assumption while remaining relevant after that assumption changes. Reusing such history therefore requires more than a nearest-neighbor match between issue descriptions.
+The competition asks for an agent that repairs real Python defects on everyday hardware without network access. Under these constraints the agent's first localization decision matters more than usual. A wrong first location costs turns, and small models tend to stay with it. We call this *premature local closure*: the agent keeps editing the first plausible location even after a test run has shown that edits there do not change the failure.
 
-The research question is:
+Retrieval alone does not solve this. A retriever can rank the right symbol fifth, but the agent abandons rank five once it commits to rank one, and nothing brings it back. Showing the agent its entire history does not solve it either. Long histories of a failed approach compete for attention with the evidence that it failed.
 
-> **Can verified changes in software-problem assumptions, coupled to a versioned problem–solution evidence graph, improve independently validated repairs through selective reactivation of prior experience without sacrificing independent exploration?**
+We therefore separate two questions. *Where should the agent look first?* That is a ranking problem over the code graph. *When should it look again?* That is a triggering problem: a verified event, not the model's own judgment, decides when an abandoned candidate becomes relevant. SER answers both with one shared candidate ranking, so the mechanism can be ablated part by part.
 
-We investigate three separable propositions:
+**Hypotheses (preregistered, commit `⟦TBD⟧`):**
 
-- **H1 — Coupling:** event-triggered reactivation of appropriately scoped evidence improves verified repair success compared with the same memory, retrieval opportunities, and resources without the trigger.
-- **H2 — Selective disclosure:** selectively revealing warranted prior evidence can outperform—or at least avoid degradation relative to—access to the full admissible history under an equal context and execution budget.
-- **H3 — Structural retrieval:** adding problem-seeded PPR to hybrid lexical–semantic retrieval improves recovery of valid multi-hop experience without materially degrading recall of direct, relevant evidence.
+- **H3 — Structural localization.** Adding seeded PPR over the code graph to hybrid lexical–dense retrieval increases symbol-level Recall@10 of gold-patch locations. Adding a Gemma 4 recognition filter on the seeds increases it further. Neither addition lowers recall on tasks where the gold symbol is directly retrievable (non-inferiority margin: 2 percentage points).
+- **H1 — Coupling.** Event-triggered reactivation (arm E) resolves more tasks than the same agent receiving the same number of retrieved candidates at the same checkpoints without the trigger (arm E⁻).
+- **H2 — Selective disclosure.** Arm E resolves at least as many tasks as a full-history agent (arm D*) under the same turn, token and time budget.
 
-These are hypotheses, not findings. The contribution sought is a falsifiable mechanism and an auditable experimental contrast, not a new claim of novelty for graphs, RAG, PageRank, agent memory, or multi-agent systems individually.
+These are hypotheses about one mechanism under one set of conditions. We do not claim novelty for graphs, PageRank, retrieval or agent memory individually.
 
-### 2. Related work and remaining gap
+### 2. Related work
 
-GraphRAG structures retrieval around explicit relations and broader corpus organization [1]. HippoRAG connects knowledge graphs with Personalized PageRank for associative retrieval [2], and HippoRAG 2 studies the balance between associative and factual memory [3]. LightRAG supports graph/text retrieval and incremental updates [4]. G-Memory organizes experience at multiple levels across agents [5]. ReasoningBank distills strategies from successful and unsuccessful agent trajectories [6]. Research specifically on software-engineering memory shows both opportunities and failure modes: coarse episode-level memories can mismatch a current subtask [7], while episodic memory may inject noise or unhelpful history [8].
+**Agents and localization.** SWE-bench [9] established repository-level issue resolution with execution-based grading. SWE-agent [10] showed that the agent–computer interface strongly affects outcomes. Agentless [11] showed that a fixed localize–repair–validate pipeline is a strong baseline. Several systems use code structure explicitly. RepoGraph [12] builds a line-level repository graph and retrieves ego-subgraphs. LocAgent [13] parses codebases into directed heterogeneous graphs of files, classes and functions with import, invocation and inheritance edges, and lets an agent navigate them with tools. OrcaLoca [14] schedules and prunes localization actions by priority and distance. PageRank has also been used in classical fault localization, where it re-weights spectrum-based suspiciousness scores [15].
 
-Our target differs from a generic long-term-memory store. The treatment is a **typed, version-checked causal trigger**: when an independently verified condition changes, only evidence connected to the affected solution and valid under the new condition becomes eligible for prioritized reactivation. Historical counterexamples remain visible as warnings without being promoted to present-day truths. Separately, selection and non-disclosure are tested rather than assumed beneficial.
+**Graph memory.** HippoRAG [2] and HippoRAG 2 [3] combine LLM-based recognition of query entities with PPR over a knowledge graph for associative retrieval. GraphRAG [1] and LightRAG [4] organize retrieval around graph structure. G-Memory [5] and ReasoningBank [6] store experience across tasks. For coding agents, subtask-level memory improves on episode-level memory [7], while episodic memory can also inject noise [8].
 
-### 3. Versioned problem–solution experience graph
+**Gap.** Code-graph localization work treats localization as a one-shot ranking or as free agent navigation. Memory work concerns reuse *across* tasks. We study a narrower link: a verified, in-episode test outcome deterministically decides when a *previously ranked but abandoned* candidate re-enters the agent's context. We compare it against an identical policy that has the same candidates and checkpoints but no trigger. We also adapt the HippoRAG recognition-then-propagate pattern to code graphs and measure it there. Our retrieval core builds on HippoRAG 2 [3]; it is not a new version of it.
 
-Let the research state at revision t be
+### 3. Method
 
-**G_t = (V_P, V_S, V_E, E_PP, E_SS, E_PS, E_EV, ν_t)**,
+#### 3.1 Inputs
 
-where V_P contains problems, requirements, assumptions, and subproblems; V_S contains approaches, patches, hypotheses, counterexamples, and results; V_E contains independently assessable evidence; and ν_t is the authoritative revision. Typed edges record problem dependencies, solution relationships, problem-to-solution applicability, and solution-to-evidence provenance.
+For each task the competition provides an issue description, a repository snapshot, a directed code graph of symbols and their relationships, and 256-dimensional code embeddings [16]. ⟦TBD: confirm node and edge types from the data card, e.g. module, class, function; contains, calls, imports, inherits.⟧ A symbol node carries its file, name, signature and source span.
 
-Each independently defined problem has one versioned project record. A persistent project ledger, rather than agent chat transcripts, is the source of truth. Cross-project retrieval uses derived, rebuildable indices; graph scores may never overwrite original evidence. The current code or dependency revision, the scope of a claim, its source receipt, and its verification method accompany every result.
+#### 3.2 Localization prior (H3)
 
-A memory item has an epistemic state such as **HYPOTHESIS**, **CONDITIONALLY_SUPPORTED**, **VERIFIED**, **REFUTED_UNDER_ASSUMPTIONS**, **UNRESOLVED**, or **SUPERSEDED**. A failed provider call is not a failed repair; agreement between agents is not independent verification. Refutations are preserved with their exact preconditions and are reconsidered, not erased, when those preconditions change.
+All arms use the same candidate set and the same cutoffs. Only the ranking function differs.
 
-An evidence item becomes a transferable candidate only when its prerequisite constraints can be checked against the receiving problem. A suggested analogy is stored as a hypothesis until validated. An apparently similar patch from an incompatible version is not silently treated as applicable.
+**Arm A, hybrid retrieval.** BM25 over symbol text (qualified name, signature, docstring, body) with the issue text as query, fused with dense cosine similarity by reciprocal rank fusion (RRF, k = 60). ⟦TBD: if the competition does not ship the encoder for query embeddings, the dense component is removed from all arms equally, and this is reported.⟧
 
-### 4. Retrieval and the coupling mechanism
+**Seeds.** The top m = 10 symbols from arm A, plus every symbol whose name appears verbatim in the issue text or in a traceback it contains.
 
-#### 4.1 Structural discovery
+**Arm B, + PPR.** We solve
 
-The default candidate generator combines lexical search (e.g., BM25) and optional dense retrieval. It may expand along **content-bearing, provenance-supported graph edges**, followed by problem-seeded PPR:
+p = (1 − α) s + α Pᵀ p,
 
-**p = (1 − α)s + αPᵀp**,
+where s is uniform over the seeds and P is the row-normalized transition matrix over **content edges only**: containment, calls, imports and inheritance, symmetrized. α = 0.5 is fixed in advance. Nothing derived from usage, popularity or agent behaviour ever becomes an edge. The final score fuses the arm-A rank and the PPR rank by RRF. A *direct-retrieval safety path* keeps arm A's top 3 symbols in the output regardless of their PPR score, so a highly central node cannot displace the strongest direct hit.
 
-where s is the restart distribution derived from the current verified problem entities, P is the normalized transition matrix over eligible content relations, and α is a predeclared continuation probability. PPR can identify experiences connected through multiple meaningful steps; it cannot assign truth to those experiences.
+**Arm C, + Gemma recognition filter.** Before propagation, Gemma 4 receives the issue and the seed list (qualified name and signature only, no bodies) and returns the subset it judges relevant to the issue. It can only *remove* seeds, never add symbols, so the filter cannot inject knowledge about the repository from outside the graph. If it removes all seeds, the unfiltered seeds are used and the event is logged. The prompt is frozen at the preregistration commit.
 
-**Usage counts, agent popularity, raw frequency, and negative/contradiction labels do not become positive transition edges.** They are considered separately during evidence eligibility, negative-knowledge checking, and analysis. The graph and its seed, revision, transition-edge policy, and retrieved evidence IDs are logged for reproducibility.
+#### 3.3 Episode ledger and verified events (H1, H2)
 
-We retain a direct-retrieval safety path: a graph-ranking candidate is not allowed to suppress essential direct evidence merely by occupying a high centrality position. The structural-retrieval ablation compares hybrid retrieval against hybrid plus PPR at the same candidate and context limits. Both direct-evidence recall and multi-hop retrieval quality are reported; any loss is disclosed.
+The agent follows one fixed loop in all arms: localize, reproduce, patch, run tests, repair. It has the same tool set and the same turn, token and wall-clock limits everywhere. In arms E and E⁻ the harness, not the model, keeps a ledger.
 
-#### 4.2 Deterministic event-triggered reactivation
+A **hypothesis** is h = (symbol, status, assumptions). Its status is ACTIVE, ABANDONED, REFUTED_UNDER_ASSUMPTIONS or REVIEW_REQUIRED. Each hypothesis carries only assumptions that the harness can check mechanically:
 
-A verified change event is represented as
+- *reproduces*: the agent's reproduction script fails on the unpatched snapshot;
+- *fault-at-symbol*: editing the hypothesis symbol changes the outcome of the reproduction or of the targeted test;
+- *trace-locality*: the frames of the current failure lie within two graph hops of the hypothesis symbol.
 
-**e = (subject, predicate, old, new, revision, scope, evidence, status)**.
+**Verified events** come only from executed tool results, never from model statements:
 
-The trigger fires only when all of the following hold:
+| Event | Definition |
+|---|---|
+| PATCH_NO_EFFECT | after an edit confined to the active symbol, the reproduction outcome and the failing test outcome are unchanged |
+| TRACE_SHIFT | the failure's traceback no longer satisfies trace-locality for the active symbol |
+| REGRESSION(t) | a previously passing test t now fails |
+| REPRO_RESOLVED | the reproduction passes and the targeted tests pass |
 
-1. The event is independently **VERIFIED** and changes a typed problem prerequisite.
-2. A revision-valid, content-bearing problem–solution edge identifies a solution affected by that prerequisite (e.g., REQUIRES, TESTED_UNDER, INVALIDATED_UNDER, BECOMES_APPLICABLE_IF).
-3. The candidate experience has a provenance-linked relationship to that solution and passes access checks.
-4. A frozen, deterministic scope predicate classifies the evidence as **APPLICABLE** or **HISTORICAL_CONTRAST**. Missing scope information yields **INELIGIBLE**.
+#### 3.4 Event-triggered reactivation (arm E)
 
-A historical contrast can warn that a repair failed under the old condition; it does not assert the old result under the new condition. Triggering marks the affected hypothesis **REVIEW_REQUIRED**, not VERIFIED or REFUTED. This separation prevents retrieval from masquerading as discovery.
+The trigger fires only when **all** of these hold:
 
-Predefined null cases—unchanged prerequisites, unverified events, absent typed links, revoked evidence, and incompatible scopes—must not trigger activation. These are testable implementation invariants, but passing them alone does not establish a scientific benefit.
+1. A verified event contradicts an assumption of the ACTIVE hypothesis (PATCH_NO_EFFECT contradicts *fault-at-symbol*; TRACE_SHIFT contradicts *trace-locality*).
+2. At least one *eligible* candidate exists. A candidate is eligible if it appeared in the episode's initial localization ranking or in a PPR re-ranking seeded with the new traceback frames, if it is not itself REFUTED_UNDER_ASSUMPTIONS under the current assumptions, and if it has not already been reactivated in this episode.
 
-#### 4.3 Selective context and independent work
+When the trigger fires, the active hypothesis becomes REFUTED_UNDER_ASSUMPTIONS, together with the event that refuted it. The agent then receives a fixed-format **evidence packet** of at most 3 eligible candidates (symbol, file, signature, why it was ranked) plus one **historical contrast** line, for example: "edits to `X.parse` did not change failure F". The contrast is a warning, not a verdict. The agent remains free to return to `X.parse`, and the harness does not force a switch. Null cases must not fire the trigger: an unchanged outcome after an edit *outside* the active symbol, an unverified claim by the model, or the absence of eligible candidates. These invariants are unit-tested; passing them is an implementation check, not evidence of benefit.
 
-Each agent receives a bounded, role-appropriate projection from an authorized common state. Authorization (what can legally be read) and activation (what should be disclosed now) are distinct. Necessary obligations and source references are not discarded to save tokens. The experience graph is globally queryable only through scoped, logged interfaces; it is not automatically pasted into every agent's prompt.
+#### 3.5 Control arms
 
-In independent solving phases, a blinded worker may receive a deliberately restricted evidence packet. It must not possess direct credentials to the underlying project ledger or an alternative tool path to the withheld history. The later verification phase may consult additional evidence under a separately documented access policy. This protects experimental independence while permitting controlled transfer.
+- **E⁻ (no coupling).** The ledger, the candidate pool, the packet format, the packet size and the checkpoints (after every test execution) are identical to E. The packet is filled with the top 3 candidates retrieved for the agent's current subgoal text, without event detection, refutation marking or historical contrast.
+- **D\* (full history).** No ledger and no packet. The agent sees its complete raw history. If the history exceeds the context limit, a frozen rule keeps the issue, the first localization step and the most recent turns. E and E⁻ instead see a compacted history (the issue, the ledger and the most recent turns) plus the packet, under the same total token cap.
 
-### 5. Independent experimental study
+E versus E⁻ isolates the trigger. E versus D\* tests selective disclosure against full disclosure.
 
-The object of study is **the scientific effect of evidence activation on coding-task outcomes**, not the overall quality of any particular AI platform. A complete, cooperative research system conducts the experiments; model/provider selection and internal coordination remain operational mechanisms rather than separately scored contestants.
+### 4. Experimental protocol
 
-#### 5.1 Tasks and unit of assignment
+**Tasks.** ⟦TBD: n⟧ development tasks from the competition data, in a fixed order. ⟦TBD: k⟧ tasks were used for a timing pilot and are excluded from all reported results. Pilot outcomes were not inspected beyond wall time and harness errors.
 
-Use real software repair tasks with immutable starting commits, dependency snapshots, issue descriptions, and independently executable validation tests, supplemented where needed by authored tasks that introduce an explicit, verified change to a relevant requirement or dependency assumption. Each task must have an independently checked target behavior and a defined family of potentially reusable past experiences.
+**Gold locations (H3).** The symbols and files whose source spans intersect the hunks of the reference patch, mapped on the pre-patch snapshot. Reference patches are used **only** for H3 scoring and are never visible to any arm.
 
-The unit of randomization is the task-family or matched episode with a frozen initial state; related instances are grouped to avoid cross-arm memory contamination. Task difficulty, repository, agent tool set, model pool, total execution ceilings, and grader revision are fixed before outcomes are observed. Task provenance and benchmark licensing must permit use; publicly known gold patches and hidden-test solutions cannot be injected into memory.
+**Outcome (H1, H2).** A task is resolved when the final patch applies cleanly and the hidden validation tests pass. Grading runs outside the agent process. Timeouts, crashes and empty patches count as unresolved, and are reported by failure class.
 
-The evidence corpus is frozen before each confirmatory block. No outcome from a held-out test becomes accessible to any treatment arm until all paired episodes for that block have finished.
+**Analysis.** All comparisons are paired per task.
+- H3: primary endpoint is symbol Recall@10, B versus A, then C versus B, by Wilcoxon signed-rank test with a paired bootstrap 95% CI. Non-inferiority is evaluated on the *direct* subset, defined as tasks where arm A already ranks a gold symbol within its top 10.
+- H1: exact McNemar test on resolved status, E versus E⁻, two-sided α = 0.05.
+- H2: E versus D\*, exact McNemar test with Holm correction across H1 and H2.
+- Secondary: file Recall@{1, 5}; persistence, defined as the number of further edits to a symbol after PATCH_NO_EFFECT on it; repeated refuted approaches; turns, tokens and wall time per task.
 
-#### 5.2 Conditions
+**Power.** With ⟦TBD: n⟧ paired tasks, McNemar's test detects only large asymmetries in discordant pairs. ⟦TBD: minimum detectable discordance from the pilot.⟧ We therefore report effect estimates with confidence intervals, not only p-values. An underpowered null is reported as inconclusive, not as evidence of no effect.
 
-| Arm | Common facilities | Treatment |
-|---|---|---|
-| **D** | Versioned evidence, ordinary retrieval, full cooperative problem-solving facilities | Strong established deterministic reference without the new event coupling |
-| **E⁻** | Same graph, memory, capabilities, tools, workers, retrieval checkpoints and budget as E | Hybrid/graph retrieval on the current subproblem; **no** change-triggered problem–solution reactivation |
-| **E** | Identical facilities and limits to E⁻ | Verified change events prioritize scoped prior experiences; unfilled evidence slots revert to ordinary retrieval |
-| **D*** | Same admissible evidence corpus, capabilities, timing and total context budget as E | Full-history-access / broad-disclosure control, without E's selective-withholding policy; a frozen compression/packing rule is necessary when history exceeds the context limit |
+**Leakage controls.** All arms start from the same frozen snapshot. No arm sees reference patches, hidden tests or outcomes of other arms. The model, quantization, decoding parameters, tool set and grader revision are identical across arms and recorded with the preregistration commit.
 
-The **primary mechanistic comparison is E versus E⁻**. The **separate confirmatory disclosure comparison is E versus D***. D* is deliberately strong: it has access to the complete *admissible* history, not a weakened memory store. Equal maximum prompt size does not imply filling unused slots with irrelevant text; actual exposure and consumption are measured. An ablation of hybrid versus hybrid+PPR retrieval addresses H3 without conflating graph connectivity with event coupling.
+### 5. Results
 
-A further, separately scoped study may compare a revision-aware referential handoff against full restatement at the same checkpoint. That communication study is **not** folded into the primary code-repair success claim.
+#### 5.1 H3 — Localization prior
 
-#### 5.3 Outcomes and analysis
+| Arm | Symbol R@10 | File R@1 | File R@5 | Direct subset R@10 |
+|---|---|---|---|---|
+| A hybrid | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
+| B + PPR | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
+| C + Gemma filter | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
 
-**Primary outcome:** proportion of assigned tasks for which the produced patch applies cleanly and passes an independent, frozen executable acceptance suite. Missing, timed-out, unauditable, or incomplete attempts count as unsuccessful for the primary intention-to-treat denominator and are reported by failure class.
+Paired differences: B − A = ⟦TBD⟧ (95% CI ⟦TBD⟧); C − B = ⟦TBD⟧ (95% CI ⟦TBD⟧). Seeds removed by the filter: median ⟦TBD⟧; fallback to unfiltered seeds in ⟦TBD⟧ tasks.
 
-**Secondary outcomes:** documented reuse of verified knowledge; prevention of repeated refuted approaches; retention of directly relevant evidence; erroneous activation; agent/tool calls; quota usage; wall time; money charges; verification cost; and human interventions. Token reduction is not a substitute for correctness.
+#### 5.2 H1 and H2 — Repair
 
-For paired tasks, report the E−E⁻ and E−D* differences in verified success with confidence intervals computed using task-family clustered resampling; show the full paired discordance table. Analysis procedures, sample size/power targets, exclusions, and stopping rules must be fixed **before** the confirmatory run. Hypotheses without sufficient data remain unresolved. Report subgroup comparisons between cross-project transfer, within-project reuse, changed-assumption repair, and negative-knowledge cases as exploratory unless preregistered.
+| Arm | Resolved / n | Median turns | Median tokens | Median wall time |
+|---|---|---|---|---|
+| D\* full history | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
+| E⁻ no coupling | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
+| E reactivation | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ | ⟦TBD⟧ |
 
-The evidence bundle for each episode includes the starting revision, evidence-snapshot digest, arm assignment, event and graph-edge IDs, retrieved and withheld memory IDs, model and tool fingerprints, access audit, final patch, independent grader result, and complete resource receipts. No model's own assertion of success is accepted as the outcome label.
+Discordant pairs: E-only ⟦TBD⟧, E⁻-only ⟦TBD⟧ (McNemar p = ⟦TBD⟧). E-only ⟦TBD⟧, D\*-only ⟦TBD⟧ (Holm-adjusted p = ⟦TBD⟧). The trigger fired in ⟦TBD⟧ of ⟦TBD⟧ E episodes. Persistence after PATCH_NO_EFFECT: E ⟦TBD⟧, E⁻ ⟦TBD⟧, D\* ⟦TBD⟧.
 
-#### 5.4 Leakage and falsification safeguards
+#### 5.3 Failure analysis
 
-The experiment rejects contaminated data paths: common research memory is cloned per arm; no unassigned direct ledger access is permitted; future outcomes are withheld; prior gold solutions are excluded; grading executes outside the agent process; and outcome labels cannot rewrite earlier evidence. A positive result is invalidated if hidden information reached one arm, the model pool or task definition differed between matched runs, or a critical receipt is missing.
+⟦TBD: 3–5 short, concrete cases: one where reactivation recovered the gold symbol, one where it distracted the agent, one where the trigger never fired because no eligible candidate existed.⟧
 
-A decisive negative result is scientifically meaningful: event coupling could expose misleading history, interfere with useful exploration, or fail because a simpler retrieval policy already finds all relevant evidence. We will report such outcomes rather than relabeling them as success.
+### 6. Discussion and limitations
 
-### 6. Research status, limitations, and interpretation
+⟦TBD: interpretation tied strictly to the numbers in Section 5.⟧
 
-This manuscript currently specifies the mechanism and an independently verifiable experimental design. **No confirmatory E/E⁻ or E/D* repair-success comparison is presented here, and no improvement, statistical significance, or generalized transfer is claimed.** Existing engineering integration tests and unrelated research datasets are not substituted for these experimental outcomes.
+**Scope.** All results come from one model, one harness and one set of development tasks from Python repositories. They do not establish transfer to other languages, models or task distributions.
 
-Key threats are incorrect graph annotation, stale project revisions, incomplete provider receipts, benchmark leakage, nonrepresentative task families, hidden test limitations, and context-policy drift. The first confirmatory stage freezes externally or mechanically verified change events and typed links to isolate the reactivation mechanism. A later end-to-end study must include the error rates of automatically generated events and links; the stage-one result cannot establish robustness of the complete autonomous pipeline.
+**Trigger coverage.** The trigger can only help when the gold symbol is already in the candidate pool. H3 therefore bounds H1, and we report how often the pool contained a gold symbol at the time of triggering.
 
-The proposed mechanism is compatible with heterogeneous cooperative workers and with smaller models, but such compatibility is not evidence that a Gemma-based implementation has already been trained or benchmarked. Neither model weights nor a specific product architecture are asserted to be the research contribution.
+**Event validity.** PATCH_NO_EFFECT can misfire when the active symbol is correct but the edit is wrong. We report how often a refuted symbol was in fact a gold symbol.
 
-### 7. Conclusion
+**Filter risk.** The Gemma recognition filter can remove the correct seed. The safety path limits, but does not eliminate, this risk.
 
-The central idea is not to remember *more* of an agent's past, but to reactivate **the right, assumption-scoped evidence at the moment a verified problem change makes it relevant**, while preserving independent search and explicitly retaining falsified attempts as conditional negative knowledge. Typed problem–solution links, provenance, PPR-assisted retrieval, a deterministic eligibility trigger, and controlled disclosure make this proposal testable. Whether they improve software repair success remains an empirical question to be decided by the planned independent comparisons.
+**Cross-task memory.** The broader idea, reactivating evidence from *other* tasks when a verified assumption changes, needs task families with controlled assumption changes. It is outside the scope of this study.
+
+### 7. Reproducibility
+
+The repository contains the harness, the frozen prompts, the preregistration file, per-episode JSONL traces (prompts, responses, tool results, events, ledger states, packets) and the Kaggle notebooks that produced every number in Section 5. A single command regenerates all tables from the traces. ⟦TBD: notebook links, hardware, wall-clock totals.⟧
+
+### 8. Conclusion
+
+SER proposes that a coding agent does not need *more* of its own history, but the right abandoned option at the moment a test shows that the current one is wrong. ⟦TBD: one-sentence verdict per hypothesis, stated exactly as measured.⟧
 
 ### References
 
-[1] Edge et al. (2024). *From Local to Global: A Graph RAG Approach to Query-Focused Summarization*. https://www.microsoft.com/en-us/research/publication/from-local-to-global-a-graph-rag-approach-to-query-focused-summarization/
-
-[2] Gutiérrez et al. (2024). *HippoRAG: Neurobiologically Inspired Long-Term Memory for Large Language Models*. NeurIPS 2024. https://proceedings.neurips.cc/paper_files/paper/2024/hash/6ddc001d07ca4f319af96a3024f6dbd1-Abstract-Conference.html
-
-[3] Gutiérrez et al. (2025). *From RAG to Memory: Non-Parametric Continual Learning for Large Language Models* (HippoRAG 2). ICML 2025. https://proceedings.mlr.press/v267/gutierrez25a.html
-
-[4] Guo et al. (2025). *LightRAG: Simple and Fast Retrieval-Augmented Generation*. Findings of EMNLP 2025. https://aclanthology.org/2025.findings-emnlp.568/
-
-[5] Zhang et al. (2025). *G-Memory: Tracing Hierarchical Memory for Multi-Agent Systems*. NeurIPS 2025. https://papers.nips.cc/paper_files/paper/2025/hash/136a45cd9b841bf785625709a19c6508-Abstract-Conference.html
-
-[6] Ouyang et al. (2026). *ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory*. ICLR 2026. https://github.com/google-research/reasoning-bank
-
-[7] Shen et al. (2026). *Structurally Aligned Subtask-Level Memory for Software Engineering Agents*. ICML 2026. https://proceedings.mlr.press/v306/shen26ad.html
-
-[8] Lindenbauer et al. (2025). *From Knowledge to Noise: CTIM-Rover and the Pitfalls of Episodic Memory in Software Engineering Agents*. https://aclanthology.org/2025.realm-1.30/
-
-[9] Jimenez et al. (2024). *SWE-bench: Can Language Models Resolve Real-World GitHub Issues?* https://www.swebench.com/
-
-[10] Google DeepMind (2026). *Gemma 4 Developer Agent Paper Track: submission requirements and evaluation*. https://www.kaggle.com/competitions/gemma-4-developer-agent-paper/overview
-
----
-
-**Editorial note (not part of the Kaggle submission):** Research-specific evidence tables, exact task and corpus manifests, preregistration digest, statistical power calculation, and results must be populated from real independent runs. Do not submit provisional hypotheses as completed experiments. This file is intentionally isolated from OGI and does not change any prior study protocol.
+[1] Edge et al. (2024). From Local to Global: A Graph RAG Approach to Query-Focused Summarization. arXiv:2404.16130.
+[2] Gutiérrez et al. (2024). HippoRAG: Neurobiologically Inspired Long-Term Memory for Large Language Models. NeurIPS 2024.
+[3] Gutiérrez et al. (2025). From RAG to Memory: Non-Parametric Continual Learning for Large Language Models (HippoRAG 2). ICML 2025.
+[4] Guo et al. (2025). LightRAG: Simple and Fast Retrieval-Augmented Generation. Findings of EMNLP 2025.
+[5] Zhang et al. (2025). G-Memory: Tracing Hierarchical Memory for Multi-Agent Systems. NeurIPS 2025.
+[6] Ouyang et al. (2026). ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory. ICLR 2026.
+[7] Shen et al. (2026). Structurally Aligned Subtask-Level Memory for Software Engineering Agents. ICML 2026. arXiv:2602.21611.
+[8] Lindenbauer et al. (2025). From Knowledge to Noise: CTIM-Rover and the Pitfalls of Episodic Memory in Software Engineering Agents. REALM Workshop 2025.
+[9] Jimenez et al. (2024). SWE-bench: Can Language Models Resolve Real-World GitHub Issues? ICLR 2024.
+[10] Yang et al. (2024). SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. NeurIPS 2024. arXiv:2405.15793.
+[11] Xia et al. (2024). Agentless: Demystifying LLM-based Software Engineering Agents. arXiv:2407.01489.
+[12] Ouyang et al. (2025). RepoGraph: Enhancing AI Software Engineering with Repository-level Code Graph. ICLR 2025. arXiv:2410.14684.
+[13] Chen et al. (2025). LocAgent: Graph-Guided LLM Agents for Code Localization. ACL 2025. arXiv:2503.09089.
+[14] Yu et al. (2025). OrcaLoca: An LLM Agent Framework for Software Issue Localization. ICML 2025. arXiv:2502.00350.
+[15] Zhang et al. (2017). Boosting Spectrum-Based Fault Localization Using PageRank. ISSTA 2017.
+[16] Google DeepMind (2026). Gemma 4 Developer Agent Competition: dataset description. Kaggle.
