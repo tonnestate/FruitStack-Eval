@@ -19,6 +19,10 @@ from fs_org_driver import Task, peach_host
 from fs_runtime import operational_service
 
 SUBSCRIPTION = ("gpt-6-luna", "claude-haiku-5-5")
+# S0-A2 (pre-outcome): a roster lineage must be a foundation-model family with its own pre-training. PlumMe derives lineage from the model name,
+# so a community fine-tune (e.g. mini-magnum = a Mistral-Nemo fine-tune) would otherwise count as an independent lineage.
+FOUNDATION_LINEAGES = frozenset({"gpt", "claude", "gemini", "gemma", "mistral", "qwen", "llama", "nemotron", "deepseek", "glm", "allam", "command",
+                                 "cohere", "phi", "granite", "olmo", "kimi", "minimax", "yi", "jamba", "sdaia"})
 
 
 def items(n: int) -> list:
@@ -43,6 +47,30 @@ def candidates(svc, k: int) -> list[dict]:
     return out[:k]
 
 
+def candidates_from_reliability(svc, k: int, window_h: float = 24) -> list[dict]:
+    """S0-A2 rule (fixed before any S0 accuracy was read): PlumMe's own RELIABLE models, one per vendor lineage (highest usable share, then most
+    calls), the owner-allowed subscription lineages first; pinned by the route's model_key."""
+    from plumme.knowledge import independence_key
+    from plumme.reliability import report
+    rel = report(svc.settings.receipt_file, window_h=window_h)["models"]
+    by_name = {}
+    for o in svc.store.offers.values():
+        for name in (getattr(o, "canonical_model_id", None), o.model):
+            if name and o.model_key:
+                by_name.setdefault(name, o)
+    ranked = sorted(((k_, v) for k_, v in rel.items() if v["status"] == "RELIABLE" and k_ in by_name),
+                    key=lambda kv: (0 if any(m in kv[0] for m in SUBSCRIPTION) else 1, -kv[1]["usable_rate"], -kv[1]["calls"], kv[0]))
+    seen, out = set(), []
+    for name, v in ranked:
+        o = by_name[name]
+        lin = {"sdaia": "allam", "gemma": "gemini", "cohere": "command"}.get(v["vendor_lineage"], v["vendor_lineage"])   # one vendor, one lineage
+        if lin and lin in FOUNDATION_LINEAGES and lin not in seen:
+            seen.add(lin)
+            out.append({"model_key": o.model_key, "independence_key": independence_key(o), "vendor_lineage": lin, "provider": o.provider,
+                        "cost_class": str(getattr(o.cost_class, "value", o.cost_class)), "usable_rate": v["usable_rate"], "calls": v["calls"]})
+    return out[:k]
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
@@ -50,6 +78,7 @@ def main(argv=None) -> int:
     ap.add_argument("--candidates", type=int, default=8)
     ap.add_argument("--max-calls", type=int, default=360)
     ap.add_argument("--max-tokens", type=int, default=1_100_000)
+    ap.add_argument("--candidates-from", choices=("ranking", "reliability"), default="ranking")
     ap.add_argument("--rerun-host-defect", default="", help="failure_class of rows caused by a documented host defect; such rows stay in rows.jsonl and are re-run once")
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
@@ -61,10 +90,13 @@ def main(argv=None) -> int:
     calls, tokens = len(done), sum((r.get("input_tokens") or 0) + (r.get("output_tokens") or 0) for r in done)
     svc = operational_service()
     cand_f = a.out / "candidates.json"
-    cands = json.loads(cand_f.read_text()) if cand_f.exists() else candidates(svc, a.candidates)   # frozen at first start
+    cands = json.loads(cand_f.read_text()) if cand_f.exists() else (       # frozen at first start
+        candidates_from_reliability(svc, a.candidates) if a.candidates_from == "reliability" else candidates(svc, a.candidates))
     cand_f.write_text(json.dumps(cands, indent=1))
     tasks = items(a.items)
-    host = peach_host(svc, a.out / "episodes", worker_budget={"max_calls": 2, "max_tokens": 12000, "max_cost_usd": 0.0}, max_workers=1, max_replacements=0)
+    # a measurement: the pinned candidate must answer or the call fails - never another model under its name (PeachMe pin_binding, PR #41)
+    host = peach_host(svc, a.out / "episodes", worker_budget={"max_calls": 2, "max_tokens": 12000, "max_cost_usd": 0.0}, max_workers=1, max_replacements=0,
+                      pin_binding="PINNED")
     print(f"S0: {len(cands)} candidates x {len(tasks)} items; resume at {calls} calls", file=sys.stderr, flush=True)
     for c in cands:
         for t in tasks:

@@ -377,7 +377,8 @@ def _team_row(task, hook, roster, comps, off, arm, critique, roles, t0, events, 
             "specialist_used": any(r.specialist_used for r in results), **_identity(arm, receipts, roster, roles=roles)}
 
 
-def peach_host(svc, state_dir, *, worker_budget: dict, run_budget: dict | None = None, max_workers: int = 3, max_replacements: int = 2, max_output_tokens: int = 2000):
+def peach_host(svc, state_dir, *, worker_budget: dict, run_budget: dict | None = None, max_workers: int = 3, max_replacements: int = 2, max_output_tokens: int = 2000,
+               pin_binding: str | None = None):
     """The T arm's host on the real path: per episode a fresh PeachMe FruitStackSession over the given PlumMe service, a MangoMe-governed EXECUTE turn, and
     peachme.research.run_research. MangoMe is an in-memory instance: per OGI-RESEARCH-STATE-OWNERSHIP-2026-11-08 the experiment gets no canonical MangoMe identity.
     run_research never reads OrangeMe (memory reaches it only through the LearningHook brief), so the session's OrangeMe port is an empty ledger.
@@ -416,7 +417,7 @@ def peach_host(svc, state_dir, *, worker_budget: dict, run_budget: dict | None =
         authority = MissionAuthority(work_ref=work, project_ref=project, memory_ref="memory/working", actor_id=actor, authorized_by=actor)
         request = SimpleNamespace(owner="ogi-study", objective=task.prompt, mission_id=f"ogi-{d.name}")
         plan = ResearchPlan(worker_budget=worker_budget, run_budget=run_budget, max_workers=max_workers, max_replacements=max_replacements,
-                            max_output_tokens=max_output_tokens, tree_path=str(d / "research_tree.jsonl"), **plan_kw)
+                            max_output_tokens=max_output_tokens, tree_path=str(d / "research_tree.jsonl"), **{"pin_binding": pin_binding, **plan_kw})
         return rt, authority, request, turn, plan, (lambda kind, **kw: events.append({"type": kind, **kw}))
 
     def research(task: Task, plan_kw: dict):
