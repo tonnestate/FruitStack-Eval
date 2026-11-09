@@ -402,7 +402,7 @@ def peach_host(svc, state_dir, *, worker_budget: dict, run_budget: dict | None =
             return _Ledger()
     seq = itertools.count()
 
-    def research(task: Task, plan_kw: dict):
+    def episode(task: Task, plan_kw: dict, events: list):
         n = next(seq)
         d = Path(state_dir) / f"{n:05d}-{_h(task.task_ref)[:8]}"
         d.mkdir(parents=True, exist_ok=True)
@@ -415,11 +415,23 @@ def peach_host(svc, state_dir, *, worker_budget: dict, run_budget: dict | None =
         turn = rt.mango.bind_turn(work, "research", actor, "EXECUTE", actor)["turn"]["entity_id"]
         authority = MissionAuthority(work_ref=work, project_ref=project, memory_ref="memory/working", actor_id=actor, authorized_by=actor)
         request = SimpleNamespace(owner="ogi-study", objective=task.prompt, mission_id=f"ogi-{d.name}")
-        events: list = []
         plan = ResearchPlan(worker_budget=worker_budget, run_budget=run_budget, max_workers=max_workers, max_replacements=max_replacements,
                             max_output_tokens=max_output_tokens, tree_path=str(d / "research_tree.jsonl"), **plan_kw)
-        record = run_research(rt, None, authority, request, turn, plan, lambda kind, **kw: events.append({"type": kind, **kw}))
-        return record, events
+        return rt, authority, request, turn, plan, (lambda kind, **kw: events.append({"type": kind, **kw}))
+
+    def research(task: Task, plan_kw: dict):
+        events: list = []
+        rt, authority, request, turn, plan, ev = episode(task, plan_kw, events)
+        return run_research(rt, None, authority, request, turn, plan, ev), events
+
+    def worker(task: Task):
+        """The controls' and S0's `work`: PeachMe's own WorkerPool on a fresh episode session (same leases, receipts, token accounting as T).
+        Returns (work, events); work(prompt, stage, prefer=None, exclude=()) -> worker result incl. decision_id."""
+        from peachme.research import WorkerPool
+        events: list = []
+        rt, authority, request, turn, plan, ev = episode(task, {}, events)
+        return WorkerPool(rt, authority, request, turn, plan, ev).work, events
+    research.worker = worker
     return research
 
 

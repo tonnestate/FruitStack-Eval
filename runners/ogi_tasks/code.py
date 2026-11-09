@@ -127,7 +127,7 @@ def _imports(tree: ast.Module) -> set[str]:
 
 
 def ineligibility(libs: list[str], test_src: str, code_prompt: str = "", dataset_libs: frozenset = frozenset(),
-                  check_env: bool = True) -> str | None:
+                  check_env: bool = True, semantics: str = "boundary") -> str | None:
     """Static reason why a task's tests need in-process access to the candidate (or cannot run here), else None.
     Conservative: a name that merely appears in the test module is enough to exclude the task.
     UNDECLARED_TEST_DEPENDENCY: the tests import a third-party module that no task of the dataset declares in
@@ -141,14 +141,99 @@ def ineligibility(libs: list[str], test_src: str, code_prompt: str = "", dataset
                         and m not in dataset_libs)
     if undeclared:
         return "UNDECLARED_TEST_DEPENDENCY:" + ",".join(undeclared)
-    if names & MOCK_NAMES or "unittest.mock" in mods:
-        return "IN_PROCESS_MOCK_PATCH"
-    if names & FS_NAMES or tops & FS_NAMES:
-        return "FILESYSTEM_SIDE_EFFECTS_INSPECTED_IN_PROCESS"
-    if names & STREAM_NAMES:
-        return "IN_PROCESS_STREAM_CAPTURE"
+    if semantics != "official":                    # official: in-process access is the benchmark's own semantics; only env rules apply
+        if names & MOCK_NAMES or "unittest.mock" in mods:
+            return "IN_PROCESS_MOCK_PATCH"
+        if names & FS_NAMES or tops & FS_NAMES:
+            return "FILESYSTEM_SIDE_EFFECTS_INSPECTED_IN_PROCESS"
+        if names & STREAM_NAMES:
+            return "IN_PROCESS_STREAM_CAPTURE"
     if not check_env:
         return None
     tops |= {m.split(".")[0] for m in _imports(ast.parse(code_prompt + "    pass\n"))} if code_prompt else set()
     missing = sorted(m for m in set(libs) | tops if importlib.util.find_spec(m) is None)
     return "DEPENDENCY_UNAVAILABLE_IN_GRADER_ENV:" + ",".join(missing) if missing else None
+
+
+# ---- official BigCodeBench semantics (owner decision D2, 2026-11-09) ----
+# Candidate and tests share one interpreter, as the benchmark defines correctness, inside the same bwrap sandbox.
+# The verdict line carries a nonce the runner reads and deletes before candidate code runs, and is written with
+# output primitives captured before that; a static tamper audit rejects candidates that reach the test machinery.
+# ponytail: static audit, not a proof of non-interference; a per-test process boundary is the upgrade (= semantics "boundary").
+OFFICIAL_RUNNER = r'''
+import json, os, signal, sys, unittest
+_nonce = open("_nonce").read(); os.unlink("_nonce")
+_w, _dumps, _TR, _TS = os.write, json.dumps, unittest.TestResult, unittest.TestSuite
+spec = json.load(open("_spec.json")); os.unlink("_spec.json")
+ns = {"__name__": "__ogi_candidate__"}
+per, load_error = {}, None
+try:
+    exec(compile(open("candidate.py").read(), "candidate.py", "exec"), ns)
+    exec(compile(open("tests.py").read(), "tests.py", "exec"), ns)
+except BaseException as e:  # noqa: BLE001 - a load failure fails every test
+    load_error = f"{type(e).__name__}: {str(e)[:200]}"
+def _alarm(*_):
+    raise TimeoutError("TEST_TIMEOUT")
+for name in spec["names"]:
+    ok = False
+    if load_error is None:
+        cls, meth = name.split(".", 1)
+        try:
+            signal.signal(signal.SIGALRM, _alarm); signal.alarm(int(spec["timeout"]))
+            r = _TR(); _TS([ns[cls](meth)]).run(r)
+            ok = r.testsRun == 1 and not r.failures and not r.errors and not r.unexpectedSuccesses and not r.skipped
+        except BaseException:  # noqa: BLE001
+            ok = False
+        finally:
+            signal.alarm(0)
+    per[name] = ok
+_w(1, ("\n" + _nonce + _dumps({"per_test": per, "load_error": load_error}) + "\n").encode())
+'''
+TAMPER_NAMES = {"unittest", "TestCase", "TestResult", "TestSuite", "modules", "_getframe", "f_back", "f_globals", "f_locals",
+                "__builtins__", "builtins", "__import__", "importlib", "inspect", "gc", "ctypes", "_exit", "exit", "quit", "kill",
+                "SystemExit", "signal", "alarm", "setitimer", "atexit", "faulthandler", "__subclasses__", "__globals__", "__code__",
+                "settrace", "setprofile", "_nonce", "_w", "_dumps", "_TR", "_TS", "stdout", "__stdout__"}
+
+
+def tamper_audit(code: str) -> list[str]:
+    """Static reasons a candidate could interfere with the in-process test machinery or the verdict ([] = clean).
+    Also flags assignment to an attribute of an imported module (monkeypatching, e.g. `np.testing.x = ...`)."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return []                                   # does not load; graded FAIL by the run itself
+    names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)} | \
+            {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)} | \
+            {a.asname or a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, (ast.Import, ast.ImportFrom)) for a in n.names} | \
+            {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+    found = sorted(names & TAMPER_NAMES)
+    mods = {a.asname or a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+    for n in ast.walk(tree):
+        targets = n.targets if isinstance(n, ast.Assign) else [n.target] if isinstance(n, (ast.AugAssign, ast.AnnAssign)) else []
+        for t in targets:
+            base = t
+            while isinstance(base, ast.Attribute):
+                base = base.value
+            if isinstance(t, ast.Attribute) and isinstance(base, ast.Name) and base.id in mods:
+                found.append(f"MODULE_ATTRIBUTE_ASSIGNED:{base.id}")
+    return found
+
+
+def run_tests_official(code: str, test_src: str, names: list[str], *, code_prompt: str = "", entry_point: str = "task_func",
+                       python: str = sys.executable, timeout: float = 60, mem_mb: int = 4096, mode: str = "confirmatory") -> dict:
+    """Same return shape as run_tests, official in-process semantics (see block comment)."""
+    import secrets
+    if mode not in MODES:
+        raise ValueError(f"mode must be one of {MODES}, not {mode!r}")
+    confirmatory, python = mode == "confirmatory", os.path.abspath(python)
+    if confirmatory:
+        sandbox.preflight(python)
+    nonce = "OGI-VERDICT-" + secrets.token_hex(16) + ":"
+    r = sandbox.run_python({"_nonce": nonce, "_spec.json": json.dumps({"names": names, "timeout": timeout}), "candidate.py": code,
+                            "tests.py": test_src, "runner.py": OFFICIAL_RUNNER}, ["runner.py"], python=python,
+                           timeout=timeout * (len(names) + 1) + 30, mem_mb=mem_mb, confirmatory=confirmatory)
+    rep = next((json.loads(line[len(nonce):]) for line in reversed(r["stdout"].splitlines()) if line.startswith(nonce)), None)
+    per = {n: bool(rep and rep["per_test"].get(n) is True) for n in names}
+    return {"per_test": per, "passed": sum(per.values()), "load_error": (rep or {}).get("load_error"), "setup_error": None,
+            "evaluator_error": None if rep else "NO_VERDICT", "faults": {}, "timeout": r["timeout"], "exit": r["exit"],
+            "isolation": r["isolation"], "mode": mode, "semantics": "official", "stderr_tail": r["stderr"][-1500:]}

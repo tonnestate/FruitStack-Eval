@@ -53,3 +53,16 @@ def test_component_switches_reach_the_real_path(host, tmp_path):
     assert not [r for r in no_lsd["receipts"] if r["stage"].startswith("lsd")]
     with pytest.raises(ValueError, match="research_tree"):
         run(host, tmp_path, comps=TEAM_COMPONENTS - {"research_tree"})
+
+
+def test_controls_use_the_same_peachme_worker_and_a_pin_holds(host, tmp_path):
+    from runners.fs_org_driver import run_samples
+    t = Task("isqrt", "Which Python call computes an exact integer square root? Final line: ANSWER: <call>", sig, lambda a: float(a == "math.isqrt"), "executed")
+    work, _ev = host.worker(t)
+    probe = work("q", "solve")
+    member = {probe["model_key"]: probe["independence_key"]}
+    work2, _ = host.worker(t)
+    row = run_samples(t, work=work2, arm="R_mono", roster=member, cycle=list(member), k=3)
+    assert {r["independence_key"] for r in row["receipts"]} == set(member.values())
+    assert row["identity_valid"], row.get("identity_reason")
+    assert probe.get("decision_id") and probe["output_tokens"] is not None

@@ -72,7 +72,22 @@ def _faulted(r: dict) -> bool:
     return bool(r["load_error"] or r["setup_error"] or r["evaluator_error"] or r["faults"])
 
 
-def grade(task: Task, answer: str, *, mode: str = "confirmatory", **sandbox_kw) -> dict:
+# Owner decision D2 (2026-11-09, OGI-013 PROTOCOL): official BigCodeBench semantics + tamper audit for confirmatory grading.
+SEMANTICS = "official"
+
+
+def _grader_python() -> str:
+    """The pinned grader interpreter (datasets.json grader_env.venv; override OGI_GRADER_PYTHON), never the study process's own."""
+    p = os.environ.get("OGI_GRADER_PYTHON") or os.path.join(MANIFEST.get("grader_env", {}).get("venv", ""), "bin", "python")
+    return p if os.path.exists(p) else sys.executable
+
+
+def _run(semantics: str):
+    fn = code.run_tests_official if semantics == "official" else code.run_tests
+    return lambda *a, **kw: fn(*a, **{"python": _grader_python(), **kw})
+
+
+def grade(task: Task, answer: str, *, mode: str = "confirmatory", semantics: str = SEMANTICS, **sandbox_kw) -> dict:
     h = _HIDDEN[(task.family, task.id)]
     if task.family == "code":
         if mode == "confirmatory":
@@ -81,11 +96,13 @@ def grade(task: Task, answer: str, *, mode: str = "confirmatory", **sandbox_kw) 
                 return {"correct": None, "grade": "INELIGIBLE_CONFIRMATORY", "mode": mode,
                         "evidence": {"verifier": "executed:hidden-tests", "reason": e["reason"]}}
         names = h["visible"] + h["hidden"]
-        r = code.run_tests(code.extract_code(answer, h["entry_point"]), h["test"], names, code_prompt=h["code_prompt"],
-                           entry_point=h["entry_point"], mode=mode, **sandbox_kw)
-        ok = all(r["per_test"][n] for n in h["hidden"])
-        return {"correct": ok, "grade": "PASS" if ok else "ERROR" if _faulted(r) else "FAIL", "mode": mode, "evidence": {
-            "verifier": "executed:hidden-tests:trusted-boundary", "hidden_passed": sum(r["per_test"][n] for n in h["hidden"]),
+        cand = code.extract_code(answer, h["entry_point"])
+        tamper = code.tamper_audit(cand) if semantics == "official" else []
+        r = _run(semantics)(cand, h["test"], names, code_prompt=h["code_prompt"], entry_point=h["entry_point"], mode=mode, **sandbox_kw)
+        ok = all(r["per_test"][n] for n in h["hidden"]) and not tamper
+        return {"correct": ok, "grade": "PASS" if ok else "TAMPER" if tamper else "ERROR" if _faulted(r) else "FAIL", "mode": mode, "evidence": {
+            "verifier": "executed:hidden-tests:" + ("official-inprocess-bwrap" if semantics == "official" else "trusted-boundary"),
+            "tamper_audit": tamper, "hidden_passed": sum(r["per_test"][n] for n in h["hidden"]),
             "hidden_total": len(h["hidden"]), "visible_passed": sum(r["per_test"][n] for n in h["visible"]),
             "all_tests_pass": r["passed"] == len(names), **{k: r[k] for k in
             ("per_test", "load_error", "setup_error", "evaluator_error", "faults", "timeout", "exit", "isolation",
@@ -100,18 +117,21 @@ def dataset_libs(tasks: list[Task]) -> frozenset:
     return frozenset(m for t in tasks for m in ast.literal_eval(_HIDDEN[("code", t.id)]["libs"]))
 
 
-def classify_code_task(task: Task, libs_declared: frozenset = frozenset(), **sandbox_kw) -> dict:
+def classify_code_task(task: Task, libs_declared: frozenset = frozenset(), semantics: str = SEMANTICS, **sandbox_kw) -> dict:
     """Confirmatory eligibility: static rules (code.ineligibility), then the reference solution must pass every
     test (visible + hidden) behind the boundary in confirmatory mode. Either failing -> INELIGIBLE_CONFIRMATORY."""
     h = _HIDDEN[("code", task.id)]
-    reason = code.ineligibility(ast.literal_eval(h["libs"]), h["test"], h["code_prompt"], libs_declared)
+    reason = code.ineligibility(ast.literal_eval(h["libs"]), h["test"], h["code_prompt"], libs_declared, semantics=semantics)
+    ref = h["code_prompt"] + h["canonical_solution"]
+    if reason is None and semantics == "official" and code.tamper_audit(ref):
+        reason = "AUDIT_FLAGS_REFERENCE:" + ",".join(code.tamper_audit(ref))[:200]
     if reason is None:
         names = h["visible"] + h["hidden"]
-        r = code.run_tests(h["code_prompt"] + h["canonical_solution"], h["test"], names, code_prompt=h["code_prompt"],
-                           entry_point=h["entry_point"], mode="confirmatory", **sandbox_kw)
+        r = _run(semantics)(ref, h["test"], names, code_prompt=h["code_prompt"],
+                            entry_point=h["entry_point"], mode="confirmatory", **sandbox_kw)
         if r["passed"] != len(names):
             first = next(iter(r["faults"].values()), [None])[0]
-            reason = "REFERENCE_FAILS_UNDER_BOUNDARY:" + (
+            reason = f"REFERENCE_FAILS_{semantics.upper()}:" + (
                 first or r["setup_error"] or r["load_error"] or r["evaluator_error"]
                 or f"{len(names) - r['passed']}/{len(names)} tests fail")[:200]
     return {"status": "INELIGIBLE_CONFIRMATORY" if reason else "ELIGIBLE", "reason": reason}
@@ -134,7 +154,8 @@ def write_eligibility(path: Path = ELIGIBILITY_FILE, workers: int = 4, **sandbox
             print(f"[{i}/{len(all_tasks)}] {t.id} {r['status']} {r['reason'] or ''}"[:160],
                   file=sys.stderr, flush=True)
     out = {"_note": "Generated by ogi_tasks.write_eligibility(); confirmatory grading accepts only ELIGIBLE ids. "
-                    "Reasons are rule codes from code.ineligibility or the reference run behind the boundary.",
+                    "Reasons are rule codes from code.ineligibility, the tamper audit of the reference, or the reference run "
+                    f"under semantics={SEMANTICS!r}.", "semantics": SEMANTICS,
            "dataset_sha256": MANIFEST["bigcodebench-hard"]["sha256"],
            "grader_env": {"python": sys.version.split()[0],
                           "packages": sorted(f"{d.metadata['Name']}=={d.version}" for d in md.distributions())},
@@ -153,7 +174,7 @@ def select_by_visible(task: Task, candidates: list[str], *, mode: str = "confirm
     if task.family == "code":
         names = [f"{c.name}.{f.name}" for c, f in code._methods(ast.parse(task.visible_checks))]
         prelude = _HIDDEN[("code", task.id)]["code_prompt"]   # public: the instruct prompt already shows it
-        scores = [code.run_tests(code.extract_code(c), task.visible_checks, names, code_prompt=prelude, mode=mode,
+        scores = [_run(SEMANTICS)(code.extract_code(c), task.visible_checks, names, code_prompt=prelude, mode=mode,
                                  **sandbox_kw)["passed"] for c in candidates]
         return scores.index(max(scores))
     parsed = [mathkey.extract(c) for c in candidates]

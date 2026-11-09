@@ -98,10 +98,10 @@ def test_code_grader_uses_hidden_tests():
 
 def test_code_grader_times_out_and_limits_memory():
     t = T.make_task("code", code_row("Fixture/2", suite_src(2)))
-    slow = T.grade(t, "def task_func(x):\n    while True: pass\n", timeout=2)
+    slow = T.grade(t, "def task_func(x):\n    while True: pass\n", timeout=2, semantics="boundary")
     assert slow["evidence"]["timeout"] and not slow["correct"] and slow["grade"] == "ERROR"
     t = T.make_task("code", code_row())
-    hog = T.grade(t, "b = bytearray(8 << 30)\ndef task_func(x):\n    return x * x\n", mem_mb=1024)
+    hog = T.grade(t, "b = bytearray(8 << 30)\ndef task_func(x):\n    return x * x\n", mem_mb=1024, semantics="boundary")
     assert not hog["correct"] and hog["evidence"]["load_error"] == "MemoryError"
 
 
@@ -142,11 +142,11 @@ def test_numpy_and_pandas_values_cross_the_boundary_in_both_directions(monkeypat
     t = T.make_task("code", {"task_id": "Fixture/np", "instruct_prompt": "double", "test": tests,
                              "entry_point": "task_func", "canonical_solution": "    return x * 2\n",
                              "code_prompt": "def task_func(x):\n"})
-    r = T.grade(t, "def task_func(x):\n    return x * 2\n")
+    r = T.grade(t, "def task_func(x):\n    return x * 2\n", semantics="boundary")
     assert r["grade"] == "PASS", (r["evidence"].get("faults"), r["evidence"]["stderr_tail"][-400:])
     # matplotlib Axes still cannot cross: the return is unserializable, so the test fails as a boundary fault
     bad = T.grade(t, "import matplotlib\nmatplotlib.use('Agg')\nimport matplotlib.pyplot as plt\n"
-                     "def task_func(x):\n    return plt.subplots()[1]\n")
+                     "def task_func(x):\n    return plt.subplots()[1]\n", semantics="boundary")
     assert bad["grade"] == "ERROR" and any("UNSERIALIZABLE_RETURN" in f for fs in bad["evidence"]["faults"].values()
                                            for f in fs)
 
