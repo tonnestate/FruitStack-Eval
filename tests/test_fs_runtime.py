@@ -128,3 +128,131 @@ def test_contradicted_candidate_is_never_success_and_without_a_check_model_claim
     assert w["integration_path_ok"] and not w["mission_success"] and [f["status"] for f in w["findings"]] == ["REFUTED"]
     assert w["research"]["verification"]["relation"] == "CONTRADICTS" and w["research"]["verification"]["status"] == "FALSIFIED"
     assert (n["state"], n["mission_success"], [f["status"] for f in n["findings"]]) == ("UNRESOLVED", False, ["UNKNOWN"])   # no check + UNKNOWN investigator
+
+
+# ---- live defect 2026-11-07: one unsuitable worker, then an unconfirmed timeout, locked the whole mission (no candidate, no success) ----
+def _scripted_service(families, fixture_answer="math.isqrt"):
+    """Operational supply over the public PlumMe adapter interface, scripted per lineage: `dots` returns no content (reasoning ate the output budget), `qwen` times out,
+    every other lineage answers like the offline fixture. No provider call."""
+    import asyncio
+    import json
+
+    from plumme.adapters.base import AdapterError, AdapterResult, ProviderAdapter
+    from plumme.config import Settings
+    from plumme.models import AuthMode, CostClass, RouteOffer, Usage
+    from plumme.service import PlumMeService
+
+    def respond(prompt):
+        if '"protocol":"CHERRY-INVESTIGATOR/3"' in prompt:
+            return json.dumps({"status_proposal": "UNKNOWN", "evidence": [], "note": "scripted: no grounded source"})
+        if "HYPOTHESIS: <one sentence>" in prompt:
+            return f"HYPOTHESIS: {fixture_answer} is the call asked for.\nRATIONALE: scripted.\nTEST: execute {fixture_answer} on known values."
+        if "A colleague proposed this solution" in prompt:
+            return "ISSUES: NONE"
+        return f"ANSWER: {fixture_answer}"
+
+    class Scripted(ProviderAdapter):
+        name = "scripted"
+        priority = 1
+        calls: list = []
+
+        async def discover(self, credential=None):
+            return [RouteOffer(adapter="scripted", provider=f"{i}-{fam}", model=f"{fam}-1", model_family=fam, endpoint="scripted://local", supports_text_generation=True,
+                               executable=True, auth_mode=AuthMode.KEYLESS, cost_class=CostClass.FREE_TIER, input_cost_per_million=0.0, output_cost_per_million=0.0,
+                               context_window=32000) for i, fam in enumerate(families)]
+
+        async def execute(self, offer, messages, max_output_tokens, credential):
+            Scripted.calls.append(offer.model)
+            if offer.model_family == "dots":
+                raise AdapterError("SEMANTIC_OUTPUT_FAILURE", "EMPTY_CONTENT finish_reason=length reasoning_present=True",
+                                   usage=Usage(input_tokens=200, output_tokens=2000, total_tokens=2200, cost_usd=0.0), metadata={"finish_reason": "length"})
+            if offer.model_family == "qwen":
+                raise AdapterError("TIMEOUT", "")
+            text = respond("\n".join(str(m.get("content", "")) for m in messages))
+            return AdapterResult(text=text, usage=Usage(input_tokens=300, output_tokens=60, total_tokens=360, cost_usd=0.0), provider_request_id=f"s{len(Scripted.calls)}")
+
+    def factory():
+        svc = PlumMeService(Settings.load(), adapters=[Scripted()])
+        asyncio.run(svc.discover())
+        svc.scripted_calls = Scripted.calls
+        return svc
+    return factory
+
+
+def test_an_unsuitable_worker_and_an_unconfirmed_free_timeout_are_replaced_and_the_mission_still_verifies_its_candidate(env, tmp_path, monkeypatch):
+    monkeypatch.setenv("PLUMME_SELECTION_SPREAD", "0")             # deterministic: the scripted bad lineages are leased first, as in the live run
+    cfg = fr.load_config(CONFIG)
+    cfg["tasks"] = cfg["tasks"][:1]
+    made = []
+    factory = _scripted_service(("dots", "qwen", "gpt", "mistral"))
+    summary = fr.run(cfg, tmp_path / "out", "operational", service_factory=lambda: made.append(factory()) or made[-1])
+    (a,) = summary["missions"]
+    assert a["mission_success"] and a["candidate_verdict"] == "SUPPORTS", (a["integration_problems"], a.get("failures"))
+    assert a["integration_path_ok"], a["integration_problems"]
+    calls = made[0].scripted_calls
+    assert calls.count("qwen-1") <= 1                                # an unconfirmed execution is never replayed
+    lineages = [w["lineage"] for w in a["research"]["workers"]]
+    assert {"gpt", "mistral"} <= set(lineages)                        # n_solvers = 2 distinct qualified lineages after the failed ones were retired
+    assert a["worker_failures_recovered"] >= 1
+
+
+def test_operational_supply_needs_n_solvers_distinct_qualified_lineages(env, tmp_path):
+    cfg = fr.load_config(CONFIG)
+    cfg["tasks"] = cfg["tasks"][:1]
+    summary = fr.run(cfg, tmp_path / "out", "operational", service_factory=_scripted_service(("gpt",)))
+    (a,) = summary["missions"]
+    assert (a["state"], a["error_code"]) == ("NOT_STARTED", "SUPPLY_UNAVAILABLE")
+    assert a["shortage"]["qualified_lineages"] == 1 and a["shortage"]["shortfall"] == 1 and "work_ref" not in a
+    assert fr.exit_code(summary) == 2
+
+
+# ---- review findings on PR #15: "recovered" needs a replacement's success in the same stage; uncertain spend on a route that can bill is never recovered ----
+def _with(*evs):
+    rec = _record()
+    rec["events"] += [dict(e) for e in evs]
+    return fr.success_contract(rec, analyses=0, check=False, receipts=0)
+
+
+FAIL = {"type": "RESEARCH_STEP_FAILED", "stage": "solve", "error_code": "EXECUTION_OUTPUT_UNUSABLE_SEMANTIC_OUTPUT_FAILURE"}
+RETIRED = {"type": "RESEARCH_WORKER_RETIRED", "lineage": "dots", "reason": "EXECUTION_OUTPUT_UNUSABLE_SEMANTIC_OUTPUT_FAILURE"}
+
+
+def test_a_failure_is_recovered_only_by_a_replacement_success_in_the_same_stage():
+    ok = _with(FAIL, RETIRED, {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "gpt", "success": True})
+    assert ok["integration_path_ok"] and ok["worker_failures_recovered"] == 1
+    for later in ({"type": "RESEARCH_STEP", "stage": "challenge", "lineage": "gpt", "success": True},      # other stage
+                  {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "gpt", "success": False},         # replacement failed too
+                  {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "dots", "success": True}):        # not a replacement
+        c = _with(FAIL, RETIRED, later)
+        assert not c["integration_path_ok"] and c["worker_failures_recovered"] == 0, later
+    assert not _with(FAIL, RETIRED)["integration_path_ok"]
+    lsd = {**FAIL, "stage": "lsd:psychedelic_researcher"}                                               # LSD personas are one stage: another persona's success recovers it
+    assert _with(lsd, RETIRED, {"type": "RESEARCH_STEP", "stage": "lsd:worst_mathematician", "lineage": "gpt", "success": True})["integration_path_ok"]
+
+
+def test_uncertain_spend_on_a_route_that_can_bill_is_never_recovered():
+    replaced = ({"type": "RESEARCH_WORKER_RETIRED", "lineage": "qwen"}, {"type": "RESEARCH_STEP", "stage": "solve", "lineage": "gpt", "success": True})
+    unsettled = {"type": "RESEARCH_STEP_FAILED", "stage": "solve", "error_code": "EXECUTION_NOT_CONFIRMED_TIMEOUT"}
+    assert not _with(unsettled, *replaced)["integration_path_ok"]
+    settled = {**unsettled, "settled": "ZERO_CHARGE_CLASS"}                                             # PeachMe settled it under the egress-route cost-class rule
+    assert _with(settled, *replaced)["integration_path_ok"]
+    halted = _with({"type": "RESEARCH_STEP_FAILED", "stage": "solve", "error_code": "UNCERTAIN_CHARGEABLE"}, {"type": "RESEARCH_HALTED", "reason": "UNCERTAIN_CHARGEABLE"})
+    assert not halted["integration_path_ok"] and "failed:RESEARCH_HALTED" in halted["integration_problems"]
+
+
+def test_supply_check_reads_the_same_effective_worker_budget_as_the_plan(env, tmp_path):
+    seen = []
+
+    class Svc:
+        def adapter_readiness(self):
+            return {"discovery_completed": True, "entries": []}
+
+        def workforce_supply(self, role, count, max_cost_usd=None):
+            seen.append(max_cost_usd)
+            return {"qualified": 0, "proven": 0, "lineages": {}}
+
+    cfg = fr.load_config(CONFIG)
+    cfg["tasks"] = cfg["tasks"][:1]
+    cfg.setdefault("plan", {}).pop("worker_budget", None)
+    fr.run(cfg, tmp_path / "out", "operational", service_factory=Svc)
+    assert seen == [fr.DEFAULT_WORKER_BUDGET["max_cost_usd"]]

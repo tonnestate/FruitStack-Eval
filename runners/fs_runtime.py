@@ -40,6 +40,7 @@ from pathlib import Path
 
 REQUIRED_EVENTS = ("TASK_ACCEPTED", "TURN_BOUND", "SESSION_OPENED", "BUDGET_CONFIGURED", "CONTEXT_RESTORED", "INQUIRY_EXECUTED", "RESEARCH_STARTED", "LSD_ROOM",
                    "BROTHER_MODE", "COGNITIVE_DIAGNOSIS", "RESEARCH_FINALIZED", "SIGNALS", "KNOWLEDGE_PUBLISHED", "STATE_RETURNED")
+DEFAULT_WORKER_BUDGET = {"max_calls": 12, "max_tokens": 60000, "max_cost_usd": 0.5}      # per research worker (child session) when the config names none
 FIXTURE_LABEL = "OFFLINE_FIXTURE: scripted provider texts behind the public PlumMe adapter interface; not evidence of capability or organizational gain"
 
 
@@ -171,16 +172,37 @@ def operational_service():
     return svc
 
 
-def supply_shortage(svc, n_solvers: int) -> dict | None:
+def supply_shortage(svc, n_solvers: int, max_cost_usd: float | None = None) -> dict | None:
+    """Brother Mode needs `n_solvers` independent workers: PlumMe must offer that many distinct QUALIFIED lineages for the role now (eligible under the host's admission policy and
+    not shown unsuitable since their last success), not merely one eligible route. Read-only; no acquisition, no provider call."""
     r = svc.adapter_readiness()
-    eligible = sum(e["routes_eligible_now"] for e in r["entries"])
-    if not r["discovery_completed"] or eligible < 1:
-        return {"code": "SUPPLY_UNAVAILABLE", "eligible_routes": eligible, "adapters": [{k: e[k] for k in ("adapter", "state", "reasons")} for e in r["entries"]],
-                "needed": f">=1 eligible route ({n_solvers} distinct lineages for Brother Mode)"}
+    supply = svc.workforce_supply("REASONING", n_solvers, max_cost_usd=max_cost_usd) if r["discovery_completed"] else {"qualified": 0, "proven": 0, "lineages": {}}
+    if supply["qualified"] < n_solvers:
+        return {"code": "SUPPLY_UNAVAILABLE", "eligible_routes": sum(e["routes_eligible_now"] for e in r["entries"]), "qualified_lineages": supply["qualified"],
+                "proven_lineages": supply["proven"], "shortfall": n_solvers - supply["qualified"], "lineages": supply["lineages"],
+                "adapters": [{k: e[k] for k in ("adapter", "state", "reasons")} for e in r["entries"]],
+                "needed": f"{n_solvers} distinct qualified lineages for Brother Mode"}
     return None
 
 
 # ---- contract ----
+def _recovered(evs: list[dict]) -> set[int]:
+    """A worker failure is recovered only when PeachMe retired that worker AND a replacement (another lineage) then contributed successfully in the SAME stage. An unconfirmed
+    execution is recoverable only when PeachMe settled it under the egress-route zero-charge cost-class rule (`settled`); uncertain spend on a route that can bill
+    (EXECUTION_NOT_CONFIRMED unsettled, UNCERTAIN_CHARGEABLE, STEP_RECONCILIATION_REQUIRED) never is."""
+    out = set()
+    for i, e in enumerate(evs[:-1]):
+        code = str(e.get("error_code") or "")
+        if e["type"] != "RESEARCH_STEP_FAILED" or evs[i + 1]["type"] != "RESEARCH_WORKER_RETIRED":
+            continue
+        if code.startswith(("UNCERTAIN_CHARGEABLE", "STEP_RECONCILIATION_REQUIRED")) or (code.startswith("EXECUTION_NOT_CONFIRMED") and e.get("settled") != "ZERO_CHARGE_CLASS"):
+            continue
+        retired, stage = evs[i + 1].get("lineage"), str(e.get("stage") or "").split(":")[0]       # stage = the research stage (lsd / solve / challenge ...), not the LSD persona
+        if any(x["type"] == "RESEARCH_STEP" and x.get("success") and str(x.get("stage") or "").split(":")[0] == stage and x.get("lineage") != retired for x in evs[i + 2:]):
+            out.add(id(e))
+    return out
+
+
 def success_contract(record: dict, *, analyses: int, check: bool, receipts: int) -> dict:
     types = [e["type"] for e in record["events"]]
     missing = [t for t in REQUIRED_EVENTS if t not in types]
@@ -188,7 +210,9 @@ def success_contract(record: dict, *, analyses: int, check: bool, receipts: int)
         missing += [] if "TOOL_EVIDENCE" in types else ["TOOL_EVIDENCE"]
     if check:
         missing += [] if "CANDIDATE_VERIFIED" in types else ["CANDIDATE_VERIFIED"]
-    failed = [e for e in record["events"] if e["type"] in ("RESEARCH_STEP_FAILED", "MISSION_BLOCKED", "MISSION_ERROR", "VERIFIER_FAILED")]
+    evs = record["events"]
+    recovered = _recovered(evs)
+    failed = [e for e in evs if e["type"] in ("RESEARCH_STEP_FAILED", "RESEARCH_HALTED", "MISSION_BLOCKED", "MISSION_ERROR", "VERIFIER_FAILED") and id(e) not in recovered]
     checkpoint = next((e.get("mangome") or {} for e in record["events"] if e["type"] == "STATE_RETURNED"), {}).get("checkpoint_id")
     steps = types.count("RESEARCH_STEP")
     problems = ([f"missing:{m}" for m in missing] + [f"failed:{e['type']}" for e in failed] + ([] if checkpoint else ["no_mangome_checkpoint"])
@@ -199,7 +223,7 @@ def success_contract(record: dict, *, analyses: int, check: bool, receipts: int)
     candidate_verdict = verdicts[-1] if verdicts else None                                                    # the workers' candidate answer, as judged by the host verifier
     candidate_ok = not check or candidate_verdict == "SUPPORTS"                                              # a CONTRADICTS candidate is a wrong answer even if its claim is verified
     return {"integration_path_ok": not problems, "integration_problems": problems, "mission_success": record["state"] == "COMPLETED" and answered and candidate_ok, "mission_state": record["state"],
-            "candidate_verdict": candidate_verdict, "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint}
+            "candidate_verdict": candidate_verdict, "research_steps": steps, "tool_receipts": receipts, "checkpoint_id": checkpoint, "worker_failures_recovered": len(recovered)}
 
 
 def _git_repo(path: Path) -> str:
@@ -254,6 +278,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
 
     summary: dict = {"mode": FIXTURE_LABEL if mode == "offline-fixture" else "OPERATIONAL: real PlumMe supply", "missions": [], "learning": {}}
     n_solvers = int(plan_cfg.get("n_solvers", 2))
+    worker_budget = plan_cfg.get("worker_budget", DEFAULT_WORKER_BUDGET)
     fixture: dict = {}                                        # offline-fixture: the task currently running
     if mode == "offline-fixture":
         svc = fixture_service(out / "plumme-state", fixture)
@@ -274,7 +299,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
 
     def mission(task: dict, tag: str, apply: bool, capture: bool) -> dict:
         fixture["answer"] = task.get("fixture_answer")
-        shortage = supply_shortage(svc, n_solvers)
+        shortage = supply_shortage(svc, n_solvers, worker_budget.get("max_cost_usd"))      # the same effective budget the ResearchPlan below receives
         if shortage:                                          # checked BEFORE MangoMe/OrangeMe are touched: nothing is entered, nothing is written
             row = {"tag": tag, "task": task["id"], "state": "NOT_STARTED", "error_code": shortage["code"], "shortage": shortage, "integration_path_ok": False,
                    "mission_success": False}
@@ -315,7 +340,7 @@ def run(cfg: dict, out: Path, mode: str, *, service_factory=None) -> dict:
         hook = LearningHook(learning, run_id=request.mission_id, apply=apply, task=task["id"])
         tree_path = rdir / "research_tree.jsonl"
         captured: list = []
-        plan = ResearchPlan(worker_budget=plan_cfg.get("worker_budget", {"max_calls": 12, "max_tokens": 60000, "max_cost_usd": 0.5}), lsd=bool(plan_cfg.get("lsd", True)),
+        plan = ResearchPlan(worker_budget=worker_budget, lsd=bool(plan_cfg.get("lsd", True)),
                             n_solvers=n_solvers, max_rounds=int(plan_cfg.get("max_rounds", 1)), analyses=analyses, registry=registry, authority=standing,
                             journal_path=str(rdir / "tool_receipts.jsonl"), tree_path=str(tree_path), learning=hook, signature=sig, verifier=check,
                             after=(lambda tree, **_: captured.extend(hook.capture_tree(task["id"], tree, evidence_ref=str(tree_path.relative_to(out))))) if capture else None)
