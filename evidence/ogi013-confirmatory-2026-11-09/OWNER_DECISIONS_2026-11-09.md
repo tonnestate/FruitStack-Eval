@@ -13,3 +13,10 @@ Execution record:
 - D2: official semantics implemented (`runners/ogi_tasks/code.py::run_tests_official`, `tamper_audit`); eligibility re-derived in the pinned grader venv: **130 / 148 ELIGIBLE** (`eligibility.json`; the boundary manifest is kept as `eligibility_boundary.json`, 16 / 148).
 - D1: licences confirmed by the owner for this study; `datasets.json` keeps the inferred-licence evidence.
 - D5: S0 is bound to `STAGE_BUDGET.md` and `PROTOCOL.md` at the sha256 recorded in `S0_START.sha256`, written immediately before the first S0 call.
+
+## S0 amendment S0-A1 (2026-11-09T09:04:55Z) — host defect, not an outcome-driven change
+After 28 S0 rows (26 graded, 2 INFRA) S0 was stopped: PeachMe `prepare()` rejects objectives > 512 chars and the episode host passed the
+full task text, so every long item failed with INVALID_OBJECTIVE before any dispatch, for every candidate (bias toward short items).
+Fixed in PeachMe `fsi/pool-objective-hint` (PR #40, af9246e). The 2 INFRA rows stay in rows.jsonl; each is re-run exactly once
+(`--rerun-host-defect INVALID_OBJECTIVE`), the re-run row carries `rerun_of`, and the S0 report uses the latest row per (candidate, item).
+Item draw, candidates, caps and grading are unchanged. The 26 graded rows were checked only for parsability (all parsable), not used for any decision.

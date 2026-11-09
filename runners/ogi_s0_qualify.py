@@ -50,11 +50,14 @@ def main(argv=None) -> int:
     ap.add_argument("--candidates", type=int, default=8)
     ap.add_argument("--max-calls", type=int, default=360)
     ap.add_argument("--max-tokens", type=int, default=1_100_000)
+    ap.add_argument("--rerun-host-defect", default="", help="failure_class of rows caused by a documented host defect; such rows stay in rows.jsonl and are re-run once")
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
     rows_f = a.out / "rows.jsonl"
     done = [json.loads(x) for x in rows_f.read_text().splitlines()] if rows_f.exists() else []
-    seen = {(r["candidate"], r["item"]) for r in done}
+    redo = {(r["candidate"], r["item"]) for r in done if a.rerun_host_defect and r.get("failure_class") == a.rerun_host_defect}
+    redo -= {(r["candidate"], r["item"]) for r in done if r.get("rerun_of") == a.rerun_host_defect}     # once only
+    seen = {(r["candidate"], r["item"]) for r in done} - redo
     calls, tokens = len(done), sum((r.get("input_tokens") or 0) + (r.get("output_tokens") or 0) for r in done)
     svc = operational_service()
     cand_f = a.out / "candidates.json"
@@ -80,7 +83,7 @@ def main(argv=None) -> int:
             row = {"candidate": c["model_key"], "declared_lineage": c["independence_key"], "item": t.id, "served_model": res.get("model_key"),
                    "served_lineage": res.get("independence_key"), "receipt_id": res.get("receipt_id"), "decision_id": res.get("decision_id"),
                    "input_tokens": res.get("input_tokens"), "output_tokens": res.get("output_tokens"), "failure_class": res.get("failure_class"),
-                   "events": [e["type"] for e in events]}
+                   "events": [e["type"] for e in events], **({"rerun_of": a.rerun_host_defect} if (c["model_key"], t.id) in redo else {})}
             if not res.get("success"):
                 row["status"] = "INFRA"
             elif res.get("independence_key") != c["independence_key"]:
