@@ -51,3 +51,19 @@ Applies to `PAPER.md` v0.2 §3.2, §4, §5.1. H1/H2 are preregistered separately
   (10,000 resamples, seed 0). Non-inferiority (margin 0.02) on the direct subset (A has a gold symbol in top 10).
 - Secondary: file Recall@1/@5, per-repo breakdown (descriptive), wall time per arm.
 - Everything reported as observed; no outcome-dependent change of parameters, tasks or metrics.
+
+## Amendment A1 — arm C (2026-11-09 ~23:30 UTC, before any arm-C outcome)
+
+Owner direction 2026-11-09: the Paper Track research runs on the full FruitStack multi-model system; only explicitly
+isolated arms are Gemma-only. Arm C is such an isolated arm. It replaces the "C / C′" split above:
+
+- **Model:** Gemma 4 31B instruction-tuned (`gemma-4-31b-it`), served through FruitStack PlumMe on authorized
+  cost-0 routes (OpenRouter free tier, NVIDIA). Not the QAT W4A16 checkpoint; stated as such in the paper.
+  Decoding is the route default (PlumMe exposes no temperature), max 512 output tokens — **not guaranteed greedy**.
+  Every call (offer, provider, model, receipt, raw output) is logged.
+- **Driver:** `h3_eval/run_c.py` with `h3_eval/plumme_gemma.py`. Prompt, parser and fallback are the frozen
+  `ser_h3.py` ones. A *supply* failure (no model answer at all) is not a filter fallback: the task waits and is retried.
+  An answer that is empty/unparseable or removes all seeds is the preregistered fallback and is counted.
+- **Sample:** confirmatory manifest order; C covers the longest prefix completed by **2026-11-12 12:00 UTC**
+  (supply-bound: free-tier rate limits). C vs B is tested on exactly that prefix (same tests as the primary endpoint).
+  B vs A on all 497 remains the primary H3 result.
