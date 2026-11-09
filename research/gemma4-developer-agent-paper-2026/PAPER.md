@@ -4,7 +4,7 @@
 
 **Kaggle Gemma 4 Developer Agent Paper Track — research writeup**
 **Version:** 0.2, ⟦TBD: date of final submission⟧
-**Research system:** FruitStack, a multi-model agent stack; the coding agent's model is chosen per step by its router among authorized cost-0 models, and the participating models are logged and reported.
+**Research system:** FruitStack, a multi-model agent stack; a budget-aware router chooses the model for every step among authorized free, trial-credit and included-subscription routes (no cash-billed routes); the participating models are logged and reported.
 **Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit (H3): `b6131d3`
 
 ### Abstract
@@ -100,6 +100,8 @@ E versus E⁻ isolates the trigger. E versus D\* tests selective disclosure agai
 
 **Outcome (H1, H2).** A task is resolved when the final patch applies cleanly and the hidden validation tests pass. Grading runs outside the agent process. Timeouts, crashes and empty patches count as unresolved, and are reported by failure class.
 
+**Execution system (H1, H2).** Every arm runs the same multi-model organisation: an author, an independent critic on a read-only copy that runs tests (only after the author submits), and a reviser. A budget-aware router picks the model of every step and switches after failed dispatches. All arms share the same tools, the same initial top-10 localization list (arm B) and a wall-clock limit of 3,600 s per episode. The SER ledger and packets apply only to the editing roles. The three arms of a task run concurrently, so they share supply conditions. They do not share models, so the per-arm model distribution is reported. The three preregistration amendments are disclosed in Section 7: organisation mode for all arms, removal of copied cost ceilings, and a router-chosen filter model.
+
 **Analysis.** All comparisons are paired per task.
 - H3: primary endpoint is symbol Recall@10, B versus A, then C versus B, by Wilcoxon signed-rank test with a paired bootstrap 95% CI. Non-inferiority is evaluated on the *direct* subset, defined as tasks where arm A already ranks a gold symbol within its top 10.
 - H1: exact McNemar test on resolved status, E versus E⁻, two-sided α = 0.05.
@@ -140,7 +142,7 @@ Discordant pairs: E-only ⟦TBD⟧, E⁻-only ⟦TBD⟧ (McNemar p = ⟦TBD⟧).
 
 ⟦TBD: interpretation tied strictly to the numbers in Section 5.⟧
 
-**Scope.** All results come from one harness, one router-chosen pool of cost-0 models and Python repositories (H3: 12 repositories; H1/H2: Django only, because our Docker-free grader supports Django). Model choice is not controlled within a task pair; arms of a task run concurrently, so they share the same supply conditions, but a per-pair model mismatch adds noise. The results do not establish transfer to other languages, models or task distributions.
+**Scope.** All results come from one harness, one router-chosen pool of authorized free, trial-credit and included-subscription models and Python repositories (H3: 12 repositories; H1/H2: Django only, because our Docker-free grader supports Django). Model choice is not controlled within a task pair; arms of a task run concurrently, so they share the same supply conditions, but a per-pair model mismatch adds noise. The results do not establish transfer to other languages, models or task distributions.
 
 **Trigger coverage.** The trigger can only help when the gold symbol is already in the candidate pool. H3 therefore bounds H1, and we report how often the pool contained a gold symbol at the time of triggering.
 
