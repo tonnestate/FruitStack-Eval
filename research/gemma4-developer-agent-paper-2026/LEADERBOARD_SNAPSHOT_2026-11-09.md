@@ -1,6 +1,6 @@
 # Kaggle Gemma 4 Developer Agent — Public Leaderboard Snapshot
 
-**Captured:** 2026-11-09 06:27 UTC (filename timestamp; Kaggle CSV export supplied by operator)  
+**Export filename timestamp:** 2026-11-09 06:27:23 (timezone not specified in filename; Kaggle CSV export supplied by operator)  
 **Purpose:** competitive landscape context for the independent Gemma 4 coding-agent entry. **Not** research evidence for SER's H1/H2/H3 and **not** a dataset of code/graph/repair tasks.
 
 ## Source and integrity
