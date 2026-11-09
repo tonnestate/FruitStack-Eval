@@ -1,19 +1,19 @@
-# Selective Evidence Reactivation for Offline Coding Agents
+# Selective Evidence Reactivation for Autonomous Software Engineering
 
-## Graph-Seeded Localization and Event-Triggered Revisiting of Abandoned Hypotheses with Gemma 4
+## Graph-Seeded Localization and Event-Triggered Revisiting of Abandoned Hypotheses
 
 **Kaggle Gemma 4 Developer Agent Paper Track — research writeup**
 **Version:** 0.2, ⟦TBD: date of final submission⟧
-**Model:** `gemma-4-31b-it-qat-w4a16-ct` (locked for all arms; not yet executed), run offline on Kaggle L4×4 with internet disabled
+**Research system:** FruitStack, a multi-model agent stack; the coding agent's model is chosen per step by its router among authorized cost-0 models, and the participating models are logged and reported. **Isolated Gemma arm:** Gemma 4 31B instruction-tuned (`gemma-4-31b-it`) as the recognition filter of H3 arm C.
 **Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit (H3): `b6131d3`
 
 ### Abstract
 
-Coding agents that run offline on a small open model have little room for wasted steps. Two failure modes are especially costly: they look in the wrong place first, and they keep patching the wrong place after the evidence has turned against it. We study one mechanism that addresses both, **Selective Evidence Reactivation (SER)**. First, a localization prior ranks repository symbols by fusing lexical and dense retrieval with Personalized PageRank (PPR) over the competition's code graph. Gemma 4 acts as a recognition filter that removes irrelevant seed symbols before propagation. Second, during repair, the agent keeps a ledger of localization hypotheses and the checkable assumptions behind them. When an executed test refutes such an assumption, a deterministic trigger marks the current hypothesis as refuted and reactivates a small, eligible set of previously ranked but abandoned candidates. We test three preregistered hypotheses on the competition's development tasks. H3 asks whether graph propagation improves localization recall. H1 asks whether event-triggered reactivation improves verified repair over an identical retrieval policy without the trigger. H2 asks whether this selective disclosure matches or beats a full-history agent under the same budget. ⟦TBD: one sentence per hypothesis with effect size and 95% CI, including null results.⟧
+Coding agents that work under tight step budgets have little room for wasted steps. Two failure modes are especially costly: they look in the wrong place first, and they keep patching the wrong place after the evidence has turned against it. We study one mechanism that addresses both, **Selective Evidence Reactivation (SER)**. First, a localization prior ranks repository symbols by fusing lexical and dense retrieval with Personalized PageRank (PPR) over the repository's code graph. In an isolated arm, Gemma 4 31B acts as a recognition filter that removes irrelevant seed symbols before propagation. Second, during repair, the agent keeps a ledger of localization hypotheses and the checkable assumptions behind them. When an executed test refutes such an assumption, a deterministic trigger marks the current hypothesis as refuted and reactivates a small, eligible set of previously ranked but abandoned candidates. We test three preregistered hypotheses on SWE-bench Verified tasks, with a multi-model research agent whose model is chosen by a router, not fixed. H3 asks whether graph propagation improves localization recall. H1 asks whether event-triggered reactivation improves verified repair over an identical retrieval policy without the trigger. H2 asks whether this selective disclosure matches or beats a full-history agent under the same budget. ⟦TBD: one sentence per hypothesis with effect size and 95% CI, including null results.⟧
 
 ### 1. Introduction
 
-The competition asks for an agent that repairs real Python defects on everyday hardware without network access. Under these constraints the agent's first localization decision matters more than usual. A wrong first location costs turns, and small models tend to stay with it. We call this *premature local closure*: the agent keeps editing the first plausible location even after a test run has shown that edits there do not change the failure.
+Repository-level repair agents work under budgets of turns, tokens and time. Under such budgets the agent's first localization decision matters a great deal. A wrong first location costs turns, and agents tend to stay with it. We call this *premature local closure*: the agent keeps editing the first plausible location even after a test run has shown that edits there do not change the failure.
 
 Retrieval alone does not solve this. A retriever can rank the right symbol fifth, but the agent abandons rank five once it commits to rank one, and nothing brings it back. Showing the agent its entire history does not solve it either. Long histories of a failed approach compete for attention with the evidence that it failed.
 
@@ -140,19 +140,19 @@ Discordant pairs: E-only ⟦TBD⟧, E⁻-only ⟦TBD⟧ (McNemar p = ⟦TBD⟧).
 
 ⟦TBD: interpretation tied strictly to the numbers in Section 5.⟧
 
-**Scope.** All results come from one model, one harness and one set of development tasks from Python repositories. They do not establish transfer to other languages, models or task distributions.
+**Scope.** All results come from one harness, one router-chosen pool of cost-0 models and Python repositories (H3: 12 repositories; H1/H2: Django only, because our Docker-free grader supports Django). Model choice is not controlled within a task pair; arms of a task run concurrently, so they share the same supply conditions, but a per-pair model mismatch adds noise. The results do not establish transfer to other languages, models or task distributions.
 
 **Trigger coverage.** The trigger can only help when the gold symbol is already in the candidate pool. H3 therefore bounds H1, and we report how often the pool contained a gold symbol at the time of triggering.
 
 **Event validity.** PATCH_NO_EFFECT can misfire when the active symbol is correct but the edit is wrong. We report how often a refuted symbol was in fact a gold symbol.
 
-**Filter risk.** The Gemma recognition filter can remove the correct seed. The safety path limits, but does not eliminate, this risk.
+**Filter risk.** The Gemma 4 recognition filter can remove the correct seed. The safety path limits, but does not eliminate, this risk.
 
 **Cross-task memory.** The broader idea, reactivating evidence from *other* tasks when a verified assumption changes, needs task families with controlled assumption changes. It is outside the scope of this study.
 
 ### 7. Reproducibility
 
-The repository contains the harness, the frozen prompts, the preregistration file, per-episode JSONL traces (prompts, responses, tool results, events, ledger states, packets) and the Kaggle notebooks that produced every number in Section 5. A single command regenerates all tables from the traces. ⟦TBD: notebook links, hardware, wall-clock totals.⟧
+The repository contains the harness, the frozen prompts, the preregistration file, per-episode JSONL traces (prompts, responses, tool results, events, ledger states, packets) and the scripts that produced every number in Section 5. A single command regenerates all tables from the traces. ⟦TBD: notebook links, hardware, wall-clock totals.⟧
 
 ### 8. Conclusion
 

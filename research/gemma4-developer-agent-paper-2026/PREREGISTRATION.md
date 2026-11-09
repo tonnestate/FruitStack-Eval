@@ -67,3 +67,28 @@ isolated arms are Gemma-only. Arm C is such an isolated arm. It replaces the "C 
 - **Sample:** confirmatory manifest order; C covers the longest prefix completed by **2026-11-12 12:00 UTC**
   (supply-bound: free-tier rate limits). C vs B is tested on exactly that prefix (same tests as the primary endpoint).
   B vs A on all 497 remains the primary H3 result.
+
+## H1/H2 (2026-11-09 ~22:00 UTC, before any confirmatory episode)
+
+- **System.** FruitStack as the research executor: the unchanged coding runner `ogi013_code_task.py` in mode `single`
+  (one author role; PlumMe AUTO selects and hands over among authorized cost-0 models; PeachMe episode; Pomelo-gated tools;
+  CodingGate submit check), wrapped by `h1_eval/ser_episode.py`. Components at the pinned commits listed by
+  `git describe` in `/root/fruits/research/GEMMA4-SER/components` (AppleMe c2ee35a, CherryMe 33c3d77, MangoMe 835d8be,
+  OrangeMe 953e725, PeachMe efa9bab, PlumMe a81546c, PomeloMe 348975e). Models are **not** fixed; the participating
+  models per step are logged (PlumMe receipts) and reported.
+- **Arms.** E, E⁻ (`EM`), D* (`DS`) exactly as `ser_episode.py` at this commit: same task text, same initial top-10
+  localization list (H3 arm B), same tools, budgets (110 calls, 200k tokens, 3600 s wall), packet size 3 from one shared
+  candidate pool (B top 20 ∪ PPR from failure-trace symbols). D*: full history, frozen cap 120k chars.
+- **Pairing.** The three arms of a task run **concurrently** (same supply conditions, same model pool); fresh workdir each.
+- **Tasks.** Django tasks of the H3 manifest, manifest order, Django ≠ 5.0 (Python 3.8 grader), calibrated valid
+  (base unresolved, gold resolved under `evaluate_v2.1`). Pilot `django__django-13569` excluded.
+  **Stopping rule (time, not outcome):** triplets start in order until **2026-11-12 12:00 UTC**; n = completed triplets.
+- **Outcome.** `resolved` from `evaluate_v2.1` run outside the agent process on the final workdir (only `django/` changes
+  applied; F2P and P2P must pass). Infra stops (no model step at all) are rerun once; otherwise counted unresolved by class.
+- **Analysis.** H1: E vs E⁻, H2: E vs D*; exact McNemar, Holm across the two; paired risk difference with 95% CI.
+  Too few discordant pairs ⇒ "inconclusive", never "no effect". Secondaries (from `ser_ledger.jsonl`, gold from H3
+  scoring only after the run): trigger rate, gold symbol in the eligible pool at trigger, wrong-trigger rate (refuted
+  symbol was gold), persistence (edits to a symbol after PATCH_NO_EFFECT on it), steps, model mix, wall time.
+- **Pilot (excluded).** `django__django-13569`, arm E, 2026-11-09 21:48–21:55 UTC: 309 s, 23 steps on 6 router-chosen
+  models, 2 checkpoints, no event, runner stop `NO_PROGRESS` (existing guard, identical in all arms). Graded on the final
+  workdir as specified (runner status is recorded alongside). No harness change after the pilot.
