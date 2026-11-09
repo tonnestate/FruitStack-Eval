@@ -29,6 +29,7 @@ class Task:
     grade: Callable[[str | None], float]            # independent grader in [0, 1]; called only after the episode
     grader: str                                     # verifier kind of the grader (ogi013_org_discoveries.VERIFIERS)
     score: Callable[[str], float] | None = None     # VISIBLE checks only (e.g. visible-test pass count), the same for every arm; None -> plurality
+    check: Callable[[str], str] | None = None       # VISIBLE checks EXECUTED on a candidate text -> report (never the hidden grader); used by run_team's executed critique
 
 
 def _lineage(row) -> str | None:
@@ -96,7 +97,8 @@ def final_answer(res, signature, task_ref: str = "", score=None) -> tuple[str | 
     return select_answer(task_ref, list(res.positions.values()), signature, score)
 
 
-STUDY_ARMS = {"T", "E_div", "R_mono", "S", "G_mas"}          # rows of these arms are analysable only with a passed row-level identity check
+TEAM_COMPONENTS = frozenset({"appleme", "lsd", "research_tree", "memory", "plumme_selection", "executed_critique"})
+STUDY_ARMS = {"T", "E_div", "R_mono", "S", "G_mas"} | {f"T-{c}" for c in TEAM_COMPONENTS}   # rows of these arms are analysable only with a passed row-level identity check
 
 
 def metered(work, log: list, roles: dict | None = None):
@@ -218,6 +220,120 @@ def run_episode(task: Task, *, work, hook: LearningHook, arm: str, n_solvers: in
             "brief_errors": list(hook.errors), "lineages": sorted({_lineage(r) for r in cl.rows if r.kind == "SOLUTION" and _lineage(r)}),
             "row_kinds": dict(Counter(r.kind for r in cl.rows)), "members": member_answers(cl.rows, task.signature), "receipts": receipts, "tokens": tokens(receipts),
             "specialist_used": res.specialist_used, **_identity(arm, receipts, roster, roles=roles)}
+
+
+_RESEARCH_ADVICE = {"SEEK_INDEPENDENT_EVIDENCE", "ADVERSARIAL_REVIEW", "OPEN_ALTERNATIVE_BRANCH"}
+
+
+def _fixed_roster(w, roster: dict, cycle: list, roles: dict | None):
+    """plumme_selection OFF: every call without a prefer is pinned to a roster member by a fixed rule (per stage kind a round-robin over `cycle`, skipping excluded lineages)."""
+    seen: Counter = Counter()
+
+    def p(prompt, stage, **kw):
+        if not kw.get("prefer") and stage not in (roles or {}):
+            kind, ex = stage.split(":")[0], set(kw.get("exclude") or ())
+            rot = cycle[seen[kind] % len(cycle):] + cycle[:seen[kind] % len(cycle)]
+            seen[kind] += 1
+            kw["prefer"] = next((m for m in rot if roster[m] not in ex), rot[0])
+        return w(prompt, stage, **kw)
+    return p
+
+
+def _executed_critique(w, check, ev):
+    """executed_critique ON: before a Brother Mode challenge the host EXECUTES the task's visible checks on the challenged solution and hands the report to the critic; the
+    call is then marked verification="verified" (CherryMe's 'executed' critique level, see critique_ground). OFF: the critic sees no execution, the critique stays asserted."""
+    def c(prompt, stage, **kw):
+        if stage != "challenge":
+            return w(prompt, stage, **kw)
+        target = prompt.split("--- colleague solution ---\n", 1)[-1].split("\n--- end ---", 1)[0]    # cherryme.brother.CHALLENGE markers
+        report = check(target)
+        ev("EXECUTED_CRITIQUE", chars=len(report))
+        return {**w(f"{prompt}\n\nThe host EXECUTED the task's visible checks on this colleague solution:\n{report}\n", stage, **kw), "verification": "verified"}
+    return c
+
+
+def run_team(task: Task, *, work, hook: LearningHook, roster: dict, components=TEAM_COMPONENTS, cycle: list | None = None, n_solvers: int = 2, max_rounds: int = 3,
+             advice_rounds: int = 1, specialist: str | None = None, arm: str | None = None) -> dict:
+    """T, the full FruitStack team, through CherryMe's research path in the order of peachme.research.run_research (Research Tree -> memory brief -> LSD Room ->
+    Brother Mode on the root -> AppleMe diagnosis -> apply_advice -> prioritized re-investigation -> finalize). The study's `work` stays the worker (receipts, tokens, identity
+    guard on EVERY call incl. LSD; the tree and AppleMe make no model calls). run_research itself is not called: its WorkerPool is bound to a PeachMe runtime and its results
+    carry no token counts (gap, see PR). `components` switches (TEAM_COMPONENTS); an ablation removes exactly one and is recorded in the row (arm "T-<component>"):
+      research_tree     off: Brother Mode runs on the task directly (no tree); AppleMe then advises Brother Mode through CherryMe's AdvisoryControl, LSD hypotheses have no consumer
+      appleme           off: no diagnosis, no advice (the tree funds nothing beyond the root)
+      lsd               off: no LSD Room calls
+      memory            off: no LearningHook brief, no capture
+      plumme_selection  off: fixed roster rule (_fixed_roster) instead of PlumMe's AUTO pick
+      executed_critique off: critics get no executed visible-check report (also a no-op when the task has no `check`, recorded as NO_VISIBLE_CHECK)
+    Final answer: select_answer over the final positions of every Brother Mode investigation."""
+    from cherryme.appleme_bridge import AdvisoryControl, doctor_advice, research_tree_events
+    from cherryme.brother import run_rounds
+    from cherryme.contributions import ContributionLedger
+    from cherryme.lsd_room import run_lsd_room
+    from cherryme.research_tree import ResearchTree
+    comps = frozenset(components)
+    if comps - TEAM_COMPONENTS:
+        raise ValueError(f"unknown components {sorted(comps - TEAM_COMPONENTS)}")
+    off = sorted(TEAM_COMPONENTS - comps)
+    if arm is None:
+        if len(off) > 1:
+            raise ValueError("a study ablation turns exactly one component off; name the arm explicitly otherwise")
+        arm = f"T-{off[0]}" if off else "T"
+    t0, events, receipts = time.monotonic(), [], []
+    ev = lambda kind, **kw: events.append({"type": kind, **kw})          # noqa: E731
+    roles = {"specialist": specialist} if specialist else None
+    w = metered(work, receipts, roles)
+    if "plumme_selection" not in comps:
+        w = _fixed_roster(w, roster, cycle or list(roster), roles)
+    ev("SELECTION", mode="plumme" if "plumme_selection" in comps else "fixed_roster")
+    critique = "ON" if "executed_critique" in comps and task.check else "NO_VISIBLE_CHECK" if "executed_critique" in comps else "OFF"
+    if critique == "ON":
+        w = _executed_critique(w, task.check, ev)
+    brief, used = hook.brief(task.task_ref, task.prompt) if "memory" in comps else ("", [])
+    if "memory" in comps:
+        ev("MEMORY_BRIEF", retrieved=list(used), chars=len(brief))
+    cl, tree = ContributionLedger(), None
+    if "research_tree" in comps:
+        tree = ResearchTree.start(task.prompt, researcher="fs_org_driver.run_team")
+        ev("RESEARCH_STARTED", root=tree.root)
+    hyps = run_lsd_room(task.prompt, w, tree=tree, node=tree.root if tree else None, context=brief) if "lsd" in comps else []
+    if "lsd" in comps:
+        ev("LSD_ROOM", hypotheses=len(hyps))
+    kw = dict(n_solvers=n_solvers, signature=task.signature, max_rounds=max_rounds, brief=brief, ledger=cl)
+    control = AdvisoryControl(cl, signature=task.signature) if tree is None and "appleme" in comps else None
+    if tree is not None:
+        results = [tree.investigate(tree.root, w, **kw)]
+    else:
+        results = [run_rounds(task_prompt=task.prompt, work=w, claim_id=f"{hook.run_id}:{task.task_ref}", control=control, **kw)]
+    ev("BROTHER_MODE", stop=results[0].stop_reason, calls=results[0].calls, rounds=results[0].rounds, failures=len(results[0].failures))
+    if control is not None:
+        ev("COGNITIVE_DIAGNOSIS", source="AdvisoryControl", decisions=[r["because"] for r in control.records])
+    if tree is not None and "appleme" in comps:
+        advice = doctor_advice(research_tree_events(tree))
+        ev("COGNITIVE_DIAGNOSIS", source="research_tree", status=advice["status"], advisory=advice["advisory"], findings=[f.get("code") for f in advice.get("findings", [])])
+        for _round in range(advice_rounds):
+            ev("ADVICE_APPLIED", actions=[a.get("action") for a in tree.apply_advice(advice)])
+            if not set(advice["advisory"]) & _RESEARCH_ADVICE:
+                break
+            results += [tree.investigate(node, w, **kw) for node in tree.prioritize(1, advice=advice)]
+            advice = doctor_advice(research_tree_events(tree))
+            ev("COGNITIVE_DIAGNOSIS", source="research_tree", status=advice["status"], advisory=advice["advisory"], findings=[f.get("code") for f in advice.get("findings", [])])
+    if tree is not None:
+        final = tree.finalize(reason="fs_org_driver.run_team")
+        ev("RESEARCH_FINALIZED", node=final.get("node"), status=final.get("status"), provisional=final.get("provisional"))
+    answer, how = select_answer(task.task_ref, [t for r in results for t in r.positions.values()], task.signature, task.score)
+    captured, cap_err = [], None
+    if "memory" in comps:
+        try:                                                   # capture never changes the answer; failures are reported
+            captured = capture_brother(hook, task.task_ref, cl.rows, task.signature)
+        except Exception as exc:  # noqa: BLE001
+            cap_err = f"{type(exc).__name__}: {str(exc)[:120]}"
+    return {"task": task.task_ref, "arm": arm, "run": hook.run_id, "components": sorted(comps), "ablated": off[0] if len(off) == 1 else off or None,
+            "executed_critique": critique, "answer": answer, "how": how, "calls": len(receipts), "failures": sum(not r["ok"] for r in receipts),
+            "investigations": len(results), "hypotheses": len(hyps), "seconds": round(time.monotonic() - t0, 3), "retrieved": list(used), "brief_chars": len(brief),
+            "captured": captured, "capture_error": cap_err, "events": events, "stages": dict(Counter(r["stage"].split(":")[0] for r in receipts)),
+            "lineages": sorted({_lineage(r) for r in cl.rows if r.kind == "SOLUTION" and _lineage(r)}), "row_kinds": dict(Counter(r.kind for r in cl.rows)),
+            "members": member_answers(cl.rows, task.signature), "receipts": receipts, "tokens": tokens(receipts),
+            "specialist_used": any(r.specialist_used for r in results), **_identity(arm, receipts, roster, roles=roles)}
 
 
 def run_samples(task: Task, *, work, arm: str, roster: dict, cycle: list, k: int, token_budget: int | None = None, max_calls: int | None = None,
