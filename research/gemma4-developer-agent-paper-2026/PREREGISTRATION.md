@@ -92,3 +92,15 @@ isolated arms are Gemma-only. Arm C is such an isolated arm. It replaces the "C 
 - **Pilot (excluded).** `django__django-13569`, arm E, 2026-11-09 21:48–21:55 UTC: 309 s, 23 steps on 6 router-chosen
   models, 2 checkpoints, no event, runner stop `NO_PROGRESS` (existing guard, identical in all arms). Graded on the final
   workdir as specified (runner status is recorded alongside). No harness change after the pilot.
+
+## Amendment H1-A1 (2026-11-09 ~22:20 UTC) — full FruitStack organisation mode
+
+Owner direction (2026-11-09): use the complete FruitStack, including CherryMe's critical review. After 2 tasks
+(4 completed single-author episodes, all unresolved; outcomes seen) the campaign was stopped and restarted in runner mode
+`rg2` for **all three arms**: author → independent CherryMe Brother critic (different model, read-only copy, runs tests) →
+reviser on the author's workspace (the runner's existing organisation, settings as in `run_code_arm.sh`).
+The SER ledger and packets apply to the editing roles (author, reviser); the read-only critic gets neither, in every arm.
+The critic only runs when the author submits a patch (existing runner behaviour).
+The 4 single-mode episodes (`h1/runs_single_mode_disclosed`, tasks django__django-11211/-11292) are reported separately
+and excluded from H1/H2. The confirmatory set restarts at the beginning of the manifest order, including those two tasks.
+Everything else in the H1/H2 section is unchanged.
