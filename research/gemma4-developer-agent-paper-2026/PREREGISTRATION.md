@@ -114,3 +114,11 @@ trial-credit and included supply are eligible; cash routes stay off because no o
 The wall-clock limit (3600 s per episode) is unchanged and identical across arms. Episodes running under the ceilings were
 aborted after a few steps with no outcome inspected (`h1/runs_aborted_costcap_20261109`); arm C had produced no
 completed task (`h3c/out_aborted_costcap`). Both restart from the beginning of their manifest order.
+
+## Amendment A3 (2026-11-09 ~22:35 UTC, before any arm-C outcome) — arm C model chosen by PlumMe
+
+Correction of A1 per owner: pinning arm C to Gemma 4 31B was an unrequested restriction. Arm C's recognition filter
+is served by PlumMe in budget-aware AUTO (`h3_eval/plumme_filter.py`): PlumMe selects and routes the model per call;
+no model pin, no output or cost ceiling in the adapter. Provider, model, receipt and raw output of every call are logged
+and reported. Prompt, parser, fallback, supply-wait rule, sample (manifest prefix by 2026-11-12 12:00 UTC) and tests
+are as in A1. The paper names the arm "LLM recognition filter (PlumMe-routed)", not "Gemma filter".
