@@ -17,6 +17,11 @@ from runners.ogi013_org_discoveries import Ledger  # noqa: E402
 from runners.ogi013_org_memory import OrangeKnowledgeProjection  # noqa: E402
 
 
+def RC(led, relation="SUPPORTS"):
+    """A trusted execution receipt as host code issues it after running a check (ogi013_org_discoveries.execution_receipt)."""
+    return led.issue_receipt("fs_runtime.CHECKS[test]", {"relation": relation}, verifier_lineage="host-executed-check")
+
+
 def sig(text):
     for line in reversed((text or "").splitlines()):
         if line.startswith("ANSWER:"):
@@ -73,24 +78,25 @@ def test_brother_episode_captures_a_critique_that_changed_the_answer_as_an_unver
     out = run_episode(Task("t1", "Sum of the series?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed"), work=scripted(seen), hook=hook, arm="applied")
     assert out["answer"] in {"7", "9"} and out["calls"] >= 2 and out["arm"] == "applied"
     ids = out["captured"]
-    assert ids and all(led.status(i)["state"] == "ASSERTED" for i in ids)              # a model's critique is never knowledge by itself
+    assert ids and all(led.status(i)["state"] == "MODEL_ASSERTED" for i in ids)        # a model's critique is never knowledge by itself
     row = next(r for r in led.rows() if r["kind"] == "DISCOVERY")
     assert row["proposer"] == "nemotron" and "overcounts" in row["claim"]
 
 
-def test_a_critique_backed_by_an_executed_check_becomes_a_verified_retrievable_discovery(tmp_path):
-    """EVAL-002 defect: capture_brother passed ground={'level': ...} only, so LearningHook (which needs argument.executed) never verified a Brother Mode discovery."""
+def test_a_worker_reporting_verified_stays_model_asserted_and_is_never_retrievable(tmp_path):
+    """Owner requirement: a worker's verification="verified" (critique_ground -> argument.executed) carries no execution receipt, so it is kept as a
+    MODEL_ASSERTED verification and never becomes organizational knowledge."""
     led = Ledger(tmp_path / "l.jsonl")
     out = run_episode(Task("t1", "Sum of the series?", sig, lambda a: 0.0, "executed"), work=scripted([], verification="verified"),
                       hook=LearningHook(led, run_id="R1"), arm="T", roster=ROSTER)
     ids = out["captured"]
-    assert ids and all(led.status(i)["state"] == "STORED_NOT_REUSED" for i in ids)                   # verified, not yet reused
-    assert {r["verifier"] for r in led.rows() if r["kind"] == "VERIFICATION"} == {"executed"}
-    assert led.retrievable("t-other", "R2", "series summation with even terms overcounts")         # reusable on a later task by another run
+    assert ids and all(led.status(i)["state"] == "MODEL_ASSERTED" for i in ids)
+    assert [r["receipt"] for r in led.rows() if r["kind"] == "VERIFICATION"] == [None] * len(ids)
+    assert led.retrievable("t-other", "R2", "series summation with even terms overcounts") == []
     led2 = Ledger(tmp_path / "l2.jsonl")                                                             # model-asserted critique: still never knowledge
     ids2 = run_episode(Task("t1", "Sum?", sig, lambda a: 0.0, "executed"), work=scripted([], verification="model_asserted"),
                        hook=LearningHook(led2, run_id="R1"), arm="T", roster=ROSTER)["captured"]
-    assert ids2 and all(led2.status(i)["state"] == "ASSERTED" for i in ids2)
+    assert ids2 and all(led2.status(i)["state"] == "MODEL_ASSERTED" for i in ids2)
 
 
 def test_pair_reuses_verified_knowledge_in_the_applied_arm_only_and_records_the_outcome_against_control(tmp_path, monkeypatch, orange):
@@ -98,7 +104,7 @@ def test_pair_reuses_verified_knowledge_in_the_applied_arm_only_and_records_the_
     led = Ledger(tmp_path / "l.jsonl")
     d = led.discover(claim="summing the even terms of the series twice overcounts", origin_run="R0", origin_task="t0", proposer="nemotron",
                      applicability="series summation", evidence_ref="tool:pytest#1")
-    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1")
+    led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1", receipt=RC(led, "SUPPORTS"))
     seen = []
     res = run_pair(Task("t2", "Sum of the series with even terms?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed"),
                    work=scripted(seen, n_critique=False), ledger=led, tag="P1", projection=OrangeKnowledgeProjection(orange))
@@ -117,11 +123,11 @@ def test_orange_projection_keeps_falsified_and_contradicted_and_is_append_only(t
     monkeypatch.setenv("ORANGEME_NO_PUSH", "1")
     led = Ledger(tmp_path / "l.jsonl")
     a = led.discover(claim="alpha holds", origin_run="R0", origin_task="q", proposer="p", applicability="any", evidence_ref="e")
-    led.verify(a, verdict="CONTRADICTS", verifier="executed", evidence_ref="v")
+    led.verify(a, verdict="CONTRADICTS", verifier="executed", evidence_ref="v", receipt=RC(led, "CONTRADICTS"))
     proj = OrangeKnowledgeProjection(orange)
     assert proj.publish(led) == [a]
     assert proj.publish(led) == []                                                    # unchanged state: no new revision
-    led.verify(a, verdict="SUPPORTS", verifier="official_grader", evidence_ref="w")
+    led.verify(a, verdict="SUPPORTS", verifier="executed", evidence_ref="w", receipt=RC(led))
     assert proj.publish(led) == [a]
     assert orange.get(f"knowledge/{a}")["value"]["state"] == "CONTRADICTED" and len(orange.history(f"knowledge/{a}")) == 2
 
@@ -274,23 +280,24 @@ def test_eval002_sham_brief_is_length_matched_never_verified_for_the_task_and_or
     led = Ledger(tmp_path / "l.jsonl")
     good = led.discover(claim="summing the even terms of the series twice overcounts", origin_run="R0", origin_task="t0", proposer="nemotron",
                         applicability="series summation", evidence_ref="tool:pytest#1")
-    led.verify(good, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1")
+    led.verify(good, verdict="SUPPORTS", verifier="executed", evidence_ref="tool:pytest#1", receipt=RC(led, "SUPPORTS"))
     for i, claim in enumerate(["a cached DNS entry outlives its TTL", "sorting is stable in this library"]):   # verified but unrelated: the placebo pool
         d = led.discover(claim=claim, origin_run="R0", origin_task=f"u{i}", proposer="luna", applicability="any", evidence_ref="e")
-        led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="e")
+        led.verify(d, verdict="SUPPORTS", verifier="executed", evidence_ref="e", receipt=RC(led, "SUPPORTS"))
     led.discover(claim="unverified rumour about caches", origin_run="R0", origin_task="u8", proposer="luna", applicability="any", evidence_ref="e")
     bad = led.discover(claim="falsified claim about sorting", origin_run="R0", origin_task="u9", proposer="luna", applicability="any", evidence_ref="e")
-    led.verify(bad, verdict="CONTRADICTS", verifier="executed", evidence_ref="e")
+    led.verify(bad, verdict="CONTRADICTS", verifier="executed", evidence_ref="e", receipt=RC(led, "CONTRADICTS"))
     own = led.discover(claim="the series answer is 9", origin_run="R0", origin_task="t2", proposer="luna", applicability="any", evidence_ref="e")
     task = Task("t2", "Sum of the series with even terms?", sig, lambda a: 1.0 if a == "9" else 0.0, "executed")
-    sham = sham_brief(led, task, "P:applied", 200, seed=1)
-    assert len(sham) == 200 and "overcounts" not in sham and "answer is 9" not in sham               # never the task's verified (or own) items
+    sham = sham_brief(led, task, "P:applied", 200, seed=1, n_items=2)["text"]
+    assert len(sham) == 200 and sham.count("\n- ") == 2 and "overcounts" not in sham and "answer is 9" not in sham               # never the task's verified (or own) items
     assert "rumour" not in sham and "falsified" not in sham                                          # clean placebo: no misinformation
-    assert sham == sham_brief(led, task, "P:applied", 200, seed=1)
+    assert sham == sham_brief(led, task, "P:applied", 200, seed=1, n_items=2)["text"]
     seen = []
     res = run_pair(task, work=scripted(seen, n_critique=False), ledger=led, tag="P", sham=True, seed=7)
     assert res["applied"]["retrieved"] == [good] and res["sham"]["retrieved"] == [] and res["control"]["brief_chars"] == 0
-    assert res["sham"]["brief_chars"] == res["applied"]["brief_chars"] > 0
+    assert res["sham"]["brief_chars"] == res["applied"]["brief_chars"] > 0 
+    assert res["applied"]["brief_items"] == res["sham"]["sham_brief"]["target_items"] == 1 and res["sham"]["brief_items"] == 2   # pool claims too short: length wins
     assert sorted(res["order"]) == ["applied", "control", "sham"] and res["order"] == run_pair(task, work=scripted([], n_critique=False), ledger=led, tag="Q",
                                                                                                 sham=True, seed=7)["order"]
     sham_prompts = [p for a, s, p in ((a, s, p) for a in ("sham",) for s, p in res["prompts"][a]) if s == "solve"]

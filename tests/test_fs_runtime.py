@@ -113,7 +113,9 @@ def test_offline_fixture_end_to_end_learning_lifecycle_without_scripted_benefit(
     assert {r["task"] for r in rows if r["kind"] in ("RETRIEVAL", "APPLICATION", "OUTCOME")} == {"B"}          # the host task id, not the mission id
     assert a["captured_discoveries"] and b["knowledge_applied"] == a["captured_discoveries"] and ctl["knowledge_applied"] == []
     states = summary["learning"]["report"]["by_state"]
-    assert states.get("NO_EFFECT_OBSERVED") == 1 and "BENEFIT_OBSERVED" not in states
+    effects = summary["learning"]["report"]["effects"]
+    assert states["OUTCOME_MEASURED"] == 1 and effects["NO_EFFECT_OBSERVED"] == 1 and effects["BENEFIT_OBSERVED"] == 0
+    assert summary["learning"]["report"]["verification_trust"]["INDEPENDENT"] >= 1          # the host check's execution receipt, not the tree's level string
     out = summary["learning"]["outcomes"][0]
     assert out["reward"] == out["control_reward"] and out["grader"] == "executed"
 
