@@ -5,7 +5,7 @@
 **Kaggle Gemma 4 Developer Agent Paper Track — research writeup**
 **Version:** 0.2, ⟦TBD: date of final submission⟧
 **Model:** `gemma-4-31b-it-qat-w4a16-ct` (locked for all arms; not yet executed), run offline on Kaggle L4×4 with internet disabled
-**Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit: `⟦TBD: SHA⟧`
+**Code and data:** ⟦TBD: public repository URL⟧ (Apache-2.0) · Preregistration commit (H3): `b6131d3`
 
 ### Abstract
 
@@ -19,7 +19,7 @@ Retrieval alone does not solve this. A retriever can rank the right symbol fifth
 
 We therefore separate two questions. *Where should the agent look first?* That is a ranking problem over the code graph. *When should it look again?* That is a triggering problem: a verified event, not the model's own judgment, decides when an abandoned candidate becomes relevant. SER answers both with one shared candidate ranking, so the mechanism can be ablated part by part.
 
-**Hypotheses (preregistered, commit `⟦TBD⟧`):**
+**Hypotheses (H3 preregistered, commit `b6131d3`):**
 
 - **H3 — Structural localization.** Adding seeded PPR over the code graph to hybrid lexical–dense retrieval increases symbol-level Recall@10 of gold-patch locations. Adding a Gemma 4 recognition filter on the seeds increases it further. Neither addition lowers recall on tasks where the gold symbol is directly retrievable (non-inferiority margin: 2 percentage points).
 - **H1 — Coupling.** Event-triggered reactivation (arm E) resolves more tasks than the same agent receiving the same number of retrieved candidates at the same checkpoints without the trigger (arm E⁻).
@@ -39,13 +39,13 @@ These are hypotheses about one mechanism under one set of conditions. We do not 
 
 #### 3.1 Inputs
 
-For each task the competition provides an issue description, a repository snapshot, a directed code graph of symbols and their relationships, and 256-dimensional code embeddings [16]. ⟦TBD: confirm node and edge types from the data card, e.g. module, class, function; contains, calls, imports, inherits.⟧ A symbol node carries its file, name, signature and source span.
+The competition data (issue, snapshot, code graph, 256-dimensional embeddings [16]) was not accessible on our execution host. H3 therefore uses an own benchmark: SWE-bench Verified [9] (500 human-validated instances), with the graph rebuilt per task from the snapshot at its base commit using Python's `ast`. Nodes are functions, methods and classes; each carries its file, qualified name, signature and source span. Edges are *contains* (lexical nesting) and *calls* (call names resolved within the same file first, otherwise to a global name with at most three definitions; more ambiguous names stay unlinked). There are no *imports* or *inherits* edges.
 
 #### 3.2 Localization prior (H3)
 
 All arms use the same candidate set and the same cutoffs. Only the ranking function differs.
 
-**Arm A, hybrid retrieval.** BM25 over symbol text (qualified name, signature, docstring, body) with the issue text as query, fused with dense cosine similarity by reciprocal rank fusion (RRF, k = 60). ⟦TBD: if the competition does not ship the encoder for query embeddings, the dense component is removed from all arms equally, and this is reported.⟧
+**Arm A, hybrid retrieval.** BM25 over symbol text (qualified name, signature, docstring, body) with the issue text as query, fused with dense cosine similarity by reciprocal rank fusion (RRF, k = 60). No query encoder was available, so the dense component is removed from all arms equally: in this study arm A is BM25 only.
 
 **Seeds.** The top m = 10 symbols from arm A, plus every symbol whose name appears verbatim in the issue text or in a traceback it contains.
 
@@ -94,7 +94,7 @@ E versus E⁻ isolates the trigger. E versus D\* tests selective disclosure agai
 
 ### 4. Experimental protocol
 
-**Tasks.** ⟦TBD: n⟧ development tasks from the competition data, in a fixed order. ⟦TBD: k⟧ tasks were used for a timing pilot and are excluded from all reported results. Pilot outcomes were not inspected beyond wall time and harness errors.
+**Tasks.** H3: 497 SWE-bench Verified instances, drawn deterministically and stratified by repository (salt-hashed order, manifest in the preregistration). 3 further instances were used for a timing pilot and are excluded from all reported results. Their recall values were printed during the pilot run; this is disclosed, and they carry no weight.
 
 **Gold locations (H3).** The symbols and files whose source spans intersect the hunks of the reference patch, mapped on the pre-patch snapshot. Reference patches are used **only** for H3 scoring and are never visible to any arm.
 
