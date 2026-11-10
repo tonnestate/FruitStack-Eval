@@ -127,3 +127,10 @@ Note (2026-11-10, disclosure, no rule change): grader calibration had initially 
 tasks in manifest order (53 valid). It was extended in the same order to all 206 Django ≠ 5.0 tasks of the manifest
 (130 valid, `h1/tasks/calibration.json`) before the campaign reached task 80, so the preregistered task rule
 (calibrated-valid, manifest order, time stop) applies unchanged.
+
+## Amendment A4 (2026-11-10 ~04:10 UTC) — earlier arm-C cutoff (time only)
+
+Owner decision 2026-11-10 (submission timeline): the arm-C sample is the manifest prefix completed by
+**2026-11-11 06:00 UTC** (was 2026-11-12 12:00 UTC). Decided on time grounds only, while no arm-C outcome had been
+computed or inspected (158 tasks done, no C-vs-B statistic run). A task still in progress at the cutoff is not counted.
+Prompt, parser, fallback, supply-wait rule and tests are unchanged. H1/H2 stopping rule unchanged.
