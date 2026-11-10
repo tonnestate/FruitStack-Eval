@@ -48,3 +48,20 @@ python -m pytest -q evidence/independent_validation/gemma_h3_independent_checks.
 Run the next independent analysis against the **already committed** `evidence/h3_confirmatory/traces.jsonl.gz`, task manifest, and summary. Reconstruct Symbol Recall@10 from each task's ranked symbol IDs and gold symbols, rerun the paired bootstrap, and explicitly verify pilot exclusion and manifest coverage before reporting task-level agreement. Keep such results in this independent-validation directory, not in the original confirmatory dataset.
 
 **Limitations:** H3 C results and H1/H2 repair outcomes were not independently executed. File recall requires a symbol-to-file mapping to recompute independently; averaging precomputed file metrics is not a full revalidation. No claim about primary outcome validity, gold-patch attribution, or causal effects follows from the 8/8 synthetic test result.
+
+
+## Trace-level independent audit utility added
+
+`independent_h3_validation.py` is also committed in this directory. It is independent of the primary `ser_h3.py` module and offers two modes:
+
+```bash
+cd research/gemma4-developer-agent-paper-2026
+python evidence/independent_validation/independent_h3_validation.py --self-test
+python evidence/independent_validation/independent_h3_validation.py \
+  --traces evidence/h3_confirmatory/traces.jsonl.gz \
+  --manifest h3_eval/TASK_MANIFEST.json \
+  --reported-summary evidence/h3_confirmatory/summary.json \
+  --out evidence/independent_validation/H3_INDEPENDENT_AUDIT.json
+```
+
+The independent 8-check mode passed locally, and synthetic end-to-end trace ingestion plus deliberate per-task recall tampering detection both passed. **No completed raw-trace audit is claimed yet**: the second command has been provided for execution where the already committed gzip trace and manifest are checked out together. It will independently recompute symbol recall and paired statistics from recorded rankings and gold-symbol IDs and fail loudly on disagreement. Preserve the generated audit JSON as a separate secondary validation receipt.
