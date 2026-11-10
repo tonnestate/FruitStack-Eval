@@ -122,3 +122,8 @@ is served by PlumMe in budget-aware AUTO (`h3_eval/plumme_filter.py`): PlumMe se
 no model pin, no output or cost ceiling in the adapter. Provider, model, receipt and raw output of every call are logged
 and reported. Prompt, parser, fallback, supply-wait rule, sample (manifest prefix by 2026-11-12 12:00 UTC) and tests
 are as in A1. The paper names the arm "LLM recognition filter (PlumMe-routed)", not "Gemma filter".
+
+Note (2026-11-10, disclosure, no rule change): grader calibration had initially been run only for the first 80 Django
+tasks in manifest order (53 valid). It was extended in the same order to all 206 Django ≠ 5.0 tasks of the manifest
+(130 valid, `h1/tasks/calibration.json`) before the campaign reached task 80, so the preregistered task rule
+(calibrated-valid, manifest order, time stop) applies unchanged.
