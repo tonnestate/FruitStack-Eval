@@ -134,3 +134,9 @@ Owner decision 2026-11-10 (submission timeline): the arm-C sample is the manifes
 **2026-11-11 06:00 UTC** (was 2026-11-12 12:00 UTC). Decided on time grounds only, while no arm-C outcome had been
 computed or inspected (158 tasks done, no C-vs-B statistic run). A task still in progress at the cutoff is not counted.
 Prompt, parser, fallback, supply-wait rule and tests are unchanged. H1/H2 stopping rule unchanged.
+
+Note (2026-11-10 ~07:05 UTC, disclosure, no rule change): arm C has waited on `pytest-dev__pytest-7236` since ~03:30 UTC
+(the router offers one route for this role and it rejects this prompt; all other picks report no eligible model). Per the
+supply-wait rule the task is retried, not skipped, so the C prefix may stay at 158 tasks by the A4 cutoff. While diagnosing
+this (after A4 was committed), the per-task C recall lines of 4 earlier tasks were seen in the run log; no C summary statistic
+has been computed.
