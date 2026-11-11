@@ -1,0 +1,29 @@
+# PROPOSAL (not installed): KARI as a local loopback FruitStack factory. Install with:
+#   rsync -a --delete --exclude .git /root/fruits/factories/Kari/ /opt/fruitstack/factories/kari/ && chmod -R go-w,o+rX /opt/fruitstack/factories/kari
+#   cp /root/fruits/factories/fruitstack-kari.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now fruitstack-kari.service
+[Unit]
+Description=FruitStack factory KARI (local loopback install, release/kari-rc1 + build fix; payments/live AI/indexing off)
+After=network.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=kari
+WorkingDirectory=/opt/fruitstack/factories/kari
+Environment=NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOME=/var/lib/kari
+Environment=KARI_SITE_URL=http://127.0.0.1:4200 KARI_DB_PATH=/var/lib/kari/kari.db KARI_PUBLIC_INDEXING=0
+Environment=KARI_PAYMENTS_ENABLED=0 KARI_LIVE_AI_ENABLED=0 KARI_DEV_MAGIC_LINK=0
+ExecStart=/usr/local/bin/node node_modules/next/dist/bin/next start -H 127.0.0.1 -p 4200
+Restart=on-failure
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target
