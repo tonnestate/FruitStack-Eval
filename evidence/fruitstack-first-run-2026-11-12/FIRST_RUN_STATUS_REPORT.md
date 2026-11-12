@@ -97,7 +97,7 @@ installed stack.** Logs: scratchpad `baseline/*.log` (session-local); commands i
 | P | blocker | verified? |
 |---|---|---|
 | P0 | deep missions cannot import their components as www-data; repair script ready, agent denied by classifier | verified |
-| P0 | no receipt carries a task/mission attribution → per-task tokens/cost not reconstructable from PlumMe alone | verified |
+| P0 | no receipt carries a task/mission attribution; the join receipt.decision_id → `decisions.jsonl` (which does carry task fields on 84/163 records) resolved 0 of 12,879 recent receipts (11,797 decision ids absent from the 22 MB decision log window, 1,003 without decision id) → per-task tokens/cost not reconstructable from PlumMe | verified for the inspected window |
 | P0 | integrated chain abstains under free supply (F3-DEV 31/50 abstentions: FORBIDDEN 61, RATE_LIMITED 51, SEMANTIC_OUTPUT_FAILURE 37, BILLING 27) | verified 2026-10-14; current rate unknown |
 | P1 | pilot preconditions: 50 references not owner-approved (`tasks/dev/pilot_inquiry_tasks_DRAFT.jsonl`, drafted by Claude), salts with owner, arm A needs cost approval | verified (PILOT_PROTOCOL.md) |
 | P1 | Anthropic reference arms A/B need Claude Opus/Sonnet calls: paid or subscription routes that require owner approval (Sol/Opus only with owner approval, 2026-11-11) | verified (policy) |
