@@ -44,7 +44,7 @@ PlumMe competence (only HOST_VERIFIER does). Hidden benchmark tests are never av
 - Whether hypotheses in the brief, executed critique and repair raise accuracy on hard tasks. All mechanisms are shown to RUN and to be USED; no effect is measured.
 - Free supply: there is still no QUALIFIED non-gpt REASONING lineage. Independence improves only when supply exists; catalogs still list dead models (MODEL_NOT_FOUND quarantined 6h).
 - The headless route's 14.5k harness overhead is real billed (INCLUDED) input. It is now planned for, not removed.
-- MODEL_NOT_FOUND durable until rediscovery, `earliest_retry_at` on PlumMe failure receipts and cross-mission unavailability in CherryMe: not done (FUTURE_WORK).
+- Done after the first report: CherryMe staffing reads PlumMe's runtime unavailability (cross-mission: PlumMe's cooldowns/pool blocks persist), and one local denial benches a model for the run. Kept: MODEL_NOT_FOUND stays quarantined 6h (persistent); a later retry is a refusal without tokens and no longer uses a replacement slot, so a catalog-rediscovery rule would save almost nothing.
 
 ## 5. Readiness conditions for a future independently evaluated experiment
 1. Owner approval of the release set below (merge order PlumMe -> CherryMe -> AppleMe -> PeachMe -> FSE -> Aurora). Re-freeze nothing; CherryMe's V14 freeze is intact.
@@ -56,12 +56,12 @@ PlumMe competence (only HOST_VERIFIER does). Hidden benchmark tests are never av
 ## 9. Changed repositories and commits (all branches pushed, `[skip ci]`; nothing merged or deployed)
 | repo | branch | commit | base |
 |---|---|---|---|
-| PlumMe | cc/selection-recovery | b82dc4d | live 0af278d |
-| CherryMe | cc/decision-contract | febf41c | 4abffc6 |
+| PlumMe | cc/selection-recovery | b82dc4d, 13fc4e3 (`scheduler.unavailable_now`) | live 0af278d |
+| CherryMe | cc/decision-contract | febf41c, 29be28d (staffing reads PlumMe unavailability; one local denial benches a model) | 4abffc6 |
 | AppleMe | cc/refuted-held-answers | 05767c8 | aca5f8b |
 | PeachMe | cc/research-decision-contract | 0fdb93a | 56764bf |
 | FruitStack-Eval | cc/adaptive-decision-repair | 6a724da (+ this report) | da66b95 |
-| Aurora | cc/decision-contract | adafbc6 | 96067de |
+| Aurora | cc/decision-contract | adafbc6, ee1e073 + activation package (release set pinned, www-data proof) | 96067de |
 
 Tests: PlumMe 989 passed / 24 skipped; CherryMe 818 / 35 skipped (frozen venv, V14 freeze intact); AppleMe green; PeachMe 394 / 1 skipped;
 FSE 831 passed, 53 failed - the same 53 fail on the clean baseline (da66b95 with the base components: grader-adversarial sandbox tests, fs_org_team);
