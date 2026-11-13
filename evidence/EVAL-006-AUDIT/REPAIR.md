@@ -66,3 +66,10 @@ PlumMe competence (only HOST_VERIFIER does). Hidden benchmark tests are never av
 Tests: PlumMe 989 passed / 24 skipped; CherryMe 818 / 35 skipped (frozen venv, V14 freeze intact); AppleMe green; PeachMe 394 / 1 skipped;
 FSE 831 passed, 53 failed - the same 53 fail on the clean baseline (da66b95 with the base components: grader-adversarial sandbox tests, fs_org_team);
 Aurora integration 79 passed, 10 failed - the same 10 fail on the clean baseline 96067de.
+
+## 10. Release package (2026-11-13)
+Aurora cc/decision-contract 5f011c1 pins PeachMe 0fdb93a, CherryMe a75b74f, PlumMe 8594a98 (client + live service), AppleMe 05767c8, MangoMe 8a69f30,
+OrangeMe 366b450, BlueberryMe ddd8f79. Over RemotePlumMe, CherryMe now receives PlumMe's authoritative runtime unavailability (`plum_unavailable_now`).
+`deployment/release-verification/verify_release.sh` installs this exact release with the real install script in a scratch root, against an isolated
+PlumMe MCP service from the released copy, and runs the acceptance suites as www-data: RELEASE VERIFIED (Aurora 27/27, PeachMe 13/13, 0 skipped;
+refusal without the tool and the journaled one-step rollback both restore the default state exactly). See Aurora deployment/FULL_RUNTIME_ACTIVATION.md.
