@@ -67,3 +67,29 @@ Für beide Arme gilt:
 
 - Vor dem Neustart lief ein Smoke-Test mit einer Nicht-Studienaufgabe (`SMOKE/1`, a+b).
 - Ergebnis: 1 Provider-Aufruf, eine Lösung erzeugt.
+
+## Nachtrag 2 (2026-11-14, vor der ersten Bewertung): Harness wich von Aurora ab
+
+**Was passiert ist**
+
+- Der zweite Start brach nach 1 Aufgabe ab (BigCodeBench/178, Arm NOCHECK). Es gab 0 Aufrufe, keine Lösung und keine Bewertung.
+- Die Datensätze liegen in `RUN/aborted-2-harness/`.
+
+**Ursachen** (mit Stellen in Code und Commits):
+
+1. **Synthese bricht bei langen Zielen ab.** PeachMe `mission._synthesize` gab das volle Ziel an `prepare()` weiter. `prepare()` lehnt aber alles über 512 Zeichen ab, also endete jede Aufgabe mit längerem Text als `INVALID_OBJECTIVE`.
+   - Das betrifft auch Aurora live bei langen Anfragen.
+   - Fix: PeachMe `cc/synthesis-objective-hint` 8ad210d (Test plus Suite, 402 bestanden).
+   - Die eingefrorene PeachMe-Quelle ist jetzt **8ad210d**, also Live-Stand plus genau dieser Fix. Live ist der Fix noch nicht, dafür braucht es die Owner-Freigabe.
+2. **Der Harness weicht von Aurora ab** (FSE `runners/fs_runtime.py`, Fix aafd984):
+   - **Triage nie aktiv:** Ein fest gesetzter `responsibility_context` schaltete die Triage von CherryMe ab. Forschung wurde deshalb nie aktiviert (Grund: NOT_TRIAGED).
+   - **Kein Worker für SCIENCE:** Ohne `asked_types=(SCIENCE, REUSE)` beginnt die Inquiry mit SCIENCE. Diese Frage braucht einen gegroundeten Worker, und kein PlumMe-Angebot ist gegroundet. Die Inquiry stellte deshalb niemanden auf.
+   - **Angleichung:** Aurora setzt keinen solchen Kontext und übergibt `asked_types=(SCIENCE, REUSE)`. Der Harness macht es jetzt genauso.
+   - **Ausnahme:** Integrations-Fixtures (`research = "required"`) behalten die festen Knoten. `tests/test_fs_runtime.py` läuft 21/21.
+
+**Smoke-Test** mit einer Nicht-Studienaufgabe von 557 Zeichen:
+- Die Inquiry machte 3 Versuche.
+- Die Triage von CherryMe entschied `SKIPPED_SIMPLE_TASK`, nach derselben Regel wie Aurora.
+- Die Synthese lief über gpt-6-luna und lieferte eine Lösung.
+
+**Unverändert** bleiben Aufgaben, Arme, Endpunkte, Auswertung und Manifest-Hash.
