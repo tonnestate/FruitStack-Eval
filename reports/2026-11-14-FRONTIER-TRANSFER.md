@@ -330,3 +330,35 @@ What remains is a model-formulated computation shared by both workers. That need
   - No FruitStack caller reads the large views.
   - Deploying needs a plumme-mcp restart, which is an owner decision.
 - **Correction to inventory D §8:** Project ZOMBIE exists, at `/root/Zombie` (tonnestate/Zombie, public; protocol v1.7 and harness, no completed experiments). No geographical-research programme was found on the host.
+
+### A8. Real-mission latency and staffing (2026-11-14)
+
+**Measured on 25 real missions [LIVE].** Source: `reports/frontier-2026-11-14/G_mission_latency.md`.
+- The CherryMe inquiry takes 82 % of wall time and is essentially serial.
+- 43 % of inquiry time was failed attempts: 10 timeouts (902 s), 9 malformed outputs and 8 unavailable models.
+- Staffing preferred qwen3.8-27b (≈50 % failures, 27–39 s median) over gpt-6-luna (0 failures, ≈6–7 s median).
+
+**Cause.** Aurora uses a remote PlumMe that has no `.policy`. Every model therefore got reliability 0.5 and latency rank 3, and the model id broke the tie.
+
+**Fix.**
+- PlumMe gained a read-only `plum_model_reliability` tool. It counts work receipts only; probe receipts with an output cap ≤ 256 are excluded.
+- CherryMe gained `apply_observed_delivery`: a Beta posterior reorders candidates and never excludes one, and competence still ranks first.
+- Live components: plumme-mcp ef70553, PlumMe client release ef70553, CherryMe ac971d8.
+
+**Tests [TEST].**
+- PlumMe: 999 passed. The 3 failures are pre-existing.
+- CherryMe: 947 passed. The 1 failure is pre-existing.
+
+**Acceptance on the owner's real Makler request [LIVE].**
+- Mission d403a57e took **72 s**; earlier runs of the same request took about 9 minutes.
+- All 10 steps succeeded: gpt-6-luna did the main work and gpt-oss-120b (Groq) did the independent checks.
+- The wrong figures were refuted, and no unchecked figures remained in the answer.
+
+**Limits.**
+- This is a single acceptance run, not a rate.
+- "Reliability" here means usable output, not correctness.
+- Load and quota now concentrate on one route, and this needs watching.
+
+**PlumMe market status [LIVE].** Incremental reads (6771a49) brought `plum_market_status` from 5–8 s to 1.6–2.1 s warm.
+
+**Not done.** A per-call deadline or hedging for slow routes.
