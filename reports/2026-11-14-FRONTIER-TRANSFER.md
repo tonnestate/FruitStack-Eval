@@ -199,3 +199,110 @@ For each item: what the research shows, what FruitStack already has, the gap, th
 - **E1 (G1):** False-SUPPORT rate of COMPUTED_CHECK with and without the negative control, on a frozen set of real calculation claims with seeded wrong figures. Exact McNemar via `study_gate`.
 - **E2 (G4):** Fit escalation features against real outcomes once ≥100 full-runtime missions carry the new `triage` event data. Report the predictive accuracy on a later hold-out period before any rule is promoted.
 - **E3 (OGI-013, unchanged question):** None of the above is evidence that organised collaboration beats controlled alternatives. The controlled designs stay as written in `evidence/20261114-SUPERIORITY-SYNTHESIS/REPORT.md`.
+
+---
+
+## Addendum (same day): xAI/Grok and DeepSeek, and a cross-vendor synthesis
+
+Source files: `reports/frontier-2026-11-14/E_xai_grok.md` and `F_deepseek.md`. All 12 URLs resolved.
+- **DeepSeekMath-V2:** read from the arXiv HTML v1. Figures were not recoverable, and the model-weights licence was not read.
+- **GitHub:** the deepseek-ai organization listing showed 10 of 47 repositories.
+
+### A1. xAI / Grok [SRC]
+
+**Evidence status.** No measured performance on any page: everything is a documented product capability.
+
+**Grok Build Workflows (2026-07-23).**
+- Grok writes a plan script (phases → agents → roll-up) from the request, smoke-checks it, and fans out 128 agents by default (max 1,024).
+- Each agent starts with a clean context, and independent "skeptics" are optional.
+- Persistence is one sentence: "Progress is saved as the run goes, so pausing and resuming never redoes finished work." Granularity, crash semantics and side-effect idempotency are not documented.
+- Traces are a human UI view only.
+
+**Multi-Agent API (beta, `grok-4.20-multi-agent`).**
+- The caller chooses 4 or 16 agents; the server decides the roles.
+- A leader synthesises the final answer.
+- Sub-agent state is returned only as **encrypted content**.
+- There are no client tools and no `max_tokens`.
+
+**Remote MCP.** The only boundary is `allowed_tools`. `require_approval` is not supported.
+
+**Code execution.** An ephemeral Python sandbox without network.
+
+**Async.** Client-side concurrency only, not a resumable job API.
+
+### A2. DeepSeek [SRC]
+
+**DeepSeekMath-V2 (arXiv 2511.22570).**
+- **Verifier:** a proof-level verifier lists issues *before* scoring (0 / 0.5 / 1) and needs no reference solution.
+- **Meta-verifier:** it checks that each reported issue really exists and that the score matches. It exists because a score-only verifier earned reward on flawed proofs while hallucinating issues. Mean analysis quality rose from 0.85 to 0.96.
+- **Generator:** it is trained to self-verify, because an untrained generator overclaims its own correctness.
+- **Auto-labelling:** the label is the lowest score confirmed by several valid analyses.
+- **Test-time scaling:** up to 64 proofs × 64 analyses with iterative refinement.
+- **Reported results (REPORTED):** IMO 2025 83.3 %, Putnam 2024 118/120. These were graded by the authors' own experts and verifier, not independently.
+- **The authors' framing:** "no issue found in 64 attempts" is evidence, not formal proof.
+
+**API (2026-11-13).** Current ids are `deepseek-flash` and `deepseek-v4-pro`.
+- Thinking is on by default; effort is low / high / max.
+- With tools, all prior reasoning content must be passed back.
+- Strict tool schemas are beta.
+- The KV prefix cache is best-effort, and its pricing difference is not stated on the page.
+- Search/Fetch is a provider-billed API.
+
+### A3. Comparison with FruitStack's operational implementation
+
+| Mechanism (source) | FruitStack today [LIVE / inventory] | Gap and decision |
+|---|---|---|
+| Plan-as-script fan-out, 128–1,024 agents (Grok Workflows) | CherryMe triage → `research_decision` (one rule for all hosts); Brother Mode with 2 solvers; PeachMe research pool with `max_workers` 3 | **Rejected.** No evidence that it is better (A1). Google [SRC] shows negative returns above a ~45 % baseline, and 24/24 real missions needed no research. Large fan-out conflicts with "only resources justified by the task". |
+| Clean specialist contexts (Grok) | CogC role packets hide origin answer, opinions and ranking from workers (`cherryme/cogc.py`) | Present. |
+| Independent skeptics (Grok, optional) | COMPUTED_CHECK quorum from different independence groups; LSD Room challenge; FALSIFY questions | Present, with stronger rules (host-evaluated, number provenance, negative control). |
+| Durable checkpoints / resume without redoing work (Grok, one sentence) | PeachMe StepLedger (idempotent step keys, UNKNOWN-step reconciliation, receipts held), MangoMe checkpoints, KIwiMe recovery timer | FruitStack is ahead on documented semantics; nothing to copy. |
+| Encrypted sub-agent state (Grok API) | Hash-chained receipts; mission record keeps workers, receipts and assertions | **Rejected** for study arms: it cannot be independently inspected. A provider multi-agent call could only be recorded as one opaque UNVERIFIABLE step. |
+| MCP with `allowed_tools` and no approval (Grok) | ToolGateway effect classes; undeclared tool = IRREVERSIBLE; PomeloMe effect authorisation (not live) | FruitStack's boundary is stricter. |
+| Proof-level verifier listing issues before scoring (DeepSeekMath-V2) | COMPUTED_CHECK: assertions first, then the host evaluates (no model score) | Present in a stronger, executed form for computable claims. Learned natural-language verification of non-computable reasoning is not present. |
+| Meta-verification of issue reports (DeepSeekMath-V2) | Refutation required only verdict agreement | **Implemented (G9):** a refutation counts only if the independent workers agree on the computed counter-value. |
+| Verify the delivered text, not only pre-formulated claims (DeepSeekMath-V2 lesson) | Only claims were checked; the answer could carry unchecked figures | **Implemented (G10):** deterministic figure audit of every Aurora answer; live. |
+| Generator self-verification (DeepSeekMath-V2) | Synthesis states which parts are verified (label computed from findings, never from model wording) | A model's self-claim stays non-authoritative (the paper itself reports overclaiming). No change. |
+| Lowest-confirmed-score aggregation; adaptive verification effort (DeepSeekMath-V2) | Quorum of 2, up to 2 spare workers on invalid formulations | Partly present. Escalating on disagreement is follow-up work (E4). |
+| Thinking effort and reasoning-content contract (DeepSeek API) | PlumMe routes models; no per-call effort parameter | Not implemented. It matters only if DeepSeek is routed with tools, and the reasoning content must then be preserved across turns. Recorded as a PlumMe adapter requirement. |
+
+### A4. Strongest available mechanism per function (cross-vendor)
+
+| Function | Strongest documented mechanism | Evidence | FruitStack position |
+|---|---|---|---|
+| Adaptive organisation | Google: architecture predicted from capability, tools and baseline (87 % held-out) | DEMONSTRATED | Triage plus single activation rule; calibration data now recorded (G3). E2 pending. |
+| Parallel execution | Anthropic: parallel subagents for breadth-first research (+90 %, mostly extra compute) | REPORTED | Present (parallel critics, research pool); rarely needed by real missions. |
+| Tool / capability discovery | Anthropic Tool Search (−85 % tokens) / OpenAI deferred loading | REPORTED | Not yet relevant (no in-loop tools). |
+| Deterministic computation | Executed checks with host evaluation (FruitStack) / AlphaEvolve evaluator cascade | DEMONSTRATED (domain) | RECOMPUTE + COMPUTED_CHECK; no solvers installed (G7). |
+| Formal verification | AlphaProof Code: Lean kernel + deterministic gatekeeper + held-out spec | DEMONSTRATED (case) | Not present. Executed checks are evidence, not proof. |
+| Independent grading | AlphaProof gatekeeper + DeepSeek meta-verification | DEMONSTRATED / REPORTED | `study_gate` (offline), COMPUTED_CHECK negative control (G1), counter-value agreement (G9), answer audit (G10). |
+| Organisational learning | DeepSeek verifier-labelled data loop (needs training); AlphaEvolve program database | REPORTED | PlumMe competence (Beta-Bernoulli), ExperienceLibrary, FALSIFIED nodes; no promotion without validation. |
+| Recovery / self-repair | (none of the vendors documents more than FruitStack's step ledger) | — | StepLedger + KIwiMe. |
+| Context efficiency | Anthropic programmatic tool calling (−37 % tokens) | REPORTED | CogC role packets; no MCP result capping (follow-up). |
+| Evidence preservation | AlphaProof: logged amendments, held-out spec, replay | DEMONSTRATED (case) | Receipts, mission records, `event_details`, triage events (G3), `study_gate` sealed manifests. |
+
+### A5. Additional changes (branches pushed with `[skip ci]`)
+
+| # | Component | Commit | Change | Live? |
+|---|---|---|---|---|
+| G9 | CherryMe `claim_check.py` | `cc/computed-check-nonvacuity` @ 92a8a03 | A refutation needs the independent workers to agree on the counter-value. Otherwise the outcome is DISAGREEMENT (`COUNTER_VALUES_DIFFER`). CONTRADICTS evidence names "computed instead: X". | No (release switch) |
+| G10 | Aurora `aurora_peach_runtime.py` | `cc/decision-contract` @ 6c8a504 | Figures in the delivered answer that no check covered are named in a note and in `answer_figures_unchecked`. Grouped thousands are read as thousands; the percent reading applies only before "%". | **Yes**, with backup `.bak-20261114T081518Z` |
+
+**Validation**
+
+- **[TEST]** CherryMe tests: 55/55. PeachMe mission end-to-end: 17/17. Aurora tests: 21/21, against both the live and the patched CherryMe.
+- **[REPLAY]**
+  - The 2 real model-check refutations (b46e6514) still stand, with agreeing counter-values 1100 and 1180.
+  - Of 23 real full-runtime answers, 6 carry figures that nothing checked, including the wrong 179.000 EUR (49ed0bdb). In b46e6514 the correct 1.100 and 1.180 are also flagged. The live CherryMe does not yet state "computed instead", and with G9 deployed these figures would be covered.
+
+**Performance and resources.** G9 and G10 are deterministic; they add no model call and need microseconds per claim or answer. G1/G9 can cost at most the existing 2 spare worker calls when a formulation is rejected.
+
+**Was the grader defect addressed?** Yes, on three levels:
+1. Concrete figure claims instead of meta-claims (G2, live).
+2. Checks that cannot fail, or refutations without an agreed value, no longer count (G1 and G9, branch).
+3. Figures that bypass the claims entirely are now named in the answer (G10, live).
+
+What remains is a model-formulated computation shared by both workers. That needs either a trusted reference formula (an owner-curated computation library) or formal methods.
+
+### A6. Follow-up experiment
+
+**E4 (G9/G10).** On the frozen set of real calculation claims (E1), seed both wrong figures and wrong counter-models. Measure false-REFUTED and false-SUPPORTED rates with and without counter-value agreement, using an exact paired test via `study_gate`. A learned verifier (e.g. a DeepSeekMath-V2-style model) may be added only as an additional vote, never as the sole authority approving its own outputs.
