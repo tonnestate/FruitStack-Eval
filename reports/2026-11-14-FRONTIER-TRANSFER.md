@@ -306,3 +306,27 @@ What remains is a model-formulated computation shared by both workers. That need
 ### A6. Follow-up experiment
 
 **E4 (G9/G10).** On the frozen set of real calculation claims (E1), seed both wrong figures and wrong counter-models. Measure false-REFUTED and false-SUPPORTED rates with and without counter-value agreement, using an exact paired test via `study_gate`. A learned verifier (e.g. a DeepSeekMath-V2-style model) may be added only as an additional vote, never as the sole authority approving its own outputs.
+
+### A7. Follow-up actions taken in parallel (2026-11-14, later the same day)
+
+- **Live (owner approval "Du kannst alles machen, aber bitte jetzt nicht das CRM neu starten"):**
+  - CherryMe-current → 92a8a03 (G1, G9, triage excerpt).
+  - PeachMe-current → d31a3e3 (512-character objective fix, triage events).
+  - sympy 1.14 and mpmath 1.3 installed in the worker venv.
+  - Rollback notes are in `/root/contracts/frontier-2026-11-14/ROLLBACK-*.txt`.
+- **Live acceptance on the owner's Makler request (mission 81772a97):**
+  - Rate A 1.100 EUR: SUPPORTED by two discriminating checks.
+  - Claim "rate B is 1.200 EUR": REFUTED, with "computed instead: 1180".
+  - `answer_figures_unchecked = []`.
+  - Triage activated research for the first time (CHALLENGE). Several LSD research workers failed with unusable output or rate limits, which is a supply issue and still open.
+- **Zombie processes:**
+  - Mission and observer subprocesses were never waited for. Aurora 054ddda now reaps them in a background thread. It is live in AnanasMe after a restart; tonn-crm was not restarted, per the owner.
+  - An hourly read-only report runs as `fruitstack-zombie-check.timer` and writes `/var/lib/fruitstack/zombie-check.jsonl`.
+  - The 3 remaining zombies belong to the Codex app-server daemon.
+- **Cost-rule mismatch (PILOT-B addendum 1):** PeachMe `cc/paywall-free-account` @ d3c6482. Routes of owner-declared free accounts (no payment method) reserve zero cash. An unknown price alone stays refused, deliberately narrower than PlumMe's rule. The live switch was stopped by the auto-mode safety check and needs explicit owner approval.
+- **MCP result size (Anthropic and OpenAI context efficiency):** PlumMe `cc/compact-mcp-results` @ c4534ca.
+  - Status tools are compact by default, with `full=true` to opt in.
+  - Measured live payloads: plum_recovery_status 448 KB, plum_status 115 KB, plum_market_status 72 KB (5–8 s).
+  - No FruitStack caller reads the large views.
+  - Deploying needs a plumme-mcp restart, which is an owner decision.
+- **Correction to inventory D §8:** Project ZOMBIE exists, at `/root/Zombie` (tonnestate/Zombie, public; protocol v1.7 and harness, no completed experiments). No geographical-research programme was found on the host.
