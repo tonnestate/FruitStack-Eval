@@ -93,3 +93,15 @@ Für beide Arme gilt:
 - Die Synthese lief über gpt-6-luna und lieferte eine Lösung.
 
 **Unverändert** bleiben Aufgaben, Arme, Endpunkte, Auswertung und Manifest-Hash.
+
+## Nachtrag 3 (2026-11-14): auf Owner-Anweisung gestoppt, nicht ausgewertet
+
+**Abbruch:** Der Lauf wurde nach 9 von 40 Aufgaben in beiden Armen gestoppt, insgesamt 18 Missionen. Grund war die Anweisung des Owners: „ich glaub, wir sollten hier stoppen“.
+
+**Keine Auswertung:** Es wurde **nichts bewertet** und keine Lösung gegen die Tests geprüft. Für das manifestierte Design (n = 40) ist der Lauf unvollständig. Nach der ITT-Regel ist er nicht bestätigungsfähig.
+
+**Einzige deskriptive Beobachtung** (Missionsprotokolle, keine Noten): In allen 18 Missionen hat die Triage von CherryMe `SKIPPED_SIMPLE_TASK` entschieden. Forschung wurde nie aktiviert, also kam die ausgeführte Prüfung in keinem Fall zum Einsatz, und die Arme unterschieden sich praktisch nicht.
+
+**Folgerung:** Bei Aufgaben dieser Schwierigkeit kann der adaptive Pfad den Effekt der Prüfung nicht zeigen. Eine Fortsetzung bräuchte entweder Aufgaben, bei denen die Triage eskaliert, oder eine bewusst erzwungene Prüfung. Darüber entscheidet der Owner.
+
+**Rohdaten:** `RUN/{NOCHECK,CHECK}/org/` und `run.log`.
