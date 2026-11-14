@@ -41,3 +41,29 @@ Für beide Arme gilt:
 - **Wenig Diskordanz:** Liefern die Arme nur wenige unterschiedliche Ergebnisse, wird das als „kein Unterschied erkennbar“ berichtet.
 - **Keine Aktivierung:** Aktiviert die Triage auf einer Aufgabe keine Forschung, kann die Prüfung dort nicht wirken. Das wird separat berichtet. Die Aufgaben bleiben trotzdem in der Hauptanalyse (ITT).
 - **Ungültiger Lauf:** Sind mehr als 10 % der Aufgaben-Arm-Paare INCONCLUSIVE oder ohne Modellausgabe, gilt der Lauf als **infrastrukturell ungültig** und wird so berichtet.
+
+## Nachtrag 1 (2026-11-14, vor der ersten Bewertung): abgebrochener Start und Korrektur
+
+**Was passiert ist**
+
+- Der erste Start brach nach 16 Aufgaben-Arm-Läufen ab, das sind 8 Aufgaben × 2 Arme. Keiner dieser Läufe hat einen Provider-Aufruf gemacht oder eine Lösung erzeugt. Es wurde nichts bewertet und kein Ergebnis gesehen.
+- Die Datensätze sind aufbewahrt in `RUN/aborted-1-no-HOME/`.
+
+**Ursache**
+
+- Jeder Arm startete mit einem PlumMe-Zustand, der nur aus der Competence-Kopie vom 2026-11-12 bestand.
+- Ohne die Live-Fehlerhistorie wählte PlumMe für gpt-6-luna die Route `llm7`. Live hat diese Route 130 Fehlschläge und 0 Erfolge.
+- Diese Route ist als NORMAL eingestuft und hat keinen Preis. PlumMe lässt sie trotzdem zu, weil die Owner-Regel vom 2026-11-09 lautet: „Die Paywall entscheidet; llm7 gilt als free account.“ PeachMe (`peachme/cost.py`) verweigert dagegen jeden Dispatch auf eine NORMAL-Route ohne Preis (PRICE_NOT_VERIFIED).
+- Die Mission endete deshalb still als UNRESOLVED, mit 0 Aufrufen und ohne Ausfallbeleg.
+- Dieser Widerspruch zwischen den Komponenten ist ein eigener Befund und wird separat berichtet.
+
+**Korrektur**
+
+- Beide Arme starten jetzt aus derselben Kopie des aktuellen Live-Auswahlzustands von PlumMe: `competence.jsonl`, `pool_quarantine.json`, `pool_health.json`, `failure_receipts.jsonl`, `host_policy.json` und `verify_cooldown.json`. Die Hashes stehen in `state-seed.sha256`.
+- Die Einheit läuft jetzt mit `HOME` und `PATH`.
+- Aufgaben, Arme, Endpunkte und Auswertung sind unverändert. Das Studienmanifest ist unverändert, mit demselben Hash wie oben.
+
+**Smoke-Test**
+
+- Vor dem Neustart lief ein Smoke-Test mit einer Nicht-Studienaufgabe (`SMOKE/1`, a+b).
+- Ergebnis: 1 Provider-Aufruf, eine Lösung erzeugt.
