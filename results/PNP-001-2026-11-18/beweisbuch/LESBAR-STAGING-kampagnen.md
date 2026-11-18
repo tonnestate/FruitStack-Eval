@@ -1,8 +1,8 @@
 # Beweisbuch p_vs_np (STAGING-kampagnen)
 
-Eintraege: 834, Hashkette intakt: True
+Eintraege: 842, Hashkette intakt: True
 
-PROOF LEDGER of this problem (kept across missions; 834 entries from 94 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 842 entries from 94 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - Independent recheck of RC-6d52805a-R: GF(2)/GF(3) rank profile of A and [A|1] (with n, m) does not determine the positive-1in3 count C mod 2. Method limit, expected (parity of #1in3 presumably parity-P-hard), not novel.
   - Audit of Prop 7.3 of the OpenAI cubic border-dc preprint (2026-09-24): no error found. Scope: Sec. 3 (Prop 3.1, permanent projection of the coefficient polynomial G_D) verified by exact computation; Sec. 4 (Lemmas 4.1, 4.2, Prop 4.3) read by PI and tested on s
@@ -34,19 +34,19 @@ REFUTED:
   - procedure alg-cf4ba2054ce6 (Consider the problem through the lens of graph theory, where each variable represents a vertex and each clause forms a hyperedge connecting three vert) is sound
   - procedure alg-ca4f12006c0e (The exact-1 constraint structure can be related to properties of graph homomorphism or exact cover, but for polynomial time, we leverage the existence) is sound
 APPROACHES already examined (do not repeat one without a new idea):
-  - For the GF(2)-parity relaxation of 1-in-3-SAT, how large is the cancellation in its exact inclusion-exclusion expansion, and does that cancellation grow with the cycle rank of the clause hypergraph? C -> RC-a0f974c1-R (VALID || VALID for the quantities computed. The identity check passes, A and C are consistent with the formula, and E an)
-  - None -> None
-  - None -> None
-  - None -> None
   - None -> None
   - Can a Gal matrix whose nonzero entries are all single-difference pairs, meaning |v \ u| = 1, ever beat the rank-to-block ratio k = C(n,3)? If not, every improvement on D-013 must use pairs with |v \ u -> RC-8fd9326f-R (VALID || VALID. The experiment measures the ratio correctly and the code's ratio, decomposition and sum-identity checks )
   - None -> None
   - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
 NUMERICAL EVIDENCE on file: 90 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-36025ffac2 [UNEXPLAINED, OPEN] Does the coded T3, once the D = ∅ triples are handled, still fail the F7 control, and if not, does it still fail any nondegenerate instance triple? That is the question that decides whether any instance-level T3 failure 
+  - Q-b8daa41fa6 [UNEXPLAINED, OPEN] Determine the mathematically precise, verified statement of the triple criterion T3 in relation to matroid properties, specifically verifying the expected outcomes for the Fano and U24 circuits to establish the validity 
   - Q-423db3b56b [UNEXPLAINED, OPEN] Does failure of the sum identity for |v \ u| ≥ 2 allow ratio > k at all? The decisive test is whether a multi-difference matrix on the 41-row domain can have every clause-restricted rank ≤ 1 while total rank ≥ 21. This i
   - Q-72027e8141 [UNEXPLAINED, OPEN] Can a structural argument prove that any Gal matrix formed only by single-difference pairs must satisfy $\text{rank}_F(A) / \max_j \text{rank}_F(A|R_j) \le C(n,3)$ for $n \ge 5$, without relying on empirical search resul
   - Q-c4564fe530 [UNEXPLAINED, OPEN] Does log of the cancellation ratio, measured against A, factor additively over clause components, and is its growth in m determined by the GF(2) nullity of the incidence system rather than by cycle rank? This decides whe
-  - Q-0e39f4e56c [UNEXPLAINED, OPEN] Determine if the correlation between $\log_2 R$ and cycle rank is truly linear or exhibits different scaling (e.g., polynomial, logarithmic) by testing larger, structured instances or by refining the cycle rank metric to
-  - Q-82fd28e6e6 [UNEXPLAINED, OPEN] Recompute the odd-row and profile counts on g mod 2, and test whether the mod-2 profile count (predicted 2^m on disjoint instances) tracks exact treewidth across families where width grows with m and where it stays bound
 NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it follows from its premises)
