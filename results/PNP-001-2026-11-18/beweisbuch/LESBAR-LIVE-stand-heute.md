@@ -1,8 +1,8 @@
 # Beweisbuch p_vs_np (LIVE-stand-heute)
 
-Eintraege: 410, Hashkette intakt: True
+Eintraege: 529, Hashkette intakt: True
 
-PROOF LEDGER of this problem (kept across missions; 410 entries from 92 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 529 entries from 105 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - Audit of Prop 7.3 of the OpenAI cubic border-dc preprint (2026-09-24): no error found. Scope: Sec. 3 (Prop 3.1, permanent projection of the coefficient polynomial G_D) verified by exact computation; Sec. 4 (Lemmas 4.1, 4.2, Prop 4.3) read by PI and tested on s
   - delta_lambda(D_4) = 1 = p_lambda and gamma_lambda(Y_{3,4}) = 1 for lambda=(6,6,4,4,4), degree 6 (function convention). Together with entry 214: both five-row degree-6 candidates with lambda_1 = 6 are closed; neither gives an equation of D_4 nor a separating eq
@@ -22,39 +22,31 @@ CITED from the literature (not machine-checked here):
   - T10-B: EGOW rank-method meta-barrier. The quantitative no-go theorems are PROVEN for TENSOR RANK and WARING RANK (model-specific). This is NOT a universal proof that every rank method fails to separate perm from det. Keep separate and model-specific. (Efremenk
   - T10-A: There exists a constant M such that for all m > M and every n > 2m^2+2m, any tau, and any k<n, rank((l^{n-m} perm_m)_{(k,n-k)[tau]}) < rank((det_n)_{(k,n-k)[tau]}). So the shifted-partial-derivatives measure of the PADDED permanent never exceeds that of
 HYPOTHESES on file, not proved:
-  - Answer to "PNP-001, Iteration 7 (P versus NP), narrow falsification test. Frage: Laesst sich ein Informationstransfer-Mass so definieren, dass es (i) fuer deterministische Rechnungen nicht trivial ist, (ii) sich unter Aenderungen der Speicherorganisation kontr
-  - RESTATE_RESTRICTION on 'N': Restate the restriction that block-respecting, oblivious, and reversible normal forms cost only polynomial overhead in terms of the computational complexity classes they belong to. -> opens: This restatement clarifies the relationsh
-  - ADD_RESTRICTION on 'E1': Add a restriction that the measure must also account for the temporal dynamics of the computation, not just the spatial distribution of crossing sequences. -> opens: This change introduces a new dimension to the measure, potentially le
-  - REMOVE_ASSUMPTION on 'F': Remove the restriction that the measure must not fall under the category described in F. -> opens: This change allows us to explore measures that might be based on the variety of crossing sequences or other properties that were previo
-  - state the problem in Spiral Time-Entropy Diagram: Each boundary $i$ is mapped to a point on a spiral where the radial distance represents $\log_2(|\tau_i(M, x)|)$ and the angular position corresponds to $i$. The entire transcript $\tau_e(M, x)$ is visualized a
-  - state the problem in Crossing Sequence Graph: Each crossing sequence $\tau_i(M, x)$ is mapped to a vertex in the Crossing Sequence Graph. Edges connect vertices if their corresponding sequences share a common subsequence. The entire transcript $\tau_e(M, x)$ i
+  - For every m, there is a family of CNFs with m clauses for which the number of W with g(W) ≠ 0 is at least 2^(cm) for some constant c > 0, so no truncation of the sum to polynomially many W-terms is exact for all inputs.
+  - For every CNF F over n variables, let g(W) = Σ over consistent clause subsets S with V(S) = W of (−1)^|S|; if g(W) ≠ 0, then some S with V(S) = W and sign-contributing to g(W) has no clause whose variables are all covered by the other clauses of S.
+  - Answer to "Kritische Problemprüfung: Rekonstruiere die Annahmen der Problemdefinition. Suche Gegenbeispiele und versuche sie zu widerlegen (FALSIFY); prüfe alternative Ursachen und beschreibe einen überprüfbaren Strategiewechsel. Kennzeichne jede unbelegte Sch
+  - state the problem in Graph Representation with Directed Edges: Each clause in the 1-in-3 formula is represented as a node, and directed edges connect clauses that share variables. The direction indicates the variable flow from one clause to another.
+  - state the problem in Algebraic Structure of Polynomial Rings: Each 1-in-3 formula is mapped to a polynomial ring over GF(3), where each clause corresponds to a monomial and the entire formula is a polynomial. The variables in the formula become indeterminates 
+  - state the problem in Spiral Coordinate System: Each clause in the 1-in-3 formula is mapped to a point on a spiral, where the angle represents the clause index and the radius represents the number of variables in the clause. Variables within a clause are repres
 REFUTED:
+  - It seems that counterargumento.txt": It derives from it."Die Beweisfahr.txt": The 'claim(31f']
   - Padding-floor EQUIVALENCE REFUTED (certified counterexample, independently verified); proven (<=) direction retained; replaced by a TWO-CONDITION necessary filter. COUNTEREXAMPLE (owner): (m,n,d)=(2,3,6), lambda=(8,2,2,2,2,2)|-18 has p_lambda>0 and lambda_1=8 
   - REJECTED: the proposed extension of the null-cone lemma to NON-rectangular partitions, and the claimed d_min^sep(3,4) >= 9. MATH ERROR: for a non-rectangular lambda with ell=k, the HWV transforms as P_lambda(g(t).f) = t^w P_lambda(f) with w = k*lambda_1 - |lam
   - Task split + ell=5 scope correction (owner). TWO distinct questions must NOT be conflated: (A) FIRST_NONZERO_IDEAL_DEGREE d_min(4) = first d with I(D_4)_d != 0; (B) FIRST_SEPARATING_EQUATION = first HWV in I(D_4) not in I(Y_{3,4}) (ker E_D not subset ker E_Y).
-  - WR correction (owner): the earlier 'border Waring rank of perm/det = Theta(4^n/n)' is too strong. PROVEN is only the LOWER bound underline-WR(f) >= C(n,floor(n/2))^2 = Theta(4^n/n), i.e. underline-WR = Omega(4^n/n) (exponential). Theta would need a matching up
 APPROACHES already examined (do not repeat one without a new idea):
-  - state the problem in Algebraic Geometry Space: Each SAT instance is mapped to a variety in projective space, where variables correspond to coordinates and clauses to polynomial equations. Solutions to -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
-  - state the problem in Hypergraph Representation: Each variable in the SAT problem is represented as a vertex, and each clause as a hyperedge connecting the vertices corresponding to the variables it co -> INVESTIGATED_NO_PROOF (the critics raised no objection; nothing was proved)
-  - Assume that the transport of input information is not bounded by input length but instead scales superpolynomially with the input size. -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
-  - state the problem in Tensor Network Diagrams: Each deterministic TM transition is represented as a tensor node, with input/output states as indices. Crossing sequences become paths in the network, and -> INVESTIGATED_NO_PROOF (the revisions changed nothing; nothing was proved)
-  - The total variation distance \( \delta_\pi(t) \) decreases monotonically with time \( t \) for the cat map \( U \) on a finite set \( \Omega \). -> NOT_INVESTIGATED (no second agent was available for an independent solution)
-  - The inverse of a poly-time injective function \( g \) is not necessarily poly-time computable even if \( P = NP \). -> NOT_INVESTIGATED (no second agent was available for an independent solution)
-  - The clustering threshold in k-XORSAT instances does not inherently correlate with computational hardness for all algorithms. -> INVESTIGATED_NO_PROOF (the revisions changed nothing; nothing was proved)
-  - state the problem in Spiral Coordinate System: Each element \( g \in G \) is mapped to a point on a spiral in the complex plane, where the angle corresponds to the element's position in a cyclic order -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
-NUMERICAL EVIDENCE on file: 77 entries (finite cases; they prove nothing about all cases). Latest: {"script_mode": true, "variables": {"n": 8, "ok": true}, "note": "no main() and no result dict: printed output is in stdout_tail, small top-level values in variables"} | printed: 1 True
-2 True
-3 True
-4 True
-5 True
-6 True
-7 True
-8 True
-
+  - There exists a counterexample where the formula is satisfiable but the multigraph does not have a matching, or vice versa. -> INVESTIGATED_NO_PROOF (the critics raised no objection; nothing was proved)
+  - state the problem in Hypercube vertex (binary n‑cube) of Boolean assignments.: Map each formula F to the vertex v_F∈{0,1}^n that assigns the unique values making all clauses true; if zero or more than -> NOT_INVESTIGATED (no second agent was available for an independent solution)
+  - state the problem in Boolean-defect coset of the GF(3) clause system.: Each variable \(i\) maps to a coordinate \(x_i\in\mathbb F_3\); each clause \(C\) maps to the linear functional \(\ell_C(x)=\sum_ -> NOT_INVESTIGATED (no second agent was available for an independent solution)
+  - The claim that the satisfying assignment count (sat) is 1 for all formulas in `filtered_rank2_3` is a necessary consequence of an unstated assumption about the underlying constraint structure being eq -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
+  - The claim is falsified by the synthetic data generated in the last step, as 10 out of 100 formulas have a satisfying assignment count of 2. -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
+  - state the problem in Subset-lattice Möbius space (incidence algebra of the Boolean lattice of clauses), replacing integer counts with functions on a poset.: each clause c ↦ its falsifying subcube A_c  -> INVESTIGATED_NO_PROOF (the critics raised no objection; nothing was proved)
+  - state the problem in Hypercube face complex with an Euler-characteristic valuation, i.e. geometry of {0,1}^n where CNFs are arrangements of axis-parallel subcubes rather than logical formulas.: a lite -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
+  - The clause size in a positive 1-in-3 formula is not fixed at 3; instead consider positive 1-in-k formulas where each clause contains exactly k variables for arbitrary k ≥ 1. -> INVESTIGATED_NO_PROOF (the rounds of criticism were used up; nothing was proved)
+NUMERICAL EVIDENCE on file: 110 entries (finite cases; they prove nothing about all cases). Latest: {"script_mode": true, "variables": {"clauses_6": [[0, 1, 2], [0, 1, 3], [0, 1, 4], [0, 1, 5], [0, 2, 3], [0, 2, 4], [0, 2, 5], [0, 3, 4], [0, 3, 5], [0, 4, 5], [1, 2, 3], [1, 2, 4], [1, 2, 5], [1, 3, 4], [1, 3, 5], [1, 4, 5], [2, 3, 4], [2,
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-d41254d122 [UNEXPLAINED, OPEN] Objection by Qwen2.5-VL-72B-Instruct against "CONJECTURE (O8 SUPPORTED by symbolic verification, O7 SUPPORTED by finite computation for n≤10, O3 DISPUTED - circuit complexity bound appears inconsistent with known lower b
-  - Q-54356f7b4b [UNEXPLAINED, OPEN] Objection by laguna-xs-2.1 against "CONJECTURE (tested for \( n = 1 \) to \( n = 9 \), not proved; the transfer of the approximative F_2-grade to SAT withstands adversarial verification within the specified bounds for AC
-  - Q-5c1e93ff1a [UNEXPLAINED, OPEN] Objection by laguna-xs-2.1 against "": I need to analyze this task systematically. Let me first check which scientific methods are appropriate for this problem.</think><tool_call>physalis_discover<arg_key>query</arg_key>
-  - Q-1c4a676701 [UNEXPLAINED, OPEN] Objection by Qwen2.5-VL-72B-Instruct against "": ISSUES: FOUND The colleague's solution does not address the specific tasks outlined in the problem statement. Here are the specific issues: 1. **No Direct Address of Claim
-  - Q-dc08749193 [UNEXPLAINED, OPEN] Objection by Qwen2.5-VL-72B-Instruct against "": ISSUES: FOUND The colleague's solution lacks a concrete, checkable response to the task requirements. Specifically: 1. **No Explicit Arguments for Claims**: The colleague 
+  - Q-a945310cab [UNEXPLAINED, OPEN] Objection by claude-haiku-5-5 against "CONJECTURE": ISSUES: FOUND **1. Der Beispielfall F₄ = {123, 124, 134, 234} ist nicht „blind“.** Die Zeilen von A sind J − I (eine Zeile pro Tripel, Komplement eines Index). Die Summ
+  - Q-5b21aad2ae [UNEXPLAINED, OPEN] Objection by poolside/laguna-xs-2.1 against "CONJECTURE (tested on all possible positive 1-in-3 formulas on up to 7 variables; further theoretical analysis and verification needed to establish as a general statement)": L
+  - Q-16e5f7bea4 [UNEXPLAINED, OPEN] Objection by poolside/laguna-xs-2.1 against "NONE": ISSUES: FOUND Let me analyze this colleague solution against the task and materials. The colleague solution correctly identifies: 1. The need to check the claim about C
+  - Q-a20549468b [UNEXPLAINED, OPEN] Objection by claude-haiku-5-5 against "The clause size in a positive 1-in-3 formula is not fixed at 3; instead consider positive 1-in-k formulas where each clause contains exactly k variables for arbitrary k ≥ 1. If clau
+  - Q-996d23b9cb [UNEXPLAINED, OPEN] Objection by claude-haiku-5-5 against "The clause size in a positive 1-in-3 formula is not fixed at 3; instead consider positive 1-in-k formulas where each clause contains exactly k variables for arbitrary k ≥ 1. If clau
 NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it follows from its premises)
