@@ -15,3 +15,4 @@
   Section 8 (correction): algorithm R counts complete solutions (x,y); projected #SAT only with unique witnesses (l3e_checks.py).
   Section 9 (brute force, acc0-level3/brute): all representations n+k <= 7; surplus at the affine-hull bound iff f in D (Theorem B).
 - `mg3/`: Theorem MG-3 (no common GL2 basis makes EXACT1_3 and EQ_d, d>=3, planar matchgates; sharp at d=2), owner proof + independent review with exact Groebner check; spec: second Level-3 route (matchgate excess).
+  Section 10 (holo/gates): no common GL2 matchgate basis for nonlinear gates and wire equalities; direct translation lambda >= #nonlinear gates.

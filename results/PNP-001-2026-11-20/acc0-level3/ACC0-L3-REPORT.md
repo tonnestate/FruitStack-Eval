@@ -230,3 +230,25 @@ Meaning and limit: the rank surplus is a property of the function, not of a clev
 expressiveness only by spending surplus. This concerns representations of the function computed (satisfiable side). For SAT the hard
 instances are unsatisfiable ones, where Sol is empty and Theorem B says nothing; there the cost is governed by GF(3)-blind solution
 spaces (PNP-001 blind cores). That remains the open part of Level 3; brute force at n <= 4 does not decide the asymptotic question.
+
+## 10 Second route, step 1 (2026-11-20): lambda of the DIRECT holographic translation of circuits
+Files: holo/gates/ (*.json inputs for lab/onein3/matchgate_miner.py, gates_groebner.py independent Groebner check with the reviewer's
+MGI code, lambda_circuits.py measurement).
+Setting: bipartite signature grid gates | wires; gate vertex = relation [c = g(a,b)] (arity 3) transformed by T^{x3}; wire vertex =
+EQ_d transformed by (T^{-1})^T (up to scalar adj(T)^T); planar matchgates (Cai-Gorenstein MGI); one T in GL2(C) for the whole grid.
+Theorem MG-C (computational proof, two independent methods agree: exact solver PROVED_NO_BASIS and Groebner basis {1} over Q):
+  for g in {AND, OR, NAND}: no T makes g and EQ_d both matchgates, for d = 2, 3, 4 - even without fan-out (d = 2);
+  XOR: a common basis exists with EQ_2, none with EQ_3, EQ_4; NOT: a common basis exists with EQ_2, EQ_3, EQ_4.
+Lemma S: a signature with at most one nonzero entry is a planar matchgate (tensor product of unary matchgates), so every
+  non-matchgate vertex contributes log2|supp| >= 1 to lambda.
+Corollary (proved from MG-C + S): for circuits over {AND, OR, NAND, XOR, NOT} with fan-out <= 3 (wire arity <= 4), in the direct
+  translation under ANY single GL2 basis: either every nonlinear gate (AND/OR/NAND) is a non-matchgate, or every wire vertex is
+  (and there are at least as many wires as gates); hence lambda >= N_nonlinear (crossings not even counted). So the direct
+  translation beats brute force (lambda <= n - omega(log n)) only for circuits with fewer than n - omega(log n) nonlinear gates -
+  a weak class (few AND gates), not a new lower-bound route.
+Measurement (random NAND circuits, fan-out <= 3, constructed one-page drawing, exact counts):
+  n = 8..64, s = n..8n: crossings grow ~quadratically (36 at n = s = 8; 118,959 at n = 64, s = 512), lambda_std = 2s + #EQ_{>=3} +
+  2 cr (93 ... 239,270), and the basis-independent lower bound lambda >= s >= n holds in every case. Crossings dominate.
+Meaning: MG-3 extends from EXACT1_3 to every nonlinear gate; for the direct translation lambda grows with the circuit size s, not
+with n. The holographic route can only work through GADGETS / super-signatures (several vertices fused, higher-dimensional bases)
+or through drawings with few crossings - exactly the parts MG-C does not cover. That is the remaining open part of this route.
