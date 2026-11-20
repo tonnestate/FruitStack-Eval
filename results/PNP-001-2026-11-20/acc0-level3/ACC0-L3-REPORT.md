@@ -87,7 +87,8 @@ l3c_checks.py (class D membership n<=4, Delta identity 300 systems, NAND gadget,
   Boolean values of the free columns, compute pivots, accept/count iff all pivots in {0,1}.
 
 ### 6.2 Theorem R (cost, exact over all branches) - proved, numerically confirmed
-R(S) decides SAT and computes #SAT exactly. Its cost is exactly poly(t, m) * [2^{|S|} + sum over GF(3)-consistent sigma of 2^{t-|S|-r(sigma)}]
+R(S) decides SAT exactly and counts the complete Boolean solutions (x,y) exactly [CORRECTED 2026-11-20, owner: this is NOT the
+projected count #{x : exists y A(x,y)=b} in general; see section 8]. Its cost is exactly poly(t, m) * [2^{|S|} + sum over GF(3)-consistent sigma of 2^{t-|S|-r(sigma)}]
 <= poly * 2^{|S|} + poly * 2^{t - r_min(S)} = poly * 2^{n - Delta(S)} + poly * 2^{|S|},  Delta(S) := r_min(S) - k.
 |S| cancels in the second term; the bound is a uniform worst case over ALL branches (not a favourable one). Restriction selection:
 any vertex cover of the monomial graph (greedy, poly time) - Delta(S) need not be computed to run R. Branch-dependent ranks are covered
@@ -119,7 +120,7 @@ against n_eff to exclude this inflation.
   span_GF(3){g_1..g_k} modulo affine functions on the cube. Each GF(3)-independent non-literal gate output costs one unit of surplus.
   Example: the exact NAND gadget u+v+2z-w1 = 2, u+v+z-w2 = 1 has 2 rows, 3 auxiliaries, local Delta = -1; 40 random gadget circuits
   satisfy Delta <= 1 - rho.
-- Consequences: (i) #SAT by R costs >= sum_sigma 2^{dim aff Sol_sigma} >= #SAT. (ii) On UNSAT inputs R costs the sum of 2^{free} over
+- Consequences: (i) counting by R costs >= sum_sigma 2^{dim aff Sol_sigma} >= #{(x,y)} (complete solutions, not the projected count). (ii) On UNSAT inputs R costs the sum of 2^{free} over
   GF(3)-consistent branches: the expensive instances are exactly the GF(3)-blind ones (the PNP-001 blind cores; F(G) for
   non-3-colourable G: 2^{2|V|} = 2^{(4/15)n} for cubic G). (iii) Failed conjecture recorded: "guaranteed Delta = omega(log n) for
   C^(2)" is FALSE (single symmetric quadratic gate: r_min = 0; NAE-3SAT in D: Delta <= 0).
@@ -189,3 +190,19 @@ All 3,244 agent ledger entries checked against primary sources (lab register, ru
 failures; 12 entries with run ids unknown to the observed-id index - 10 cite real executed runs (index fixed, cc60940), seq 2895 cites a
 failed run but says so and rests on real runs, seq 154 predates the trace. Fabricated evidence: only R0400 / HYPOTHESIS seq 4825 -
 RETRACTED (INVALID_RESULT). R0396 recorded no evidence entry; its FINAL's "numerical evidence" has no primary source.
+
+## 8 Correction (owner, 2026-11-20): counting semantics of algorithm R
+R enumerates complete Boolean solutions of A(x,y) = b, so it counts PAIRS (x,y). The projected count #{x : exists y} is a different
+quantity: the constraint x = 0 with one free auxiliary y has 2 pairs and 1 accepted input (l3e_checks.py). Corrected statements:
+- SAT: exact for every representation (unchanged).
+- #SAT over all variables (pairs): exact (unchanged; the earlier tests compared exactly this).
+- Projected #SAT on the original inputs: exact iff every accepted x has exactly one witness y. Holds for class D (linearly determined
+  auxiliaries: y is an affine function of x; 0 mismatches in 300 random D systems) and for unique-witness (Boolean-functionally
+  determined) gadget representations such as the NAND gadget of section 6.4. Fails in general for free auxiliaries (122 of 300 random
+  C0-exists systems differ). For free auxiliaries R gives only the upper bound #{x} <= #{(x,y)}; projected counting would need a
+  per-input existence test (a C0-SAT instance on the auxiliaries), which this report does not analyse.
+- Consequence for transfers: only SAT and unique-witness counting results of this report may be fed into SAT/#SAT transfer theorems
+  on the original circuit inputs.
+R0404 (OR_n with n-1 auxiliaries, rank n): NO evidence - its only successful lab run returned a hard-coded placeholder ("m = 4 # Example
+value"), three dataset reads failed, the dataset and the cited law:acc0_c0_exists_or_* ids do not exist. It is an unsupported claim,
+not k_min(OR_n) <= n-1; even a verified construction would give only an upper bound on k_min. Not part of this report's results.
