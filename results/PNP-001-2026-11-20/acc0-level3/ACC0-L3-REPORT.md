@@ -576,10 +576,10 @@ mathematical results are preserved; no new mission and no further experiments fr
 
 ## 20 Reuse-sensitive MCSP route: lower limit for generic reuse lemmas (director 2026-11-20)
 Proposition R1. Any lemma "for every De Morgan circuit of size S with r gates of fan-out > 1 computing f: L(f) <= C S (r+1)^c" that holds for
-ALL Boolean functions f needs c >= 1 - o(1).
+ALL Boolean functions f needs c >= 1 (exactly: for fixed C, n^2 <= C' n^{1+c} for all n forces c >= 1).
 Proof. XOR_n has a De Morgan circuit of size S = Theta(n): a chain of XOR_2 gadgets x (+) y = (x v y) ^ not(x ^ y); the output of each gadget
 feeds both the v- and the ^-gate of the next gadget, so it has fan-out 2, giving r >= n - 2 reused gates. Khrapchenko: L(XOR_n) >= n^2
-(De Morgan formula leaf size). Hence n^2 <= C Theta(n) (n-1)^c, so c >= 1 - o(1). QED (classical ingredients; elementary.)
+(De Morgan formula leaf size). Hence n^2 <= C' n^{1+c} for all n, so c >= 1. QED (classical ingredients; elementary.)
 Consequence. With today's provable a(beta) ~ 2 for small thresholds (MCSP[2^{sqrt l}] not in FML[n^{2-delta}]), the route needs c < 1, i.e. an
 MCSP-specific reuse lemma that strictly beats the parity witness: every small circuit for MCSP[N^beta] must have reused intermediate results
 that unfold into formulas more cheaply than XOR chains do. Obstacle to examine next: small circuits for MCSP may contain parity-like
@@ -587,10 +587,11 @@ sub-computations; a lemma with c < 1 must exclude this for EVERY small circuit, 
 requirement (F2), this is the precise current state of the route. Status: OPEN; Proposition R1 elementary, independent review not yet done.
 Reuse lemma, written proof (director 2026-11-20; leaf-count size). Let C be a De Morgan circuit of size S with r gates of fan-out > 1.
 (1) Replace each reused gate g_i by a new variable y_i; every other gate has fan-out 1 and lies in exactly one tree (the one its unique path
-leads to), giving formulas T_1..T_r, T_out over (x, y) of total size <= S (input leaves may repeat). (2) f(x) = OR over a in {0,1}^r of
+leads to), giving formulas T_1..T_r, T_out over (x, y); a tree with g binary gates has g + 1 leaves (NOT gates add none), so the r + 1 trees have at
+most S + r + 1 leaves together (input leaves may repeat) - corrected 2026-11-20. (2) f(x) = OR over a in {0,1}^r of
 [AND_i (T_i(x,a) <-> a_i) AND T_out(x,a)], where T_i <-> a_i is T_i or not T_i (negations pushed to leaves, leaf count unchanged).
 (3) Acyclicity: in topological order a consistent a equals the true gate values, so exactly one branch is consistent and yields the output.
-(4) Size <= 2^r S leaves plus O(2^r r) connectives = O(S 2^r). QED - correct for arbitrary fan-out.
+(4) Size <= 2^r (S + r + 1) leaves = O(S 2^r) since r <= S. QED - correct for arbitrary fan-out.
 Update (owner deep research, source-checked 2026-11-20): Chen-Jin-Williams, "Sharp Threshold Results for Computational Complexity", ECCC
 TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no
 probabilistic n^{2+alpha-eps}-size formulas (n = truth-table length, FIXED threshold n^alpha). So a(beta) = 2 + beta for the fixed threshold
@@ -606,3 +607,14 @@ not apply; c >= 1 + beta - no superlinear bound.
 Status: Theorem R (the implication) PROVED from published results (paper proof, review pending); hypothesis R-MCSP OPEN. By Proposition R1
 any reuse lemma valid for all functions has c >= 1, so R-MCSP must be MCSP-specific, strictly beat the parity witness, and fail for small
 fan-in oracle gates (F2). The exponent c < 1 lies exactly where every generic method is excluded.
+Independent review (2026-11-20, adversarial reviewer, read-only, against CJW20/MMW19/CJW19 texts): lemma, R1 and the arithmetic of Theorem R
+CORRECT; CJW20 Thm 1.6 citation CORRECT (line 162; n = 2^m truth-table length, size = leaf count). Nothing WRONG. Fixes adopted:
+(1) NOT-gate convention: S counts binary gates; if NOT gates are free but reused NOT gates count in r, then r <= 2S + N = O(S) (S >= N-1),
+so all bounds hold up to constants. (2) MMW step: the literal STOC'19 statement is Thm 1.4 (third bullet: search-MCSP^A[s] without circuits
+of size N poly(s), depth poly(s) => NP not in P/poly); the "MCSP[2^{beta m}] not in SIZE(N^{1+eps}) for all small beta" form is the CJW
+TR19-118 restatement (lines ~62-64). Derivation: NP in P/poly gives MCSP[2^{beta m}] circuits of size N^{1+k beta} for a fixed k; beta <
+eps/k contradicts; search vs decision costs N poly(s). (3) Theorem R uses only r <= S, so R-MCSP is in effect "L(MCSP[N^beta]) <=
+C S^{1+c}, 1+c < 2" - the (r+1)^c refinement plays no role in the implication. (4) R1 is weaker than the real obstacle: a generic lemma with
+ANY constant c would put P/poly into poly-size formulas (NC1/poly). "Exactly where every generic method is excluded" is withdrawn: R1
+excludes only lemmas valid for all functions, not lemmas for restricted circuit classes or other techniques.
+Status: reuse lemma, Proposition R1, Theorem R (implication) - independently reviewed. R-MCSP OPEN.
