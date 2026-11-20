@@ -585,3 +585,9 @@ MCSP-specific reuse lemma that strictly beats the parity witness: every small ci
 that unfold into formulas more cheaply than XOR chains do. Obstacle to examine next: small circuits for MCSP may contain parity-like
 sub-computations; a lemma with c < 1 must exclude this for EVERY small circuit, not only natural ones. Together with the non-locality
 requirement (F2), this is the precise current state of the route. Status: OPEN; Proposition R1 elementary, independent review not yet done.
+Reuse lemma, written proof (director 2026-11-20; leaf-count size). Let C be a De Morgan circuit of size S with r gates of fan-out > 1.
+(1) Replace each reused gate g_i by a new variable y_i; every other gate has fan-out 1 and lies in exactly one tree (the one its unique path
+leads to), giving formulas T_1..T_r, T_out over (x, y) of total size <= S (input leaves may repeat). (2) f(x) = OR over a in {0,1}^r of
+[AND_i (T_i(x,a) <-> a_i) AND T_out(x,a)], where T_i <-> a_i is T_i or not T_i (negations pushed to leaves, leaf count unchanged).
+(3) Acyclicity: in topological order a consistent a equals the true gate values, so exactly one branch is consistent and yields the output.
+(4) Size <= 2^r S leaves plus O(2^r r) connectives = O(S 2^r). QED - correct for arbitrary fan-out.
