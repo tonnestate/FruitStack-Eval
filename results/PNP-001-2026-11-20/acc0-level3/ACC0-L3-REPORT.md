@@ -618,3 +618,18 @@ C S^{1+c}, 1+c < 2" - the (r+1)^c refinement plays no role in the implication. (
 ANY constant c would put P/poly into poly-size formulas (NC1/poly). "Exactly where every generic method is excluded" is withdrawn: R1
 excludes only lemmas valid for all functions, not lemmas for restricted circuit classes or other techniques.
 Status: reuse lemma, Proposition R1, Theorem R (implication) - independently reviewed. R-MCSP OPEN.
+Owner refinement (2026-11-20): restrict to size-minimal circuits. Target: L(MCSP[N^beta]) <= K_beta S*(r*+1)^{1-delta}, delta > 0 independent
+of beta, S* = CC(MCSP[N^beta]). Director check: WLOG correct; arithmetic correct (S* >= N^{(2+beta-eta)/(2-delta)}, uniform > 1 for eta <
+delta). Note: since r* <= S*, the implication uses only L(F) <= K_beta CC(F)^{2-delta}, a statement relating two complexity measures of
+one function; minimality/decomposition is a proof device, not part of the statement.
+Source check KKLMO (Kabanets-Koroth-Lu-Myrisiotis-Oliveira, CCC 2020, arXiv 2002.08533 / ECCC TR20-018, local copy
+literature/sources/arXiv-2002.08533): Thm 1 item 3 / Thm 34: if MCSP in FORMULA[s] o XOR then s = Omega~(N^2) (polylog losses). MCSP there
+has the threshold l as INPUT (line 230-232), and the authors note the proof "requires instances where the parameter l is n^{Omega(1)}"
+(line ~277) - same quantification caveat as CKLM; not stated for fixed MCSP[N^beta]. Their magnification remark: MCSP with l <= n^{o(1)} not
+in FORMULA[n^{1+eps}] o XOR would give NP not in FORMULA[n^c] for all c (formulas, not P/poly).
+Observation R1' (director, elementary given Tal 2017; Tal source check pending): XOR leaves are XORs of INPUT variables, so
+FORMULA[s] o XOR is contained in bipartite formulas of size O(s) (XOR(x_S) + XOR(y_T) needs 2 bipartite leaves). Inner Product IP_n has a
+linear-size circuit with a chain of ~n reused gates but needs bipartite formula size n^{2-o(1)} (Tal 2017). So the parity witness is
+neutralised by XOR leaves, but IP (a mandatory control) is the same witness in the FORMULA o XOR model: any generic conversion
+"circuit -> FORMULA o XOR of size C S (r+1)^c" needs c >= 1 - o(1). The algebraic-unit idea must therefore also be MCSP-specific; XOR
+leaves alone do not absorb reuse of COMPUTED values (XOR of intermediate results).
