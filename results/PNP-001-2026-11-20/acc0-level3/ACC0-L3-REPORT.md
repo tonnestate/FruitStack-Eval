@@ -433,3 +433,27 @@ OPEN remainder of M9: full roABP-IPS refutations of unbounded placeholder degree
 Boolean-axiom part (a roABP certificate that prod_D (1 - Q_D(x,y)) lies in the Boolean ideal).
 Status: paper proof by the director; INDEPENDENTLY REVIEWED 2026-11-20 - "proved as stated": steps (a)-(d), the extension of Lemma O
 and the final bound CORRECT, example correct and not overstated, no counterexample; corrections applied (formal source TR25-080 Def. 9; threshold t <= c' n; sharper example wording). Works over every field.
+
+## 15 Lemma 15 (M9-S, owner proposal 2026-11-20): sparse-placeholder linearisation for CNF axioms
+Statement. Let Phi be an unsatisfiable CNF over a field F, axioms Q_1..Q_M = clause polynomials (products of univariate factors 1 - x_i
+and x_j) and Boolean axioms x_j^2 - x_j (univariate). Let C(x, z) be a full IPS refutation (C(x,0) = 0, C(x,Q) = 1 as polynomials,
+TR25-080 Def. 9) computed by an roABP of width w in an arbitrary total order of x and z, with t distinct z-monomials (z^alpha, alpha != 0)
+in C = sum_alpha c_alpha(x) z^alpha. Then Phi has a roABP-IPS_LIN refutation whose coefficients have width <= t w in the order induced on x.
+Proof. (i) Coefficient extraction: replacing, in every z-layer, each edge label by its coefficient of z_j^{alpha_j} gives constant
+matrices (alpha_j = 0: constant term; consecutive z-layers multiply into one matrix; a z-layer at either end merges into the first/last
+x-matrix); multiplying them into the adjacent x-layers yields an roABP for c_alpha(x) of width <= w in the induced x-order. (ii) For each
+alpha choose i(alpha) with alpha_i >= 1 and set h_alpha(x) = c_alpha(x) Q_i^{alpha_i - 1} prod_{j != i} Q_j^{alpha_j}. Every Q is a product of
+univariate polynomials, so multiplying by it only multiplies edge labels layer by layer (a variable without a layer first gets a
+trivial identity layer): width stays <= w. (iii) g_i = sum_{alpha: i(alpha)=i}
+h_alpha has width <= t w (sum of <= t roABPs in the same order). (iv) sum_i z_i g_i(x) vanishes at z = 0 and at z = Q equals
+sum_{alpha != 0} c_alpha(x) Q^alpha = C(x,Q) - c_0 = 1, since c_0 = C(x,0) = 0. Every field. QED (cf. Grochow-Pitassi, arXiv 1404.3820, Prop. 2.1: sparse IPS certificates convert
+to Hilbert-like ones; the non-sparse case is their Open Question 1.13.)
+Corollary (via Theorem 12). For Psi_n: t * w >= 2^{Omega(n)}.
+Relation to Theorem 14 (honest): Lemma T* already gives tiling size <= W * #{S : c_S != 0} <= W * t, hence the same corollary, and the
+stronger degree consequence (placeholder degree > c' n for polynomial width, counting only clause placeholders after multilinearisation).
+Precisely: t and the placeholder degree are incomparable parameters; Lemma T* gives W * min(t, binom(m', <= t(C))) and covers both.
+Lemma 15 is an independent second route (a direct simulation full -> LIN with width loss t, invariance-matrix style), not a new bound.
+Unlike Grochow-Pitassi Prop. 2.1 it needs no bound on the individual placeholder degree and no field-size condition (coefficients are
+read off the roABP exactly instead of Zippel interpolation).
+Status: INDEPENDENTLY REVIEWED 2026-11-20 - proved as stated over every field (extraction, univariate products, sums, validity,
+Grochow-Pitassi comparison, relation to Lemma T* all CORRECT; wording fixes applied).
