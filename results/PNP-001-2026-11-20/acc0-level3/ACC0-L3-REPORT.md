@@ -352,3 +352,33 @@ O(p) with p ~ 1/eps from the Lauria-Nordstrom constants - astronomically large i
 script checks only the selector combinatorics on toy CNFs, not the polynomial identities.
 Scope (unchanged): roABP-IPS_LIN only; the instance is the doubly lifted formula, not positive 1-in-3 itself; no statement about stronger
 systems or algorithms.
+
+## 13 Owner steps 2026-11-20: target statements, degree experiment, barrier test
+### 13.1 Target statements (binding form: "family X needs degree/size ... in proof system Y over field(s) F" - a lower bound against a
+RESTRICTED class, labelled as such)
+- PROVED (paper proof, independently reviewed; formalisation of Lemma N pending): X = F(G_n) (Lauria-Nordstrom graphs), Y = Nullstellensatz
+  and polynomial calculus, degree Omega(n), every field (Lemma N + Lauria-Nordstrom Thm 3.7).
+- PROVED (independently validated): X = Psi_n (doubly lifted), Y = roABP-IPS_LIN, width 2^{Omega(n)}, every field, every order (Thm 12).
+- KNOWN (literature, to be cited exactly before use; not ours): subset sum sum x_i = beta without Boolean root - linear degree in PC
+  (Impagliazzo-Pudlak-Sgall 1999) and exponential roABP-IPS_LIN size (Forbes-Shpilka-Tzameret-Wigderson); Tseitin on expanders - linear
+  degree over characteristic != 2 (Buss-Grigoriev-Impagliazzo-Pitassi), degree O(1) over F2.
+- OPEN: X = Psi_n, Y = full roABP-IPS (rung 4b).
+### 13.2 Experiment (groebner/gdeg.py, groebner/nsdeg.py; supports hypotheses, proves nothing)
+Measure A (Singular std with degBound = d over F[x]/(x^2 - x)): NOT reliable as a degree invariant - returns degrees above n + 1
+(Tseitin K4, 6 variables: 7) and is non-monotone (subset sum: ">7" at n = 5, 7 at n = 6); it counts non-multilinearised intermediate
+degrees. Reported but not used. Measure B (exact multilinear Nullstellensatz degree by linear algebra mod p): Tseitin K4 / K33 / prism:
+F2 = 1, 1, 1 versus F3 = 6, 7, 6 (XOR-SAT control: linear over F2, high over F3, as the literature predicts); subset sum sum x = n + 1 over
+F101: exactly n + 1 for n = 2..8 (consistent with the functional argument: the coefficient equals 1/(sum x - beta) on the cube, of full
+degree n); colouring encoding of K4: 3 over F2 and F3 (matches R0427). Small instances cannot show the asymptotic Omega(n) of F(G_n).
+### 13.3 Barrier test of every open inference in this manuscript
+Filter: an inference that claims a separation of complexity classes must state its quantifier structure and why it does not relativise
+(Baker-Gill-Solovay), is not a natural proof (Razborov-Rudich: constructive + large property), and does not algebrise (Aaronson-
+Wigderson). An argument that uses only arithmetisation plus linear algebra over fields algebrises and cannot carry P != NP.
+- Theorems A, B, G, H, L, O', Lemma F' (GF(3) route): statements about the algorithm family R / representations - no class separation
+  claimed; filter not triggered.
+- Theorem 12, Lemmas T, N, O; MG-3, MG-C: lower bounds for fixed proof systems / fixed representations - no class separation claimed.
+- Open: rung 4b (full roABP-IPS) - a proof-system statement; general IPS lower bounds imply VP != VNP (Grochow-Pitassi), the known wall.
+- Open: algorithmic transfer (Williams-type) from a SAT saving - relies on cited external transfer theorems; no own saving claimed.
+- NOT present and NOT claimable from these methods: any inference from a restricted-system lower bound to "no polynomial SAT algorithm".
+  It fails twice: the quantifier gap (fixed proof system vs all algorithms), and our arguments (degree, rank, tiling over fields) are
+  arithmetisation-plus-linear-algebra, which algebrises.
