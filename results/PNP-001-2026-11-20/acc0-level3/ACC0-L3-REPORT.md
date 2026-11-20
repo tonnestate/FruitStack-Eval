@@ -272,18 +272,23 @@ g(u_i, v_i) = beta_j(i) for all i, the clause D = NOT(x_{vars(C_j)} = u AND y_{v
 precede all y-bits, then KW+(f_{C,g}) has an algebraic tiling of size <= w * m * 2^{k(p+q)}.
 Proof. On the Boolean cube the Boolean-axiom terms vanish, so sum_D a_D(x,y) R_D(x) S_D(y) = 1 for all (x,y). As an
 X^n x Y^n matrix, a_D has rank <= w: at the x|y cut of an roABP of width w, a_D = sum_{t<=w} L_t(x) M_t(y), and evaluation rank on the
-cube is at most this. B_D := diag(R_D) a_D diag(S_D) has rank <= w and support inside {x_{vars(C_j)} = u, y_{vars(C_j)} = v}, which lies
+cube is at most this. (Renaming, PR18 Prop 2.10: x -> u^x need not be injective; keep one representative row/column per class - a
+submatrix, rank does not grow, supports stay inside the rectangles, the sum stays J; X_{pi,alpha} is a combinatorial rectangle.)
+B_D := diag(R_D) a_D diag(S_D) has rank <= w and support inside {x_{vars(C_j)} = u, y_{vars(C_j)} = v}, which lies
 inside X_{pi_j, u} (g^n(x,y) falsifies C_j, x on vars(C_j) equals u). Grouping B_D by (j, u) gives matrices embedded in the canonical
 rectangles that sum to J, of total rank <= w * #clauses(C o g) <= w m 2^{k(p+q)}. QED
-Theorem 4.1 (rung 4, fixed order; from Lemma T + PR18 Thm 1.1). For C, g as in PR18 Thm 1.1, every roABP-IPS_LIN refutation of C o g
+Theorem 4.1 (rung 4, fixed order; from Lemma T + PR18 Thm 1.1). For C a k-CNF with k = O(1) and g as in PR18 Thm 1.1 with
+Boolean-encoded domains X = {0,1}^p, Y = {0,1}^q (PR18's field-independent good gadget h_lambda lives on [lambda+1] x [lambda+1]:
+take lambda + 1 = 2^p, or prove that zero-padding keeps h_lambda good - OPEN DETAIL), every roABP-IPS_LIN refutation of C o g
 over F with all x-bits before all y-bits has width >= chi_F(f_{C,g}) / (m 2^{k(p+q)}): n^{Omega(NS_F(C))} / poly for rank(g) = n^2,
 and 2^{Omega(n)} / poly when NS_F(C) = Theta(n) and g is a good gadget of large constant rank.
 Lemma N (proved here; degree of F(G) as a CNF). Write F(G) as the 3-CNF with, per positive 1-in-3 clause (a,b,c), the clauses
-(a v b v c), (-a v -b), (-a v -c), (-b v -c). Then NS_F(F(G)) >= NS_F(Col(G)) - O(1) for every field F, where Col(G) is the indicator
+(a v b v c), (-a v -b), (-a v -c), (-b v -c). Then NS_F(Col(G)) <= NS_F(F(G)) for every field F (exact, no loss - review 2026-11-20), where Col(G) is the indicator
 encoding of 3-colouring used by Lauria-Nordstrom. Proof: substitute y_{uwc} := 1 - x_uc - x_wc (affine, degree does not increase). The
 images of the edge-clause axioms and of y^2 - y reduce, modulo Boolean axioms in degree <= 3, to multiples of x_uc x_wc (e.g.
 (1-a)(1-b)(a+b) = 0, a(1-a-b) = -ab, (1-a-b)^2-(1-a-b) = 2ab); the vertex clauses generate 1 - sum_c x_vc and x_vc x_vc' in degree 3
-and conversely. QED. With Lauria-Nordstrom (PC degree Omega(n) over every field for explicit bounded-degree graphs; NS >= PC):
+and conversely. QED. With Lauria-Nordstrom (arXiv 2306.00125, Thm 3.7, checked at the source: graphs with O(k^4 n) vertices of degree O(k^2), encoding
+(2.2a)-(2.2c) = Col(G), PC degree Omega(n), field-independent per Thm 1.1; NS >= PC) and n_vars(F(G)) = 3|V| + 3|E| = Theta(|V|):
 NS_F(F(G)) = Theta(n).
 Corollary 4.2 (rung 4 for lifted F(G)). For the Lauria-Nordstrom graph families and every field F, F(G) o g (g good, large constant
 rank) requires roABP-IPS_LIN refutations of width 2^{Omega(n)} in every order with x-bits before y-bits. Arbitrary orders: TR26-070
@@ -295,12 +300,17 @@ owner asked for, and matches TR26-070's attribution to Sokolov. It concerns the 
 What a STRONGER system loses (explicit):
 (S1) roABP-IPS (non-linear in the axioms): C(x,y,f) with C(x,y,0) = 0, C(x,y,Q) = 1. Expanding in placeholder monomials gives
   sum_M c_M(x,y) prod_D Q_D^{M_D} = 1; every term is still embedded in a canonical rectangle, but the number of terms is the number of
-  placeholder monomials, which an roABP of width w can make exponential. Lost property: LINEARITY in the axioms - the tiling has
-  poly(w) many tiles only when every axiom appears linearly. Lemma T gives no bound.
-(S2) multilinear-formula IPS / no fixed order: Lemma T needs ONE cut (x | y) of rank <= w. Multilinear formulas have small rank only
-  relative to random partitions (Raz), with bounds far above n^{O(d)}. Lost property: a fixed low-rank cut.
-(S3) constant-depth IPS without individual-degree bounds: simulates AC0[p]-Frege over F_p, which has no feasible interpolation unless
-  Diffie-Hellman is computable by 2^{n^eps}-size circuits (TR26-070 Sec. 1.3, citing [BDG+99]). Lost property: feasible interpolation
-  itself (conditional) - no interpolation-based or tiling-based transfer can work there under that assumption.
-(S4) Control: the XOR part is easy for roABP-IPS_LIN (Tseitin, TR26-070 Sec. 5); hardness of F(G) o g comes from the colouring part
-  through NS degree - consistent with Lemma N.
+  placeholder monomials, which an roABP of width w can make exponential. Limit of THIS argument: Lemma T's tile count needs linear
+  axiom use; that linearity is necessary for every transfer is NOT proved.
+(S2) multilinear-formula IPS / no fixed order: Lemma T needs ONE cut (x | y) of rank <= w. Raz's method gives only a rank DEFICIT
+  under random partitions, not small rank, and e.g. prod_i (x_i + y_i) has full rank at the x|y cut. Lost property: a fixed low-rank cut.
+(S3) constant-depth IPS without individual-degree bounds: simulates AC0[p]-Frege over F_p, which has no GENERAL feasible interpolation
+  unless Diffie-Hellman is computable by 2^{n^eps}-size circuits (TR26-070 Sec. 1.3, citing [BDG+99]). Lost property: general feasible
+  interpolation (conditional). This does NOT exclude a Lemma-T-type transfer for LIFTED formulas C o g (the Diffie-Hellman formulas
+  are not of that form) - corrected after review.
+(S4) Control: F(G) as a CNF contains no XOR; in the separate XOR/carry representation the XOR (Tseitin-type) part is easy for
+  roABP-IPS_LIN (TR26-070 Sec. 5). The hardness of F(G) o g comes from the colouring part through NS degree (Lemma N).
+Independent review 2026-11-20 (reviewer saw only this section and the two source texts): Lemma T CORRECT, Theorem 4.1 CORRECT for
+constant k, Lemma N CORRECT (exact inequality), Corollary 4.2's named gap is the right one; fixes applied above (renaming line, k = O(1),
+exact Lemma N, S1-S4 wording). Open: (i) gadget domain {0,1}^p for h_lambda; (ii) TR26-070 Sec. 4 for constant-width k-CNFs
+(N^K selectors per clause plus a matching consistency part).
