@@ -20,3 +20,4 @@
 - `acc0-level3/THEOREM-12.md`: standalone result document for Theorem 12 (statement, proof chain, sources, reviews, novelty note). Next: rung 4b (full roABP-IPS).
   Section 14: cell M9 partial - Theorem 14 (full roABP-IPS, placeholder degree <= c'n: width 2^{Omega(n)}), independently reviewed.
   Section 15: Lemma 15 (sparse-placeholder linearisation, full -> LIN with width loss t), independently reviewed; M16 oracle model explicit.
+  Section 16: cell M9b - Theorem 16 (product certificates of Psi_n need width 2^{Omega(n)} in every order; structural), independently reviewed.

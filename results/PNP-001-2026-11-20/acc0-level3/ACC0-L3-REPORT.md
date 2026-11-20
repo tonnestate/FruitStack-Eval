@@ -457,3 +457,42 @@ Unlike Grochow-Pitassi Prop. 2.1 it needs no bound on the individual placeholder
 read off the roABP exactly instead of Zippel interpolation).
 Status: INDEPENDENTLY REVIEWED 2026-11-20 - proved as stated over every field (extraction, univariate products, sums, validity,
 Grochow-Pitassi comparison, relation to Lemma T* all CORRECT; wording fixes applied).
+
+## 16 Cell M9b: rank of P_Psi in every order (2026-11-20; repaired argument by an external reviewer + director's selector scheme)
+Lemma M9b' (repair). Let (U,V) be a cut of the variables of a CNF F, P_F = prod_D (1 - Q_D). Let M be K pairwise variable-disjoint clauses
+crossing the cut, and assume that after a substitution of field elements for ALL variables except the variables of the M-clauses that
+stay free (in Theorem 16: all except M's v-variables; M's selectors are substituted too) every remaining non-M factor depends
+only on U or only on V and is a non-zero polynomial. Then rank_{U|V}(P_F) >= 2^K over every field.
+Proof. (1) Substituting field elements (possibly from an extension) is a linear map on each side: the coefficient rank does not increase.
+(2) Multiplication by a non-zero g(U) h(V) is injective (polynomial ring = integral domain): rank unchanged. (3) Each M factor
+1 - c Q_L Q_R (c != 0) has rank exactly 2 (Q_L, Q_R non-constant because the clause crosses); the factors live on disjoint variables, so
+the rank of their product is the Kronecker product 2^K. QED. A Boolean restriction that makes ALL other factors non-zero constants is
+impossible for unsatisfiable F (that objection is correct) - but it is not needed: generic non-Boolean values (fully restricted factors
+1 - (1-s)^p s^q vanish for finitely many s only) and one-sided factors suffice.
+Theorem 16 (M9b for Psi_n; director's scheme). Psi = Phi1 /\ Phi2 over phi (clause width k <= 6p, N v-variables). Assumptions: phi has a
+clause of width >= 2 (so tuples can straddle a cut) and N >= 2k (so every clause has a one-sided tuple); both hold for phi_n, n large. In every
+total order, some prefix cut balances the v-variables (|L| = floor(N/2)); the selectors' side is irrelevant because all are substituted.
+Choose M = pairwise v-disjoint Phi1 clauses (C,t) whose tuple has v-variables on both sides (K >= floor(N/(2k)) of them), selectors := generic.
+Every other Phi1 clause whose tuple straddles the cut: selector := 0 (factor 1). All remaining selectors := generic (their Phi1 factors are
+one-sided). Phi2: for every C some tuple lies on one side, so its selector is generic and the "at least one" factor 1 - (1-s)^g is a non-zero
+constant (precisely 1 - prod(1 - s_t) over its non-zero selectors, a non-zero polynomial); the 2-clauses not u v not u' become 1 or
+1 - s s', non-zero polynomials avoided by independent transcendentals. Lemma M9b' gives rank(P_Psi) >= 2^{floor(N/(2k))} = 2^{Omega(n)} at a prefix
+cut of EVERY order; hence every certificate C = 1 - prod(1 - y) + sum_i z_i h_i(x) of Psi_n has width >= 2^{Omega(n)} / N_total (cell M9b).
+Check: m9b/psi_rank.py (tiny Psi, 60 selectors, 1,667 clauses): rank 4 = 2^2 as predicted; control (all selectors of one clause := 0) rank 0.
+Meaning (external reviewer's caveat, confirmed): the bound uses only the selector structure of the order lift, not the hardness of phi - it
+holds for Psi(phi) of every unsatisfiable phi. It excludes the canonical product certificate for structural reasons and says nothing about
+general full roABP-IPS certificates (M9 remainder stays OPEN). Tseitin: roABP-IPS_LIN refutes it in polynomial width in every order (TR26-070 Prop. 20); that its P has high rank is asserted by
+the external reviewer's small check, not shown here.
+Precision (external, 2026-11-20): work over F(s) with s TRANSCENDENTAL over F - a fixed s need not keep all factors non-zero over small
+finite fields. The restricted coefficient matrix is A M B with A, B over F[s], so its rank over F(s) is <= rank_F(M); the lower bound
+therefore holds over F. Distinct generic values: independent transcendentals s_1, s_2, ... (or one s with distinct powers).
+Overlap objection (external): in phi_n the strict M9b' condition fails for every non-empty M - the four-clause 1-in-3 encoding and the
+gadget lift produce clauses with identical supports that cannot be switched off. Correct for phi_n, but not an obstacle for Theorem 16:
+in Psi_n every Phi1 clause has its OWN selector, so overlapping straddling clauses are switched off individually (selector := 0, factor 1);
+the M9b' condition is checked AFTER the substitution. Lemma O's restriction to phi brings the overlap back - Theorem 16 uses a different
+restriction (any restriction is a valid lower bound). Remark (external, valid): width_pi(P_Psi) >= rank_{X|Y}(P_phi) for every pi via Lemma O;
+not needed for M9b. Optional open question: rank_{X|Y}(P_phi) at the gadget cut with overlapping supports.
+Status: INDEPENDENTLY REVIEWED 2026-11-20 - Lemma M9b' and Theorem 16 CORRECT (substitution and injectivity, rank 2 per crossing
+factor, tensor product, field genericity, balanced prefix cut, every clause type of Psi under the substitution, deduction to certificate
+width: h_i = C(x,0,e_i) has width <= w, rank(P_Psi) <= N_total w with N_total = N + #selectors = poly(n)). Fixes applied: substitution
+wording, assumptions (a clause of width >= 2; N >= 2k), at-least-one factor notation. psi_rank.py is a sanity check of one cut only.
