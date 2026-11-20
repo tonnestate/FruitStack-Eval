@@ -666,3 +666,15 @@ i.e. about S_HIW^{5/4+o(1)} poly(N) - so at the HIW scale the formula/circuit ga
 R0522 (organisation, 2026-11-20): the 0.99 ML screen on agent_agent_numdiffs_indep_n6_v1_e83d0e55 does NOT survive removing
 target-encoding columns (balanced accuracy 0.78 cons3 / 0.76 sat with rank3, m, ncoord_diff; exact law search 0 laws over 60459 rows);
 leakage resolved as artefact (session did not re-run the original screen's column list - attribution from the question text).
+Prefix extendability (owner 2026-11-20; director check). EXT_{n,s}(p) = 1 iff some circuit of size <= s has truth table starting with p.
+Exact prefix automaton = trie of Im(Eval_{n,s}): at most 1 + N |Im| states, state index O(log N + s log(n+s)) bits (owner's count
+correct). Owner's points adopted: sparsity and non-injectivity alone explain no hardness; a lower bound for this procedure is not one for
+all MCSP algorithms.
+Director source check: this automaton with compact states IS the MMW19 streaming algorithm - MMW19 Thm 1.2 (local copy mmw19/paper.txt
+line ~100): for every oracle A, search-MCSP^A[s] has a one-pass streaming algorithm on 2^n-bit inputs with 2^n O~(s) time, O~(s^2) update
+time and O~(s) space, using a Sigma3SAT^A oracle with queries of length O~(s). Consequences: (i) state count/space cannot give the bound
+(already filter F2); ALL difficulty sits in the transition function. (ii) If transitions cost poly(s), MCSP[N^beta] runs in N poly(N^beta)
+time; an N^{1+eps} lower bound would need transition cost N^eps = s^{eps/beta}, i.e. SUPERPOLYNOMIAL in the transition input size as beta
+-> 0 - a lower bound for an NP-type search problem (find the next consistent circuit) that is itself P != NP-strength. (iii) The
+construction holds for every oracle A, so any argument that counts only transition calls relativizes/localizes; the connection test must
+cost transitions in real gates. Bridge to R-MCSP (owner's third obligation) remains the decisive open step.
