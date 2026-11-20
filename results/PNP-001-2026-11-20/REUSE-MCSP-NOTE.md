@@ -32,7 +32,7 @@ Proof: XOR_n has circuits with S, r = O(n) (chain z_k = (z_{k-1} v x_k) ^ not(z_
 n^2 <= C' n^{1+c} for all n, hence c >= 1.
 Stronger obstacle: a generic simulation with ANY constant c would put P/poly inside poly-size formulas, i.e. NC^1/poly (Spira
 balancing) - believed false. R1 excludes only lemmas valid for all functions, not restricted circuit classes or other techniques.
-**R1' (elementary given Tal 2017; Tal source check pending).** XOR leaves are XORs of input variables, so FORMULA[s] o XOR lies in
+**R1' (proved from Tal, ECCC TR16-181, Thm 3.2: bipartite formula complexity of IP_n is Omega(n^2/log^2 n); an XOR leaf a(x) xor b(y) = (a ^ not b) v (not a ^ b) is 4 bipartite leaves).** XOR leaves are XORs of input variables, so FORMULA[s] o XOR lies in
 bipartite formulas of size O(s). IP_n has linear circuits with ~n reused gates but bipartite formula size n^{2-o(1)} (Tal 2017). So any
 generic conversion circuit -> FORMULA o XOR with loss S (r+1)^c needs c >= 1 - o(1): XOR leaves absorb parity, but not reuse of
 computed intermediate values.
@@ -67,7 +67,9 @@ A proof of R-MCSP must: hold for every minimum-size circuit for F_{N,beta}, with
 uniformly in small beta; survive parity-like AND inner-product-like intermediate computation (controls: EQ, IP, MUX); and be
 **non-localizing** - MCSP[N^beta] has near-linear circuits with small fan-in oracle gates, so an argument that remains valid with such
 gates proves a false statement. Natural-proofs and algebrization hypotheses must be examined, not assumed.
-Next mathematical step: an exact decomposition definition (algebraic sub-computations + quantitatively bounded residual sharing) for
+Elimination formulation: f_C(x) = OR_y H_C(x,y), H_C(x,y) = T_out(x,y) AND AND_i (y_i <-> T_i(x,y_<i)) (size O(S), unique consistent y;
+Tseitin view - not MCSP-specific). Task: eliminate y with at most K S^{2-delta} leaves for minimum-size MCSP circuits.
+Next mathematical step: fix the allowed elimination transformations and their leaf accounting, then an exact decomposition definition (algebraic sub-computations + quantitatively bounded residual sharing) for
 arbitrary nested DAGs, tested against IP and the locality criterion before any proof attempt. No enumeration campaign.
 
 ## 8 Status
@@ -75,7 +77,7 @@ arbitrary nested DAGs, tested against IP and the locality criterion before any p
 |---|---|
 | Generic reuse lemma O(S 2^r) | proved, internally reviewed |
 | Proposition R1 (c >= 1) | proved, internally reviewed |
-| Observation R1' (IP, XOR leaves) | elementary given Tal 2017; Tal source check pending |
+| Observation R1' (IP, XOR leaves) | proved from Tal TR16-181 Thm 3.2, internally checked |
 | CKLM, KKLMO | published; threshold as input |
 | CJW20 Thm 1.6 | published; fixed threshold |
 | Theorem R | reduction from published results, internally reviewed |
@@ -89,4 +91,4 @@ arbitrary nested DAGs, tested against IP and the locality criterion before any p
 4. Chen, Jin, Williams. Hardness Magnification for All Sparse NP Languages. FOCS 2019. https://eccc.weizmann.ac.il/report/2019/118/
 5. Kabanets, Koroth, Lu, Myrisiotis, Oliveira. Algorithms and Lower Bounds for de Morgan Formulas of Low-Communication Leaf Gates. CCC 2020. https://arxiv.org/abs/2002.08533
 6. Khrapchenko. Complexity of the realization of a linear function in the class of pi-circuits. Math. Notes 1971. (not checked locally)
-7. Tal. Formula lower bounds via the quantum method. STOC 2017. (not checked locally)
+7. Tal. The Bipartite Formula Complexity of Inner-Product is Quadratic. ECCC TR16-181, Thm 3.2. https://eccc.weizmann.ac.il/report/2016/181/

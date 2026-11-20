@@ -633,3 +633,22 @@ linear-size circuit with a chain of ~n reused gates but needs bipartite formula 
 neutralised by XOR leaves, but IP (a mandatory control) is the same witness in the FORMULA o XOR model: any generic conversion
 "circuit -> FORMULA o XOR of size C S (r+1)^c" needs c >= 1 - o(1). The algebraic-unit idea must therefore also be MCSP-specific; XOR
 leaves alone do not absorb reuse of COMPUTED values (XOR of intermediate results).
+R1' upgraded (2026-11-20, owner check + director source check): Tal, "The Bipartite Formula Complexity of Inner-Product is Quadratic",
+ECCC TR16-181 (local copy literature/sources/eccc-TR16-181), Thm 3.2 (line 148): bipartite formula complexity of IP_n is
+Omega(n^2/log^2 n) (leaves = arbitrary functions of all x or all y). XOR leaf over inputs = a(x) xor b(y) = (a ^ not b) v (not a ^ b): 4
+bipartite leaves. So L_{FORMULA o XOR}(IP_n) = Omega(n^2/log^2 n), while IP_n has a De Morgan circuit with S, r = O(n). Hence any universal
+bound L_{FORMULA o XOR}(f) <= C S (r+1)^c needs c >= 1. Status: R1' PROVED from Tal Thm 3.2 + explicit translation (internally
+checked; no novelty claim).
+Elimination formulation (owner 2026-11-20). For an acyclic circuit C with reused gates g_1..g_r in topological order:
+H_C(x,y) = T_out(x,y) AND AND_i (y_i <-> T_i(x, y_<i)), f_C(x) = OR_{y in {0,1}^r} H_C(x,y) exactly; H_C is a formula of size O(S) in
+(x,y), consistent y is unique for every x. Naive elimination costs 2^r. Director notes: (i) this is the Tseitin/extension-variable view -
+"circuit = small formula with r existentially quantified, functionally determined auxiliaries"; eliminating them IS circuit-to-formula
+conversion, so the formulation makes the task concrete but not easier; uniqueness holds for every acyclic circuit (incl. IP), so it is
+not MCSP-specific (owner's point). (ii) Structural analogy (not a result): Level-3 (sections 1-9) studied exactly this shape - elimination
+of functionally determined auxiliary variables (class D, linearly determined auxiliaries) - over GF(3) representations; its methods
+(linearising restriction + elimination) are candidates for allowed transformations, but they were representation-level, not
+formula-size results.
+Next obligation (owner): fix exactly which transformations are allowed for eliminating y and how their formula leaves are counted;
+nested algebraic/non-algebraic dependencies must be costed (XOR of computed AND values is NOT a free XOR leaf); then attempt an
+MCSP-specific bound K S^{2-delta} for minimum-size circuits, delta uniform. Controls: parity (R1), IP (R1'), MCSP semantics, small
+fan-in oracle gates (locality). OPEN.
