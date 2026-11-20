@@ -394,6 +394,9 @@ Checked at the source: lower bounds over FIXED finite fields for constant-depth 
 roABP-IPS_LIN' in every variable order (Thm 3 / Cor. 43 functional method; Thm 4 / Thm 46 lower bound by multiples). IPS_LIN' (their
 Def. 9) is linear in the AXIOM placeholders y and may be non-linear only in the Boolean-axiom placeholders z - so these are NOT bounds
 for non-linear use of the axioms (our rung 4b). The roABP bounds are PLACEHOLDER bounds (instances not computable by small roABPs), not
-CNFs. Their Thm 5 (Thm 49): the functional method cannot give non-placeholder roABP-IPS_LIN' bounds over finite fields - the same
-phenomenon as our breaking point B1. Use for R4b: technique anchor (finite fields, lower bound by multiples, set-multilinearisation),
+CNFs. Their Thm 49 (main text, p. 31; the intro summary Thm 5 says LIN'): "The functional lower bound method cannot establish
+non-placeholder lower bounds on the size of roABP-IPS refutations when working in finite fields" - stated for (full) roABP-IPS. Its proof
+is our breaking point B1: g = ml(f^{p-2}) equals 1/f on the cube and has a small roABP in every order (roABPs are closed under
+multilinearisation, FSTW Prop. 4.5 = their Prop. 48); a linear refutation is also a full roABP-IPS refutation. B1 (claim:75698fb31560)
+is thereby an independently published fact. Scope: a limit of the FUNCTIONAL METHOD, not of every lower-bound technique. Use for R4b: technique anchor (finite fields, lower bound by multiples, set-multilinearisation),
 not a solution.
