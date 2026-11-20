@@ -591,3 +591,18 @@ leads to), giving formulas T_1..T_r, T_out over (x, y) of total size <= S (input
 [AND_i (T_i(x,a) <-> a_i) AND T_out(x,a)], where T_i <-> a_i is T_i or not T_i (negations pushed to leaves, leaf count unchanged).
 (3) Acyclicity: in topological order a consistent a equals the true gate values, so exactly one branch is consistent and yields the output.
 (4) Size <= 2^r S leaves plus O(2^r r) connectives = O(S 2^r). QED - correct for arbitrary fan-out.
+Update (owner deep research, source-checked 2026-11-20): Chen-Jin-Williams, "Sharp Threshold Results for Computational Complexity", ECCC
+TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no
+probabilistic n^{2+alpha-eps}-size formulas (n = truth-table length, FIXED threshold n^alpha). So a(beta) = 2 + beta for the fixed threshold
+(supersedes "a ~ 2" above).
+Conditional Theorem R (owner formulation, proof checked). Hypothesis R-MCSP: there are constants C, c < 1 and beta_0 > 0 such that for every
+fixed beta in (0, beta_0) every Boolean circuit of size S with r reused gates deciding MCSP[N^beta] has an equivalent De Morgan formula with
+at most C S (r+1)^c leaves. Then P != NP.
+Proof. r <= S, so L <= C S^{1+c}. CJW20 Thm 1.6: L >= N^{2+beta-eta}. Hence S >= N^{(2+beta-eta)/(1+c)}/O(1) >= N^{(2-eta)/(1+c)}/O(1); for
+eta small and c < 1 this is >= N^{1+eps} with eps > 0 independent of beta. MMW19 (MCSP[2^{beta m}] not in SIZE(N^{1+eps}) for all small beta)
+gives NP not in P/poly, hence P != NP (basis changes cost constant factors). QED.
+Threshold table: c < 1 - uniform eps, MMW applies; 1 <= c < 1 + beta - eta - superlinear for each fixed beta, eps -> 0 as beta -> 0, MMW does
+not apply; c >= 1 + beta - no superlinear bound.
+Status: Theorem R (the implication) PROVED from published results (paper proof, review pending); hypothesis R-MCSP OPEN. By Proposition R1
+any reuse lemma valid for all functions has c >= 1, so R-MCSP must be MCSP-specific, strictly beat the parity witness, and fail for small
+fan-in oracle gates (F2). The exponent c < 1 lies exactly where every generic method is excluded.
