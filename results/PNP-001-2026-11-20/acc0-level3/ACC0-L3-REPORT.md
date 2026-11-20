@@ -547,3 +547,15 @@ literature/sources/arXiv-2503.24061); Chen-Jin-Williams TR19-118; Grochow-Pitass
 (e) What a bridge would have to be (precise open statement): a lemma "a Boolean circuit of size s deciding MCSP[2^{beta m}] yields a
     small refutation in a proof system Y of an explicit family Phi" - i.e. the circuit's correctness must be efficiently provable in Y.
     For weak Y (roABP-IPS_LIN, PC, ...) this is not available; for strong Y (Extended Frege) lower bounds are themselves out of reach.
+
+## 19 Rung 5: streaming magnification (MMW19 Thm 1.3) and the communication connection test (2026-11-20)
+Source checked: McKay-Murray-Williams, STOC 2019, people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf (local copy literature/sources/mmw19).
+Thm 1.3: if for some time-constructible s(n) >= n and A in PH, search-MCSP^A[s(n)] is not solvable by a poly(s(n))-space streaming algorithm
+with poly(s(n)) update time, then P != NP. (Owner's statement confirmed.)
+Thm 1.2 (same paper): for every oracle A there is a one-pass streaming algorithm for search-MCSP^A[s(n)] with O~(s(n)) space and O~(s(n)^2)
+update time using a Sigma_3 SAT^A oracle with short queries. Authors, after Thm 1.3: "Note there is no information-theoretic barrier to such
+a streaming algorithm, only a computational one."
+Connection test (owner proposal: transfer rank/communication methods to the information states of a streaming algorithm) - NEGATIVE,
+proved: communication protocols are computationally unbounded, so Thm 1.2 yields a one-way protocol of O~(s) = poly(s) bits at every cut of
+the stream; no communication or rank lower bound can exceed poly(s). The hypothesis of Thm 1.3 is a lower bound on UPDATE TIME (computation),
+not on information - outside the reach of every PNP-001 tool. Status of the streaming route: OPEN; no PNP-001 connection.
