@@ -691,3 +691,13 @@ correctness of an ARBITRARY streaming algorithm an unavoidable computation and b
 fixed polynomial budget. Two published-transfer targets now stand: (A) R-MCSP -> Theorem R (CJW20 + MMW19 Thm 1.4); (B) streaming
 time-space lower bound for search-MCSP^A, all polynomial budgets -> MMW19 Thm 1.3. Both OPEN; both need a statement about arbitrary
 computation methods.
+Owner decision (2026-11-20): R-MCSP is the MAIN route; the streaming route (MMW19 Thm 1.3: for one fixed s and A in PH, every correct
+deterministic one-pass algorithm for search-MCSP^A[s] exceeds O(s^k) space or O(s^k) update time, for every k) is kept as an INDEPENDENT
+second route and must not be mixed with the formula estimate. Success threshold: exists delta > 0, beta_0 > 0, for all beta in (0,beta_0):
+L(F_{N,beta}) <= K_beta CC(F_{N,beta})^{2-delta}. Five open questions (owner): (1) an exact, independently defined property P of the MCSP
+decision function, proved from MCSP semantics [the starting point]; (2) a structure theorem: P limits reuse in all size-minimal decision
+DAGs; (3) an explicit, correct elimination procedure for H_C with proven formula size; (4) uniform delta > 0; (5) why MCSP but not
+universal: parity, IP, locality, natural proofs, algebrization.
+Corrections to an external Gap-MCSP proposal (owner; director check): |Im(Eval_{n,N^beta})| <= 2^{O(N^beta log N)} = 2^{N^{beta+o(1)}},
+not a stronger sparsity bound; restrictions preserve upper bounds but not hardness (f(z,x) = z AND h(x) is hard, f(0,x) = 0), so
+projection stability needs its own hardness-preservation theorem; Gap-MCSP is not built into the exact chain without such a theorem.
