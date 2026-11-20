@@ -564,7 +564,7 @@ oracle can be simulated in space poly(s) (PH is contained in PSPACE), at possibl
 a deterministic one-pass streaming algorithm with poly(s) space, lacking only the update-time guarantee. Hence: a pure streaming SPACE lower
 bound cannot activate Thm 1.3. Combined time-space lower bounds remain mathematically possible; the PNP-001 communication and rank results
 provide none.
-### Rung 5 CLOSED (owner decision 2026-11-20): transfer routes checked, direct applicability of PNP-001 tools refuted, main goal OPEN.
+### Rung 5: investigation of the transfer routes COMPLETED (owner decision 2026-11-20) - direct applicability of PNP-001 tools refuted. P != NP is NOT proved; SAT not in P (or any statement implying it) remains OPEN.
 - General Boolean circuits: high cut rank is compatible with small circuits (EQ_m, IP_n).
 - Universal IPS simulation: no size-preserving simulation of arbitrary SAT algorithms in a fixed proof system.
 - MCSP hardness magnification (MMW19): needs a general circuit lower bound; our implications run computation -> proofs.
