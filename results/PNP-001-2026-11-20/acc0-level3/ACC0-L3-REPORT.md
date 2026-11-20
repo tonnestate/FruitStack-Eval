@@ -252,3 +252,55 @@ Measurement (random NAND circuits, fan-out <= 3, constructed one-page drawing, e
 Meaning: MG-3 extends from EXACT1_3 to every nonlinear gate; for the direct translation lambda grows with the circuit size s, not
 with n. The holographic route can only work through GADGETS / super-signatures (several vertices fused, higher-dimensional bases)
 or through drawings with few crossings - exactly the parts MG-C does not cover. That is the remaining open part of this route.
+
+## 11 Rung 4 (2026-11-20): transfer to roABP-IPS_LIN for lifted F(G), and what stronger systems lose
+Sources (local copies, not redistributed): ECCC TR26-070 (Hakoniemi-Limaye-Tzameret 2026), literature/sources/eccc-TR26-070;
+Pitassi-Robere, "Lifting Nullstellensatz to monotone span programs over any field", STOC 2018 (ECCC TR17-165),
+literature/sources/eccc-TR17-165. Statements used, checked in the source text:
+[PR18 Def 2.1] algebraic tiling of KW+(f): matrices A_i with sum A_i = J (all-ones), A_i embedded in the coordinate rectangle X_i;
+  size = sum rank_F(A_i); chi_F(f) = minimum size. [PR18 Thm 2.2, Gal] mSP_F(f) = chi_F(f).
+[PR18 Def 2.11 + Sec. 3] KW+(f_{C,g}) is (up to renaming) the canonical search problem CanSearch(C,g) on X^n x Y^n with rectangles
+  X_{pi,alpha} = {(x,y) : g^n(x,y) consistent with the certificate pi, x restricted to vars(pi) = alpha}.
+[PR18 Thm 1.1] C unsatisfiable CNF on n variables, F any field, g good over F (Def 3.1) with rank(g) = n^2: chi_F(f_{C,g}) =
+  n^{Theta(NS_F(C))}; if NS_F(C) = Theta(n), then for every good gadget of sufficiently large constant rank chi_F(f_{C,g}) = 2^{Theta(n)}.
+[TR26-070 eq. (0.2)] roABP-IPS_LIN refutation: sum_i g_i f_i + sum_j h_j (x_j^2 - x_j) = 1 with g_i, h_j roABPs; width = max width.
+
+Lemma T (proved here). Let C = C_1..C_m be an unsatisfiable k-CNF on z_1..z_n, g : {0,1}^p x {0,1}^q -> {0,1} a gadget, and C o g the
+standard lifted CNF: for every clause C_j with falsifying assignment beta_j and every (u, v) in ({0,1}^p x {0,1}^q)^{vars(C_j)} with
+g(u_i, v_i) = beta_j(i) for all i, the clause D = NOT(x_{vars(C_j)} = u AND y_{vars(C_j)} = v), arithmetised as Q_D = R_D(x) S_D(y)
+(product of literal indicators). If C o g has an roABP-IPS_LIN refutation of width w over F in a variable order in which all x-bits
+precede all y-bits, then KW+(f_{C,g}) has an algebraic tiling of size <= w * m * 2^{k(p+q)}.
+Proof. On the Boolean cube the Boolean-axiom terms vanish, so sum_D a_D(x,y) R_D(x) S_D(y) = 1 for all (x,y). As an
+X^n x Y^n matrix, a_D has rank <= w: at the x|y cut of an roABP of width w, a_D = sum_{t<=w} L_t(x) M_t(y), and evaluation rank on the
+cube is at most this. B_D := diag(R_D) a_D diag(S_D) has rank <= w and support inside {x_{vars(C_j)} = u, y_{vars(C_j)} = v}, which lies
+inside X_{pi_j, u} (g^n(x,y) falsifies C_j, x on vars(C_j) equals u). Grouping B_D by (j, u) gives matrices embedded in the canonical
+rectangles that sum to J, of total rank <= w * #clauses(C o g) <= w m 2^{k(p+q)}. QED
+Theorem 4.1 (rung 4, fixed order; from Lemma T + PR18 Thm 1.1). For C, g as in PR18 Thm 1.1, every roABP-IPS_LIN refutation of C o g
+over F with all x-bits before all y-bits has width >= chi_F(f_{C,g}) / (m 2^{k(p+q)}): n^{Omega(NS_F(C))} / poly for rank(g) = n^2,
+and 2^{Omega(n)} / poly when NS_F(C) = Theta(n) and g is a good gadget of large constant rank.
+Lemma N (proved here; degree of F(G) as a CNF). Write F(G) as the 3-CNF with, per positive 1-in-3 clause (a,b,c), the clauses
+(a v b v c), (-a v -b), (-a v -c), (-b v -c). Then NS_F(F(G)) >= NS_F(Col(G)) - O(1) for every field F, where Col(G) is the indicator
+encoding of 3-colouring used by Lauria-Nordstrom. Proof: substitute y_{uwc} := 1 - x_uc - x_wc (affine, degree does not increase). The
+images of the edge-clause axioms and of y^2 - y reduce, modulo Boolean axioms in degree <= 3, to multiples of x_uc x_wc (e.g.
+(1-a)(1-b)(a+b) = 0, a(1-a-b) = -ab, (1-a-b)^2-(1-a-b) = 2ab); the vertex clauses generate 1 - sum_c x_vc and x_vc x_vc' in degree 3
+and conversely. QED. With Lauria-Nordstrom (PC degree Omega(n) over every field for explicit bounded-degree graphs; NS >= PC):
+NS_F(F(G)) = Theta(n).
+Corollary 4.2 (rung 4 for lifted F(G)). For the Lauria-Nordstrom graph families and every field F, F(G) o g (g good, large constant
+rank) requires roABP-IPS_LIN refutations of width 2^{Omega(n)} in every order with x-bits before y-bits. Arbitrary orders: TR26-070
+Sec. 4 lifts order-specific hardness to all orders for 3-CNFs; F(G) o g is a k(p+q)-CNF of constant width - the extension of Sec. 4
+to constant-width k-CNFs (or a 3-CNF re-encoding preserving the bound) is the remaining check.
+Status: Lemma T, Lemma N proved here; Theorem 4.1 = Lemma T + PR18 Thm 1.1 (cited, checked in the source). This is the transfer the
+owner asked for, and matches TR26-070's attribution to Sokolov. It concerns the LIFTED formula (no longer positive 1-in-3).
+
+What a STRONGER system loses (explicit):
+(S1) roABP-IPS (non-linear in the axioms): C(x,y,f) with C(x,y,0) = 0, C(x,y,Q) = 1. Expanding in placeholder monomials gives
+  sum_M c_M(x,y) prod_D Q_D^{M_D} = 1; every term is still embedded in a canonical rectangle, but the number of terms is the number of
+  placeholder monomials, which an roABP of width w can make exponential. Lost property: LINEARITY in the axioms - the tiling has
+  poly(w) many tiles only when every axiom appears linearly. Lemma T gives no bound.
+(S2) multilinear-formula IPS / no fixed order: Lemma T needs ONE cut (x | y) of rank <= w. Multilinear formulas have small rank only
+  relative to random partitions (Raz), with bounds far above n^{O(d)}. Lost property: a fixed low-rank cut.
+(S3) constant-depth IPS without individual-degree bounds: simulates AC0[p]-Frege over F_p, which has no feasible interpolation unless
+  Diffie-Hellman is computable by 2^{n^eps}-size circuits (TR26-070 Sec. 1.3, citing [BDG+99]). Lost property: feasible interpolation
+  itself (conditional) - no interpolation-based or tiling-based transfer can work there under that assumption.
+(S4) Control: the XOR part is easy for roABP-IPS_LIN (Tseitin, TR26-070 Sec. 5); hardness of F(G) o g comes from the colouring part
+  through NS degree - consistent with Lemma N.
