@@ -30,12 +30,13 @@ For every field F and every variable order, every roABP-IPS_LIN refutation of Ps
 - Lauria, Nordstrom, "Graph Colouring is Hard for Algorithms Based on Hilbert's Nullstellensatz and Groebner Bases", CCC 2017 /
   arXiv 2306.00125: Thm 1.1, encoding (2.2a)-(2.2c), Thm 3.7.
 
-## Novelty (honest)
-TR26-070 Sec. 1.4 sketches exactly this route: Sokolov (personal communication) lifts Nullstellensatz degree lower bounds to roABP-IPS_LIN
-size lower bounds in a fixed order via Pitassi-Robere tiling, and Sec. 4 of TR26-070 extends to all orders. Theorem 12 is a worked-out,
-independently reviewed instance of that sketch. Our own parts: the written proof of the degree lift (Lemma T), the instantiation for the
-colouring / positive 1-in-3 family (Lemma N), the extension of the order lift from 3-CNF to constant width (Lemma O). A final literature
-check against any published version of Sokolov's argument is still due before any claim of priority.
+## Novelty (honest; sharpened 2026-11-20 after an external review)
+The MAIN theorem of TR26-070 (Thm 1 / Thm 18) already gives exponential roABP-IPS_LIN lower bounds for an explicit CNF family, in every
+variable order and over every field (GEN-based, via feasible interpolation). The degree route used here is remarked in TR26-070 Sec. 1.4
+and attributed to Dmitry Sokolov. Our difference is therefore at most: a different explicit family (3-colouring / positive 1-in-3, via
+Nullstellensatz degree instead of interpolation), the written proof of the degree lift (Lemma T), the instantiation (Lemma N), the
+constant-width order lift (Lemma O), and constants. Any preprint must state it exactly so. Full (non-linear) roABP-IPS is not treated in
+TR26-070; our partial results there are Theorem 14 and Lemma 15 (report sec. 14-15).
 
 ## Reproducibility
 - rung4/order_lift_check.py: selector combinatorics of Lemma O (5 unsatisfiable CNFs, clause widths 1-4, 20 random orders each).
