@@ -573,3 +573,15 @@ provide none.
 What is missing is a method that captures the cost of GENERAL computation, including free reuse of intermediate results - not a higher
 rank, larger degree or a stronger restricted proof system. No such method is established in the PNP-001 proof book. All existing
 mathematical results are preserved; no new mission and no further experiments from this approach.
+
+## 20 Reuse-sensitive MCSP route: lower limit for generic reuse lemmas (director 2026-11-20)
+Proposition R1. Any lemma "for every De Morgan circuit of size S with r gates of fan-out > 1 computing f: L(f) <= C S (r+1)^c" that holds for
+ALL Boolean functions f needs c >= 1 - o(1).
+Proof. XOR_n has a De Morgan circuit of size S = Theta(n): a chain of XOR_2 gadgets x (+) y = (x v y) ^ not(x ^ y); the output of each gadget
+feeds both the v- and the ^-gate of the next gadget, so it has fan-out 2, giving r >= n - 2 reused gates. Khrapchenko: L(XOR_n) >= n^2
+(De Morgan formula leaf size). Hence n^2 <= C Theta(n) (n-1)^c, so c >= 1 - o(1). QED (classical ingredients; elementary.)
+Consequence. With today's provable a(beta) ~ 2 for small thresholds (MCSP[2^{sqrt l}] not in FML[n^{2-delta}]), the route needs c < 1, i.e. an
+MCSP-specific reuse lemma that strictly beats the parity witness: every small circuit for MCSP[N^beta] must have reused intermediate results
+that unfold into formulas more cheaply than XOR chains do. Obstacle to examine next: small circuits for MCSP may contain parity-like
+sub-computations; a lemma with c < 1 must exclude this for EVERY small circuit, not only natural ones. Together with the non-locality
+requirement (F2), this is the precise current state of the route. Status: OPEN; Proposition R1 elementary, independent review not yet done.
