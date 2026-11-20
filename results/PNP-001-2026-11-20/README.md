@@ -10,3 +10,5 @@
   Section 6 (level 3b): linearising restrictions - Delta = r_min - k, exact on class D (equality rank); OR_n in D iff n <= 2;
   affine-hull bound Delta <= c - rho for gadget closures; checks l3b_checks.py, l3c_checks.py. Level 3 still OPEN.
 - Specifications updated (ACC0 incl. level 3), proof book refreshed.
+  Section 7 (level 3c): branch-sum criterion, Theorem L (degree 1: restriction never raises the rank surplus), Lean proofs
+  acc0-level3/lean/ACC0L3.lean (OR not in C0; OR_n in D iff n<=2; affine Boolean functions are literals), evidence audit.

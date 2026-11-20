@@ -143,3 +143,49 @@ Equality EQ_n(x,x'): x_i - x'_i = 0, rank n, N = 2n inputs: R costs 2^{N/2} (lar
   consequence) whose cost is NOT lower-bounded by enumeration of a GF(3)-affine superset of the solutions (Theorem H) - i.e. one that
   exploits cancellation or counting rather than the kernel dimension. No such mechanism follows from the GF(3) kernel structure.
 - P != NP relevance: none directly; restricted-model and algorithm-family theorems only. Level 3 stays OPEN.
+
+## 7 Level 3c (2026-11-20): guaranteed surplus over ALL restriction branches; formal checks; evidence audit
+Checks: l3d_checks.py (Theorem L exact on 280 random systems, branch-sum example). Lean: formal/acc0l3/ACC0L3.lean
+(Mathlib, sha256 1f00ba8be8e191af..., axioms propext/Classical.choice/Quot.sound only).
+
+### 7.1 Theorem Sigma (branch-sum criterion) - proved
+For a degree-d system and a linearising S, with free_a = t - |S| - r_a =: n - |S| - Delta_a (Delta_a = r_a - k):
+T(S) = poly * ( 2^{|S|} + sum over GF(3)-consistent a in {0,1}^S of 2^{n-|S|-Delta_a} ) = poly * ( 2^{|S|} + 2^n * E_a[ 1_cons(a) 2^{-Delta_a} ] ).
+Assuming poly(t, m) = poly(n) (auxiliaries and rows polynomial in n), a class has saving 2^n/n^{omega(1)} by R iff for every circuit an efficiently found S has 2^{|S|} <= 2^n/n^{omega(1)} and
+E_a[1_cons 2^{-Delta_a}] <= n^{-omega(1)}. Sufficient (together with the 2^{|S|} condition): min over consistent a of Delta_a = omega(log n). NOT sufficient: a large average
+Delta: by Jensen E[2^{-Delta}] >= 2^{-E[Delta]}, and one consistent branch with Delta_a = 0 already costs 2^{n-|S|}
+(example n = 12, S = {x0}: Delta = 11 and 0; cost 2^1 + 2^0 + 2^11 = 2051, while two branches at the average Delta 5.5 would cost 2*2^5.5 ~ 91). Lemma F' must hold per branch; branches where it
+fails are charged with their actual free dimension (the formula uses r_a, not an assumed full rank).
+
+### 7.2 Theorem L (degree 1: restriction never raises the rank surplus) - proved, checked exactly
+For a linear system over GF(3) with solution space V != {} in t Boolean variables and any S:
+(i) every branch has the same residual matrix, hence the same rank r_S; (ii) branch a is consistent iff a in pi_S(V);
+(iii) free dimension = t - |S| - r_S = dim V - dim pi_S(V); (iv)
+  T(S) = poly * ( 2^{|S|} + |{0,1}^S cap pi_S(V)| * 2^{dim V - dim pi_S V} ) <= poly * ( 2^{|S|} + 2^{dim V} ).
+Proof: fixing variables only moves their columns to the right-hand side (i); (ii) is the definition of the projection; (iii) the
+residual solution set of a consistent branch is a fibre of pi_S restricted to V, of dimension dim V - dim pi_S V (rank-nullity); (iv)
+an affine q-dimensional subspace contains at most 2^q Boolean points (it is a graph over q coordinates).
+In the owner's notation Delta_a = Delta_0 - (|S| - dim pi_S V) <= Delta_0 on every consistent branch: restriction LOWERS the per-branch
+surplus and the loss is repaid exactly by the inconsistent branches. The only gain beyond the unrestricted exponent dim V = n - Delta_0
+is the Boolean sparsity beta_S = |{0,1}^S cap pi_S V| / 2^{dim pi_S V} of a projected affine space - and computing it is #C0-SAT on |S|
+variables (self-reduction: no free lunch). Corollary for D (canonical form): dim V = n - rank(E), so T(S) <= 2^{|S|} + 2^{n-rank E}
+so the exponent of the bound is n - rank(E) for every restriction, and per branch Delta_a <= rank(E) (equality only when pi_S is onto).
+### 7.3 Status of the general obligation
+- Degree 1 (C0, D): the guaranteed rank surplus after restriction is DETERMINED: Delta_0 = n - dim V, independent of S; all further gain
+  is Boolean sparsity of projections (an instance of the original problem).
+- Degree >= 2 (where linearising restrictions are needed): Theorem Sigma is the exact criterion; Theorem H bounds every branch
+  (free_a >= dim aff Sol_a); gadget closures give Delta <= c - rho. A guaranteed omega(log n) bound over all branches for a
+  composition-closed class is NOT proved and is false for the canonical gadget representation; whether some other representation of a
+  composition-closed class achieves it is the open part.
+### 7.4 Formal checks (independent of the validator's model judgement, not yet desk-accepted)
+Lean 4.35 + Mathlib, kernel-checked, standard axioms only (file sha256 1f00ba8be8e191af...): or_not_C0 (claim:53f46be7d6fc);
+or_not_D + or2_in_D + or1_in_C0 (claim:03fced129264 both directions; n = 0 trivial: OR_0 = dis-equality 0 != 0);
+affine_bool_is_literal + affine_bool_classified (claim:1a3685a2808b complete: constant, u_i or 1-u_i). Independent fidelity review
+(reviewer saw only code and claim texts): or_not_C0 MATCH; the other two were WEAKER (missing direction / finishing step) - both gaps
+closed afterwards; Theorem L CORRECT; Theorem Sigma CORRECT with the poly(t,m) = poly(n) assumption (added) and the corrected example. Not formalised: running-time claims (claim:247c31e61b92, claim:bf65731be859 rank identity,
+claim:ea42f7f7fa39 affine-hull bound) - paper proofs above.
+### 7.5 Evidence audit (owner request)
+All 3,244 agent ledger entries checked against primary sources (lab register, run files, datasets, trace): dataset/column citations 0
+failures; 12 entries with run ids unknown to the observed-id index - 10 cite real executed runs (index fixed, cc60940), seq 2895 cites a
+failed run but says so and rests on real runs, seq 154 predates the trace. Fabricated evidence: only R0400 / HYPOTHESIS seq 4825 -
+RETRACTED (INVALID_RESULT). R0396 recorded no evidence entry; its FINAL's "numerical evidence" has no primary source.
