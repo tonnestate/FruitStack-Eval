@@ -559,3 +559,17 @@ Connection test (owner proposal: transfer rank/communication methods to the info
 proved: communication protocols are computationally unbounded, so Thm 1.2 yields a one-way protocol of O~(s) = poly(s) bits at every cut of
 the stream; no communication or rank lower bound can exceed poly(s). The hypothesis of Thm 1.3 is a lower bound on UPDATE TIME (computation),
 not on information - outside the reach of every PNP-001 tool. Status of the streaming route: OPEN; no PNP-001 connection.
+Precision (owner, 2026-11-20): the bounds of Thm 1.2 hold for the ORACLE algorithm (Sigma_3 SAT^A queries of length O~(s)). For A in PH the
+oracle can be simulated in space poly(s) (PH is contained in PSPACE), at possibly huge running time - so even WITHOUT oracle access there is
+a deterministic one-pass streaming algorithm with poly(s) space, lacking only the update-time guarantee. Hence: a pure streaming SPACE lower
+bound cannot activate Thm 1.3. Combined time-space lower bounds remain mathematically possible; the PNP-001 communication and rank results
+provide none.
+### Rung 5 CLOSED (owner decision 2026-11-20): transfer routes checked, direct applicability of PNP-001 tools refuted, main goal OPEN.
+- General Boolean circuits: high cut rank is compatible with small circuits (EQ_m, IP_n).
+- Universal IPS simulation: no size-preserving simulation of arbitrary SAT algorithms in a fixed proof system.
+- MCSP hardness magnification (MMW19): needs a general circuit lower bound; our implications run computation -> proofs.
+- MCSP streaming magnification (MMW19 Thm 1.3): space lower bounds cannot suffice (Thm 1.2 + PH in PSPACE); an update-time lower bound is missing.
+- Atserias-Mueller uniform magnification: conclusion only P != NP^{(+)P}; needs uniform circuit lower bounds.
+What is missing is a method that captures the cost of GENERAL computation, including free reuse of intermediate results - not a higher
+rank, larger degree or a stronger restricted proof system. No such method is established in the PNP-001 proof book. All existing
+mathematical results are preserved; no new mission and no further experiments from this approach.
