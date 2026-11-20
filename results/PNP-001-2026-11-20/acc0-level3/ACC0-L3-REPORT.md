@@ -678,3 +678,16 @@ time; an N^{1+eps} lower bound would need transition cost N^eps = s^{eps/beta}, 
 -> 0 - a lower bound for an NP-type search problem (find the next consistent circuit) that is itself P != NP-strength. (iii) The
 construction holds for every oracle A, so any argument that counts only transition calls relativizes/localizes; the connection test must
 cost transitions in real gates. Bridge to R-MCSP (owner's third obligation) remains the decisive open step.
+Corrections (owner 2026-11-20, director source check of MMW19 Thm 1.3 and Stream-Merge, mmw19/paper.txt lines ~508-522):
+(1) The trie automaton is NOT identical to MMW's algorithm: the trie bounds the information content; MMW's streaming state is a concrete
+small circuit consistent with the prefix read so far, and the transition Stream-Merge^A[s] searches a new small circuit that also fits
+the next bits (Sigma3SAT^A queries). "IS the MMW19 algorithm" above is withdrawn; read "is realised compactly by".
+(2) "superpolynomial in s as beta -> 0" was imprecise: for each FIXED beta, s^{eps/beta} is a polynomial in s. The force lies in the
+quantifiers. MMW19 Thm 1.3 (verbatim): "If there is some time-constructible s(n) >= n and an A in PH such that search-MCSP^A[s(n)] is not
+solvable by a poly(s(n))-space streaming algorithm with poly(s(n)) update time, then P != NP." Target form: for one fixed s and A in PH,
+for EVERY k no one-pass streaming algorithm with O(s^k) space and O(s^k) update time. (3) Stream-Merge is a study object, not the
+universal bound: another algorithm may encode states and transitions completely differently. Core obligation (owner): derive from the
+correctness of an ARBITRARY streaming algorithm an unavoidable computation and bound its cost in ordinary Boolean operations, for every
+fixed polynomial budget. Two published-transfer targets now stand: (A) R-MCSP -> Theorem R (CJW20 + MMW19 Thm 1.4); (B) streaming
+time-space lower bound for search-MCSP^A, all polynomial budgets -> MMW19 Thm 1.3. Both OPEN; both need a statement about arbitrary
+computation methods.
