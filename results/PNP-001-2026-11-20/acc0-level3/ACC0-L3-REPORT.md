@@ -496,3 +496,21 @@ Status: INDEPENDENTLY REVIEWED 2026-11-20 - Lemma M9b' and Theorem 16 CORRECT (s
 factor, tensor product, field genericity, balanced prefix cut, every clause type of Psi under the substitution, deduction to certificate
 width: h_i = C(x,0,e_i) has width <= w, rank(P_Psi) <= N_total w with N_total = N + #selectors = poly(n)). Fixes applied: substitution
 wording, assumptions (a clause of width >= 2; N >= 2k), at-least-one factor notation. psi_rank.py is a sanity check of one cut only.
+
+## 17 Rung 5 - hardness magnification route and the first check (2026-11-20)
+Sources (local, checked): Chen-Jin-Williams, "Hardness Magnification for all Sparse NP Languages", ECCC TR19-118 (FOCS 2019),
+literature/sources/eccc-TR19-118. Their main theorem (abstract): if some 2^{n^{o(1)}}-sparse L in NP is not in Circuit[n^{1+eps}], then NP
+does not have n^k-size circuits for ALL k - FIXED-POLYNOMIAL lower bounds, not NP not in P/poly. This does NOT imply P != NP: if P = NP then
+Sigma_2^p = P = NP, and Kannan (Sigma_2^p not in SIZE[n^k] for every k) gives NP not in SIZE[n^k] anyway. The route that reaches P != NP is
+item (1) of their introduction, McKay-Murray-Williams (STOC 2019): if there is eps > 0 such that for all small enough beta > 0,
+MCSP[2^{beta m}] has no n^{1+eps}-size circuits (n = 2^m), then NP not in P/poly, hence P != NP.
+Target statement (rung 5, magnification): exists eps > 0, for all small beta > 0: MCSP[2^{beta m}] has no Boolean circuits of size n^{1+eps}.
+Known obstacle: the locality barrier (Chen-Hirahara-Oliveira-Pich-Rajgopal-Santhanam 2020): techniques valid for circuits with small
+fan-in oracle gates cannot give these bounds.
+First check (proved here): cut rank is NOT a circuit-size measure. IP_n(x,y) = sum x_i y_i mod 2 has Boolean circuits of size O(n), while
+its +-1 communication matrix across x | y is the 2^n x 2^n Sylvester-Hadamard matrix of full rank 2^n over Q; likewise prod_i (1 + x_i y_i)
+has arithmetic circuits of size O(n) and cut rank exactly 2^n (Kronecker product of n rank-2 factors). Hence every lower bound obtained in
+this project from cut rank (Lemma T, T*, M9b', Theorems 12, 14, 16) is a bound for models with a FIXED cut/order (roABP, OBDD-like,
+communication, IPS fragments) and cannot by itself give any superlinear general-circuit lower bound - our rank methods fail for general
+circuits even before the locality barrier is reached. Consequence: none of the current PNP-001 tools addresses the rung-5 target statement;
+a genuinely new circuit-lower-bound idea would be required, and it would have to pass the locality barrier and the barrier filter.
