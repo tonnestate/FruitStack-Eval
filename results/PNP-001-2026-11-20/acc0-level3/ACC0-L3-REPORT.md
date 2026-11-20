@@ -525,3 +525,25 @@ Connection test (single obligation for rung 5): can a PNP-001 measure be strengt
 arbitrary Boolean circuits? Mandatory controls: EQ_m (cut rank 2^m, linear circuits) and IP_n (full cut rank, linear circuits) - any claim
 that fails on these is unsuitable for this route. Lead only, not yet checked at the source: Atserias-Mueller 2025, "Simple General
 Magnification of Circuit Lower Bounds" (arXiv).
+
+## 18 Rung 5, step 1 of the binding order: is there a bridge from PNP-001 measures to general circuit size? (2026-11-20)
+Sources checked: Atserias-Mueller, "Simple general magnification of circuit lower bounds", arXiv 2503.24061v2 (local copy
+literature/sources/arXiv-2503.24061); Chen-Jin-Williams TR19-118; Grochow-Pitassi arXiv 1404.3820.
+(a) General magnification (Atserias-Mueller Thm 4, 9; CJW): for sparse NP problems the conclusions are FIXED-POLYNOMIAL
+    (NP not in FML[n^c] / SIZE[n^c] for all c) - not NP not in P/poly. Atserias-Mueller state the thresholds are sharp.
+(b) Uniform magnification (Atserias-Mueller Thm 11): P != NP^{(+)P} if for some eps > 0 and sigma(l) <= 2^{o(l)},
+    n^{-eps}-MCSP[sigma] is not in P-uniform-SIZE[n^{1+eps+o(1)}]. "Almost known" (Santhanam-Williams: P not in P-uniform-SIZE[n^c]) and it
+    seems to sidestep the localization barrier. Conclusion is P != NP^{(+)P}, which is WEAKER than P != NP (NP is contained in NP^{(+)P}).
+    The best partial route found; it needs lower bounds against UNIFORM circuits, not proof-system bounds.
+(c) Proof-complexity magnification (Mueller-Pich, APAL 2020; Atserias-Buss-Mueller, STOC 2023) concerns the PROVABILITY of circuit lower
+    bounds in weak theories / Extended Frege - not lower bounds themselves. Listed as leads, not checked in detail.
+(d) Structural finding (direction of implication), proved by inspection of our own tools: every PNP-001 lower bound flows
+    COMPUTATION -> PROOFS - Lemma T / Theorem 12 derive proof-size bounds FROM monotone-span-program (tiling) lower bounds; feasible
+    interpolation in general turns short proofs into small circuits/span programs, so its contrapositive yields PROOF lower bounds from
+    COMPUTATIONAL lower bounds. The magnification target needs the opposite flow PROOFS/MEASURES -> COMPUTATION. The only known formal
+    bridge from IPS goes to ALGEBRAIC complexity (Grochow-Pitassi: superpolynomial general-IPS lower bounds imply VP != VNP), not to
+    Boolean P/poly. Together with sec. 17 (cut rank is not a circuit-size measure; EQ, IP controls): no published or PNP-001 bridge from
+    our measures to general Boolean circuit size exists. Step 1 result: NEGATIVE for all current tools; step 2 (locality) is moot for them.
+(e) What a bridge would have to be (precise open statement): a lemma "a Boolean circuit of size s deciding MCSP[2^{beta m}] yields a
+    small refutation in a proof system Y of an explicit family Phi" - i.e. the circuit's correctness must be efficiently provable in Y.
+    For weak Y (roABP-IPS_LIN, PC, ...) this is not available; for strong Y (Extended Frege) lower bounds are themselves out of reach.
