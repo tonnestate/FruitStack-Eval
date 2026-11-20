@@ -16,8 +16,11 @@ Streaming (one-pass) = time-invariant F reading one input bit per step; state co
 ## 2 Lemma FB1 (stability is free)
 Every Boolean circuit C of size S is the unrolling of a time-varying feedback system that reaches a fixed point after S steps and has the
 strict Lyapunov function V(x_t, t) = S - t (strictly decreasing until the fixed point, constant afterwards), with Unroll = C, i.e.
-zero size overhead and no change of r. For a time-invariant realization, a ceil(log2(S+1))-bit step counter added to the state gives
-V = S - counter; the counter costs O(log S) state bits.
+zero size overhead and no change of r. (V depends on the step, not on the state: a Lyapunov function in a vacuous sense - which is the
+point.) A time-invariant realization needs a ceil(log2(S+1))-bit counter and V = S - counter, but its single update map must decode the
+counter, contain all S gate evaluations (or a multiplexer over them) and a conditional write on every state bit: size(F) = Theta(S),
+unrolled Theta(S^2), and r changes (every step re-reads every state bit). Only the time-varying statement is overhead-free; it reads all
+of u at every step, so it is not a one-pass streaming system.
 Proof. The realization of section 1: step t evaluates g_t and leaves every other bit unchanged; after step S nothing changes (F_t =
 identity for t >= S), so x_S is a fixed point reached in S steps; V decreases by exactly 1 per step before it. The unrolled circuit
 consists of the S gate evaluations; the "unchanged" bits are wires, not gates. QED.
@@ -37,19 +40,22 @@ prefixes are the same prefix. Hence every class is either the dead class or cont
 at most 1 + the number of distinct such prefixes, which is at most |Im(Eval_{n,s})| <= number of circuits of size <= s =
 2^{O(s log(n+s))}. QED.
 Consequence for the streaming route. MMW19 Thm 1.3 needs: no one-pass algorithm with poly(s) space AND poly(s) update time. Space
-O(s log(n+s)) is poly(s) and is achievable (MMW19 Thm 1.2 with a Sigma3SAT^A oracle: O~(s) space). So no argument based on how many states
+O(s log(n+s)) is poly(s) and is achievable WITHOUT any oracle: keep as state one size-<=s circuit consistent with the prefix; when a new bit
+disagrees, search (brute force) for the next circuit consistent with the old circuit's first t bits and the new bit - O(s log(n+s))
+space, exponential update time (MMW19 Thm 1.2 brings the update to O~(s^2) with a Sigma3SAT^A oracle). So no argument based on how many states
 must be distinguished can establish the hypothesis; any successful argument must bound the update time (the transition computation),
 which is exactly where the oracle locality barrier sits (filter F2; report sec. 20, connection test EXT vs H_C).
 
 ## 4 Comparison with known theory
-- Branching programs: a width-W, length-T BP is a time-varying feedback system with log W state bits; the best explicit bounds for general
-  BPs are about n^2/log^2 n (Neciporuk 1966) - known to be the ceiling of counting-subfunction methods; feedback vocabulary adds nothing.
-- Straight-line programs / pebbling: state reuse = register reuse; the register count is the pebbling number, which can be as small as
-  O(S/log S) for every circuit (Hopcroft-Paul-Valiant 1977 for TMs, Paul-Tarjan-Celoni for pebbling) - small state is always available,
-  so bounded state does not bound reuse.
+- Branching programs: a width-W, length-T BP is a time-varying feedback system with log W state bits; the best explicit SIZE bounds for
+  general BPs are about n^2/log^2 n (Neciporuk 1966) - known to be the ceiling of counting-subfunction methods; feedback vocabulary adds nothing.
+- Straight-line programs / pebbling: state reuse = register reuse; every bounded fan-in circuit of size S can be pebbled with
+  O(S/log S) pebbles (Hopcroft-Paul-Valiant 1977), tight (Paul-Tarjan-Celoni 1977) - but only with recomputation (exponential time), so the
+  program is no longer the same circuit. Small state is available at a time cost; bounded state does not bound reuse at fixed size.
 - Noise and redundancy (the genuine fly-by-wire principle: triple modular redundancy, voting): for circuits with independently noisy
-  gates, reliable computation of functions of high sensitivity needs size Omega(n log n) (Dobrushin-Ortyukov 1977; corrected proof
-  Gal 1991; Pippenger 1985 upper bound O(S log S) for any circuit). These are superlinear lower bounds - but in the NOISY model; a
+  gates, reliable computation of sensitivity-n functions at constant noise needs size Omega(n log n) (Dobrushin-Ortyukov 1977; gap found
+  by Pippenger-Stamoulis-Tsitsiklis 1991; corrected proofs Reischuk-Schmeltz 1991, Gal 1991); O(S log S) suffices for any circuit (von
+  Neumann 1956; Pippenger 1985). These are superlinear lower bounds - but in the NOISY model; a
   noiseless circuit lower bound does not follow (Pippenger simulation runs the other way), so they do not feed MMW or R-MCSP.
 - Barriers: FB1 holds for every circuit (relativizes and localizes trivially); FB2 is a counting statement that also holds with oracle
   gates (MMW19 Thm 1.2 is for every oracle A) - consistent with the locality barrier.
@@ -64,5 +70,9 @@ which is exactly where the oracle locality barrier sits (filter F2; report sec. 
 Verdict: the fly-by-wire / feedback approach cannot help as formulated; the two lemmas say precisely why. Nothing in this note is a step
 towards P != NP.
 
-## 6 Independent review
-(filled in after review)
+## 6 Independent review (2026-11-20, adversarial reviewer, read-only)
+FB1 time-varying: CORRECT; time-invariant cost understated -> fixed above (Theta(S) per step, Theta(S^2) unrolled). FB2 bound and proof:
+CORRECT; consequence for MMW19 Thm 1.3: CORRECT (search vs decision fine, s >= n so O(s log(n+s)) is poly(s)); achievability argument
+replaced by the oracle-free brute-force algorithm. Literature: pebbling attribution and recomputation caveat fixed; Dobrushin-Ortyukov
+correction history completed. Exhaustive illustration n = 2, basis {AND, OR, NOT}, s = 0..5, t = 0..4: I_t never exceeds 1 + #prefixes
+(bound loose: s = 2, t = 4 gives I_t = 2 vs bound 15) - finite illustration, not proof. Verdict: negative result stands.
