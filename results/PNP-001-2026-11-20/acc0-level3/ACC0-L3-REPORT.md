@@ -314,3 +314,41 @@ Independent review 2026-11-20 (reviewer saw only this section and the two source
 constant k, Lemma N CORRECT (exact inequality), Corollary 4.2's named gap is the right one; fixes applied above (renaming line, k = O(1),
 exact Lemma N, S1-S4 wording). Open: (i) gadget domain {0,1}^p for h_lambda; (ii) TR26-070 Sec. 4 for constant-width k-CNFs
 (N^K selectors per clause plus a matching consistency part).
+
+## 12 Corollary 4.2 completed (2026-11-20): all variable orders, every field, explicit family
+Closes the two open checks of section 11. Mechanical check: rung4/order_lift_check.py.
+Gap (i) closed - gadget domain. PR18 Def. 4.1 defines h_lambda : [lambda+1] x [lambda+1] -> {0,1} (identity with one 1 deleted) for EVERY
+positive integer lambda; PR18 Lemma 4.2: h_lambda is good over every field and rank(h_lambda) = lambda. Take lambda = 2^p - 1: then
+[lambda+1] = [2^p] is in bijection with {0,1}^p, so Lemma T applies verbatim with X = Y = {0,1}^p, no padding.
+Gap (ii) closed - order lifting for constant width (Lemma O). Let phi be an unsatisfiable CNF on x_1..x_N with M clauses of width <= K, no clause repeating a variable,
+hard for roABP-IPS_LIN in the fixed order x_1 < ... < x_N. Psi_K(u,v) = Phi1 /\ Phi2: for every clause C of phi and every tuple t of |C|
+DISTINCT indices in [N], a selector u_{C,t} and the clause (NOT u_{C,t}) v OR_j v_{t_j}^{sg(l_j)}; Phi2 = "exactly one selector per clause"
++ "no two incompatible selectors" (partial maps v -> x not one-to-one), exactly as TR26-070 Def. 15/16. Size: M N^K selectors, poly for
+constant K. Claim: (a) Psi_K is unsatisfiable; (b) a roABP-IPS_LIN refutation of Psi_K of width w in ANY order gives one of phi of width
+<= w in x_1 < ... < x_N.
+Proof: TR26-070 Prop. 17 and Thm. 18 verbatim - neither proof uses the clause width: (a) any u satisfying Phi2 selects one tuple per
+clause from one global one-to-one map, the surviving Phi1 clauses are a relabelled copy of phi; (b) for an order <, relabel the r-th
+v-variable (in <) as x_r, set u_{C,t} = 1 exactly for the tuple realising C under this relabelling. Then Phi2 is satisfied (its clause
+polynomials, in u only, become 0), Phi1 clauses with selector 0 have the factor u_{C,t} = 0, the Boolean axioms of u vanish, and the
+selected clauses become exactly phi in the order x_1 < ... < x_N. Substituting constants and renaming variables does not increase roABP
+width. QED. Checked mechanically on 5 unsatisfiable CNFs with clause widths 1-4 and mixed signs, 20 random orders each: restriction
+equals phi in the hard order every time, Psi unsatisfiable (SAT solver).
+
+Theorem 12 (Corollary 4.2, complete). Fix the Lauria-Nordstrom family G_n (arXiv 2306.00125 Thm 3.7, k = 3: O(n) vertices of degree
+O(1), not 3-colourable, encoding (2.2a)-(2.2c) needs PC degree Omega(n) over every field). Let F(G_n) be the 3-CNF of section 11, with
+NS_F(F(G_n)) >= c n and N_0 = #vars(F(G_n)) = Theta(n), so NS_F >= eps N_0 for a constant eps > 0 (Lemma N). Choose a constant p with
+2^p - 1 > 2^{1/eps}, g = h_{2^p - 1} on {0,1}^p x {0,1}^p, phi_n = F(G_n) o g (a 6p-CNF on 2pN_0 variables with at most m_0 * 2^{6p} clauses, m_0 = #clauses(F(G_n)) =
+Theta(n)), sigma = any order with all x-bits before all y-bits, and Psi_n = Psi_{6p}(phi_n) built for sigma (Lemma O).
+Then for EVERY field F and EVERY variable order, every roABP-IPS_LIN refutation of Psi_n over F has width 2^{Omega(n)}; Psi_n has
+poly(n) variables and clauses (degree of the polynomial O(p), p constant).
+Proof: Lemma O(b) reduces any order to phi_n in sigma with no width increase; Theorem 4.1 (Lemma T + PR18 Thm 1.1 for NS = Theta(N_0) and
+a good gadget of constant rank > 2^{1/eps}) gives width >= chi_F(f_{F(G_n),g}) / (#clauses of phi_n) >= 2^{Omega(N_0)} / poly(n).
+Lemma O(a) and unsatisfiability of phi_n (F(G_n) unsatisfiable, lifting preserves unsatisfiability) make Psi_n a valid instance. QED
+Independent validation 2026-11-20 (reviewer saw only sections 11-12 and the three source texts): Theorem 12 PROVED as stated; every
+link CORRECT (gadget, constant-rank case incl. mu_F <= chi_F via PR18 Thm 2.4 and NS = gap via Thm 3.5, Lemma T on phi_n, Lemma O,
+unsatisfiability, size). Wording fixes applied (Omega instead of Theta; no repeated variables in Lemma O). Caveats: the proof of PR18
+Thm 3.4 is deferred to the full version in the STOC text (we rely on the published statement); the polynomial size of Psi_n has degree
+O(p) with p ~ 1/eps from the Lauria-Nordstrom constants - astronomically large in practice, irrelevant for correctness; the mechanical
+script checks only the selector combinatorics on toy CNFs, not the polynomial identities.
+Scope (unchanged): roABP-IPS_LIN only; the instance is the doubly lifted formula, not positive 1-in-3 itself; no statement about stronger
+systems or algorithms.
