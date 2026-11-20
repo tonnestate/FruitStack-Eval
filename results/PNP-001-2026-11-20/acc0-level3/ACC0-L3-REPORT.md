@@ -652,3 +652,17 @@ Next obligation (owner): fix exactly which transformations are allowed for elimi
 nested algebraic/non-algebraic dependencies must be costed (XOR of computed AND values is NOT a free XOR leaf); then attempt an
 MCSP-specific bound K S^{2-delta} for minimum-size circuits, delta uniform. Controls: parity (R1), IP (R1'), MCSP semantics, small
 fan-in oracle gates (locality). OPEN.
+Image formulation and HIW23 (owner 2026-11-20; director source check). MCSP[s](x) = 1 iff x in Im(E_{n,s}), E_{n,s}: circuit
+descriptions -> truth tables (exact). Two kinds of reuse must be separated: (a) reuse inside a candidate circuit, (b) reuse inside the
+circuit that DECIDES MCSP (sharing work across many candidates). R-MCSP and the parameter r concern (b).
+Hirahara-Ilango-Williams, "Beating Brute Force for Compression Problems", ECCC TR23-171 (local copy literature/sources/eccc-TR23-171),
+Thm 1.3 (line 116): Search-MCSP[s] on truth tables of size 2^n has circuits of size 2^{(4/5)w+o(w)} poly(2^n), w = s log2(s+n); built from
+Fiat-Naor function inversion implemented in Boolean circuits. Director assessment: (i) an UPPER bound; at s = N^beta it is
+2^{Theta(N^beta log N)}, far above the N^{1+eps} regime where Theorem R needs R-MCSP, so it gives no evidence for or against R-MCSP.
+(ii) It is a genuine example of type-(b) sharing (precomputed inversion tables used by all candidates). (iii) Test case for any
+elimination calculus: the brute-force formula OR over descriptions d of [x = E(d)] has about 2^{w+o(w)} poly(N) leaves (tight encodings),
+i.e. about S_HIW^{5/4+o(1)} poly(N) - so at the HIW scale the formula/circuit gap is at most exponent 5/4 relative to these UPPER bounds
+(not a statement about the true CC). A calculus applied to HIW circuits must do at least this well.
+R0522 (organisation, 2026-11-20): the 0.99 ML screen on agent_agent_numdiffs_indep_n6_v1_e83d0e55 does NOT survive removing
+target-encoding columns (balanced accuracy 0.78 cons3 / 0.76 sat with rank3, m, ncoord_diff; exact law search 0 laws over 60459 rows);
+leakage resolved as artefact (session did not re-run the original screen's column list - attribution from the question text).
