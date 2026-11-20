@@ -10,9 +10,10 @@ transfer are recorded as open sub-tasks, never assumed as bridges.
   (spec_read('PNP-001-LIT-7-2026-11-21.md')).
 - Milestone M1: scale the non-trivial acceptance-probability estimation (or #SAT / SAT) for THR o THR (and THR o MAJ) from size
   ~n^{2.5} to ARBITRARY polynomial size n^k, closed under the combination of several circuits that Williams' transfer creates.
-  The sufficient conditions are attributed to Chen-Oliveira-Santhanam (CCC 2019; e.g. a non-trivial SAT algorithm for polynomial-size
-  THR o MAJ) - NOT YET SOURCE-CHECKED (2026-11-21 search did not surface the paper); the exact transfer theorem must be stated from the
-  source before the evolution engine optimises against it.
+  EXACT TRANSFER (source-checked 2026-11-21): Chen-Tal-Wang Lemma 3.8 (Bathie-Williams ITCS 2024 Thm 3.7 + Section 3.3; Chen-Williams
+  2019 Lemma 25): for every alpha > 1, a 2^n/n^{omega(1)} CAPP algorithm (error o(1)) for O(n^alpha)-size XOR_2 o THR o THR circuits gives
+  E^NP without n^alpha-size THR o THR circuits. Target class for the evolution engine: XOR_2 o THR o THR at every fixed alpha. The
+  Chen-Oliveira-Santhanam CCC 2019 condition (unverified) is not needed for this target.
 - Consequence on success: NEXP (or E^NP) not in THR o THR (resp. THR o MAJ) - a historic step at the TC0 frontier, NOT P != NP.
 
 ## P2 - meta-complexity and MCSP (hardness magnification, R-MCSP)
