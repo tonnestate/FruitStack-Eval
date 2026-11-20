@@ -400,3 +400,36 @@ is our breaking point B1: g = ml(f^{p-2}) equals 1/f on the cube and has a small
 multilinearisation, FSTW Prop. 4.5 = their Prop. 48); a linear refutation is also a full roABP-IPS refutation. B1 (claim:75698fb31560)
 is thereby an independently published fact. Scope: a limit of the FUNCTIONAL METHOD, not of every lower-bound technique. Use for R4b: technique anchor (finite fields, lower bound by multiples, set-multilinearisation),
 not a solution.
+
+## 14 Cell M9, partial result (director 2026-11-20): full roABP-IPS with bounded placeholder degree
+Setting. C o g a lifted CNF with m' clauses and clause polynomials Q_D(x,y) = R_D(x) S_D(y) (Lemma T). A full roABP-IPS refutation is an
+roABP C(x, y, z, w) of width W in some total order of all variables, z_D placeholders for the clause axioms, w_j placeholders for the
+Boolean axioms, with C(x,y,0,0) = 0 and C(x, y, Q, x^2 - x) = 1 as a formal polynomial identity (formal source: TR25-080 Def. 9,
+which has separate Boolean-axiom placeholders; TR26-070 Def. 3 lists the Boolean axioms among the axioms - equivalent here). Placeholder degree t(C): the
+largest number of distinct z-variables in a monomial of the multilinearisation ml_z C(x,y,z,0).
+Lemma T* (proved here). If all x-bits precede all y-bits in the order (z and w anywhere), then KW+(f_{C,g}) has an algebraic tiling of size
+<= W * sum_{s=1}^{t(C)} binom(m', s).
+Proof. (a) Set w = 0: still an roABP of width <= W, and on the Boolean cube C(x,y,Q,0) = 1 (the Boolean axioms vanish there).
+(b) On the cube every z_D takes the value Q_D(x,y) in {0,1}, so C(x,y,Q,0) = C~(x,y,Q) with C~ = ml_z C(x,y,z,0) = sum_S c_S(x,y) z^S;
+c_empty = C(x,y,0,0) = 0. Hence for every (x,y): sum over non-empty S contained in F(x,y) of c_S(x,y) = 1, F(x,y) = falsified clauses.
+(c) Rank: at the cut between the last x-bit and the first y-bit, C = sum_{r <= W} L_r(x, z_L) R_r(y, z_R) with disjoint placeholder sets
+z_L, z_R; ml_z acts separately on both factors, so c_S = sum_r [coeff of z^{S_L} in ml L_r](x) * [coeff of z^{S_R} in ml R_r](y): rank <= W.
+(d) Tiles: B_S := diag-restriction of c_S to {all clauses in S falsified} = c_S o prod_{D in S} Q_D; each Q_D is a rank-1 0/1 indicator,
+so rank B_S <= W, and supp B_S lies in the falsification set of every D in S, hence in the canonical rectangle of D_min(S) (as in Lemma T).
+Grouping the B_S by the rectangle of their smallest clause gives matrices embedded in canonical rectangles that sum to J, of total rank
+<= W * #{S : c_S != 0} <= W * sum_{s <= t} binom(m', s). QED
+Theorem 14 (partial M9). For the family of Theorem 12, every field F and every variable order: every full roABP-IPS refutation of Psi_n
+with placeholder degree t has width >= 2^{Omega(n)} / binom(m', <= t), m' = Theta(n) clauses of phi_n. Since binom(m', <= alpha m') <=
+2^{H(alpha) m'}, the width is 2^{Omega(n)} whenever t <= c' n for a suitable constant c' > 0 (improvement by the review; the earlier
+threshold c n / log n is superseded).
+Proof. Lemma O extends: restricting the selectors sets the placeholders of satisfied Psi-clauses to 0 (their axioms become 0), which keeps
+an roABP of width <= W and does not increase the placeholder degree; the order restricts to sigma (x-bits before y-bits). Then Lemma T*
+and Pitassi-Robere Thm 1.1 as in Theorem 12. QED
+Why the degree bound is essential for THIS method (not a lower-bound obstruction): C = 1 - prod_D (1 - z_D) + (Boolean-axiom part) has
+placeholder degree m'; its restriction C(x,y,z,0) = 1 - prod_D (1 - z_D) has width 1 and does not depend on the formula, so NO argument
+that looks only at the w = 0 restriction can give a bound for such certificates; its multilinear coefficients are c_S = (-1)^{|S|+1}, and the tiling bound becomes 2^{m'} - useless. In such
+certificates all difficulty moves into the Boolean-axiom part sum_j h_j w_j, which must certify prod_D (1 - Q_D) = 0 modulo x^2 - x.
+OPEN remainder of M9: full roABP-IPS refutations of unbounded placeholder degree - plausibly via a width lower bound for the
+Boolean-axiom part (a roABP certificate that prod_D (1 - Q_D(x,y)) lies in the Boolean ideal).
+Status: paper proof by the director; INDEPENDENTLY REVIEWED 2026-11-20 - "proved as stated": steps (a)-(d), the extension of Lemma O
+and the final bound CORRECT, example correct and not overstated, no counterexample; corrections applied (formal source TR25-080 Def. 9; threshold t <= c' n; sharper example wording). Works over every field.

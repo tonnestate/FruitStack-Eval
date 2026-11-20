@@ -18,3 +18,4 @@
   Section 10 (holo/gates): no common GL2 matchgate basis for nonlinear gates and wire equalities; direct translation lambda >= #nonlinear gates.
   Sections 11-12: rung 4 closed - Theorem 12 (roABP-IPS_LIN width 2^{Omega(n)} for a doubly lifted colouring family, every field, every order), independently validated.
 - `acc0-level3/THEOREM-12.md`: standalone result document for Theorem 12 (statement, proof chain, sources, reviews, novelty note). Next: rung 4b (full roABP-IPS).
+  Section 14: cell M9 partial - Theorem 14 (full roABP-IPS, placeholder degree <= c'n: width 2^{Omega(n)}), independently reviewed.
