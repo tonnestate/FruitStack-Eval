@@ -514,3 +514,14 @@ this project from cut rank (Lemma T, T*, M9b', Theorems 12, 14, 16) is a bound f
 communication, IPS fragments) and cannot by itself give any superlinear general-circuit lower bound - our rank methods fail for general
 circuits even before the locality barrier is reached. Consequence: none of the current PNP-001 tools addresses the rung-5 target statement;
 a genuinely new circuit-lower-bound idea would be required, and it would have to pass the locality barrier and the barrier filter.
+
+### 17.1 Precision (2026-11-20, second source check) and the connection test
+Verbatim, TR19-118 lines 180-181 (after Thm 1.1): "Setting L_beta = MCSP[2^{0.99 beta n}] and C = NP in Theorem 1.1, we recover a main result of
+[MMW19], although with a weaker (yet still very strong) consequence NP not in Circuit[n^k] for all k." So: CJW Thm 1.1 for ANY sparse NP
+language (including MCSP[m^2]) yields only fixed-polynomial lower bounds (not P != NP); NP not in P/poly needs MMW19 with MCSP[2^{beta m}] for all
+small beta. Binding wording (owner 2026-11-20): the transfer theorem exists (MMW19), the target statement is precise, the mechanism with
+which FruitStack could prove it is missing.
+Connection test (single obligation for rung 5): can a PNP-001 measure be strengthened so that it captures the REUSE of intermediate results in
+arbitrary Boolean circuits? Mandatory controls: EQ_m (cut rank 2^m, linear circuits) and IP_n (full cut rank, linear circuits) - any claim
+that fails on these is unsuitable for this route. Lead only, not yet checked at the source: Atserias-Mueller 2025, "Simple General
+Magnification of Circuit Lower Bounds" (arXiv).
