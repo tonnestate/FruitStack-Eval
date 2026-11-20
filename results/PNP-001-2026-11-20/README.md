@@ -13,3 +13,4 @@
   Section 7 (level 3c): branch-sum criterion, Theorem L (degree 1: restriction never raises the rank surplus), Lean proofs
   acc0-level3/lean/ACC0L3.lean (OR not in C0; OR_n in D iff n<=2; affine Boolean functions are literals), evidence audit.
   Section 8 (correction): algorithm R counts complete solutions (x,y); projected #SAT only with unique witnesses (l3e_checks.py).
+  Section 9 (brute force, acc0-level3/brute): all representations n+k <= 7; surplus at the affine-hull bound iff f in D (Theorem B).

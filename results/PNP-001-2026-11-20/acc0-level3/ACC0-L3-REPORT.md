@@ -206,3 +206,27 @@ quantity: the constraint x = 0 with one free auxiliary y has 2 pairs and 1 accep
 R0404 (OR_n with n-1 auxiliaries, rank n): NO evidence - its only successful lab run returned a hard-coded placeholder ("m = 4 # Example
 value"), three dataset reads failed, the dataset and the cited law:acc0_c0_exists_or_* ids do not exist. It is an unsupported claim,
 not k_min(OR_n) <= n-1; even a verified construction would give only an upper bound on k_min. Not part of this report's results.
+
+## 9 Brute force (2026-11-20): every GF(3)-linear representation with Boolean existential auxiliaries, n + k <= 7
+brute/repr_brute.c enumerates every affine subspace V of GF(3)^{n+k} exactly once (184 / 2,452 / 53,968 / 1,996,024 / 125,850,208
+for t = 3..7, matching the Gaussian-binomial counts), takes Sol = V cap {0,1}^t, projects onto the n inputs (k Boolean existential
+auxiliaries), and records per function the minimal dim V (= best rank surplus Delta = n - dim V; by Theorem L no restriction improves
+this exponent) with and without the unique-witness condition. Analysis: brute/analyse.py, brute/check_tight.py, brute/summary.json.
+Results (exact for the stated ranges, k <= 7 - n):
+- n = 3: nonzero functions by k_min: 57 (k=0), 72 (1), 106 (2), 20 (3); all 255 representable. n = 4 (k <= 3): 473 / 1,776 / 5,770 /
+  20,260; 37,256 functions (incl. OR_4, MAJ>=2, ...) need k >= 4.
+- k_min(OR_3) = k_min(NAND_3) = 3 and their best surplus is -1 (dim V = 4 > n); OR_4 needs k >= 4. NAE_3: k = 1, Delta 0;
+  MAJ_3, PARITY_3: k = 2, Delta 0; NAE_4: k = 3, Delta -1.
+- Theorem H bound Delta <= n - dim aff_GF3(f^{-1}(1)) is never exceeded; it is attained EXACTLY for the functions in D
+  (n = 3: 235 + 20; n = 4: 26,339 at the bound all in D, 1,940 below it none in D - no exception among 28,279 representable functions).
+Theorem B (proved; suggested by the brute force): for every representation f(x) = exists y in {0,1}^k: A(x,y) = b,
+  Delta = n - dim V <= n - dim aff_GF3(f^{-1}(1)), with equality only if the representation's auxiliaries are linearly determined,
+  hence only if f is in D.
+Proof: pi(V) is affine and contains f^{-1}(1), so dim V >= dim pi(V) >= dim aff f^{-1}(1). Equality forces dim V = dim pi(V), i.e.
+pi is injective on V, so y is an affine function of x on V: every auxiliary is linearly determined and f is in D (Lemma D0). QED.
+Corollary: every function outside D pays at least one unit below its affine-hull bound in EVERY representation, whatever the number
+of auxiliaries; full-hull functions outside D (OR_n, NAND_n for n >= 3, NAE_4, ...) have Delta <= -1.
+Meaning and limit: the rank surplus is a property of the function, not of a clever choice of auxiliaries - auxiliaries buy
+expressiveness only by spending surplus. This concerns representations of the function computed (satisfiable side). For SAT the hard
+instances are unsatisfiable ones, where Sol is empty and Theorem B says nothing; there the cost is governed by GF(3)-blind solution
+spaces (PNP-001 blind cores). That remains the open part of Level 3; brute force at n <= 4 does not decide the asymptotic question.
