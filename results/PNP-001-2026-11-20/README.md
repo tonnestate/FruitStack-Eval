@@ -7,4 +7,6 @@
 - `acc0-level3/`: ACC0 level 3 analysis. Positive 1-in-3 = SAT of AND o MOD3 over linear forms without auxiliaries (exact). Provable
   saving min(2^{n/2}, 2^{n-rank}) (Theorem A) but the class cannot compute OR (Theorem O): no new lower bound by transfer. Level 3 stays
   OPEN; next check: existential auxiliary variables (see specification, section "Level 3 - OPEN; next check").
+  Section 6 (level 3b): linearising restrictions - Delta = r_min - k, exact on class D (equality rank); OR_n in D iff n <= 2;
+  affine-hull bound Delta <= c - rho for gadget closures; checks l3b_checks.py, l3c_checks.py. Level 3 still OPEN.
 - Specifications updated (ACC0 incl. level 3), proof book refreshed.
