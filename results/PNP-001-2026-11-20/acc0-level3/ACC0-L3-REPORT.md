@@ -366,19 +366,34 @@ RESTRICTED class, labelled as such)
 ### 13.2 Experiment (groebner/gdeg.py, groebner/nsdeg.py; supports hypotheses, proves nothing)
 Measure A (Singular std with degBound = d over F[x]/(x^2 - x)): NOT reliable as a degree invariant - returns degrees above n + 1
 (Tseitin K4, 6 variables: 7) and is non-monotone (subset sum: ">7" at n = 5, 7 at n = 6); it counts non-multilinearised intermediate
-degrees. Reported but not used. Measure B (exact multilinear Nullstellensatz degree by linear algebra mod p): Tseitin K4 / K33 / prism:
+degrees. Reported but not used. Measure B (exact multilinear Nullstellensatz degree by linear algebra mod p; CONVENTION: the smallest d such that 1 lies in the span
+of the multilinearised products m * p_i with deg m + deg p_i <= d - state this convention whenever comparing with published NS/PC
+theorems): Tseitin K4 / K33 / prism:
 F2 = 1, 1, 1 versus F3 = 6, 7, 6 (XOR-SAT control: linear over F2, high over F3, as the literature predicts); subset sum sum x = n + 1 over
 F101: exactly n + 1 for n = 2..8 (consistent with the functional argument: the coefficient equals 1/(sum x - beta) on the cube, of full
-degree n); colouring encoding of K4: 3 over F2 and F3 (matches R0427). Small instances cannot show the asymptotic Omega(n) of F(G_n).
+degree n; over fixed F101 the instance is unsatisfiable only for n <= 99 - for n >= 100, sum x = n - 100 is a Boolean solution mod 101,
+so this is no infinite family); colouring encoding of K4: 3 over F2 and F3 (matches R0427). Small instances cannot show the asymptotic Omega(n) of F(G_n).
 ### 13.3 Barrier test of every open inference in this manuscript
 Filter: an inference that claims a separation of complexity classes must state its quantifier structure and why it does not relativise
 (Baker-Gill-Solovay), is not a natural proof (Razborov-Rudich: constructive + large property), and does not algebrise (Aaronson-
-Wigderson). An argument that uses only arithmetisation plus linear algebra over fields algebrises and cannot carry P != NP.
+Wigderson). [CORRECTED 2026-11-20, owner:] arithmetisation and linear-algebraic techniques must be examined for algebrization under
+the formal Aaronson-Wigderson definition (validity relative to oracles and their low-degree extensions); their use alone does NOT
+establish that a proof algebrizes. A claimed P != NP proof must identify how it overcomes each applicable barrier; natural proofs is a
+barrier only for properties that are constructive and large, under a pseudorandom-function hardness assumption.
 - Theorems A, B, G, H, L, O', Lemma F' (GF(3) route): statements about the algorithm family R / representations - no class separation
   claimed; filter not triggered.
 - Theorem 12, Lemmas T, N, O; MG-3, MG-C: lower bounds for fixed proof systems / fixed representations - no class separation claimed.
 - Open: rung 4b (full roABP-IPS) - a proof-system statement; general IPS lower bounds imply VP != VNP (Grochow-Pitassi), the known wall.
 - Open: algorithmic transfer (Williams-type) from a SAT saving - relies on cited external transfer theorems; no own saving claimed.
 - NOT present and NOT claimable from these methods: any inference from a restricted-system lower bound to "no polynomial SAT algorithm".
-  It fails twice: the quantifier gap (fixed proof system vs all algorithms), and our arguments (degree, rank, tiling over fields) are
-  arithmetisation-plus-linear-algebra, which algebrises.
+  It fails on the quantifier gap (fixed proof system vs all algorithms); whether our arguments (degree, rank, tiling over fields)
+  algebrize has NOT been examined under the formal definition - an open check, not a settled fact.
+
+### 13.4 Literature: ECCC TR25-080 (Elbaz, Govindasamy, Lu, Tzameret, 2025; local copy literature/sources/eccc-TR25-080)
+Checked at the source: lower bounds over FIXED finite fields for constant-depth multilinear IPS_LIN' (knapsack mod p) and for
+roABP-IPS_LIN' in every variable order (Thm 3 / Cor. 43 functional method; Thm 4 / Thm 46 lower bound by multiples). IPS_LIN' (their
+Def. 9) is linear in the AXIOM placeholders y and may be non-linear only in the Boolean-axiom placeholders z - so these are NOT bounds
+for non-linear use of the axioms (our rung 4b). The roABP bounds are PLACEHOLDER bounds (instances not computable by small roABPs), not
+CNFs. Their Thm 5 (Thm 49): the functional method cannot give non-placeholder roABP-IPS_LIN' bounds over finite fields - the same
+phenomenon as our breaking point B1. Use for R4b: technique anchor (finite fields, lower bound by multiples, set-multilinearisation),
+not a solution.
