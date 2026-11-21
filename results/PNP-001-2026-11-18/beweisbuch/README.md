@@ -1,8 +1,8 @@
 # Beweisbuch p_vs_np (AppleMe ProofLedger, append-only, hash-chained)
 
-Stand: 2026-11-21, 22:34 (UTC+1).
+Stand: 2026-11-21, 22:46 (UTC+1).
 
-- `proofbook-p_vs_np-STAGING-kampagnen.jsonl` - 8,514 entries. The book the FruitStack research organisation writes into (staging copy; the live book stays untouched): agent research sessions, fast-validator verdicts, the first kernel-checked Lean result, literature (KNOWN_RESULT), director synthesis, 35 retractions.
+- `proofbook-p_vs_np-STAGING-kampagnen.jsonl` - 8.543 entries. The book the FruitStack research organisation writes into (staging copy; the live book stays untouched): agent research sessions, fast-validator verdicts, the first kernel-checked Lean result, literature (KNOWN_RESULT), director synthesis, 35 retractions.
 - `proofbook-p_vs_np-LIVE-stand-heute.jsonl` - 529 entries. The live book (`/var/lib/cherryme/knowledge/proofs/p_vs_np.jsonl`) as of today, unchanged by this export.
 - `LESBAR-*.md` - readable rendering (ledger brief) of each.
 
