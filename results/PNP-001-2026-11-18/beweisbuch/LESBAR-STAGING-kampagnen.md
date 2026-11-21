@@ -1,8 +1,8 @@
 # Beweisbuch p_vs_np (STAGING-kampagnen)
 
-Eintraege: 8269, Hashkette intakt: True
+Eintraege: 8514, Hashkette intakt: True
 
-PROOF LEDGER of this problem (kept across missions; 8269 entries from 2027 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 8514 entries from 2065 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For every n >= 1, every integer weight vector w in Z^n with max_i |w_i| <= B, every integer threshold t, and every l in {0,...,n}: the set of functions y in {0,1}^(n-l) -> [w_rest.y >= t - w_pre.rho], indexed by rho in {0,1}^l, has at most min(2^l, 2lB+1) dist
   - For all rationals beta, eta, c with 0 <= eta <= beta and 0 <= c < 1: (2+beta-eta)/(1+c) > 1. More generally, for rationals beta, eta and c >= 0: (2+beta-eta)/(1+c) > 1 if and only if c < 1+beta-eta.
@@ -42,16 +42,16 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 2273 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 2309 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-fd50f851cb [UNEXPLAINED, OPEN] RESULT READY - the background job A0883 (Q-cc869fd7f8 stratified width n=16,18 (single THR o THR)) submitted by R1143 finished after that session ended: dataset_from_code finished: ok=False dataset None experiment ds-f83
-  - Q-a5d62ee0b3 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:d13ddb191fab by pnp-desk/research/R1134:nemotron-3-ultra-550b@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The accepted kernel proof c
-  - Q-ffdab78ce0 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:8332f273ba47 by pnp-desk/research/R1121:claude-haiku-5-5@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL CLAIM: Window lemma. Let w in Z^n 
-  - Q-e097ee5562 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:24d3853d49f1 by pnp-desk/research/R1134:nemotron-3-ultra-550b@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL CLAIM: For any m and any inje
-  - Q-d1f600ca35 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:7ad168ae4aa4 by pnp-desk/research/R1121:claude-haiku-5-5@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL CLAIM: Window lemma. Let w in Z^n 
+  - Q-100c3bd37a [MISSING_PROOF, OPEN] PRIORITY (owner 2026-11-21, K8 BRIDGE MAP Stage D - T-B lane): language gap - does a circuit lower bound N^{1+eps} or N g(N) for a language in E^NP (Williams-method output) imply any lower bound for Gap-MCSP or another s
+  - Q-ca175b4027 [MISSING_PROOF, OPEN] PRIORITY (owner 2026-11-21, K8 BRIDGE MAP Stage B - K1 lane): hypothesis [E] rows A (OPS), B (Theorem R / R-MCSP) and contract K1 (streaming-to-formula) are ONE missing step 'formula-to-circuit transfer for MCSP' with su
+  - Q-34b02a6004 [MISSING_PROOF, OPEN] PRIORITY (owner 2026-11-21, K8 BRIDGE MAP Stage A - K1 lane, FIRST): verify rows A-G of the bridge map at the source (exact statement, model, parameters, quantifier order): A Oliveira-Pich-Santhanam ToC 2021 item (1) - i
+  - Q-2c9dc59273 [MISSING_PROOF, OPEN] PRIORITY (owner 2026-11-21, K9 HITTING - K2-K6 lane, verification aid): Shpilka (ECCC, 2026-11-09) poly-size hitting sets for multilinear any-order roABPs - which identities in Lemma T, Lemma N and our roABP-IPS certific
+  - Q-567f504552 [MISSING_PROOF, OPEN] PRIORITY (owner 2026-11-21, K9 ROABP - K2-K6 lane): with 'On Closure Properties of roABPs' (ITCS 2026: factoring, powering, symmetric substitution can blow up width in every order), audit every transformation used in K2 
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
-  - PRIORITY (owner 2026-11-21, P2 secondary - lane F: ALGEBRAIC ANNIHILATORS AND SPARSE DISTINGUISHERS): two constructive objects the lab can search for exactly. ( -> reopen if: A class of maps G with a poly-time construction of a nonzero annihilator of degree below the counting threshold, or a proof that d_min is bo
-  - Does a canonical state key (k, residual top threshold T - sum of decided v, sorted residual thresholds t_j - p_j of UNDECIDED bottom gates) yield memo collision -> reopen if: a structured family (repeated directions, weight window bounded independently of n) shows keys well below 2^l at n >= 16 over more seeds, or
-  - PRIORITY (owner 2026-11-21, DIVERGENT LANE - lane N: THREE-FACTOR / ELIGIBILITY-TRACE ALGORITHMS): abstract the brain's coupling of fast activity a(t), connecti -> reopen if: None
+  - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
+  - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane S: STATE COMPLEXITY OF THR o THR): K_l(C) = number of DISTINCT residual functions C|rho over the 2^l assignments  -> reopen if: A proof of a joint count of distinct clamped shift vectors over prefixes that is at most 2^(l - eps(n)) with eps superlogarithmic, or a lemm
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane R: CERTIFIED LOW-RANK COMPRESSION OF RESIDUAL FUNCTIONS FOR CAPP; extends lane S Q-cc869fd7f8). Three state measu -> reopen if: A proved theorem bounds D or rank for a variable tree or restriction-then-rank scheme, or an adversarial family with D = o(2^min(l,n-l)) und
-NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it follows from its premises)
+  - PRIORITY (owner 2026-11-21, P2 - TARGET STATEMENT 4: DIRECT MCSP CIRCUIT LOWER BOUND): prove that for some fixed c >= 1, the exact decision problem MCSP[m^c] (t -> reopen if: A restriction-stable drop statement that holds at n=4 for size >=4, or a transfer from a stronger local statement, is supplied.
+NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it fo
