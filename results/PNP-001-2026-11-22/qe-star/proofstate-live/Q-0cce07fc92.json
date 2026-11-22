@@ -157,5 +157,84 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795384926.8982704,
+  "session": "pnp-desk/research/R1794",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Correction to S0021: its closes='G0001' tag is WITHDRAWN. S0021 proves O(tau*S) gates only for a constant-alphabet, constant-state TM with a one-hot head encoding. The manuscript's streaming algorithm of [4] is a RAM, and the manuscript itself gives poly(S,m) per RAM operation (Sec 7, p.6), not O(tau*S). So S0021 does not establish the RAM per-update bound used by Theorem 3. The phrase 'encoded input parameters' in the manuscript's Lemma 11 is also still undefined. Still open: (i) a RAM-unrolling lemma with an explicit polynomial in (S,m) and its proof, (ii) G0002 (worst-case update time, now quoted from MMW19 primary text as O~(t^2) per interval, which supports S0016/S0017 as per-stage bounds), (iii) hypothesis (8), which stays OPEN under Q-c5a09eda9a.",
+  "evidence": "Re-read of spec_read PNP-001-MANUSCRIPT-v0.25-EXACT-ONE.md page 6 (Sec 7, Lemmas 11-12). Scope check only, no new computation. Reviewer constraint: S0016, S0017, S0021 are all claude-haiku-5-5, so none can receive SURVIVED_REVIEW from this session.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795384954.6258836,
+  "session": "pnp-desk/research/R1794",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Sub-obligation (i) (RAM-unrolling lemma with an explicit polynomial in (S,m)) has a claimed proof (this step). Still open: (ii) the encoding of input parameters in Lemma 11; (iii) G0002 formal update-time definition quoted from MMW19 primary text; (iv) hypothesis (8) under Q-c5a09eda9a.",
+  "gap_id": "G0009",
+  "id": "S0023",
+  "proved_step": "LEMMA (RAM one-step circuit with explicit polynomial; attacks sub-obligation (i) of G0001, does not close it). Fix a RAM M with a fixed program of P instructions, R registers and S memory cells, all words of w bits, with the instruction set fixed (constant). Its configuration is a bit vector of length B = (S+R)*w + ceil(log2 P) (memory, registers, program counter). Let delta: {0,1}^B x {0,1} -> {0,1}^B be the step function, where the extra bit is the input bit read when the current instruction is an input read. Then delta is computed by a fan-in-2 Boolean circuit of size at most K*P*((S+R)*w + w^2) for an absolute constant K, uniformly in the input bit. PROOF: for each instruction i, (a) indirect addressing: decoding an address word against S cells costs O(S*w) gates by w-bit equality tests and a multiplexer over the S*w memory bits; (b) an arithmetic or move operation on w-bit words costs O(w^2) gates (schoolbook addition, multiplication, comparison); (c) the next-configuration bits for instruction i are a fixed combination of (a) and (b) costing O(B) gates; (d) selecting the instruction by the program counter is a multiplexer over P instruction results, costing O(P*B) gates. Summing over the P instructions gives K*P*(S*w + R*w + w^2 + B) <= K'*P*((S+R)*w + w^2). Padding a time interval to exactly tau steps by idling after halting makes the tau-fold composition a single circuit of size tau*K'*P*((S+R)*w + w^2), the same for every input string. With w <= poly(S,m) (the word width the manuscript uses), this gives poly(S,m) per RAM step, with an explicit polynomial. SCOPE: a fixed finite instruction set and fixed program; word-RAM with w-bit words; no unbounded integers. It does not establish the input-parameter encoding in Lemma 11 (still undefined), does not discharge G0001 as a whole, does not touch G0002 (update-time definition) or hypothesis (8). Not reviewed: claimant is claude-haiku-5-5. Reviewer must be of another model family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795385758.0778816,
+  "session": "pnp-desk/research/R1799",
+  "model": "claude-haiku-5-5",
+  "evidence": "Scope: constant alphabet and state, S >= n (by padding). Repairs the scope gap of S0021 (input position not stored when S < log N). Does NOT close G0001 (full-tableau scope), does NOT touch G0002 or hypothesis (8). Bookkeeping-level step, so it should not count as progress toward P vs NP even if it survives review. Status: CLAIMED by claude-haiku-5-5; a reviewer from a different model family is required. The computation cm-49f10632469649c3 is an identity check and is not cited as evidence.",
+  "id": "S0024",
+  "proved_step": "statement: REPAIR of S0021 (Lemma 11 scope). Let N = 2^n. Let M be a machine with S >= n work cells over a constant alphabet and constant state set Q, plus an input-position register p in {0,1}^n counting input bits consumed. One update consumes one input bit z in {0,1} and performs at most tau steps of M. Then the update map (configuration, z) -> configuration is computed by a fan-in-2 Boolean circuit with O(tau*S) gates, the same circuit for every z after padding. Configuration = S cells + one-hot head (S bits) + state + p (n bits).\nderivation: (1) Use the one-hot head and cell-update circuit of S0021 steps (2)-(5): O(S) gates per machine step. (2) Increment p with a ripple-carry incrementer: n half-adders, O(1) fan-in-2 gates each, so O(n) = O(S) gates per update. (3) Concatenate tau steps: O(tau*S) gates. (4) Pad to exactly tau steps by idling after halting, so the circuit is independent of z and of the run length. z enters as a wire to the first step; p is not used to address the input, so no N-way multiplexer is needed. (5) Any machine with S < n can be padded to S' = n cells; the bound then becomes O(tau*max(S,n)), which is polynomial in the space bound and does not change the poly(s) accounting.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795385905.2890644,
+  "session": "pnp-desk/research/R1805",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer family: claude-haiku (same as claimant), NON-BINDING. First false line: 'pad each interval ... with dummy queries ... Each oracle query string is a function of the configuration and is fed to a fixed oracle gate'. A fixed-width oracle gate of input length ell receives a real query of length < ell only after padding, and Sigma3SAT^A is a language of exact strings, not padding-invariant, so the answer on the padded string need not equal the answer on the query actually made. Dummy queries are harmless (answers unused); real short queries are not covered. Repair needed: a self-delimiting, padding-invariant query encoding for Sigma3SAT^A (or proof that the language is invariant under the padding used). Ordinary-gate part poly(Sw)*tau is fine.",
+  "review_of": "S0017",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795385905.3032708,
+  "session": "pnp-desk/research/R1805",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer family: claude-haiku (same as claimant), NON-BINDING. Core one-hot circuit verified: read r = OR_j(h_j AND c_j) per symbol bit, c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j), head shift with h_0/h_{S+1} boundary, constant-size state table; O(S) gates per step, O(tau*S) per update, x-independent by idle-padding. Argument gap as stated: the claim includes the configuration's log N-bit input-head position, but the proof gives no circuit for its update. An increment costs O(log N) gates per update, giving O(tau*S + tau*log N), which is O(tau*S) only if S >= log N. Repair: restate with the hypothesis S >= log N and add an explicit O(log N) increment cost. S0023 not reviewed (statement truncated in proof_state_read output).",
+  "review_of": "S0021",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795386045.80696,
+  "session": "pnp-desk/research/R1805",
+  "model": "claude-haiku-5-5",
+  "lemma": "Proof: for slot j, the configuration fixes the query register q_j (length field plus L bit positions). Indicators I_{j,lambda} = [len(q_j)=lambda] are ordinary logic. Gate O_{j,lambda} receives the first lambda bits of q_j, so when I_{j,lambda}=1 it is evaluated on the exact string q_j. Slot output = OR_lambda (I_{j,lambda} AND O_{j,lambda}), O(L) gates. Unselected gates get a constant input and are masked. Idle or unused slots select a dummy length whose output is masked to 0. Wiring positions are fixed, so the circuit does not depend on x. Scope: stage map only; does not close G0001, G0002, or hypothesis (8). Claimant family claude-haiku-5-5; the reviewer must be from another model family.",
+  "id": "S0027",
+  "proved_step": "LEMMA (repair of S0017, padding-free oracle slots): RAM M reads x in {0,1}^N in order; each interval has at most tau steps, at most q oracle calls, each of query length at most L (fixed). Then the stage map (config at read i, x_{i+1}) -> config at read i+1 is an A-oracle circuit with tau*poly(Sw) ordinary gates plus tau*q*(L+1) oracle gates O_{j,lambda} of input length exactly lambda, independent of x. Query strings are never padded.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795386482.6301548,
+  "session": "pnp-desk/research/R1798",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is mathematically correct for standard RAM-to-circuit conversion: (a) With per-interval worst-case bound u, padding to exactly u steps by idling (copying config to config) and unrolling gives a circuit of size u * poly(S*w) per stage, total N*u*poly(S*w). (b) Amortized bound sum t_i <= N*u implies each t_i <= N*u, giving N^2*u*poly(S*w). The gap is not in the lemma but in its application: the step explicitly notes it does NOT establish that MMW Thm 1.2 has the per-interval worst-case reading (G0002 stays open until the formal definition is quoted from the primary MMW text). As a general RAM-circuit lemma, it survives review.",
+  "review_of": "S0016",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795387214.248548,
+  "session": "pnp-desk/research/R1798",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the circuit construction argument: (a) indirect addressing via w-bit equality tests and multiplexer over S cells costs O(S*w) gates; (b) w-bit arithmetic (add/mul/compare) costs O(w^2) gates with schoolbook algorithms; (c) next-configuration combination costs O(B) gates; (d) instruction selection via P-way multiplexer over B-bit results costs O(P*B) gates. Summing over P instructions gives O(P*((S+R)*w + w^2 + log P)) which is bounded by K*P*((S+R)*w + w^2) for absolute constant K since log P <= (S+R)*w + w^2 for non-trivial RAMs. The circuit is uniform in the input bit (input bit is a wire). No argument gap found; this is a standard RAM-to-circuit simulation with explicit polynomial bound. The scope is correctly stated: fixed instruction set, word-RAM, does not establish Lemma 11's input-parameter encoding or hypothesis (8).",
+  "review_of": "S0023",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795387875.3320398,
+  "session": "pnp-desk/research/R1798",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the circuit construction. Configuration = S cells (constant alphabet => O(S) bits) + one-hot head (S bits) + state (O(1)) + p (n bits). Since S >= n, total configuration bits O(S). One machine step: read cell under head (multiplexer with S inputs, log S selector bits from one-hot head => O(S) gates), write new symbol (O(1) per cell, but only head cell changes => O(S) gates via demultiplexer), update state (O(1)), move head (shift one-hot by 1 => O(S) gates). Total O(S) gates per step. Ripple-carry incrementer for p: n half-adders, each O(1) fan-in-2 gates, total O(n) = O(S) gates. Concatenate tau steps: O(tau*S) gates. Padding to exactly tau steps makes circuit independent of z and run length. z enters as wire to first step. No N-way multiplexer needed since input is consumed sequentially. The construction is correct for the stated model. Scope: this gives the update circuit size bound; it does not by itself establish the full Lemma 11 tableau accounting or hypothesis (8).",
+  "review_of": "S0024",
+  "status": "SURVIVED_REVIEW"
  }
 ]

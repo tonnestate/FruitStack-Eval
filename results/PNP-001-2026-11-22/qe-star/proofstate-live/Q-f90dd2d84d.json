@@ -1,0 +1,39 @@
+[
+ {
+  "at": 1795385265.3439655,
+  "session": "pnp-desk/pi",
+  "model": "claude-opus-5-5",
+  "gap": "OWNER 2026-11-22 precision: the factorisation M_t = U V gives rank_F(M_t) <= S over EVERY field F once transitions and output are F-linear; rank_Q != rank_GF2 (proof book seq 8987/8988) refutes only equating their values, not the factorisation. The open part of T1: does a factorisation (hence a rank bound over some field) survive (a) an arbitrary nonlinear decoder on the final state, (b) nonlinear transitions with S-bit states? Give a proof or the smallest counterexample. Note: with arbitrary S-bit states the prefix-class count bound (distinct rows of M_t <= 2^S) is the generic fact - state precisely what more a rank bound would give.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795387529.393273,
+  "session": "pnp-desk/research/R1811",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "rank_F(M_t) <= S under NONLINEAR S-bit transitions (any decoder), and under LINEAR transitions with a NONLINEAR decoder. Counterexamples over GF(2), S=2: nonlinear T=(0,1,2,3,0,0,0,2), D=1, rows [113,213,17,81] (cm-24a1a17ba5194755, cm-4af027aefc67476d); linear A0=[0,0,0,1], A1=[1,1,1,0], s0=(0,1), decoder truth table [1,0,0,0] on states (0,0),(0,1),(1,0),(1,1), rows [52,15,255,68], rank 4 = 2^S, no zero subset-XOR (cm-c502d1e854bd4a3d, re-verified cm-1dc338d0108443f1)."
+ },
+ {
+  "at": 1795387650.3587844,
+  "session": "pnp-desk/research/R1811",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "rank_F(M_t) <= S+1 for NONLINEAR S-bit transitions with an arbitrary decoder is FALSE. Finite search cm-3da2b82502314655 (DISCOVERY, GF(2), S=2,3, 5-bit prefixes and suffixes, 3000 random instances per S, random nonlinear transitions and random decoders, start state 0) gives max rank 4 for S=2 and max rank 8 for S=3; 2024 of 3000 S=3 instances exceed S+1. Witness cm-24a1a17ba5194755 (S=2, rank 4) was rechecked in cm-c502d1e854bd4a3d. The bound survives only for affine transitions, and the pigeonhole bound rank <= 2^S is the sharp general bound on this data. Gap G0001(a) remains open."
+ },
+ {
+  "at": 1795387724.547834,
+  "session": "pnp-desk/research/R1811",
+  "model": "claude-haiku-5-5",
+  "id": "S0004",
+  "proved_step": "S-affine-rank-bound. Let F be any field, S >= 1, s0 in F^S a fixed start state. Each letter c in {0,1} acts as s -> A_c s + b_c (A_c in F^{SxS}, b_c in F^S). For a prefix p let sigma(p) = delta_p(s0). For a suffix q, delta_q(s) = L_q s + c_q. Let D(s) = l.s + d be a linear-affine decoder and M_t[p,q] = D(delta_q(sigma(p))). Then rank_F(M_t) <= S+1. If all b_c = 0 and d = 0, then rank_F(M_t) <= S. PROOF: M_t[p,q] = <u_q, sigma(p)> + g_q with u_q = L_q^T l and g_q = l.c_q + d. The matrix Sigma[p,q] = <sigma(p), u_q> equals X Y with X (2^k x S) having rows sigma(p) and Y (S x 2^m) having columns u_q, so rank(Sigma) <= S. M_t = Sigma + 1 g^T, and rank(1 g^T) <= 1, so rank(M_t) <= S+1 by subadditivity. If b = 0 then c_q = 0 for all q (composition of linear maps), so g_q = d, and d = 0 gives g = 0 and M_t = Sigma, rank <= S. Scope: affine transitions and affine decoder only. Does NOT close G0001 parts (a) or (b), which are refuted by the nonlinear counterexamples in refuted_approaches. Evidence: cm-b3dfa19b75d746cf (GF(2), S=2, nonzero start states: linear max rank 2, affine max 3), cm-4af027aefc67476d (random GF(3), no violation).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795387812.7428024,
+  "session": "pnp-desk/research/R1811",
+  "model": "claude-haiku-5-5",
+  "id": "S0005",
+  "proved_step": "S-degree-rank. Let F be any field, S >= 1, and let the states be s in {0,1}^S. Let the prefix states be sigma(p) in {0,1}^S (any function of the prefix p, with k-bit prefixes), and for each suffix q let f_q : {0,1}^S -> F be any function (for example f_q(s) = D(delta_q(s)) for arbitrary transitions delta and an arbitrary decoder D). Let e >= 0 with deg f_q <= e for every suffix q, where deg is the multilinear degree. Let M[p,q] = f_q(sigma(p)). Then rank_F(M) <= B(S,e) := sum_{j<=e} C(S,j). PROOF: Every f: {0,1}^S -> F has a unique multilinear representation f(s) = sum_{m subset [S]} c_m prod_{i in m} s_i over F. Its coefficients are given by Mobius inversion c_m = sum_{T subset m} (-1)^{|m|-|T|} f(1_T), which is valid over any field. Hence deg f = max{|m| : c_m != 0}, and if deg f_q <= e then f_q(s) = sum_{|m|<=e} c_{m,q} s^m. Define Phi[p,m] = sigma(p)^m for |m| <= e (a 2^k x B matrix, B = B(S,e)) and Psi[m,q] = c_{m,q} (a B x 2^m matrix). Then M = Phi Psi, so rank_F(M) <= min(rank Phi, rank Psi) <= B. QED. Remarks: (i) e = 1 gives S+1, matching the affine bound S-affine-rank-bound (which had nonzero start-state and constant terms). (ii) e = S gives 2^S, which is sharp: cm-3da2b82502314655 attains rank 8 at S=3. (iii) The lemma uses no linearity of the transitions or of the decoder. Scope: an exact statement under the hypothesis deg f_q <= e for all suffixes q. It is a conditional bound: it gives a polynomial-in-S rank only when e is constant, and the composed degree of nonlinear transitions can grow with |q|, so it does NOT give an unconditional rank bound. It does NOT close G0001 (a) or (b). It is a partial answer: a factorisation (hence a rank bound over every field) survives exactly when the composed ANF degree is bounded. Evidence: cm-5638d3910a8b4f05 (GF(2), S=2,3,4, own ANF and elimination; viol=0 in all six families), cm-3da2b82502314655 (sharpness at S=3), cm-24a1a17ba5194755 (S=2 witness of rank 4 = 2^S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

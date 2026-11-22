@@ -423,5 +423,53 @@
   "proved_step": "BUCKET-ELIM-EXACT (standard, Dechter 1999; recorded as bookkeeping, closes no obligation). Let F(x_1..x_n) = prod_{i=1..k} f_i(x_{S_i}) with f_i : {0,1}^{S_i} -> Z_{>=0}. Fix an order v_1..v_n. At step t, let I_t be the factors whose scope contains v_t, U_t the union of their scopes, and g_t(x_{U_t \\ {v_t}}) = sum_{x_{v_t} in {0,1}} prod_{i in I_t} f_i. Then (a) the sum of F over {0,1}^n equals the value of the final scalar product obtained by the recursion (distributivity of product over sum, since v_t occurs only in the factors of I_t at step t); (b) the product table at step t has 2^{|U_t|} entries and g_t has 2^{|U_t|-1} entries; (c) so the largest table is at most 2^{w+1}, w = max_t (|U_t| - 1). Proof: (a) induction on t, using that v_t occurs in no factor outside I_t at that point; (b) by definition of U_t. Scope: finite Boolean, nonnegative weights, any fixed order. Consequence: exact counting for positive 1-in-3 CNF costs sum_t 2^{|U_t|} arithmetic operations, with the 3-variable clause table having 3 of 8 entries nonzero.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795385111.1675284,
+  "session": "pnp-desk/research/R1797",
+  "model": "claude-haiku-5-5",
+  "id": "S0046",
+  "proved_step": "statement: Let M be a 0/1 matrix over Q with rank_Q(M) = r. Then M has at most 2^r distinct rows. Consequently, for a fixed variable order and cut k, the number of distinct residual functions D_k <= 2^{r_k}, where r_k = rank_Q of the cut communication matrix, and the OBDD width of that order is <= 2^{max_k r_k}.\nderivation: Let V in Q^B be the row space of M, dim V = r. Choose a basis of V, form the r x |B| matrix of basis vectors, and pick r columns J on which it is invertible. The projection pi_J: V -> Q^J is then injective. Every row of M lies in V and has entries in {0,1}, so pi_J(row) lies in {0,1}^J, which has 2^r elements. Hence a row is determined by at most 2^r values and M has at most 2^r distinct rows. Applying this to the cut matrix of each level k gives D_k <= 2^{r_k}. Scope: this is an exponential bound 2^{O(W_rank)} only; it does not give the polynomial form poly(W_rank) asked in the gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795385198.4050713,
+  "session": "pnp-desk/research/R1797",
+  "model": "claude-haiku-5-5",
+  "id": "S0047",
+  "proved_step": "statement: For every r >= 1 there is a 0/1 matrix M_r with rank_Q(M_r) = r and exactly 2^r distinct rows, so the bound 'distinct rows <= 2^{rank_Q}' of S0046 is tight for arbitrary 0/1 matrices.\nderivation: Index rows by x in {0,1}^r and columns by j in [r], with M_r[x,j] = x_j. The rows x = e_i (unit vectors) are the standard basis of Q^r, so rank_Q(M_r) = r (at most r columns, and r independent rows). The row indexed by x equals x itself, so the rows are pairwise distinct and there are 2^r of them. Scope: arbitrary 0/1 matrices. Not claimed: that M_r is a cut matrix of any formula or THR o THR circuit of size poly(r). Consequence: closing G0001 (poly form) needs a property of cut matrices of bounded-size circuits beyond their rank.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795385669.7889354,
+  "session": "pnp-desk/research/R1797",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "H_A (paired min-over-orders linear pattern): for every Boolean function F on n variables, min over variable orders of W (max over cuts of distinct residual rows) is at most min over orders of R (max over cuts of rank_Q of the cut matrix) plus 1. Evidence cm-eb6aad016ec34dc6: exhaustive over 720 orders at n=6; violated by 54 of 100 random truth tables (worst paired gap 2, minW=10, minR=7); not violated by mux4 or the 60 random 1-in-3 CNFs. Scope: arbitrary functions at n=6. The class-specific version for poly-size 1-in-3 formulas is NOT refuted and remains open."
+ },
+ {
+  "at": 1795386045.071208,
+  "session": "pnp-desk/research/R1797",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "H_A (additive paired min-over-orders bound: minW <= minR + 1, W = min over orders of max over prefixes S of K(S) = distinct residual rows, R = min over orders of max over prefixes of rank_Q of the cut matrix). Refuted EXACTLY for arbitrary Boolean functions: n=6 exhaustive over 720 orders (cm-eb6aad016ec34dc6, 54 of 100 violated); n=8 exact bottleneck DP over all 8! orders (cm-d84cf9806934488a, 60 of 60 violated, worst gap 13). Sampled-order n=8 run cm-41111a224e45407b is inconclusive (upper bounds only). Repair: multiplicative form W <= 2^R (see next lemma). Class-specific additive version for poly-size 1-in-3 formulas remains open."
+ },
+ {
+  "at": 1795386106.151151,
+  "session": "pnp-desk/research/R1797",
+  "model": "claude-haiku-5-5",
+  "id": "S0050",
+  "proved_step": "statement: Let F: {0,1}^n -> {0,1} and let S be a set of variables. Let M_S be the cut matrix with rows indexed by assignments to S, columns by assignments to the complement, and entries F. Let K(S) be the number of distinct rows of M_S and R(S) the rank over Q of M_S. Then K(S) <= 2^R(S). Consequently W(F) <= 2^R(F), where W(F) is the min over variable orders of the max over prefixes of K, and R(F) is the min over orders of the max over prefixes of R.\nproof: Let r = R(S) and let V be the row space of M_S over Q, so dim V = r. Choose r linearly independent columns J of M_S. Since these columns span the column space, the submatrix M_S[:,J] has rank r, so its row space has dimension r. That row space is the image of V under the projection p_J to Q^J, so p_J is injective on V. Each distinct row of M_S is a distinct 0/1 vector lying in V, so distinct rows have distinct restrictions to J, and those restrictions lie in {0,1}^J, a set of size 2^r. Hence K(S) <= 2^r. For the consequence, take an order pi minimising the max over prefixes of R. Then the max over prefixes of K is at most 2^(max R), so W(F) <= 2^R(F). Tightness: for rows x in {0,1}^r and columns j in [r], with M[x,j] = x_j, the rank is r and K = 2^r, so the bound is attained. Scope: arbitrary Boolean functions, any n. This is the multiplicative repair of H_A and is exponential, so it does not yet give a polynomial width bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795386164.1504514,
+  "session": "pnp-desk/research/R1797",
+  "model": "claude-haiku-5-5",
+  "id": "S0051",
+  "proved_step": "statement: Let F = AND of factors f_1..f_m on Boolean variables, each factor on at most 3 variables. For a variable set S let dS be the set of variables in S that occur in a factor which also contains a variable outside S. Let K(S) be the number of distinct residual functions of F on the complement, indexed by assignments to S. Then K(S) <= 2^|dS| + 1.\nproof: Split factors into I (inside S), J (crossing), O (inside complement). For prefix assignment a, the residual is g(a) AND h(b) AND over f in J of f(a restricted to S cap f, b), where g(a) = AND over I of f(a) and h(b) = AND over O of f(b) does not depend on a. Each crossing factor depends on a only through a restricted to dS. So the residual is determined by the pair (g(a), a restricted to dS). If g(a)=0 the residual is the zero function (one residual). If g(a)=1 it is determined by a restricted to dS, at most 2^|dS| residuals. Hence K(S) <= 2^|dS| + 1. Consequence: min over orders of max over prefixes of K is at most 2^vs(F) + 1, where vs is the vertex separation number of the primal graph. Scope: conjunctive formulas with bounded factor size, any n. Not new: standard pathwidth-to-OBDD fact. Does not give a polynomial width for random 1-in-3 formulas, where vs is linear in n.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

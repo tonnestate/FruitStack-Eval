@@ -2341,5 +2341,147 @@
   "gap": "LEMMA L-M is NOT yet a proved step. Its only support is the finite check above. Still missing: (a) an analytic proof that k > E(G) for all m > 65536, with explicit constants; (b) the chain from the counting inequality to the lower bound, with the exact premises for oracle gates; (c) a proof that the full-permutation cost model yields a MCSP / search-MCSP lower bound and is not refuted by the MMW oracle algorithm. The step was rejected once for lacking oracle_stress, and no LOWER_BOUND label is recorded until (b) and (c) are written.",
   "evidence": "cm-cd318cab7ce34b1f (VERIFICATION, own code, integer arithmetic): chain condition k > E(G) with k = isqrt(2m)-2, G = floor(sqrt(m)/(4 log2 m)), E(G) = G(4+2log2(S+G)) + S log2(S+G) + log2(G+1), S = ceil(log2 m). Checked over all integers 42 <= m <= 65536: n_bad = 574, first_bad 42, last_bad 647, so no failures for m in [2^14, 65536]. This is numerical evidence only; it is not a proof and does not close G0001 or G0002. Earlier cm-5fec87a0ebd349ca checked a different inequality (log2 p(m) > E(G)) on m in [42, 3000]; the two are not in conflict.",
   "gap_id": "G0154"
+ },
+ {
+  "at": 1795384960.7102776,
+  "session": "pnp-desk/research/R1790",
+  "model": "claude-haiku-5-5",
+  "lemma": "TAIL LEMMA for L-M (counting inequality only, not a lower bound). For integer m >= 2^16, L = log2 m, S = ceil(L), G = floor(sqrt(m)/(4L)), E(G) = G(4+2log2(S+G)) + S log2(S+G) + log2(G+1). Then (1) S+G <= sqrt(m), so log2(S+G) <= L/2; (2) E(G) <= sqrt(m)(1/4 + 1/L) + (L+2)L/2; (3) k = isqrt(2m) - 2 > E(G). Proof of (3): k >= sqrt(2m) - 3 and 1/4+1/L <= 5/16 for L >= 16, so it suffices that 1.1017 * 2^(L/2) > 3 + (L+2)L/2. At L = 16 the left side minus right side is about 135 > 0, and its derivative 0.38*2^(L/2) - (L+1) is positive for L >= 16, so the inequality holds for all L >= 16. Checked by hand line by line.",
+  "gap": "Sub-gap (a) of L-M is closed as a counting lemma; this step is self-made and CLAIMED, not reviewed, and it closes no external obligation, so it does not count as progress. Still OPEN: (b) the chain from the full-permutation counting inequality log2 p(m) > E(G) (checked only for m in [42, 3000], cm-5fec87a0ebd349ca; the asymptotic c > 1/4 for log2 p(m) is not proved) to a lower bound on max over lambda of h(lambda); (c) the MCSP / search-MCSP transfer and the oracle premise check against the MMW Thm 4.1 algorithm. G0001 and G0002 stay open.",
+  "evidence": "cm-899ced846bd04b24 (VERIFICATION, own code, exact integers): inequalities (i), (ii), (iii) checked on 2385 values of m (powers of two 2^16..2^400 plus 2000 random integers): zero failures; minimum relative margin (k - E)/sqrt(m) = 0.912; S+G <= sqrt(m) held in all tests. Together with cm-cd318cab7ce34b1f (finite check, no failures for m in [2^14, 65536]), the chain condition k > E(G) is covered for all m >= 2^14. Note: both computations are EXPLORATORY_COMPUTATION, not proofs; the analytic part for m >= 2^16 is the hand proof above.",
+  "gap_id": "G0155"
+ },
+ {
+  "at": 1795384991.1763456,
+  "session": "pnp-desk/research/R1790",
+  "model": "claude-haiku-5-5",
+  "gap": "Premise missing from the counting route (G0153 / L-M chain step (b)). The argument is: if h(lambda) <= G for every partition lambda of m, then each permutation pi_lambda on {0,1}^S has a circuit description of at most E(G) bits, so at most 2^E(G) distinct permutations occur; since p(m) > 2^E(G) for m in [42, 3000] (cm-5fec87a0ebd349ca), two partitions lambda != mu give the same permutation. That contradiction needs lambda -> pi_lambda to be INJECTIVE, which is never stated or proved. The record also never defines pi_lambda explicitly, so injectivity cannot be checked as written. Open items: (b1) define pi_lambda explicitly as a permutation of {0,1}^S; (b2) prove or refute that lambda -> pi_lambda is injective (a finite check on m <= 3000 is a verification only); (b3) prove the asymptotic log2 p(m) > c sqrt(m) with c > E(G)/sqrt(m) -> 1/4, which the growth of p(m) suggests but the record has not proved. Until (b1)-(b2) hold, the counting inequality does not yield max over lambda of h(lambda) > G, and G0001 / G0002 are not advanced. Also note: even with (b1)-(b3), a counting bound over these permutations is an existence statement about functions and does not by itself give an MCSP lower bound; step (c) remains open.",
+  "evidence": "Re-reading the S0126 / G0153 chain as recorded in this session: no definition of pi_lambda appears in any stored step, and the injectivity premise is used implicitly in the sentence 'two partitions give the same permutation'. No new computation in this entry; no progress is claimed.",
+  "gap_id": "G0156"
+ },
+ {
+  "at": 1795385161.3029013,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0028: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP for the full claim as stated.**\n\nNo kernel-accepted Lean proof exists for this claim. I have not run a new check in this turn.\n\n**What failed**\n\n- **Previous Lean run:** The turn-0 `physalis_m (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795385211.1452737,
+  "session": "pnp-desk/research/R1790",
+  "model": "claude-haiku-5-5",
+  "gap": "Partition route is dominated: counting over all S-bit permutations gives the larger threshold, so the cycle-type restriction gives no extra information (cm-a1683a840a63400b). The all-permutation count is KNOWN-type (Shannon-style existence), not a lower bound for MCSP. Still OPEN: (b3) an analytic proof that log2 p(m) grows like c sqrt(m) with c > 1/4; (c) a transfer theorem from the S-bit counting bound to an MCSP or search-MCSP lower bound, with the oracle premise check against MMW Thm 4.1. G0001 and G0002 are not advanced. No proof progress is claimed in this session.",
+  "evidence": "cm-a1683a840a63400b (DISCOVERY, own code, exact comparison). H1 (partition route is dominated by counting over all permutations of {0,1}^S, S = ceil(log2 m)) was tested at m = 64, 256, 1024, 4096, 16384, 65536. G_all (largest G with E(G,S) < log2((2^S)!)) is 19, 93, 405, 1692, 6959, 28396. G_partition = floor(sqrt(m)/(4 log2 m)) is 0, 0, 0, 1, 2, 4. G_all exceeds G_partition at every tested m, so H1 holds on this grid. Caveats: at m <= 1024 the partition value is 0, so the comparison is vacuous there; the grid has 6 points only. Injectivity of lambda -> pi_lambda (cycle type lambda plus 1^(2^S - m)) was checked exhaustively for m <= 20 (2713 partitions, no collision). The general argument is short: the multiset lambda union 1^(N-m) determines lambda by removing N-m ones, so the map is injective. This closes G0156 items (b1) and (b2) as bookkeeping only, not as progress. Remaining: (b3) the growth bound on log2 p(m) is still unproved, and (c) the transfer from an S-bit counting bound to an MCSP or search-MCSP lower bound is still open. The all-permutation count is a Shannon-type existence bound on S-bit functions; it does not by itself transfer to the MCSP setting, which is the same caveat recorded in G0153.",
+  "gap_id": "G0157"
+ },
+ {
+  "at": 1795385832.3304586,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0033: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The full LEMMA C cannot be formalised faithfully in this pass. The kernel-accepted file covers only the counting core, and the claim's other parts are missing.\n\n**Accepted (tool output: `kern (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795386599.3162112,
+  "session": "pnp-desk/research/R1773",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Verified Lemma L-G0064 by independent computation (cm-3c1e05f74d964b7f). For all S=13..200, the inequality log2(g+1) + (4g+S)*log2(4(g+S)) < floor(sqrt(2M)) - 2 holds with large margins (e.g., S=13: margin 155.79, S=20: margin 1808.93). The asymptotic proof sketch (u <= x, (sqrt(2)-1/2)*x > 2S^2 + S/2 + 3 for S>=20, induction step multiplies LHS by sqrt(2) and RHS by <=1.2) is also sound. No counterexample found.",
+  "review_of": "S0123",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795386629.883045,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0035: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof of the claim, or of anything that implies it.\n\n**What the kernel accepted:** `pigeonhole_pairs` (with helper `card_desc`) in the last Lean call, and the same counting (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795387091.6815307,
+  "session": "pnp-desk/research/R1814",
+  "model": "claude-haiku-5-5",
+  "gap": "S0135 remains conditional on S0091(b), still CLAIMED. Finite check cm-fd67c53f5e14403d confirms the sub-multiset bound for n <= 300 (exact DP, no Lagrange heuristic). Open: an all-n proof of log max prod(m_i+1) <= sqrt(2n)+3/2 with explicit rounding error. Subclaims A, B, C, N4, D1, D2 and the S0126 gaps (a)-(c) are untouched.",
+  "evidence": "cm-fd67c53f5e14403d: holds for all n in [1,300]; max excess -2.22 at n=1; counts n=10:24, n=50:3960, n=100:201600, n=300:4313088000. Recorded by a claude-haiku session, so it does not count as a cross-family review.",
+  "gap_id": "G0158"
+ },
+ {
+  "at": 1795387107.9328237,
+  "session": "pnp-desk/research/R1806",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Citation of Erdos 1942 as the lower bound p(m) > exp(pi*sqrt(2m/3))/(4*sqrt(3)*m) in lemma L-M (turn 8). The bound is false as stated: it fails for every m in 1..300 (e.g. m=10: p(10)=42 < 48.0). The web source did not confirm the inequality. L-M's analytic upper bound log M(2m) <= sqrt(4m)+2 had no violations on m=1..300 (lemma_violations empty). Gap: L-M's large-m regime needs an explicit, correct lower bound on p(m) with exponent above 2 (or an exact DP plus a rigorous tail). Author: claude-haiku, so this session cannot review it.",
+  "evidence": "cm-c3793bbcb1464e52: bad_count 49, bad set = {1..49}; lemma_violations []; erdos_violations = all m in 1..300."
+ },
+ {
+  "at": 1795387177.7413461,
+  "session": "pnp-desk/research/R1806",
+  "model": "claude-haiku-5-5",
+  "gap": "L-M (log M(2m) <= 2*sqrt(m)+2) still needs an EXPLICIT lower bound on log p(m) that exceeds 2*sqrt(m)+2 for all m >= m0. Exact check (cm-b53b53e1743d4a0c, EXPLORATORY, own Euler-pentagonal DP to N=2000): log p(m) > 2*sqrt(m)+2 fails for EXACTLY m = 1..290 (h1_fail_count 290, h1_last_fail 290), so the exact DP must cover m <= 290 and an analytic tail must hold from m = 291 on. The tail is NOT yet proved. The bound p(m) > exp(pi*sqrt(2m/3))/(4*sqrt(3)*m) fails for every m in 1..2000 (h2_fail_count 2000), so it cannot be used in any range checked here, and no lower bound has been established for the tail.",
+  "evidence": "cm-b53b53e1743d4a0c: p(10)=42, p(50)=204226; H1 failures = {1..290}; H2 failures = {1..2000}. Earlier: cm-c3793bbcb1464e52 (Erdos bound fails for m=1..300) and cm-59cb9bb639184899 / cm-61b4f29c1ea94e0f (counting-step bad set = {1..49}). The analytic upper bound log M(2m) <= sqrt(4m)+2 has no violations on m=1..300, but it is only checked numerically here, not proved in full.",
+  "gap_id": "G0159"
+ },
+ {
+  "at": 1795387344.433945,
+  "session": "pnp-desk/research/R1806",
+  "model": "claude-haiku-5-5",
+  "gap": "Session R1806 (claude-haiku-5-5) cannot review the CLAIMED steps on this question: the visible ones (S0121, S0126, S0127, S0135) were written by claude-haiku, the same model family as this session, and the proof_state_read reports 38 claimed steps awaiting review. Per the owner rule, no new proof step is authored before these are reviewed. Open: an independent review by a model family other than claude-haiku of S0121 (R1 threshold arithmetic), S0126 (sub-multiset counting gap (a)-(c)), S0127 (linear-R pair bound) and S0135 (stationary cycle-type realisation, conditional on S0091(b)). Subclaims A, B, C of STATE-RECODING-BOUNDS-CHECK-2026-11-21.md are not yet verified beyond the finite count 2836 (cm-5fa617b7bc634710) and the partition-count checks cm-59cb9bb639184899 / cm-b53b53e1743d4a0c, which are exploratory. Not claimed: any P vs NP progress.",
+  "gap_id": "G0160"
+ },
+ {
+  "at": 1795387390.2149565,
+  "session": "pnp-desk/research/R1814",
+  "model": "claude-haiku-5-5",
+  "id": "S0285",
+  "proved_step": "LEMMA (all-n bound for the partition product, self-contained; does not use S0091 or S0135). Let n>=1 and let lambda be a partition of n with distinct part values v and multiplicities m_v>=1. Let g_k = ln(1+1/k) and Q = sum_{k>=1} g_k^2. CLAIM: sum_v ln(m_v+1) <= sqrt(2Qn) < sqrt(2n); hence prod_v (m_v+1) <= exp(sqrt(2n)) < exp(sqrt(2n)+3/2). PROOF. (1) Telescoping: sum_{k=1}^{m} g_k = ln(m+1), so sum_v ln(m_v+1) = sum of g_k over the item set I = {(v,k): 1<=k<=m_v}. (2) Item (v,k) has cost v, and sum over I of v = sum_v m_v v = n. (3) For K>0: sum_I g_k = sum_I (g_k - v/K) + n/K <= sum over all items (v,k), v>=1, k>=1, of (g_k - v/K)^+ + n/K, because each term of the sum over I is at most its positive part and the positive parts are nonnegative. (4) For fixed k, h(x) = (g_k - x/K)^+ is nonincreasing on [0,inf), so h(v) <= integral_{v-1}^{v} h for v>=1, hence sum_{v>=1} h(v) <= integral_0^inf h = K g_k^2/2. (5) Summing over k: sum_v ln(m_v+1) <= n/K + KQ/2 for every K>0. (6) Take K = sqrt(2n/Q): the right side equals sqrt(2Qn). (7) Bound on Q: ln(1+x) <= x gives g_k^2 <= 1/k^2. The first eight terms are g_1^2=0.480453, g_2^2=0.164402, g_3^2=0.082761, g_4^2=0.049793, g_5^2=0.033241, g_6^2=0.023762, g_7^2=0.017831, g_8^2=0.013873, summing to 0.866116. sum_{k>=9} 1/k^2 <= integral_8^inf x^-2 dx = 1/8. So Q <= 0.991116 < 1. EVIDENCE: cm-bc74fff89d984bfe (exploratory, agent-coded): telescoping error 8.9e-16, zero violations for n=1..300 against an exact knapsack DP over distinct parts, exact max at n=300 is 22.185 against bound 24.386. SCOPE: all n>=1, no tail term, no barrier analysis. CONSEQUENCE: S0135's corollary holds with exp(2 sqrt(m)) in place of exp(2 sqrt(m)+3/2), so its H_1(m)=Omega(sqrt(m)/log m) conclusion is unchanged. Does not close G0001 or G0002; not progress toward P vs NP. STATUS: CLAIMED, authored by claude-haiku-5-5 (same family as S0091 and S0135); needs review by another model family before it counts.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795387488.771874,
+  "session": "pnp-desk/research/R1814",
+  "model": "claude-haiku-5-5",
+  "gap": "S0285 is CLAIMED and awaits cross-family review. The S0135 corollary changes its constant from 3/2 to 0 and still needs review (its leading-order estimate log|Circ(G)| ~ c sqrt(m), c < 0.56, versus log p(m) ~ 2.565 sqrt(m), is unverified).",
+  "evidence": "Hand re-check by claude-haiku-5-5 (same family as the S0285 author, so NOT a cross-family review and no review credit). Steps 1-7 of S0285 hold: (1) telescoping sum_{k<=m} g_k = ln(m+1) with g_k = ln(1+1/k); (2) cost identity sum_I v = sum_v m_v v = n; (3) Lagrangian bound sum_I g_k <= sum_{v,k>=1} (g_k - v/K)^+ + n/K; (4) for nonincreasing h(x) = (g_k - x/K)^+, h(v) <= integral from v-1 to v of h, so sum_{v>=1} h(v) <= K g_k^2/2; (5) sum_v ln(m_v+1) <= n/K + KQ/2 for every K>0; (6) K = sqrt(2n/Q) gives sqrt(2Qn); (7) partial sum of g_k^2 for k<=8 is 0.866116 (recomputed), tail sum_{k>=9} 1/k^2 <= 1/8, so Q <= 0.991116 < 1. Consequence: sum_v ln(m_v+1) <= sqrt(2n) for all n>=1, which implies S0091(b) with no additive constant. S0285 remains CLAIMED until a reviewer from another model family returns SURVIVED_REVIEW. The finite check cm-bc74fff89d984bfe (n<=300) is consistent but is not a proof. Not progress toward P vs NP; G0001/G0002 not closed by this step, since S0091 is not itself the named obligation.",
+  "gap_id": "G0161"
+ },
+ {
+  "at": 1795387656.877923,
+  "session": "pnp-desk/research/R1822",
+  "model": "claude-haiku-5-5",
+  "gap": "S0121 has a finite-grid check only; a general proof for all L >= ma is still needed. S0135 is unreviewed and still unchecked.",
+  "evidence": "Self-check, not a review (same model family claude-haiku-5-5 as claimed step S0121, so it does not count toward SURVIVED_REVIEW). Independent recomputation of the S0121 inequality R*m + log2 C(G,R) < 2 m log2 m, with R=floor((2-eta)(L+1)), G=floor(eta m/4), m=2^L, eta on a grid, L >= ma: 191 instances checked, 0 bad (cm-04b39550f6ef4caa, EXPLORATORY_COMPUTATION). Limit: this checks the arithmetic on a finite grid only; the general inequality for all L is not proved here.",
+  "gap_id": "G0162"
+ },
+ {
+  "at": 1795387697.1400828,
+  "session": "pnp-desk/research/R1822",
+  "model": "claude-haiku-5-5",
+  "gap": "Review blocked. Claimed steps S0121 and S0135 are claude-haiku-5-5 authored, and this session is also claude-haiku-5-5, so no SURVIVED_REVIEW or REFUTED status from this session counts. S0121 has only a finite-grid arithmetic self-check (cm-04b39550f6ef4caa, 191 instances, 0 bad) and no general proof for all L >= ma. S0135 is unchecked. Next step needs a reviewer from another model family (claude-sonnet, claude-opus, or a non-Claude model).",
+  "evidence": "Self-check only (same family, not a review). The recomputation covers R=floor((2-eta)(L+1)), G=floor(eta m/4), m=2^L on a finite grid. It does not establish the inequality for all L.",
+  "gap_id": "G0163"
+ },
+ {
+  "at": 1795387792.4061112,
+  "session": "pnp-desk/research/R1822",
+  "model": "claude-haiku-5-5",
+  "gap": "The lemma is arithmetic only. The counting argument of S0121 (the number of circuits of size G versus the number of pairs, and the premise R <= (2-eta)(L+1) taken from S0033) is not re-derived here and is still CLAIMED. A general lower bound beyond the arithmetic inequality is not established.",
+  "evidence": "Exact-rational recomputation on eta in {1/2,3/4,1/4,1/8,1/16,1/32,1}, integer L in (2/eta-3/4, 60], exact binomials C(G,R): see the physalis_code_run experiment in this turn (own code, the check is a different method from the proof: exact binomials versus the 2^G upper bound). Does not verify the counting step of S0121 (that some pair has CC_E > G for every injective E): that is the remaining gap. Does not close G0001 or G0002. No P vs NP claim.",
+  "gap_id": "G0164",
+  "id": "S0289",
+  "proved_step": "LEMMA (arithmetic threshold for the S0121 inequality, all L). Let eta in (0,2), L real >= 0, m = 2^L, G = floor(eta*m/4), R = floor((2-eta)(L+1)). If L > 2/eta - 3/4, then R*m + log2 C(G,R) < 2*m*L, where the term is -infinity when R > G. PROOF: 0 <= R <= (2-eta)(L+1). Since C(G,R) <= 2^G <= 2^(eta*m/4), log2 C(G,R) <= eta*m/4. Hence R*m + log2 C(G,R) <= m*[2L + 2 - eta(L+3/4)]. The hypothesis gives eta(L+3/4) > 2, so the bracket is < 2L; since m > 0 the claim follows. Scope: all eta in (0,2), all real L > 2/eta - 3/4. This is a strict improvement on the threshold of S0121 (m >= 2^{max(12, 4.2/eta)}) and covers the S0121 'not covered' range eta < 1/4 with 10^6 < m < 2^{4.2/eta}, since 2/eta - 3/4 < 4.2/eta for all eta > 0.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795388402.8297563,
+  "session": "pnp-desk/research/R1830",
+  "model": "claude-haiku-5-5",
+  "gap": "S0135 corollary (G = c*sqrt(m)/log2 m, c in {0.5, 0.56}): the explicit inequality log|Circ(G)| + 2*sqrt(m) + 3/2 < log p(m) (natural logs, S = ceil(log2 m)) FAILS for every m in [16, 20000] (19985/19985 failures, cm-8bdc81e9e5c243c6). Asymptotically log|Circ(G)| ~ 0.693*c*sqrt(m) + lower order versus log p(m) ~ 2.565*sqrt(m), so the corollary is only an asymptotic claim; the threshold m_0 is not given and not reached by 20000 (log p(20000)/(pi*sqrt(2m/3)) = 0.967). Needed: an explicit m_0 with the lower-order terms bounded, or a stated 'for m >= m_0' with a computed m_0. Not refuted: no counterexample to the asymptotic statement. Review by claude-haiku (same family as the author, does not count toward closure). Closes neither G0001 nor G0002.",
+  "evidence": "cm-8bdc81e9e5c243c6 (physalis_code_run, VERIFICATION kind): independent DP over partitions for max prod(mult_i+1) and host-run partition counts to m=20000; S0091(b) check: max over s<=n of the sub-multiset count vs exp(sqrt(2n)+3/2) has 0 violations for n in [2, 800], worst gap -2.40 at n=2. The check covers n<=800 only, so S0091(b) for all n is still unproven and remains CLAIMED.",
+  "gap_id": "G0165"
+ },
+ {
+  "at": 1795388425.894085,
+  "session": "pnp-desk/research/R1830",
+  "model": "claude-haiku-5-5",
+  "gap": "S0091 (LEMMA D, sharp sub-multiset bound, claimed for all n): not marked SURVIVED_REVIEW. The numerical check cm-8bdc81e9e5c243c6 covers n in [2, 800] only (0 violations, worst gap -2.40 at n=2). The general-n inequality needs its own argument, and the claimed proof text has not been checked here. Status: OPEN, not refuted.",
+  "evidence": "cm-8bdc81e9e5c243c6 (VERIFICATION kind, own DP over partitions for max prod(mult_i+1)). Reviewer is claude-haiku, same model family as the author, so this review does not count toward closure.",
+  "gap_id": "G0166"
  }
 ]

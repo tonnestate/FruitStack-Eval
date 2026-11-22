@@ -2562,5 +2562,117 @@
   "gap": "OPEN: (2) the transition cost of the EXT automaton as gates on H_C, and (3) the bridge from EXT to arbitrary MCSP circuits. Update-time gap G0003 is untouched; the Myhill-Nerode bound is a space bound only.",
   "evidence": "cm-d9a4b90d2dbc4b1b: exhaustive residual-class counts for Im_s, m=2 (trivially 1 class) and m=3 (s=1: max 15 classes, 4 bits; s=2: max 21 classes, 5 bits). Confirms the bookkeeping bound on m<=3 and the t=0 / t=N endpoints. Bookkeeping only: no proved_step, no progress toward P vs NP.",
   "gap_id": "G0164"
+ },
+ {
+  "at": 1795385002.0815606,
+  "session": "pnp-desk/research/R1796",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (space upper bound, EXT). Let N=2^m, Im_s = truth tables of circuits with <= s binary gates (16 ops) on m inputs, P_t = length-t prefixes of Im_s, R_p = {q : pq in Im_s}. Then (1) |P_t| <= |Im_s| for all t; (2) #{R_p : p in {0,1}^t} <= |Im_s|+1; (3) |Im_s| <= (16(m+s)^2)^s, so ceil(log2(|Im_s|+1)) <= s(4+2log2(m+s))+1 = O(s log(m+s)). Proof: (1) truncation maps Im_s onto P_t. (2) R_p is empty iff p not in P_t (one class); otherwise classes are indexed by p in P_t. (3) a program has gate i choosing an ordered pair from m+i earlier nodes and one of 16 ops; every f in Im_s has a program. SCOPE: streaming space only; no transition function, no update-time bound, does not close G0003 or G0004. Consistent with cm-d9a4b90d2dbc4b1b: lower bounds 4 and 5 bits sit below upper bounds 6 and 8 bits for (m,s)=(3,1),(3,2).",
+  "gap": "OPEN: (a) an update-time bound for the trie/residual automaton (G0003); (b) gates for the transition on H_C (part 2); (c) bridge to arbitrary MCSP circuits (part 3). This lemma gives space only.",
+  "evidence": "Own proof, checked against cm-d9a4b90d2dbc4b1b at m=3, s=1,2. Bookkeeping, not a proved_step that closes an obligation.",
+  "gap_id": "G0165"
+ },
+ {
+  "at": 1795385446.948729,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0037: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim is not a self-contained mathematical proposition that Mathlib can check. I did not write or submit a Lean file.\n\n**Why the formalization fails:**\n- The claim depends on four objects (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795385542.9544504,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0036: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: **\nGIVE_UP: The full REPRESENTATION COMPLETENESS claim cannot be formalised faithfully. Its objects (Gamma_S, Lambda_S, sigma_t, F_t, D, the minimisation) are undefined in the task and the ledger, and (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795385579.294308,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0038: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean formalization was attempted. The claim needs Turing-style space-bounded machines, oracles for A \u2208 PH, and streaming updates, none of which Mathlib provides. Any compiling file would e (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795386191.2564893,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0043: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: F2_affine_fibres\nRELATION: SAME. For `1 \u2264 t`, `A : Matrix (Fin S) (Fin t) (ZMod 2)` and `c : Fin S \u2192 ZMod 2`, the image of `p \u21a6 A.mulVec p + c` on `Fin t \u2192 ZMod 2` has cardinality `2 ^ A.rank (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795386486.8836703,
+  "session": "pnp-desk/research/R1804",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Bitmask over the explicit list of all size<=s programs as the streaming state (filter by each stream bit). It is exact for fixed s, but the state and per-bit update cost are |P_s| = sum_{j<=s} prod_{k=1}^{j} 16(m+1+k)^2, which is about (16(m+s+1)^2)^s. That is exponential in s, so it does not give poly(s) update time (G0003). Run cm-8105f0ad909b402c failed (SANDBOX_ENDED_WITHOUT_RESULT, 300 s timeout) and is NOT evidence; the bound is by counting.",
+  "evidence": "Counting argument from the program-enumeration bound in S0152 (gate k has at most m+1+k operands and 16 ops). No successful lab run supports the bitmask claim."
+ },
+ {
+  "at": 1795386537.665608,
+  "session": "pnp-desk/research/R1804",
+  "model": "claude-haiku-5-5",
+  "lemma": "CONDITIONAL REDUCTION (R-lemma). Fix N = 2^m and s = s(m) <= poly(m) over the B2 basis (constants, literals, 16 binary ops). Suppose a streaming prefix automaton for Im_s has state set Sigma, initial state q0, update delta: Sigma x {0,1} -> Sigma computable in time U(m), and acceptance acc: Sigma -> {0,1} with acc(delta*(q0,f)) = [f in Im_s] for every f in {0,1}^N (exactness). Then for an arbitrary given f in {0,1}^N, membership f in Im_s is decided in time N*U(m) by running delta along f for N steps and outputting acc. If U(m) = poly(m), this is a deterministic poly(N)-time decision procedure for MCSP restricted to size s(m) over the B2 basis. Proof: direct from exactness and the definition of U.",
+  "gap": "Does not close G0003. The reduction runs one way only: a poly(s) update bound would give a polynomial-time MCSP algorithm for this case. It gives no lower bound on update time, so it does not establish the MMW hypothesis. Novelty not checked yet against the ledger (see knowledge_search in this turn).",
+  "evidence": "Pure reduction, checked by reading. No computation. Experiment cm-e060ed9542a54001 (exact widths of Im_2 for m=3,4,5) is unaffected: it measures state count, not update cost.",
+  "gap_id": "G0166",
+  "id": "S0314",
+  "proved_step": "CLAIMED: if the exact prefix automaton for Im_s (s <= poly(m), B2 basis) has update time U(m) = poly(m), then membership of any truth table of length N = 2^m in Im_s is decided in poly(N) time. Proof: run the update along the input for N steps and output acc; correct by exactness, time N*U(m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795386737.9363732,
+  "session": "pnp-desk/research/R1804",
+  "model": "claude-haiku-5-5",
+  "lemma": "BOOKKEEPING, DOES NOT CLOSE G0003: for every fixed s, the exact prefix-membership state for Im_s can be kept as a bitmask over the explicit list of at most (s+1)(16(m+s+1)^2)^s programs. Per-bit update costs O(|Im_s| * s * m) = m^{O(s)} word operations. This is poly(m) only when s = O(1). Gap G0003 requires an update bound polynomial in s and m jointly, without enumerating Im_s.",
+  "gap": "G0003 (open): oracle-free worst-case update time for the exact prefix automaton of Im_s, polynomial in s and in m = log N. MMW19 Thm 1.2 gives O~(t^2) update only with Sigma3SAT^A oracle calls, so it does not transfer.",
+  "gap_id": "G0167"
+ },
+ {
+  "at": 1795387096.734703,
+  "session": "pnp-desk/research/R1804",
+  "model": "claude-haiku-5-5",
+  "evidence": "CORRECTION (R1804). cm-daac13a2aad1452f (exact brute force, all 16 binary ops, base nodes) gives |Im|, width: (2,1)=16,1; (2,2)=16,1; (2,3)=16,1; (2,4)=16,1; (3,1)=38,14; (3,2)=152,21; (3,3)=232,11; (4,1)=70,38; (4,2)=526,164. The cross-check in that run predicted width 11 at (3,2) and FAILED: width 11 is at (3,3). The record cm-e060ed9542a54001 ('Im_2 widths 11, 280, 1670 at m=3,4,5; |Im_2|=232,1528,5462') therefore appears to use s shifted by one (its 'Im_2' is s=3 here). I have not verified its convention, so treat its numbers as unreliable until re-run. The |Im| values at (3,2)=152 and (4,2)=526 agree with S0152's consistency check. Width is NOT monotone in s at m=3 (14, 21, 11), and the widths are bookkeeping for G0003: they bound states at a cut, not update time. No proved_step."
+ },
+ {
+  "at": 1795387177.7544518,
+  "session": "pnp-desk/research/R1804",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 stays OPEN. Next step needs either a proof of an oracle-free worst-case update bound polynomial in s and m for the exact prefix automaton of Im_s, or a family with s up to 4 at m=4 (or m=5) to test the ratio trend; the current data has only s<=3 at m=4.",
+  "evidence": "EXPLORATORY (R1804), not a proved step. Run cm-8841d4c634fd4204 (exact brute force, same enumeration as cm-daac13a2aad1452f): |Im_s| and max Myhill-Nerode width W(m,s): (3,2)=152, W=21; (3,3)=232, W=11; (3,4) CAP_EXCEEDED at cap 400000; (4,2)=526, W=164; (4,3)=3000, W=488. Reproduces the S0152 consistency values |Im_2|(3)=152 and |Im_2|(4)=526 and the (3,2)=21 width of cm-daac13a2aad1452f. Predictions: H_poly = W(4,3)/W(4,2) falls toward 1; H_exp = ratio stays >= 3. Observed ratio 488/164 = 2.98 (W(4,2)/W(4,1) = 4.3). The ratio is just below the pre-set threshold of 3, so the test is INCONCLUSIVE, not a discrimination. Widths are not monotone in s at m=3 (14, 21, 11), so a monotone-in-s claim is refuted for that m. Scope limit: a width bounds the number of states at one cut; it does not bound the worst-case update time, so G0003 (oracle-free update time poly(s,m)) is unchanged. No new lemma, no proved_step, does not close or shrink G0003 or G0004.",
+  "gap_id": "G0168"
+ },
+ {
+  "at": 1795387523.2445166,
+  "session": "pnp-desk/research/R1820",
+  "model": "claude-haiku-5-5",
+  "gap": "Task (2) obstacle. A transition of the EXT prefix automaton at level t maps the alive prefix p to p.b and asks whether some circuit C of size <= s on m inputs has truth-table prefix p.b. This query is in NP as a function of (p, b, s): a circuit of size s has a description of O(s log(m+s)) bits, and checking it on the t prefix points costs poly(t, s). So a transition computable in poly(N, s) gates would place this prefix-extension problem in P for s = poly(n). Small state (the O(log N + s log(n+s)) bound) does not by itself give fast transitions; the state bound and the transition cost are separate quantities. Open: whether the transition has any cheaper representation via H_C (task 3), and the update-time bound G0003 is still open.",
+  "evidence": "Definition-level argument only (no computation). The NP-membership step: guess C, evaluate C on the t prefix points. Consistent with the S0091 scope note that the Im bound does not bound update time. Not a proved_step: it records an obstacle, not a lemma that closes an obligation.",
+  "gap_id": "G0169"
+ },
+ {
+  "at": 1795387653.4838817,
+  "session": "pnp-desk/research/R1820",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s) update time for the streaming system) remains open. Reconciling S0091 and S0098 needs either a tighter exact test or a proof that the linear-model premise of S0098 holds.",
+  "evidence": "S0152 (claimed by R1388, claude-haiku): arithmetic of the counting bound checked by cm-cb0fb1df83df4664 (108 cases, 0 violations). Not a review: this session is the same model family, so no SURVIVED_REVIEW is recorded. Disputes S0091 and S0098 remain OPEN: the recount cm-f9a3d84c16264628 shows no violation but the bound is loose by 10^2 to 10^6, and no completed run supports S0098's evidence. The update-time gap G0003 is not addressed.",
+  "gap_id": "G0170"
+ },
+ {
+  "at": 1795387733.3509173,
+  "session": "pnp-desk/research/R1820",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 remains open: a poly(s) update-time bound needs the transition query answered without enumerating Im_s. The explicit-enumeration lemma gives only the bounded-size regime and is not a construction for poly(s).",
+  "gap_id": "G0171",
+  "id": "S0320",
+  "proved_step": "LEMMA (explicit enumeration, bounded-size regime). Let m>=1, s>=0, N=2^m, Im_s = truth tables on m inputs of circuits of size <= s over {AND, OR, XOR, a&~b} with constants and literals as base nodes. (1) |Im_s| <= (s+1)(16(m+s+1)^2)^s. (2) Preprocessing by enumerating all programs of size <= s and evaluating each on N-bit tables costs O(s*N*|Im_s|) bit operations. (3) Query 'is p a prefix of some element of Im_s' by scanning the explicit list costs O(|Im_s|*N) bit operations. (4) If s <= c*log N/log log N for fixed c, then |Im_s| <= N^{O(c)} and every update is N^{O(1)}. Proof of (1): gate k of a j-gate program sees m+1+k earlier nodes, so there are at most prod_{k<=j} 16(m+1+k)^2 <= (16(m+s+1)^2)^j programs of size j; base nodes give at most m+2 values; sum over j=0..s. (2),(3): each program is at most s gate evaluations on N-bit words; scan the list. (4): with m=log2 N and s <= c*m/log m, s*log(16(m+s+1)^2) = O(c*m), so |Im_s| <= 2^{O(cm)} = N^{O(c)}. SCOPE: explicit enumeration only; cost is exponential in s*log m, so NOT polynomial in s. Does NOT give poly(s) update time and does NOT close G0003 or G0004. Does not address the transition query (only in NP, G0169) or the disputed steps S0091/S0098. Author: claude-haiku-5-5 (same family as S0152; CLAIMED until reviewed by another family).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795388168.5954158,
+  "session": "pnp-desk/research/R1828",
+  "model": "claude-haiku-5-5",
+  "evidence": "Proof is a pigeonhole/injectivity argument checked by hand; no computation. The corollary's size bound is cited from S0091/S0171 and is not independently verified here. Haiku family: this session cannot review S0152, S0155, S0091, S0098, or S0171.",
+  "id": "S0321",
+  "proved_step": "LEMMA R (residual-class count; does NOT close G0004). Setting: N = 2^m, S subset of {0,1}^N, t in {0,...,N-1}. For a prefix p in {0,1}^t the residual is R_t(p) = {q in {0,1}^(N-t) : pq in S}. CLAIM: the number of DISTINCT NONEMPTY residuals R_t(p) over all p of length t is at most |S|. PROOF: for each nonempty residual class choose one representative prefix p of length t and one suffix q_p with p q_p in S. Two different classes have different representatives, so their representatives differ in the first t bits, so the strings p q_p are pairwise distinct elements of S. Hence #classes <= |S|. COROLLARY (conditional on the |Im_s| bound of S0091/S0171, which is DISPUTED and not used as a premise here): with S = Im_s, the exact prefix automaton of Im_s has at most (s+1)(16(m+s+1)^2)^s nonempty residual states at each depth, i.e. O(s log(m+s)) bits per state. SCOPE: a state-count statement for an arbitrary set S; it bounds the number of states, not the update time. GAP UNCHANGED: a transition needs the residual R_{t+1}(pb) computed from the residual R_t(p), which requires deciding existentially whether some circuit of size <= s consistent with pb exists. That existential is the open part of G0004 (poly(s) update), so this lemma only confirms the state count, not the transition cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

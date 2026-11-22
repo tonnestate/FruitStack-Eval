@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 11299 entries from 2808 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 11435 entries from 2848 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,17 +18,17 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - Repair lemma for Candidate A: under Thm 4.1 hypotheses (R),(L),(E) with parameter d, for any spanning family B of K, tw(H_B) >= d(tw(G)+1)-1. This follows from Thm 4.1 (G[K_d] subgraph of H_B), Lemma 2.2 (tw(G[K_d]) = d(tw(G)+1)-1), and subgraph monotonicity o
   - The layer-2 internal fan-out of 2^n in the Circuit-Min-Merge replacement is not an artifact of our model but a structural feature of the MMW19 construction: the replacement must implement a Sigma3-type selection function that inherently reads each of its l inp
   - Barrier analysis for Lemma (Kernel counting for linear F_2 realizations): This is a LOWER BOUND on space S for linear F_2 staged realizations solving search-MCSP. (1) Relativizing? The proof uses counting of circuits in the unrelativized world; it does not rel
   - G0001 reduction (affine, GF(2)): if every gadget E_i contributes a 1-dimensional row-space W_i over (x, z), then the MUS clutter over gadgets is the binary port at e of the matroid on {w_i} + {e} (S0059 applied to the extended variables). If some W_i has dimen
   - The fixed-order streaming width K_l used in the manuscript's width route fails the perfect matching control and cannot prove (40a) or (8) in its current form. A valid width-based lower bound would need to use minimum width over all variable orders (OBDD width)
   - HYPOTHESIS: The Atserias-Ochremiak transfer theorem preserves proof complexity lower bounds for Resolution, Polynomial Calculus, Sums-of-Squares, and bounded-depth Frege under pp-interpretations. However, it does NOT automatically preserve MUS (minimal unsatis
-  - BARRIER GATE (target (8), width route). CHOPRS Thm 2 (arXiv:1911.08297, sec 1.3, fetched text): (B1-O) MCSP[2^{n^{1/3}},2^{n^{2/3}}] in Formula-O-XOR[N^{1.01}] with oracles of fan-in <= N^eps in the layer above the XOR leaves; (B3-O) InnerProduct on N bits is 
 REFUTED:
+  - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
-  - Non-port (P4 minor) does not indicate hardness: 2-SAT (in P) has a P4 minor at n=3, hence is not a matroid port for all n>=3; so no implication non-port => super-linear circuit size exists. D-013 remains a theorem about ideal secret sharing / ideal mSP only.
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
@@ -38,13 +38,13 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 2904 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 2947 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-00adf4fb0a [LIMITATION, OPEN] TRANSFER T2 (contract /root/contracts/PNP-001-THEOREM-TO-CIRCUIT-TRANSFER-AUDIT-2026-11-22.md, section 4). For Q-85e487150a:S0014, S0016, S0017 (S_min^{affine,decision}(f) = N - dim P_f, S_min^{affine,search} = N): list 
-  - Q-f90dd2d84d [LIMITATION, OPEN] TRANSFER T1 (contract /root/contracts/PNP-001-THEOREM-TO-CIRCUIT-TRANSFER-AUDIT-2026-11-22.md, section 4). For Q-156fa9c912:S0138 (rank form k >= rank_F(M_t), M_t[p,q]=f(pq)): over WHICH field is the bound sound under th
-  - Q-fb36b9fff1 [MISSING_PROOF, OPEN] TRANSFER T0 (owner contract /root/contracts/PNP-001-THEOREM-TO-CIRCUIT-TRANSFER-AUDIT-2026-11-22.md, section 5; HIGH). For an ARBITRARY admissible exact Search-MCSP one-pass streaming circuit family C_m (nonlinear gates,
-  - Q-737393c90c [UNEXPLAINED, OPEN] Two recorded laws for class null2=3 and target sat DISAGREE on 121 of 14384 rows: (a) 'For formulas with null2=3: sat = 1' vs (b) 'For formulas with null2=3: sat = cons3' (datasets ['agent_lane_dedup_1795034161_1_944c175
-  - Q-4e5295c947 [UNEXPLAINED, OPEN] Two recorded laws for class rank5=4 and target sat DISAGREE on 410 of 93399 rows: (a) 'For formulas with rank5=4: sat = cons3' vs (b) 'For formulas with rank5=4: sat = 1' (datasets ['agent_agent_gap_r0182_n8m5_exhaustive
+  - Q-791bf3185f [MISSING_PROOF, OPEN] For fixed m, does the number of DISTINCT residual classes of Im_s (as functions of prefix) grow only polynomially in s, while enumerated program counts grow exponentially? If yes, a residual-class transition could meet t
+  - Q-868b5e5db3 [MISSING_PROOF, OPEN] Is there a poly(s,n)-time procedure that decides whether a truth-table prefix p of length k extends to the truth table of some circuit of size <= s on n inputs? This is the per-bit update of the EXT prefix automaton (G00
+  - Q-1f846782f6 [MISSING_PROOF, OPEN] Is the EXT transition query (given a truth-table prefix p of length t and s, does some circuit of size <= s on m inputs have prefix p) NP-hard for s = poly(m) and prefixes of length poly(N)? If yes, a poly-time transitio
+  - Q-bfdaf25580 [MISSING_PROOF, OPEN] WEAKEST MISSING LEMMA for T0 (first failing step): for an admissible exact Search-MCSP one-pass family C_m with nonlinear gates and unrestricted fan-out, does there exist a LINEAR space K_{m,s} over a field satisfying (R
+  - Q-4375aa3bf9 [LIMITATION, OPEN] Q-35e325d14a
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIVERGENT LANE - lane N: THREE-FACTOR / ELIGIBILITY-TRACE ALGORITHMS): abstract the brain's coupling of fast activity a(t), connecti -> reopen if: None
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 

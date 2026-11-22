@@ -1922,5 +1922,155 @@
   "gap": "G=0 feasibility for SC_{3,1} at S=6 is undetermined. Rerunning with Minisat22 and a 30M conflict budget, symmetry break c_0(empty)=0 (WLOG: complementing a state bit consistently over all t preserves the selector set).",
   "evidence": "cm-48d26f3e2e694fd5: G=0 transducer for SC_{3,1} at S=6 and S=7 returned UNKNOWN_BUDGET at 3M conflicts (Glucose4). This is NOT a result: no feasibility or infeasibility claim follows. AFF at S=4 is SAT and every witness re-simulates on all 16 members (sim_ok 16/16), so the encoding is valid on the cheap family.",
   "gap_id": "G0135"
+ },
+ {
+  "at": 1795384922.5070958,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "Find the encoding bug behind the invalid SAT witnesses. Next: rerun AFF S=4 (positive control) and SC_{3,1} S=6 with the rewritten encoding and no symmetry break; the re-simulation must pass before any SAT is reported.",
+  "evidence": "cm-1c9b17b1b4f744b7 (Minisat22, symmetry break c_0(empty)=0): reports SAT for SC_{3,1} S=6 and AFF S=4, but the independent re-simulation fails: AFF sim_ok 0/16 (bad members 0,15,51) where cm-48d26f3e2e694fd5 gave 16/16, and SC_{3,1} S=6 sim_bad includes members 0,3,5. The SAT claims are therefore NOT valid. No G=0 feasibility result exists yet for either S.",
+  "gap_id": "G0136"
+ },
+ {
+  "at": 1795385641.3797603,
+  "session": "pnp-desk/research/R1802",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (1) confirm the column semantics of cm-6a06d7901bef4e0a from its code; (2) the counting bound is only a lower bound on S_t, so tightness at n=3, s=1 says nothing about general n or s; (3) a general G_max needs an update-time argument, which the counting bound alone cannot give.",
+  "evidence": "cm-6a06d7901bef4e0a: S_t equals ceil(log2(L_t+[D_t>0])) on all 9 rows of the n=3, s=1 table (assumed columns). Verification run pending.",
+  "gap_id": "G0137"
+ },
+ {
+  "at": 1795385658.961985,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "Run cm-e98d237c1a8e4443 (G=0 wiring encoding) is INVALID: its AFF positive control is UNSAT at S=1..4, while cm-48d26f3e2e694fd5 gave SAT with 16/16 re-simulation on the same family. The SC_{3,1} UNSAT in that run is therefore not evidence. Next: independent rewrite with a control check first; SC results count only if the control is SAT and the witness re-simulation has sim_bad=0.",
+  "evidence": "cm-e98d237c1a8e4443: AFF_positive_control UNSAT for S=1..4 contradicts cm-48d26f3e2e694fd5 (AFF SAT at S=4, 16/16). Encoding error suspected in the node-state or selector clauses; no G=0 result for SC_{3,1} yet.",
+  "gap_id": "G0138"
+ },
+ {
+  "at": 1795385722.6645892,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "Runs cm-e98d237c1a8e4443 and cm-d65787d0be8f42c0 are both INVALID: AFF positive control is UNSAT for S=1..4, contradicting the SAT witness of cm-48d26f3e2e694fd5 (16/16 re-simulated). The SC_{3,1} UNSAT results carry no weight. The encoding bug is not yet located. Next: a from-scratch rewrite (cm-next) in which every node is simulated from the selectors and SC results count only if AFF is SAT.",
+  "evidence": "cm-d65787d0be8f42c0: AFF_positive_control UNSAT at S=1..4 with sim_bad_nodes null (no witness). Same contradiction with cm-48d26f3e2e694fd5, so the time-indexed G=0 clause set has an error or the control family differs.",
+  "gap_id": "G0139"
+ },
+ {
+  "at": 1795385743.6483827,
+  "session": "pnp-desk/research/R1802",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: decide whether the separation requirement needs L_t or R_t states. Test: compute R_t and bound ceil(log2(R_t+[D_t>0])) for s=1,2 and compare with the ledger's recorded R values (s=1: t=4:13, t=5:14, t=6:5, t=7:2; s=2: t=4:14, t=5:21, t=6:7, t=7:3).",
+  "evidence": "G0137 closed for column semantics: independent replication cm-9da09bd316aa477e (own encoding H_B: base = 0,1,x1..x3,~x1..~x3; gates AND, OR, XOR, a&~b) gives |SC_{3,1}|=38, |SC_{3,2}|=152, and L_t, D_t columns identical to cm-6a06d7901bef4e0a for s=1 (L=[1,2,4,8,16,22,30,38,38], D=[0,0,0,0,0,10,34,90,218]). Caveat: the counting bound ceil(log2(L_t+[D_t>0])) counts distinct PREFIXES. A system that only keeps live apart from dead needs distinct states only for live prefixes with different residual suffix-sets, so the valid count is R_t, not L_t. The L_t-based bound may be too strong for the spec's separation requirement.",
+  "gap_id": "G0140"
+ },
+ {
+  "at": 1795385959.8718677,
+  "session": "pnp-desk/research/R1802",
+  "model": "claude-haiku-5-5",
+  "gap": "G0140 closed as a diagnosis, not a theorem: the separation lower bound is ceil(log2(R_t+[D_t>0])), not the L-based bound. Still open: (a) the minimal per-step UPDATE cost G_max, which needs the transition function, not just state counts; (b) whether the R-bound is attained by a system with bounded update cost at n=3, s=2, t=5 (R=21 needs 5 bits, and an exact SAT synthesis at 5 bits is the next computation); (c) the spec's exact wording of 'keep apart', to be verified.",
+  "refuted_approach": "The counting bound S_t >= ceil(log2(L_t + [D_t>0])), built on distinct live PREFIXES (L_t), is retracted as a lower bound for the live/dead separation requirement. It forces a state per prefix, which the requirement does not need. Evidence: cm-84fa030d64784f15 gives, for SC_{3,1}, L_7 = 38 but R_7 = 2, so the L-bound says 6 bits while the residual bound says 2. The earlier SC_{3,1} tightness observation (cm-6a06d7901bef4e0a, cm-9da09bd316aa477e) rests on this wrong quantity and carries no lower-bound weight.",
+  "evidence": "Myhill-Nerode reading of the requirement (a state after prefix p must determine whether p is live and, if live, its residual set f^{-1}p = {s : p s in F}): two live prefixes with the same residual set may share a state, so any valid system needs at least R_t + [D_t>0] states at time t, where R_t = number of distinct residual suffix-sets over live prefixes. Measured in cm-84fa030d64784f15: s=1, R_t = 1,2,4,8,13,14,5,2,1 for t=0..8; s=2 bound_R peaks at 5 bits (t=5, R=21, no dead prefixes). Column reading of R (live prefixes only) is checked against the ledger values t=4:13, t=5:14, t=6:5, t=7:2 (s=1) and t=4:14, t=5:21, t=6:7, t=7:3 (s=2): all match. Spec wording of 'keep apart' still to be checked against page 2 of PNP-001-LEMMA-M-EXPERIMENT-2026-11-21.md before this is final.",
+  "gap_id": "G0141"
+ },
+ {
+  "at": 1795386001.2436457,
+  "session": "pnp-desk/research/R1802",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (a) the Pareto set (S, G_max, D) for SC_{3,1} at S=6 < N=8 (non-trivial), by exact SAT synthesis of a one-step transition with bounded gates; (b) the finite check of S0079 at N=4, t=2; (c) the decision-only variant (R-bound), labelled separately. This session proves no new general lemma; its only contribution is the correction above.",
+  "refuted_approach": "CORRECTION of the previous retraction (G0141). The owner addendum (2026-11-21, binding) fixes SEARCH semantics: distinct live prefixes at level t need distinct states, plus one dead code, so S_t >= ceil(log2(L_t + [L_t < 2^t])). The L-based bound is therefore the binding one for Lemma M. The R_t (residual-class) bound is only a DECISION-task variant and must be reported separately, labelled as such. The earlier claim that the L-bound was 'too strong' conflated search with decision and is withdrawn.",
+  "evidence": "Owner addendum, PNP-001-LEMMA-M-EXPERIMENT-2026-11-21.md page 2: 'all distinct live prefixes at the same t must have distinct states (plus >= 1 dead code), so S_t >= ceil(log2(L_t + 1))'. Independent check of the proof step S0079 (R1274, claimed; I may not review it): if q_t(p)=q_t(p') with pu in F, then q_N(pu)=q_N(p'u) for all u. The decoder returns the same output C for both. If p'u in F, C must compute both pu and p'u, which differ in their first t bits, a contradiction. If p'u not in F, the decoder must reject, but it returns C, a contradiction. So live codes are injective and avoid dead codes. The argument checks out on paper, and a finite check at N=4, t=2 is still open. Data: cm-9da09bd316aa477e gives L_7 = 38 for SC_{3,1}, so the search bound is ceil(log2(39)) = 6 bits, matching the ledger's S>=6 at T=7,8. For SC_{3,2}, L_8 = 152 gives 8 bits = N, which is trivial in the owner's sense.",
+  "gap_id": "G0142"
+ },
+ {
+  "at": 1795386078.7440634,
+  "session": "pnp-desk/research/R1802",
+  "model": "claude-haiku-5-5",
+  "evidence": "Standard Myhill-Nerode argument, stated for exact decision. Not a P vs NP step: it is a bookkeeping fact about exact deciders and does not by itself bound the separation-only systems of the spec. Status CLAIMED, to be reviewed by another model family.",
+  "id": "S0244",
+  "proved_step": "LEMMA (exact-decision state bound): if a deterministic streaming system with state set Q decides F on all 2^N inputs in truth-table order, then |Q| is at least the number of distinct Myhill-Nerode residuals of F at level t over all length-t prefixes, for every t. Proof: two prefixes p, p' of length t that reach the same state have identical futures, so they must have equal residuals; hence the state map is constant on residual classes and |Q| >= R_t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0142",
+  "closes_valid": false
+ },
+ {
+  "at": 1795386692.1401312,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "Rewrite #3 (cm-aea34a27d4c74d8a) timed out at 900 s with SANDBOX_ENDED_WITHOUT_RESULT, so neither the AFF positive control nor SC_{3,1} has a result. Three G=0 encodings have now failed (cm-e98d237c1a8e4443, cm-d65787d0be8f42c0 invalid controls; cm-aea34a27d4c74d8a timeout). Open: the encoding bug behind the AFF control UNSAT, and a size-reduced run. Next: a minimal AFF-only control at S=4 with time-limit and simulation check, before any SC_{3,1} claim.",
+  "evidence": "cm-aea34a27d4c74d8a: ok=false, SANDBOX_ENDED_WITHOUT_RESULT, timeout 900 s, memory 2048 MB, Glucose4. No S-range verdict was produced; the earlier cm-48d26f3e2e694fd5 (AFF SAT at S=4, 16/16 re-simulated) remains the only valid control result.",
+  "gap_id": "G0143"
+ },
+ {
+  "at": 1795386844.178377,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "Rewrite cm-4c931f4952c745c4 (compact AFF S=4 control) returns UNSAT, contradicting cm-48d26f3e2e694fd5 (SAT, 16/16). The encoding is still wrong or the earlier control differed. No G_max or G=0 result exists. Next: localise the bug on trivial families (ZERO, ONE, INP, AFF) for S=1..4 before any SC_{3,1} claim.",
+  "evidence": "cm-4c931f4952c745c4: AFF_S4 UNSAT, ok=true, Glucose4, 0.58 s. Earlier valid control cm-48d26f3e2e694fd5: AFF SAT at S=4 with 16/16 re-simulation. Both runs use the same AFF family definition.",
+  "gap_id": "G0144"
+ },
+ {
+  "at": 1795386845.035866,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0002: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: lemmaA\nRELATION: SAME (the Lean statement directly formalises the counting bound: the injective mapping from the L+1 distinct states (L live prefixes plus one dead state) into the 2^S possibl (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795386916.471352,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "The earlier AFF S=4 SAT (cm-48d26f3e2e694fd5, 16/16) cannot be reproduced: the rewrites cm-e98d237c1a8e4443, cm-d65787d0be8f42c0, cm-4c931f4952c745c4 all return UNSAT for AFF. Its model was never reconstructed, so it is not a usable positive control. The pure-wiring G=0 model is therefore not measured for SC_{3,1} at all. G_max remains open. Next: add a bounded fan-in-2 gate option (AND/OR/XOR of two slots or constants), check AFF and ZERO for SAT with sim_bad_nodes=0 re-simulated from the selectors, then measure G_max for SC_{3,1}.",
+  "evidence": "Hand proof only so far. The lemma covers ZERO, not AFF: AFF contains the zero function and also functions whose prefixes make the dead set non-trivial, so it does not refute AFF. The solver results cm-1e33ca2233e9445d (ZERO/ONE/INP/AFF UNSAT for S=1..4) are consistent with the lemma but are not an independent check of it. Still to do: brute-force the lemma at N=8 for S<=2 over all shared-option transducers.",
+  "gap_id": "G0145",
+  "id": "S0248",
+  "proved_step": "L-G0-ZERO: Let N >= S+2. Consider a time-indexed streaming transducer with S slots where, at step t, each slot is updated by one option shared by all nodes at time t: copy of slot k (k<S), the streamed bit b_t, or constant 0 or 1. Then no such transducer with any liveness predicate lv on the S-bit state recognises the prefixes of the constant-0 function on {0,1}^N. Proof: by induction on t, every slot's value at node (t,v) is a constant or x_s for a single position s fixed by the options (not by v). So the state at (t,v) depends only on v restricted to I_t, with |I_t| <= S. Take t = S+1 <= N-1 and p in {0..t-1} \\ I_t. Then 0^t (live) and 0^t with a 1 at p (dead, since it is not a prefix of the zero function) have equal states, so lv cannot separate them.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795387470.386818,
+  "session": "pnp-desk/research/R1818",
+  "model": "claude-haiku-5-5",
+  "gap": "Joint-SAT dead-separation encodings timed out at n=3 (cm-d942f7a4d22d4e83, cm-9fc19ef511224136). No bound on the per-step update cost G_max is established. The class counts measured so far are over the union SC_{3,s} of all outputs with at most s gates, so they are not a streaming state bound.",
+  "evidence": "EXPLORATORY_COMPUTATION, n=3, exact enumeration over the 256 truth tables. Live/residual class counts per prefix length t. s=1: t=4..7 classes 13,14,5,2. s=2: t=4..7 classes 14,21,7,3 (cm-293cc65617b045a7). s=3 (union): t=4..7 classes 11,11,8,3 (cm-84e708f9476c4c03). At t=5 live prefixes are 32 for both s=2 and s=3, but classes fall from 21 to 11, so the class count is not monotone in s. Growth in s is not shown and the boundedness hypothesis H1 is not decided. The s=3 set grows to 232 outputs. Next step: define the residual classes for the s-bounded family separately from the union and test monotonicity on a fixed family.",
+  "gap_id": "G0146"
+ },
+ {
+  "at": 1795387564.7154698,
+  "session": "pnp-desk/research/R1818",
+  "model": "claude-haiku-5-5",
+  "gap": "Cumulative families are not a usable streaming state across s. For n=3 the live set of each prefix length is monotone in s by construction (SC_{3,s} is contained in SC_{3,s+1}), so 'dead at s stays dead at s+1' is false for trivial reasons and is not a test. The correct object is the minimal layered DFA of the finite language F_s = outputs of circuits with at most s gates, read one bit at a time: its width at prefix length t is the number of distinct residuals, with the empty residual counted as the dead state. The joint-SAT encodings at n=3 timed out (cm-d942f7a4d22d4e83, cm-9fc19ef511224136). No G_max bound is established.",
+  "evidence": "EXPLORATORY_COMPUTATION, n=3, exact enumeration over the 256 truth tables. Source runs: cm-293cc65617b045a7 (s=1,2), cm-84e708f9476c4c03 (s=3 cumulative), cm-a84ac8a028e34dd0 (pairwise split/merge across s=2,3: t=5 split 4 / merge 149, t=6 split 88 / merge 694, t=7 split 440 / merge 2420). Scope: n=3 only, not a verified bound.",
+  "gap_id": "G0147"
+ },
+ {
+  "at": 1795387605.61561,
+  "session": "pnp-desk/research/R1818",
+  "model": "claude-haiku-5-5",
+  "gap": "Layered minimal-DFA widths of the cumulative families F_s do not give a monotone-in-s state bound, and the width is a space measure, not an update-time measure. Per the spec, only an UPDATE-TIME lower bound can establish the G_max hypothesis, so these widths cannot close the gap. The joint-SAT encodings at n=3 timed out (cm-d942f7a4d22d4e83, cm-9fc19ef511224136). No G_max bound and no lemma is established.",
+  "evidence": "EXPLORATORY_COMPUTATION, n=3, exact enumeration over the 256 truth tables, cumulative families F_s = outputs of circuits with at most s gates (sizes 38, 152, 232). Experiment cm-faaba952f7b44400. Layered widths incl. dead, t=0..8: s=1: 1,2,4,8,13,15,6,3,2 (total 54); s=2: 1,2,4,8,14,21,8,4,2 (total 64); s=3: 1,2,4,8,11,11,8,4,2 (total 51). Cross-check: width = live classes + 1 dead class where dead prefixes exist (s=1, t=5: 14+1=15; s=2, t=6: 7+1=8), matching cm-293cc65617b045a7 and cm-84e708f9476c4c03. Hypothesis outcomes: H1 (widths equal for s=2 and s=3) is FALSE at t=4,5,6,7 (14 vs 11, 21 vs 11, 8 vs 8 is equal, 4 vs 4 equal; t=4 and t=5 differ). H2 (strict growth in s at some t) is also FALSE for s=2 to s=3: widths fall at t=4 and t=5 and are equal at t=6..8. Surprise: the cumulative family is not monotone in width. Scope: n=3 only. Finite and exploratory; not a verified bound.",
+  "gap_id": "G0148"
+ },
+ {
+  "at": 1795387662.272295,
+  "session": "pnp-desk/research/R1818",
+  "model": "claude-haiku-5-5",
+  "gap": "No nontrivial lemma yet. Layered widths of the finite families F_s at fixed n are trivially bounded in s (width_t <= min(2^t, |F_s|+1)), so they carry no s-dependence. A G_max bound needs an update-time lower bound for every streaming update algorithm, which exact enumeration at n=3 cannot supply. Next: exact synthesis of the layered transition map (n=3, s=2). Scope: n=3 only, finite, exploratory.",
+  "evidence": "Bookkeeping bound: width_t(F) <= min(2^t, |F|+1), proved above. Measured widths cm-faaba952f7b44400 (s=1,2,3 at t=5: 15, 21, 11). Trivial bound, not progress.",
+  "gap_id": "G0149"
+ },
+ {
+  "at": 1795387748.2011344,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0029: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: residual_state_bound (with helper instance_S_ge_4)\nRELATION: STRONGER. The Lean theorem holds for any finite `F`, any `S`, and any types `P` and `\u03c1`, with no n=3, N=8, or one-gate-circuit res (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795387983.543181,
+  "session": "pnp-desk/research/R1826",
+  "model": "claude-haiku-5-5",
+  "gap": "G_max(SC_{3,1}) and G_max(affine) are not measured. The counting bound S (6 vs 5) is not a per-step update cost. Next: joint SAT for the minimal per-step update cost at n=3, s=1,2, with the perfect-matching control checked.",
+  "evidence": "cm-7cb0b57b08844241 (EXPLORATORY_COMPUTATION, agent-authored, not a verified lemma). SC_3_1: size 38, L=[1,2,4,8,16,22,30,38,38], D=[0,0,0,0,0,10,34,90,218], max_needed_codes 39, counting_S 6. AFFINE: size 16, L=[1,2,4,8,8,16,16,16,16], D=[0,0,0,0,8,16,48,112,240], max_needed_codes 17, counting_S 5. Only the counting bound is reported here. It is not a lower bound on G_max, because counting over prefix profiles does not bound per-step update cost (the spec's unbounded-update-time caveat applies). Open: G_max for SC_{3,1} and affine, measured by joint SAT over encodings and exact circuit synthesis; no result yet.",
+  "gap_id": "G0150"
  }
 ]
