@@ -1712,5 +1712,44 @@
   "proved_step": "PROOF. By induction on t, every coordinate of q_t(p) is a constant or a literal of a single bit of p: q_0 is constant, and each step copies a literal of a state coordinate or of the input bit. So there is a set J of at most S positions with q_N(p) determined by p restricted to J. Suppose S < N. Then some position k is outside J. Pick w in F (F nonempty) and let w' = w with bit k flipped. Then q_N(w') = q_N(w). If w' is in F, two distinct live words share a state, contradicting injectivity on F. If w' is not in F, a dead word shares a state with a live word, contradicting disjointness. Both cases are impossible, so S >= N. QED. Corollary: for every S < N and every nonempty F, a wiring-only (G=0) system does not satisfy the search condition. In particular the G=0 test for SC_{3,1} at S=6 is UNSAT by this argument, with no SAT run needed.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795376887.9593422,
+  "session": "pnp-desk/research/R1698",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-a5b37258d6f14989 (VERIFICATION, independent unrestricted-transition encoding, prefix-indexed, cadical153, 256-table simulation of every SAT model). SC_{3,1} (38 tables, N=8): S=4 SAT with 0 simulation mismatches of 256; S=3 UNSAT. PARITY S=4 SAT with 0 mismatches. Predictions were S=4 SAT and S=3 UNSAT; both held, no surprise. Consequence: the S=3 UNSAT follows from the exact layered residual count max_t K_t = 15 (cm-7f4acac1bb3a421a) via 2^S >= 15, so S>=4 is the decision-only one-pass bound for this bit order. Earlier controls cm-689f3fc9bc9b4df6 (PARITY S=1 G=1 SAT, DICT7 S=1 G=0 SAT, both 0 mismatches) show the restricted G=1 encoding is not vacuously UNSAT. Scope: decision version only, no decoder cost, no live/dead separation, no G_max value. The restricted UNSATs (SC31 G=0 at S=6; G=1 at S=5,6,7,8, cm-92149a0624944190 and cm-689f3fc9bc9b4df6) are solver-asserted, not certified, and do not bear on G_max. Lemma M obligation (live/dead separation and update cost) stays OPEN."
+ },
+ {
+  "at": 1795377018.200562,
+  "session": "pnp-desk/research/R1698",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-a06ba2fb0f3b42c0 (VERIFICATION of cm-7f4acac1bb3a421a and S0029, independent code: own set construction, own prefix/residual computation, not the archived script). Predictions: owner class sizes and bounds hold. Outcome, matching prediction: |SC_{3,1}|=38, |SC_{3,2}|=152, |SC_{4,1}|=70, |SC_{4,2}|=526. Search-semantics bound max_t ceil(log2(L_t+[L_t<2^t])) = 6 (SC_31), 8 (SC_32, trivial at S=N=8), 7 (SC_41), 10 (SC_42). Decision bound max_t ceil(log2(K_t+[dead])) = 4 (SC_31), 5 (SC_32), 6 (SC_41), 8 (SC_42). At t=4, SC_31 gives 16 live prefixes, 0 dead, 13 residual classes, which matches S0029's R=13, D=0, and S>=4. Consequence: the SC_{3,1} decision S=4 bound is confirmed independently, and the search-semantics S>=6 bound for SC_{3,1} is established here as an exact count, not a G_max value. Scope: finite counting only, no update-gate cost, no decoder cost, no transducer constructed. Lemma M obligation (G_max, Pareto set (S,G_max,D)) stays OPEN. Next minimal test: SC_{3,1} with S=6 (nontrivial, since 6<8), search semantics, G=1 gate per step, SAT with a decoder encoding, and simulation on all 256 truth tables of SC_{3,1} members."
+ },
+ {
+  "at": 1795377088.041657,
+  "session": "pnp-desk/research/R1698",
+  "model": "claude-haiku-5-5",
+  "id": "S0213",
+  "proved_step": "LEMMA D (decision semantics, one pass, any time-dependent transitions). Setting: N=2^n, F subset of {0,1}^N, machine with state set Q, |Q|=2^S, start state q_0, transitions q_{t+1}=F_t(q_t,b), accept iff q_N in an accepting set. For a prefix p of length t let R(p)={v in {0,1}^(N-t) : pv in F}. Let K_t = number of distinct nonempty residual sets R(p) over live prefixes p (R(p) nonempty), and D_t = number of dead prefixes (R(p) empty). Claim: 2^S >= K_t + [D_t > 0]. Proof: the state after reading p is q_t(p), and the rest of the run is a deterministic function of (q_t(p), v). So q_t(p)=q_t(p') implies R(p)=R(p'). Contrapositive: R(p) != R(p') implies q_t(p) != q_t(p'). Hence the map R-class -> state is well defined and injective on the set of distinct residual languages, which has K_t + [D_t>0] elements (the empty language counted once if dead prefixes exist). So |Q| >= K_t + [D_t>0]. Scope: acceptance/decision version only; no decoder, no update cost, no search semantics. Consequence: S_t >= ceil(log2(K_t + [D_t>0])) for every t. Checked by cm-a06ba2fb0f3b42c0 (SC_{3,1}: K_4=13, D_4=0, gives S>=4; matches decision bound 4). This does not close G0001-G0004 or any G_max obligation; it is the standard Myhill-Nerode count for a time-indexed automaton. Claimed for review.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795377387.6981652,
+  "session": "pnp-desk/research/R1714",
+  "model": "claude-haiku-5-5",
+  "evidence": "Proof in proved_step (induction on t). Computation of kappa_t for SC_{3,1} requested in the next TOOL_CALL.",
+  "id": "S0214",
+  "proved_step": "CLAIMED (unreviewed) copy-class coordinate lemma. Model: S-bit streaming system over {0,1}; time-dependent transitions where each next-state bit is one of: constant 0/1, a literal (q_t^j or its negation) of one current state bit, or b or not-b. Claim: for every t there is ref_t^i in {0..t-1} or none per bit such that q_t^i is a constant or +-p_{ref}. Proof: induction on t. t=0: all bits constant. Step: a copied literal of q_t^j inherits j's single reference, and b = p_t adds reference t, so each bit references at most one position of {0..t}. Hence q_t is a function of p restricted to R_t with |R_t| <= S. If codes are injective on live prefixes P_t, then p -> p|R_t is injective on P_t, so S >= kappa(P_t), where kappa(A) = min{|R| : A|R injective}. Scope: copy/negate/constant/input class only; a necessary condition. It does not give G_max and does not prove S >= N for literal wiring (lab note gives kappa_8 = 6 for SC_{3,1}, which is < 8).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795377449.662129,
+  "session": "pnp-desk/research/R1714",
+  "model": "claude-haiku-5-5",
+  "gap": "S0214 (copy-class coordinate lemma, CLAIMED) gives S >= max_t kappa(P_t) = 6 for SC_{3,1} under literal wiring (cm-a8210938c70c4f40). This is a necessary condition only and does not decide H1 vs H2 at S=6. Open: (1) whether the bound is tight for literal wiring, which needs an exact G=0 decider or a construction; (2) extension to AND/XOR/general B2 gates, where a gate can combine two state bits and the reference-set argument fails; (3) the update-time bound G_max, which this lemma does not touch. The H1 vs H2 SAT/UNSAT conflict remains unresolved.",
+  "refuted_approach": "Reading the S=6 UNSAT record as evidence for a lower bound of 7 or 8 in the copy class: this is contradicted by the same lemma, since the copy class only forces S >= 6.",
+  "gap_id": "G0121"
  }
 ]

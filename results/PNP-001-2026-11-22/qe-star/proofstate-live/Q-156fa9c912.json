@@ -2140,5 +2140,194 @@
   "proved_step": "LEMMA (corrected circuit-count bound, repair of S0115 step iv). Setting: n>=1, s>=1, Circ_{n,s} = circuits on n inputs with at most s binary gates and a designated output node, Im = {tt(C) : C in Circ_{n,s}}, L = |Im|. CLAIM: L <= (16(n+s)^2)^s (n+s), hence log2 L <= s*log2(16(n+s)^2) + log2(n+s) = O(s log(n+s)), and the number of distinct residual functions R_p (over all prefixes p of any fixed length t) is at most L+1. PROOF: a circuit is a sequence of s gates followed by an output choice. Gate k (k=1..s) takes an ordered pair of nodes among the n+k-1 <= n+s-1 nodes already present (at most (n+s)^2 choices) and one of 16 binary Boolean operations, giving at most 16(n+s)^2 choices per gate. The output is one of at most n+s nodes. So |Circ_{n,s}| <= (16(n+s)^2)^s (n+s), and L <= |Circ_{n,s}| since Im is the image of Circ_{n,s}. For a fixed t, each distinct residual R_p with R_p nonempty equals R_q for some prefix q that is a prefix of an element of Im, and the map p -> R_p on prefixes of Im has at most L nonempty values; adding the empty residual gives at most L+1. The explicit expression (n+s+1)^{2s} 16^s of the original step (iv) is NOT a valid upper bound (counterexample n=2, s=1: 256 < 432 = (16*9)^1*3), so it is withdrawn. SCOPE: exact for all n>=1, s>=1. It is a bookkeeping repair. It does NOT bound update time, so it does NOT close or shrink G0003 (poly(s) update), and it does not touch G0004. CHECK: cm-c759df56aa88451a gives M <= (16(n+s)^2)^s (n+s) with circ_bound_with_output_factor true on all four tested (n,s).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795371239.7997172,
+  "session": "pnp-desk/research/R1652",
+  "model": "claude-haiku-5-5",
+  "gap": "No new proved_step this session. G0003 (poly(s) worst-case update time for the EXT prefix-automaton transition) and G0004 (update-time lower bound for exact total Search-MCSP^A[s] under every representation) remain open. Observation: EXT_{n,s}(p) for a full-length prefix p equals [MCSP(p) <= s], so any one-pass update of poly time and poly(s) state would decide MCSP at threshold s in time N * poly(s, m). That is bookkeeping, not progress, and it does not bound the update time from below. Obstacle: a lower bound on the update computation must hold for nonlinear, redundant and shared encodings, and no argument I can check gives it.",
+  "evidence": "cm-b54507ef01794b55 checks only the counting bound r_t <= L+1 (n=3, s in {1,2}); it says nothing about update time.",
+  "gap_id": "G0139"
+ },
+ {
+  "at": 1795371632.963112,
+  "session": "pnp-desk/research/R1660",
+  "model": "claude-haiku-5-5",
+  "evidence": "Replication cm-2d2e62697dc44301 (own code, n=3, circuits over x0,x1,x2 with fan-in-2 AND/OR/XOR, no NOT, no constants, size s in {1,2,3}; prefix = low k bits of the truth table, residual = t>>k). Level data [k, #prefixes, #distinct residuals]: s=1: k=4 (6,6), k=5 (9,8), k=6 (11,4), k=8 (12,1); s=2: k=4 (8,8), k=5 (14,14), k=6 (22,9), k=8 (39,1); s=3: k=4 (8,7), k=5 (16,11), k=6 (32,9), k=7 (63,3), k=8 (107,1). |Im| = 12, 39, 107 for s=1,2,3. Checks: k=0 gives one prefix and one residual; k=n+... at k=8 the residual is always {0}, count 1. The residual count is NOT monotone in s at k=4 (8 for s=2, 7 for s=3), so monotonicity cannot be used as a lemma. SCOPE: restricted basis, s<=3, n=3. It does not verify S0115/S0121 for the full circuit class and does not test any update-time claim. Prediction check: counts stay within the bound L+1 of S0115 (L=|Im|), which holds in all rows. Result: consistent with S0115's count bound on this instance; not evidence for the update-time gap."
+ },
+ {
+  "at": 1795371685.446452,
+  "session": "pnp-desk/research/R1660",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s) per-update EXT membership) remains open. S0125 gives only 2^{O(s log(n+s))} poly(2^n) per update, and S0127 restricts to aligned prefixes with update time exponential in s. Obstacle: for a full-length prefix (t = N), EXT_{n,s}(p)=1 asks whether the given truth table has circuit size <= s, i.e. exact circuit-size membership, which has no known poly(s, N) algorithm. A poly(s) per-update bound would therefore need a new algorithm for this task, not a counting or restriction argument. Next constructive target: a per-update bound poly(s, N) that is polynomial in N (not in s) would still give a streaming automaton with O(log N + s log(n+s)) state bits, but it is not the G0003 bound.",
+  "evidence": "No new computation this session. Restricted-basis data cm-2d2e62697dc44301 (n=3, s<=3, AND/OR/XOR, no NOT, no constants) is consistent with the state bound of S0115; it does not test the update-time claim. S0098 and S0091 remain DISPUTED and unreconciled; I did not review or extend any CLAIMED step, because my session (claude-haiku family) authored S0115/S0121/S0125/S0127/S0135 and cannot review them.",
+  "gap_id": "G0140"
+ },
+ {
+  "at": 1795371813.3710392,
+  "session": "pnp-desk/research/R1660",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s) per-update EXT membership) remains open. The full-basis count bound holds on n=3, s<=4 (no counterexample). The obstacle is unchanged: for full-length prefixes EXT_{n,s} is exact circuit-size membership, and no poly(s,N) algorithm is known.",
+  "evidence": "Replication cm-f684576ece93450e (own code, BFS over node-value sets, full 16-op fan-in-2 basis, n=3, s<=4, truth tables as 8-bit ints). Im sizes: s=1: 38, s=2: 152, s=3: 232, s=4: 256. The output-only and all-node sets coincide at every s. Checked the S0115 bound (distinct nonempty residuals per depth <= |Im|+1, prefixes <= |Im|) at every depth k=0..8 for s=1..4: it holds in all rows. The bound is non-trivial for s=1..3. At s=4, Im = all 256 functions, so every prefix has residual count 1 and the bound is trivially true. The restricted-basis counts of cm-2d2e62697dc44301 are not the full-basis counts (different basis, different sizes). Failure this could catch: a bound violation or a gate-enumeration error. Neither occurred. SCOPE: n=3, s<=4 only. It does not test the update-time claim G0003 and gives no poly(s) bound.",
+  "gap_id": "G0141"
+ },
+ {
+  "at": 1795372360.059489,
+  "session": "pnp-desk/research/R1668",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 remains open: no poly(s)-time update for EXT_{n,s}(p) is known; the enumeration route is 2^{O(s log(n+s))}. Anomaly resolved: S0121(i) (cofactor identity) holds for every ordering and encoding because R_{pb} and {q' : bq' in R_p} are the same set by definition, so the false flag in cm-2c23a7a21d664df6 is an implementation bug in that run, not a counterexample. This is an observation about S0121's statement, not a review of it (same model family).",
+  "evidence": "Argument from definitions; no new computation. Same-family restriction respected: no SURVIVED_REVIEW or REFUTED recorded.",
+  "gap_id": "G0142"
+ },
+ {
+  "at": 1795372878.43112,
+  "session": "pnp-desk/research/R1676",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 remains open: this counting bound gives state count, not update time.",
+  "evidence": "Counting lemma (corrected Lemma C). Let n,s >= 1 and Im = {tt(C) : C an n-input circuit of size <= s} over binary fan-in gates with 16 ops. Let B = 16(n+s)^2. A circuit of size k has, for gate j, at most 16(n+j-1)^2 <= B choices (op and ordered input pair among n+j-1 earlier nodes), and at most n+s output choices. So the number of (circuit, output) pairs of size exactly k is at most (n+s) B^k. Summing over k = 0..s and using B >= 16 (geometric series, sum_{k<=s} B^k <= 2 B^s) gives |Im| <= 2(n+s) B^s = 2(n+s)(16(n+s)^2)^s. Hence log2|Im| <= 1 + log2(n+s) + s(4 + 2 log2(n+s)) = O(s log(n+s)). Scope: bounds the number of distinct residual states only. Does not bound update time, so G0003 (poly(s) update) stays open. Says nothing about G0004. The earlier statement without the factor 2 was off by the size-sum; the O(.) bound is unchanged. Does not repair the withdrawn lab evidence in S0098.",
+  "gap_id": "G0143",
+  "dispute_of": "S0091",
+  "status": "DISPUTED"
+ },
+ {
+  "at": 1795372989.7041836,
+  "session": "pnp-desk/research/R1676",
+  "model": "claude-haiku-5-5",
+  "evidence": "Replication cm-db37dff7f04a4748 (own enumeration, not the Lemma C proof): |Im| = 16, 16, 38, 152, 16 for (n,s) = (2,1),(2,2),(3,1),(3,2),(2,3), all <= 2(n+s)(16(n+s)^2)^s. Holds on all rows, but the slack is large, so this does not confirm the factor-2 size-sum argument. S0091/G0143 remains DISPUTED pending review by another model family. S0098 remains DISPUTED: no completed lab run supports it and the linearity premise is unproven. G0003 (poly(s) update time) stays open."
+ },
+ {
+  "at": 1795373076.9968228,
+  "session": "pnp-desk/research/R1676",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 remains open: Lemma D turns a fast update into a fast MCSP decision; it gives no poly(s) update and no lower bound on update time.",
+  "gap_id": "G0144",
+  "id": "S0262",
+  "proved_step": "LEMMA D (update-time reduction). Fix n>=1, s>=1, N=2^n, Im_{n,s} = {tt(C): C n-input circuit of size<=s}. If a deterministic automaton with state encoding length S and transition computable in time U recognises Im_{n,s} as a language of length-N strings (acceptance checked on the final state in time U), then membership w in Im_{n,s} is decided in time (N+1)U. Proof: N transitions plus one acceptance check. Consequence: a per-bit update of poly(s)*polylog(N) for the prefix automaton of Im would give MCSP_{n,s} in time N*poly(s)*polylog(N). SCOPE: reduction only; no update-time bound is proved; does not close G0003 (poly(s) update) and does not touch G0004 or S0098.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795373986.5199187,
+  "session": "pnp-desk/research/R1684",
+  "model": "claude-haiku-5-5",
+  "evidence": "Step (iv) claims the number of circuit encodings of size <= s is at most (n+s+1)^(2s)*16^s, and derives L <= that bound from it. Independent enumeration (cm-ffa8eefbce6440ec, own code, direct enumeration of gate lists and outputs) gives n=3, s=1: 579 encodings vs stated bound 400 (violated). Also violated: n=10 s=1..3 and n=20 s=1..3. Formula count matches brute force at n=2,3 small s (194, 37058, 579, 184899). The conclusion L <= bound still holds at n=3,s=1 (38 distinct truth tables), but the proof route through the encoding count is invalid. Caveat: this reviewer is claude-haiku-5-5, the same model family as the author session R1308, so per the protocol this refutation does not count as an independent cross-family review; it is recorded as a verifiable counterexample to the encoding-count step.",
+  "review_of": "S0115",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795374194.7542202,
+  "session": "pnp-desk/research/R1684",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Naive 1-edit update for the residual-automaton witness state (single circuit c with tt(c) prefix p; on bit b keep c if its bit matches, else try ONE gate edit: op change, input change, or output change; re-check the child witness on pb). Refuted along the deterministic witness path of cm-3523b39bbe454ef4: fallbacks (no 1-edit witness) at (n,s)=(3,1): 25 of 159 DFS nodes; (3,2): 109; (4,1): 47; (4,2): 383. First fallback at t=4, prefix 0, witness ((),2) for n=3. Scope: this witness path only; other witness choices may change counts (lab note). The s=1 failures contradict the H_NONLOCAL prediction, which only covered s>=2. Invariant violations: 0. This refutes the naive 1-edit rule, not every poly(s) update rule. G0003 stays open.",
+  "evidence": "cm-3523b39bbe454ef4 (EXPLORATORY_COMPUTATION, DFS along one witness path, own code). Node count reconciliation not checked: keep+edit_ok+fallback = 158 vs dfs_nodes 159 at (3,1)."
+ },
+ {
+  "at": 1795374309.864209,
+  "session": "pnp-desk/research/R1684",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Bounded 2-edit update for the residual-automaton witness state (one circuit c with tt(c) prefix p; on bit b, find a witness for pb within gate-edit distance <= 2 of c). Measured along the deterministic witness path (cm-0721ed9cd5df4638, DISCOVERY, H_K2 vs H_GROW): max edit distance to the nearest valid child witness over all fallbacks is 2 at (n,s)=(3,1) and (4,1), but 3 at (3,2) (40 cases at distance 3, example t=7, p_child=128) and at (4,2) (160 cases at distance 3, example t=14, p_child=16384). Zero invariant violations. Verdict from the lab: H_GROW. Scope: this witness-choice rule and tie-break only (the lab notes other witness choices can change the counts), and only s <= 2. Constant distance 3 at s=2 does not show that the distance grows with s, so it does not refute a poly(s) update rule. It refutes the claim that edit distance 2 suffices uniformly for these sizes. G0003 stays open.",
+  "evidence": "cm-0721ed9cd5df4638 (EXPLORATORY_COMPUTATION; own enumeration of all circuits of size <= s; nearest-witness search by full enumeration of descriptions, 579 / 184899 / 1284 / 615684 descriptions at the four cases). Consistency check: at (3,1) dist_hist {1:13, 2:12} and fallback 109 vs 25 in cm-3523b39bbe454ef4; the two runs use different witness rules, so the fallback counts are not comparable. Not an independent cross-family verification. Haiku-family reviewer and author."
+ },
+ {
+  "at": 1795375307.9694254,
+  "session": "pnp-desk/research/R1692",
+  "model": "claude-haiku-5-5",
+  "evidence": "REPLICATION of S0091 (counting bound |Im| <= 2(n+s)B^s, B=16(n+s)^2), S0121 (per-level distinct residuals <= M+1) and S0127 (lemma L1, aligned prefixes): independent brute-force enumeration in cm-914f58f256e946dc, n=1..4, s=1..2. All cases: bound_holds=true, per_level_ok=true, L1_match=true for k=1..n. Max residuals per level: n=3,s=2: 21 (M+1=153); n=4,s=2: 164 (M+1=527). Predicted outcome matched; no off-by-one or encoding error found. Scope: small n only; says nothing about update time, G0003 or G0004. Does not touch the withdrawn S0098 evidence (no linear-model check here)."
+ },
+ {
+  "at": 1795375376.7212791,
+  "session": "pnp-desk/research/R1692",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 unchanged. S0125 gives update time 2^{O(s log(n+s))} poly(2^n); S0127 gives N(log N)^{O(s)} at aligned prefixes; S0135 bounds total time for one input, not per update. Obstacle: a poly(s) update must decide EXT_{n,s}(p) for a prefix p without enumerating size-<=s circuits, which is a circuit-extension search. No argument avoiding that search was found in session R1692.",
+  "evidence": "Replication cm-914f58f256e946dc of S0091, S0121, S0127 (n<=4, s<=2): all hold. Not a construction; no proved_step recorded.",
+  "gap_id": "G0145"
+ },
+ {
+  "at": 1795375801.3785348,
+  "session": "pnp-desk/research/R1700",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-0e6e1f1a2491495b (own explicit truth-table encoding over all 16 binary ops; exhaustive for n=2,3 and s<=1,2; complement_closed true in all four cases, sizes 16, 16, 38, 152). Failure it could catch: a missing constant op or a bit-order error.",
+  "id": "S0268",
+  "proved_step": "LEMMA (complement closure). For n>=1, s>=1, Im_{n,s} = {tt(C) : C a circuit on n inputs of size <= s} is closed under bitwise complement. Proof: let C have size k <= s. If k >= 1, replace the op of the output gate by its complement (the map f -> NOT f on the 16 binary ops is an involution). The new circuit has size k and computes the complement of tt(C). If k = 0, the output is a leaf x_i or a constant. The complement of a constant is a constant (already a size-0 circuit), and NOT x_i = NAND(x_i, x_i) is one gate, allowed since s >= 1. Hence the complement lies in Im_{n,s}. Consequence: EXT_{n,s}(p) = EXT_{n,s}(p-bar) for every prefix p, where p-bar is the bitwise complement. SCOPE: a closure property of the set only. It bounds neither update time nor state count. It does not close G0003 (poly(s) update) or G0004 (update-time lower bound). Trivial bookkeeping lemma; not counted as progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795375878.6802502,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0010: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I did not write or check a Lean file, because the claim cannot be stated faithfully from the material available to this role.\n\n- **Missing definitions:** The claim uses `SC_s`, `p2q`, \"live\"  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795376003.181623,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0012: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No faithful formalization of LEMMA 1 is possible from the spec as written. The kernel-accepted theorem `prog_count_bound` is a trivial special case with no D, S, u_t or O(\u00b7) bound, so it is n (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795376617.026998,
+  "session": "pnp-desk/research/R1708",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (repaired state count). n,s>=1, N=2^n, Im subset {0,1}^N, M=|Im|. For t in 0..N and prefix p of length t let R_p = {q in {0,1}^(N-t): pq in Im}. Then the family {R_p : |p|=t} has at most M+1 distinct members, and the family over all t has at most (N+1)(M+1) members. PROOF: R_p is nonempty iff p is a length-t prefix of some word of Im; the set P_t of such realized prefixes has |P_t| <= M (each word has one t-prefix). Distinct nonempty residuals at level t are indexed by P_t, so at most M of them; add the empty residual: M+1 per level, and N+1 levels. Hence the Myhill-Nerode states of the prefix language have at most (N+1)(M+1) classes, and with |Im| <= 2(n+s)(16(n+s)^2)^s (S0091 bound) this is O(log N + s log(n+s)) bits. SCOPE: state count only; update time not bounded, so G0003 stays open and G0004 is untouched.",
+  "refuted_approach": "S0121(iii): the Myhill-Nerode state count of the prefix language of Im is at most M+1 (M=|Im|). Refuted by the exact computation cm-d0b60bd5b6594102: n=3, s=1 gives M=38 and 51 distinct residuals > 39. Also refuted in general: a language with one word of length N has N+1 distinct nonempty residuals (one per suffix length), exceeding M+1=2 for N>=2. The step's own counting over levels is not valid; the bound must be per level and summed over levels.",
+  "evidence": "cm-d0b60bd5b6594102 (exact residual families): n=2,s=1: Im=16, residuals 5 <= 17; n=2,s=2: 16, 5 <= 17; n=3,s=1: Im=38, residuals 51 > 39 (VIOLATES S0121(iii)); n=3,s=2: Im=152, residuals 62 <= 153. Single-word counterexample is an argument, not a lab run. Verification is my own encoding (truth-table bitmasks, explicit residual sets), predicted failure at n=3,s=1 was seen.",
+  "id": "S0271",
+  "proved_step": "CLAIMED: repaired state-count lemma above, with the proof as stated",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795376744.6668494,
+  "session": "pnp-desk/research/R1708",
+  "model": "claude-haiku-5-5",
+  "gap": "Update cost of the prefix automaton is still unmeasured; the state count is bookkeeping (G0003 open, G0004 untouched).",
+  "evidence": "CORRECTION to cm-1a3505eed2b14384: maxlive was taken over t=0..N, and |P_N| = M trivially (every word is its own length-N prefix), so maxlive_over_M=1.0 carries no information about H1. Valid quantities from that run: distinct_residuals (n=2,s=1: 6; n=3,s=1: 51; n=3,s=2: 62) and per_level_max (2, 15, 22). Next run restricts the live-prefix maximum to t<N.",
+  "gap_id": "G0146"
+ },
+ {
+  "at": 1795376779.9571872,
+  "session": "pnp-desk/research/R1708",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 open: the per-step update cost of a residual-id automaton is still unmeasured. A stored live set costs up to M*N bits, which is not O(log N) state bits, so the representation must be residual ids with a transition table. The next step is to measure the transition-table size (2*D entries, each O(log D) bits) and the cost of computing it, not the state count.",
+  "evidence": "cm-43d456223fb141dc (DISCOVERY, corrected live maximum over t<N). Values (n,s): (2,1) M=16 live=8 ratio 0.5 D=6 D/bound 0.0706; (2,2) M=16 live=8 ratio 0.5 D=6 D/bound 0.0706; (3,1) M=38 live=38 ratio 1.0 D=51 D/bound 0.1453; (3,2) M=152 live=108 ratio 0.711 D=62 D/bound 0.045. Reading: the live-set ratio is not monotone in s and saturates at M for n=3,s=1, so it does not discriminate H1 from H2 at these sizes. D/bound falls from s=1 to s=2 at n=3 (as H2 predicted) but is flat at n=2, where the family is all 16 functions and carries no information. Surprise: the live set at n=3,s=1 is the full M. Scope: finite n=2,3 only; no update-time bound.",
+  "gap_id": "G0147"
+ },
+ {
+  "at": 1795376889.1890411,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0011: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No accepted proof of the claim. The kernel has not accepted any theorem stating the claim or its counting core.\n\n**Claim status**\n- The claim is not formally verified. The statement `fiber_ca (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795377320.6799374,
+  "session": "pnp-desk/research/R1716",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent exact recount (cm-f9a3d84c16264628, own BFS over node-tuples of truth tables, distinct truth tables counted): |Im| = 16, 16, 16, 38, 152 for (n,s) = (2,1), (2,2), (2,3), (3,1), (3,2). Each case satisfies |Im| <= 2(n+s)(16(n+s)^2)^s (bounds 864, 524288, 640000000, 2048, 1600000). No violation, so the stated bound is not too small on these cases. SCOPE/LIMIT: the test is weak. The bound exceeds |Im| by 10^2 to 10^6 on every case, so it cannot detect a constant-factor or moderate-exponent error. It does not bound update time, so G0003 (poly(s) update) stays open. Reviewer status not claimed: this session is claude-haiku, the same family as the claimed-step authors.",
+  "dispute_of": "S0091",
+  "status": "DISPUTED"
+ },
+ {
+  "at": 1795377378.364854,
+  "session": "pnp-desk/research/R1716",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s) update time) stays open. The exact level counts for (n,s)=(3,2) are 1, 38, 1744 (cm-f9a3d84c16264628). These show the number of circuits per level grows roughly as (16(n+s)^2)^k, which is exponential in s, so the counting bound S0091 gives no update-time bound. A poly(s) per-update procedure needs a representation whose update cost is poly(s) independently of the circuit count. None of S0121, S0125, S0127, or S0135 supplies one: S0125 is exponential in s, S0127 is exponential in s for aligned prefixes, and S0135 is an amortized total-time bound. Next attempt: a restricted circuit class (bounded fan-in or bounded top width) where the level count is polynomial in s, with a poly(s) update proved for that class.",
+  "evidence": "Level counts from cm-f9a3d84c16264628 for (3,2): 1, 38, 1744. Consistent with the exponential-in-s bound (16(n+s)^2)^(s+1) of S0125. No review of claimed steps is made by this session (claude-haiku family).",
+  "gap_id": "G0148"
+ },
+ {
+  "at": 1795377487.5649586,
+  "session": "pnp-desk/research/R1716",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 / G0148 (poly(s) update time for the EXT prefix automaton) remains open. Precise obstacle: a per-bit update needs one EXT(pb) query, i.e. decide whether some circuit of size <= s has truth-table prefix pb. For the full-length prefix (t = N) this query is exactly the MCSP decision for threshold s on N-bit tables. A poly(s) update must therefore decide prefix-constrained circuit existence from the stored state (size poly(s) bits) and one input bit, without the full table. No existing step (S0121, S0125, S0127, S0135) gives this: S0125 and S0127 are exponential in s, and S0135 is an amortized bound for one fixed input. Not tried: a restricted circuit class with polynomially many states per level, plus a proved per-update bound for it.",
+  "evidence": "No new computation this session. Level counts for (n,s)=(3,2) are 1, 38, 1744 (cm-f9a3d84c16264628), so the state count alone does not give a poly(s) update. Session claude-haiku-5-5 is the same family as the authors of S0121, S0125, S0127, S0135, so it cannot review them.",
+  "gap_id": "G0149"
+ },
+ {
+  "at": 1795377602.993882,
+  "session": "pnp-desk/research/R1716",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 CORRECTED FRAMING (no proof step, no review needed): G0003 does not require poly level counts. The state of the EXT prefix automaton after reading a prefix p is determined by p, and its size is O(s log(n+s)) bits by the counting bound S0091. The open quantity is the per-update cost of computing the next state from the current state and one bit. If that cost were poly(s), the final state at t=N would decide EXT(x)=1 iff x in Im_{n,s}, i.e. MCSP with threshold s, in N*poly(s) time. This is a consequence to check, not a result. The level counts 1, 38, 1744 for (n,s)=(3,2) do not bear on the update cost.",
+  "evidence": "Reasoning from S0091 and the definition EXT_{n,s}(p)=1 iff some circuit of size <= s has truth table starting with p. Checked by reading only; no new computation.",
+  "gap_id": "G0150"
  }
 ]

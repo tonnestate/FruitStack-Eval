@@ -383,5 +383,35 @@
   "proved_step": "S-AND-WIDTH-01: Let F, G: {0,1}^k -> {0,1} be Boolean functions on the same prefix-cut, with residual functions f_a = F(a, .) and g_a = G(a, .) over the suffix variables, and D(H) = number of distinct residual functions of H over prefixes a. Then D(F AND G) <= D(F) D(G). If in addition the zero residual occurs among the residuals of both F and G, then D(F AND G) <= 1 + (D(F)-1)(D(G)-1). Proof: the residual of F AND G at a is f_a AND g_a, so D(F AND G) is at most the number of distinct pairs (f_a, g_a), giving the product bound. For the sharpened bound, a nonzero residual f_a AND g_a forces f_a and g_a nonzero, so the nonzero residuals of F AND G lie in {u AND v : u in N_F, v in N_G}, where N_F is the set of nonzero residuals of F, and |N_F| = D(F)-1 when zero is a residual of F (likewise G). This gives at most (D(F)-1)(D(G)-1) nonzero residuals plus one zero residual. Scope: finite Boolean functions with a fixed variable cut; this is a width bound for pointwise AND of residual sets, not a bound on any algorithm's running time.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795371251.3039103,
+  "session": "pnp-desk/research/R1651",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact check of D_k <= 2^(R_k) and R_k <= D_k on cm-85513a6da178478b (n=5, 355 functions, 120 orders): 0 violations. Subsumes S0012 and the rank direction; no new computation.",
+  "id": "S0042",
+  "proved_step": "S-sandwich-rank-OBDD (LEMMA, CLAIMED). Scope: any Boolean f on {0,1}^n, any variable order, any cut k. Let M_k be the 2^k x 2^(n-k) matrix M_k[a,b] = f(a,b) with prefix a and suffix b. Let D_k = number of distinct rows of M_k and R_k = rank over Q of M_k. Claim: R_k <= D_k <= 2^(R_k). Proof. (i) The D_k distinct rows span the row space of M_k, which contains all rows, so R_k <= D_k. (ii) Let V be the row space of M_k, dim V = R_k. Choose R_k columns S on which the projection x -> x_S is injective on V (a basis matrix of V has R_k independent columns). The distinct rows are distinct elements of V in {0,1}^(2^(n-k)), so their restrictions to S are pairwise distinct and lie in {0,1}^S, which has 2^(R_k) elements. Hence D_k <= 2^(R_k). Consequence: write W_rank(pi) = max_k R_k and W_OBDD(pi) = max_k D_k. For every order pi, W_rank(pi) <= W_OBDD(pi) <= 2^(W_rank(pi)); minimising over pi gives min_pi W_rank <= min_pi W_OBDD <= 2^(min_pi W_rank). Gap relation: G0001 asks whether min_pi W_OBDD <= poly(min_pi W_rank). The sandwich reduces G0001 to whether the factor 2^(W_rank) can be replaced by a polynomial in the minimum-over-orders setting; it does not close G0001. Per-cut tightness: the MUX cut of S0007 has D = 2^R, so no per-order polynomial improvement exists; only the minimum over orders can help. Barrier label (diagnostic): not applicable, no complexity lower bound is claimed. Review status: CLAIMED; this session cannot review its own step.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795372716.8629715,
+  "session": "pnp-desk/research/R1659",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-c3417c0351694067 (VERIFICATION, exact Fraction rank, n=3..6 all orders, n=7..10 natural order; no violations). Independent of mod-p code and of S0003/S0012. Proof is by hand and is CLAIMED until reviewed by a session of another model family.",
+  "id": "S0043",
+  "proved_step": "statement: For every n >= 2, every order of the n variables and every cut with prefix set A (|A| = k): rank_Q(M_A) <= (k+1)(n-k+1) <= floor((n+2)^2/4), where M_A is the cut matrix of HWB_n(x) = x_{|x|} (0 if |x| = 0) with rows indexed by prefix assignments a and columns by suffix assignments b.\nproof: Split rows of M_A by the weight s in {0..k} of a and columns by the weight t in {0..n-k} of b. This gives (k+1)(n-k+1) blocks R_{s,t}, and M_A is the sum of their zero-padded versions. On R_{s,t}, |a union b| = s+t = j is constant, so the entry equals x_j for a fixed variable j. If j = 0 the block is zero. If j in A, the entry is a_j, which depends only on the row, so the block has rank <= 1. If j in B, the entry is b_j, which depends only on the column, so the block has rank <= 1. Rank is subadditive, so rank_Q(M_A) <= (k+1)(n-k+1). Maximising over k gives floor((n+2)^2/4).\nshrinks: G0001 rank side for HWB_n: W_rank(HWB_n) <= floor((n+2)^2/4) for every order. Does not supply the superpolynomial min-over-orders OBDD width lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795376243.2899396,
+  "session": "pnp-desk/research/R1699",
+  "model": "claude-haiku-5-5",
+  "evidence": "Claim C checked by cm-d10a8eb982b34be3 (L=4,5; r=1..3; 0 violations), consistent with the proof; proof is the coordinate-projection argument above. Not a closure of G0001.",
+  "id": "S0044",
+  "proved_step": "statement: Let M be a matrix over Q with k columns and r = rank_Q(M). The number of distinct 0/1 rows of M is at most 2^r. Consequently, for a fixed variable order, the number of distinct residual functions at a cut is at most 2^{rank_Q(M_cut)}. Scope: fixed order only; min over orders is NOT covered (G0001 stays open).\nproof: Let V = rowspace(M), dim V = r. Choose r columns J with a nonzero r x r minor. The projection pi_J: V -> Q^J has image of dimension rank(M restricted to J) = r, so it is injective on V. Each distinct 0/1 row lies in V and maps injectively into {0,1}^J, which has 2^r elements. The GF(2) inequality rank_GF2(M) <= rank_Q(M) holds because a minor nonzero mod 2 is nonzero over Q.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

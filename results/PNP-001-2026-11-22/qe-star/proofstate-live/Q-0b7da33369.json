@@ -1825,5 +1825,293 @@
   "gap": "G0116 reduced (not closed): the inequality log2 p(m) > L(g(m)) for all m >= m0 follows from (a) Lehmer's bound p(m) > exp(pi sqrt(2m/3)) / (4 m sqrt 3), cited and NOT re-verified in this session, giving log2 p(m) >= 2.565 sqrt(m) - log2(4 sqrt3 m); and (b) L(g) = sqrt(M)/2 + O(log^2 m) with M = 2^S < 2m, giving L(g) <= 0.7072 sqrt(m) + O(log^2 m). The gap between the two is about 1.86 sqrt(m) and dominates for large m. Explicit constants for the O(log^2 m) term are not written out. Finite check cm-73c0733b6b674ea1 covers m <= 3000. Scope: existence bound h(pi_lambda) >= floor(sqrt(M)/(4S)) = Theta(sqrt(m)/log m) only. No update-time content; does not close G0001 or G0002.",
   "evidence": "cm-73c0733b6b674ea1 (finite check); Lehmer/Rademacher partition bound cited, unverified here",
   "gap_id": "G0117"
+ },
+ {
+  "at": 1795371225.885763,
+  "session": "pnp-desk/research/R1654",
+  "model": "claude-haiku-5-5",
+  "gap": "S0126 gap (c): the explicit constant sqrt(2m) > S^2+S+6 is now checked numerically (cm-6962e64a10cc4177). The condition holds at the worst-case m in each block from S=17. Gaps (a) and (b), the padded-permutation embedding and the definition of h, remain open. No review: author and reviewer share a family.",
+  "evidence": "cm-6962e64a10cc4177: A/B/C checks pass on the stated ranges; no failures.",
+  "gap_id": "G0118"
+ },
+ {
+  "at": 1795371309.2470288,
+  "session": "pnp-desk/research/R1654",
+  "model": "claude-haiku-5-5",
+  "gap": "Remaining, not closed here: (i) log2 p(m) >= sqrt(2m)-3 is cited from S0087(1), not reproved; (ii) the S0087 bound log2((g+1)2^{L(g)}) <= sqrt(M)/2+(S^2+S)/2 is only checked for S<=200, no analytic tail; (iii) the lemma is a counting existence bound: no update-time bound, no circuit lower bound for any streaming system; closes neither G0001 nor G0002. Subclaim D and the R>=2S case of C stay open.",
+  "evidence": "Own algebra above; numerical check of the chain: physalis_code_run verification (ids returned next turn). The lemma is a Shannon-type counting argument, not a new idea; its contribution is that it removes the padding gap (a),(b) of S0126 by counting functions on {0,1}^S. Author is claude-haiku-5-5: CLAIMED, not reviewed by a different model family. Closes is not set: a reviewer must confirm the discharge of G0118 (a),(b).",
+  "gap_id": "G0119",
+  "id": "S0215",
+  "proved_step": "LEMMA R-S0126 (repair of gaps (a),(b) of S0126). Setting: m>=2, S=ceil(log2 m), M=2^S, g=floor(sqrt(M)/(4S)). For lambda |- m let pi_lambda be a permutation of {0,1}^S with cycle type lambda plus M-m fixed points. A circuit: fan-in-2 DAG of binary gates (16 ops, constants included) on S inputs with S output nodes; size = number of gates; h(pi) = min size of a circuit computing pi as a function on ALL of {0,1}^S (unused codes are part of the function; no padding argument). CLAIM: if p(m) > (g+1)*C_g with C_g = (16(S+g)^2)^g (S+g)^S, then some lambda |- m has h(pi_lambda) > g. PROOF: (1) distinct lambda give distinct pi_lambda: cycle-length multiset of pi_lambda is lambda + (M-m) ones; the count of 1-cycles is count_1(lambda)+M-m, and the count of each part k>=2 is count_k(lambda); so lambda is recovered. (2) A circuit of size k is given by k gates (i,j,op) with i,j among at most S+k-1 earlier nodes and op among 16, plus S output selectors among at most S+k nodes; so #circuits of size k <= (16(S+k)^2)^k (S+k)^S, which is nondecreasing in k, so F_g (functions computed by size <= g) has |F_g| <= (g+1) C_g. (3) If h(pi_lambda) <= g for all lambda, the p(m) distinct functions pi_lambda lie in F_g, so p(m) <= (g+1) C_g: contradiction. QED. CONSEQUENCE: log2 C_g = 4g + (2g+S)x with x = log2(S+g) <= (4g+S)log2(4(g+S)) = L(g) (difference 4g+2S+2gx >= 0), so log2((g+1)C_g) <= log2(g+1)+L(g) <= sqrt(M)/2 + (S^2+S)/2 (the S0087(2)-(3) chain used in S0126, cited; checked for S=14..200 by my own code). With sqrt(M) <= sqrt(2m) and log2 p(m) >= sqrt(2m)-3 (S0087(1), cited, checked for m<=3000 only), the lemma applies whenever sqrt(2m) > S^2+S+6, the S0126 condition. For S=14..16 this covers only the upper part of the block.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795371341.3783975,
+  "session": "pnp-desk/research/R1654",
+  "model": "claude-haiku-5-5",
+  "gap": "Verification note on S0215 (G0119), not a review. cm-9c69ade885b54ec5 returns partition_condition_first_S=14, but the per-m condition sqrt(2m) > S^2+S+6 is never met for S=14: the block is m in (8192,16384] and needs m > 23328. The first S with the whole block satisfied is S=17, and S=15,16 are satisfied only on part of their blocks. The code therefore appears to test an sqrt(M)-based condition, not the m-based one the lemma uses. Lemma coverage is for m with sqrt(2m) > S^2+S+6 only. Remaining gaps: (i) log2 p(m) >= sqrt(2m)-3 cited from S0087(1), checked only for m<=3000; (ii) the S0087 chain is checked only for S<=200 with no analytic tail; (iii) counting existence only, no update-time bound.",
+  "evidence": "Hand check of the algebra in S0215 (distinct lambda -> distinct pi_lambda; circuit count; log2 C_g identity; inequality chain with the condition). cm-9c69ade885b54ec5 used for the numeric check. Author model claude-haiku-5-5; this session is also Haiku, so no review credit.",
+  "gap_id": "G0120"
+ },
+ {
+  "at": 1795371810.7102337,
+  "session": "pnp-desk/research/R1662",
+  "model": "claude-haiku-5-5",
+  "evidence": "Session R1662 (claude-haiku-5-5): S0117 and S0123 were re-checked numerically at 400-digit precision by cm-68d05ff4563e42e1 with 0 failures on the stated grid. This is a finite check, not a review. The steps stay CLAIMED: the general inequality for all m >= 6 and eps in (0,1/2) still needs an analytic proof, and an independent reviewer from another model family must check it."
+ },
+ {
+  "at": 1795371903.3259192,
+  "session": "pnp-desk/research/R1662",
+  "model": "claude-haiku-5-5",
+  "lemma": "Let eps in (0,1/2), a = 1/2 - eps, s = 3/2 - eps, c = (2-4eps) + (2-2eps) log2 s. For every real m > 0, with L = log2 m, G = a m, R = m, f = G(4 + 2 log2(R+G+1)) + R log2(R+G+2): (i) f = (2-2eps) m L + c m + E, where E = m[2a log2(1 + 1/(s m)) + log2(1 + 2/(s m))] and 0 < E <= 2/ln2 < 3. (ii) okA: f <= (2-2eps) m L + c m + 5. (iii) okB: 2mL - f >= m(2eps L - c) - 5. (iv) okC: if m >= m0 = 2^((c+1)/(2eps)) then 2mL - f >= m - 5.",
+  "gap": "Reviewer from another model family must check (i) by expansion, the inequality log2(1+x) <= x/ln2, and (ii)-(iv). Also check that okA/okB/okC match S0117/S0123 verbatim. Not proof progress until SURVIVED_REVIEW. Own check: identity E = f - ((2-2eps)mL + cm) verified numerically to 0.0 on 1239 points (cm-ae8356c1469b4791); 0 failures on the grid at 400 digits (cm-68d05ff4563e42e1). These numerical checks do not replace the proof.",
+  "evidence": "Analytic derivation written by claude-haiku-5-5 session R1662, re-derived by hand in this session. Authored by the same model family as this session, so no review is recorded here.",
+  "gap_id": "G0121",
+  "id": "S0218",
+  "proved_step": "S-NEW-R1662-A: for all real m > 0 and eps in (0,1/2), statements (i)-(iv) of the lemma hold (proof: R+G = s m gives log2(R+G+1) = log2(sm) + log2(1+1/(sm)) and log2(R+G+2) = log2(sm) + log2(1+2/(sm)); the coefficient of mL is 2a+1 = 2-2eps and the constant coefficient of m is 4a + (2a+1) log2 s = c; E > 0 is clear; log2(1+x) <= x/ln2 gives E <= (2a+2)/(s ln2) = 2s/(s ln2) = 2/ln2 < 3; then 2mL - f = m(2eps L - c) - E gives (iii) since E < 5, and m >= m0 iff 2eps L - c >= 1 gives (iv) via m - E >= m - 3 >= m - 5).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795371940.8096235,
+  "session": "pnp-desk/research/R1662",
+  "model": "claude-haiku-5-5",
+  "gap": "S0218 (session R1662, claude-haiku-5-5) restates the content of S0117 (same f, same E = f-((2-2eps)mL+cm), same bounds okA/okB/okC, same threshold m0). It is a duplicate, not a new lemma, and adds no progress. The one difference is the sharper bound 2/ln2 < 3 for E, which S0117 also gets as 3/ln2 < 5. Both remain CLAIMED. A non-Haiku reviewer must check S0117 and S0218 together, or S0218 should be withdrawn as redundant. Remaining gap for G0001/G0002: none of the counting routes (S0084, S0087, S0126) gives an update-time bound, so the question's open obligations are unchanged.",
+  "evidence": "Hand re-derivation in R1662: R+G = s m, so log2(R+G+1) = L+a+log2(1+1/(sm)); the mL coefficient is 2a+1 = 2-2eps; the constant term is 4a+(2a+1)log2 s = c; the bound (2a+2)/(s ln2) = 2s/(s ln2) = 2/ln2 holds; 2mL - f = m(2eps L - c) - E, so (iii) and (iv) follow. Numerical support: cm-ae8356c1469b4791 (identity, 1239 points, max diff 0.0), cm-68d05ff4563e42e1 (0 failures on the grid at 400 digits).",
+  "gap_id": "G0122"
+ },
+ {
+  "at": 1795372653.47286,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "(1) The LOWER bound ln max >= (1-o(1)) sqrt(2n) is NOT proved. The Lagrangian heuristic in my earlier step does not prove it, and I withdraw it. What is rigorous: take m_i = floor(a/i) for i <= a. Then ln(m_i+1) >= ln(a/i), so the value is >= a - O(log a). The cost is sum_{i<=a} i*floor(a/i) = sum_{j<=a} sigma(j) ~ (pi^2/12) a^2 (classical divisor-sum asymptotic). Taking a ~ sqrt(12n)/pi gives ln max >= (1-o(1)) sqrt(12n)/pi ~ 0.78 sqrt(2n). The crude cost bound a^2 <= n gives only 0.707 sqrt(2n). The constant 1 in exp((1+o(1)) sqrt(2n)) is therefore OPEN. It needs a construction that closes the rounding gap of floor(K/i) at parts i in (K/2, K), where the integer optimum takes m_i in {0,1} and the continuous optimum is fractional. (2) The formal count prod(m_i+1) is exact. (3) Numerics for n <= 50 show ln(max)/sqrt(2n) rising 0.55 -> 0.83, which is consistent with limit 1 but is not evidence for it.",
+  "refuted_approach": "Lagrangian heuristic m_i+1 ~ lambda/i treated as proof of the exp(sqrt(2n)) lower bound: refuted as a proof (integer rounding is not controlled).",
+  "evidence": "cm-70c26222c5454b5c (exhaustive over partitions, n <= 50; growth ratio table). cm-ce080efc60b34f47 (checks the upper-bound inequality for n <= 50, all K in a range, with 0 violations). The general upper bound is proved in the lemma text above, not by the finite check.",
+  "gap_id": "G0123",
+  "id": "S0220",
+  "proved_step": "S-SUBMULTISET-UB (upper bound, CLAIMED): Let M have multiplicities m_i >= 0 of part i with sum_i i*m_i <= n. Then for every integer K >= 1, ln prod_i (m_i+1) <= n/K + sum_{i=1}^{K-1} (i/K - 1 - ln(i/K)). Proof: weak Lagrangian duality with lambda = 1/K gives ln(m+1) - (i/K)m <= max_{m>=0} of that expression, which equals -ln(i/K) - 1 + i/K for i < K and 0 for i >= K. The sum over i=1..K-1 of i/K is (K-1)/2, so the bracket equals L - (K-1)/2 with L = ln(K^{K-1}/(K-1)!). Since (K-1)! >= ((K-1)/e)^{K-1}, L <= (K-1)(1 + ln(K/(K-1))) <= K. Hence ln max <= n/K + (K-1)/2 + 1. With K = ceil(sqrt(2n)): n/K <= sqrt(2n)/2 and (K-1)/2 < sqrt(2n)/2, so ln max < sqrt(2n) + 1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795372763.9403079,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "The constant 1 in exp((1+o(1)) sqrt(2n)) is NOT closed. The loss 0.291L in step (b) comes from parts i near the cutoff L, where c/i is close to e. The continuous optimum m_i+1 = K/i for all i <= K has cost K^2/2 and value K, but any integer rounding at parts with K/i < 2 loses a constant fraction. Closing G0123 needs a rounding scheme with total loss o(sqrt n). Not attempted here.",
+  "evidence": "cm-1e4f54d2c3d04aa8 (DP upper data: ratio 0.8809 at n=150, above the claimed 0.8115 bound, so no contradiction). Steps (a)-(c) are hand derivations; the o(1) terms are not made explicit. Not yet machine-checked: the next check is to compute the exact floor-construction value for L up to about 200 and compare with M(n).",
+  "gap_id": "G0124",
+  "id": "S0221",
+  "proved_step": "S-SUBMULTISET-LB-081 (CLAIMED): For every n, ln max_M prod_i (m_i+1) >= (0.81 - o(1)) sqrt(2n). Construction: let L = floor(sqrt(n/(e-1/2))), c = floor(eL), and take m_i = floor(c/i) - 1 for 1 <= i <= L, and m_i = 0 otherwise. Proof: (a) cost: sum_{i<=L} i*m_i <= sum_{i<=L} (c - i) <= eL^2 - L^2/2 + O(L) <= n. (b) rounding: for i <= L, x = i/c <= 1/e, and ln floor(c/i) >= ln(c/i) + ln(1-x) >= ln(c/i) - 1.582 x, so sum_{i<=L} ln(m_i+1) >= sum_{i<=L} ln(c/i) - 1.582 * L^2/(2c) = L ln c - ln(L!) - 0.291 L + o(L). (c) Stirling with c = eL(1+o(1)): L ln c - ln L! = 2L + o(L). Hence ln M(n) >= 1.709 L + o(L) = 1.709 * 0.6715 sqrt(n) + o(sqrt n) = 1.1476 sqrt(n) + o(sqrt n) = 0.8115 sqrt(2n) + o(sqrt(2n)).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795372944.1102839,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "G0124 remains OPEN. The floor construction gives ln M(n) >= (0.81 - o(1)) sqrt(2n) by hand (S0221, CLAIMED, not yet reviewed), and the finite data shows its o(1) term is large at n<=300. The constant 1 in exp((1+o(1)) sqrt(2n)) is NOT closed. Next obstacle: rounding loss at parts i in (K/2, K) where floor(K/i) is 1 or 2. Needs a rounding scheme with total loss o(sqrt n).",
+  "evidence": "cm-d1995fbf59f744e1 (exact DP for n<=300, own floor construction m_i=floor(c/i)-1, i<=L, L=floor(sqrt(n/(e-1/2))), c=floor(eL)). Checked at n=20,40,...,300: cost <= n holds at all 15 points (step (a) numerically consistent); construction product <= exact optimum M(n) at all 15 points. Construction ratio ln/sqrt(2n): 0.64-0.80, not monotone (0.7599 at n=200, 0.7395 at n=300). Gap (DP ratio minus construction ratio): 0.09 to 0.21, with no decreasing trend (0.1096 at n=20, 0.1821 at n=100, 0.1662 at n=300). This does NOT support H_a (gap -> 0). It is consistent with H_b (gap stays bounded away from 0 on this range), but finite data cannot decide the asymptotic.",
+  "gap_id": "G0125"
+ },
+ {
+  "at": 1795373294.7794232,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "G0123/G0124 (constant 1 in the lower bound on ln M(n)) remain OPEN. S0220 (upper bound ln M(n) <= n/K + (K+1)/2 for all K >= 1, hence <= sqrt(2n)+1) was re-derived by hand and is correct. S0221 (lower bound ln M(n) >= (0.81 - o(1)) sqrt(2n)) was re-derived and is correct. Neither step has a closes id, so neither counts as progress. Scope caveat: this sub-multiset line is not obviously connected to the state-recoding obligations of Q-0b7da33369; the connection must be shown before any of this is recorded against it.",
+  "evidence": "cm-d55d81fd77bb4072 (deficit D(n)/ln n ~ 0.41 for n in [100,1000]); cm-d1995fbf59f744e1 (construction vs DP, n <= 300); cm-ce080efc60b34f47 (upper-bound inequality checked for n <= 50, 0 violations).",
+  "gap_id": "G0126"
+ },
+ {
+  "at": 1795373872.857492,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "CONNECTION (corrects my earlier note): S0220 is the sub-multiset upper bound used in STATE-RECODING-BOUNDS-CHECK Claim A item 2 (number of sub-multisets of a partition of n=2^S < 2m is at most exp((1+o(1))sqrt(2n)); this gives exp((2+o(1))sqrt m) for n<2m). Claim A needs only this UPPER bound: #circuits >= p(m)/max-submultisets, with log p(m) ~ 2.565 sqrt m, so the count gives exp(0.56 sqrt m) and G = Omega(sqrt m / log m). The constant-1 LOWER bound on ln M(n) (S0221, G0123/G0124) is not needed for Claim A and is dropped from this route. Open for Claim A item 2: state the counting inequality with explicit constants and the circuit-count bound 2^{O((G+R) log(G+R))} as an exact inequality, then have a non-Haiku reviewer check it.",
+  "evidence": "cm-ae1d884750724690 (own exhaustive partition enumeration, n<=40, no Lagrange/DP code, independent of cm-ce080efc60b34f47 and cm-d55d81fd77bb4072): 0 violations of (a) ln M(n) <= min_K((K+1)/2 + n/K) and (b) ln M(n) <= sqrt(2n)+1, where M(n)=max over multiplicity vectors with sum i*m_i <= n of prod(m_i+1). Finite confirmation of S0220 only; the general bound is the hand derivation of S0220 and is not reviewed by this session.",
+  "gap_id": "G0127"
+ },
+ {
+  "at": 1795373911.8812888,
+  "session": "pnp-desk/research/R1678",
+  "model": "claude-haiku-5-5",
+  "gap": "(1) S<=g hypothesis: holds only for large m; small m need the trivial bound. (2) Whether the spec's CC equals this fan-in-2 S-bit gate count is an assumption, not checked against the spec text (the spec read did not return subclaim A). (3) No upper bound and no update-time statement. Evidence (P1, P1b, P2) to be recorded from the next VERIFICATION run.",
+  "refuted_approach": "The earlier gap (a)/(b) on padded embeddings of m-state permutations is not a real gap once h is defined over all permutations of {0,1}^S with the fixed points included.",
+  "gap_id": "G0128",
+  "id": "S0225",
+  "proved_step": "S0126-R (REPAIR of S0126; replaces its gaps (a)-(c)). Setting: m>=8, S=ceil(log2 m), M=2^S, x=sqrt(2m). Circuits: fan-in-2 gates, 16 binary ops, S inputs, S output wires; size = number of gates. h(lambda) := min circuit size over ALL permutations sigma of {0,1}^S with cycle type lambda u 1^(M-m). STATEMENT: if S <= g, g>=1, g <= x and g(8+3log2 x) <= x-5, then there is a partition lambda of m with h(lambda) >= g+1, i.e. every permutation of that cycle type needs more than g gates. Corollary: with g = floor((x-5)/(8+3log2 x)) (when S<=g) max_lambda h(lambda) > (sqrt(2m)-5)/(8+3log2 sqrt(2m)) = Omega(sqrt(m)/log m). PROOF. Step 1 (family): F = partitions of m into DISTINCT parts. Let k = floor(x)-2, K = k(k+1)/2. Map A (subset of {1..k}, sum(A) <= K/2) to partition A u {m - sum A}; the extra part is >= k+1 > all parts of A, so parts are distinct, and A is recovered from the parts <= k (injective). Complement A -> {1..k}\\A sends sum s to K-s, so #{sum<=K/2} = #{sum>=K/2} and their union covers 2^k subsets: #{sum<=K/2} >= 2^(k-1). Condition K/2 <= m-k-1 holds: (k^2+5k+4)/4 <= (2m+x-2)/4 <= m using k<=x-2 and x-2<=2m. Hence |F| >= 2^(k-1) >= 2^(x-4) since k-1 = floor(x)-3 >= x-4. Step 2 (injective cycle types): the M-point cycle type lambda u 1^(M-m) determines lambda (remove M-m fixed points), so distinct lambda in F give distinct cycle types, and permutations of distinct cycle types are distinct functions. Step 3 (counting): the number of functions computed by circuits of <= g gates is at most 2^Lambda, Lambda = log2(g+1)+g(4+2log2(S+g))+S log2(S+g); descriptions with k'<=g gates number at most (g+1)(16(S+g)^2)^g (S+g)^S. Using S<=g<=x: S+g<=2g<=2x, log2(g+1)<=g, so Lambda <= g + g(6+2log2 x) + g(1+log2 x) = g(8+3log2 x) <= x-5. Step 4 (contradiction): if h(lambda)<=g for all lambda in F, choose for each lambda a circuit of <= g gates computing some sigma_lambda of type lambda; the sigma_lambda are pairwise distinct (distinct cycle types), so 2^(x-4) <= |F| <= 2^Lambda <= 2^(x-5), contradiction. QED. SCOPE: min over ALL permutations of {0,1}^S, so for any encoding set Psi (injective encodings of Q included) min_{psi in Psi} CC(psi delta psi^-1) >= h(lambda) >= g+1 for every delta of cycle type lambda (conjugation preserves cycle type, and all permutations of one cycle type are conjugate). This is a LOWER bound only; no update-time bound; circuit model fixed as above; the hypothesis S<=g is an explicit condition (holds for m around 2^18 and beyond, checked numerically in the next evidence record). It does not by itself close G0001/G0002 (their text was not checked here, so no closes= is claimed).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795374028.3692055,
+  "session": "pnp-desk/research/R1678",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN for claim A: a single delta of cycle type lambda (or a family of deltas) with CC_psi(delta) >= g+1 for EVERY injective stationary psi. Needed: a counting argument over encodings psi (for fixed delta, the set of psi for which a circuit of <=g gates computes psi delta psi^-1 on U) or a structural lemma that the cost is conjugation-invariant across encodings. Not attempted. Also still open: update-time statement; no P vs NP claim.",
+  "refuted_approach": "S0225 (and its scope sentence 'for any encoding set Psi, min_psi CC(psi delta psi^-1) >= h(lambda) >= g+1 for every delta of cycle type lambda', where h is the minimum over all permutations of {0,1}^S) is not established. Two faults: (1) circuits have free values on unused codes, so a circuit need not compute a permutation of {0,1}^S; h over full permutations does not lower-bound CC (the restriction to U is what counts); (2) the counting argument yields min_psi max_delta, not the max_delta min_psi required by claim A. The earlier gap S0126(a) was therefore NOT repaired by the 'min over all permutations' definition.",
+  "evidence": "Checked by reading the definitions: the restriction-count argument uses only the m used codes; the inequality max_x min_y f <= min_y max_x f gives the direction. The numerical record cm-c1033e04bc7247b1 checks only the ingredients (P1, P1b, P2), not the quantifier order.",
+  "gap_id": "G0129"
+ },
+ {
+  "at": 1795374092.2918303,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "Claim A item 2 remains OPEN. Still needed: (i) a general proof that the cycle type of a fan-in-2 circuit on 2^S codes, restricted to an m-subset, is a sub-multiset of its 2^S cycle type (the step that gives the factor M(2^S)); (ii) the asymptotic Omega(sqrt m / log m) with explicit constants; (iii) an independent non-Haiku review. S0220 stays CLAIMED: the general bound is a hand derivation, and this session cannot review its own step. The constant-1 lower bound (S0221, G0123/G0124) is off-route for Claim A.",
+  "evidence": "cm-236be56631b742cb: exact DP for S0220 (log M(n) <= sqrt(2n)+1 in nats) with 0 violations for n <= 1024; own pentagonal p(m) and counting threshold G*(m) for m <= 1024. The counting inequality p(m) > #circuits(G,S) * M(2^S) gives no positive G*(m) for m <= 1023 and G*(m)=0 at m=1024, so no circuit lower bound is visible at checkable sizes. Finite check only; it does not establish the asymptotic in Claim A item 2.",
+  "gap_id": "G0130"
+ },
+ {
+  "at": 1795374155.7771652,
+  "session": "pnp-desk/research/R1670",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (1) item (i) of G0128 is discharged by part (a) of this lemma. (2) Item (ii) is discharged asymptotically with constant 0.815 in log base 2, but the o(1) terms are not made fully explicit. (3) The spec's padded permutation pi_lambda (M-m fixed points on 2^S codes) is a different object from the m-state permutation used here. Its relation to this lemma still has to be checked. (4) Independent non-Haiku review of parts (a)-(c) is still required. S0220 stays CLAIMED.",
+  "evidence": "Hand derivation; consistency check against cm-e4fe31b66e38431c (log2 p(m) - log2 M(2^S) grows positive, about 0.815 sqrt(m) in the limit) and cm-236be56631b742cb (exact DP for S0220 with 0 violations for n <= 1024, circuit-count formula as in the code). The finite threshold is positive only from m ~ 1024 because the o(1) terms are large at small m.",
+  "gap_id": "G0131",
+  "id": "S0228",
+  "proved_step": "LEMMA R (restriction to sub-multisets; Claim A item 2). Setting: S>=1, C any function {0,1}^S -> {0,1}^S (values on unused codes arbitrary), fan-in-2 circuits over a fixed complete basis. M(n) = max over mu with sum_i i*mu_i <= n of prod_i (mu_i+1). (a) If Q subset {0,1}^S, C(Q) subset Q, and C restricted to Q is a permutation of cycle type lambda |- m, then lambda is the cycle type of a sub-multiset of the cycles of C's functional graph, and one C realises at most M(2^S) cycle types. Proof: for q in Q the C-orbit of q is periodic and stays in Q, so it equals the C|Q-cycle through q. Hence the C|Q-cycles are disjoint cycles of C with total length m <= 2^S. The cycle lengths of C have multiplicities mu_i with sum_i i*mu_i <= 2^S, and the number of their sub-multisets is prod_i (mu_i+1) <= M(2^S). (b) Counting: let N(G,S) = (16(S+G)^2)^G (S+G)^S, an upper bound on the number of circuits with G gates, S inputs and S outputs. Let psi: Q -> {0,1}^S be injective. If every lambda |- m has a permutation delta_lambda on Q with circuit size <= G realising it via psi, then choosing one circuit C_lambda per lambda, each circuit serves at most M(2^S) values of lambda by (a). So p(m) <= N(G,S) * M(2^S). Hence if p(m) > N(G,S) M(2^S), some lambda has circuit size > G. (c) Asymptotics (log base 2, S = ceil(log2 m), 2^S < 2m): log2 p(m) = (3.700+o(1)) sqrt(m), since pi*sqrt(2/3)/ln 2 = 3.700. log2 M(2^S) <= (2.885+o(1)) sqrt(m), using ln M(n) <= sqrt(2n)+1 (S0220) with n < 2m. log2 N(G,S) <= 2 G log2 G + O(G + S log G). So max over lambda of the circuit size is >= (0.815 - o(1)) sqrt(m) / log2(m). Scope: counting existence only; no update-time bound; for any m-state permutation with injective S-bit encoding and fan-in-2 circuits. Uses S0220 (CLAIMED) as input. Does not close G0001 or G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795374315.0562093,
+  "session": "pnp-desk/research/R1686",
+  "model": "claude-haiku-5-5",
+  "evidence": "Finite check of spec item 4 (Claim B count), experiment cm-93ec3cc45f6e4242: explicit orbit enumeration over all 65536 ordered pairs (delta0, delta1) of maps {0..3}->{0..3} under simultaneous conjugation by S_4 gives 2836 orbits, matching the spec. Restricted to permutation pairs (bijective delta0, delta1) the count is 43; checked by hand with Burnside: (1/24) * sum over sigma of |C(sigma)|^2 = (576 + 6*16 + 3*64 + 8*9 + 6*16)/24 = 1032/24 = 43. Scope: finite count on 4 states only. Not a review of any claimed step (all claimed steps S0117, S0121, S0123, S0126 are Haiku-authored and this session is Haiku). Closes neither G0001 nor G0002."
+ },
+ {
+  "at": 1795374501.587681,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0002: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: The claim involves intricate combinatorial constructions about symmetric groups, circuit complexities, and asymptotic lower bounds (\u03a9(\u221am / log\u202fm)) that are not formalized in Mathlib. No exist (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795374646.9193008,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0002: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: A1 cannot be formalized faithfully in a single self-contained Lean file, so I have not submitted a proof.\n\n**Why:**\n- **CC is undefined in Mathlib.** The claim is about the circuit complexity (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795374754.3082688,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0004: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim uses undefined circuit-complexity and encoding objects, leaves the S(m) relation and the \u03a9/O constants unspecified, and depends on a circuit-counting bound that is not in Mathlib. T (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795374898.8239686,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0005: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim cannot be formalised faithfully from the material available. The definitions of CC_E (circuit model and pair choice), \"stationary\", and the constant and quantifier scope of \u03a9(\u03b7m) ar (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795374980.8338199,
+  "session": "pnp-desk/research/R1686",
+  "model": "claude-haiku-5-5",
+  "lemma": "Fixed-psi counting bound. Let m >= 256, S = ceil(log2 m), G = floor(m/4), T = S+G+2, L = log2 m. Let a 'circuit' be a fan-in-2 circuit with S input wires and at most G gates, with an output map of S wires. Claim: log2(m!) > log2(G+1) + G(4 + 2 log2 T) + S log2 T. Hence for m >= 256 there is a bijection of the set of m used codes that is the restriction to those codes of no circuit of size <= G. PROOF. (1) Each gate chooses two of at most S+G earlier wires and one of 16 binary functions, so the number of circuits of size exactly g is at most (16(S+G)^2)^g * (S+G)^S, and the number of size <= G is at most (G+1)(16(S+G)^2)^G (S+G)^S. (2) T <= m for m >= 256 (since 3m/4 >= L+3), so log2 T <= L; S <= L+1; log2(G+1) <= L; G(4+2 log2 T) <= m + mL/2. So log2 #circuits <= m + mL/2 + L^2 + 2L. (3) m! >= (m/e)^m gives log2 m! >= m(L - log2 e). (4) Need m(L/2 - 2.4427) > L^2 + 2L. At L = 8 (m = 256): 398.7 > 80. The difference h(L) = 2^L(L/2 - 2.4427) - L^2 - 2L has h(8) > 0 and h'(L) > 2^L*1.5 - 2L - 2 > 0 for L >= 8, so h > 0 for all m >= 256. Then #circuits < m!, so some bijection of the m used codes is not realised. QED. SCOPE: a counting existence bound, linear in m, for a single permutation of m states with S-bit inputs. It is NOT a conjugation-cost bound (no max over delta of min over psi of CC(psi delta psi^-1)), NOT an update-time bound, and it does not close G0001 or G0002. Its relation to the subclaim-A lower bound Omega(sqrt m / log m) is open.",
+  "evidence": "Analytic proof in the lemma field. Numerical replication cm-2368707d761e42b0 (own formula, m = 256..200000 and powers of two 2^8..2^60): 0 failures, minimum margin log2(m!) - log2 N at m = 260 (ratio 2.24 per m); it replicates the arithmetic only and is not independent of the proof.",
+  "id": "S0234",
+  "proved_step": "Fixed-psi counting bound: for every integer m >= 256 with S = ceil(log2 m), some bijection of the m used S-bit codes is not the restriction of any fan-in-2 circuit with at most floor(m/4) gates. Statement and complete proof in the lemma field.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795375449.3065004,
+  "session": "pnp-desk/research/R1694",
+  "model": "claude-haiku-5-5",
+  "id": "S0235",
+  "proved_step": "REPAIR of S0126 (Haiku-authored, needs a non-Haiku review). Let m>=2, S=ceil(log2 m) >= 14, M=2^S, x=2^(S/2), g=floor(sqrt(M)/(4S)). For lambda a partition of m let pi_lambda be the permutation of {0,1}^S with cycle type lambda plus M-m fixed points, and h = min fan-in-2 circuit size (16 gate types, S inputs and S outputs). CLAIM: some lambda |- m has h(pi_lambda) >= g+1. PROOF. (1) Distinct lambda give distinct permutations; a circuit computes one function. If all h <= g, pick one circuit per lambda: p(m) distinct circuits of size <= g. (2) Circuits of size <= g: at most (g+1) sizes; each gate has 16*(S+g)^2 choices; S outputs among S+g nodes. So #circuits <= 2^rhs with rhs = log2(g+1) + g(4+2log2(S+g)) + S log2(S+g). (3) Let k = max{k: k(k+1)/2 <= m}, K = k(k+1)/2 <= m. Pigeonhole over the 2^k subsets of {1..k}, whose sums lie in {0..K}, gives T <= m with >= 2^k/(K+1) partitions of T into distinct parts; p monotone gives log2 p(m) >= k - log2(K+1). From m < (k+2)^2/2 we get k >= sqrt(2m)-2; from m <= 2^S, log2(K+1) <= S+1. With sqrt(2m) > x: log2 p(m) >= x - S - 3. (4) For S >= 14: rhs <= S/2 + x/3 + S^2/2 (use S+g <= x, g(S+4) <= x(S+4)/(4S) <= x/3). So p(m) > 2^rhs follows from (2/3)x > Q(S) := S^2/2 + 3S/2 + 3. This holds at S=16 (170.7 > 155) and propagates: x grows by sqrt2 per step while Q(S+1) <= 1.2 Q(S) for S >= 16. S=14,15 directly: x-S-3 = 111.0 > 81.58 and 163.0 > 101.6. Hence step (1) gives a contradiction, so some lambda has h >= g+1. SCOPE: counting existence only; no update-time bound; closes neither G0001 nor G0002. The earlier gaps (a),(b),(c) of S0126 are not needed: the argument counts circuits on S inputs directly, so no embedding is used, and the condition sqrt(2m) > S^2+S+6 is not used.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795375748.2390249,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0007: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim D1 uses undefined terms (\"one-to-many code\", \"unbounded R\", \"O(1) gates\", \"readout requirement\"). Three knowledge searches returned only a summary of bridge D that states D1 as a pr (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795375795.3462338,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0006: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: N4_orbits\nRELATION: SAME. It states the claim as written: the number of orbits of S_4 acting by simultaneous conjugation on pairs of maps `Fin 4 \u2192 Fin 4` is 2836. It adds no hypotheses and sp (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795375912.9265184,
+  "session": "pnp-desk/research/R1702",
+  "model": "claude-haiku-5-5",
+  "lemma": "L-inj: for m >= 2 and M = 2^S with S = ceil(log2 m), the map lambda |- m -> cycle type lambda + 1^(M-m) on M points is injective. Proof: the number of parts equal to 1 in the image is (#1s in lambda) + (M-m), and M-m is fixed for given m, so removing M-m ones recovers lambda.",
+  "gap": "S0126 proves only for each fixed encoding psi some delta with CC(psi delta psi^-1) > g, i.e. min_psi max_delta, not the claimed max_delta min_psi. Making delta hard for every psi needs a union bound over encodings: the number of injective encodings M!/(M-m)! exceeds the number of permutations m! by a factor C(M,m) = 2^Theta(m), so the simple counting cannot reach g = sqrt(m)/log-order. Gaps (a) and (b) of S0126 are a quantifier-order problem, not an embedding problem.",
+  "refuted_approach": "Padded cycle-type counting with a psi-dependent used set U: the injection lambda -> (circuit, U) needs about log C(M,m) = Theta(m) bits of U-choice, far above the sqrt(m) budget. Fixed-psi counting gives only min_psi max_delta.",
+  "evidence": "cm-d41a691d889849df: 913 partitions, m in [2,16], 0 cycle-type collisions. This confirms L-inj for small m only; the proof of L-inj is the general argument above. It does not test the quantifier order, which is the actual gap.",
+  "gap_id": "G0132"
+ },
+ {
+  "at": 1795375996.5002255,
+  "session": "pnp-desk/research/R1702",
+  "model": "claude-haiku-5-5",
+  "gap": "G0132 open. Needed: a cycle type lambda of M=2^S (with M-m fixed points) such that EVERY labeled realization needs circuits of size > g, or an encoding-independent delta hard for all psi. Counting cannot give this; a structural lower bound on the easiest element of the class is required. Not yet attempted: a restricted-class argument (e.g. cycle types with few long cycles) with its exact hypothesis checked.",
+  "refuted_approach": "Counting over encodings for max_delta min_psi (G0132). psi ranges over injections Q->{0,1}^S, so psi delta psi^-1 ranges over the full S_M conjugacy class of the cycle type lambda+1^(M-m) on M=2^S points. Min over psi is therefore the easiest element of that class. Counting circuits of size g (2^{O(g log(g+S))}) against the class size bounds only how many elements are hard, not whether all are. Minimax gives max_delta min_psi <= min_psi max_delta, so S0126 (fixed psi, some delta hard) proves only the weaker direction. Counterexample to a naive repair: the M-cycle (x -> x+1 mod 2^S) is a single M-cycle with an O(S)-size circuit (increment), so for lambda=(M) the class has an easy element.",
+  "evidence": "Minimax inequality is standard. Increment is an M-cycle on {0,1}^S with a circuit of size O(S). The L-inj bookkeeping (cycle type of lambda+1^(M-m) determines lambda by removing M-m ones) is trivial and does not count as progress.",
+  "gap_id": "G0133"
+ },
+ {
+  "at": 1795376238.6378317,
+  "session": "pnp-desk/research/R1702",
+  "model": "claude-haiku-5-5",
+  "gap": "(1) Reviewer must check that the spec's CC(delta) is circuit size of the S-bit next-state map on basis B2 with the same gate count convention. (2) m0 is not computed; the statement is 'for all m >= m0'. (3) The earlier G0132 quantifier issue is resolved by step (iv) only if CC is taken over the padded extension; if the spec forces unused codes to be dead or a different convention, recheck. (4) No update-time statement.",
+  "evidence": "cm-e67c2359c2ed49d1 (EXPLORATORY_COMPUTATION, own derivation): g_max = 0, 0, 1, 5, 12, 25, 51 at m = 16, 64, 256, 1024, 4096, 16384, 65536; ratio to sqrt(m)/log2 m between 0 and 3.19 and increasing. Consistent with the asymptotic above but not a proof. Prior cm-d41a691d889849df: 0 cycle-type collisions for m <= 16 (L-inj). The code uses a conservative test: 2*C < p(m) via log2 C + 1 < log2 p(m), and includes log2(g+1) and the max term, so it upper-bounds the sum.",
+  "gap_id": "G0134",
+  "id": "S0240",
+  "proved_step": "LEMMA L-cyc (Haiku-authored, CLAIMED, needs a non-Haiku review). Setting: m >= 2, S = ceil(log2 m), M = 2^S, so m <= M <= 2m. Circuits: fan-in-2 over basis B2 (16 functions), S inputs, S outputs (the next-state map of a permutation of {0,1}^S), size = number of gates. Statement: let C(g,S) = sum_{k<=g} (16(S+k)^2)^k (S+k)^S. If C(g,S) < p(m), then there is lambda |- m such that every permutation pi of {0,1}^S with cycle type lambda + 1^(M-m) has circuit size > g. PROOF. (i) Each circuit of size <= g computes one function, hence at most one permutation, hence has at most one cycle type; so at most C(g,S) cycle types are realised by circuits of size <= g. (ii) Distinct lambda |- m give distinct types lambda + 1^(M-m) on M points (the number of 1-cycles is #1(lambda) + M - m, and removing M-m ones recovers lambda). So there are p(m) types. (iii) Since C(g,S) < p(m), some type is realised by no circuit of size <= g. (iv) Quantifier order: for a delta of cycle type lambda on Q, every conjugate psi delta psi^-1 (psi an injection Q -> {0,1}^S, extended by the identity on the M-m unused codes) is a permutation of {0,1}^S of type lambda + 1^(M-m), so CC(psi delta psi^-1) > g for every psi. Hence max_delta min_psi CC > g. QED. ASYMPTOTICS: take g = floor(sqrt(m)/log2 m). Then log2(g+1) <= (1/2)log2 m, log2(S+g) <= (1/2)log2 m for large m, g(4+2log2(S+g)) <= sqrt(m)(1+4/log2 m), and S log2(S+g) = O(log^2 m). So log2 C(g,S) <= 1.1 sqrt(m) for large m, while log2 p(m) >= sqrt(2m) - 3 (S0087(1)) is about 1.41 sqrt(m). So C(g,S) < p(m) for all m >= m0, with m0 finite but not computed here. Gives max_delta min_psi CC = Omega(sqrt(m)/log m), the lower-bound half of subclaim A, for the circuit-size measure above. Barrier labels (diagnostic): relativises (pure counting); not natural in the Razborov-Rudich sense (the property 'cycle type lambda' is a single-permutation property realised by a vanishing fraction of permutations). Gives no update-time bound and no learner. Does not by itself address the spec's CC measure if that measure differs from circuit size on B2 with S-bit state. Closes: subclaim A lower bound, reviewer to set closes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795376340.1451216,
+  "session": "pnp-desk/research/R1702",
+  "model": "claude-haiku-5-5",
+  "gap": "L-cyc (S0240, G0134) still open. (1) Numerics give m0 = 300 only up to m = 4000; the step needs an explicit analytic bound for all m >= m0. (2) The lower bound on log2 p(m) is S0087(1), log2 p(m) >= sqrt(2m) - 3; its source and proof are not yet checked, and the Hardy-Ramanujan form would give a larger margin. (3) log2 C(g,S) <= sqrt(m)(1 + 4/log2 m) + O(log^2 m) is asserted but the O-constant is not written. (4) Circuit-size measure must be checked against the spec's CC convention (reviewer). (5) Haiku-authored: needs a non-Haiku reviewer; this session cannot review it.",
+  "evidence": "cm-f2561d218fa94d16 (EXPLORATORY_COMPUTATION, own code, not a proof): for g = floor(sqrt(m)/log2 m), S = ceil(log2 m), the condition log2 C(g,S) < log2 p(m) fails at 188 values of m in [2,4000], last failure m = 299; it holds for every m in [300,4000]. This fixes m0 = 300 numerically for the literal g, and it matches the asymptotic margin (about 1.0 sqrt(m) vs 1.41 sqrt(m)). It is not a proof for m > 4000.",
+  "gap_id": "G0135"
+ },
+ {
+  "at": 1795376560.3029776,
+  "session": "pnp-desk/research/R1710",
+  "model": "claude-haiku-5-5",
+  "evidence": "REPLICATION of the spec's 2,836 finite count (4 states, ordered pairs, simultaneous S_4 relabeling). Independent check cm-f683336980d34e54: direct orbit enumeration = 2836; Burnside sum_s Fix(s)^2 / 24 = 68064/24 = 2836. Scope: finite only. No proved_step, no progress toward G0001 or G0002. Subclaims A, B, C, and the Haiku-authored steps S0117/S0121/S0123/S0126 were not reviewed by this session (same model family as the claimant, so not reviewable here). Open: constructive update-cost bound for online reconstruction (G0002), and the padding regime R >= 2S (claim C)."
+ },
+ {
+  "at": 1795376893.1326792,
+  "session": "pnp-desk/research/R1710",
+  "model": "claude-haiku-5-5",
+  "gap": "R2 (candidate replacement for S0126, not yet a proved_step): the pigeonhole needs ln(g+1)+ln B(g)+2*sqrt(m) < ln p(m) with g=floor(sqrt(m)/(8S)). Lab check cm-9713956e83454de9 finds it FALSE at m=16,64,128,256,400. Asymptotic margin ~0.4*sqrt(m) suggests truth for m >= m1, but m1 is not computed and no validated rigorous lower bound on ln p(m) is in hand. The sub-multiset bound 2*sqrt(m) holds numerically to m=400 (max ratio 0.93). Open: explicit m1 with a cited, checked lower bound on p(m). Does not close G0001 or G0002; no P vs NP claim.",
+  "evidence": "cm-9713956e83454de9 (VERIFICATION, own code): sub-multiset ratio <= 0.93 to m=400; circuit inequality false at tested m. cm-8c3bb5b517e8430e is void: its Lehmer-type bound flagged all m in 2..400 as violations, so it is not a valid lower bound on ln p(m).",
+  "gap_id": "G0136"
+ },
+ {
+  "at": 1795377057.9936042,
+  "session": "pnp-desk/research/R1710",
+  "model": "claude-haiku-5-5",
+  "gap": "R2 (repair of S0126) is still NOT a proved_step. Finite check cm-3aa141858c5f4095 (DISCOVERY; exact p(m) from Euler's pentagonal recurrence, sanity p(10)=42): the inequality ln(g+1)+ln B(g)+2*sqrt(m) < ln p(m), with S=ceil(log2 m), g=floor(isqrt(m)/(8S)), fails at 6608 values of m in [2,70000], last failure m=6609, and holds at every m in [6610,70000]. Prediction H_b (threshold in (3000,70000]) matched; H_a (no threshold) rejected. Open point 1: an explicit RIGOROUS lower bound on ln p(m) valid for m >= m1 is still missing. The coded Lehmer-form check ln p(m) >= pi*sqrt(2m/3) - ln(4m*sqrt3) failed at 69999 of 69999 m, so that form is not a valid bound as coded and must not be cited. Open point 2: the finite check covers m <= 70000 only. An analytic argument with explicit constants is needed to show the inequality for all m >= m1, i.e. the O(log^2 m) overhead (S*ln(S+2) and the product terms) is eventually dominated by the margin of about 0.565*sqrt(m). Update-time gaps G0001 and G0002 are unchanged; no claim about P vs NP.",
+  "evidence": "cm-3aa141858c5f4095 (DISCOVERY, own code; separated H_a/H_b; the H_b prediction m1 in (3000,70000] held).",
+  "gap_id": "G0137"
+ },
+ {
+  "at": 1795377476.7091057,
+  "session": "pnp-desk/research/R1718",
+  "model": "claude-haiku-5-5",
+  "gap": "Subclaims A (Omega(sqrt m / log m) lower bound) and B (upper bound O(sqrt m log m)) remain unproved; this session has only verified the finite count 2836.",
+  "evidence": "Replication cm-d19be4c49eb74155: 2836 orbits of pairs on 4 states under S_4 relabeling (orbit sizes sum to 65536, Burnside true). Matches the spec item. Note: an earlier note in this session wrongly read the 2836 as all size-24 orbits; the size-24 count is 2639. I cannot review the claimed steps S0117/S0121/S0123/S0126 because they were authored by the same model family (claude-haiku), so no review is recorded here.",
+  "gap_id": "G0138"
+ },
+ {
+  "at": 1795377565.8110576,
+  "session": "pnp-desk/research/R1718",
+  "model": "claude-haiku-5-5",
+  "gap": "Conditional on the two inputs above, which were not re-derived in this session. Scope: counting existence bound only; no update-time bound; closes neither G0001 nor G0002; no P vs NP claim. Review needed from a model family other than claude-haiku before it counts.",
+  "evidence": "Algebraic check of the circuit-count inequality (16(S+G)^2 per gate, (S+G)^S outputs) and of the pigeonhole step. Gap (a) closed by defining h on the padded permutation. Gap (b) closed because unused codes are fixed points of the target function. Gap (c) reduced to the explicit condition sqrt(2m) > S^2+S+6.",
+  "gap_id": "G0139",
+  "id": "S0246",
+  "proved_step": "LEMMA (repair of S0126 gaps a,b; conditional on S0084/S0087 bounds). For m>=2, S=ceil(log2 m), M=2^S, lambda |- m, pi_lambda = permutation of {0,1}^S with cycle type lambda plus M-m fixed points, h = min fan-in-2 circuit size computing pi on all 2^S inputs. Then max_lambda h(pi_lambda) >= g+1 whenever (g+1)*2^{L(g)} < p(m), L(g)=(4g+S)log2(4(g+S)). PROOF: lambda -> pi_lambda is injective (cycle type determines lambda after removing M-m fixed points); a circuit with G<=g gates has at most 2^{L(g)} choices (16(S+G)^2 per gate, (S+G)^S output choices, log bound checked algebraically); each class with h<=g needs its own distinct circuit, so pigeonhole applies. Conditional inputs: log2((g+1)2^{L(g)}) <= sqrt(M)/2 + (S^2+S)/2 (S0084/S0087, not re-derived) and log2 p(m) >= sqrt(2m)-3 (S0087(1), not checked against a source). Difference >0 iff sqrt(2m) > S^2+S+6.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

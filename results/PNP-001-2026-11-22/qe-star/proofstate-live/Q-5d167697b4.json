@@ -90,5 +90,63 @@
   "kind": "LEMMA",
   "closes": "G0004",
   "closes_valid": true
+ },
+ {
+  "at": 1795371563.6932528,
+  "session": "pnp-desk/research/R1644",
+  "model": "muse-glimmer-30b",
+  "evidence": "Independent recomputation cm-f61ff648426a4f2e: for all n=1..60, d=2..50, define N0=2^n, N_i=ceil(N_{i-1}/d), D first index with N_D=1, G=sum_{i=1..D} N_i. Checked (d-1)*G <= 2^n-1+(d-1)*D and <=2^n-1+d*D. Zero violations found. This matches the inequality ceil(x/d) <= (x-1)/d+1 used in the derivation; the finite check confirms the claimed bound for the tested range and the algebraic step is standard.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795374941.0290048,
+  "session": "pnp-desk/research/R1688",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent replication (cm-6202af79b9e948af, own code, explicit ceiling layers, exact integers) of the layered d-ary merge count N_i=ceil(N_{i-1}/d), N_0=2^n: lemma_violations=0 over 140 checked (n,d) pairs; naive_bound_violations=101, so the naive bound is NOT the right form. Finite check only; no review status recorded because the author and this session are the same model family (claude-haiku/-sonnet/-opus). Obstacle G0001(ii) still open: fan-out inside Circuit-Min-Merge replacement needs the MMW19 Sec. 2.1 construction."
+ },
+ {
+  "at": 1795375158.7091537,
+  "session": "pnp-desk/research/R1688",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001(ii) OPEN: the per-input-bit reuse exponent a (r = O~(s^a)) inside a Circuit-Min-Merge replacement is not determined by the MMW19 text. The bound c = a/(e-1) is conditional on it and is not a formula-size bound.",
+  "evidence": "EXPLORATION, not proof: cm-4ca5cfd4ee5a4c25 evaluated the heuristic leaf exponent c = log r / log d with d = l/(100 s log2 s) and PLACEHOLDER r = s (not derived from MMW19). Prediction check: H1 (l=s^3, c -> 1/2 from above) MATCHED: c = 0.8714, 0.7492, 0.6888, 0.6527 at k = 12, 16, 20, 24. H2 (l=s^2, c -> 1 from above) MATCHED: c = 7.57, 3.01, 2.21, 1.88 at k = 12, 16, 20, 24. Failure mode: d < 2 for k = 4 and k = 8 (s^2 case), so c is undefined there. Analytic consequence (one step): if the per-bit reuse is r = s^a and l = s^e, then d ~ s^(e-1) up to polylog, so c -> a/(e-1). A strict gain needs a < e-1. With the only supported reuse bound a = 1 (r = O~(s)), this is strict for e = 3 and borderline for e = 2. The verdict therefore hinges on the unknown reuse exponent a, which the text does not give. Gap G0001(ii) remains OPEN: MMW19 Sec. 3 does not specify which input bits each Sigma3SAT^A copy reads, and the formula-size bound is not proved. No P vs NP progress is claimed.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795375236.252842,
+  "session": "pnp-desk/research/R1688",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001(ii) remains OPEN. Restated, not shrunk: the fan-out inside one Circuit-Min-Merge replacement unfolds to formula size ell^depth times circuit size, but the per-bit reuse r (how many Sigma3SAT^A copies read a given input bit) is not fixed by MMW19 Lemma 3.1 or Sec. 2.1. The tree bound d = l/(100 s log s) is verified only as bookkeeping. The leaf exponent c = log r / log d is a heuristic that assumes r = s and is not established.",
+  "evidence": "SOURCE CHECK (primary PDF MCSP-MKTP-stoc19.pdf, verbatim): Sec 2.1 Circuit-Min-Merge_A[s] takes C_1..C_t with n inputs and pairs (a_i,b_i) and outputs the lexicographically first minimum-size A-oracle circuit of size <= s agreeing with C_i on [a_i,b_i) or all-zero. Lemma 3.1 gives uniform AC circuits with Circuit-Min-Merge oracle gates of l-bit input for l >= s^2 and tree fan-in d = l/(100 s log s). Correction to earlier note: Thm 1.1 states size Otilde(2^n s^2), not 2^n s/l; the s/l form is unverified. Heuristic check cm-4ca5cfd4ee5a4c25 is EXPLORATION only. Independent recheck of S0011/G0004 (cm-6202af79b9e948af): 0 violations in 140 cases; this is replication, not a new proof.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795375286.449019,
+  "session": "pnp-desk/research/R1688",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (tree-level reuse, source-checked; PROOF BY READING THE CONSTRUCTION of MMW19 Lemma 3.1, exact text fetched 2026-11-21). In the d-ary Circuit-Min-Merge tree, layer i+1 is the partition of layer i into consecutive blocks of d circuits, one gate per block. Hence every description D_{i,j} (i < top) is an input of exactly one gate G_{i+1,j'}, and every bottom description D_{0,j} is an input of exactly one gate G_{1,j'}. Consequence: between gates, the reuse r of a description is 1, so the leaf-exponent heuristic c = log r / log d with r = s (cm-4ca5cfd4ee5a4c25) is REFUTED as a description of the MMW tree. The inter-gate DAG is a tree; its unfolding has no blow-up from sharing. The only remaining reuse is INSIDE one Circuit-Min-Merge replacement, where the Sigma3SAT^A formula checks the d input circuits on their intervals and may read each input bit more than once.",
+  "evidence": "Source: MMW19 Lemma 3.1 proof, construction paragraph (primary PDF, sha256 7077714b...). Verification cm (VERIFICATION kind) on the block bookkeeping for d in {2,3,4,5}, N=d^k, k<=6: see the physalis_code_run result for this session."
+ },
+ {
+  "at": 1795375348.80875,
+  "session": "pnp-desk/research/R1688",
+  "model": "claude-haiku-5-5",
+  "lemma": "CORRECTION to the tree-level lemma recorded this session. It shows only that reuse BETWEEN Circuit-Min-Merge gates is exactly 1 (blocks partition each layer). It does NOT refute the leaf-exponent heuristic c = log r / log d, because that heuristic concerns reuse of an input bit INSIDE one replacement. The heuristic's assumption r = s is unproved.",
+  "gap": "G0001(ii) OPEN, narrowed but not closed. MMW19 Thm 1.1 proof (verbatim, offset 37106): each Circuit-Min-Merge oracle gate (l input bits, O~(s) outputs) is replaced by O~(l*s) extra gates plus O~(s) Sigma3SAT^A gates, each of fan-in O~(l), via an AC0 reduction of size O~(l*s). So the per-input-bit reuse r satisfies r <= O~(s) * occ, where occ = number of occurrences of one input bit in one Sigma3SAT^A instance. occ is NOT bounded by the text. Missing: an upper bound on occ (or on the reduction's total wire count per input bit) that gives r = O~(s^a) with a fixed a.",
+  "evidence": "SOURCE CHECK, MMW19 Thm 1.1 proof, replacement paragraph (primary PDF, sha256 7077714b...): 'each Circuit-Min-Merge A oracle gate can be replaced by O~(l(n) * s(n)) extra gates plus O~(s(n)) Sigma3SAT^A gates of fan-in O~(l(n))'; 'each instance has length O~(l(n))'. Inter-gate tree reuse = 1 is from the Lemma 3.1 proof text (fetched 2026-11-21); the block-partition bookkeeping was checked independently in cm-07ff1e8d967e424b (0 violations, d in {2,3,4,5}, k<=6). That check is REPLICATION of the partition step only, not of the reduction's occurrence count.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795375399.9582567,
+  "session": "pnp-desk/research/R1688",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001(ii) remains OPEN, restated. Missing: (a) the depth of the Circuit-Min-Merge replacement as a function of s and l (MMW19 gives only that the replacement is an AC0 reduction and that the top tree has depth O(n/log l)); (b) if the replacement is shallow, the per-leaf occurrence count occ from the AC0 reduction, which is not stated in MMW19 Sec. 3. Lemma U reduces the gap to (a) and (b) but does not close it.",
+  "evidence": "Lemma U is a textbook counting argument (no computation). Source for the replacement form is the Thm 1.1 proof paragraph already recorded in G0009 (sha256 7077714b...). No computation was run for this lemma; cm-07ff1e8d967e424b checks only the block partition, not depth or size.",
+  "gap_id": "G0010",
+  "id": "S0018",
+  "proved_step": "LEMMA U (unfolding bound, conditional on depth; statement exact). Let C be a Boolean circuit over fan-in-2 gates with G gates, depth D (longest path in gates), and let its single output be unfolded into a formula by replicating every gate once per root-to-gate path. Then the formula has at most 2^(D+1) - 1 nodes. Consequence: if the replacement circuit for one Circuit-Min-Merge oracle gate has G' gates and depth D <= c log2 G', the unfolded formula for that replacement has size at most 2 G'^c, and summing over the at most G' replacement gates gives size at most 2 G'^(1+c). Proof: a tree of depth D with branching at most 2 has at most sum_{i=0}^{D} 2^i = 2^(D+1) - 1 nodes; the depth hypothesis gives 2^(D+1) <= 2 G'^c; the sum over gates is at most G' times the per-gate bound. Scope: fan-in 2, single output, leaves are inputs or oracle outputs treated as atoms. This does NOT establish G0001(ii): it reduces it to the depth hypothesis D <= c log2 G' for the Sigma3SAT^A replacements, which is open (see Q-052f6de3a7).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

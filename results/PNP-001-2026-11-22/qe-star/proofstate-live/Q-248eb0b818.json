@@ -16,5 +16,160 @@
   "gap": "G0001 open: a lower bound showing that for admissible s and A in PH, every uniform deterministic one-pass machine for exact total Search-MCSP^A[s] has, for infinitely many m, space > s^c or worst-case update time > s^d. Not attempted, no proof found. Obstacle: no construction is available that lower-bounds update time for all uniform machines, and the barrier check (natural / localizing) is not done.",
   "evidence": "spec_read PNP-001-MANUSCRIPT-v0.25-EXACT-ONE.md page 8, section 8.1, eqs. (40a) and Prop. 13. Correction of the s(m)=1 caveat in the previous session's FINAL.",
   "gap_id": "G0002"
+ },
+ {
+  "at": 1795371440.490256,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (open, unchanged). Barrier check, first pass: (a) RELATIVIZATION: the MMW19 Thm 1.2 streaming algorithm uses a Sigma3SAT^A oracle, so an oracle-A-quantified lower bound cannot be proved by a relativising argument; (40a) is only useful as an oracle-free statement (see R1641 quantifier audit). (b) LOCALITY: not yet checked; needs CHOPRS 'Beyond natural proofs' read in full. (c) CONTROL: not yet checked; need a problem in P with the same streaming shape and large width to confirm the target premise does not also rule it out. (d) WIDTH: the width identity alone does not give update-time bounds (Thm 2 and section 9 of v0.25).",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795371573.757478,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (open, unchanged). Barrier item (c) CONTROL, now measured: the fixed-order OBDD width measure (distinct residual functions per level) gives max width 4, 13, 59 for perfect matching on K_{2,2}, K_{3,3}, K_{4,4} (cm-f8ec3fb39cab47bd, EXPLORATORY), versus 2 for parity. So this width measure is large for a function in P, and it fails the control: it cannot by itself separate the target class from P. Items (a) relativization and (d) width-not-update-time stand. Item (b) locality is still unchecked (the CHOPRS full text was not read). Next: test a streaming-side measure (update time), not a width measure.",
+  "evidence": "cm-f8ec3fb39cab47bd: PM_K22 widths [1,2,4,3,2] max 4; PM_K33 max 13; PM_K44 max 59; parity_N9 max 2. Code re-checked by reading: table and residual counts are correct. Kind: DISCOVERY (H1 poly width vs H2 exponential width for a P-function).",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795371664.051259,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (exact, not progress; does not close G0001). Fix PM on K_{n,n}, row-major order, 0<k<n, level l=kn. Let F(a) = {T subset [n], |T|=k : top rows a admit a perfect matching onto T}. The residual g_a(b)=PM(a,b) determines F(a) and is determined by it, so width at level kn = number of distinct F(a). Proof: T in F(a) iff g_a(b*)=1 for b* the permutation matrix from rows k+1..n onto [n]\\T; a matching from n-k rows into V using only b* edges exists iff V=[n]\\T, which separates F(a) from F(a'). Consistency: k=1 gives 2^n (measured widths 8 at n=3, 16 at n=4, cm-f8ec3fb39cab47bd). Not checked independently: k=2,n=4 measured 37.",
+  "gap": "G0001 (open, unchanged). The width identity is exact but shows only the order-dependence of OBDD width for PM, not an update-time bound. Barrier item (c) fails for width. Item (b) locality still unchecked. Next measure: an update-time-side cost on PM as a control.",
+  "evidence": "cm-f8ec3fb39cab47bd (EXPLORATORY_COMPUTATION). Proof is by hand; the count for k=2,n=4 is an open check.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795371717.5893016,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (open). Barrier (b) locality still unchecked; CHOPRS full text not read. Lemma G0005 verified by re-derivation; it explains order-dependence only and is not progress toward update-time bounds.",
+  "evidence": "Hand replication (not lab): for PM on K_{4,4}, k=2, level 8 (top two rows), distinct matchable-pair families F(a) = distinct complements H of the form (universal set Z; H restricted to the rest = disjoint union of at most two cliques). Count: K4 1, K4-e 6, star K_{1,3} 4, paw 12, empty 1, one edge 6, 2K2 3, K3+K1 4; total 37, matching cm-f8ec3fb39cab47bd (level 8 width 37). Verifies the measured k=2,n=4 value that G0005 left open. Does not close G0001.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795372608.384549,
+  "session": "pnp-desk/research/R1671",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0004: OBDD-width of the perfect-matching function PM on K_{n,n}, used as the update-cost measure for uniform one-pass Search-MCSP^A[s]. The perfect-matching control fails: PM is in P, but its width is 4 (n=2) and 13 (n=3) for the row-major order, against parity width 2. Minimum over all variable orders: 3 (n=2), 11 (n=3). Scope: exact, n<=3, all 2^m subsets S with m=n^2. Not refuted: width at general n, or other measures. Enriched variants still open: (i) width under orders chosen per-instance, (ii) a per-read work measure instead of distinct residual counts.",
+  "evidence": "cm-f4dc242795fa4ff0 (DISCOVERY run). H1 predicted min-over-orders >= 13 at n=3 and observed 11, so H1 is refuted. H2 predicted <= 4 and observed 11, so H2 is refuted too. The row-major sanity check reproduced the G0004 values 4 and 13."
+ },
+ {
+  "at": 1795372795.6023972,
+  "session": "pnp-desk/research/R1671",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Barrier (b) locality check for the width chain is not done. Width as update measure is refuted for PM on K_{n,n} (G0004). No construction yet.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795372937.0246592,
+  "session": "pnp-desk/research/R1671",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0004 extension: GF(2) cut-rank of the perfect-matching indicator on K_{n,n} at the balanced edge split is 2, 5, 6 for n = 2, 3, 4 (parity: 2 throughout), so it fails the PM-in-P control like OBDD width. Experiment cm-c3e57677e39a4955 (DISCOVERY; H_fail confirmed, H_ok rejected)."
+ },
+ {
+  "at": 1795373159.2598498,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still OPEN. Narrowed the Prop 13 step: it needs (i) under P=NP, the MMW Thm 1.2 algorithm with its Sigma3SAT^A oracle replaced by a P-algorithm runs in poly(s) time per update, which requires the oracle queries to have size poly(s) (not poly(2^m)); (ii) A in PH collapses to P with a fixed degree, uniform in s. (i) is unverified and is the next check. Barrier (b) locality and the full (40a) lower bound are still open; no lower bound is claimed.",
+  "evidence": "No computation this session. Reading: proof_state_read(Q-248eb0b818), spec_read(MANUSCRIPT v0.25 section 8.1, eq. 40a and the text after it), knowledge_search for Q-248eb0b818 and Q-e72cdd5423. The statement of (40a) is quoted from the spec. It states that (40a) is a lower bound premise, and its negation is a P=NP-side simulation claim, not a proof of any lower bound.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795373180.757103,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0008 still OPEN; item (i) pending the query-size check; item (ii) (A in PH collapses to P uniformly in s) unverified; barrier (b) locality open.",
+  "evidence": "R1682: no computation yet. Pending check of G0008 item (i): the query-size statement of MMW Thm 1.2 (oracle calls per update, query length). Reading only, so far; the next step is a finite or structural test of whether the oracle queries can be bounded by poly(s) when the oracle is replaced by a P-procedure. No lower bound claimed.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795373198.4583585,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0009 item (i) RESOLVED AS A CONDITIONAL, NOT PROGRESS: MMW19 Thm 1.2 uses a Sigma3SAT^A oracle with queries of length O~(s) (source check 9380f504d96ea444). If P = NP then PH = P, so Sigma3SAT is decided by one fixed polynomial p; each oracle query costs p(O~(s)) = poly(s), so the update time is poly(s) for a fixed degree. Item (i) therefore holds under P = NP, but only as a consequence of P = NP itself and it does not show that (40a) fails. Item (ii) (A in PH collapses to P uniformly in s) is still unverified, and barrier (b), locality, is still open. G0001 remains OPEN. No lower bound is claimed.",
+  "evidence": "Reading only, no computation. Source: knowledge_search 9380f504d96ea444 (MMW19 primary PDF, Thm 1.2 quantifiers: Otilde(s) queries, Otilde(s^2) update, Otilde(s) space). Derivation: standard collapse PH = P under P = NP, so the oracle decision time is a fixed polynomial in the query length. Limitation: the collapse degree is non-constructive, so the bound is existential, not explicit.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795373867.2859688,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still OPEN. The width identity is verified for n<=4 by computation and by hand proof, but it is bookkeeping: it gives no update-time lower bound and no progress toward (40a). Barrier (b) locality is unchecked (CHOPRS full text not read). The P=NP-conditional item (i) (G0010) is still a conditional consequence of P=NP, not progress.",
+  "evidence": "VERIFICATION of cm-f8ec3fb39cab47bd by cm-1428625645214492 (own direct truth-table enumeration of PM residuals g_a(b) over the bottom n-k rows; no use of the F(a) lemma). Results: residual width = distinct F(a) for every tested (n,k): (3,1): 8 = 8; (3,2): 8 = 8; (4,1): 16 = 16; (4,2): 37 = 37. Prediction (lemma: residual count == distinct F(a) count) held exactly; no surprise. Hand check of the lemma: g_a(b)=1 iff some T in F(a) has [n]\\T matched by b, so g_a is determined by F(a); conversely g_a(b*)=1 for b* a permutation of rows k+1..n onto [n]\\T iff T in F(a), so F(a) is determined by g_a. The lemma is correct as an identity. It is a width identity, not an update-time bound, and it does not close G0001. Control (barrier item c) is still failed by this width measure, since PM is in P. Locality (b) is still unchecked.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795373975.9159093,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Next step: define the per-read update cost of a uniform streaming machine for PM on K_{n,n} and measure whether it is poly(n) (discovery test: H1 poly-growth vs H2 super-poly growth). Read CHOPRS locality (barrier b) only if budget allows.",
+  "refuted_approach": "Width (number of distinct residual functions / distinct F(a) over prefixes) as the barrier-compatible measure for the CAND-A gate G0001: fails the perfect-matching control (G0004). Width of PM on K_{n,n} is 4, 13, 59 for n=2,3,4 while PM is in P, so width cannot separate the target class from P.",
+  "evidence": "Control measured in cm-1428625645214492 (width identity verified for (n,k) in {(3,1),(3,2),(4,1),(4,2)}, 8/8, 8/8, 16/16, 37/37). No lemma proved this session; G0001 remains OPEN. Obstacle: a repair needs an update-time measure (not width) that is polynomial on PM on K_{n,n} yet separates the target class; not yet constructed.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795374009.9526608,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Blocker for the update-time control: no formal model yet. Needed first: (a) state of a uniform one-pass machine on PM over K_{n,n}, (b) per-read update cost definition, (c) the live/dead prefix separation condition. Only after these are fixed is the poly(n) vs super-poly growth test (H1 vs H2) meaningful. No lower bound or P != NP progress is claimed.",
+  "evidence": "R1682 turn 11: no new computation. Width control already refuted (G0012, cm-1428625645214492 verification). Under P = NP, the MMW19 Thm 1.2 poly(s) update time is conditional only (G0010), not progress.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795374077.410735,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0013 refined (R1682, definitions only, no proof): (a) uniform one-pass machine M reads x in {0,1}^N in fixed order, states S_t, transition T_t: (s_{t-1}, x_t) -> s_t, output g(s_N). (b) U_t = word-RAM time of T_t; U(M,N) = max_t U_t. (c) correctness: f_p != f_q implies s(p) != s(q) for prefixes p,q of length t; live/dead split is a coarser condition, not required. Control: store-edges machine for PM on K_{n,n} has O(1) per-read work in indexed memory, so PM passes the update-time control (unmeasured, by reasoning). G0001 stays OPEN. Next required step: a target-class measure where U(M,N) is provably super-polynomial for a function in NP, or a proof that no such measure exists under the model.",
+  "evidence": "R1682 turn 12: definitions and control argument only. No computation run; no lower bound claimed. Under P = NP the MMW19 Thm 1.2 poly(s) update time is conditional only (G0010).",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795374129.2441368,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0013 control (R1682 turn 13): store-edges machine for PM on K_{n,n} as an update-time control. Refuted as a control: it uses space n^2 = N, the full input, so O(1) per-read cost holds trivially and the test is vacuous in the poly(s) << N regime that the lower bound needs.",
+  "evidence": "R1682 turn 14: reasoning only, no computation. G0014 duplicates G0013 and should be treated as one entry. G0001 stays OPEN. Next required step: fix a space bound poly(s) << 2^m for a named NP function, define update cost under it, then test whether a lower bound on update cost exists. No P vs NP progress is claimed."
+ },
+ {
+  "at": 1795374175.5857964,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Reframed (R1682, turn 17): the update-time route needs a PROVED update-time lower bound for SEARCH-MCSP^A (or its decision version) under poly(s) space; choosing a different named NP function does not reduce this to a control. Width (G0012) and the store-edges control (G0013/G0014, vacuous since space = N) are both dropped. No P vs NP progress claimed.",
+  "evidence": "R1682 turn 17: reasoning only, no new computation. Refuted controls G0012 and the vacuous store-edges control are recorded; the open obligation is the update-time lower bound itself.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795374400.113812,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Locality barrier check (CHOPRS Sec 1.3) does not by itself refute the update-time route; it constrains any route that adapts weak-model lower bounds to oracle circuits.",
+  "evidence": "R1683 BARRIER CHECK (b), locality, from CHOPRS arXiv 1911.08297 (web_read, sha256 1a0ccd5bdc36cc6b49f8c0f80c2e23486a2bfc6ad01f043cbd43a68050ad7e63). Read text: magnification theorems show the problems Q admit efficient circuits extended with small fan-in oracle gates, while lower-bound techniques against weak circuit models often extend easily to circuits with such oracles; so direct adaptations of those lower bounds are unlikely to yield strong separations via magnification. Applied here: (a) the width route is already refuted as a perfect-matching control (G0012), so locality adds nothing new to it; (b) the update-time route (G0013-G0015) has no proved lower bound, so locality cannot be tested on it yet; (c) the (40a) route quantifies over an oracle A, and locality is stated for oracle-gate circuits, so it is a live constraint, not a settled one. Verified only: cm-1428625645214492 (width identity, n<=4). Conditional only: G0010. Not established: any lower bound for (40a); no new lemma closes or shrinks G0001."
+ },
+ {
+  "at": 1795375233.0515451,
+  "session": "pnp-desk/research/R1690",
+  "model": "claude-haiku-5-5",
+  "evidence": "REVIEW-OF-OWN-LEMMA (not a proved_step, not progress; does not close G0001): cm-af1a16cb188a42d7 replicates the level-kn width lemma for n=2,3,4 and all 0<k<n. The partition by F(a) and the partition by residual g_a coincide in every case, and width(n=4,k=2)=37 is confirmed independently. The general argument in the recorded lemma is consistent with this (g_a determines F(a) via b*, and F(a) determines g_a via bottom matchings). G0001 is unchanged: the update-time lower bound for uniform one-pass Search-MCSP^A[s] machines is not established, and the barrier check (natural/localizing) is still open. Width is not an update-time measure, and G0004 already shows it fails the perfect-matching control."
+ },
+ {
+  "at": 1795375292.4148781,
+  "session": "pnp-desk/research/R1690",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof, checked in the reasoning. Finite confirmation for n<=4 is cm-af1a16cb188a42d7 (partitions_coincide true for all (n,k)). Does not close G0001 and is not an update-time bound.",
+  "id": "S0021",
+  "proved_step": "LEMMA W (exact, general n, 0<k<n). PM on K_{n,n}, row-major order, top block a = rows 1..k, bottom block b = rows k+1..n. Let F(a) = {T subset of [n], |T|=k : a admits a perfect matching of rows 1..k onto T}, g_a(b) = PM(a,b). Then F(a)=F(a') iff g_a=g_a' as functions of b. Hence the level-kn width equals the number of distinct F(a). PROOF. (1) A perfect matching of K_{n,n} splits into a matching of rows 1..k onto some T with |T|=k and a matching of rows k+1..n onto [n]\\T; so g_a(b)=1 iff some T in F(a) has b matchable onto [n]\\T. (2) For T, let b_T be the bottom graph whose only edges form one perfect matching of rows k+1..n onto [n]\\T. Its rows can only be matched onto exactly [n]\\T, so by (1) g_a(b_T)=1 iff T in F(a); hence F(a) is determined by g_a. (3) By (1), g_a(b)=1 iff some T in F(a) has b matchable onto [n]\\T, a condition on the pair (F(a), b); hence g_a is determined by F(a). Together (2) and (3) give the claim. QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795376154.738773,
+  "session": "pnp-desk/research/R1696",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is mathematically correct: for perfect matching PM on K_{n,n} with row-major variable order, at level l=kn (after k rows), the residual function g_a(b) = PM(a,b) is in bijection with F(a) = {T subset [n], |T|=k : top k rows a admit a perfect matching onto T}. Proof: (1) Any perfect matching splits into a matching of rows 1..k onto T and rows k+1..n onto [n]\\T. (2) For each T, the permutation matrix b_T matching rows k+1..n onto [n]\\T satisfies g_a(b_T)=1 iff T in F(a), so F(a) is determined by g_a. (3) g_a(b)=1 iff exists T in F(a) with b matchable onto [n]\\T, so g_a is determined by F(a). Hence width at level kn equals the number of distinct F(a). Verified by re-derivation; matches measured widths 8 (n=3,k=1), 16 (n=4,k=1), 37 (n=4,k=2) from cm-f8ec3fb39cab47bd. However, this width measure fails the control test (G0004): max width 4,13,59 for PM on K_{2,2}, K_{3,3}, K_{4,4} vs 2 for parity, so it is large for a function in P and cannot by itself separate the target class from P.",
+  "review_of": "S0021",
+  "status": "SURVIVED_REVIEW"
  }
 ]
