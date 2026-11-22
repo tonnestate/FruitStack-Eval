@@ -231,6 +231,8 @@ z|_{I_v}\ne0,\ z'|_{I_v}\ne0
 \]
 The quantifiers in (20)–(21) range over all \(z,z'\in K\).
 
+The Hall-selection argument follows the classical marriage theorem [6]; the graph-kernel realization and its universal quantifier were developed in [2].
+
 **Theorem 8 (Hall embedding).** Under (19)–(21), for every finite indexed spanning family \(B\) of \(K\),
 \[
 \boxed{G[K_d]\hookrightarrow H_B.}
@@ -251,7 +253,7 @@ For every \(X\subseteq V\), the projections of the \(b_j\) with \(j\in\bigcup_{v
 \ge d|X|.
 \tag{24}
 \]
-Make \(d\) formal copies of every vertex \(v\), and connect each copy to every \(j\in S_v\). For any subset \(Y\) of copies, let \(X\subseteq V\) be its projection; then \(|Y|\le d|X|\) and its neighbourhood has at least \(d|X|\) members. Hall's marriage theorem supplies an injection
+Make \(d\) formal copies of every vertex \(v\), and connect each copy to every \(j\in S_v\). For any subset \(Y\) of copies, let \(X\subseteq V\) be its projection; then \(|Y|\le d|X|\) and its neighbourhood has at least \(d|X|\) members. Hall's marriage theorem [6] supplies an injection
 \[
 \iota:V\times[d]\hookrightarrow J,
 \qquad \iota(v,a)\in S_v.
@@ -270,6 +272,8 @@ For an edge \(\{v,w\}\), suppose kernel vectors \(z,z'\) are nonzero on the resp
 Theorem 8 and Lemma 9 prove the *first* assertion of Theorem 2, over **every field and every finite spanning family**.
 
 ## 5. Exact optimized width
+
+Treewidth and pathwidth are understood in their graph-decomposition sense [7]. The graph-operation context and related bounds are reviewed in [8]; the exact formula below is proved directly, without importing an unverified product identity.
 
 **Lemma 10 (clique blow-up).** If \(G\) is nonempty and \(d\ge1\), then
 \[
@@ -330,7 +334,7 @@ This establishes not merely that overlap width is *large* but the **exact minimu
 
 ### 5.1. The measured quantity
 
-The width in (6) belongs to the *support-overlap graph of a basis* of a fixed linear kernel. Its minimization is over all bases of that kernel.
+The width in (6) belongs to the *support-overlap graph of a basis* of a fixed linear kernel. Its minimization is over all bases of that kernel. It is not, by definition, the matroid tree-width studied by Hliněný and Whittle [9, 10], nor the minimal state-space dimension of a tree realization of a linear code as in Kashyap [11]. The addendum [10] is material when invoking the former theory; neither comparison changes the invariant defined here.
 
 There is a distinct quantity for an online Boolean computation: the number of state wires crossing an input-time boundary. This equals at most the number of persistent state bits \(S\), but is **not** the treewidth in (6). The two quantities can be compared only after a mathematically defined map puts them on the same representation and proves the required inequalities.
 
@@ -347,7 +351,7 @@ This is compatible with Theorem 2, whose conclusion concerns a linear-representa
 
 ## 6. The formalized three-element-field instance
 
-The exact \(\mathbb F_3\) treewidth identity of Theorem 2 has a separate Lean 4 formulation. Writing \(\operatorname{TwLe}(H,k)\) for “\(H\) has treewidth at most \(k\),” the formal statement, for every finite nonempty vertex type and every \(k\in\mathbb N\), has the mathematical content
+The exact \(\mathbb F_3\) treewidth identity of Theorem 2 has a separate Lean 4 formulation, using Lean 4 [12] and the Mathlib library [13]. Writing \(\operatorname{TwLe}(H,k)\) for “\(H\) has treewidth at most \(k\),” the formal statement, for every finite nonempty vertex type and every \(k\in\mathbb N\), has the mathematical content
 \[
 \boxed{
 \left(
@@ -379,7 +383,7 @@ and a final exact decoder \(D\).
 
 *Proof.* Represent the bounded work configuration on Boolean wires. A single machine move is a fixed Boolean transformation of the bounded tableau, requiring \(O(S)\) local gate operations under that convention. Concatenating at most \(\tau\) such transformations gives a circuit of size \(O(\tau S)\). It computes the deterministic update for every admissible configuration and incoming input symbol. \(\square\)
 
-This proof is scoped to the stated deterministic Turing-machine tableau. An arbitrary random-access computational model requires a separate accounting for memory-access cost and cannot simply inherit the same \(O(\tau S)\) bound.
+This proof is scoped to the stated deterministic Turing-machine tableau. The streaming algorithm of [4] instead uses a RAM model that operates on \(O(1)\) bits of bounded workspace at a time. In that model, one RAM operation can be compiled by decoding the addressed position among at most \(S\) stored bits, multiplexing the selected bits, performing the fixed Boolean operation and updating the selected storage bits. This requires at most \(\operatorname{poly}(S,m)\) fan-in-two gates per operation, including address tests and control. Unrolling at most \(\tau\) such operations therefore gives \(\operatorname{poly}(\tau,S,m)\) gates per inter-input update, sufficient for Theorem 3. An arbitrary different random-access model does not automatically inherit the sharper Turing-machine tableau bound \(O(\tau S)\).
 
 **Lemma 12 (exact stage unrolling).** Given exact stage circuits \(U_0,\ldots,U_{N-1}\) and decoder \(D\), there is an acyclic Boolean circuit for the complete input-output relation with
 \[
@@ -403,6 +407,8 @@ Let \(m\in\mathbb N\), \(N=2^m\), and let \(s(m)\ge m\) satisfy the parameter an
 
 Oracle gates in the *circuit being synthesized* are distinct from oracle access by the *ordinary streaming algorithm*. A theorem about one model may not be applied to the other without accounting for the distinction.
 
+**Update-time convention in the cited source.** In [4, Section 2, “Streaming Algorithms”], update time \(u(N)\) is defined as a bound on the total running time **between any two successive input-bit reads**, and the final report must be produced within \(O(u(N))\) time. It is thus a worst-case *per-inter-read interval* bound, not merely an amortized average. In particular, Theorem 1.2 of [4] supplies a uniformly bounded interval cost, so each update circuit in (7) can be charged at the same polynomial scale after replacement of its polynomial-hierarchy oracle calls under \(P=NP\).
+
 Call \(\mathcal C_m\) an admissible staged Boolean realization if it solves **all instances** of this exact total relation and charges every update circuit and its final decoder as in (7). The quantifier in (8) is over all such realizations, not only those with canonical or linear states.
 
 *Proof of Theorem 3.* Assume for contradiction that \(P=NP\). Then \(PH=P\). The algorithm and conditional transfer of McKay, Murray and Williams [4, Theorems 1.2 and 1.3], with their prescribed \(s,A\), yield a uniform deterministic one-pass solver of the exact total search relation with polynomial-in-\(s\) space and polynomial-in-\(s\) worst-case update time. In the construction, the relevant oracle questions have lengths polynomial in \(s\). Under \(P=NP\), these questions can be answered by ordinary polynomial-time computation, so the solver need not be granted free oracle operations.
@@ -413,7 +419,7 @@ S_{\rm alg}(m)\le s(m)^{c_0},\qquad
 \tau_{\rm alg}(m)\le s(m)^{d_0}
 \tag{38}
 \]
-for fixed exponents \(c_0,d_0\) and all sufficiently large \(m\). By Lemma 11 each such update is implemented by a Boolean circuit with a fixed polynomial overhead in \(S_{\rm alg},\tau_{\rm alg},m\). The final output is obtained by a similarly charged computation: outputting a circuit of size \(s\) takes at most polynomial time and space under the specified encoding. Because \(m\le s(m)\), there are fixed \(c,d\) with
+for fixed exponents \(c_0,d_0\) and all sufficiently large \(m\). By the RAM-to-circuit simulation explained after Lemma 11, each such update is implemented by a Boolean circuit with fixed polynomial overhead in \(S_{\rm alg},\tau_{\rm alg},m\), valid for every intermediate configuration and incoming bit. The MMW definition quoted above ensures that \(\tau_{\rm alg}\) bounds each successive-read interval in the worst case rather than only the mean cost. The final output is obtained by a similarly charged computation: outputting a circuit of size \(s\) takes at most polynomial time and space under the specified encoding. Because \(m\le s(m)\), there are fixed \(c,d\) with
 \[
 S(\mathcal C_m)\le s(m)^c,\qquad
 \Gamma(\mathcal C_m)\le 2^m s(m)^d
@@ -550,7 +556,7 @@ The proof of this conditional proposition is elementary once conditions 1–4 ar
 
 This is not a gap in the proof of the width identity (6), which is complete. It is a new cross-model implication with different quantified objects.
 
-The easy high-width examples (33) also rule out any unconditional assertion that a large basis-overlap width, by itself, makes a corresponding formula computationally difficult. A valid additional hypothesis must distinguish the exact search problem from those controls.
+The easy high-width examples (33) also rule out any unconditional assertion that a large basis-overlap width, by itself, makes a corresponding formula computationally difficult. A valid additional hypothesis must distinguish the exact search problem from those controls. Standard proof barriers include relativization [14] and, under the requisite cryptographic assumptions, natural proofs [15]. Their applicability to a proposed transfer must be established, rather than inferred solely from its algebraic notation.
 
 ## 10. Algebraic proof-complexity consequences
 
@@ -617,6 +623,10 @@ The first equivalence and the structural chain are unconditional. The simulation
 
 This article therefore offers a mathematical theorem of exact, representation-independent *linear* overlap width, a formalized special-field equivalence, and a precise conditional complexity consequence. It does not assert an unconditional proof of \(P\ne NP\) from these results alone.
 
+## Acknowledgments
+
+This research was carried out using FruitStack, a multi-agent research environment developed by the author to coordinate mathematical exploration, counterexample analysis, independent checking and formalisation.
+
 ## References
 
 [1] T. J. Schaefer, “The Complexity of Satisfiability Problems,” *Proceedings of STOC* (1978), 216–226.
@@ -627,7 +637,27 @@ This article therefore offers a mathematical theorem of exact, representation-in
 
 [4] D. M. McKay, C. D. Murray and R. R. Williams, “Weak Lower Bounds on Resource-Bounded Compression Imply Strong Separations of Complexity Classes,” *Proceedings of STOC* (2019), 1215–1225, DOI: 10.1145/3313276.3316396.
 
-[5] R. Impagliazzo, P. Pudlák and J. Sgall, “Lower Bounds for the Polynomial Calculus and the Gröbner Basis Algorithm,” *Computational Complexity* 8 (1999), 127–144.
+[5] R. Impagliazzo, P. Pudlák and J. Sgall, “Lower Bounds for the Polynomial Calculus and the Gröbner Basis Algorithm,” *Computational Complexity* 8 (1999), 127–144, DOI: 10.1007/s000370050024.
+
+[6] P. Hall, “On Representatives of Subsets,” *Journal of the London Mathematical Society* s1-10 (1935), 26–30, DOI: 10.1112/jlms/s1-10.37.26.
+
+[7] N. Robertson and P. D. Seymour, “Graph Minors. II. Algorithmic Aspects of Tree-Width,” *Journal of Algorithms* 7 (1986), 309–322, DOI: 10.1016/0196-6774(86)90023-4.
+
+[8] F. Gurski and R. Weishaupt, “The Behavior of Tree-Width and Path-Width Under Graph Operations and Graph Transformations,” *Algorithms* 18(7) (2025), article 386, DOI: 10.3390/a18070386.
+
+[9] P. Hliněný and G. Whittle, “Matroid Tree-Width,” *European Journal of Combinatorics* 27 (2006), 1117–1128, DOI: 10.1016/j.ejc.2006.06.005.
+
+[10] P. Hliněný and G. Whittle, “Addendum to Matroid Tree-Width,” *European Journal of Combinatorics* 30 (2009), 1036–1044, DOI: 10.1016/j.ejc.2008.09.028.
+
+[11] N. Kashyap, “On Minimal Tree Realizations of Linear Codes,” *IEEE Transactions on Information Theory* 55(8) (2009), 3501–3519, DOI: 10.1109/TIT.2009.2023718.
+
+[12] L. de Moura and S. Ullrich, “The Lean 4 Theorem Prover and Programming Language,” in *Automated Deduction – CADE 28*, LNCS 12699 (2021), 625–635, DOI: 10.1007/978-3-030-79876-5_37.
+
+[13] The mathlib Community, “The Lean Mathematical Library,” *Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs* (CPP 2020), 367–381, DOI: 10.1145/3372885.3373824.
+
+[14] T. Baker, J. Gill and R. Solovay, “Relativizations of the P =? NP Question,” *SIAM Journal on Computing* 4(4) (1975), 431–442, DOI: 10.1137/0204037.
+
+[15] A. A. Razborov and S. Rudich, “Natural Proofs,” *Journal of Computer and System Sciences* 55(1) (1997), 24–35, DOI: 10.1006/jcss.1997.1494.
 
 ---
 
