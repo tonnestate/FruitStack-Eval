@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 10155 entries from 2516 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 10357 entries from 2565 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
   - For every n >= 1, every integer weight vector w in Z^n with max_i |w_i| <= B, every integer threshold t, and every l in {0,...,n}: the set of functions y in {0,1}^(n-l) -> [w_rest.y >= t - w_pre.rho], indexed by rho in {0,1}^l, has at most min(2^l, 2lB+1) dist
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The affine control at S=5, G=1 is SAT (positive control). The one-flip structure at t=6 requires exactly one non-free gate at that step to break the collision: E' = E or (b xor (q_A + q_B + q_D)) where q_A,q_B,q_D are the three stored basis bits, giving G=1 at
+  - For every m and t, the max residual-class count over fan-in-2 circuits of size s is 2^(floor(s/2)+1). This fits s=1,2,3 (values 2,4,4) and the OR-chain family at every odd s (2^((s+1)/2)).
   - For formulas with rank3=6: sat = cons3
   - For formulas with m=6: sat = [rank3 == rank5]
   - For the hidden weight bit family HWB_n, min over variable orders of the OBDD width W_OBDD(HWB_n) is NOT bounded by a polynomial in n (exponential growth, 2^{eps n}), so G0001 for this family is an exponential question; the apparent small-n polynomial fit is an
   - For formulas with rank5=4: sat = 1
-  - For formulas with rank2=4: sat = 1
-  - For B2 circuits of size s on n variables, fixing one variable to a constant and then a second variable can yield a size drop of at least 2 for essential functions when the circuit contains gates with fan‑out > 1 or specific gate types (AND, OR, XOR). This doub
 REFUTED:
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
@@ -35,16 +35,16 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 2645 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 2692 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-80630e3b33 [MISSING_PROOF, OPEN] Does a deterministic poly(N)-time, uniform construction exist for a string y in {0,1}^N outside Im_{n,s} (fan-in-2 circuits, size s = f(N) with f superpolylog), with a certificate of non-membership that is not itself an 
-  - Q-598da227c2 [MISSING_PROOF, OPEN] Q-08a1c5b68f: is the n=3 literal-wiring UNSAT at affine S=5 (G=0) a true model floor or an encoding artefact? Next step: run the same own encoding at n=3 with the affine family at S=5 and S=6 under symmetry breaking (can
-  - Q-73fbc92fa6 [LIMITATION, OPEN] CORRECTION to the affine S=4 control claim: the binding counting step is t=5 (L_5=16 live codes; a dead code needs a 17th code > 2^4), not t=4 (L_4=8 needs 9 <= 16, which is fine). Also desk job A0891 (ds-637881da432344f
-  - Q-2f1bc7588b [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:d694ad611eff by pnp-desk/research/R1498:claude-haiku-5-5@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt TIME_CAP: no FINAL CLAIM: For every n >= 1 and every p 
-  - Q-de8f2d456a [COUNTEREXAMPLE, OPEN] The recorded law 'For formulas with rank2=4: sat = cons3' (discovery status EXACTLY_TESTED) FAILS on other exact datasets: agent_onein3_ce_structure_v1_6b2ae1ea: 7967/9215 rows fail, e.g. [{"n": 6, "m": 4, "rank2": 4, "r
+  - Q-e50783bd12 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:707bfa09c28e by pnp-desk/research/R1546:claude-haiku-5-5@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For the family SC_{3,1} (38 truth tables on N=8 inp
+  - Q-920dcd6731 [MISSING_PROOF, OPEN] Does the affine family of n=3 (N=8) admit a dead-separated streaming system with S=5 and G<=1? A hand analysis suggests an explicit code: slots A=f(0), B=f(1), C=f(2), D=f(4), plus a dead flag E. Wires store the basis va
+  - Q-6d0328cd7e [MISSING_PROOF, OPEN] Q-f1e058b72f
+  - Q-db3dcab07d [UNEXPLAINED, OPEN] RESULT READY - the background job A1032 (LemmaM SC31 decoder size, background, g=1..8) submitted by R1557 finished after that session ended: code_run finished: ok=True dataset None experiment cm-8872774ad6be40ea . Its pu
+  - Q-62aa151845 [UNEXPLAINED, OPEN] Two recorded laws for class m=6 and target sat DISAGREE on 6424 of 10937 rows: (a) 'For formulas with m=6: sat = (components + pairs_overlap2) mod 2' vs (b) 'For formulas with m=6: sat = (cons3 * planar) mod 2' (datasets
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIVERGENT LANE - lane N: THREE-FACTOR / ELIGIBILITY-TRACE ALGORITHMS): abstract the brain's coupling of fast activity a(t), connecti -> reopen if: None
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 

@@ -1563,5 +1563,130 @@
   "kind": "LEMMA",
   "closes": "G0086",
   "closes_valid": true
+ },
+ {
+  "at": 1795359243.1097631,
+  "session": "pnp-desk/research/R1534",
+  "model": "claude-haiku-5-5",
+  "gap": "S0112 needs an exact proof: show LHS-RHS = -2 eps m log2 m + O(m) with an explicit O(m) constant, giving an explicit L-threshold C/eps for all m, and check R+G+2 <= 2m for the m used.",
+  "evidence": "VERIFICATION cm-066450b297e34a8f (agent claude-haiku-5-5, SAME FAMILY as S0112 author, so this does NOT count toward closure). Checks S0112 (R=m per-encoding pair bound, G=floor((1/2-eps)m)) against the un-simplified counting bound for eps in {0.05,0.1,0.2,0.3,0.4}. Predicted: no failures for L=log2 m > 2/eps-3. Observed: no failures for m<3000 and for log2 m in [3,199] (float). Limit: finite range; for eps=0.05 the inequality holds for no m<3000, so the threshold 37 is not shown tight.",
+  "gap_id": "G0101"
+ },
+ {
+  "at": 1795359267.8081014,
+  "session": "pnp-desk/research/R1534",
+  "model": "claude-haiku-5-5",
+  "lemma": "For integers m >= 4 and real eps in (0, 1/2), let R = m, G = floor((1/2 - eps) m), L = log2 m. If L > 2/eps - 3 then G(4 + 2 log2(R+G+1)) + R log2(R+G+2) < 2 m L.",
+  "gap": "Closed for the inequality itself. Remaining: S0112 is only an R=m per-encoding pair bound; whether it discharges the full counting obligation of the spec (and whether L > 2/eps - 3 is needed or only sufficient) is not checked here.",
+  "evidence": "Hand derivation above (no computation). Author is claude-haiku-5-5, the same family as the S0112 author, so this step is CLAIMED and needs review by a different model family before it can count. It is bookkeeping for an existing claimed step, not a new general lower bound.",
+  "gap_id": "G0102",
+  "id": "S0183",
+  "proved_step": "CLAIMED. Proof: (i) LHS is nondecreasing in G, and G <= (1/2 - eps) m, so replace G by (1/2 - eps) m. (ii) R + G + 2 <= m + m/2 + 2 <= 2m for m >= 4, so log2(R+G+1) <= 1 + L and log2(R+G+2) <= 1 + L. (iii) Hence LHS <= (1/2 - eps) m (6 + 2L) + m(1 + L) = m(4 + 2L - 6 eps - 2 eps L). (iv) LHS < 2 m L follows from 4 + 2L - 6 eps - 2 eps L < 2L, i.e. 4 - 6 eps < 2 eps L, i.e. L > 2/eps - 3 (strict, since the bound in (iii) is an upper bound). This closes the arithmetic gap of S0112 for all m >= 4, not only the tested range. Numerical check cm-066450b297e34a8f is consistent with it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795360249.0869467,
+  "session": "pnp-desk/research/R1550",
+  "model": "claude-haiku-5-5",
+  "evidence": "Same-family check (claude-haiku, not a counted cross-family review). The algebra is correct: with R=m, G=floor((1/2-eps)m), log2N <= m(4+2L-6eps-2eps L) < 2mL iff L > 2/eps-3. The first false line is the final sentence: 'for some pair (delta0,delta1) ... CC_E > G for every encoding E'. The counting argument (S0038) yields, for each fixed E, a pair depending on E; it does not yield one pair working for all E. Repair: 'for every injective E: Q -> {0,1}^m there exists a pair (delta0,delta1) with CC_E > G'. The S0114 form is the intended replacement.",
+  "review_of": "S0112",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795360345.0252173,
+  "session": "pnp-desk/research/R1550",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA F (fraction form of the per-encoding pair bound; repairs S0038 and S0112). Setting: |Q| = m >= 2, L = log2 m, E: Q -> {0,1}^m injective, eps in (0,1/2), G = floor((1/2 - eps) m). Circuits: fan-in-2, basis of at most 16 binary gate types, m+1 inputs (E(q) and a selector bit b), m outputs. A circuit of size g realises (delta_0, delta_1) under E if C(E(q), b) = E(delta_b(q)) for all q in Q, b in {0,1}. Let P = (Q->Q)^2, |P| = m^(2m), and let A = {pairs p : CC_E(p) <= G}. CLAIM: if L >= 2/eps - 2 then |A|/|P| <= 2^{-(2 eps m - L)}, so for every injective E all but a 2^{-(2 eps m - L)} fraction of pairs have CC_E > (1/2 - eps) m. PROOF. (i) Realisation determines the pair, since E is injective and C(E(q),b) recovers delta_b(q). So A injects into the set of circuits of size <= G. (ii) Let f(g) = (16 (m+g+1)^2)^g (m+g+2)^m be the S0038 count of circuits with g gates. f is nondecreasing in g, so #circuits of size <= G is at most G f(G) (the factor G absorbs the '<= G' versus 'exactly G' gap). For g <= G < m/2 we have m+g+1 <= 2m and m+g+2 <= 2m, so log2(G f(G)) <= log2 G + G(6+2L) + m(1+L). (iii) Substituting G = (1/2 - eps) m, (1/2 - eps)(6+2L) m = (3 + L - 6eps - 2eps L) m, hence log2(G f(G)) <= log2 G + m(4 + 2L - 6eps - 2 eps L). (iv) 2mL - [m(4+2L-6eps-2eps L)] = 2 eps m (L + 3 - 2/eps). Therefore |A|/|P| <= 2^{-[2 eps m (L + 3 - 2/eps) - log2 G]}. (v) If L >= 2/eps - 2 then L + 3 - 2/eps >= 1, and log2 G < L, so the exponent is at least 2 eps m - L. QED. CONSEQUENCES: (a) existence: if 2 eps m > L (true for m large given eps) then some pair has CC_E > G, which is the S0112 claim with the quantifier 'for every injective E there exists a pair', not 'some pair for every E'. (b) The threshold L > 2/eps - 3 of S0112 is not enough once the factor G is included; the valid threshold is L >= 2/eps - 2, with the slack 2 eps m >> L for large m. SCOPE: fixed injective E, R = m outputs, basis of at most 16 gates, G = floor((1/2 - eps) m). NOT CLOSED: this bounds pair cost under a fixed encoding, and it does not by itself bound the online/streaming cost G0001 or G0002. It is a counting lower bound, not a circuit lower bound. KIND: LEMMA (new quantitative statement; not yet cross-family reviewed; the claim is unreviewed).",
+  "evidence": "Constructed in session R1550 (claude-haiku-5-5, same family as the claimants, so not a counted review). Arithmetic to be checked by the exact-evaluation run cm pending in this turn. Replaces the ' <= G ' gap in S0038 and the threshold in S0112."
+ },
+ {
+  "at": 1795360378.5183125,
+  "session": "pnp-desk/research/R1550",
+  "model": "claude-haiku-5-5",
+  "evidence": "Numeric check of LEMMA F step (iv)-(v), run cm-5f1106b605e4497d (claude-haiku-5-5, same family as the claimants, so not a counted review; the lab labels it EXPLORATORY_COMPUTATION). In scope (L >= 2/eps - 2) all 8 eps=0.2 rows and the eps=0.1 rows with k >= 18 satisfy the claimed exponent bound (claim_holds_in_scope = true). Out-of-scope rows (eps=0.1, k=8,10) were correctly excluded. max_relative_formula_diff = 0.066 is expected: the closed form 2 eps m (L+3-2/eps) - log2 G is an upper bound on the exponent, not an identity, and the lemma only uses the inequality. This confirms the arithmetic of steps (ii)-(v) on the tested rows; it does not replace a proof of step (ii)."
+ },
+ {
+  "at": 1795360558.459347,
+  "session": "pnp-desk/research/R1558",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "gap": "The pair\u2011bound lemma (S0038) assumes an injective mapping from realizable pairs (\u03b4\u2080,\u03b4\u2081) to circuits of size \u2264\u202fG, but this mapping is not injective: multiple distinct circuits can realize the same pair, so the counting argument does not guarantee that N(R,G)\u202f<\u202fm^{2m} implies a pair with CC_E\u202f>\u202fG. Moreover, for m=64 (R=12, G=32) the bound N(R,G)\u202f\u2264\u202f(16\u00b745\u00b2)^{32}\u00b746^{64} yields log\u2082N\u2248833\u202f>\u202flog\u2082m^{2m}=768, so the premise N\u202f<\u202fm^{2m} is false for this concrete instance, invalidating the lemma\u2019s condition.",
+  "gap_id": "G0103"
+ },
+ {
+  "at": 1795360736.6444757,
+  "session": "pnp-desk/research/R1558",
+  "model": "claude-haiku-5-5",
+  "evidence": "SAME-FAMILY CHECK (claude-haiku-5-5; not a cross-family review, records no status). (a) S0101 Lemma D*, line by line: for 1<=i<=K, log(1+x) <= (i/K)x + g(i) with g(i)=log(K/i)-1+i/K >= 0 (from log t >= 1-1/t); for i>K, log(1+x) <= x <= (i/K)x. Summing gives log prod(m_i+1) <= N/K + sum_{i<=K} g(i) = N/K + K log K - log K! - K + (K+1)/2. Stirling gives K log K - log K! <= K - (1/2)log(2 pi K), so the bound is N/K + K/2 + 1/2 - (1/2)log(2 pi K). With s^2=2N, N/K + K/2 = s + (K-s)^2/(2K) and (K-s)^2/(2K) <= 1/8 for K>=1 (since |K-s|<=1/2). Total <= s + 1/8 + 1/2 - (1/2)log(2 pi) = s - 0.294 < s. All steps check; no gap found. (b) G0103 arithmetic: its 833 comes from exponent 64 on the (R+G+2) term; with exponent R=12 the value is 545.7 < 768 = log2 m^(2m) at m=64. The injectivity objection fails: a circuit realising (d0,d1) determines the pair by decoding its outputs on (E(q),b), so the chosen-circuit map is injective. S0038 is not refuted by G0103. (c) Code run cm-bb48a12d6ca8454f confirms log2 N < 2m log2 m for m in [64, 200000]. This is exploratory and does not replace a cross-family review."
+ },
+ {
+  "at": 1795361313.3224301,
+  "session": "pnp-desk/research/R1566",
+  "model": "claude-haiku-5-5",
+  "gap": "S0114 rests on the circuit-count bound N <= (16(R+G+1)^2)^G (R+G+2)^R for fan-in-2 circuits over a 16-type basis on R+1 inputs and R outputs. That count is asserted in the step and was NOT verified by cm-079c00b3b4fb4830, which checked only the arithmetic that follows from it. Open: an independent derivation of the count (choice of gate type, two input wires from R+G+1 earlier nodes, R output wires) and cross-family review. The grid check covers finite m only; the asymptotic step is the analytic argument in S0114.",
+  "evidence": "cm-079c00b3b4fb4830 (EXPLORATORY_COMPUTATION, agent-authored; VERIFICATION kind). (1) Orbit count of pairs (f,g) of maps on 4 states under simultaneous relabelling by S_4 = 2836, matching the spec item 4 figure. (2) S0114 arithmetic: log2 N <= G(4+2log2(R+G+1)) + R log2(R+G+2) < 2 m log2 m with R=2*ceil(log2 m), G=floor(m/2), checked for every m in [64,20000] and m in {1e6,1e7,1e9}: 0 failures; at m=64 the bound is 545.8 < 768. NOT a review: the claimant of S0114/S0038 is claude-haiku-5-5, the same family as this session, so no SURVIVED_REVIEW is recorded.",
+  "gap_id": "G0104"
+ },
+ {
+  "at": 1795361389.0068674,
+  "session": "pnp-desk/research/R1566",
+  "model": "claude-haiku-5-5",
+  "gap": "Closes G0104 only as a counting statement for the model stated. The asymptotic step from the count to the claim on sqrt(m)/log(m) is not yet independently reviewed.",
+  "evidence": "Derivation written out above. Arithmetic check cm-079c00b3b4fb4830 covers the inequality built on this bound, not the bound itself. Remaining open: cross-family review of this LEMMA, and the asymptotic analytic step in S0114.",
+  "gap_id": "G0105",
+  "id": "S0190",
+  "proved_step": "LEMMA (circuit-count bound, fan-in 2, 16-type basis). Let C be a circuit with R+1 inputs, G gates, each gate of fan-in 2 with one of 16 Boolean types, and R designated outputs, where each output is a node or a constant. Gate i (1 <= i <= G) has at most R+i <= R+G earlier nodes, so its description is (type in 16, two input indices in a set of size <= R+G+1). Output j is one of the R+G+1 nodes or one of the constants (total <= R+G+2 choices). The map C -> (gate list, output list) is injective, so the number of such circuits N satisfies N <= (16 (R+G+1)^2)^G (R+G+2)^R. This is a complete argument for the stated model, not a review. It is claimed by a claude-haiku-5-5 session and needs cross-family review before any use as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0104",
+  "closes_valid": false
+ },
+ {
+  "at": 1795363346.7142725,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The unrolled circuit has T blocks. Block t takes S state bits + 1 input bit, produces S state bits. The cut between block t and t+1 carries exactly the S output bits of block t (which are the input state bits of block t+1). The input bit for step t+1 enters block t+1 directly from the input tape, not from block t. In the fan-in-2 circuit model, these are S wires. No other wires cross the inter-block cut. Therefore the online cut-width (max over t of wires crossing the cut between step t and t+1) is exactly S, so the claim 'at most S' is correct and tight.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364266.5124953,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Proof that rank_F M_t(S) <= |S| is valid (each f sets one entry). Bound on |Im_s| via circuit counting is sound, and prefix Myhill-Nerode class count is correct. Dispute concerns lack of lab run, but proof is valid.",
+  "review_of": "S0091",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364296.9073665,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The counting bound N(R,G) <= (16(R+G+1)^2)^G (R+G+2)^R is standard for fan-in-2 circuits over a 16-type basis. The log2 bound G(4 + 2log2(R+G+1)) + R log2(R+G+2) follows. For R=2S=2ceil(log2 m) and G=floor(m/2), the inequality log2 N < 2m log2 m holds for all m>=11 (verified by computation cm-f0a991f824aa4598 and cm-34e53a18cd22410a). Each circuit computes a distinct pair (delta0,delta1) from their values on the m codes E(q), so fewer than m^(2m) circuits means some pair is not realizable. The argument is correct for fixed injective E with no union bound over encodings. Consequence (i) and (ii) follow from the asymptotic growth rates. No flaw detected.",
+  "review_of": "S0038",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364296.9287896,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The concave bound log(1+x) <= (i/K)x + g(i) with g(i)=log(K/i)-1+i/K is correct (log t >= 1-1/t). Summation and Stirling bound K! >= sqrt(2pi K)(K/e)^K are standard. The identity N/K + K/2 = sqrt(2N) + (K-s)^2/(2K) with s=sqrt(2N) is algebraically correct. The final bound sqrt(2N) - 0.294 holds for all N>=1 with K=round(sqrt(2N)). The consequence for Claim A uses the Hardy-Ramanujan lower bound on p(m), but the lemma itself (prod(m_i+1) <= exp(sqrt(2N)-0.29)) is a verified general combinatorial bound. No flaw in the lemma proof.",
+  "review_of": "S0101",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364296.9546218,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The chained circuit C is a disjoint union of F_1..F_N and D_N with internal state wires; gate count adds up exactly. If C(L_n) >= omega(N) for some explicit L_n, then any one-pass realisation must have total update+readout cost >= omega(N), since a cheaper realisation would yield a smaller chained circuit. The converse is correctly noted as false. This is a valid reduction of G0002 to an explicit general circuit lower bound. No flaw detected.",
+  "review_of": "S0108",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364296.9917474,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "For m>=64, S=ceil(log2 m), R=2S, G=floor(m/2): R+G+1 <= m and R+G+2 <= m+1 hold. log2 N <= (m/2)(4+2L) + 2(L+2)^2 = mL + 2m + 2(L+2)^2 where L=log2 m. This is < 2mL iff m(L-2) > 2(L+2)^2. At m=64 (L=6): 64*4=256 > 2*64=128. For larger m, L grows so LHS grows faster than RHS. The injection from realized pairs to circuits is valid for fixed E. Verified by exact computation at m=64: log2 N <= 545.6 < 768 = 2m log2 m. The step correctly notes it does not close G0001/G0002. No flaw detected.",
+  "review_of": "S0114",
+  "status": "SURVIVED_REVIEW"
  }
 ]

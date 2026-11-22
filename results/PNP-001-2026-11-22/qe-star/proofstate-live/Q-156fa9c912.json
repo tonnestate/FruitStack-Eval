@@ -1850,5 +1850,178 @@
   "proved_step": "Lemma above: D_t(C) <= min(2^t, 2^{2s}) for every fan-in-2 circuit C with s gates, every prefix length t. Proof given in the lemma field. Status: CLAIMED, unreviewed (same model family).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795359205.8565137,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "lemma": "CORRECTED LEMMA (repair of S0219, kind LEMMA, unconditional). Let C be a fan-in-2 circuit with s gates over inputs x=(y,z), y in {0,1}^t the prefix. Let R = set of prefix indices i such that y_i is an input of some gate, or is the output wire. Then |R| <= 2s+1 (each gate has 2 input wires, plus 1 for the output). For every prefix rho, C|_rho(z) depends only on rho|_R. Hence D_t(C) <= min(2^t, 2^{2s+1}). PROOF: induction over gates in topological order, as in S0219. A gate with no prefix input wire is independent of rho. A gate with prefix input wire y_i has i in R, so its value depends only on rho_i. Downstream values depend only on rho|_R. The output wire is either a gate value (handled above) or a prefix wire y_i with i in R, which depends only on rho_i. QED. Edge case: s=0, output y_1 gives R={1}, D=2 <= 2^{1} = 2^{2s+1}, consistent. S0219 as stated (bound 2^{2s}) FAILS at s=0 because it omits the output-wire case; the corrected bound 2^{2s+1} replaces it.",
+  "gap": "OPEN, G0119 remains open in its corrected form. Known: the OR family gives log2 D_t = (s+1)/2 and the proved bound is log2 D_t <= 2s+1, so the true exponent in log D_t / s lies in [1/2, 2]. Open question: is log2 D_t <= c*s for some c < 2, or is there a family with exponent above 1/2? Next step: search exactly over small circuits (m<=3, s<=5) for the maximum of log2 D_t / s and test the first case where it exceeds 1/2 against the bound.",
+  "refuted_approach": "G0119 collapse target: per-circuit residual count D_t(C) <= poly(s) is REFUTED. Counterexample family C_k (k >= 1): prefix y_1..y_k, rest z_1..z_k; gates g_i = AND(y_i, z_i) for i=1..k, then an OR chain of k-1 gates; size s = 2k-1; output = OR of all g_i. Under prefix rho the residual is OR_{i: rho_i=1} z_i. PROOF of exact count: for distinct supports S != S' pick i in the symmetric difference; z = e_i gives residuals 1 and 0, so they differ. Hence D_t(C_k) = 2^k = 2^{(s+1)/2} exactly. Evidence: cm-8b0b7dda998c48d4 (DISCOVERY run; predictions were H_poly: D polynomial in s, H_exp: D = 2^k at s = 2k-1; H_exp matched for k=1..6, no surprise). The refutation does NOT touch the question's target: the budget is O(s log(n+s)) bits per state, i.e. log D_t up to O(s log(n+s)), and this family needs only log D = (s+1)/2 bits.",
+  "gap_id": "G0120",
+  "id": "S0220",
+  "proved_step": "CORRECTED LEMMA above: D_t(C) <= min(2^t, 2^{2s+1}) for every fan-in-2 circuit with s gates and every prefix length t, with the output-wire case included. Status: CLAIMED, unreviewed (same model family, so this session cannot review it).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795359369.785988,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "gap": "G0120 still open. The general bound D_t <= 2^{O(s)} is not proved for all m. The sharper conjecture max D = 2^(floor(s/2)+1) is a hypothesis (test at s=4, m=4 pending). No new proved step this turn; the exponent question stays open.",
+  "evidence": "cm-81ad005ae6544dbf (full 16 gates, m=4, s<=3, max D = 2,4,4 for s=1,2,3, all t): matched OR-chain prediction, refutes H_2s. Discovery run only. Not a review of S0102/S0108/S0219/S0220 (same family).",
+  "gap_id": "G0121"
+ },
+ {
+  "at": 1795359753.4796803,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "gap": "G0120/G0121: need a repaired collapse target whose size is not exponential in s. Next: identify the definition behind 171, then test max D_t at s=4 with a deduplicated (function-set) enumerator, not the full ordered circuit enumeration.",
+  "evidence": "Reconciliation (this session): cm-478e48982b9343fe and cm-dc399988c49749b5 both give |Im_3| = 232 at s=3 (all_incl_inputs / Im_size). The |Im_3| = 171 figure from cm-297f9cb9893d4396 is NOT reproduced and is withdrawn until its definition is identified. Open: S0102/S0108 Claim A (max_t D_t <= |Im_s|+1) remains CLAIMED and unreviewed; the OR-chain family (D = 2^((s+1)/2)) still refutes a poly(s) collapse target (G0119); s=4 exponent test pending.",
+  "gap_id": "G0122"
+ },
+ {
+  "at": 1795359837.9761808,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "gap": "G0122 remains open: the s=4 test needs a pruned enumeration (full BFS at s=4, m=5 is about 10^9 gate evaluations). Next: read the s=3, m=5 result. If max D = 4, H_A and H_B survive at s=3 and the s=4 test needs a restricted family (e.g. OR-chains with one extra gate). If max D >= 5, follow up at once.",
+  "evidence": "CEILING OBSERVATION (argument, not a computation): D_t <= min(2^t, 2^(2^(m-t))) for residual functions on m-t variables. For m=3 and m=4 the maximum over t is <= 4, so the earlier m=3/4 maxima (cm-ea910abe8fff4cb8, cm-81ad005ae6544dbf, max D = 4 at s=3) are at the ceiling and do not test any growth hypothesis. The first informative size is m=5 (ceiling 8 at t=3). Discovery submitted: circuit_residual_m5_s3_v1 (desk job, s<=3, m=5).",
+  "gap_id": "G0123"
+ },
+ {
+  "at": 1795359877.1363335,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review status (this session, claude-haiku-5-5): S0095, S0102, S0108 and S0111 were claimed by claude-haiku-5-5 sessions (R1252, R1268, R1284, R1292). This session is in the same model family, so none of them can be reviewed here. DISPUTED S0098 and S0091 are not used as premises. Job A1031 (m=5, s<=3 residual-count discovery) is QUEUED; no result yet. Open gap: G0123 (read A1031 result, then decide the s=4 restricted test)."
+ },
+ {
+  "at": 1795359975.741464,
+  "session": "pnp-desk/research/R1540",
+  "model": "claude-haiku-5-5",
+  "lemma": "For any family Im of N-bit truth tables and any prefix length t, the number of distinct rows R_p = {w : p||w in Im} over prefixes p is at most |Im|+1 (pigeonhole: choose one witness per nonempty distinct row; the witness determines its prefix, hence the row). Verifies S0108 as a trivial bound; it does not close G0004.",
+  "gap": "The bound runs in the wrong direction for a state-count lower bound. Needed: a lower bound on D_t for EXT_{n,s} that is superpolynomial in s when the prefix automaton is the streaming state, or a proof that no representation of this state reduces its update cost below poly(s).",
+  "evidence": "cm-4b12be7c5a964f7e agrees with the bound on 5 finite cases",
+  "gap_id": "G0124"
+ },
+ {
+  "at": 1795360004.0410342,
+  "session": "pnp-desk/research/R1540",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Testing D_t <= |Im_s|+1 on finite small cases (cm-4b12be7c5a964f7e) gives no lower bound on streaming state. The bound is a trivial pigeonhole fact. Its earlier recording as a lemma is bookkeeping only and does not count toward progress on G0004 or G0124."
+ },
+ {
+  "at": 1795360045.2086556,
+  "session": "pnp-desk/research/R1540",
+  "model": "claude-haiku-5-5",
+  "evidence": "Argument in the step text; cm-4b12be7c5a964f7e checks D_t values on n<=4 (finite only)",
+  "id": "S0227",
+  "proved_step": "For N=2^n, Im a subset of {0,1}^N, D_t = number of distinct rows R_p = {w : p||w in Im} over prefixes p of length t: every deterministic in-order streaming machine that decides membership of Im has at least D_t states after t symbols (two prefixes with different rows cannot share a state, else a distinguishing suffix gives the same output). Consequence: space >= log2 D_t bits, tight by Myhill-Nerode. Does NOT close G0004 or G0124: this is a space bound, and the open obligation is an update-time bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "none",
+  "closes_valid": false
+ },
+ {
+  "at": 1795360261.4019017,
+  "session": "pnp-desk/research/R1548",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION (kind: replication of S0108 Claims A and B, cm-79961d6f8adf4d6d). Own circuit enumerator (NOT/AND/OR/XOR gates), not copied from S0108. Checks: Claim A, max_D_t <= |P_t|+1; Claim B, |Im_s| <= 3(4(m+s)^2)^s. Results: (m,s)=(2,1): |Im|=7 <= 108, claimA ok; (2,2): |Im|=16 <= 12288, claimA ok; (3,1): |Im|=15 <= 192, claimA ok; (3,2): |Im|=59 <= 30000, claimA ok. all_ok=true, matching the prediction. Scope: four (m,s) pairs only; this is finite replication and does not prove Claims A or B for general m,s. Not a review: S0108 is claude-haiku-authored, same model family as this session."
+ },
+ {
+  "at": 1795360296.796977,
+  "session": "pnp-desk/research/R1548",
+  "model": "claude-haiku-5-5",
+  "lemma": "Claim B (counting): for circuits on m inputs with fan-in<=2 over {NOT,AND,OR,XOR} and at most s gates, the truth-table image Im_s satisfies |Im_s| <= (4(m+s)^2)^s, for all m,s>=1. Proof: pad any size-k circuit to size s by appending AND(v,v) for its output v (so output = last gate); each of the s steps has at most 4(m+s)^2 choices (type x ordered pair of <= m+s-1 earlier nodes); hence at most (4(m+s)^2)^s sequences, and Im_s is the image of these sequences.",
+  "evidence": "Finite replication cm-79961d6f8adf4d6d: (m,s)=(2,1) |Im|=7<=36; (3,2) |Im|=59<=10000. Scope: finite-fan-in 4-gate circuits, all m,s>=1. Not a proof of Claim A (D_t<=|P_t|+1), and does not yet link the bound to the trie/automaton state count O(log N + s log(n+s)); those steps remain open. Gap: state-to-prefix link and Claim A.",
+  "id": "S0229",
+  "proved_step": "Claim B (count form) with constant 1 instead of 3: |Im_s| <= (4(m+s)^2)^s. Self-made proof, CLAIMED; haiku session cannot review its own step.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795360707.6284127,
+  "session": "pnp-desk/research/R1556",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION cm-34fc8af0b07a4fdd (own code, numpy matrix_rank over reals and GF(2); instances (m,s) in {(2,1),(2,2),(3,1),(3,2)}): rank_F M_t(S) <= |S| held in all cases (max real rank 2, max GF(2) rank 2); |Im_s| <= 16(m+s)^2)^s held (|Im_s| = 8, 16, 16, 59 against bounds 144, 65536, 256, 160000); |Im_s| <= 3(4(m+s)^2)^s held (bounds 108, 12288, 192, 30000); residual classes D_t <= |P_t|+1 held (D_t max 4, 1, 12, 22, zero violations). Scope: four small instances only; no general claim is established. Same model family as the claiming sessions, so this does NOT count as SURVIVED_REVIEW; the steps remain CLAIMED."
+ },
+ {
+  "at": 1795360748.5880857,
+  "session": "pnp-desk/research/R1556",
+  "model": "claude-haiku-5-5",
+  "evidence": "HAND CHECK (haiku, same family as claimants; not a review, statuses unchanged): S0095 Claim A (w(pb)=w(p) when Eval(w(p))_{t+1}=b): w(p) lies in S(pb) subset of S(p) and is the min of S(p), hence the min of S(pb). Correct. S0095 Claim B (w(p) <= w(pb)): follows from S(pb) subset of S(p). Correct, bookkeeping. S0111 (bit-level residual transition): unfolding of the residual definition, correct. S0108 Claim B: a=4(m+s)^2 bounds candidate gates per step, sum_{k=1..s} a^k <= 2a^s for a>=2, and m <= a^s give |Im_s| <= 3a^s. Correct. Gap unchanged: the mismatch-case update needs an existential search over Circ_s with no poly(s) procedure; state counts cannot yield a streaming lower bound (G0003, G0004 open)."
+ },
+ {
+  "at": 1795360786.2910395,
+  "session": "pnp-desk/research/R1556",
+  "model": "claude-haiku-5-5",
+  "gap": "This is the naive upper bound on the per-step update cost G0003/G0004. It does not close either gap. The question is whether the mismatch-case update (Eval(w(p))_{t+1} != b) admits a procedure polynomial in s and N, or whether a lower bound on update time holds for a stated update class. Neither is established here.",
+  "evidence": "Hand derivation only (same model family as claimants: haiku). No computation run this turn. Scope: the cost bound is a counting argument over the Circ_s enumeration; it has not been measured on instances.",
+  "gap_id": "G0125",
+  "id": "S0232",
+  "proved_step": "PROCEDURE (baseline, not progress). Let Circ_s be the straight-line circuits of size <= s on m inputs, N = 2^m, ord a fixed injective encoding. For any prefix pb of length t+1, the procedure enumerates Circ_s in ord order and returns the first C whose Eval(C) starts with pb. Correctness: the first hit is the ord-least element of S(pb), i.e. w(pb). Cost: |Circ_s| <= s*(16(m+s)^2)^s (choose an op and two earlier nodes per gate, summed over sizes k <= s); each circuit evaluates in O(s*N) bit operations. Total time O(s^2 * N * (16(m+s)^2)^s). Scope: any s, m; no lower bound claimed.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795360879.0895805,
+  "session": "pnp-desk/research/R1556",
+  "model": "claude-haiku-5-5",
+  "gap": "Refinement of G0003/G0004. For the witness-maintaining update model, a per-bit update in poly(N, s) time gives a poly(N, s) decision procedure for f in Im_s (f = the full streamed table, via the last-bit liveness test). So an update-time lower bound for this model requires a lower bound for size-s circuit membership of tables, which is not known. The obligation is equivalent in difficulty to the membership question; it is not an easier sub-step. Scope: witness-maintaining update model only; no computation run; not a proved step.",
+  "evidence": "Reduction argument only (claude-haiku-5-5, same family as claimants). Not progress; no status changed.",
+  "gap_id": "G0126"
+ },
+ {
+  "at": 1795360901.4861326,
+  "session": "pnp-desk/research/R1556",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION of G0126 (direction error in the previous refinement). Proved, one direction only: if the witness-maintaining update runs in poly(N,s) time per bit, then replaying the N-bit stream decides f in Im_s (size-<=s circuit membership of the full table) in poly(N,s) time. Contrapositive: membership not in P implies the update is not poly-time. NOT established: the converse (an update-time lower bound implies membership is hard). The earlier sentence 'Conversely, an update-time lower bound ... would imply membership is not in poly time' is withdrawn. 'Equivalent in difficulty' is withdrawn; at most a search-to-decision self-reduction would make the two versions equivalent, which is unchecked. Scope: witness-maintaining update model; no computation run; not a proved step. G0003 and G0004 remain open.",
+  "evidence": "Reading of the reduction only, by claude-haiku-5-5 (same family as the claimants). No computation. No status changed.",
+  "gap_id": "G0127"
+ },
+ {
+  "at": 1795363346.7528164,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard circuit simulation of a space-S, time-U computation (per step): each step's update reads 1 input bit, updates S-bit state in U time steps. Unroll into U layers of configurations (each S bits). Each time step's transition is local (each output bit depends on O(1) input bits), implemented by O(1) fan-in-2 gates per bit. Total gates per step = U layers * S bits * O(1) gates = O(U*S). This is a standard Cook-style simulation bound, correct.",
+  "review_of": "S0037",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364341.7393832,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Claim A: If w(p) is the ord-least element of S(p) and Eval(w(p))_{t+1} = b, then w(p) \u2208 S(pb). Since S(pb) \u2286 S(p) and w(p) is the minimum of S(p), it is also the minimum of S(pb). Correct. Claim B: S(pb) \u2286 S(p) implies min S(p) \u2264 min S(pb), so w(p) \u2264 w(pb). Correct. The corollary follows directly. No flaw detected.",
+  "review_of": "S0095",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364341.7596085,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Part (a): rank_F M_t(S) \u2264 |S| because each f \u2208 S contributes exactly one 1 in M_t (at row f & M_t, column f >> t), so at most |S| non-zero rows. Correct. Part (b): |Im_s| \u2264 (16(m+s)^2)^s counts circuits of size \u2264 s (16 gate types, two inputs from \u2264 m+i previous nodes). Standard counting, correct. Part (c): prefix Myhill-Nerode classes correspond to distinct residual sets; empty prefixes give at most one extra class. Bound O(s log(m+s)) bits follows. The conclusion that cut-rank lower bounds cannot exceed this budget is correct. No flaw detected.",
+  "review_of": "S0102",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364341.7792149,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The bound |Im_s| \u2264 3(4(m+s)^2)^s improves the earlier 5(m+s)^2 constant. The counting: at step k \u2264 s, L_k \u2264 m+s nodes; candidate gates: L_k negations + 3 L_k^2 (AND,OR,XOR) \u2264 4(m+s)^2. Sequences of length \u2264 s: sum_{k=1}^s a^k \u2264 2a^s for a\u22652. Adding m inputs gives \u2264 m + 2a^s \u2264 3a^s. The residual set count D_t \u2264 |P_t|+1 \u2264 |Im_s|+1 follows because each nonempty residual is R_p for some p\u2208P_t. All steps are valid. No flaw detected.",
+  "review_of": "S0108",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364341.798631,
+  "session": "pnp-desk/research/R1551",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Lemma L1 correctly describes the residual transition: R_{p,b} = {g>>1 : g \u2208 R_p, g&1 = b}. This is a direct consequence of the residual definition R_p = {f>>t : f \u2208 Im_s, f&M_t = p}. The computational check cm-2b9d70b2910543ec (exhaustive for small (m,s) and large sample for m=4,s=1) reports zero failures. The proof is sound and the empirical verification supports it. No flaw detected.",
+  "review_of": "S0111",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364410.6535747,
+  "session": "pnp-desk/research/R1572",
+  "model": "claude-haiku-5-5",
+  "evidence": "SAME-FAMILY HAND CHECK (claude-haiku-5-5, same family as the claimant; NOT a review and NOT a SURVIVED_REVIEW under owner rule K11 R3). S0095 Claim A: w(p) has prefix pb, so w(p) in S(pb) subset of S(p); w(p) is the minimum of S(p), hence also the minimum of the subset S(pb). Claim B: S(pb) subset of S(p) gives min S(p) <= min S(pb). Monotonicity corollary follows from Claim B. No gap found in the argument. Status of S0095 unchanged (CLAIMED). Still needed: a cross-family reviewer for S0095, S0102, S0108, S0111; reconciliation of the open disputes S0098 and S0091; and a constructive lemma from this session, which I have not yet produced."
  }
 ]
