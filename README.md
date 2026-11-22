@@ -1,108 +1,57 @@
-# FruitStack-Eval
+# PNP-001: open research notebook on P vs NP
 
-Independent research instrumentation for the protocol *Zero-Marginal-Cost Organizational Intelligence* (Tonn-AGI research series).
+This repository publishes the **proof books, manuscripts, proofs and verifiers** of PNP-001, a research
+programme led by Björn Tonn. The work is carried out by an organisation of AI research agents from
+several model families. Every claim, check, refutation and retraction is written to an append-only,
+hash-chained proof book. This repository is a public copy of those books and of the evidence behind them.
 
-The evaluator sits **outside** the system under test. It never imports PlumMe, CherryMe or any other FruitStack package; it reads exported logs and git history only. That separation is the point: the system must not grade itself.
+> **Status (22 November 2026): P ≠ NP is _not_ proved here.** The central result so far is
+> *conditional*. Manuscript v0.25, Theorem 3, derives P ≠ NP from a lower-bound premise (8). By
+> McKay–Murray–Williams (STOC 2019, Thm. 1.3), the weaker oracle-free uniform streaming premise (40a)
+> would also suffice. **Both premises are open.** Unconditional results hold only in the restricted
+> models and finite domains stated with each result.
 
-**Status: proposal v0.2.0 on `web/claude`.** Python 3.11 or newer; runtime dependency: `packaging` for PEP 440 version comparison. Nothing here has evaluated a real pilot or confirmatory run yet.
+## Start here
 
-Harness scripts that must drive PlumMe on the host live in `runners/` (see `runners/README.md`); they import PlumMe, the evaluator package never does. `PILOT_PROTOCOL.md` fixes how the 50-task inquiry pilot is run, graded and analyzed (PILOT-PROC/1).
+| What | Where |
+|---|---|
+| Current manuscript (v0.25) | [`PNP-001-UNIFIED-RESEARCH-SYNTHESIS-v0.25.md`](results/PNP-001-2026-11-22/papers/PNP-001-UNIFIED-RESEARCH-SYNTHESIS-v0.25.md) |
+| Proof book, readable | [campaigns](results/PNP-001-2026-11-18/beweisbuch/LESBAR-STAGING-kampagnen.md) · [live book](results/PNP-001-2026-11-18/beweisbuch/LESBAR-LIVE-stand-heute.md) |
+| Proof book, raw (JSON Lines, hash chain) | [`beweisbuch/`](results/PNP-001-2026-11-18/beweisbuch/) (see its [README](results/PNP-001-2026-11-18/beweisbuch/README.md) for the verdict states) |
+| Proof state of each open question | [`qe-star/proofstate-live/`](results/PNP-001-2026-11-22/qe-star/proofstate-live/) |
+| Current proof attempt (QE\*) | [`qe-star/`](results/PNP-001-2026-11-22/qe-star/) |
+| Findings and failed runs | [discovery register](results/PNP-001-2026-11-18/registers/DISCOVERY-REGISTER.md) · [failed runs](results/PNP-001-2026-11-18/registers/FAILED-RUNS-REGISTER.md) |
+| Lean 4 formalisation | [`lean/`](results/PNP-001-2026-11-19/lean/) |
+| Research contracts and specifications | [11-21](results/PNP-001-2026-11-21/specifications/) · [11-22](results/PNP-001-2026-11-22/specifications/) |
 
-The F3 runner requires AppleMe assurance and a configured composer offer before it initializes PlumMe. It records EUR zero only when no provider route was selected or every provider receipt explicitly reports USD zero; missing receipts or cost fields remain unknown and block cost-completeness checks.
+## Verifiers
 
-## What it does
+The scripts that recompute the finite results are stored next to the results they check:
 
-| Command | Purpose | Protocol reference |
-| --- | --- | --- |
-| `fse power` | Sample sizes for the paired or unpaired non-inferiority test | §5.4 |
-| `fse ope evaluate` / `fse ope review` | Independent IPS/SNIPS over a PlumMe DecisionLog export, with weight clipping, minimum support per action, effective sample size, seeded bootstrap interval, and evaluation of ensemble worker counts | §5.3, H1, H3 |
-| `fse costaudit` | Post-hoc zero-cost audit: every chosen offer must have an allowed cost class, no outcome may be billed | Gate G3 |
-| `fse drift` | Drift epochs per offer from the per-call `model_fingerprint`; a fingerprint change opens a new epoch | Threat 1 |
-| `fse interventions add` / `summary` | Typed log of human acts: AUTHORITY (allowed) vs COGNITIVE (a deviation in the confirmatory phase), with minutes | Threat 3, H8, gate G5 |
-| `fse tasks validate` / `commit` / `verify` | Task registry; prompts and references are published only as hashes and salted commitments | Gate G4 |
-| `fse compare` | Recomputes utilities from raw evidence with rubric FSE-RUBRIC/1 and tests H4 with a paired cluster bootstrap | Gate G6, H4 |
-| `fse ablation` | Which organizational component causes which gain: leave-one-out effects with Holm-adjusted bootstrap p-values, an interaction residual, and Shapley values that add up exactly to the total gain (full factorial, up to 6 components) | §5.6, Tonn-AGI §11.4 |
-| `fse attribution` | Share of the current code written by each builder (git blame), separately for critical modules | Threat 4 |
-| `fse protected` | Rejects system-authored commits on protected paths; lists builder commits there for host review | Learning loop 4 |
-| `fse lite check` | Verifies that FruitStack-Lite clones sit at their pinned commits | Gate G6 |
-| `fse integrity` | `main == sync/local-truth`, minimum versions, required paths and commits per repository, from git only | Gate G1 |
-| `fse stack` | Preflight before every run: the whole FruitStack (`config/stack.toml`: PlumMe, PeachMe, CherryMe, AppleMe, PomeloMe, CogC, OmniRoute unit) installed from clean canonical checkouts at `origin/main`; reads package metadata in a subprocess, imports nothing | Gate G1, run preflight |
-| `fse calib generate` / `score` | Calibration tasks with exact answers (six kinds, four difficulty levels) and harness scoring of worker answers | Gate G2 |
-| `fse independence` | Per provider group: end-to-end execution, accuracy; per pair: phi of error indicators with bootstrap interval, share of identical wrong answers; largest pairwise-independent set | Gate G2 |
-| `fse inquiry validate` / `grade` | Inquiry references (verdict + key value, sources) and the deterministic grader FSE-INQUIRY/1 | Gate G4 |
-| `fse blind export` / `ingest` | Shuffled, arm-free, name-redacted grading packets; key hash committed before grading; whole-task voiding | Gate G4 |
-| `fse seal create` / `verify` | Row-level SHA-256 seal of append-only logs; reports APPEND_ONLY, RETENTION_DROPPED or TAMPERED | Gate G5 |
-| `fse logcheck` | Field-by-field completeness of decisions, propensities, fingerprints, quota, cost, feedback, interventions and seal | Gate G5 |
-| `fse pilot analyze` | Descriptive pilot estimates per arm and pair: successes, failures, unverifiable, abstentions, success-rate and utility differences, discordance psi with cluster bootstrap, sample-size proposal; no p-values | Phase 3, §5.4 |
-| `fse replay` | Recomputes every committed report of an evidence directory from its raw logs (`replay.toml`) and lists differences | Gate G6 |
-| `fse deposit build` / `verify` | Deposit manifest (SHA-256 per file, digest) of protocol, task manifest, thresholds, pilot procedure and freeze; passes only with a recorded DOI | Gate G7 |
+- [`F16/verifier.py`](results/PNP-001-2026-11-19/F16/verifier.py): exact verification of the degree-3 Nullstellensatz certificate
+- [`2026-11-19/scripts/`](results/PNP-001-2026-11-19/scripts/): enumerations, rank and degree computations
+- [`2026-11-20/completeness-n10/`](results/PNP-001-2026-11-20/completeness-n10/): independent C re-implementation of the n ≤ 10 enumeration
+- [`2026-11-20/acc0-level3/`](results/PNP-001-2026-11-20/acc0-level3/) and [`mg3/`](results/PNP-001-2026-11-20/mg3/): ACC0 and matchgate checks
+- [`2026-11-21/checks/`](results/PNP-001-2026-11-21/checks/): rank, cut-rank and refutation checks
+- [`2026-11-18/lab/`](results/PNP-001-2026-11-18/lab/): exact circuit sizes, Gal matrices, matroid-port checks
 
-All commands print JSON. Exit codes: `0` success, `1` a check failed, `2` invalid input.
+## How results are accepted
 
-## Install and test
+1. A claim enters the proof book as a **CLAIMED** step together with its evidence.
+2. Finite statements are recomputed independently, and the result is recorded as `FINITE_CONFIRMED`.
+3. A step counts as **proved** only after an adversarial review in a *different session by a
+   different model family*, recorded as `SURVIVED_REVIEW` or `REFUTED`. Formal parts must also be
+   accepted by the Lean kernel (`FORMALLY_VERIFIED`).
+4. Nothing is deleted. A refuted or retracted entry stays in the book, and failed runs are listed in the
+   failed-runs register.
 
-```bash
-python -m venv .venv && . .venv/bin/activate
-pip install -e '.[dev]'
-python -m pytest -q
-```
+Each proof-book entry carries `prev` and `hash`, so later edits to the book are detectable.
 
-## Examples
+## Daily notes
 
-```bash
-fse power paired --margin 0.10 --discordance 0.2          # 157 tasks
-fse ope evaluate --log ~/.plumme/decisions.jsonl --family INQUIRY \
-    --target '{"selector": "fixed_count", "count": 3}'
-fse costaudit --log ~/.plumme/decisions.jsonl
-fse interventions add --log interventions.jsonl --actor owner \
-    --kind AUTHORITY --intervention PROMOTE_POLICY --minutes 4 --phase PILOT
-fse attribution --repo ../cherryme --rev origin/web/chatgpt \
-    --range origin/main..origin/web/chatgpt=CHATGPT
-fse protected --repo ../plumme --name plumme --base origin/main --head origin/web/chatgpt
-```
+[2026-11-18](results/PNP-001-2026-11-18/README.md) ·
+[2026-11-19](results/PNP-001-2026-11-19/README.md) ·
+[2026-11-20](results/PNP-001-2026-11-20/README.md) ·
+[earlier manuscripts](results/PNP-001-2026-11-22/papers/)
 
-## File formats
-
-- **DecisionLog:** PlumMe's append-only JSONL rows `{"type": "decision" | "outcome" | "feedback", "data": {...}}`, including rotated segments `<file>.1`, `<file>.2`. Compatibility was checked against logs written by PlumMe's own `DecisionLog` (proposal branch `web/chatgpt`, commit `06ff53e`); SNIPS, IPS and effective sample size matched PlumMe's evaluator exactly on that log.
-- **Results for `fse compare`:** one JSON line per task and arm with `task_id`, `arm`, `family`, `subfamily`, raw `evidence`, `quota_units`, `cost_eur`, `wall_seconds`.
-- **Tasks:** one JSON line per task with `task_id`, `family` (INQUIRY, SOFTWARE, RESEARCH, ECONOMIC), `subfamily`, `split` (TRAIN, HELDOUT), `prompt`, `reference`. A subfamily is entirely TRAIN or entirely HELDOUT.
-- **Inquiry references (FSE-INQUIRY/1):** the `reference` of an INQUIRY task is a JSON string `{"verdict": "SUPPORTED"|"REFUTED", "key_type": "integer"|"number"|"year"|"date"|"text", "key": ..., "accept": [...], "tolerance": 0.0, "sources": [...]}`. Every answer must end with `VERDICT: ...` and `KEY: ...`. Grade 1 if both are right, 0.5 if one is, 0 otherwise; missing answers, unparseable answers and abstentions grade 0 and are counted separately.
-- **Calibration results (G2):** one JSON line per call with `task_id`, `group` (the labor market's independence key), `offer_id`, `model`, `receipt_id`, `success`, `structural_state`, `output`, `model_fingerprint`.
-- **Seal (FSE-SEAL/1):** `<seal>.json` holds per-log row counts, roots and a digest; `<seal>.json.rows.json` holds the row hashes. Commit both.
-
-## Ablation input
-
-`fse ablation` reads the same result rows as `fse compare` plus a TOML file that maps each arm to the components switched on:
-
-```toml
-[arms]
-BASE = []
-ENSEMBLE = ["adaptive_ensemble"]
-ASSURANCE = ["trajectory_assurance"]
-FULL = ["adaptive_ensemble", "trajectory_assurance"]
-```
-
-Only tasks run in every listed arm are used. `config/components.toml` lists the organizational components and whether their OFF switch was verified in code; only components with a verified switch should enter an ablation.
-
-## Interpretation rules
-
-- Only `HARNESS_OBSERVED` or `EXTERNALLY_VERIFIED` evidence becomes a label. Worker claims never do.
-- Clipping importance weights biases estimates toward the behavior policy; every clipped estimate says so.
-- `fse ope review` only reports whether a candidate is **eligible for host review**: its SNIPS lower bound must exceed the incumbent's SNIPS estimate, with enough effective sample size and action support. Promotion stays a host decision.
-- H4 parity needs non-inferiority on verified success **and** a lower cost per verified success.
-- **Gates report PASS only on evidence.** `fse integrity`, `fse independence` and `fse logcheck` return blockers for every missing piece; an empty log, a missing intervention log or an unsealed log is a blocker, not a pass.
-- **G2 thresholds** (`config/g2_thresholds.toml`, G2-THRESHOLDS/1, frozen 11 Oct 2026 before any data): at least 60 calls and 80 % end-to-end execution per group; a pair is independent when phi <= 0.5 on at least 40 shared tasks and at most half of the joint errors are the same wrong answer; at least three such groups. A pair with no error variance is UNDETERMINED and does not count.
-- **G1 requirements** (`config/g1_requirements.toml`): content requirements (version, paths) where a truth writer may re-commit a proposal; exact SHAs only where the proposal itself is the accepted artifact.
-
-## Known limits
-
-- **Attribution:** today most commits carry no builder identity. Proposal commits pushed through web connectors appear under the owner's name, so the report needs `--range` for open proposal branches. From now on every commit should carry `FruitStack-Builder: <name>`. Shallow clones leave boundary lines unknown; use full clones for confirmatory reports.
-- **Protected paths:** entries exist for PlumMe, CherryMe, AppleMe, PeachMe, PomeloMe and this repository. MangoMe, SPARI, IntakeGov and further repositories still need entries. The check runs here; wiring it into each product repository's CI is a separate, governed change.
-- **FruitStack-Lite:** every component is still `UNPINNED`, so gate G6 is closed until gate G1 (merges, `main == sync/local-truth`) passes. The manifest lists what the pilot arms execute: PlumMe, CherryMe, AppleMe, CogC (only with the output-economy global skill) and this evaluator.
-- **Cost audit:** it verifies after the fact. Enforcement belongs in the labor market's own eligibility gate: PlumMe's `FREE_ONLY` policy (on PlumMe `main` since `37bfc3e`). The G3 probe in `runners/` shows the enforcement in the real execution path.
-- **Denied pinned acquisitions** leave no DecisionLog record on PlumMe `main` (`37bfc3e`); the proposal on PlumMe `web/claude` (`a0dec4e`) records them as `PINNED_DENIED` decisions. Until it is accepted, the G3 probe keeps the denials in its own evidence file.
-- **Drift:** needs DecisionLog outcomes with `model_fingerprint`, which PlumMe records from `37bfc3e` on. Older outcomes are counted as `outcomes_without_fingerprint`, never guessed. An end-to-end run (PlumMe `f8fad50` writing the log, this evaluator reading it) detected a simulated provider model swap as one change and two epochs, and confirmed that a present paid offer was never chosen under `FREE_ONLY`.
-
-## Governance
-
-See `AGENTS.md`. This repository is entirely protected: system-authored commits may never change it.
+This repository holds research results only. The software of the research organisation is not part of it.
