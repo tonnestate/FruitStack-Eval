@@ -224,7 +224,7 @@ This atlas prevents a second misconception: **Theorem R and the constructive-ref
 - [E2 proofstate](https://github.com/tonnestate/PNP-001-research/blob/main/proofstate/Q-0b7da33369.json): **133 recorded events**, including E2 and its R1090 review.
 - [MMW original publication](https://people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf): Theorems 1.2 and 1.3 give the exact oracle construction and separation transfer.
 
-The director's newly reported live proofbook entry **48a049b39cfb9efa** assembles S0037, E2, S0036, L* and MMW. This entry was not yet independently visible in the available archived GitHub file. It is recorded as a **director-supplied current-state report**, not independently audited primary ledger content.
+The director's newly reported live proofbook entry **48a049b39cfb9efa** assembles S0037, E2, S0036, L* and MMW. This entry was not yet independently visible in the available archived GitHub file. Commit 4fabee12dda8 reports that this entry was included in the updated exported ledger; because the large raw JSONL could not be read in full, that particular entry was **not independently inspected** at raw-event level.
 
 The director reported at **15:17 CET on 22 November** that R1507 and R1513 still could not prove the bridge from an online circuit to an appropriate low-width spanning family. R1513 reconstructed the Hall theorem but did not establish an additional computation lower bound. The reported 156 small checks of blow-up treewidth and checks of (R), (L), (E) are finite experiments, not a substitute for a universal theorem.
 
@@ -232,7 +232,7 @@ The director reported at **15:17 CET on 22 November** that R1507 and R1513 still
 
 **Operational alert:** The director reports desk failures and subsequent fixes **1a04e4e** and **f042440**, with research sessions preserved. The commits have not been independently retrieved in the checked PNP-001 GitHub research branches and are operational provenance rather than evidence for L*.
 
-**Access qualification:** The full raw 10.5-MB staging JSONL could not be read through the current GitHub file-content endpoint. Its archived README, readable summaries, the full 199-event QE* state and the full 133-event E2 state were accessed. This revision therefore does **not** claim a line-by-line verification of all 9,657 raw events.
+**Access qualification:** The full raw 10.5-MB staging JSONL could not be read through the current GitHub file-content endpoint. The staging README, readable summaries, and updated 219-event QE* and 181-event E2 proofstates were accessed; the older 199/133-event versions are historical. This revision therefore does **not** claim a line-by-line verification of all 10,155 raw staging events.
 
 ### 0.9 Scientific humility as a proof protocol
 
@@ -310,9 +310,9 @@ The precise route, with already existing transformations distinguished from the 
 \tag{F5}
 \]
 
-S0037 is a model-scoped machine-to-stage-circuit simulation: polynomial workspace and worst-case polynomial update time induce polynomial-size Boolean stage circuits, and the final output computation is also charged. The archived 199-event QE* proofstate marks S0037 as CLAIMED; the research director reports a newer other-model-family review whose transcript was not independently present in that archived state.
+S0037 is a model-scoped machine-to-stage-circuit simulation: polynomial workspace and worst-case polynomial update time induce polynomial-size Boolean stage circuits, and the final output computation is also charged. The latest inspected 219-event QE* proofstate still marks S0037 as CLAIMED; the research director reports a newer other-model-family review whose transcript was not independently present in that archived state.
 
-E2 is a circuit unrolling construction, recorded as SURVIVED_REVIEW in the 133-event Q-0b7da33369 proofstate. **E2 is not a hardness lower bound.** S0036 admits all correct streaming algorithms to the general state/update optimisation but does not map them into the linear-space representation required by the Hall theorem.
+E2 is a circuit unrolling construction, recorded as SURVIVED_REVIEW in the latest inspected 181-event Q-0b7da33369 proofstate. **E2 is not a hardness lower bound.** S0036 admits all correct streaming algorithms to the general state/update optimisation but does not map them into the linear-space representation required by the Hall theorem.
 
 The original McKay–Murray–Williams paper, STOC 2019, Theorems 1.2 and 1.3 and Section 5, confirms the implication: for some time-constructible \(s(m)\ge m\) and \(A\in PH\), exclusion of **all deterministic one-pass streaming algorithms using polynomial space and polynomial worst-case update time** for total Search-MCSP would imply \(P\ne NP\). Importantly, the oracle \(A\) appears in the **output-circuit gate set**, while the efficient published solver is allowed a **separate \(\Sigma_3\mathrm{SAT}^{A}\)** oracle. These are not interchangeable permissions.
 
@@ -341,15 +341,15 @@ The newer staging proofbook README reports **10,155** hash-chained events. The c
 
 The new FruitStack-Eval export (commit 4fabee12dda8) updates the evidence baseline of the paper. The staging proofbook README reports **10,155 append-only entries from 2,516 missions**, compared with 9,657 entries from 2,392 missions in the preceding export: an increase of 498 entries and 124 missions. Its hash-chain verification is reported as successful. These figures measure the research record, **not** the number of proved theorems.
 
-A subtle archival distinction matters. The commit description refers to **182 research questions**, while the directly inspected Git tree contains **92 separate JSON files** in the committed proofstate-live directory. The QE* live proofstate Q-156fa9c912 now contains **217 events** (199 in the previously inspected snapshot); the E2/online-circuit proofstate Q-0b7da33369 contains **180 events** (previously 133). Their contents are inspectable as archived claims, reviews and corrections, not automatically verified theorems.
+A subtle archival distinction matters. The 15:30 commit description incorrectly counted **182 research questions**, because it included **92 JSON proofstate files plus 90 lock files**. The corrected 15:55 export contains **94 actual JSON proofstate files** and a separate register of **2,248 research questions**. The latest Q-156fa9c912 proofstate has **219 events** (217 in the preceding export, 199 in the older audit), while Q-0b7da33369 has **181 events** (previously 180 and 133). Their contents are inspectable as archived claims, reviews and corrections, not automatically verified theorems.
 
 #### 0.12.1 The multiple levels of the current attack
 
 | Level of investigation | Proofstate and directly inspected evidence | Mathematical boundary |
 |---|---|---|
 | Universal Hall embedding; optimal basis | Q-5f55fb62c2 (53 events): canonical basis and overlap graph \(G[K_2]\) rederived | Scope and fidelity review by a non-Claude model family, and Lean definition audit, remain open |
-| General online circuit representations | Q-0b7da33369 (180 events): E2 unrolling established and reviewed; permutation orbit and partition-counting results investigated | Online state-cut width is not Hall support-overlap width; some newer counting lemmas remain CLAIMED |
-| Search-MCSP update computation | Q-156fa9c912 (217 events): state-count upper bounds, witness replacement, transition procedures and corrections | The general worst-case **G0004** update-work lower bound remains open |
+| General online circuit representations | Q-0b7da33369 (181 events): E2 unrolling established and reviewed; permutation orbit and partition-counting results investigated | Online state-cut width is not Hall support-overlap width; some newer counting lemmas remain CLAIMED |
+| Search-MCSP update computation | Q-156fa9c912 (219 events): state-count upper bounds, witness replacement, transition procedures and corrections | The general worst-case **G0004** update-work lower bound remains open |
 | Finite model synthesis | Q-08a1c5b68f (184 events): exact live-prefix counting and SAT-based circuit-update tests | The crucial joint minimum over arbitrary encodings remains unmeasured; finite examples cannot establish an asymptotic lower bound |
 | Direct Embedding/MCSP bridge | Q-9c4d56f01f (1 event): conditional Lemma T1, status CLAIMED | T1 is an implication **if** an exponential update-time lower bound holds; that antecedent has not been proved |
 | Union of research routes | Q-a1e6376406 (1 event): R1513 rederives the Hall embedding theorem | The reproduction closes no new obligation and does not prove that the different research fronts factor through one theorem |
@@ -1268,7 +1268,7 @@ The principal sources for this synthesis are:
 - **results/PNP-001-2026-11-22/qe-star/QE-STAR-RECONSTRUCTION.md** and **PNP-001-CROSS-THEOREM-SYNTHESIS-2026-11-22.md**.
 - **proofstate/Q-156fa9c912.json** in PNP-001-research.
 
-The separate PNP-001-research QE* state contains 172 events at commit f02b93c. The later QE-STAR-RECONSTRUCTION reports a prior 198-event live state. The **199-event** archived live snapshot in FruitStack-Eval was directly inspected for this revision; this archived file is not necessarily the newest VPS state. A newer director-reported chain entry is separately identified in Section 0.
+The separate PNP-001-research QE* state contains 172 events at commit f02b93c. The later QE-STAR-RECONSTRUCTION reports a prior 198-event live state. The **199-event** archived snapshot in FruitStack-Eval was read at the earlier revision; the updated **219-event** Q-156fa9c912 and **181-event** E2 proofstate files were inspected for v0.5. Neither necessarily reflects subsequent VPS events. A newer director-reported chain entry is separately identified in Section 0.
 
 ### 12.2 Independent checks still required
 
