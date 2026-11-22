@@ -19,7 +19,7 @@ Let \(n\ge3\), and put
 \[
 \mathcal T_n=\{\{i,j,k\}:1\le i<j<k\le n\}.
 \]
-For \(E\subseteq\mathcal T_n\), let
+Positive exact-one satisfiability is NP-complete [1]. For \(E\subseteq\mathcal T_n\), let
 \[
 F_E(x)=\bigwedge_{\{i,j,k\}\in E}
 \bigl(x_i+x_j+x_k=1\bigr),
@@ -173,7 +173,7 @@ x_{u,c}+x_{v,c}+y_{\{u,v\},c}=1
 
 **Lemma 6 (colouring correspondence).** The Boolean system (14)–(15) is satisfiable if and only if \(G\) admits a proper three-colouring. Its affine relaxation over \(\mathbb F_3\) is consistent for every \(G\).
 
-*Proof.* Equation (14) selects precisely one colour for each vertex. For an edge and colour, equation (15) can be completed by a Boolean slack variable exactly if both endpoints do not select that same colour. These are precisely the proper-colouring constraints. The affine relaxation has the solution \(x_{v,c}=0\), \(y_{\{u,v\},c}=1\) for every \(v,e,c\). \(\square\)
+*Proof.* Equation (14) selects precisely one colour for each vertex. For an edge and colour, equation (15) can be completed by a Boolean slack variable exactly if both endpoints do not select that same colour. These are precisely the proper-colouring constraints. For affine feasibility over \(\mathbb F_3\), choose colour 0 at every vertex: \(x_{v,0}=1\) and \(x_{v,1}=x_{v,2}=0\) for every \(v\). For each edge \(e=\{u,v\}\), set \(y_{e,0}=-1\) and \(y_{e,1}=y_{e,2}=1\). Then every vertex equation sums to \(1\); the edge equation for colour 0 sums to \(1+1-1=1\), and each of the other two sums to \(0+0+1=1\). This is an affine \(\mathbb F_3\)-solution, without requiring the slack value \(-1\) to be Boolean. \(\square\)
 
 For **any field** \(\mathbb F\), let \(K_G(\mathbb F)\) be the homogeneous kernel of the coefficient matrix in (14)–(15). Its elements satisfy
 \[
@@ -206,7 +206,7 @@ The correspondence (14)–(15) and the decomposition (18) are related but differ
 
 ## 4. The universal support-overlap theorem
 
-Let \(I=\bigsqcup_{v\in V} I_v\) be a decomposition into coordinate blocks and \(K\le\mathbb F^I\) a linear subspace. Let \(B=(b_j)_{j\in J}\) be a finite indexed spanning family of \(K\); independence is **not** required. For every \(X\subseteq V\), \(\pi_X\) denotes restriction to the coordinates in \(\bigcup_{v\in X}I_v\).
+Let \(I\) be the full finite coordinate set and \((I_v)_{v\in V}\) be pairwise disjoint subsets of \(I\), not necessarily covering \(I\). Let \(K\le\mathbb F^I\) be a linear subspace. In the colouring kernel, \(I_v\) consists of the three vertex coordinates \((v,c)\), whereas the edge-slack coordinates remain in \(I\setminus\bigcup_{v\in V}I_v\). Let \(B=(b_j)_{j\in J}\) be a finite indexed spanning family of \(K\); independence is **not** required. For every \(X\subseteq V\), \(\pi_X\) denotes restriction to the coordinates in \(\bigcup_{v\in X}I_v\).
 
 Suppose an integer \(d\ge1\) and a graph \(G=(V,E_G)\) satisfy three properties:
 
@@ -375,11 +375,11 @@ U_t:\{0,1\}^{S}\times\{0,1\}\to\{0,1\}^{S},
 \]
 and a final exact decoder \(D\).
 
-**Lemma 11 (bounded-time transition circuits).** Suppose an update is implemented by a fixed deterministic Turing machine using at most \(U\) steps with at most \(S\) bits of work configuration. The update transition can be implemented by a fan-in-two Boolean circuit with gate count polynomial in \(U,S\), and the encoded input parameters. Under the usual local tableau convention this is \(O(US)\), up to the fixed machine's representation overhead.
+**Lemma 11 (bounded-time transition circuits).** Suppose an update is implemented by a fixed deterministic Turing machine using at most \(\tau\) steps with at most \(S\) bits of work configuration. The update transition can be implemented by a fan-in-two Boolean circuit with gate count polynomial in \(\tau,S\), and the encoded input parameters. Under the usual local tableau convention this is \(O(\tau S)\), up to the fixed machine's representation overhead.
 
-*Proof.* Represent the bounded work configuration on Boolean wires. A single machine move is a fixed Boolean transformation of the bounded tableau, requiring \(O(S)\) local gate operations under that convention. Concatenating at most \(U\) such transformations gives a circuit of size \(O(US)\). It computes the deterministic update for every admissible configuration and incoming input symbol. \(\square\)
+*Proof.* Represent the bounded work configuration on Boolean wires. A single machine move is a fixed Boolean transformation of the bounded tableau, requiring \(O(S)\) local gate operations under that convention. Concatenating at most \(\tau\) such transformations gives a circuit of size \(O(\tau S)\). It computes the deterministic update for every admissible configuration and incoming input symbol. \(\square\)
 
-This proof is scoped to the stated deterministic Turing-machine tableau. An arbitrary random-access computational model requires a separate accounting for memory-access cost and cannot simply inherit the same \(O(US)\) constant.
+This proof is scoped to the stated deterministic Turing-machine tableau. An arbitrary random-access computational model requires a separate accounting for memory-access cost and cannot simply inherit the same \(O(\tau S)\) bound.
 
 **Lemma 12 (exact stage unrolling).** Given exact stage circuits \(U_0,\ldots,U_{N-1}\) and decoder \(D\), there is an acyclic Boolean circuit for the complete input-output relation with
 \[
@@ -410,10 +410,10 @@ Call \(\mathcal C_m\) an admissible staged Boolean realization if it solves **al
 Write its state size and worst-case update time as
 \[
 S_{\rm alg}(m)\le s(m)^{c_0},\qquad
-U_{\rm alg}(m)\le s(m)^{d_0}
+\tau_{\rm alg}(m)\le s(m)^{d_0}
 \tag{38}
 \]
-for fixed exponents \(c_0,d_0\) and all sufficiently large \(m\). By Lemma 11 each such update is implemented by a Boolean circuit with a fixed polynomial overhead in \(S_{\rm alg},U_{\rm alg},m\). The final output is obtained by a similarly charged computation: outputting a circuit of size \(s\) takes at most polynomial time and space under the specified encoding. Because \(m\le s(m)\), there are fixed \(c,d\) with
+for fixed exponents \(c_0,d_0\) and all sufficiently large \(m\). By Lemma 11 each such update is implemented by a Boolean circuit with a fixed polynomial overhead in \(S_{\rm alg},\tau_{\rm alg},m\). The final output is obtained by a similarly charged computation: outputting a circuit of size \(s\) takes at most polynomial time and space under the specified encoding. Because \(m\le s(m)\), there are fixed \(c,d\) with
 \[
 S(\mathcal C_m)\le s(m)^c,\qquad
 \Gamma(\mathcal C_m)\le 2^m s(m)^d
@@ -431,7 +431,7 @@ Thus the implication
 S=s^{O(1)},\quad\Gamma\le 2^m s^{O(1)}
 \\[3pt]\Longrightarrow\
 \text{no ordinary one-pass solver with}\\
-S_{\rm alg}=s^{O(1)},\quad U_{\rm alg}=s^{O(1)}
+S_{\rm alg}=s^{O(1)},\quad \tau_{\rm alg}=s^{O(1)}
 \\[3pt]\Longrightarrow P\ne NP
 \end{gathered}}
 \tag{40}
@@ -452,8 +452,8 @@ with equality for an explicit \(B=B_{\rm nat}\).
 
 The computational lemmas, for an ordinary \(S\)-space, \(U\)-step update machine, give
 \[
-\operatorname{CC}(U_t)=O(US),\qquad
-\Gamma=O(2^m US)+\operatorname{CC}(D),
+\operatorname{CC}(U_t)=O(\tau S),\qquad
+\Gamma=O(2^m\tau S)+\operatorname{CC}(D),
 \tag{42}
 \]
 in the specified tableau convention, and an inter-stage cut of at most \(S\) wires.
@@ -533,7 +533,7 @@ The edge parity polynomial becomes zero, and modulo the Boolean axioms the quadr
 
 *Proof.* Substitution (48) has degree one and sends each source axiom to zero or to a degree-at-most-two combination of target axioms and Boolean relations. A Polynomial Calculus addition step maps to addition. Multiplication by a vertex variable is preserved, while multiplication by an eliminated slack variable becomes multiplication by an affine linear expression and is simulated by a bounded number of variable-multiplication and addition steps. The degrees of intermediate lines increase by at most a factor of two. The last line \(1\) remains \(1\). \(\square\)
 
-Hence a matching graph-colouring family requiring Polynomial Calculus degree \(\Omega(|V|)\) yields the same asymptotic lower bound for its exact-one encoding, up to the factor two. This is a *restricted algebraic proof-system* lower bound, not a lower bound on arbitrary Boolean circuits. Stronger proof systems may admit short refutations of the same instances.
+Hence the graph-colouring family of Lauria and Nordström [3], which requires Polynomial Calculus degree \(\Omega(|V|)\) in the corresponding algebraic encoding, yields the same asymptotic degree lower bound for its exact-one encoding, up to the factor two. Degree–size relations for Polynomial Calculus are developed by Impagliazzo, Pudlák and Sgall [5]; applications of those relations must retain their quantitative assumptions. This is a *restricted algebraic proof-system* lower bound, not a lower bound on arbitrary Boolean circuits. Stronger proof systems may admit short refutations of the same instances.
 
 ## 11. Precise final statement
 
@@ -563,7 +563,7 @@ K_G(\mathbb F)\cong T_{\mathbb F}^{V}
 \[
 \boxed{
 \begin{aligned}
-(S_{\rm alg},U_{\rm alg})=(s^{O(1)},s^{O(1)})
+(S_{\rm alg},\tau_{\rm alg})=(s^{O(1)},s^{O(1)})
 &\Longrightarrow
 (S(\mathcal C_m),\Gamma(\mathcal C_m))
 =(s^{O(1)},\,\le 2^m s^{O(1)}),\\
@@ -585,7 +585,7 @@ This article therefore offers a mathematical theorem of exact, representation-in
 
 [3] M. Lauria and J. Nordström, “Graph Colouring Is Hard for Algorithms Based on Hilbert's Nullstellensatz and Gröbner Bases,” *Proceedings of CCC* (2017), Article 2.
 
-[4] D. M. McKay, C. D. Murray and R. R. Williams, “Weak Lower Bounds on Resource-Bounded Compression Imply Strong Separations of Complexity Classes,” *Proceedings of STOC* (2019), 104–117, DOI: 10.1145/3313276.3316396.
+[4] D. M. McKay, C. D. Murray and R. R. Williams, “Weak Lower Bounds on Resource-Bounded Compression Imply Strong Separations of Complexity Classes,” *Proceedings of STOC* (2019), 1215–1225, DOI: 10.1145/3313276.3316396.
 
 [5] R. Impagliazzo, P. Pudlák and J. Sgall, “Lower Bounds for the Polynomial Calculus and the Gröbner Basis Algorithm,” *Computational Complexity* 8 (1999), 127–144.
 
