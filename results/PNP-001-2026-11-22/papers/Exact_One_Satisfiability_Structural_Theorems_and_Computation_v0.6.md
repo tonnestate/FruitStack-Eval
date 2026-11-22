@@ -10,7 +10,7 @@ We study positive exact-one satisfiability through an affine relaxation over \(\
 \min_{B\text{ basis of }K_G(\mathbb F)}
 \operatorname{tw}(H_B)=2\operatorname{tw}(G)+1.
 \]
-A substitution from the characteristic-two XOR/carry encoding of exact-one clauses to the standard graph-colouring polynomials transfers Polynomial Calculus degree lower bounds. We isolate the precise model boundaries: high optimized overlap width does not imply large unrestricted Boolean circuit size, and large Polynomial Calculus degree does not imply hardness for stronger proof systems. We finally prove conditional implications from explicitly quantified—but unproved—general-circuit and online-circuit hypotheses to \(P\ne NP\). The structural results are unconditional; the computational lower-bound hypotheses are not proved.
+A substitution from the characteristic-two XOR/carry encoding of exact-one clauses to the standard graph-colouring polynomials transfers Polynomial Calculus degree lower bounds. We isolate the precise model boundaries: high optimized overlap width does not imply large unrestricted Boolean circuit size, and large Polynomial Calculus degree does not imply hardness for stronger proof systems. We finally prove conditional implications from explicitly quantified—but unproved—general-circuit and online-circuit hypotheses to \(P\ne NP\). The structural results are unconditional mathematical theorems, with the exact GF(3) width equivalence additionally formalized in Lean 4; the separate computational lower-bound hypotheses are not proved.
 
 **Keywords:** satisfiability; exact-one constraints; affine spaces; finite fields; graph colouring; support overlap; Hall's theorem; treewidth; Polynomial Calculus; circuit complexity.
 
@@ -282,6 +282,34 @@ For the upper bounds use the two basis vectors per vertex with vertex triples
 \]
 and all other vertex triples zero; the auxiliary coordinates are determined by (13). The two vectors at one vertex overlap. Across each edge all four pairs of corresponding vectors overlap at its slack coordinates. Vectors at nonadjacent vertices have disjoint supports. Consequently the canonical basis has \(H_B\cong G[K_2]\), attaining both lower bounds. \(\square\)
 
+### 4.2. Explicit formal proof and fulfilled embedding hypotheses
+
+The preceding statements are **theorems with mathematical proofs**, not empirical conjectures. There are two distinct levels of formal evidence.
+
+**Formal theorem over \(\mathbb F_3\).** Let \(\operatorname{TwLe}(H,k)\) mean that \(H\) has a tree decomposition of width at most \(k\). For every nonempty finite simple graph \(G\) and every \(k\in\mathbb N\), the Lean development states the exact equivalence
+\[
+\boxed{
+\left(
+\exists B\text{ basis of }K_G(\mathbb F_3):
+\operatorname{TwLe}(H_B,2k+1)
+\right)
+\ \Longleftrightarrow\
+\operatorname{TwLe}(G,k).
+}
+\tag{27a}
+\]
+Both directions occur as explicit proof terms: the canonical-basis upper-bound construction and the lower-bound transfer from an arbitrary basis decomposition back to a decomposition of \(G\). The corresponding source files contain no proof placeholders (sorry or admit) or locally declared axioms. Their kernel compilation and statement-fidelity audit are separate reproducibility checks; they are not claimed to have been independently rerun while preparing this version.
+
+**General-field and arbitrary-spanning-family theorem.** Theorems 7 and 9 above give complete mathematical proofs. Their hypotheses are verified as follows: (R) follows from the surjection \(K_G(\mathbb F)\twoheadrightarrow T_{\mathbb F}^{X}\); (L) follows from intersection of nonzero zero-sum triples; and (E) follows from the auxiliary edge-coordinate constraints. Therefore
+\[
+\forall\mathbb F\ \forall G\ \forall B\text{ spanning }K_G(\mathbb F):
+\quad G[K_2]\hookrightarrow H_B
+\tag{27b}
+\]
+is a **proved consequence of the stated conditions**, not an open embedding conjecture. The general-field subgraph result is a rigorous paper proof, not the narrower Lean-formalized GF(3) statement.
+
+The completed implications (R), (L), (E) \(\Rightarrow\) Hall embedding \(\Rightarrow\) optimal width are distinct from the **still-unproved** conversion (37) of every general nonlinear decision circuit into a low-cost spanning family. That further obligation changes the computational model; it is not a gap in the completed structural theorem.
+
 The complete proved structural chain is
 \[
 \begin{gathered}
@@ -314,7 +342,7 @@ and
 
 **Proof.** For one vertex the kernel is \(T_q=\{a\in\mathbb F^q:\sum_i a_i=0\}\). The basis \(e_1-e_2,e_2-e_3,\ldots,e_{q-1}-e_q\) has support-overlap graph \(P_{q-1}\), which is not \(K_{q-1}\) when \(q\ge4\). \(\square\)
 
-Theorems 7 and 9 are paper proofs of structural statements. They do not assert a gate lower bound for arbitrary nonlinear computation. The separately reported Lean formalization concerns an \(\mathbb F_3\) width identity, not the general-field theorem in the form stated above.
+Theorems 7 and 9 are **complete mathematical proofs** of structural statements. The exact GF(3) width equivalence is additionally represented by the Lean development specified in Section 4.2. The arbitrary-field spanning-family theorem is proved in the mathematical text; neither result by itself asserts a gate lower bound for arbitrary nonlinear computation.
 
 ## 5. Algebraic proof transfer and its exact boundary
 
