@@ -94,7 +94,7 @@ Then
 \boxed{P\ne NP.}
 \tag{9}
 \]
-The implication from (8) to (9) is proved in Section 8. **The universal lower-bound assertion (8) is a hypothesis of that theorem**, not a consequence claimed here of (6). This distinction is essential even though both simulation steps used in the conditional proof have been independently reviewed in their stated models.
+The implication from (8) to (9) is proved in Section 8. **The universal lower-bound assertion (8) is a hypothesis of that theorem**, not a consequence claimed here of (6). Moreover, (8) is *stronger than necessary*: the published streaming transfer requires a suitable lower bound only against uniform deterministic streaming algorithms, rather than an exclusion of all possibly nonuniform staged circuits. Section 8 gives the weaker quantified alternative and its exact relation to (8).
 
 ## 2. Proof of the affine criterion
 
@@ -440,6 +440,46 @@ is mathematically established, with the full uniformity and oracle qualification
 
 **Crucially, (8) itself is not established by Lemmas 11–12.** Those lemmas give upper bounds on the cost of simulating a proposed *fast* computation. They do not show that no such computation exists.
 
+### 8.1. A weaker sufficient lower-bound premise
+
+Theorem 3 is formulated using (8) because the staged-circuit representation makes the simulation explicit. **Equation (8) is sufficient, not necessary, for applying the published streaming separation theorem.** Indeed, it excludes a different, larger class: independently selected staged Boolean circuits at every sufficiently large input length.
+
+To express the weaker requirement, let \(\mathfrak M_{s,A}^{\mathrm{unif}}\) be the class of ordinary **uniform deterministic one-pass algorithms** that solve the exact total \(\mathrm{SearchMCSP}^{A}[s]\) relation at every input length, with the same output and oracle conventions as in [4]. For \(\mathcal M\in\mathfrak M_{s,A}^{\mathrm{unif}}\), write \(S_{\mathcal M}(m)\) for its space usage and \(\tau_{\mathcal M}(m)\) for its worst-case update time. For some admissible \(s,A\), it is enough to prove
+
+\[
+\boxed{
+\begin{aligned}
+&\forall \mathcal M\in\mathfrak M_{s,A}^{\mathrm{unif}}\;
+\forall c,d\in\mathbb N\;
+\forall m_0\;
+\exists m\ge m_0:\\
+&S_{\mathcal M}(m)>s(m)^c
+\quad\lor\quad
+\tau_{\mathcal M}(m)>s(m)^d .
+\end{aligned}}
+\tag{40a}
+\]
+
+This says that **no single uniform exact streaming algorithm** achieves both polynomial-in-\(s\) resource bounds at every sufficiently large input length. It does *not* forbid a separate efficient nonuniform staged realization at each length.
+
+**Proposition 13 (weaker sufficient streaming premise).** For parameters \(s,A\) satisfying the conditions of the streaming theorem in [4], (40a) implies \(P\ne NP\). Further, the stronger circuit exclusion (8) implies (40a).
+
+*Proof.* Under \(P=NP\), the ordinary uniform algorithm provided by the construction underlying [4, Theorems 1.2–1.3] has \(S_{\mathcal M}(m),\tau_{\mathcal M}(m)=s(m)^{O(1)}\) eventually, contradicting (40a). Conversely, if (40a) were false, some uniform algorithm would achieve both resource bounds with fixed exponents for every sufficiently large \(m\). Lemmas 11–12 would turn its updates and complete decoder into an admissible staged circuit with \(S=s^{O(1)}\) and \(\Gamma\le2^m s^{O(1)}\) for all those \(m\), contradicting (8), after increasing the exponents to absorb fixed polynomial overhead. \(\square\)
+
+The logical structure is therefore
+
+\[
+\boxed{
+\text{universal nonuniform circuit exclusion (8)}
+\Longrightarrow
+\text{uniform streaming lower bound (40a)}
+\Longrightarrow P\ne NP .
+}
+\tag{40b}
+\]
+
+**Neither converse is claimed.** In particular, a proof of (40a) by another mathematical method would make a proof of (8) unnecessary. If the graph-kernel width theorem is used to prove (40a), the required quantitative representation-to-computation argument need cover the uniform machines in (40a) rather than all nonuniform circuits of (8). It must still apply to *every* such uniform machine, preserve exact search semantics, and yield an asymptotic contradiction to polynomial space and update time. The completed exact treewidth identity and the upper-bound simulation alone do not provide that lower-bound argument.
+
 ## 9. On combining the two kinds of bounds
 
 The structural result is an exact optimum:
@@ -450,7 +490,7 @@ The structural result is an exact optimum:
 \]
 with equality for an explicit \(B=B_{\rm nat}\).
 
-The computational lemmas, for an ordinary \(S\)-space, \(U\)-step update machine, give
+The computational lemmas, for an ordinary \(S\)-space, \(\tau\)-step update machine, give
 \[
 \operatorname{CC}(U_t)=O(\tau S),\qquad
 \Gamma=O(2^m\tau S)+\operatorname{CC}(D),
@@ -502,11 +542,11 @@ d_{m,s}(\operatorname{tw}(G_{m,s})+1)-1
 \]
 a contradiction. Theorem 3 would then imply \(P\ne NP\).
 
-**Proposition 13 (conditional combination).** If a construction satisfying conditions 1–4 is proved for the full admissible computation class and the parameters of Theorem 3, then \(P\ne NP\).
+**Proposition 14 (conditional combination under the stronger circuit exclusion).** If a construction satisfying conditions 1–4 is proved for the full admissible computation class and the parameters of Theorem 3, then \(P\ne NP\).
 
 *Proof.* A polynomial-resource staged realization would satisfy (46), which is impossible. Thus (8) holds and Theorem 3 applies. \(\square\)
 
-The proof of this conditional proposition is elementary once conditions 1–4 are assumed. Their satisfaction for **arbitrary nonlinear online circuits** is not established by the universal kernel theorem: the latter quantifies over spanning families *already belonging to an appropriate linear space*.
+The proof of this conditional proposition is elementary once conditions 1–4 are assumed. Their satisfaction for **arbitrary nonlinear online circuits** is not established by the universal kernel theorem: the latter quantifies over spanning families *already belonging to an appropriate linear space*. This is one sufficient route, not an obligatory route. By Proposition 13, a direct proof of the weaker uniform streaming lower bound (40a) would also imply \(P\ne NP\), without proving the nonuniform exclusion (8) or the stronger universal representation map demanded in conditions 1–4.
 
 This is not a gap in the proof of the width identity (6), which is complete. It is a new cross-model implication with different quantified objects.
 
@@ -529,7 +569,7 @@ y_{\{u,v\},c}\longmapsto1+x_{u,c}+x_{v,c}.
 \]
 The edge parity polynomial becomes zero, and modulo the Boolean axioms the quadratic polynomial becomes \(x_{u,c}x_{v,c}\). The vertex exact-one equations remain the standard colouring equations.
 
-**Proposition 14 (degree-bounded substitution).** A degree-\(D\) Polynomial Calculus refutation of the positive exact-one XOR/carry system over \(\mathbb F_2\) induces a Polynomial Calculus refutation of its standard graph-colouring encoding of degree at most \(2D\).
+**Proposition 15 (degree-bounded substitution).** A degree-\(D\) Polynomial Calculus refutation of the positive exact-one XOR/carry system over \(\mathbb F_2\) induces a Polynomial Calculus refutation of its standard graph-colouring encoding of degree at most \(2D\).
 
 *Proof.* Substitution (48) has degree one and sends each source axiom to zero or to a degree-at-most-two combination of target axioms and Boolean relations. A Polynomial Calculus addition step maps to addition. Multiplication by a vertex variable is preserved, while multiplication by an eliminated slack variable becomes multiplication by an affine linear expression and is simulated by a bounded number of variable-multiplication and addition steps. The degrees of intermediate lines increase by at most a factor of two. The last line \(1\) remains \(1\). \(\square\)
 
@@ -573,7 +613,7 @@ K_G(\mathbb F)\cong T_{\mathbb F}^{V}
 \tag{51}
 \]
 
-The first equivalence and the structural chain are unconditional. The simulation and the **implication** to \(P\ne NP\) are proved in their stated models. The hypothesis excluding every polynomial-resource exact staged realization in Theorem 3 is not established by the preceding structural statements.
+The first equivalence and the structural chain are unconditional. The simulation and the **implication** to \(P\ne NP\) are proved in their stated models. The hypothesis excluding every polynomial-resource exact staged realization in Theorem 3 is not established by the preceding structural statements. It is stronger than necessary: the quantified exclusion of uniformly implemented polynomial-resource streaming algorithms in (40a) would already suffice by the published theorem. Neither exclusion is obtained automatically by combining the exact overlap-width equality with the upper-bound circuit simulations.
 
 This article therefore offers a mathematical theorem of exact, representation-independent *linear* overlap width, a formalized special-field equivalence, and a precise conditional complexity consequence. It does not assert an unconditional proof of \(P\ne NP\) from these results alone.
 
