@@ -1,6 +1,6 @@
 # PNP-001: From Structural Obstructions to General Computation
 
-## A unified research programme on exact-one satisfiability, algebraic kernels, proof complexity, compression and hardness transfers
+## Exact-one satisfiability, algebraic kernels, proof complexity, and computational lower-bound implications
 
 **Björn Tonn**  
 **Working research manuscript — version 0.25, 22 November 2026**
@@ -1172,15 +1172,15 @@ Likewise a fixed \(s=1\) or \(s=2\) experiment at \(m=3,4\) does not imply a sta
 
 ---
 
-## 13. Further mathematical transfer implications
+## 12. Further mathematical transfer implications
 
-### 13.1 Why a single-gap account is insufficient
+### 12.1 Why a single-gap account is insufficient
 
 The proofbook and the owner-approved K8/K9 bridge map contain more routes than the initial four-front grouping reveals. In particular, *an unrestricted nonlinear streaming lower bound* is only one of several hypotheses which would imply a complexity separation. Other hypotheses involve a **one-tape deterministic time bound**, a **general Boolean circuit lower bound**, a **constructive Kolmogorov-complexity boundary**, special **Extended Frege** lower bounds, or a formula/circuit simulation. These involve different input distributions, machine models and quantifier orders.
 
 The review of the 21 November P2 dossier, K8/K9 contracts, Grand Strategy, T47 non-stream memo, LIT-10/LIT-11 and the 22 November archived proofstates supports the following expanded classification. This is an evidence-based **research map**, not a claim that the missing hypotheses have been proved.
 
-### 13.2 Route O: a one-tape MCSP time lower bound — direct conditional P versus NP separation
+### 12.2 Route O: a one-tape MCSP time lower bound — direct conditional P versus NP separation
 
 Cheraghchi, Hirahara, Myrisiotis and Yoshida, *One-Tape Turing Machine and Branching Program Lower Bounds for MCSP* (STACS 2021; [official proceedings](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2021.23)), identify a direct threshold inherited from McKay–Murray–Williams. For a certain sufficiently small **fixed** \(\mu_1>0\),
 
@@ -1198,7 +1198,7 @@ The owner dossier assigns this line to **the associated transfer question**. Its
 
 **Audit status:** (O1) is a published conditional implication; the required deterministic time lower bound at the **small** \(\mu_1\) remains OPEN.
 
-### 13.3 Route K: P-uniform hardness magnification for Hamming-promise MCSP
+### 12.3 Route K: P-uniform hardness magnification for Hamming-promise MCSP
 
 The **K3** milestone in the owner-approved P2 dossier refers to Atserias–Müller's *Simple General Magnification of Circuit Lower Bounds* (arXiv:2503.24061, 2025). K3 is the proposed lower bound for the **Hamming-distance promise** problem \(N^{-\varepsilon}\)-MCSP with the exact paper's parameters.
 
@@ -1226,7 +1226,7 @@ The repo also records a **claimed** near-linear lower-bound lemma K-L for a rest
 
 **Audit status:** K3 OPEN, K4 OPEN. The cited Atserias–Müller transfer is an existing published, **weaker-conclusion** route. K3 must remain distinct from ECCC Report 313.
 
-### 13.4 Route PIT-313: low-degree identity testing and disjunctive lower bounds
+### 12.4 Route PIT-313: low-degree identity testing and disjunctive lower bounds
 
 **ECCC TR26-313** is Nikolai Chukhin, Karthik Gajulapalli, Alexander Golovnev and Ivan Mihajlin, *A Little Derandomization Goes a Long Way: Unconditional Circuit Lower Bounds using Low-Degree PIT* (5 November 2026; [ECCC](https://eccc.weizmann.ac.il/report/2026/313/); [arXiv:2611.07972](https://arxiv.org/abs/2611.07972)). This **is not** the K3 milestone above. They are related at the broad level of lower-bound research, not by an established theorem identifying their hypotheses.
 
@@ -1260,7 +1260,7 @@ evaluation points. A dimension argument shows that this many points are necessar
 
 **Audit status:** the published disjunction (PIT1) is established externally; the exponent-improving hypothesis (PIT2) is OPEN for the required general model. Neither K3 nor PIT-313 should be called an unconditional proof of \(P\ne NP\).
 
-### 13.5 Route KOL: Kolmogorov boundary hardness and one-way functions
+### 12.5 Route KOL: Kolmogorov boundary hardness and one-way functions
 
 Liu–Pass, *One-Way Functions and Boundary Hardness of Randomized Time-Bounded Kolmogorov Complexity* (ITCS 2026; [official proceedings](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.97)), give a characterization of one-way functions by the hardness of a **specific boundary promise problem** for randomized time-bounded Kolmogorov complexity.
 
@@ -1280,7 +1280,7 @@ The full boundary definitions, promise, randomized complexity and infinitely-oft
 
 An important directional correction already present in the P2 dossier is retained: **\(P\ne NP\) is not known to imply one-way functions**. Thus the cryptographic hardness premise is a sufficient condition for separation, not a characterization of \(P\ne NP\). This line is independent of Hall overlap-width.
 
-### 13.6 Route EF: bounded arithmetic, witnessing tautologies and proof-system strength
+### 12.6 Route EF: bounded arithmetic, witnessing tautologies and proof-system strength
 
 Pich–Santhanam, *Towards P ≠ NP from Extended Frege Lower Bounds* ([ECCC TR23-199](https://eccc.weizmann.ac.il/report/2023/199/)), prove conditional transfers from lower bounds for **specially augmented Extended Frege systems** and their witnessing circuit-lower-bound tautologies to strong Boolean circuit lower bounds. The premise is not “some formula is hard for a weak proof system.”
 
@@ -1290,7 +1290,7 @@ The **Weak Rank Principle** / PCR track provides further proof-complexity target
 
 **Audit status:** published conditional EF route; required strong proof-system lower bound and simulation from PNP-001's restricted systems OPEN.
 
-### 13.7 Route DAG: direct general circuit lower bounds for MCSP
+### 12.7 Route DAG: direct general circuit lower bounds for MCSP
 
 The owner-approved P2 dossier states a particularly direct target, **the associated transfer question**, which does not require one-pass streaming or a Hall linear-space embedding. Fix a circuit basis \(B_2\), \(N=2^m\), and some fixed \(c\ge1\). A sufficient lower-bound statement has quantifiers
 
@@ -1314,7 +1314,7 @@ The proofstate the associated transfer question now contains 176 archived events
 
 This is **an additional direct-to-separation route**, not just a restatement of L*: it targets arbitrary fan-in-two Boolean DAGs with unrestricted sharing.
 
-### 13.8 Route RAND: avoiding streaming — computation graphs, random access and formulas
+### 12.8 Route RAND: avoiding streaming — computation graphs, random access and formulas
 
 The **T47** memo, *Escalating Graph vs Computation Graph: What If It Is Not a Stream?* (21 November), explicitly considers four computation shapes: one-pass streaming; event-driven escalating graphs; random-access time-space machines; and general Boolean DAGs.
 
@@ -1324,7 +1324,7 @@ The most important lesson is that the alternatives do not share the same *quanti
 
 **Audit status:** alternative model comparisons and specific published transfers exist; the new cross-model reductions remain OPEN.
 
-### 13.9 Route ALG: threshold circuit analysis and exact theorem-matched CAPP
+### 12.9 Route ALG: threshold circuit analysis and exact theorem-matched CAPP
 
 The P1 route has a genuine, source-checked published algorithm-to-lower-bound implication: for every fixed \(\alpha>1\), a suitably accurate nontrivial \(2^n/n^{\omega(1)}\)-time acceptance-probability algorithm for \(O(n^\alpha)\)-size \(\mathrm{XOR}_2\circ\mathrm{THR}\circ\mathrm{THR}\) circuits gives corresponding lower bounds against \(n^\alpha\)-size \(\mathrm{THR}\circ\mathrm{THR}\) circuits in \(E^{NP}\). The project cites Chen–Tal–Wang Lemma 3.8, Bathie–Williams (2024), and Chen–Williams (2019).
 
@@ -1332,13 +1332,13 @@ Unlike an ordinary runtime experiment, a transfer-qualifying algorithm must hand
 
 A lower bound for \(E^{NP}\) against one fixed restricted circuit class is **not** \(P\ne NP\). Nevertheless it is an independent mathematical output worth reporting and may inform the Boolean lower-bound tools used in the direct MCSP lines.
 
-### 13.10 Route VERIFY: exact finite synthesis, polynomial identities and hitting sets
+### 12.10 Route VERIFY: exact finite synthesis, polynomial identities and hitting sets
 
 Several project results are most appropriately classified as **verification technology**, not yet complexity-class transfers. These include the PhysalisMe exact SAT/UNSAT encoding of state updates, Hall-lemma finite checks, bit-level Polynomial Calculus certificate verification, low-degree identity testing, generator-image annihilators, and the candidate use of hitting sets for any-order read-once algebraic branching programs.
 
 They are important because a mathematically proposed “unavoidable work” invariant should first be attacked with small counterexamples. A satisfiable finite SAT encoding must be host-replayed to validate the decoded algorithm. An unsatisfiable encoding must range over **all** relevant state recodings before it becomes an invariant for its specified finite domain. A same-family AI rewrite is not independent corroboration. In no case can finite tests substitute for the universal asymptotic lower bound required by L*, (O1), (DAG1), or an independent formula-based transfer.
 
-### 13.11 What the research frontier now looks like
+### 12.11 What the research frontier now looks like
 
 | Research route | Smallest sufficient missing statement documented in PNP-001 | Published endpoint if met | Latest checked status |
 |---|---|---|---|
@@ -1356,7 +1356,7 @@ They are important because a mathematically proposed “unavoidable work” inva
 
 These rows are **not eleven equivalent statements**. A lower bound in a smaller class cannot be silently substituted for a lower bound in a larger class; a consequence in \(E^{NP}\) cannot be silently substituted for a lower bound for NP; and a uniform lower bound cannot be treated as a nonuniform lower bound without a simulation.
 
-### 13.12 Existing graph-width controls and source bookkeeping
+### 12.12 Existing graph-width controls and source bookkeeping
 
 The complete-graph and complete-bipartite controls \(K_n\) and \(K_{n,n}\) are **pre-existing derived consequences** of the established formula
 
@@ -1366,7 +1366,7 @@ The complete-graph and complete-bipartite controls \(K_n\) and \(K_{n,n}\) are *
 
 They are not new observations from this audit. They are retained in the earlier sections because they are essential mandatory falsification tests. For instance, with \(G=K_{3,3}\), \(\operatorname{tw}(G)=3\) and the optimized kernel overlap width is \(7\); this is a substitution into the existing theorem, not a new graph-family lower bound. The graph \(K_{3,3}\), the P2 milestone **K3** (P-uniform Hamming-promise MCSP), and literature report **TR26-313** (low-degree PIT) are separate objects. The earlier conversational shorthand is not evidence for equating them; the graph control is an immediate instance of the already proved structural bound.
 
-### 13.13 Archival correction: number of research questions versus proofstate files
+### 12.13 Archival correction: number of research questions versus proofstate files
 
 Commit **a1dea0e2c** corrects the earlier exporter message, which had described 182 research questions as though they were 182 separate proofstate files. The corrected README says the 182 count wrongly included **92 JSON proofstate files plus 90 lock files**. The subsequent 15:55 export contains **94 actual JSON proofstate files**, while the ledger has **2,248 research questions in total**, with status counts OPEN 1,424; PURSUED 552; ANSWERED 181; STOPPED 56; ESCALATED 18; RETRACTED 17. The five category totals sum to 2,248. These are administrative state categories, not counts of verified mathematical theorems.
 
@@ -1374,7 +1374,7 @@ The manuscript's earlier Section 0.12 records the **historical** 15:30 snapshot 
 
 ---
 
-## 14. Conclusions
+## 13. Conclusions
 
 We have reconstructed a connected but not yet closed programme of mathematical implications.
 
@@ -1401,30 +1401,6 @@ The present status can be summarised as
 We do **not** claim that this establishes \(P\ne NP\). What the synthesis achieves is a sharper specification of the missing proof obligations, a hierarchy of independently useful theorem candidates, and explicit checks preventing a restricted-model result from being misreported as an unrestricted separation.
 
 ---
-
-## Appendix A. The concrete next theorem to attempt
-
-The computation-to-width programme should first try to state and falsify the following:
-
-**Candidate A (OPEN, not a proven theorem).** Fix the exact MMW Search-MCSP model with \(s=s(m)\) meeting all theorem hypotheses. There exist uniformly constructible graphs \(G_{m,s}\), linear spaces \(K_{m,s}\) with block structure and a computable transformation \(\mathcal A\mapsto B_\mathcal A\), defined for every admissible exact deterministic one-pass algorithm \(\mathcal A\), such that:
-
-1. \(K_{m,s}\) satisfies (R), (L), (E) with fixed \(d\ge1\).
-2. \(B_\mathcal A\) spans \(K_{m,s}\).
-3. \(\operatorname{tw}(H_{B_\mathcal A})\le F(m,s,S_\mathcal A,U_\mathcal A)\), with all construction work, output processing and decoder cost accounted for.
-4. The lower bound \(d(\operatorname{tw}(G_{m,s})+1)-1\) exceeds \(F\) for every resource bound allowed by MMW for sufficiently large parameters.
-5. A precisely identified premise fails in the known MMW oracle-assisted construction.
-
-Only if all five clauses are proved does Candidate A provide the desired width-based entry to QE*. Clause 4 must be asymptotic and uniform across the relevant exponent choices. Clause 5 cannot be satisfied by an informal assertion of nonrelativisation.
-
-The immediate falsification task is to test Clause 3 against nonlinear state encodings, arbitrary DAG reuse, time-dependent recoding, deferred decoding, and easy high-width examples.
-
-## Appendix B. The requested union theorem
-
-**Candidate B (the associated transfer question; OPEN).** Construct a single explicitly defined mathematical statement \(\mathcal U\) and establish, for each of the four fronts F1–F4, a *sound and quantitative* reduction making that front's sufficient separation premise follow from \(\mathcal U\), or proving a logically necessary factorisation through \(\mathcal U\).
-
-Until the complete family of reductions is established, the phrase “all four fronts hinge on the same step” should be read as a **research hypothesis about possible proof organisation**, not as a mathematical theorem.
-
-A successful Candidate B would unify the proof obligations; it would not alone prove \(P\ne NP\) unless \(\mathcal U\) itself were established and a published separation transfer completed.
 
 ## Declarations
 
