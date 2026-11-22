@@ -1829,5 +1829,26 @@
   "proved_step": "CONSTANT-s STREAMING UPDATE LEMMA (scope: fixed m >= 1, fixed s >= 1). Let Circ_s(m) be the straight-line circuits with at most s fan-in-2 gates over {AND, OR, XOR, ANDNOT} on inputs x_0..x_{m-1}; N = 2^m; Eval(C) in {0,1}^N. For t < N and a prefix p in {0,1}^t, let L_t(p) = {C : Eval(C)_a = p_a for all a < t}. Claims: (i) L_0() = Circ_s(m); (ii) L_{t+1}(pb) = {C in L_t(p) : Eval(C)_t = b}; (iii) EXT(p) = 1 iff L_t(p) is nonempty; (iv) |Circ_s(m)| <= (s+1)(4(m+s)^2)^s. PROOF: (i) and (iii) are definitions. (ii): C is in L_{t+1}(pb) iff Eval(C)_a = p_a for a < t and Eval(C)_t = b, which is C in L_t(p) with Eval(C)_t = b. (iv): a circuit with k gates has at most prod_{i<k} 4*C(m+i,2) <= (4(m+s)^2)^k choices, since gate i picks one of 4 ops and an unordered pair among m+i <= m+s nodes; summing over k = 0..s gives (s+1)(4(m+s)^2)^s. COST: storing L_t as a membership bitmap over Circ_s(m) takes |Circ_s(m)| bits. One update evaluates each circuit at the single assignment bin(t), which takes O(s) bit operations per circuit, so the worst-case per-bit time is O(s (s+1) (4(m+s)^2)^s), which is poly(m) = poly(log N) when s = O(1). QED.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795359097.5945635,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "gap": "General proof that the residual-class count D_t is bounded by |Im_s|+1 (or by a poly(s) quantity) for all m, s, t is still missing; the finite check does not reach m>=4 or s>=4.",
+  "evidence": "cm-297f9cb9893d4396 (own enumerator, session-independent of S0102/S0108 code): for m=2 (s=1,2,3) and m=3 (s=1,2,3), max_t D_t <= |Im_s|+1 holds in all six cases (e.g. m=3,s=3: |Im|=171, max D=25). Finite check only, m<=3, s<=3; not a proof and not a review of S0102/S0108 (claimant is same model family, so this session cannot review them). Claims S0102/S0108 remain CLAIMED and unreviewed.",
+  "gap_id": "G0118"
+ },
+ {
+  "at": 1795359140.879667,
+  "session": "pnp-desk/research/R1532",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (prefix-read bound, kind LEMMA, unconditional). Let C be a fan-in-2 circuit with s gates over inputs x=(y,z), y in {0,1}^t the prefix, z the rest. Let R be the set of prefix indices i such that y_i feeds a gate directly, so |R| <= 2s. Then for every fixed prefix assignment rho, the residual C|_rho(z) depends only on rho restricted to R. Hence D_t(C) := #{C|_rho : rho in {0,1}^t} <= min(2^t, 2^{2s}). PROOF: induct on gates in topological order. A gate whose two input wires are both not prefix wires computes a function of z-wires and earlier gates only, so its value is independent of rho. A gate with a prefix input wire y_i has i in R, so its value depends on rho only through rho_i. Downstream gates take values that depend on rho only through rho|_R, so the output does too. The bound D_t <= 2^{|R|} follows because the residual is a function of rho|_R. QED.",
+  "gap": "G0118 is NOT closed. This lemma gives the exponential bound 2^{2s} only. The target is D_t <= |Im_s|+1 or D_t <= poly(s) uniformly in m and t. The remaining obstacle: many distinct rho|_R patterns can still give the same residual function, and no argument in this session shows they collapse to poly(s) classes. Next step: prove a collapse lemma. Candidate: two patterns rho, rho' on R give the same residual iff they agree on the set of gates whose values are 'live' for the residual, which should give a count of at most (number of live gate-value vectors) <= poly(s).",
+  "evidence": "Hand proof only, no computation. The finite check cm-297f9cb9893d4396 covers m<=3, s<=3 and is not a proof. No review of S0102/S0108 by this session (same family).",
+  "gap_id": "G0119",
+  "id": "S0219",
+  "proved_step": "Lemma above: D_t(C) <= min(2^t, 2^{2s}) for every fan-in-2 circuit C with s gates, every prefix length t. Proof given in the lemma field. Status: CLAIMED, unreviewed (same model family).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
