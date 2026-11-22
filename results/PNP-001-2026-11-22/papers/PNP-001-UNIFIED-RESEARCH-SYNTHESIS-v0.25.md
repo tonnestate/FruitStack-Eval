@@ -450,27 +450,28 @@ is mathematically established, with the full uniformity and oracle qualification
 
 Theorem 3 is formulated using (8) because the staged-circuit representation makes the simulation explicit. **Equation (8) is sufficient, not necessary, for applying the published streaming separation theorem.** Indeed, it excludes a different, larger class: independently selected staged Boolean circuits at every sufficiently large input length.
 
-To express the weaker requirement, let \(\mathfrak M_{s,A}^{\mathrm{unif}}\) be the class of ordinary **uniform deterministic one-pass algorithms** that solve the exact total \(\mathrm{SearchMCSP}^{A}[s]\) relation at every input length, with the same output and oracle conventions as in [4]. For \(\mathcal M\in\mathfrak M_{s,A}^{\mathrm{unif}}\), write \(S_{\mathcal M}(m)\) for its space usage and \(\tau_{\mathcal M}(m)\) for its worst-case update time. For some admissible \(s,A\), it is enough to prove
+To express the weaker requirement, let \(\mathfrak M_{s,A}^{\mathrm{plain}}\) be the class of **uniform deterministic one-pass RAM algorithms with no oracle access during computation** which solve the total exact \(\mathrm{SearchMCSP}^{A}[s]\) relation at every input length. The language \(A\in PH\) is permitted **only as oracle gates in the circuit being synthesized**; the machine may not query \(A\), \(\Sigma_3\mathrm{SAT}^{A}\), or any other oracle. This distinction is essential: the fast algorithm of [4, Theorem 1.2] already exists unconditionally *with* a \(\Sigma_3\mathrm{SAT}^{A}\) oracle. For \(\mathcal M\in\mathfrak M_{s,A}^{\mathrm{plain}}\), write \(S_{\mathcal M}(m)\) for its worst-case space usage and \(\tau_{\mathcal M}(m)\) for its worst-case time between any two successive input reads, **including the final reporting-time bound**, across all length-\(2^m\) inputs. It suffices to establish the following statement, where \(s\) is time-constructible and \(s(m)\ge m\):
 
 \[
 \boxed{
-\begin{aligned}
-&\forall \mathcal M\in\mathfrak M_{s,A}^{\mathrm{unif}}\;
-\forall c,d\in\mathbb N\;
-\forall m_0\;
-\exists m\ge m_0:\\
-&S_{\mathcal M}(m)>s(m)^c
+\begin{gathered}
+\exists\,s\text{ time-constructible},\ s(m)\ge m,\quad
+\exists\, A\in PH:\\
+\forall\,\mathcal M\in\mathfrak M_{s,A}^{\mathrm{plain}}\quad
+\forall\,c,d\in\mathbb N\quad
+\forall\,m_0\quad\exists\,m\ge m_0:\\
+S_{\mathcal M}(m)>s(m)^c
 \quad\lor\quad
 \tau_{\mathcal M}(m)>s(m)^d .
-\end{aligned}}
+\end{gathered}}
 \tag{40a}
 \]
 
-This says that **no single uniform exact streaming algorithm** achieves both polynomial-in-\(s\) resource bounds at every sufficiently large input length. It does *not* forbid a separate efficient nonuniform staged realization at each length.
+This says that **no single ordinary uniform oracle-free streaming algorithm** achieves both polynomial-in-\(s\) resource bounds at every sufficiently large input length. The order of quantifiers matters: the exponents \(c,d\) may depend on \(\mathcal M\), and the lower-bound witness \(m\) is required only at arbitrarily large lengths (infinitely often), not at every sufficiently large length. It does *not* forbid a separate efficient nonuniform staged realization at each length.
 
-**Proposition 13 (weaker sufficient streaming premise).** For parameters \(s,A\) satisfying the conditions of the streaming theorem in [4], (40a) implies \(P\ne NP\). Further, the stronger circuit exclusion (8) implies (40a).
+**Proposition 13 (weaker sufficient streaming premise).** For parameters \(s,A\) satisfying the conditions of the streaming theorem in [4], the oracle-free statement (40a) implies \(P\ne NP\). Further, the stronger circuit exclusion (8) implies (40a).
 
-*Proof.* Under \(P=NP\), the ordinary uniform algorithm provided by the construction underlying [4, Theorems 1.2–1.3] has \(S_{\mathcal M}(m),\tau_{\mathcal M}(m)=s(m)^{O(1)}\) eventually, contradicting (40a). Conversely, if (40a) were false, some uniform algorithm would achieve both resource bounds with fixed exponents for every sufficiently large \(m\). Lemmas 11–12 would turn its updates and complete decoder into an admissible staged circuit with \(S=s^{O(1)}\) and \(\Gamma\le2^m s^{O(1)}\) for all those \(m\), contradicting (8), after increasing the exponents to absorb fixed polynomial overhead. \(\square\)
+*Proof.* Under \(P=NP\), we have \(PH=P\), so the oracle calls in [4, Theorem 1.2] can be simulated by ordinary polynomial-time computation, as explicitly argued in [4, the proof of Theorem 1.3]. Thus there is an **oracle-free uniform** machine \(\mathcal M\in\mathfrak M_{s,A}^{\mathrm{plain}}\) with \(S_{\mathcal M}(m),\tau_{\mathcal M}(m)=s(m)^{O(1)}\) for all sufficiently large \(m\), contradicting (40a). Conversely, if (40a) were false, some **oracle-free uniform** algorithm would achieve both resource bounds with fixed exponents for every sufficiently large \(m\). The RAM simulation following Lemma 11 and the unrolling Lemma 12 would turn its updates and complete decoder into an admissible staged circuit with \(S=s^{O(1)}\) and \(\Gamma\le2^m s^{O(1)}\) for all those \(m\), contradicting (8), after increasing the exponents to absorb fixed polynomial overhead. \(\square\)
 
 The logical structure is therefore
 
@@ -484,7 +485,32 @@ The logical structure is therefore
 \tag{40b}
 \]
 
-**Neither converse is claimed.** In particular, a proof of (40a) by another mathematical method would make a proof of (8) unnecessary. If the graph-kernel width theorem is used to prove (40a), the required quantitative representation-to-computation argument need cover the uniform machines in (40a) rather than all nonuniform circuits of (8). It must still apply to *every* such uniform machine, preserve exact search semantics, and yield an asymptotic contradiction to polynomial space and update time. The completed exact treewidth identity and the upper-bound simulation alone do not provide that lower-bound argument.
+**Neither converse is claimed.** In particular, a proof of (40a) by another mathematical method would make a proof of (8) unnecessary. The presence of an oracle in \(\mathcal M\)'s *runtime* would invalidate (40a), because [4, Theorem 1.2] supplies a polynomial-resource oracle-assisted streamer regardless of whether \(P=NP\). If the graph-kernel width theorem is used to prove (40a), the required quantitative representation-to-computation argument need cover the uniform machines in (40a) rather than all nonuniform circuits of (8). It must still apply to *every* such uniform machine, preserve exact search semantics, and yield an asymptotic contradiction to polynomial space and update time. The completed exact treewidth identity and the upper-bound simulation alone do not provide that lower-bound argument.
+
+### 8.2. A restricted linear-state observation
+
+The oracle-free condition in (40a) allows nonlinear, time-dependent state updates. The following independent calculation applies to a **much smaller** model and therefore does not establish (40a).
+
+**Proposition 14 (linear-state lower bound; restricted model).** Let \(p\) be prime, \(N=2^m\), and suppose an exact total streaming realization of \(\mathrm{SearchMCSP}^{A}[s]\), for \(s(m)\ge m\), has \(r\) state coordinates over \(\mathbb F_p\) and updates
+\[
+q_{t+1}=M_tq_t+z_tv_t+a_t,
+\qquad q_t\in\mathbb F_p^r,\quad z_t\in\{0,1\}.
+\tag{40c}
+\]
+The decoder may be arbitrary and may evaluate oracle gates. If the update matrices and vectors do not depend on the input already read, then
+\[
+\boxed{r\ge \left\lceil\frac{N}{p-1}\right\rceil.}
+\tag{40d}
+\]
+
+*Proof.* By iterating the affine updates, the final state has the form \(q_N(z)=b+Wz\), where \(W\in\mathbb F_p^{r\times N}\). If \(r(p-1)<N\), apply the Chevalley--Warning theorem [16] to the \(r\) polynomials
+\[
+P_j(X_1,\ldots,X_N)=\sum_{i=1}^{N}W_{ji}X_i^{p-1}
+\qquad (1\le j\le r).
+\]
+Their total degree sum is at most \(r(p-1)<N\); the number of their common roots over \(\mathbb F_p\) is divisible by \(p\). The zero vector is a common root, so there exists a nonzero common root \(x\). Put \(z_i=x_i^{p-1}\in\{0,1\}\). Then \(z\ne0\) and \(Wz=0\), hence \(q_N(z)=q_N(0)\). An exact decoder must output a circuit for the all-zero truth table on input \(0\), but the same output cannot also represent the distinct nonzero table \(z\). This contradiction proves the bound. \(\square\)
+
+For \(p=3\), the result says \(r\ge2^{m-1}\) field coordinates. A binary implementation needs at least this many state bits (and ordinarily more to encode the field coordinates). This statement does **not** apply to nonlinear updates, general recodings or oracle-assisted updates. It uses no lower bound on total gate cost \(\Gamma\), and it provides no proof of (8) or (40a). The restricted statement has a proof above, but independent external review and a novelty assessment remain outstanding.
 
 ## 9. On combining the two kinds of bounds
 
@@ -548,7 +574,7 @@ d_{m,s}(\operatorname{tw}(G_{m,s})+1)-1
 \]
 a contradiction. Theorem 3 would then imply \(P\ne NP\).
 
-**Proposition 14 (conditional combination under the stronger circuit exclusion).** If a construction satisfying conditions 1–4 is proved for the full admissible computation class and the parameters of Theorem 3, then \(P\ne NP\).
+**Proposition 15 (conditional combination under the stronger circuit exclusion).** If a construction satisfying conditions 1–4 is proved for the full admissible computation class and the parameters of Theorem 3, then \(P\ne NP\).
 
 *Proof.* A polynomial-resource staged realization would satisfy (46), which is impossible. Thus (8) holds and Theorem 3 applies. \(\square\)
 
@@ -575,7 +601,7 @@ y_{\{u,v\},c}\longmapsto1+x_{u,c}+x_{v,c}.
 \]
 The edge parity polynomial becomes zero, and modulo the Boolean axioms the quadratic polynomial becomes \(x_{u,c}x_{v,c}\). The vertex exact-one equations remain the standard colouring equations.
 
-**Proposition 15 (degree-bounded substitution).** A degree-\(D\) Polynomial Calculus refutation of the positive exact-one XOR/carry system over \(\mathbb F_2\) induces a Polynomial Calculus refutation of its standard graph-colouring encoding of degree at most \(2D\).
+**Proposition 16 (degree-bounded substitution).** A degree-\(D\) Polynomial Calculus refutation of the positive exact-one XOR/carry system over \(\mathbb F_2\) induces a Polynomial Calculus refutation of its standard graph-colouring encoding of degree at most \(2D\).
 
 *Proof.* Substitution (48) has degree one and sends each source axiom to zero or to a degree-at-most-two combination of target axioms and Boolean relations. A Polynomial Calculus addition step maps to addition. Multiplication by a vertex variable is preserved, while multiplication by an eliminated slack variable becomes multiplication by an affine linear expression and is simulated by a bounded number of variable-multiplication and addition steps. The degrees of intermediate lines increase by at most a factor of two. The last line \(1\) remains \(1\). \(\square\)
 
@@ -619,7 +645,7 @@ K_G(\mathbb F)\cong T_{\mathbb F}^{V}
 \tag{51}
 \]
 
-The first equivalence and the structural chain are unconditional. The simulation and the **implication** to \(P\ne NP\) are proved in their stated models. The hypothesis excluding every polynomial-resource exact staged realization in Theorem 3 is not established by the preceding structural statements. It is stronger than necessary: the quantified exclusion of uniformly implemented polynomial-resource streaming algorithms in (40a) would already suffice by the published theorem. Neither exclusion is obtained automatically by combining the exact overlap-width equality with the upper-bound circuit simulations.
+The first equivalence and the structural chain are unconditional. The simulation and the **implication** to \(P\ne NP\) are proved in their stated models. The hypothesis excluding every polynomial-resource exact staged realization in Theorem 3 is not established by the preceding structural statements. It is stronger than necessary: the quantified exclusion of **oracle-free uniform** polynomial-resource streaming algorithms in (40a) would already suffice by the published theorem. Neither exclusion is obtained automatically by combining the exact overlap-width equality with the upper-bound circuit simulations.
 
 This article therefore offers a mathematical theorem of exact, representation-independent *linear* overlap width, a formalized special-field equivalence, and a precise conditional complexity consequence. It does not assert an unconditional proof of \(P\ne NP\) from these results alone.
 
@@ -658,6 +684,8 @@ This research was carried out using FruitStack, a multi-agent research environme
 [14] T. Baker, J. Gill and R. Solovay, “Relativizations of the P =? NP Question,” *SIAM Journal on Computing* 4(4) (1975), 431–442, DOI: 10.1137/0204037.
 
 [15] A. A. Razborov and S. Rudich, “Natural Proofs,” *Journal of Computer and System Sciences* 55(1) (1997), 24–35, DOI: 10.1006/jcss.1997.1494.
+
+[16] E. Warning, “Bemerkung zur vorstehenden Arbeit von Herrn Chevalley,” *Abhandlungen aus dem Mathematischen Seminar der Universität Hamburg* 11 (1935), 76–83, DOI: 10.1007/BF02940715.
 
 ---
 
