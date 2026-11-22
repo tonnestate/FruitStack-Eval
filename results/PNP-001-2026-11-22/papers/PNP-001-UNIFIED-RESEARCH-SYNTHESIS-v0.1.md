@@ -525,3 +525,491 @@ A focused alternative is to restrict the simulation to the **special family of c
 
 This is distinct from QE*: a successful circuit-to-formula simulation would need its own formal quantitative audit and might establish a separation without a streaming state/width embedding at all. The fact that both routes confront reuse and representation changes does not establish their mathematical equivalence.
 
+
+---
+
+## 8. Constructive hardness, refuters and range avoidance
+
+### 8.1 From existential failure to an efficiently found counterexample
+
+A traditional lower bound may assert that every circuit in a class fails on at least one input. A *constructive separation* strengthens this: given the attempted algorithm, a uniform, resource-bounded refuter must efficiently output an input on which the algorithm errs.
+
+Chen–Jin–Santhanam–Williams, *Constructive Separations and Their Consequences*, establish several published transfer theorems in which sufficiently efficient refuters for carefully specified weak algorithms would entail strong complexity separations, including \(P\ne NP\).
+
+These theorems require a resource-sensitive definition of a refuter. In particular, it is not enough for a finite exhaustive search to find a counterexample to one small circuit. The quantification includes the target algorithm family, all relevant sizes, the uniformity class, the complexity of the refuter itself, and sometimes randomized success guarantees.
+
+### 8.2 Three distinct tasks
+
+There are three logically separate forms of avoidance:
+
+**Individual falsification.** Given a specific candidate circuit \(C\), output an input \(x\) with \(C(x)\ne f(x)\). A SAT solver may be adequate for small circuits, but its runtime must be counted.
+
+**Range avoidance.** Given a circuit or generator \(G:\{0,1\}^r\to\{0,1\}^N\) with \(r<N\), construct an element \(y\notin\operatorname{im}(G)\). The existence of such a \(y\) follows by counting. Efficient construction is a different claim.
+
+**Uniform refutation.** Given the description of any attempted algorithm in a specified class, a highly restricted uniform generator outputs a correctly certified counterexample within the exact resource bounds of the published transfer.
+
+A range-avoidance witness for the circuit-evaluation map can be viewed as a truth table outside the image of all circuits below a given size. This viewpoint makes the finite circuit-synthesis and exact-checking tools relevant as falsifiers. It does not automatically promote them into a uniform asymptotically efficient refuter.
+
+### 8.3 Direct conditional transfer
+
+The K8 research contract prioritises Theorem 1.7 and the related Section 4 propositions of Chen–Jin–Santhanam–Williams. It also identifies a distinct DISJ-refuter transfer. These published implications must be restated with their **complete original parameters** before they are used as edges of the present proof graph.
+
+For the MCSP route, the desired form is
+
+\[
+\text{efficient uniform refuter meeting CJSW hypotheses}
+\quad\Longrightarrow\quad
+P\ne NP.
+\tag{25}
+\]
+
+The left-hand assertion is **OPEN** for the constructions in PNP-001. The project's finite counterexample engines, exhaustive circuit enumerators, small exact SAT witnesses and agent-based adversarial reviews do not by themselves satisfy it.
+
+### 8.4 Why this line may evade the width bridge
+
+A refuter can sometimes establish a computational separation by exhibiting failures of all candidate procedures **without** proving that their internal computations have a specific low-width representation. Therefore a single universal computation-to-width theorem cannot be declared a necessary condition for this research route.
+
+This logical independence is material to the proposed “union theorem”: any claim that all four fronts share one unavoidable proof step must either show how refuters factor through that step, or replace “necessary for every route” with the weaker claim that the step is sufficient for a chosen combined strategy.
+
+---
+
+## 9. Algorithmic methods, counting and algebraic complexity
+
+### 9.1 Faster algorithms as sources of lower bounds
+
+Williams' algorithmic method converts sufficiently strong algorithms for analysing a circuit class into lower bounds against that same class, subject to exact closure conditions, running times, circuit sizes and uniformity assumptions. This strategy is logically different from directly proving an invariant of an arbitrary streaming state.
+
+The PNP-001 P1 track uses Chen–Tal–Wang (2026), *Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits*. The external result establishes lower bounds of order \(n^{2.5-\varepsilon}\) for suitable functions in \(E^{NP}\) against depth-two threshold circuits \(THR\circ THR\). Extending the circuit-analysis algorithm to every desired fixed polynomial-size threshold family would yield further **class-specific** lower bounds. This is not, without another theorem, \(P\ne NP\).
+
+The exact function class matters: a lower bound for a language in \(E^{NP}\) is not automatically a lower bound for one in NP, and a size bound against \(THR\circ THR\) does not apply to unrestricted Boolean circuits.
+
+### 9.2 Counting, tensor contraction and symbolic computation
+
+The K7 research programme compares tensor-contraction and sparse-algebraic counting algorithms, including subexponential #SAT methods discussed in 2026 preprints. Even a rigorously proved \(2^{o(n)}\) algorithm for 3-SAT is superpolynomial unless its full bound is polynomial. It does not establish \(P=NP\), and it does not establish \(P\ne NP\).
+
+Any proposed circuit lower bound based on improved counting must preserve:
+
+- the exact circuit class analyzed;
+- gate types and fan-in;
+- size and depth thresholds;
+- the number of variables and clauses produced by encodings;
+- randomized versus deterministic guarantees;
+- uniformity, nonuniform advice and oracle operations.
+
+A finite improvement on the exact-one cores or a low-degree subclass does not imply the algorithm required by a Williams-style transfer for all circuits of the target class.
+
+### 9.3 Low-degree polynomial identity testing
+
+Chukhin–Gajulapalli–Golovnev–Mihajlin (2026) develop a connection between improved low-degree polynomial identity testing and unconditional circuit lower bounds, with a disjunctive conclusion involving strong Boolean lower bounds for a specified class or an arithmetic separation.
+
+A disjunction
+
+\[
+A\lor B
+\]
+
+is not a proof of \(A\). In particular, a Boolean lower bound for a potentially different NP language for every fixed exponent \(k\),
+
+\[
+\forall k\ \exists L_k\in NP:\ L_k\notin\mathrm{SIZE}(n^k),
+\tag{26}
+\]
+
+has different quantifiers from
+
+\[
+\exists L\in NP\ \forall k:\ L\notin\mathrm{SIZE}(n^k),
+\tag{27}
+\]
+
+which is the type of assertion needed to exclude \(NP\subseteq P/poly\). The project explicitly recorded this distinction as a control in its 21 November owner proof-chain review.
+
+The exact arithmetic model and characteristic also matter. An invariant proved only for polynomials over \(\mathbb F_2\) need not imply a theorem about circuits over \(\mathbb Z\) or \(\mathbb Q\).
+
+### 9.4 Bounded arithmetic and stronger proof systems
+
+The PNP-001 programme also studies transfers involving bounded arithmetic, Extended Frege, proof complexity of circuit lower-bound statements, and the Weak Rank Principle. These are important but model-sensitive.
+
+In general, a short computation trace is not automatically a short certificate of its correctness. A proof system can simulate an algorithm only under precise formalizability and soundness hypotheses. An exponential lower bound for one proof system does not refute the existence of all polynomial-time decision procedures.
+
+A successful stronger algebraic proof-system lower bound could be a major independent theorem without resolving \(P\) versus \(NP\). In such cases the paper should state the genuine proof-complexity contribution rather than promoting it to a general-computation claim.
+
+### 9.5 Four routes compared
+
+| Route | Starting result | Missing premise | Published or conditional endpoint | Current status |
+|---|---|---|---|---|
+| Streaming QE* | MMW resource-bounded compression | General worst-case update lower bound with exact oracle and representation hypotheses | \(P\ne NP\) | OPEN G0004/G0005 |
+| R-MCSP | CJW fixed-threshold MCSP formula bound | MCSP-specific subquadratic circuit-to-formula bound, uniform for small \(\beta\) | \(NP\not\subseteq P/poly\) through MMW | OPEN |
+| Gap-MCSP magnification | Oliveira–Pich–Santhanam | Correct general-circuit lower bound in the precise parameter window | \(NP\not\subseteq P/poly\) under stated magnification hypothesis | OPEN |
+| Constructive refuters | CJSW separations and known component hardness | Required uniform, efficient refuter for exact target model | \(P\ne NP\) under stated refuter theorem | OPEN |
+| Threshold-circuit algorithms | Chen–Tal–Wang, Williams-style transfer | Stronger circuit analysis at each relevant polynomial size | \(E^{NP}\) lower bounds for restricted threshold class | Restricted-model frontier |
+| Algebra / proof systems | Theorems 12, 14, 16; K6; published lifting | Stronger system lower bounds and exact simulations | Proof-system/algebraic separations, not automatic \(P\ne NP\) | Restricted-model frontier |
+
+The table has six technical rows because the four fronts consist of multiple distinct transfer mechanisms. “Four fronts” refers to organisational groupings, not an asserted equivalence theorem.
+
+---
+
+## 10. A candidate unification theorem
+
+### 10.1 The motivating question
+
+The new research question is whether the different lower-bound programmes can be organised around one proof obligation: **must a fast exact computation induce a low-complexity representation in a class for which a structural lower bound is known?**
+
+This is the subject of the proposed organisation-level *union theorem* **Q-a1e6376406**. The identifier is reported by the ongoing research discussion and was not yet present in the older GitHub snapshots inspected during preparation.
+
+We formalise the question as a general proof template rather than claiming the requested theorem has been established.
+
+### 10.2 Models and maps
+
+Let \(L=(L_n)\) be a decision or search family, and let \(\mathsf{Alg}_n(L)\) denote all admissible algorithms for \(L_n\) in a specified model. Let
+
+\[
+\operatorname{cost}(\mathcal A)
+\]
+
+measure the relevant time or circuit resources, and let \(\mathcal R_n(L)\) be a family of structured representations with a nonnegative complexity measure
+
+\[
+\mu:\mathcal R_n(L)\to\mathbb R_{\ge0}.
+\]
+
+A *sound resource-preserving representation transfer* comprises a map \(\Phi_n\) defined for **every** admissible algorithm \(\mathcal A\), plus a proved quantitative bound
+
+\[
+\Phi_n(\mathcal A)\in\mathcal R_n(L),
+\qquad
+\mu(\Phi_n(\mathcal A))
+\le F(n,\operatorname{cost}(\mathcal A)).
+\tag{28}
+\]
+
+It must also preserve the semantics needed for the lower bound: a representation constructed from an algorithm must represent the same total search or decision relation, not a promise restriction or an unrelated encoding.
+
+A *representation lower bound* is a theorem
+
+\[
+\forall R\in\mathcal R_n(L),\quad \mu(R)\ge H(n).
+\tag{29}
+\]
+
+### 10.3 The elementary bridge principle
+
+**Proposition 10.1 (conditional bridge principle).** If (28) and (29) hold for the *same* representation class, measure and input family, then every admissible algorithm \(\mathcal A\) satisfies
+
+\[
+H(n)\le F(n,\operatorname{cost}(\mathcal A)).
+\tag{30}
+\]
+
+*Proof.* Substitute \(R=\Phi_n(\mathcal A)\) into (29), then apply (28). \(\square\)
+
+This proposition is tautological as mathematics; its role is to expose rather than hide the difficult premise. All nontrivial work lies in proving a sufficiently strong map (28) and a sufficient bound (29) for the exact model.
+
+For PNP-001 the proposed choices are:
+
+\[
+\mathcal R_n(L)=\{\text{spanning-family support-overlap representations of }K_{m,s}\},
+\]
+
+\[
+\mu(R)=\operatorname{tw}(H_R),
+\]
+
+and a construction from every low-resource Search-MCSP streaming algorithm to such a spanning family. **That construction has not been proved.**
+
+### 10.4 Required strength for the Hall route
+
+A successful Hall-based application would need:
+
+1. A uniform family of graph-indexed spaces \(K_{m,s}\) derived from Search-MCSP semantics.
+2. A proof of conditions (R), (L), (E) in those spaces, with a positive rank parameter \(d\).
+3. A mapping from *every* relevant deterministic streaming algorithm, including arbitrary nonlinear state encodings, to a spanning family \(B_{\mathcal A}\).
+4. A bound \(\operatorname{tw}(H_{B_{\mathcal A}})\le F(m,s,S,U)\) justified by *actual* computation, not merely by state counting.
+5. A family of graphs with \(\operatorname{tw}(G_{m,s})\) large enough to contradict that upper bound for all required resource exponents.
+6. An oracle test showing precisely why the argument does **not** erroneously forbid the known MMW oracle construction.
+
+The resulting inequality would have the form
+
+\[
+d\bigl(\operatorname{tw}(G_{m,s})+1\bigr)-1
+\le \operatorname{tw}(H_{B_{\mathcal A}})
+\le F(m,s,S,U).
+\tag{31}
+\]
+
+Everything on the right of the first inequality remains a new research obligation when interpreted as a universal theorem about streaming computation. The published Hall result supplies only the left-hand structural ingredient once its hypotheses have been established.
+
+### 10.5 An obstruction to universal width-to-work claims
+
+**Proposition 10.2 (no unconditional width-only proof-cost bound).** No unbounded function \(g\) can satisfy
+
+\[
+\operatorname{ResolutionSize}(F(G))
+\ge g\!\left(\min_B\operatorname{tw}(H_B)\right)
+\]
+
+for all unsatisfiable colouring-encoded formulas \(F(G)\).
+
+*Proof.* Take \(G=K_n\) for \(n\ge4\). By (13) the width is \(2n-1\), while a fixed \(K_4\) contradiction supplies a Resolution refutation of bounded size. \(\square\)
+
+This does **not** refute every possible Search-MCSP-specific bridge. It refutes the shortcut that simply equates structural width and computation without a further hypothesis.
+
+A second, distinct danger is the identity update on a large state vector: a transition matrix may have high rank but be implemented with no nontrivial arithmetic gates. A lower bound on dimension or rank is not automatically a lower bound on update operations.
+
+### 10.6 Four-front factorisation: proposed theorem, not established
+
+The strongest contemplated **union theorem** would prove that each of F1–F4 either yields a representation lower bound of a shared type or can be transferred, through a known quantitative simulation, to one common missing statement \(\mathcal U\). Formally, for each route \(i\), a factorisation
+
+\[
+\mathcal H_i\xRightarrow[\text{proved}]{T_i}\mathcal U
+\quad\text{or}\quad
+\mathcal U\xRightarrow[\text{proved}]{S_i}\mathcal H_i
+\tag{32}
+\]
+
+would be required, with directions fixed by the intended separation. The arrows may not be chosen opportunistically after the fact.
+
+**Present verdict: OPEN.** The following obstacles to a common factorisation are substantive:
+
+- A constructive refuter need not operate through a support-overlap representation.
+- Williams-style algorithm-to-lower-bound methods can avoid the width model entirely.
+- IPS and roABP lower bounds apply to certificates, not necessarily to online streaming computations.
+- Circuit-to-formula transfers charge sharing and DAG fan-out, which treewidth alone does not capture.
+- Even when two models use the same word “rank,” their matrices, fields, variable partitions and resource semantics may differ.
+
+Therefore the defensible present claim is narrower:
+
+> A common **logical audit method** applies to all four fronts: identify the restricted result, the precise target theorem, and the earliest missing quantitative implication. A common **mathematical bottleneck theorem** remains to be proved.
+
+This is the exact role of Q-a1e6376406. A proof that the four fronts truly share one reducible obligation would be a new theorem. Merely drawing arrows between their names is not.
+
+### 10.7 Dependency graph
+
+The following is a *status-labelled* research graph. A solid arrow denotes a proved implication in its specified model; a dashed arrow denotes an open research obligation.
+
+~~~text
+GF(3) two-value criterion ──► algebraic description of EXACT1-SAT
+            │
+            ├──► finite blind-core census / matroid-port obstruction
+            │
+            └──► graph-colouring exact-one family
+                        │
+                        ├──► PC degree transfer (specified axioms)
+                        │           └──► restricted proof-size lower bounds
+                        │
+                        └──► homogeneous colouring kernel
+                                     └──► universal Hall embedding
+                                                └──► sharp overlap width
+                                                        - - -► [COMPUTATION BRIDGE]
+                                                                  │
+Search-MCSP streaming state / updates - - - - - - - - - - - - - - -┘
+                                                                  │
+                                                                  - - -► QE*
+                                                                              │
+                                                                              └──► P ≠ NP [MMW, conditional]
+
+CJW formula lower bound ──► [R-MCSP simulation OPEN] ──► circuit LB
+                                                              │
+                                                              └──► P ≠ NP [MMW magnification]
+
+Exact circuit synthesis ──► [uniform refuter OPEN] ──► P ≠ NP [CJSW]
+
+Restricted IPS / roABP / matching ──► restricted proof-system LB
+                                           - - -► [general-model bridge OPEN]
+
+Fast threshold-circuit analysis - - -► stronger E^NP restricted-circuit LB
+
+Proposed union Q-a1e6376406: factorisation of the separate open bridges [OPEN].
+~~~
+
+The dependency graph is not a proof that every route must go through the computation bridge. It makes clear where the arrows remain missing.
+
+---
+
+## 11. Proof barriers and mandatory falsification
+
+### 11.1 Relativisation and oracle stress
+
+Baker–Gill–Solovay show that methods preserved under arbitrary oracle relativisation cannot settle the general \(P\) versus \(NP\) question. In the streaming programme, a more concrete stress test is available: the selected MMW construction uses powerful oracle operations. A proposed no-fast-update theorem must state exactly which premise fails once those oracle gates are admitted.
+
+Declaring a technique “nonrelativising” does not supply this missing argument. Conversely, a technique using polynomials is not automatically subject to every algebraisation barrier.
+
+### 11.2 Natural proofs and locality
+
+Razborov–Rudich's Natural Proofs obstruction applies under particular pseudorandom-function hypotheses to certain constructive and sufficiently large combinatorial properties. The *locality barrier* in hardness magnification concerns classes of arguments insensitive to the availability of small oracle gates. A correct audit evaluates these hypotheses against the exact candidate method, model and parameter range rather than rejecting an argument by analogy.
+
+### 11.3 Easy high-width controls
+
+Candidate width-based theorems must survive:
+
+- \(K_n\): linear overlap-width growth with a fixed \(K_4\) contradiction.
+- \(K_{n,n}\): growing width with a trivial colouring algorithm.
+- Prism graphs: many perfect matchings and bounded treewidth.
+- Functions that are algebraically high-rank as formal polynomials but identically zero on Boolean inputs.
+- Identity updates, parity sketches, bounded-rank affine encodings and nonlinear recodings.
+- An algorithm that postpones costly work to the decoder.
+- An algorithm whose DAG shares expensive intermediate calculations.
+
+The “first false line” principle is essential: when a step fails, the exact invalid implication and smallest counterexample must be archived. An edited conjecture is new and unproved until independently checked.
+
+### 11.4 Quantifier and asymptotic controls
+
+A proposed separation must be checked for the order of all quantifiers. In particular:
+
+\[
+\forall k\ \exists L_k
+\quad\text{is not the same as}\quad
+\exists L\ \forall k.
+\]
+
+Likewise a fixed \(s=1\) or \(s=2\) experiment at \(m=3,4\) does not imply a statement for \(s(m)=m^c\) at unbounded \(m\). A worst-case update-time bound is not an amortised bound. A decision algorithm is not automatically a total search algorithm without a proved conversion. A rank lower bound on one vtree cut is not a lower bound against every vtree.
+
+---
+
+## 12. Research record and reproducibility
+
+### 12.1 Archived research objects
+
+The principal sources for this synthesis are:
+
+- Repository **tonnestate/FruitStack-Eval**, branch **cc/pnp001-results-20261118**.
+- Repository **tonnestate/PNP-001-research**, branch **main**.
+- Draft **PNP-001_Research_Manuscript_v0.24.docx** (20 November 2026).
+- Draft **Every_Basis_Sees_the_Blow_Up_v4_2026-11-22.md**.
+- **results/PNP-001-2026-11-19/lean/WStar.lean** and **WStarLower.lean**.
+- **results/PNP-001-2026-11-20/acc0-level3/THEOREM-12.md** and **ACC0-L3-REPORT.md**.
+- **results/PNP-001-2026-11-20/REUSE-MCSP-NOTE.md**.
+- **results/PNP-001-2026-11-21/specifications/**, including K1, K6, K7, K8, K9, the lemma-M experiments and Grand Strategy.
+- **results/PNP-001-2026-11-22/qe-star/QE-STAR-RECONSTRUCTION.md** and **PNP-001-CROSS-THEOREM-SYNTHESIS-2026-11-22.md**.
+- **proofstate/Q-156fa9c912.json** in PNP-001-research.
+
+The separate PNP-001-research proof-state snapshot contains 172 entries at its recorded commit f02b93c. The later QE-STAR-RECONSTRUCTION reports 198 live entries, of which 26 were newer than that GitHub snapshot. The full live state was **not directly available as a standalone repository file** in the examined branch. Claims based on the live state are therefore attributed to the reconstruction report rather than to independent inspection of the VPS.
+
+### 12.2 Independent checks still required
+
+The following remain separate release obligations:
+
+1. Reproduce the Lean builds from a pinned toolchain and check the fidelity of the formal statements to the manuscript.
+2. Formalise the abstract Hall embedding and arbitrary-field colouring subgraph theorem, or document why the current proof remains paper-only.
+3. Reproduce finite enumeration and certificate archives under the same axiom and field conventions.
+4. Audit published lower bounds and their exact parameter regimes before a separation transfer is claimed.
+5. Verify the identities of source graph families and transformed CNFs at each gadget-lifting step.
+6. Identify independent reviewer sessions and distinguish their mathematical findings from author-only checks.
+7. Record every failed transfer in an append-only ledger without overwriting the earlier hypothesis.
+
+The presence of hundreds or thousands of ledger entries does not change the acceptance criterion for any theorem.
+
+### 12.3 Four-front research audit
+
+| Front | Strongest available local starting point | First unproved general-computation step |
+|---|---|---|
+| F1, representation / streaming | GF(3) width theorem; residual-state formalism; linear-update controls | A representation-complete, oracle-sensitive *update-work* lower bound (G0004/G0005; Q-9c4d56f01f) |
+| F2, MCSP / sharing | CJW fixed-threshold formula lower bound; conditional Theorem R | R-MCSP or a weaker sufficient simulation for exactly the MMW-derived circuit family |
+| F3, algebra / proof systems | PC degree transfer; Theorems 12/14/16; K6 boundary signature analysis | Stronger system lower bounds and a justified quantitative simulation into the exact target class |
+| F4, algorithmic methods / refuters | CTW threshold circuit lower bounds; CJSW conditional refuter theorems | Suitable uniform refuter or sufficiently strong circuit-analysis algorithm with complete parameter match |
+
+---
+
+## 13. Conclusions
+
+We have reconstructed a connected but not yet closed programme of mathematical implications.
+
+**First**, the GF(3) representation isolates exact-one satisfiability as a two-value condition in an affine solution space. The finite blind-core census, matroid-port obstruction, degree data and Chvátal–Gomory checks constitute substantive mathematical results in their stated models.
+
+**Second**, the universal embedding theorem gives a sharp structural answer to basis optimisation for one homogeneous graph-colouring kernel. Every spanning family sees a copy of \(G[K_2]\), and the canonical basis achieves the minimum of every subgraph-monotone overlap parameter. This is a general-field paper theorem with a narrower GF(3) formal-verification record.
+
+**Third**, restricted proof-system and structured-compilation results establish hardness for specific algebraic or graph-based representation systems. These results are not weakened by the observation that stronger systems or unrelated algorithms may be efficient; their mathematical content is precisely the restriction.
+
+**Fourth**, published transfers through resource-bounded compression, MCSP hardness magnification, and uniform constructive refutation provide real conditional routes toward \(P\ne NP\). The conditions have not yet been established by the structural results.
+
+**Fifth**, an attempted *unification theorem* remains an open research question. Four fronts can share a rigorous bookkeeping discipline, but it has not been proved that all four necessarily reduce to a single new computation-to-low-width implication. In particular, algorithmic methods and constructive refuters may establish strong results through mechanisms that do not factor through a Hall-type support-overlap theorem.
+
+The present status can be summarised as
+
+\[
+\underbrace{\text{exact structural and restricted-model theorems}}_{\text{available in specified scopes}}
+\quad+\quad
+\underbrace{\text{published conditional transfers}}_{\text{available}}
+\quad+\quad
+\underbrace{\text{representation-complete computation bridge}}_{\text{OPEN}}.
+\]
+
+We do **not** claim that this establishes \(P\ne NP\). What the synthesis achieves is a sharper specification of the missing proof obligations, a hierarchy of independently useful theorem candidates, and explicit checks preventing a restricted-model result from being misreported as an unrestricted separation.
+
+---
+
+## Appendix A. The concrete next theorem to attempt
+
+The computation-to-width programme should first try to state and falsify the following:
+
+**Candidate A (OPEN, not a proven theorem).** Fix the exact MMW Search-MCSP model with \(s=s(m)\) meeting all theorem hypotheses. There exist uniformly constructible graphs \(G_{m,s}\), linear spaces \(K_{m,s}\) with block structure and a computable transformation \(\mathcal A\mapsto B_\mathcal A\), defined for every admissible exact deterministic one-pass algorithm \(\mathcal A\), such that:
+
+1. \(K_{m,s}\) satisfies (R), (L), (E) with fixed \(d\ge1\).
+2. \(B_\mathcal A\) spans \(K_{m,s}\).
+3. \(\operatorname{tw}(H_{B_\mathcal A})\le F(m,s,S_\mathcal A,U_\mathcal A)\), with all construction work, output processing and decoder cost accounted for.
+4. The lower bound \(d(\operatorname{tw}(G_{m,s})+1)-1\) exceeds \(F\) for every resource bound allowed by MMW for sufficiently large parameters.
+5. A precisely identified premise fails in the known MMW oracle-assisted construction.
+
+Only if all five clauses are proved does Candidate A provide the desired width-based entry to QE*. Clause 4 must be asymptotic and uniform across the relevant exponent choices. Clause 5 cannot be satisfied by an informal assertion of nonrelativisation.
+
+The immediate falsification task is to test Clause 3 against nonlinear state encodings, arbitrary DAG reuse, time-dependent recoding, deferred decoding, and easy high-width examples.
+
+## Appendix B. The requested union theorem
+
+**Candidate B (Q-a1e6376406; OPEN).** Construct a single explicitly defined mathematical statement \(\mathcal U\) and establish, for each of the four fronts F1–F4, a *sound and quantitative* reduction making that front's sufficient separation premise follow from \(\mathcal U\), or proving a logically necessary factorisation through \(\mathcal U\).
+
+Until the complete family of reductions is established, the phrase “all four fronts hinge on the same step” should be read as a **research hypothesis about possible proof organisation**, not as a mathematical theorem.
+
+A successful Candidate B would unify the proof obligations; it would not alone prove \(P\ne NP\) unless \(\mathcal U\) itself were established and a published separation transfer completed.
+
+## Appendix C. Source and reproducibility index
+
+### Internal manuscripts and data
+
+- [PNP-001 research results](https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-results-20261118/results)
+- [Historical proof book](https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-results-20261118/results/PNP-001-2026-11-18/beweisbuch)
+- [GF(3) formalisation](https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-results-20261118/results/PNP-001-2026-11-19/lean)
+- [Theorem 12 and algebraic report](https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-results-20261118/results/PNP-001-2026-11-20/acc0-level3)
+- [R-MCSP conditional reduction](https://github.com/tonnestate/FruitStack-Eval/blob/cc/pnp001-results-20261118/results/PNP-001-2026-11-20/REUSE-MCSP-NOTE.md)
+- [PNP-001 strategy and bridge contracts](https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-results-20261118/results/PNP-001-2026-11-21/specifications)
+- [QE* reconstruction and cross-theorem work](https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-results-20261118/results/PNP-001-2026-11-22/qe-star)
+- [Independent proof-state repository](https://github.com/tonnestate/PNP-001-research/blob/main/proofstate/Q-156fa9c912.json)
+- PNP-001, *Structural Invariants and General Computation*, manuscript v0.24, 20 November 2026 (conversation/library manuscript).
+- Tonn, *Every Basis Sees the Blow-Up: A Universal Subgraph Theorem for Support-Overlap Graphs of a Colouring Kernel*, version 4.0, 22 November 2026 (conversation/library manuscript).
+
+### External mathematical references
+
+1. Baker, T.; Gill, J.; Solovay, R. (1975). *Relativizations of the P=?NP Question*. SIAM Journal on Computing. https://doi.org/10.1137/0204037
+2. Razborov, A.; Rudich, S. (1997). *Natural Proofs*. Journal of Computer and System Sciences.
+3. Aaronson, S.; Wigderson, A. (2009). *Algebrization: A New Barrier in Complexity Theory*. ACM Transactions on Computation Theory.
+4. Lauria, M.; Nordström, J. (2017). *Graph Colouring is Hard for Algorithms Based on Hilbert's Nullstellensatz and Gröbner Bases*. CCC 2017. https://doi.org/10.4230/LIPIcs.CCC.2017.2
+5. Pitassi, T.; Robere, R. (2018). *Lifting Nullstellensatz to Monotone Span Programs over Any Field*. STOC 2018.
+6. Hakoniemi, T.; Limaye, N.; Tzameret, I. (2026). *Hard CNF Instances for Ideal Proof Systems*. ECCC TR26-070. https://eccc.weizmann.ac.il/report/2026/070/
+7. Berkholz, C.; Micun, M. (2026). *Proof Systems Based on Structured Circuits*. SAT 2026. https://doi.org/10.4230/LIPIcs.SAT.2026.6
+8. Chen, L.; Jin, C.; Williams, R. (2020). *Sharp Threshold Results for Computational Complexity*. STOC 2020 / ECCC TR20-065. https://eccc.weizmann.ac.il/report/2020/065/
+9. McKay, D.; Murray, C.; Williams, R. (2019). *Weak Lower Bounds on Resource-Bounded Compression Imply Strong Separations of Complexity Classes*. STOC 2019. https://people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf
+10. Oliveira, I. C.; Pich, J.; Santhanam, R. (2021). *Hardness Magnification Near State-of-the-Art Lower Bounds*. Theory of Computing 17. https://toc.cs.uchicago.edu/articles/v017a011/
+11. Chen, L.; Jin, C.; Santhanam, R.; Williams, R. (2024). *Constructive Separations and Their Consequences*. TheoretiCS. https://theoretics.episciences.org/12881
+12. Chen, L.; Tal, A.; Wang, Y. (2026). *Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits*. ECCC TR26-039. https://eccc.weizmann.ac.il/report/2026/039/
+13. Chukhin, N.; Gajulapalli, K.; Golovnev, A.; Mihajlin, I. (2026). *A Little Derandomization Goes a Long Way: Unconditional Circuit Lower Bounds using Low-Degree PIT*. ECCC TR26-313. https://eccc.weizmann.ac.il/report/2026/313/
+14. Cook, S.; Reckhow, R. (1979). *The Relative Efficiency of Propositional Proof Systems*. Journal of Symbolic Logic.
+15. Grochow, J.; Pitassi, T. (2018). *Circuit Complexity, Proof Complexity, and Polynomial Identity Testing: The Ideal Proof System*. Journal of the ACM.
+16. Chen, L.; Hirahara, S.; Oliveira, I. C.; Pich, J.; Rajgopal, N.; Santhanam, R. *Beyond Natural Proofs: Hardness Magnification and Locality* (consult the exact published version for theorem and parameter statements).
+17. Williams, R. (2014). *Nonuniform ACC Circuit Lower Bounds*. Journal of the ACM.
+18. Atserias, A.; Ochremiak, J. (2017). *Proof Complexity Meets Algebra*. ICALP 2017. https://doi.org/10.4230/LIPIcs.ICALP.2017.110
+
+**Bibliographic caution.** This is a working bibliography, not a final DOI-checked reference database. Specific theorem numbers and quantitative parameter regimes must be checked against the authoritative editions before a theorem is promoted from a research dependency to an established premise.
+
+---
+
+## Declarations
+
+**Data availability.** Repositories and relevant branch paths are linked above. Some older drafts were supplied through the research conversations and are not necessarily included in the GitHub branch; the live VPS evidence may be newer than the public snapshot.
+
+**Use of AI systems.** Multiple AI model families and code assistants contributed to discovery, calculations, counterexample search, independent criticism and drafting. Their participation is acknowledged as a research methodology; it does not constitute scientific acceptance.
+
+**Novelty.** The status of some exact-one and embedding results relative to the full matroid, coding and graph-width literature remains subject to a complete priority search and external review. Published source results are not claimed as original PNP-001 theorems.
+
+**Separation claim.** No unconditional proof of \(P=NP\) or \(P\ne NP\) is claimed.
+
+*End of working synthesis, v0.1 — 22 November 2026.*
