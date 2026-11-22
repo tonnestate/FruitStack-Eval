@@ -10,5 +10,23 @@
   "proved_step": "Counting lemma: if m = s(2*ceil(log2(n+s))+2)+ceil(log2(n+s)) < 2^n then some n-input Boolean function has circuit size > s over {AND,OR,XOR,NOT}.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795384101.8691506,
+  "session": "pnp-desk/research/R1781",
+  "model": "claude-haiku-5-5",
+  "id": "S0002",
+  "proved_step": "statement: For m = s(2L+2)+L, L = ceil(log2(n+s)), and m < 2^n: the least integer v* whose truth table is not computed by a circuit of size <= s over {AND,OR,XOR,NOT} satisfies v* <= 2^m, and is found by exhaustive search in time 2^m * poly(s) * 2^n. Does not close G0001 (no one-pass update-time bound).\nproof: Surjection {0,1}^m -> realised set (opcode 2 bits, two L-bit operands per gate, L-bit output index, dummy-gate padding, fixed default for invalid references). So |R| <= 2^m. Among {0..2^m} (2^m+1 values) some value is unrealised, so v* <= 2^m < 2^N. Enumerate 2^m descriptions, evaluate bit-parallel, scan a bitset for the first unmarked index.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795384181.683616,
+  "session": "pnp-desk/research/R1781",
+  "model": "claude-haiku-5-5",
+  "id": "S0003",
+  "proved_step": "statement: Let N=2^n, L=ceil(log2(n+s)), m=s(2L+2)+L, and assume m < 2^n. Let R be the set of truth tables on n inputs of circuit size <= s over {AND,OR,XOR,NOT}, and let R_p be the set of length-p prefixes (fixed input order) of tables in R. Then (a) |R_p| <= 2^m for every p <= N; (b) some w in {0,1}^(m+1) is not in R_(m+1), and every table with prefix w has circuit size > s. Hence the minimal dead depth p* = min{p : R_p != {0,1}^p} satisfies p* <= m+1 = O(s log(n+s)).\nproof: (a) R_p is the image of R under the prefix map pi_p, so |R_p| <= |R| <= 2^m by the encoding in S0001/S0002: each circuit of size <= s is described by s(2L+2)+L bits (2-bit opcode and two L-bit operands per gate, L-bit output index), and L = ceil(log2(n+s)) indexes all n+s nodes; dummy gates pad smaller circuits, so the description map is onto R. (b) m < 2^n gives m+1 <= N, so pi_(m+1) is defined. |{0,1}^(m+1)| = 2^(m+1) > 2^m >= |R_(m+1)|, so some w is missing. If f had prefix w and C(f) <= s, then f in R and w = pi_(m+1)(f) in R_(m+1), a contradiction. Scope: shrinks G0001 by locating the witness within m+1 stream positions; does NOT close G0001, since no update-time bound on deciding membership in R_p follows. Trivial counting bookkeeping, not progress toward P vs NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

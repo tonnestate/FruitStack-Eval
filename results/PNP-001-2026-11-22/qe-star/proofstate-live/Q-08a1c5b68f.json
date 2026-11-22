@@ -1811,5 +1811,116 @@
   "model": "claude-haiku-5-5",
   "refuted_approach": "Control (a) as an exact affine family of size |SC_{3,s}|: impossible, since |SC_{3,1}|=38 and |SC_{3,2}|=152 are not powers of 2. Measured: the largest affine subspace of SC_{3,1} has 16 elements and of SC_{3,2} has 32 elements (cm-f3eb7efe51de4e63, cm-9b52277d1d5449ae), so the 'SC is nearly affine' hypothesis is refuted at n=3 and the control must be a size-matched non-affine family.",
   "evidence": "cm-f3eb7efe51de4e63 (s=1: max affine size 16, fraction 0.421); cm-9b52277d1d5449ae (s=2: max affine size 32, fraction 0.211). Scope: n=3, N=8, exact enumeration over B2 circuits with 16 ops, all nodes as functions."
+ },
+ {
+  "at": 1795382282.8898504,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001",
+  "refuted_approach": "Self-review of my own new step (proved_step status SURVIVED_REVIEW set by the claimant) is invalid; the earlier attempt with oracle_stress='' was rejected by the schema. Also rejected: calling the single-encoding minimum a LOWER_BOUND or ALGORITHM. It is EXPLORATION until a different session reviews it.",
+  "evidence": "Measurement only, not a proved step. Source: cm-96bc28e847c44933 (fixed-index encoding: state = 1+index of a live prefix at level t, 0 = dead, S = ceil(log2(#states)) bits; n=3, s=1). As reported in the transcript, the exact SAT search gave minimal G = 9 at level 7. Levels t4-t6 were recorded only as lower bound 8, not as exact minima. Scope: this one encoding, this one (n,s), this one update-cost measure. The result says nothing about the minimum over all encodings or about the MMW Thm 4.1 oracle setting. I have not re-read the raw output of cm-96bc28e847c44933 in this session.",
+  "gap_id": "G0125"
+ },
+ {
+  "at": 1795382646.3124738,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001",
+  "evidence": "Measurement only, not a proved step. Source: cm-262789be5a0741fb (own generator for SC_{3,1}, |F|=38; clique-number and greedy-colouring bounds on the conflict graph H_t of lemma S0086; exact chi at every level). Result: states_lb(8)=39 (6 bits), states_lb(7)=20 (5 bits). This is a state-count bound (pigeonhole on live codes), i.e. bookkeeping: it does not measure the minimal update cost G, does not establish G_max, and is not an oracle-robust bound. The earlier G=9 entry (cm-96bc28e847c44933) has no raw output on file and is still UNVERIFIED; it must not be used as a premise. Not submitted as a proved_step: this session cannot review its own step.",
+  "gap_id": "G0126"
+ },
+ {
+  "at": 1795382713.0506773,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "evidence": "Derived by hand in this session from the model definition. The n=3, s=1 numbers come from cm-262789be5a0741fb, which the host recorded as a successful run. No review by this session.",
+  "id": "S0226",
+  "proved_step": "LEMMA-CLIQUE (explicit form of S0086(a,b), no closure claimed). Setting: N=2^n, F subset of {0,1}^N, deterministic streaming system with states q_t(p) on prefixes p of length t (time-dependent update), final state q_N(w), decoder D with D(q_N(w)) = a circuit computing w if w in F, and D rejects if w not in F. Let H_t have vertex set the live length-t prefixes (p with some pv in F), with p~p' iff some v has pv and p'v both in F. Claim: (a) if p != p' are live and q_t(p)=q_t(p'), then no v has pv and p'v both in F. Proof: q_t equal implies q_N(pv)=q_N(p'v) for every v (the update is a function of the state and the input bits, so the same state gives the same future). If both pv, p'v are in F, D returns one circuit computing both strings; they differ (they agree on the first t bits only if the rest differs, but p != p' gives distinct strings), contradiction. (b) if p is dead (no pv in F) and p' is live with q_t(p)=q_t(p'), then for any v with p'v in F we get q_N(pv)=q_N(p'v), so D accepts pv with a circuit, but pv is not in F: contradiction. Consequence: the codes of the vertices of any clique of H_t are pairwise distinct and disjoint from the code of any dead prefix, so the number of states is at least omega(H_t) + [a dead length-t prefix exists]. Scope: space (state count) only; update cost, decoder cost and oracle gates are unbounded and not addressed; it does not bound G, G_max, or the MMW Thm 4.1 setting. Explicit verification of the clique values for n=3, s=1 is cm-262789be5a0741fb (EXPLORATORY). Status: CLAIMED, written by this session, so it is open until a different model family reviews it. It repeats S0086 and adds no new content on the gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795382844.5652683,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001",
+  "evidence": "CORRECTION to my earlier FINAL and to the S0226 note. The 20-state value at t=7 (cm-262789be5a0741fb) is the clique bound, which is weaker than the search-semantics bound. Under search semantics (owner addendum 1, and S0226 part (a) plus the decoder argument), distinct live prefixes at the same t must have distinct states, and a live code must differ from every dead code, so S_t >= ceil(log2(L_t + [dead exists])). The per-level values for n=3, s=1 are in the verification run submitted with this correction (injective_states, bits). Expected: max over t = 6 bits, which is below N=8. This is space bookkeeping only. It does not measure G_max and is not a proved step.",
+  "gap_id": "G0127"
+ },
+ {
+  "at": 1795383109.4308743,
+  "session": "pnp-desk/research/R1770",
+  "model": "claude-haiku-5-5",
+  "lemma": "Trivial state-count bound (bookkeeping, NOT progress). Let P_t be the live prefixes at level t and let a streaming system with S state bits have codes c_t injective on P_t. Then 2^S >= |P_t|, so S >= ceil(log2 max_t |P_t|). Proof: c_t is an injection P_t -> {0,1}^S, so |P_t| <= 2^S. Instances from the spec's live-prefix counts: SC_{3,2} has max |P_t| = 152, so S >= 8; AFFINE has max |P_t| = 16, so S >= 4. This bound is attained by no claim about update cost.",
+  "gap": "Open: the minimal per-step update cost G_max = max_t CC(F_t) for SC_{3,1} and SC_{3,2} against the affine control. Not measured. Blocker: no joint SAT encoding over codes and exact-synthesis circuits has been run. Also open: the column meanings of cm-bbc995d5cb2c498d are unresolved, so the residual-count comparison (H2) is not usable. S-8fe3f1026c is withdrawn by the correction S-b3e015683c; no separation between SC and affine is claimed.",
+  "evidence": "Spec PNP-001-LEMMA-M-EXPERIMENT-2026-11-21.md sizes |P_t| for n=3, s=2 (max 152) and affine control (max 16); experiment cm-bbc995d5cb2c498d (S_lower only: SC_{3,1}=4, SC_{3,2}=5, AFFINE=4).",
+  "gap_id": "G0128"
+ },
+ {
+  "at": 1795383287.4178553,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001",
+  "evidence": "Control failure of the joint-SAT encoding cm-7dec1d6b31994d6d: the raw-storage control S=8 G=0 (must be SAT) returned UNKNOWN_BUDGET at 52 s, and S=6 G=1..5 returned UNKNOWN_BUDGET. UNKNOWN is not UNSAT, so these runs give no G_max information, and the encoding is not validated. Per the owner order, the encoder must reproduce controls first. No G_max value is measured and no proved_step is recorded. G0001 stays open.",
+  "gap_id": "G0129"
+ },
+ {
+  "at": 1795383411.3501384,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001",
+  "evidence": "cm-8e8720137abe4695 (fresh encoder, EXPLORATORY): n=2 S=4 G=0 SAT with decoder check passed; n=2 S=2 G=0 UNSAT; n=2 S=3 G=1 and G=2 UNSAT; n=3 S=8 G=0 (raw storage control) UNKNOWN_TIMEOUT. The encoder is NOT validated: S=3 G=0 at n=2 is untested and the spec reproduction target says min 3 bits at n=2, so the S=3 UNSATs may be a gate-budget or encoding error. No G_max value, no proved_step. G0001 stays open.",
+  "gap_id": "G0130"
+ },
+ {
+  "at": 1795383461.6842527,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001",
+  "evidence": "Resolution of the S=3 UNSAT puzzle. Under search semantics (owner addendum 1) every w in F has its own final state, because the decoder must output a circuit computing w. So distinct w in F need distinct final states, giving 2^S >= |F|, independent of G. For n=2, F is all 16 two-variable functions, so S >= 4 for every G. The results S=3 with G=0,1,2 being UNSAT (cm-8e8720137abe4695) are therefore CORRECT, not an encoder error. The spec reproduction target 'n=2: min state 3 bits' contradicts search semantics: 16 distinct codes need 4 bits. Flag this to the owner. cm-6a1ff9c08fda4d48 is a stub with no encoder, so it is not a control and gives no evidence. The n=3 S=8 G=0 UNKNOWN_TIMEOUT is a solver failure on a satisfiable instance, not a verdict; a solver-free witness check follows. G0001 stays open and no G_max is measured.",
+  "gap_id": "G0131"
+ },
+ {
+  "at": 1795383802.4583068,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "G_max (minimal circuit cost per transition step over all S-bit encodings) is still unmeasured for SC_{3,1}. The joint SAT (G=0 literal-select encoding first, then G=1) is the next step; the 1770 s background jobs on S=6 timed out, so start with the G=0 feasibility instance at S=6 and a time limit.",
+  "evidence": "cm-49e14d6d33ff4291 (independent BFS replication, SC_{3,s} sizes 3,38,152,232,256 and P_t(s=2) match the director table); cm-d4f4a903e6a04793 (SC_{3,1} vs affine prefix profiles, max |P_t| 38 vs 16; H0 'SC needs more prefix states' observed). Finite, n=3 only; no G_max measured yet.",
+  "gap_id": "G0132"
+ },
+ {
+  "at": 1795384144.980034,
+  "session": "pnp-desk/research/R1762",
+  "model": "claude-haiku-5-5",
+  "gap": "G=0 S=6 point for SC_{3,1} at T=8 is undecided: cadical153 gave UNSAT once (cm-deca4308f85f4933) and None once (cm-f91575f500444f59). No G_max value measured. Next: decide T=8 with a background job, re-simulate any model, and record the proof trace size.",
+  "evidence": "cm-f91575f500444f59: S=8,T=8 SAT and S=6,T=1..6 SAT with 0 mismatches; S=6,T=7 and T=8 None.",
+  "gap_id": "G0133"
+ },
+ {
+  "at": 1795384190.9079337,
+  "session": "pnp-desk/research/R1762",
+  "model": "claude-haiku-5-5",
+  "lemma": "Counting bound at the open levels (finite check, scope n=3, s=1, search semantics): L_7 = L_8 = 38 live codes and dead prefixes exist at t=7,8, so S >= ceil(log2(38+1)) = 6. Hence S=6 is the minimum possible state size at T=7 and T=8, and the open question is only whether a G=0 literal-wiring machine attains it.",
+  "gap": "Still open: G=0 S=6 at T=7 and T=8 for SC_{3,1}. Decided levels so far: S=6 SAT with 0 re-simulation mismatches for T=1..6. T=7 and T=8 return budget UNKNOWN in cm-f91575f500444f59. The UNSAT in cm-deca4308f85f4933 was not reproduced and is withdrawn. Decision job A1044 (cadical153 then glucose4, re-simulated) is queued. No G_max value is measured.",
+  "evidence": "cm-1279ba680001444b (replicates |SC_{3,s}| = 3, 38, 152 and max bounds 6 and 8). cm-f91575f500444f59 (S=6 SAT T<=6 with 0 mismatches; T=7,8 None). Review note: this session is claude-haiku-5-5, the same family as the authors of the claimed steps S0002, S0029, S0059, S0079, S0080, S0086, so it is not an eligible reviewer for them and records no review verdict.",
+  "gap_id": "G0134"
+ },
+ {
+  "at": 1795384288.696821,
+  "session": "pnp-desk/research/R1762",
+  "model": "claude-haiku-5-5",
+  "evidence": "Premise S0079 is CLAIMED and unreviewed. This session is claude-haiku-5-5, the same family as its authors, so it records no review verdict. The arithmetic step ceil(log2(39)) = 6 is checked by the code above.",
+  "id": "S0235",
+  "proved_step": "LEMMA-COUNT (restates the conclusion of S0079 for the counting bound; search semantics). Setting: streaming states q_t(p) in {0,1}^S on prefixes p of length t, decoder D on q_N, correct on every w in {0,1}^N. Claim: for every t, 2^S >= L_t + [D_t > 0], where L_t = number of distinct live prefixes of length t (prefixes of F-strings) and D_t = number of dead prefixes. Proof: by S0079, the map p -> q_t(p) is injective on live prefixes, and no live code equals a dead code. So the L_t live prefixes take L_t distinct codes. If D_t > 0, at least one further code in {0,1}^S is used by dead prefixes and differs from all live codes. Hence L_t + [D_t > 0] <= 2^S, so S >= ceil(log2(L_t + [D_t > 0])). Scope: n=3, s=1, the 38-function family, search semantics, time-dependent encodings, unbounded update and decoder cost. Not a G_max value. Closes no obligation in G0001-G0004. Its only new content is the explicit count at t=7 and t=8, which the physalis_code_run above checks.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795384872.5644279,
+  "session": "pnp-desk/research/R1778",
+  "model": "claude-haiku-5-5",
+  "gap": "G=0 feasibility for SC_{3,1} at S=6 is undetermined. Rerunning with Minisat22 and a 30M conflict budget, symmetry break c_0(empty)=0 (WLOG: complementing a state bit consistently over all t preserves the selector set).",
+  "evidence": "cm-48d26f3e2e694fd5: G=0 transducer for SC_{3,1} at S=6 and S=7 returned UNKNOWN_BUDGET at 3M conflicts (Glucose4). This is NOT a result: no feasibility or infeasibility claim follows. AFF at S=4 is SAT and every witness re-simulates on all 16 members (sim_ok 16/16), so the encoding is valid on the cheap family.",
+  "gap_id": "G0135"
  }
 ]

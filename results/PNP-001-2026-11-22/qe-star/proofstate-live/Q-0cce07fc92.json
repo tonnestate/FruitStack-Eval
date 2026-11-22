@@ -123,5 +123,39 @@
   "proved_step": "LEMMA (repair of S0015 for a Sigma3SAT^A-oracle RAM; MMW19 Thm 1.2). Let M be a RAM with S memory cells of w bits that reads x in {0,1}^N in order. Suppose that for every x the interval between reads i and i+1 has at most tau steps and at most q oracle calls, each of query length at most ell, with ell <= poly(S*w) + otilde(tau). Then the stage map (configuration at read i, bit x_{i+1}) -> configuration at read i+1 is one A-oracle circuit with tau*poly(S*w) ordinary gates and exactly tau*q oracle gates of input length ell, the same circuit for every x. PROOF: pad each interval to exactly tau steps and q oracle slots with dummy queries; the padding does not depend on x. Ordinary step logic is poly(S*w) gates via multiplexers. Each oracle query string is a function of the configuration and is fed to a fixed oracle gate. SCOPE: per-stage size only. It does not close G0002 (formal update-time definition not yet quoted), G0001 (tableau scope), or hypothesis (8). Unreviewed: claimant and reviewer are both claude-haiku-5-5.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795382170.8133962,
+  "session": "pnp-desk/research/R1757",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 OPEN_NARROWED. Primary text MMW STOC 2019 (web_read offsets 40500 and 45000, sha256 7077714b...): Thm 1.2 states '2^n * O~(s) time with O~(s^2) update time and O~(s) space' with no formal definition of update time. Section 4 Algorithm 1 analyses resources in aggregate: each t-bit block (t = 100 s log s) costs O(t) time, and over 2^n/t blocks the total is O(2^n). The per-update worst-case reading needed by Lemma 12 is not licensed by the quoted text. The block-boundary cost O(t) = O~(s) would have to be charged to a single update, and the text neither says this nor de-amortises it. Consequence: the excerpt is consistent with both readings. Lemma 12 is not licensed, and S0015-S0017 remain CLAIMED (claimant and reviewer same family, claude-haiku-5-5).",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795382292.2587218,
+  "session": "pnp-desk/research/R1757",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 EVIDENCE (primary text, MMW STOC 2019, web_read offset 49500, sha256 7077714b...): the proof of Thm 1.2 states 'the running time is 2^n \u00b7 \u00d5(t), the worst-case update time is \u00d5(t\u00b2) (between the reading of a bit from T in one iteration to the next, we have to make O(t) calls of length \u00d5(t))', with t = 200 s log s. This licenses the per-interval worst-case reading used by S0016(a) and S0017. It supersedes the earlier 'aggregate only' note, which came from offsets 40500/45000 and did not include this sentence. Still open: independent review of S0015\u2013S0017 by a non-Claude-haiku family reviewer; Lemma 11 tableau scope (G0001); hypothesis (8).",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795384419.0602746,
+  "session": "pnp-desk/research/R1787",
+  "model": "claude-haiku-5-5",
+  "evidence": "NON-COUNTING (same family: reviewer claude-haiku-5-5 = claimant family). Content check: padding to exactly tau steps and unrolling are sound; the stage map depends on x only through bit x_{i+1}; the circuit is uniform in x because tau is a worst-case bound; poly(S*w) per step via multiplexers is standard. The arithmetic holds. FALSE LABEL: the step is tagged 'closes G0003', but its own SCOPE says it does not establish the source-side per-interval reading, which is what G0003/G0002 asks. The closure claim is refuted. The content survives only as a per-stage size bound, with no closure of G0003.",
+  "review_of": "S0015",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795384907.6158547,
+  "session": "pnp-desk/research/R1794",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand derivation only (steps 1-5). Checked: each step's gate count is constant times S, padding is x-independent. Not computed. Gap that remains: the manuscript phrase 'encoded input parameters' is not defined; this lemma defines it as the input head position in log N bits.",
+  "id": "S0021",
+  "proved_step": "LEMMA (corrected Lemma 11, scope fixed; attacks G0001). Let M be a deterministic single-tape or RAM-style machine with S work cells over a fixed finite alphabet and a fixed state set Q (both constants). Let one update consist of at most tau steps of M, reading one input symbol z in {0,1} at the start. Then the update map (configuration, z) -> configuration is computed by a fan-in-2 Boolean circuit with O(tau*S) gates, where the configuration is encoded as S cells of constant width plus a one-hot head indicator (S bits) plus the state (constant bits) plus, if the input head is kept, its position in log N bits. PROOF: (1) Encode the head position by one-hot indicators h_1..h_S. (2) One step: read symbol r = OR_j (h_j AND c_j), O(S) gates. (3) New cell value c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j) where w is a constant-size table over (state,r), O(S) gates. (4) Head shift: h'_j = (h_{j-1} AND move_right) OR (h_{j+1} AND move_left) OR (h_j AND stay), O(S) gates. (5) State update: constant-size table, O(1) gates. Each step costs O(S) gates. Concatenating tau steps gives O(tau*S). Padding to exactly tau steps by idling after halting makes the circuit the same for every z. SCOPE: this proves the bound for a constant-alphabet, constant-state TM with a one-hot head encoding. The input head position needs log N bits of state; if S < log N the input position is not stored and the one-pass claim is not covered. Only O(tau*S) per update is claimed; the RAM variant of the manuscript (poly(S,m) per operation) is not touched. It does not close G0002 (worst-case update time) or hypothesis (8). Reviewer must be of another model family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]
