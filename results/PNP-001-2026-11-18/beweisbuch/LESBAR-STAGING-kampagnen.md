@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 11154 entries from 2766 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 11155 entries from 2766 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -38,7 +38,7 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 2869 entries (finite cases; they prove nothing about all cases). Latest: VERIFICATION of the rank lemma (independent: GF(2) bitset elimination with a validity filter, not the dense GF(1000003) matrix of cm-40cf2c6f2271450d). Result: rank = C(n,k) for n=2..6, all k, including n=5 k=2 (10) and n=6 k=3 (20); ALL_MA
+NUMERICAL EVIDENCE on file: 2870 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-50491c1ac9 [MISSING_PROOF, OPEN] Does MMW19 Section 4 define update time per bit (amortised over a block) or per block, and is the Õ(s²) bound worst-case? Needed to decide whether the update-time hypothesis of Thm 1.3 is the one the streaming lower-boun
   - Q-d695704278 [COUNTEREXAMPLE, OPEN] The recorded law 'For formulas with rank2=3: sat = 1' (discovery status CONJECTURED) FAILS on other exact datasets: agent_onein3_ce_structure_v1_6b2ae1ea: 1449/1449 rows fail, e.g. [{"n": 5, "m": 3, "rank2": 3, "rank3": 
