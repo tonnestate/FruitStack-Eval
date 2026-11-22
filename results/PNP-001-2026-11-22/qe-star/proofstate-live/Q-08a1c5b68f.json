@@ -1612,5 +1612,105 @@
   "gap": "G0110(c) remains open: whether a G<=1 transducer with S=6 exists for SC_{3,1}. Next: run the S=6 instance as a background desk job (desk_submit, budget_s up to 14400, memory_mb up to 8192) with symmetry breaking on the gate ordering, or add the decoder cost D. Reviews of S0002, S0029, S0059, S0079, S0080, S0086 are still required from a different model family; this session is claude-haiku-5-5 and cannot review them.",
   "evidence": "Independent G<=1 re-encoding for SC_{3,1} (N=8, |F|=38, one shared non-free gate per level, search semantics, no decoder cost). cm-dfd6997bbb9242ee: S=8 SAT (positive control), decoded transducer re-simulates with 0 node mismatches, 38 distinct codes on F, non-F codes avoid F-codes. cm-d839d329da294d4c: S=6 NO RESULT (SANDBOX_ENDED_WITHOUT_RESULT at the 900 s / 2048 MB limit). cm-8f4f990f25294d99: S=7 NO RESULT (same limit). Exploration only, not a proved step. The S=6 G<=1 question is therefore UNDECIDED, not refuted and not confirmed.",
   "gap_id": "G0114"
+ },
+ {
+  "at": 1795365794.8078341,
+  "session": "pnp-desk/research/R1586",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: G_max for G>=1 (one or more gates per update) at n=3, s=1 for SC_{3,1} and AFFINE_3 under dead separation, the measured object of Lemma M. Next: joint SAT with one B2 gate per step (exact synthesis) at S=N-1 and below, controlled by the AFF2 and AFF3 cases.",
+  "refuted_approach": "G=0 wire-only dead-separated streaming for SC_{3,1} and AFFINE_3 (N=8): no compression below S=N; AFF2 min S=4=N (cm-2d51ec0a45d243a3, cm-b54d94b97ae247aa, cm-aa9310d6af0f4523). The naive wire-only route is refuted at finite scope.",
+  "evidence": "cm-2d51ec0a45d243a3 (SAT recheck, positive control AFF2 S=4 SAT with 0 failures), cm-b54d94b97ae247aa (coordinate-chain search, independent of SAT), cm-aa9310d6af0f4523 (full-transition SAT, same UNSAT pattern).",
+  "gap_id": "G0115"
+ },
+ {
+  "at": 1795366368.7038891,
+  "session": "pnp-desk/research/R1594",
+  "model": "claude-haiku-5-5",
+  "lemma": "PREFIX-INJECTIVITY (sharpens S0029; from the S0079 argument): in the search model (decoder D correct on every w in F), two distinct live prefixes p != p' of equal length t cannot share a state, because equal states give identical final states, so D would output one circuit computing both pu and p'u for any u with pu in F. Hence S >= ceil(log2 L_t), and S >= ceil(log2(L_t+1)) when a dead prefix exists. For SC_{3,1} this gives S >= 6 (t=7: L=38, D>0), which is stronger than the residual bound S >= 4 of S0029.",
+  "gap": "Not a proof of G_max. (1) R1178 withdrew 'S>=6' in favour of 'S>=4 from residuals'; the injectivity argument above restores S>=6, so the withdrawal looks wrong and needs review by a different model family. (2) S0029 cites the SC_{3,2} profile as the SC_{3,1} profile. (3) The argument covers only the search model (decoder correct on F); the decision-only model is not covered.",
+  "evidence": "cm-d0f73ac3c7164892 (max_S_prefix_s1=6, max_S_resid_s1=4, profile_s2_matches_spec=true); cm-00a64b04af114a5a (L_t for s=1).",
+  "gap_id": "G0116"
+ },
+ {
+  "at": 1795366488.0735958,
+  "session": "pnp-desk/research/R1594",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to my PREFIX-INJECTIVITY lemma (G0116): the step 'D would output one circuit computing both pu and p'u for any u with pu in F' is unjustified. A contradiction needs a single suffix u with BOTH pu in F and p'u in F; the decoder's output C would then have to start with both pu and p'u, which differ at a position < t. Without p'u in F no contradiction follows, so S >= 6 for SC_{3,1} is NOT established and the earlier claim should be treated as unproven. Repair (not yet computed): define the conflict graph on live length-t prefixes, p ~ p' iff some u has pu, p'u in F. Any state map must give conflicting prefixes distinct states, so S >= ceil(log2 omega) for omega the clique number of this graph. This holds in the search model (decoder correct on F); the decision-only model is not covered.",
+  "refuted_approach": "PREFIX-INJECTIVITY as stated (any u with pu in F, no check of p'u in F)",
+  "evidence": "Re-read of my own lemma text in the previous turn. No new computation. Needs the explicit F of SC_{3,1} (from spec PNP-001-LEMMA-M-EXPERIMENT) to compute omega; the earlier recount cm-00a64b04af114a5a gives L_t but not the completion relation.",
+  "gap_id": "G0117"
+ },
+ {
+  "at": 1795366568.0791945,
+  "session": "pnp-desk/research/R1594",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (1) G_max for SC_{3,1} is not determined; S>=5 is only a state lower bound with no cost bound. (2) Whether S=5 is achievable with a valid transducer is not checked. (3) Decision-only model not covered. (4) Needs independent review by a different model family before SURVIVED_REVIEW.",
+  "evidence": "cm-ffb885c46fda4e54 (DISCOVERY, declared H1 omega+dead<=16 at all t -> S>=4 vs H2 >16 at some t -> S>=5; outcome: t=7 gives omega 19 + dead 1 = 20, so H2 holds). Profile omega by t: 1,2,3,6,7,12,19 for t=1..7. Uses the same F as the lab recount cm-00a64b04af114a5a (L_t: 2,4,8,16,22,30,38).",
+  "gap_id": "G0118",
+  "id": "S0202",
+  "proved_step": "REPAIR of G0117 (conflict-clique bound, search model). Setting: N=2^n, F subset {0,1}^N, transducer q_{t+1}=F_t(q_t,b) with time-dependent F_t, decoder D on q_N that outputs a circuit computing w when w in F and rejects otherwise, correct on every w in {0,1}^N. Let H_t be the graph on live length-t prefixes with p~p' iff some u has pu, p'u both in F. Claim: any state map on live prefixes is a proper colouring of H_t, and every live code differs from every dead code when a dead prefix exists. Hence 2^S >= omega(H_t) + [a dead prefix of length t exists]. Proof: (i) if p != p' are live with q_t(p)=q_t(p') and pu, p'u in F, then q_N(pu)=q_N(p'u) by the transition rule, so D returns one circuit C that must compute both pu and p'u; these differ at a position < t, impossible. (ii) if p is dead and p' live with the same code, pick u with p'u in F; q_N(pu)=q_N(p'u), so D returns a circuit that must reject pu, but it accepts, a contradiction. A clique of H_t needs pairwise distinct codes, and all dead prefixes can share one extra code. Instance: n=3, s=1, N=8, |F|=38 (asserted in code). At t=7: omega=19, dead=1, so S >= ceil(log2 20) = 5. Scope: search model only, time-dependent encodings, unbounded update cost. Says nothing about G_max or the decision-only model. The earlier S>=6 (G0116) is withdrawn: its contradiction step was unjustified.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795368213.9200673,
+  "session": "pnp-desk/research/R1610",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION cm-11a4485faf7042e4 (independent enumeration by wire-set closure, own code): n=3, |SC_0|=3, |SC_1|=38, |SC_2|=152, live-prefix profile for s=2 = 1,2,4,8,16,32,60,108,152. Matches the spec director check. Constants 0 and 1 lie in SC_1 (x op x with a single gate), so the 38 includes them. No G_max or decoder-cost result; no step reviewed (all CLAIMED steps are from the same model family, so this does not count toward closure)."
+ },
+ {
+  "at": 1795368244.5069942,
+  "session": "pnp-desk/research/R1610",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION cm-5692e3db576b49a2 (own enumeration on SC_{3,1}, replicates the spec's size 38 and live-prefix profile L_t). Result: |SC_1| = 38; L_t for t=0..8 = 1,2,4,8,16,22,30,38,38. Per-t counting bound from the owner addendum, S_t >= ceil(log2(L_t + [L_t < 2^t])): t=1..8 gives 1,2,3,4,5,5,6,6 (max 6 at t=7,8), matching the run. MISMATCH: at t=0 the formula gives ceil(log2 1) = 0, but the run reports 1. The max is unaffected; the t=0 convention must be fixed before the profile is cited. No G_max or decoder-cost result yet. No step reviewed: the CLAIMED steps are from the same model family, so this does not count toward closure."
+ },
+ {
+  "at": 1795368263.0611203,
+  "session": "pnp-desk/research/R1610",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION cm-0baebe7dfc174824 (own code, exact integer bit_length arithmetic) resolves the t=0 mismatch from cm-5692e3db576b49a2: the owner formula S_t >= ceil(log2(L_t + [L_t < 2^t])) gives 0 at t=0 (L_0=1, 2^0=1, indicator 0), and the run's reported 1 at t=0 was a reporting convention, not a counting result. Per-t values for SC_{3,1}, L_t = 1,2,4,8,16,22,30,38,38: owner formula 0,1,2,3,4,5,5,6,6; max 6 at t=7,8. This is a STATE-SIZE bound only (a streaming state at time t must distinguish L_t live prefixes). By the spec's own note, pure space bounds cannot reach the target: with unbounded update time O(s log s) bits suffice. No G_max or update-time result yet, so this does not advance the obligation. No step reviewed; all CLAIMED steps are from the same model family, so this does not count toward closure. Gap: the update-time lower bound G_max for SC_{3,1} (joint SAT/exact circuit synthesis) is not yet measured."
+ },
+ {
+  "at": 1795368333.4987934,
+  "session": "pnp-desk/research/R1610",
+  "model": "claude-haiku-5-5",
+  "evidence": "Same as cm-0baebe7dfc174824 (state-size counts for SC_{3,1}). Not progress toward the target. This step is CLAIMED and needs review by a different model family.",
+  "id": "S0206",
+  "proved_step": "State-size pigeonhole: for a deterministic streaming algorithm with state set \u03a3, if L prefixes are pairwise distinguished by some suffix, then |\u03a3| \u2265 L, hence ceil(log2 L) bits are needed. Proof: if two distinct distinguished prefixes reach the same state, every suffix gives the same output, a contradiction, so the map prefix\u2192state is injective. Scope: any update time. Bookkeeping only: it does not bound update time and does not close G0001 or G0004. The separation of SC_{3,1} live/dead prefixes is taken from the spec and not re-checked here.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795369572.4816215,
+  "session": "pnp-desk/research/R1626",
+  "model": "claude-haiku-5-5",
+  "evidence": "Recount cm-531ce96b850543b2 agrees with recorded L_t for SC_{3,2}; s=1 profile gives L_7=38 > 32, consistent with the counting-UNSAT for S=5 at SC_{3,1}. This verifies the premises only; G_max is still unmeasured, so the open gap G0001 stays open."
+ },
+ {
+  "at": 1795369782.079741,
+  "session": "pnp-desk/research/R1626",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: G=0 minimal separating S for SC_{3,1}. H1 (UNSAT at S=6, cm-05efe8bcb5df4a88) and H2 (SAT zero-gate 6-bit machine, cm-8fff5163faa54747) disagree, and the decider runs A0889 and A0966 timed out with no result. The ledger records G=0 S=8 SAT (cm-dd6e26e2c4814c4a) that is not reconciled with H2 either.",
+  "evidence": "cm-e522c66003e74cd2 and cm-4913eed2a9d94ccb: SANDBOX_ENDED_WITHOUT_RESULT at the 1770 s limit. No SAT or UNSAT verdict was obtained. No proved_step is recorded this session.",
+  "gap_id": "G0119"
+ },
+ {
+  "at": 1795370828.1629808,
+  "session": "pnp-desk/research/R1642",
+  "model": "claude-haiku-5-5",
+  "gap": "Separation bound S_t >= ceil(log2(L_t + [dead])) is measured for SC_{3,1}, SC_{3,2} and affine (cm-a9a20ab9df3a4d94), but no G_max value is measured. The joint SAT on the fixed frame S=6 (SC_{3,1}, the first frame with S<N) is still unrun. Owner addendum requires reporting (S, G_max, D) only on this fixed frame.",
+  "evidence": "cm-a9a20ab9df3a4d94 reproduces sizes 38, 152, 16. Separation bits SC_{3,1}: 0,1,2,3,4,5,5,6,6; affine: 0,1,2,3,4,5,5,5,5; SC_{3,2}: t at every t (trivial at S=8). Claimed steps S0002-S0086 are from claude-haiku, the same family as this session, so this session cannot review them.",
+  "gap_id": "G0120"
+ },
+ {
+  "at": 1795370907.5769827,
+  "session": "pnp-desk/research/R1642",
+  "model": "claude-haiku-5-5",
+  "lemma": "G=0 LEMMA (search model, n arbitrary, N=2^n). Let F be a nonempty subset of {0,1}^N and let a streaming system have S state bits, states q_t(p) for prefixes p in {0,1}^t, with q_0 constant. Suppose every update F_t is literal wiring: each new state coordinate is a constant, or a literal (a state bit or the input bit b, possibly negated). Suppose that at t=N the search condition holds: q_N is injective on F, and q_N(F) is disjoint from q_N({0,1}^N \\ F). Then S >= N.",
+  "evidence": "Pure argument, no computation. Uses only t=N and the search condition as stated in PNP-001-LEMMA-M-EXPERIMENT-2026-11-21.md (Objects section: live codes injective, dead codes disjoint from live codes). Scope: literal-wiring updates only; with one gate the flip argument fails (a gate can read many bits), so G>=1 is not implied. Consistent with the owner's triviality remark: G=0 forces S >= N, i.e. raw storage. Not a G_max value, not a decoder-cost statement, not an asymptotic statement. Not reviewed: author is claude-haiku, same family as the open claimed steps.",
+  "id": "S0210",
+  "proved_step": "PROOF. By induction on t, every coordinate of q_t(p) is a constant or a literal of a single bit of p: q_0 is constant, and each step copies a literal of a state coordinate or of the input bit. So there is a set J of at most S positions with q_N(p) determined by p restricted to J. Suppose S < N. Then some position k is outside J. Pick w in F (F nonempty) and let w' = w with bit k flipped. Then q_N(w') = q_N(w). If w' is in F, two distinct live words share a state, contradicting injectivity on F. If w' is not in F, a dead word shares a state with a live word, contradicting disjointness. Both cases are impossible, so S >= N. QED. Corollary: for every S < N and every nonempty F, a wiring-only (G=0) system does not satisfy the search condition. In particular the G=0 test for SC_{3,1} at S=6 is UNSAT by this argument, with no SAT run needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -1524,5 +1524,174 @@
   "refuted_approach": "Single-variable drop-2 restriction for B2 circuits of cost >= 3 (the general form of S0062/S0104): REFUTED by XOR_n. For n >= 2, C(XOR_n) = n-1 and every single-variable restriction gives XOR_{n-1} or its complement with cost n-2, a drop of exactly 1. Any drop-2 lemma must fix >= 2 variables at once, and its statement must give the number of variables fixed and the drop per variable.",
   "evidence": "Hand derivation from the exact cost of parity (C(XOR_n) = n-1) and Lemma R (S0179). Consistent with S0103, which is a two-variable restriction. No lab run; the n=4 exact-size enumeration was not run.",
   "gap_id": "G0128"
+ },
+ {
+  "at": 1795365206.698912,
+  "session": "pnp-desk/research/R1584",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent replication of S0062 (L3', m=3, B2 circuits, exact size) by exhaustive enumeration, experiment cm-a89781c553704975. Method: closure of binary-gate circuits of size <=2 over inputs x,y,z and constants, instead of the hand case analysis. Result: 256 functions of 3 variables; 152 have size <=2; 104 have size >=3; counterexamples to the claim (size>=3 with no restriction x_i=b giving a FULL 2-variable function): 0. Failure this could catch: a missed case in steps (3)-(4) of the hand proof. Scope: m=3 only. This is a replication, NOT a cross-family review: the author (claude-haiku-5-5) and this session share a model family, so no SURVIVED_REVIEW status is recorded. Gap unchanged: G0001 (superlinear gate elimination for m>=4) remains open; the step does not extend to restricted functions of size >=2 for m>=4."
+ },
+ {
+  "at": 1795365539.182659,
+  "session": "pnp-desk/research/R1592",
+  "model": "claude-haiku-5-5",
+  "evidence": "Same-family advisory review (haiku, not counted). Parts (a) and (b) survive: the counting bound |Circ(N,s)| <= (16(N+s)^2)^s holds (each gate: 16 types, 2 predecessors among <= N+s nodes; N >= m+s for large m), so the union bound gives 2^{O(m^{c+1})} <<2^N. Part (c) is a GAP: it asserts CC_B2(N^{-eps}-MCSP[m^c]) >= N - O(N^{1-eps}+m^{c+1}) 'with S0087'. S0087 gives >= k-1 only when the problem essentially depends on k inputs; no argument is given that the N^{-eps}-MCSP problem essentially depends on all but O(N^{1-eps}+m^{c+1}) of its N input bits. The notation N^{-eps}-MCSP is undefined in the step. Repair: define the problem, then prove the essential-variable count per input x (for the decision problem on N inputs), which is what S0087 needs.",
+  "review_of": "S0090",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795365570.9128351,
+  "session": "pnp-desk/research/R1592",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Dependence / connectivity route (S0087 + S0090 part c): for any function f on N inputs that essentially depends on all N inputs, S0087 gives CC_B2(f) >= N-1. This is a LINEAR bound in N. The target of Q-10bbdfaf2a is CC(MCSP[m^c]) >= N (log N)^k for every fixed k, which is superlinear. So even a fully repaired S0090 (with the essential-variable count proved for the N^{-eps}-MCSP problem) would give only CC >= N - O(...), which does not close the obligation. The route cannot reach the target by itself.",
+  "evidence": "Arithmetic check: a fan-in-2 circuit with g gates whose cone has k essential input vertices and c constant vertices gives a connected graph on k+g+c vertices with at most 2g edges, so g >= k-1+c (S0087 as stated). With k = N this is g >= N-1, which is below N (log N)^k for every k >= 1 and large N. The gap in S0090 part (c) is also real: N^{-eps}-MCSP is undefined in the step, and no argument shows that the decision function has N-O(N^{1-eps}+m^{c+1}) essential inputs per input x. Same-family advisory review only; no lab run was needed for this bound."
+ },
+ {
+  "at": 1795365627.5671046,
+  "session": "pnp-desk/research/R1592",
+  "model": "claude-haiku-5-5",
+  "gap": "Open obligation G0001 (unchanged): superlinear general fan-in-2 circuit lower bound for MCSP[m^c] at size N(log N)^k for every fixed k. Dependence/connectivity bounds (S0087) give only linear size N-1, so they cannot close it. Still needed: a method giving superlinear bounds for general circuits, with the MMW19 Thm 1.4 transfer hypothesis stated exactly and the perfect-matching barrier control checked. S0090 part (c) remains a gap: N^{-eps}-MCSP is undefined and no essential-variable count is proved.",
+  "gap_id": "G0129"
+ },
+ {
+  "at": 1795365696.9798558,
+  "session": "pnp-desk/research/R1592",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Counting route for MCSP[m^c] (S0090 parts a-b). Barrier check: (1) Perfect-matching control: the counting bound |Circ(N,s)| <= (16(N+s)^2)^s is non-constructive and applies to all N-bit functions, so it gives no separation for a specific function in NP. A bound that holds for almost every function does not transfer to MCSP, because MCSP's hardness is not established by counting. (2) Natural property: 'truth table has no circuit of size s' is dense and checkable in 2^{O(N)} time from the truth table, so it is a natural property in the Razborov-Rudich sense. Any proof of a superlinear general-circuit bound via this property would, if it also held for a PRG-computable class, refute pseudorandomness. Verdict: the counting route fails the transfer test and is blocked by the natural-proofs barrier. Gap G0129 remains open.",
+  "evidence": "Checked by reading only: the counting bound is a standard union bound over circuit encodings; the natural-property criterion (density + constructivity) is applied to the property as stated. No computation was run. Same-family reviews do not count, so S0062, S0087 and S0103 remain CLAIMED."
+ },
+ {
+  "at": 1795365733.179105,
+  "session": "pnp-desk/research/R1592",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Counting route (S0090 a-b) as a transfer route to MCSP[m^c]: the counting bound gives hardness for almost every function, not for a specific function in NP, so it does not transfer. Barrier status is OPEN, not established: the earlier statement that the counting property is natural and that its use would refute pseudorandomness was loose and is withdrawn. Whether the property is useful against a pseudorandom-containing class at size N(log N)^k is an open question, not a refutation.",
+  "evidence": "Checked by reading only; no computation run. Same-family reviews of S0062, S0087, S0103 remain CLAIMED and do not count. Gap G0129 remains open."
+ },
+ {
+  "at": 1795368041.3325336,
+  "session": "pnp-desk/research/R1608",
+  "model": "claude-haiku-5-5",
+  "gap": "Review of S0106 by a claude-haiku session (same family as its author, so NOT a counting review). Logic of the decision-to-search reduction is sound up to three points: (1) the bottom-output branch needs an explicit zeroing gate; (2) the universal-circuit evaluation cost poly(s) per input is asserted, not derived; (3) the size/depth hypotheses of MMW19 Thm 1.4 bullet 3 are not checked against the paper text. Needs a reviewer of another model family and a spec_read/web_read of MMW19 Thm 1.4. The step is bookkeeping and closes no obligation.",
+  "gap_id": "G0130"
+ },
+ {
+  "at": 1795368634.3620462,
+  "session": "pnp-desk/research/R1616",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (general N(log N)^k decision lower bound) remains open. S0106 is a conditional transfer only: decision bound for any depth => search hypothesis of MMW Thm 1.4 bullet 3 => NP not in P/poly. It closes no obligation. Open: a construction of the decision lower bound itself, which the existing route does not provide.",
+  "evidence": "R1616 (claude-haiku-5-5, not a review: same family as S0106). Hypothesis check of S0106 against the primary text of MMW19 Thm 1.4 (people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf, sha256 7077714b..., offset 13982): bullet 3 needs s(n) >= n and A in PH; S0106 instantiates n=m, s=m^c>=m, A=empty (in PH). The depth and size hypotheses match the bullet. Computation cm-8d99f6ec9bec4d1b checks only size bookkeeping and holds by construction (s^a <= m^{c*max(a,b)+1}); it does not test the reduction. Decision-to-search reduction read as sound on inspection; not independently reviewed.",
+  "gap_id": "G0131"
+ },
+ {
+  "at": 1795368734.211569,
+  "session": "pnp-desk/research/R1616",
+  "model": "claude-haiku-5-5",
+  "lemma": "T* (conditional bookkeeping, R1616, claude-haiku-5-5, NOT reviewed; same family as S0106, so it cannot be reviewed by this family). Fix c>=1, N=2^m, s=m^c. Let C be a search circuit for search-MCSP[s] of size N*s^d and depth s^d, and U a universal evaluator for circuits of size <= s on m inputs with size <= s^u (u a fixed constant; the constant is not verified against the standard construction). Decision circuit D(x): compute y=C(x); output 0 if y=bottom; else evaluate the candidate by U on all N inputs and output the AND of the agreement bits with x. Correct: C outputs a circuit exactly when one of size <= s computes x. Size <= N*(s^d+s^u+O(1)) <= 3N*m^{cD} with D=max(d,u), which is <= N*(log N)^{cD+1} for m>=3. Depth: depth(C)+poly(s)+log N. Hence if MCSP[m^c] has no general circuits of size N(log N)^{cD+1} (any depth), search-MCSP[m^c] has no N*s^d circuits. Since every polynomial in s is bounded by some s^d, a decision bound holding for EVERY fixed k gives all hypotheses of MMW19 Thm 1.4 bullet 3 and so NP not in P/poly.",
+  "gap": "Correction to S0106: as written, S0106 fixes a single e(c) and so excludes only one degree of polynomial in s; bullet 3 needs every polynomial (the 'for every fixed k' form of the target). G0001 unchanged. T* is a reduction (bookkeeping), closes no obligation, and gives no lower bound.",
+  "evidence": "Primary text of MMW19 Thm 1.4 bullet 3 (people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf, offset 13982, sha256 7077714b...). Bookkeeping check cm-8d99f6ec9bec4d1b is trivially true by construction and tests nothing about the reduction. Next step needs an other-family review of T* and a construction for the decision bound.",
+  "gap_id": "G0132"
+ },
+ {
+  "at": 1795369303.6341233,
+  "session": "pnp-desk/research/R1624",
+  "model": "claude-haiku-5-5",
+  "gap": "CEILING OF THE CURRENT ROUTE (session R1624). The target chain needs N(log N)^k general-circuit size for MCSP on N-bit truth tables, a superlinear bound in the input length for a problem in NP. Gate elimination with a constant two-variable drop (S0062, S0087, S0103, S0104) yields only a linear bound c*N, so it cannot reach the target. REPAIR DIRECTION: the drop must grow with the input length (or the measure must count more than gates), and the argument must not be applicable to parity, where the drop is exactly 2 for every pair. Open: a measure M with M(f) >= N(log N)^k and a per-restriction drop of omega(1) for MCSP-like functions.",
+  "evidence": "Scope claim only. No new theorem. Next: check whether the constant-drop bound for B2 is the best known for explicit functions in NP, via the literature excerpt in spec PNP-001-LIT-10 (not yet read).",
+  "gap_id": "G0133"
+ },
+ {
+  "at": 1795369492.3886158,
+  "session": "pnp-desk/research/R1624",
+  "model": "claude-haiku-5-5",
+  "gap": "G0133 narrowed (session R1624, after reading PNP-001-LIT-10 pages 1-2). The literature excerpt gives no growing-drop gate-elimination result and no non-gate-count measure with a proved drop for an explicit NP function. Its items are NOT source-checked: Atserias-Mueller (magnification, a route to formula bounds, not general circuits); Chukhin et al. (PIT dichotomy); Chen-Williams CCC 2019 and Chen-Tal-Wang TR26-039 (CAPP routes, not drops); state-complexity papers (not circuit bounds). Open as before: a measure M with M(f) >= N(log N)^k for an NP-explicit function, or a per-restriction drop of omega(1). Blocking fact: the best general-circuit lower bounds for explicit functions in NP are linear (about 3.1n, Li-Yang; earlier 3.011n, Find-Golovnev-Hirsch-Kulikov), so the superlinear target needs a method not yet available.",
+  "evidence": "spec_read PNP-001-LIT-10 pages 1-2 (sha256_16 4a93f685e4c0bfe2). Scope: literature-excerpt reading only, no new theorem. Attribution of the 3.1n bound corrected from the earlier session output (it is Li-Yang, not Find et al.), not yet verified against the primary source.",
+  "gap_id": "G0134"
+ },
+ {
+  "at": 1795369570.0959275,
+  "session": "pnp-desk/research/R1624",
+  "model": "claude-haiku-5-5",
+  "gap": "G0134 check (R1624, read-only, NOT a review: S0104 is claude-haiku like this session). S0104 restricted to cost exactly 2 is unaffected by the R1160 counterexample: a function of B2 cost 2 has at most 3 essential variables (a 2-gate circuit has 3 inputs), so fixing any two essential variables leaves at most one variable, i.e. a constant or a literal. The step is therefore true, and also trivial: it gives no measure growing with N and closes no obligation of G0133.",
+  "evidence": "Argument by reading, no computation. Essential-variable count of a 2-gate B2 circuit is at most 3 (3 input leaves). Scope unchanged: cost exactly 2 only.",
+  "gap_id": "G0135"
+ },
+ {
+  "at": 1795369614.6594646,
+  "session": "pnp-desk/research/R1624",
+  "model": "claude-haiku-5-5",
+  "gap": "G0134 source check (R1624, read-only, not a review or proof step). The Mishra-Santhanam bound is verified at the primary source: ECCC TR26-260 Rev. 1 (3 Nov 2026) gives an explicit F in P with B2 circuit size >= 4n - O(log n), by gate elimination on independent parameters. Li-Yang (STOC 2022, Jiatu Li and Tianqi Yang) gives 3.1n - o(n). Find-Golovnev-Hirsch-Kulikov gives (3+1/86)n - o(n). Blum gives 3n - o(n). All are linear in the number of input variables. The target N(log N)^k for MCSP on N-bit truth tables is superlinear in N and far above the best known general-circuit bound for any explicit function. G0133 stays open. Ledger entry S-76cf1f4d29 says 'in NP'; the source says 'in P', which implies 'in NP', so the entry is weaker but not wrong.",
+  "evidence": "web_read https://eccc.weizmann.ac.il/report/2026/260/ (sha256 90cfb180ebdde67166fba4583864371f1a93067beea0763544f8988ae0b7626f, Revision #1 abstract). web_search results: Li-Yang (ljt12138 STOC 2022 page) and ECCC TR21-023 (Find et al.). Scope: literature check only. No proved step was submitted in this session. The S0104 check (cost-2 functions have at most 3 essential variables) is by reading only, and S0104 was written by the same model family, so it is not a review.",
+  "gap_id": "G0136"
+ },
+ {
+  "at": 1795369798.1289437,
+  "session": "pnp-desk/research/R1632",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (general N(log N)^k lower bound for MCSP[m^c]) remains open. S0106 (decision-to-search transfer) is bookkeeping: the decision circuit runs the search circuit, builds a candidate circuit of size O(s log s), evaluates it on all N inputs with a universal circuit (poly(s) per input) and compares with x. Size N*poly(s) = N*(log N)^e with e = c*d if the search circuit has size N*s^d. Open items: (1) source-check MMW19 Thm 1.4 bullet 3 and its 'infinitely many n' quantifier; (2) the decoder-time assumption behind 'poly(s) per input'. The claimant family (claude-haiku) equals mine, so I cannot record SURVIVED_REVIEW for S0062/S0087/S0103/S0104/S0106.",
+  "evidence": "Reasoning check by hand, no lab computation yet: the reduction direction (search lower bound implied by decision lower bound) is consistent with the contrapositive as written. Read count this session: 5 (proof_state_read, knowledge_search x2, spec_read x2). Next step must be a computation.",
+  "gap_id": "G0137"
+ },
+ {
+  "at": 1795369840.6608856,
+  "session": "pnp-desk/research/R1632",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open: no general N(log N)^k lower bound for MCSP[m^c]. The S0106 reduction still needs the MMW19 Thm 1.4 source check and the decoder-time assumption.",
+  "evidence": "cm-f1b8984ea5b04749 (EXPLORATORY bookkeeping, not progress): checked for c,d in {1,2,3}, m in {16,32,64,128} that (m^c)^d = (log2 N)^(cd) with N=2^m. All 36 rows match. This confirms only the exponent arithmetic of S0106, not the reduction. Open: MMW19 Thm 1.4 is absent from LIT-11 (grep and pages 1-3); its exact statement and the 'infinitely many n' quantifier are not yet source-checked. Reviewer constraint: S0062/S0087/S0103/S0104/S0106 are claude-haiku-family, same as this session, so no SURVIVED_REVIEW can be recorded here.",
+  "gap_id": "G0138"
+ },
+ {
+  "at": 1795369902.4994864,
+  "session": "pnp-desk/research/R1632",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open: no lower bound of N(log N)^k for general circuits for decision MCSP[m^c] is known or derived here. The transfer hypothesis is now source-checked (MMW19 Thm 1.4 bullet 3), with the quantifier over n left unresolved. Known general-circuit lower bounds for explicit functions are linear (3.1n - o(n), Li-Yang STOC 2022, not MCSP), so no route to N(log N)^k was found.",
+  "evidence": "SOURCE CHECK (primary text, web_read of MMW19 STOC19 PDF, sha256 7077714b...): Theorem 1.4 bullet 3 reads: 'If search-MCSP^A[s(n)] on inputs of length N=2^n does not have circuits of N*poly(s(n)) size and poly(s(n)) depth, then NP not subset of P/poly.' A in PH. The intro gives the Ilango-cited case: 'If search-MCSP[n^c] lacks O~(N)-size, O~(1)-depth circuits for c>=1, then NP not subset of P/poly.' Consequences for S0106: (a) the hypothesis needed is a lower bound against N*poly(s) size, which for s=(log N)^c is N*(log N)^k; depth poly(s) is a WEAKER hypothesis than unbounded depth, so a lower bound against all circuits of that size suffices. (b) Quantifier: the statement is about a fixed input length N=2^n; whether it needs the bound for all large n or infinitely many n is NOT stated in bullet 3 and remains open. (c) The decision-to-search direction (cm-f1b8984ea5b04749 checked the exponent arithmetic only) also needs the decoder assumption noted earlier. Reviewer constraint unchanged: S0062/S0087/S0103/S0104/S0106 are claude-haiku, same as this session, so no review here.",
+  "gap_id": "G0139"
+ },
+ {
+  "at": 1795369979.3499,
+  "session": "pnp-desk/research/R1632",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Sharpened: the transfer from MMW19 Thm 1.4 bullet 3 (source-checked in this session) needs an UNCONDITIONAL lower bound of size N*(log N)^k against circuits of depth poly(s) for search-MCSP^A on length-N inputs, with s=(log N)^c. The general-circuit version is a superlinear lower bound for a problem in NP; no known general-circuit technique reaches it. Open: (i) whether bullet 3 needs the bound for all large n or infinitely many n; (ii) a restricted-model bound (bounded depth or formulas) that transfers via bullet 1 or 2, which would need its own perfect-matching control and naturalness check before any LOWER_BOUND record.",
+  "refuted_approach": "Direct general-circuit route via Thm 1.4 bullet 3 with s=(log N)^c: no known lower bound supplies the hypothesis. Not a refutation of the transfer itself; the transfer is valid, the input bound is missing.",
+  "evidence": "Primary text: MMW19 STOC 2019 PDF (web_read, sha256 7077714b...). Exponent bookkeeping cm-f1b8984ea5b04749 is arithmetic only (exploratory, not progress). No proved_step recorded: no new lemma closing or shrinking G0001 was constructed in this session. Session model claude-haiku-5-5 is in the same family as the CLAIMED steps S0062, S0087, S0103, S0104, S0106, so none can be reviewed here.",
+  "gap_id": "G0140"
+ },
+ {
+  "at": 1795370569.1799874,
+  "session": "pnp-desk/research/R1640",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged. Gate elimination with a drop of 2 per restriction gives only linear lower bounds on general circuits, and the target N(log N)^k is superlinear in the truth-table length N. The restriction lemma does not close G0001.",
+  "refuted_approach": "H_B1 (strong gate-elimination form, session R1544): every non-literal 4-variable B2 function of exact cost 2 or 3 has a pair restriction x_i=a, x_j=b leaving at most one essential variable. Refuted at cost 3: XOR4 (0x6996) and its complement (0x9669) have no such restriction. Every pair restriction of XOR4 is XOR2, which has cost 1, so the size drop is 2 but the restriction is not a literal or constant. Cost 2 has 0 failures (consistent with S0104).",
+  "evidence": "cm-1d0dd120c6af40b7 (exact enumeration of 4-variable B2 functions with cost <= 3; costs 1/2/3 counts 64/456/2474; failures 0/0/2). Replicates the sharpened-form boundary in cm-322f023c39994666 (n=3, no cost-3 counterexample there). Open: the enriched form H_B2 (some pair restriction drops exact cost by >= 2) is already replicated at n=4 for C in {3,4} by cm-e494470d1f4743d3, but no proof exists for general n or for cost >= 4.",
+  "gap_id": "G0141"
+ },
+ {
+  "at": 1795370789.7149975,
+  "session": "pnp-desk/research/R1640",
+  "model": "claude-haiku-5-5",
+  "gap": "Exact hypotheses of MMW Thm 1.4 (search-MCSP model, size and depth bounds) not yet matched to Srch; decision lower bound G0001 still open.",
+  "evidence": "Hand proof in this session, sketch-level complete. Corrects earlier claim decision size <= search size (which omitted the N*poly(s) verification term). Not yet checked against MMW Thm 1.4 hypotheses.",
+  "gap_id": "G0142",
+  "id": "S0199",
+  "proved_step": "L-D-S (repair of S0106 flag-bit step): for N=2^m, s>=1, if a family Srch of size S(N) outputs, on every T with a size-<=s circuit, an encoding of such a circuit, then the decision family D = [well-formedness check on E, O(s)] AND over x in {0,1}^m of [Eval(E,x)=T_x] (Eval a universal evaluator, size p(s)) has size S(N)+O(s)+N(p(s)+2) and D(T)=1 iff T has a size-<=s circuit. Proof: soundness and completeness from the promise and the well-formedness check. Corollary: for s=(log N)^c, decision size >= N(log N)^k for all k implies search size >= N(log N)^k' for all k'. Scope: general circuits, fan-in 2, transfer direction only; does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795370806.9265816,
+  "session": "pnp-desk/research/R1648",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (general MCSP[m^c] with no circuits of size N(log N)^k for every fixed k) remains OPEN. The best verified bound on the proof state is linear, N - O(N^(1-eps) + m^(c+1)) (S0013). Gate elimination (drop 2 per restriction, S0062/S0104) is linear. S0106 correctly reduces decision to search, but it is a bookkeeping reduction only. Needed: a restriction-stable argument that forces a superlinear count of surviving gates or read-set elements on MCSP sub-tables, for example a per-gate lower bound on the read set.",
+  "evidence": "Read proof state (S0013 SURVIVED_REVIEW, S0062/S0087/S0103/S0104/S0106 CLAIMED). Argument-level review; no computation this session. Haiku review of haiku steps does not count under the cross-family rule.",
+  "gap_id": "G0143"
+ },
+ {
+  "at": 1795370884.178102,
+  "session": "pnp-desk/research/R1640",
+  "model": "claude-haiku-5-5",
+  "lemma": "TRANSFER CHECK (no new proved step; not a lower bound). MMW19 Thm 1.4 bullet 3 (web_read of people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf, sha256 7077714ba22dead70fee16a58b46a7d556075a4037c1e2608e3a4fd92bcfc07a): for A in PH and constructible s(n) >= n, if search-MCSP^A[s(n)] on inputs of length N=2^n has no circuits of size N*poly(s(n)) and depth poly(s(n)), then NP not in P/poly. Matching to our target: take A = empty oracle (A is in P, hence in PH), s(n) = n^c with c >= 1 (so s >= n). Lemma L-D-S (S0199) converts search circuits of size S and depth D into decision circuits of size S + O(s) + N(p(s)+2) with depth poly(s) + O(log N). So a search family of size N*poly(s) and depth poly(s) would give decision circuits of size N*(log N)^O(1), which contradicts G0001 for k above the exponent. The depth restriction is not needed for the contradiction. Conclusion: decision lower bound for MCSP[m^c] over general circuits (G0001) implies the bullet-3 hypothesis, hence NP not in P/poly. The implication is only as strong as G0001, which is still open.",
+  "gap": "G0001 unchanged (decision lower bound N(log N)^k for every k, general circuits). Open points in the transfer: (i) the extracted text reads 'N = 2n'; read as N = 2^n, matching our m = log N; (ii) the quantifier: bullet 3 needs the search circuits to fail on the length N inputs for the family to be ruled out; confirm whether the decision bound must hold for infinitely many N or all large N (the L-D-S argument works per length, so infinitely many suffices); (iii) S0199 and S0106 remain CLAIMED; they need review by a different model family.",
+  "evidence": "web_read result (MMW19 Thm 1.4 bullets 1-3, text extracted by jina-reader, 67337 chars). Hypothesis match: A in PH (A = empty oracle), s(n) = n^c >= n, input length N = 2^n, size N*poly(s), depth poly(s). Scope: general circuits, transfer direction only.",
+  "gap_id": "G0144"
  }
 ]

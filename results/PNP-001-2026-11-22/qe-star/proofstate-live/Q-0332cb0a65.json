@@ -388,5 +388,58 @@
   "gap": "Open: the port notion must be restated. Candidate repairs to test next: (a) matroid after pp-projection, (b) clutter-level elimination only for owner sets that are closed under the pp-definition, (c) a weaker axiom (e.g. strong circuit elimination on the affine subclass) that the S0001/S0003 gadgets satisfy. None is proved yet.",
   "refuted_approach": "Naive formalisation 'owner-level MUS clutter of a no-auxiliary instance is a matroid (circuit elimination)' is refuted for the affine atoms too: cm-1335d7fe55704559 gives 1484 failures in 3542 checks on GF(2)^3 with 14 affine atoms (91 circuits). The affine control confirms that the failure is not specific to non-affine Gamma. S0043 stands (owner-level = atom-level, trivial).",
   "gap_id": "G0028"
+ },
+ {
+  "at": 1795366807.4294674,
+  "session": "pnp-desk/research/R1603",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Lemma C / R-type port preservation extended to SHARED auxiliary variables (gap G0001): counterexample n=2, k=2 shared auxiliaries z1,z2 across 3 constraints. Gadgets E1={x2=0, z2=1, z1+z2=1} (projection x2=0) and E2={x1+z1+z2=1, x1+x2=1, x1+z1=1} (projection x1+x2=1, forces z2=0). Pair {E1,E2} is inconsistent through the shared z2 but the intersection of projections {(1,0)} is nonempty. Evidence: cm-576d9bc145a84644 (1566/3000 mismatches at k=2, 0/2000 at k=0 control) plus the hand check above."
+ },
+ {
+  "at": 1795368689.8124616,
+  "session": "pnp-desk/research/R1615",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0001-common-f: shared aux z = one common function f(x) across all gadgets; claim: if every pair of constraints is consistent with the shared z, then the whole union is consistent. REFUTED on visible variables with no auxiliary bit: C1={x0=0}, C2={x1=0}, C3={x0+x1=1} over GF(2)^2 are pairwise consistent and their union is inconsistent (x0=0, x1=0 contradicts x0+x1=1).",
+  "evidence": "cm-cdecb2c5d37a46ab: 16 of 16 functions f:GF(2)^2->GF(2) give a pairwise-consistent, globally-inconsistent triple after pulling back through f. cm-df633e17bc5a4611: the same triple with no auxiliary at all is pairwise consistent and globally inconsistent (pairwise ok=True, global=False). Consequence: the failure is pairwise-versus-global consistency of affine constraints, not a shared-auxiliary effect. Any repair of G0001 must be stated on the full union (or on minimal dependent sets), not on pairs."
+ },
+ {
+  "at": 1795369844.7440083,
+  "session": "pnp-desk/research/R1631",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Naive transfer of Lemma A/C to SHARED auxiliaries. Claim tested: gadget-level consistency of an owner set P (exists (x,z) satisfying all E_i, i in P, z shared) equals semantic consistency (intersection of H_i nonempty). Refuted by cm-df15705e8e0e485c: 1532 mismatched owner-sets in 888 of 4000 random GF(2) instances (n=2, k=1, m=3), all of the form gadget-inconsistent but semantically consistent. Exact example: E_0 = {x1+z=0, x2+z=1}, E_1 = {x2=1, x1=0}, E_2 = {z=1}; H_0 \u2229 H_1 = {(0,1)} is nonempty, but the joint gadget system is inconsistent because E_2 forces z=1 while E_0, E_1 force z=0. Proved bookkeeping: gadget-consistency implies semantic consistency always (projection of a common solution lies in every H_i); equality holds when auxiliaries are private (S0003(i)/S0009). Scope: shared auxiliaries only; no claim about private gadgets. Repair needed: a sufficient condition on the shared-z fibres under which the gadget clutter equals the semantic clutter, or a different clutter object for the shared case. Still open: G0001.",
+  "evidence": "cm-df15705e8e0e485c (discovery run, 4000 trials, seed 1, n=2 k=1 m=3, 0 mismatches predicted by Hypothesis A ruled out)"
+ },
+ {
+  "at": 1795369896.3861892,
+  "session": "pnp-desk/research/R1631",
+  "model": "claude-haiku-5-5",
+  "id": "S0049",
+  "proved_step": "statement: Shared-auxiliary GF(2) gadgets E_i(x,z) with H_i = {x : exists z E_i(x,z)}. If there is a function g such that E_i(x,z) iff (x in H_i and z = g(x)) for every owner i, then for every owner set P: {E_i : i in P} is consistent iff the intersection of H_i over i in P is nonempty.\nproof: If (x,z) satisfies all E_i with i in P, then x lies in every H_i, so the intersection is nonempty. Conversely, if x lies in the intersection, then z = g(x) satisfies every E_i. Both directions are immediate from the definitions.\nscope: Only the common-definitional-function case. General shared auxiliaries (gap G0001) remain open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795370055.406359,
+  "session": "pnp-desk/research/R1631",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Binary-port form of the shared-auxiliary transfer (G0001): claim that the owner-level MUS clutter of any shared-z GF(2) gadget system equals the port of a BINARY matroid at e. Refuted: cm-f0a46fb95d764a4d shows the all-pairs clutter {01,02,12} (owner bits 0..2) is the port of U_{2,4} with 0 binary realisations; cm-7d3458c5d4a8460f finds 20 non-binary-port owner clutters in 4000 random instances (H_A predicted 0), all of them the all-pairs clutter. The general matroid-port form is NOT refuted by these runs: every observed non-binary case is the port of U_{2,4}. Scope: binary-port form only. Still open: whether every shared-z owner clutter is a matroid port (owners with 2 rows need not give a matroid), so G0001 stays open.",
+  "evidence": "cm-f0a46fb95d764a4d (verification: 0 binary realisations of {01,02,12}; U_{2,4} rank submodular; port equals MUS clutter); cm-7d3458c5d4a8460f (discovery: 20 non-binary-port instances of 4000, all all-pairs clutters)"
+ },
+ {
+  "at": 1795370217.6811576,
+  "session": "pnp-desk/research/R1631",
+  "model": "claude-haiku-5-5",
+  "id": "S0051",
+  "proved_step": "statement: Setting: GF(2), variables x in GF(2)^n and shared auxiliaries z in GF(2)^k. Owners i in [m] each contribute ONE equation a_i.x + b_i.z = c_i. Put vh_i = (a_i, b_i, c_i) in GF(2)^(n+k+1), let t = (0,...,0,1), and let E be the vector matroid on [m] plus e, with e mapped to t and i mapped to vh_i. For an owner set P, the subsystem {owners in P} is inconsistent iff t lies in span{vh_i : i in P}. The MUS clutter of the gadget system (minimal inconsistent owner sets) equals the port at e of this binary matroid.\nproof: (1) Consistency. Let M be the (n+k)-column matrix with rows (a_i,b_i) for i in P, and c the vector of c_i. The system M y = c is solvable iff c lies in col(M). If c is not in col(M), there is lambda with lambda^T M = 0 and lambda.c = 1, so sum lambda_i vh_i = t. Conversely, if t = sum lambda_i vh_i, then lambda^T M = 0 and lambda.c = 1, so the system is unsolvable. Hence P is inconsistent iff t in span{vh_i : i in P}. (2) Port. Let X be a minimal subset of [m] with e in cl_E(X), i.e. r(X+e) = r(X), i.e. t in span(X). Then X+e contains a circuit C with e in C, and minimality forces X = C minus e. Conversely each circuit C through e gives C minus e as an inconsistent set, and the minimal ones are exactly the circuits through e minus e. So the MUS clutter is the port at e of E. (3) Each owner has exactly one equation, so a minimal inconsistent set of equations is a minimal inconsistent owner set, and the two clutters coincide. Loops (vh_i = 0) and parallel copies of t are handled by the same argument, since they give circuits of size 1 and 2 containing or avoiding e as appropriate.\nscope: Exactly: GF(2) linear gadgets, one equation per owner, auxiliaries SHARED across owners. Covered by linear-matroid theory (classical; the step is a precise verified special case, not new mathematics). NOT covered: owners with two or more equations over shared z. There the owner clutter can be the port of U_{2,4} (not binary), see cm-f0a46fb95d764a4d and cm-7d3458c5d4a8460f, so the binary-port form fails for those owners. Consistent with cm-2918160065c34082, which tests the matroid-port form only for owners with 1-2 rows and m=3.\nopen_after: G0001 narrowed to owners with >=2 equations over shared auxiliaries. Open question: is the owner clutter of such a system a matroid port for all m (H_M)? Note: the question is open, not refuted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795370341.0982769,
+  "session": "pnp-desk/research/R1631",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "H_M at m=4 (general matroid-port form of G0001, owners with up to 2 GF(2) rows over shared z): REFUTED by cm-468a3d4c8dcc40fe (DISCOVERY, exploratory). Of 53,625 sampled systems, 191 give owner clutters that are not the port at e of any matroid on 5 elements (e non-loop). The enumeration of 127 matroid ports includes the U_{2,4} port {3,5,6}, which is the sanity check. Example: rows [[13,4],[2,5],[10],[14,1]] gives clutter [3,6,9,10]. Interpretation: 2-row owner subspaces induce a polymatroid, not a matroid. Repair direction: restrict to 1-row owners (S0051, CLAIMED), or replace the matroid port by a rank/polymatroid statement. Not yet proved; the enumeration code needs independent replication before it is treated as final."
  }
 ]

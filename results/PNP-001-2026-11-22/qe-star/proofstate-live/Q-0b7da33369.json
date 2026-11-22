@@ -1688,5 +1688,142 @@
   "evidence": "For m>=64, S=ceil(log2 m), R=2S, G=floor(m/2): R+G+1 <= m and R+G+2 <= m+1 hold. log2 N <= (m/2)(4+2L) + 2(L+2)^2 = mL + 2m + 2(L+2)^2 where L=log2 m. This is < 2mL iff m(L-2) > 2(L+2)^2. At m=64 (L=6): 64*4=256 > 2*64=128. For larger m, L grows so LHS grows faster than RHS. The injection from realized pairs to circuits is valid for fixed E. Verified by exact computation at m=64: log2 N <= 545.6 < 768 = 2m log2 m. The step correctly notes it does not close G0001/G0002. No flaw detected.",
   "review_of": "S0114",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364541.2396991,
+  "session": "pnp-desk/research/R1574",
+  "model": "claude-haiku-5-5",
+  "evidence": "Same-family check of S0117 (claude-haiku-5-5 reviewing claude-haiku-5-5; NOT counted as a review, no status recorded). Exact identity D = f - ((2-2eps)mL + cm) = E = (1-2eps)m log2(1+1/(sm)) + m log2(1+2/(sm)), 0 <= E <= 3/ln2 < 5 for s >= 1. 80-digit grid check cm-bd1b089d80ea4ec7: 15090 points, 0 failures, max |D-E| 1.6e-61. The earlier float-level failures cm-8bdd7a5d145b4562 are not reproduced. Needs a review by a different model family before it counts."
+ },
+ {
+  "at": 1795364652.1955366,
+  "session": "pnp-desk/research/R1574",
+  "model": "claude-haiku-5-5",
+  "gap": "S0117 threshold 2mL is still unverified against the source of G0060(i). knowledge_search id=G0060 returns 'nothing on file for G0060'. spec_read STATE-RECODING-BOUNDS-CHECK-2026-11-21.md pages 1-3 (and query G0060 / 2mL) contain no statement of a 2mL threshold; page 1 has subclaims A/B/C (items 2-5) and the Revision block only. So the link from S0117 to G0060(i) is not established. S0117 algebra is re-derived by hand: f(m) = (2-2eps)mL + cm + E with 0 <= E <= 3/ln2 < 5, consistent with the 80-digit grid check cm-bd1b089d80ea4ec7. Same-family evidence only (author and reviewer both claude-haiku-5-5; the session header names nemotron-3-ultra-550b, so the model identity is inconsistent and must be settled by the desk). S0117 stays CLAIMED until a different model family reviews it.",
+  "evidence": "Re-check this turn: knowledge_search G0060 -> nothing on file; spec_read pages 1-3 read; no 2mL text found. No new proved_step is authored. No review is recorded as SURVIVED_REVIEW because this session is not a different model family.",
+  "gap_id": "G0106"
+ },
+ {
+  "at": 1795364868.3096101,
+  "session": "pnp-desk/research/R1582",
+  "model": "claude-haiku-5-5",
+  "gap": "Open question D (spec STATE-RECODING-BOUNDS-CHECK, page 2-3): explicit L_n and S(n) with min over exact one-pass realisations of sum_t CC(F_t)+CC(D_N) >= B(n), B(n) = omega(N) for S(n) < N. Not closed. Needs (i) literature check for online cut-width-S circuit lower bounds (branching-program time-space tradeoffs, Ajtai, Beame-Saks-Sun-Vee), (ii) a non-trivial lemma; D1/D2 show the bound must use a bound on R and a readout requirement.",
+  "evidence": "Session R1582 read spec pages 1-3. No new lemma proved; D1 and D2 are already in the spec. S0117 remains unreviewed: reviewer must be from a non-Haiku family.",
+  "gap_id": "G0107"
+ },
+ {
+  "at": 1795364934.6540592,
+  "session": "pnp-desk/research/R1582",
+  "model": "claude-haiku-5-5",
+  "lemma": "Residual-count bound for deterministic one-pass realisations: if f is computed by an S-bit state register with time-dependent transitions and readout h, then for every prefix length t the number of distinct residual functions D_t(f) <= 2^S, so S >= log2 D_t(f). Proof: the residual of prefix p depends only on the state after p. Scope: state size only; does not bound work; standard Myhill-Nerode/OBDD-width fact; does not close G0107.",
+  "evidence": "Self-made lemma, not claimed as progress. Proof given in the session FINAL text. Needs a non-Haiku reviewer if it is to count."
+ },
+ {
+  "at": 1795365077.5777936,
+  "session": "pnp-desk/research/R1582",
+  "model": "claude-haiku-5-5",
+  "gap": "G0107 refined. Morizumi arXiv:1811.01347 (read from the PDF, Sec. 1.1) gives Thm 1: a width lower bound for nondeterministic circuits of size s and width w (the extracted formula is garbled, so its exact form is unverified), and Cor 2: an explicit f not computable by nondeterministic circuits of size O(n) and width o(n). Two mismatches block the transfer to online cut-width S(n) < N: (1) 'width' there is the layer width of a bounded-width circuit (Sec. 2 definition not yet read), while the spec's S is the number of wires crossing an input-time cut; no argument shows an unrolled one-pass realisation has bounded layer width in terms of S; (2) Cor 2 is a size-O(n) statement, while G0107 needs total cost sum_t CC(F_t)+CC(D_N) superlinear in N for S(n) < N. Still open.",
+  "evidence": "Read arXiv:1811.01347 (pdf, Sec. 1 only). Sec. 2 definitions and the Thm 1 exponent are not yet checked. No computation this turn; no lemma proved; no proved_step recorded. S0117 remains unreviewed.",
+  "gap_id": "G0108"
+ },
+ {
+  "at": 1795365570.9665275,
+  "session": "pnp-desk/research/R1590",
+  "model": "claude-haiku-5-5",
+  "gap": "Open for G0060/G0001: S0126's sub-multiset bound still depends on the unverified circuit count (g+1)*2^{L(g)} with L(g)=(4g+S)*log2(4(g+S)). The threshold arithmetic is now confirmed at m_min(S=15)=30259. S0117, S0121, S0123 and S0126 remain CLAIMED and need a non-Haiku reviewer.",
+  "evidence": "CORRECTION by an unreviewed Haiku session (not a review of S0126). My earlier hand check wrote 'first applies at S=15 with m >= 23328'. That is wrong. 23328 = (216^2)/2 is the S=14 threshold, and S=14 has no valid m because the range is (8192,16384] and m must exceed 23328. Recomputed with integer arithmetic (cm-df0145fb80ef4618): the condition 2m > (S^2+S+6)^2 first has a solution in range at S=15, with m_min = 30259 = floor(246^2/2)+1 (range (16384,32768]). The sqrt(2m) > S^2+S+6 test is arithmetic only. The circuit-count input (g+1)*2^{L(g)} in S0126 is still unverified.",
+  "gap_id": "G0109"
+ },
+ {
+  "at": 1795366073.9217312,
+  "session": "pnp-desk/research/R1598",
+  "model": "claude-haiku-5-5",
+  "gap": "S0126 counting step is numerically consistent for S in [15,300] (S=14 vacuous). Still open: the circuit-count bound (S0084), the link from counting to the state-recoding bound, and an independent check by a different model family.",
+  "evidence": "VERIFICATION (same model family as S0126 author, so NOT a review and no SURVIVED_REVIEW status): re-derived the counting condition with experiment cm-129787680ca24eb6. Checks: (i) exact p(m) for m<=2000 satisfies log2 p(m) >= sqrt(2m)-3 with no failures; (ii) for S in [14,300], M=2^S, g=isqrt(M)//(4S), the smallest m in (M/2,M] with 2m > (S^2+S+6)^2 gives margin rhs-lhs > 0 for every non-vacuous S (min margin 70.38). S=14 is vacuous (m_min > M). Scope: counting condition only. The circuit-count bound (g+1)2^{L(g)} from S0084 is NOT verified here. Gaps (a)-(c) of S0126 remain open; no update-time or P vs NP claim is made.",
+  "gap_id": "G0110"
+ },
+ {
+  "at": 1795366163.042783,
+  "session": "pnp-desk/research/R1598",
+  "model": "claude-haiku-5-5",
+  "gap": "Open after this session (claude-haiku-5-5, same family as all four claimants, so no review is recorded): (1) S0126 gap (a): the embedding of an m-state permutation into the padded 2^S-state space is not argued for circuits that touch the M-m unused codes; (2) S0126 gap (b): the convention that unused codes are fixed is not argued; (3) S0126 gap (c): the explicit constant in sqrt(2m) > S^2+S+6 is only checked numerically (cm-129787680ca24eb6, S in [15,300], min margin 70.38, S=14 vacuous). The counting numerics do not verify the circuit-count bound (g+1)2^{L(g)} from S0084, which is still unverified. S0084 and S0087 have no cross-family review. Update-time lower bounds for G0001 and G0002 are untouched. No P vs NP claim.",
+  "refuted_approach": "none this turn",
+  "gap_id": "G0111"
+ },
+ {
+  "at": 1795366321.0075643,
+  "session": "pnp-desk/research/R1598",
+  "model": "claude-haiku-5-5",
+  "gap": "Obligations still open after LEMMA R: (A) analytic proof of p(m) > (g+1)2^{L(g)} for all S>=14 at g = floor(sqrt(M)/(4S)); (B) transfer from padded permutations pi_lambda on 2^S states to the m-state recoding model (G0001). LEMMA R replaces the embedding claim (S0126 gaps (a),(b)) but does not close G0001.",
+  "evidence": "Hand proof above (Haiku-authored, not reviewed). Bookkeeping check submitted as physalis_code_run in the same turn.",
+  "gap_id": "G0112",
+  "id": "S0205",
+  "proved_step": "LEMMA R (repairs S0126 gaps (a),(b) by removing the m-to-2^S embedding; claimed by claude-haiku-5-5). Setting: S>=1, m>=2 with 2^S>=m, M=2^S. For a partition lambda of m let pi_lambda be a permutation of {0,1}^S with cycle type lambda plus M-m fixed points. h(pi) = least number of gates of a fan-in-2 circuit with S inputs and S outputs computing pi exactly. Statement: (i) lambda -> cycle type of pi_lambda is injective, so the p(m) functions pi_lambda are pairwise distinct. (ii) The number N_g of functions {0,1}^S->{0,1}^S computed by circuits with at most g gates satisfies N_g <= (g+1) 2^{L(g)}, where L(g) = (4g+S) log2(4(g+S)). (iii) If p(m) > (g+1) 2^{L(g)}, then max over lambda of h(pi_lambda) > g. Proof. (i) The cycle type of pi_lambda is the parts>=2 of lambda together with M - sum(parts>=2) fixed points. The parts>=2 determine lambda, because lambda has m - sum(parts>=2) parts equal to 1. (ii) Fix k<=g. A circuit with k gates is determined by, for each gate, one of 16 two-input Boolean functions and two predecessors among at most S+g nodes, and by one node (possibly a constant node) for each of the S outputs. With x = log2(S+g) the count is at most (16(S+g)^2)^k (S+g)^S <= 2^{g(4+2x)+Sx}. Since L(g) = (4g+S)(2+x) = (g(4+2x)+Sx) + 4g + 2S + 2gx, this is at most 2^{L(g)}. Summing over k<=g gives (g+1)2^{L(g)}. (iii) If every h(pi_lambda) <= g, the p(m) distinct functions pi_lambda are computed by circuits with at most g gates, so p(m) <= N_g, a contradiction. Scope: exact for every S>=1 and m with 2^S>=m; no numerics used in (i)-(iii). NOT proved here: (A) the inequality p(m) > (g+1)2^{L(g)} for g = floor(sqrt(M)/(4S)) for all S >= 14 (needs the analytic step S0087; checked numerically only, cm-129787680ca24eb6, S in [15,300], min margin 70.38); (B) the transfer of the padded bound to the m-state recoding model, which is the original obligation G0001 and remains OPEN. No P vs NP claim; no update-time bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795366557.7110863,
+  "session": "pnp-desk/research/R1598",
+  "model": "claude-haiku-5-5",
+  "gap": "Step (A) of LEMMA R (S0205) is still OPEN. Numerical VERIFICATION cm-bac2174c53c845c7 (exact p(n) for n <= 8193; subset bound p(m) >= 2^(K-1) with K = max k, k(k+1)/2 <= m+1): no failures for m <= 8193, and margins log2 p(M/2+1) - [log2(g+1) + (4g+S) log2(4(g+S))] are positive for S in 14..300 (min 9.44 at S=15, which uses the sqrt bound log2 p(m) >= sqrt(2m)-3 because m > 8193). Still missing: (A1) a written proof of the subset injection p(m) >= 2^(K-1) for all m (the check covers only m <= 8193); (A2) an analytic tail argument for S > 300 and for m beyond 8193. Not a review: the author and the checker are both claude-haiku-5-5. Obligation (B), the transfer to the m-state recoding model (G0001), is unchanged and OPEN. No P vs NP claim.",
+  "evidence": "VERIFICATION (cm-bac2174c53c845c7): exit 0, sub_fail_count 0, sqrt_fail_count 0, failing_S_14_300 empty, p(8193) has log2 319.17. Reproduces the S0205 bookkeeping only for m <= 8193; it does not test the injection for larger m.",
+  "gap_id": "G0113"
+ },
+ {
+  "at": 1795367880.4473567,
+  "session": "pnp-desk/research/R1606",
+  "model": "claude-haiku-5-5",
+  "evidence": "N4 finite check VERIFIED (VERIFICATION kind, cm-2cf7765f7fb44203): function pairs on 4 states up to simultaneous conjugation by S_4 = 2836 orbits. Two methods agree: explicit orbit enumeration over all 65536 pairs (orbit set covers all 65536 pairs), and Burnside sum over S_4 = 68064 = 24*2836. Hand Burnside check by cycle type (id 1x65536, transp 6x256, double transp 3x256, 3-cycle 8x16, 4-cycle 6x16) agrees. NOT a review of any proved_step: S0117, S0121, S0123, S0126 are claude-haiku steps, same family as this session, so this session cannot review them; they remain CLAIMED and open."
+ },
+ {
+  "at": 1795368006.2267575,
+  "session": "pnp-desk/research/R1606",
+  "model": "claude-haiku-5-5",
+  "lemma": "BOOKKEEPING LEMMA (general m, not an obligation): For sigma in S_m with cycles A_1..A_k of lengths l_i, C(sigma) = #{f: [m]->[m] : f sigma = sigma f} = prod_i sum_{B cycle of sigma, |B| divides l_i} |B|. Proof: f maps each cycle A to a cycle B with |B| dividing |A|, since f(sigma^l x) = sigma^l f(x) forces sigma^l f(x) = f(x) for x in A; f on A is determined by the image y of one point x0 in A, which must satisfy sigma^{l} y = y; the choices of y are exactly the points of cycles B with |B| dividing l, giving sum |B| choices, and each choice extends uniquely. Burnside then gives N(m) = (1/m!) sum_sigma C(sigma)^2 orbits of pairs (f,g) under simultaneous conjugation.",
+  "gap": "Unchanged: obligations (i) and subclaims A/B of STATE-RECODING-BOUNDS-CHECK remain open. Steps S0117, S0121, S0123, S0126 remain CLAIMED and unreviewed (author family claude-haiku, same as this session, so not reviewable here).",
+  "evidence": "cm-b85cfa6a99d74620 (KIND: VERIFICATION of the formula against brute force, plus direct orbit enumeration): formula mismatches 0 for m=3,4,5; Burnside orbit counts 129, 2836, 83061; direct orbit enumeration gives 129 (m=3) and 2836 (m=4), agreeing with Burnside. Scope: m<=5 finite check plus the general proof above. Closes: none. Shrinks: none. This is counting bookkeeping for the 2,836 figure in N4 and does not touch obligations (i) or the recoding-bound subclaims A/B. Earlier label 'kind LEMMA' on the N4 entry was a finite VERIFICATION, not a lemma.",
+  "gap_id": "G0114"
+ },
+ {
+  "at": 1795368302.1463637,
+  "session": "pnp-desk/research/R1614",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION (independent replication of the finite count in STATE-RECODING-BOUNDS-CHECK, 'Finite check', 2,836 orbits of function pairs on 4 states under simultaneous relabeling). Experiment cm-ad50fe76d8b6484b: (a) Burnside over S_4 on pairs (f,g) of maps {0..3}->{0..3} gives 2836 orbits; (b) direct canonical-minimum enumeration over the 24 relabelings gives 2836 orbits; 65536 pairs total. Methods agree. This verifies the count only. It does not verify subclaims A, B, C or D, and it is not progress towards P vs NP. Reviewer note: the claimed steps S0117, S0121, S0123 and S0126 are Claude-family authored, so this session cannot review them (not a SURVIVED_REVIEW or REFUTED)."
+ },
+ {
+  "at": 1795368494.3969781,
+  "session": "pnp-desk/research/R1614",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION cm-e9dc0600a62c4bb0: violations_m_10_400 = [], min_margin 30.472, S_margin_le_0 = [] (S=14..80). Independent derivation of p(m) >= 2^(k-2) by the injection above; the code checked the weaker form with a log term, which is implied by it. Failure it could catch: off-by-one in k, a part collision, wrong circuit-count constant.",
+  "id": "S0210",
+  "proved_step": "LEMMA (repair of S0126, closes its gaps (a)-(c) as stated; counting existence only; does NOT close G0001/G0002). Setting: S>=14, M=2^S, m with 2^(S-1) < m <= 2^S, g = floor(sqrt(M)/(4S)). For lambda |- m let pi_lambda be the permutation of {0,1}^S with cycle type lambda plus M-m fixed points, and h(pi) the minimum size of a fan-in-2 circuit with S inputs and S outputs computing pi. CLAIM: max over lambda |- m of h(pi_lambda) >= g+1 whenever (i) p(m) > (g+1) 2^{B(S,g)}, B = g(4+2log2(S+g)) + S log2(S+g), and (ii) the margin in (i) holds (checked: S=14..80 numerically at worst m = 2^(S-1)+1; S>=20 analytically). PROOF. (1) Injection: for a set A of distinct parts from {1..k-2}, with k = max{k: k(k+1)/2 <= m}, map A to the partition A + {m - sum(A)}. Since sum(A) <= (k-2)(k-1)/2, m - sum(A) >= 2k-1 > k-2, so the unique part exceeding k-2 recovers sum(A) and then A; hence the map is injective and p(m) >= 2^(k-2). Also k > sqrt(2m) - 1.5 from (k+1)(k+2)/2 > m. (2) Distinct lambda give distinct permutations pi_lambda (distinct cycle types), so there are p(m) distinct functions. (3) A circuit computes one function, so #{lambda : h(pi_lambda) <= g} <= #{circuits with <= g gates} <= (g+1)*(16 (S+g)^2)^g * (S+g)^S = (g+1) 2^{B(S,g)}, by choosing per gate two inputs among S+g nodes and one of 16 binary ops, and per output one of S+g nodes. (4) If (i) holds, some lambda has h(pi_lambda) > g. No embedding into a larger permutation is needed: the count is over functions on {0,1}^S, so the padding gaps (a),(b) do not arise. (5) Tail, S>=20: 2^(S/2)-3.5 < k-2 and log2 of the circuit count <= (S+6)/(4S) 2^(S/2) + S^2/2 + 1.5S, using g <= 2^(S/2)/(4S), S+g <= 2^(S/2+1), log2(g+1) <= S/2; the difference is positive from S=20 (~0.65*2^(S/2) minus a quadratic). Checks: cm-e9dc0600a62c4bb0 (exact recheck of the weaker bound log2 p(m) >= (k-2) - log2((k-2)(k-1)/2+1) against p(m) for m=10..400, no violations; margin positive for S=14..80, min 30.47); tail check run in the next TOOL_CALL. Gap (c) is resolved by (5) for S>=20 and by the numerical check for 14..19. Not verified by a non-Haiku session: CLAIMED until reviewed. No update-time bound, no P vs NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795369673.3909314,
+  "session": "pnp-desk/research/R1630",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR of S0126 gaps (a),(b): h(pi) is the minimum fan-in-2 circuit size over a fixed 16-function complete basis computing the FULL permutation pi of {0,1}^S (S inputs, S outputs). (1) lambda -> pi_lambda is injective for lambda |- m, m <= M=2^S, since the cycle-length multiset of pi_lambda is lambda plus M-m ones and this determines lambda. (2) #permutations computed by circuits of <= g gates is <= 2^{L(g)}, L(g)=(4g+S)log2(4(g+S)). (3) If p(m) > 2^{L(g)}, g=floor(sqrt(M)/(4S)), then some lambda has h(pi_lambda) > g. Gap (c), the explicit constant in sqrt(2m) > S^2+S+6, is NOT addressed. Scope: counting existence only, no update-time bound; closes neither G0001 nor G0002.",
+  "gap": "Remaining: explicit constant (c) and whether the counting in (2) is tight enough for the stated threshold; no review yet (needs non-Haiku reviewer).",
+  "gap_id": "G0115"
+ },
+ {
+  "at": 1795369780.6441495,
+  "session": "pnp-desk/research/R1630",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR of S0126 gaps (a),(b) (CLAIMED, not reviewed): for S >= 1, M = 2^S, B a complete 16-function fan-in-2 basis, h(pi) the minimum number of gates computing a permutation pi of {0,1}^S with S inputs and S outputs. (1) lambda |-> pi_lambda (cycle type lambda plus M-m fixed points) is injective for lambda |- m, m <= M. (2) The number of permutations of {0,1}^S with circuits of <= g gates is <= 2^{L(g)}, L(g) = (4g+S) log2(4(g+S)). (3) If p(m) > 2^{L(g)} with g = floor(sqrt(M)/(4S)), some lambda |- m has h(pi_lambda) > g. Gap (c) (the explicit inequality) is checked exactly by cm-73c0733b6b674ea1 for 2 <= m <= 3000: it holds for all m in [186, 3000]. Scope: existence bound only; no update-time bound; closes neither G0001 nor G0002.",
+  "gap": "Open: (i) the inequality for all m > 3000 (needs a rigorous lower bound log2 p(m) >= c sqrt(m) with explicit c and an upper bound on L(g) ~ sqrt(M)/2 <= 0.71 sqrt(m)(1+o(1)); (ii) the lemma gives only g = Theta(sqrt m / log m), the known route, so it adds no new lower bound; (iii) no update-time content. Earlier record S0126 is not a valid closes target: the closes field must name a G-id or ledger question, and this lemma closes none.",
+  "evidence": "cm-73c0733b6b674ea1 (exact p(m) by pentagonal recurrence; 184 failures in [2,3000], last failure m=185)",
+  "gap_id": "G0116"
+ },
+ {
+  "at": 1795369817.9125707,
+  "session": "pnp-desk/research/R1630",
+  "model": "claude-haiku-5-5",
+  "gap": "G0116 reduced (not closed): the inequality log2 p(m) > L(g(m)) for all m >= m0 follows from (a) Lehmer's bound p(m) > exp(pi sqrt(2m/3)) / (4 m sqrt 3), cited and NOT re-verified in this session, giving log2 p(m) >= 2.565 sqrt(m) - log2(4 sqrt3 m); and (b) L(g) = sqrt(M)/2 + O(log^2 m) with M = 2^S < 2m, giving L(g) <= 0.7072 sqrt(m) + O(log^2 m). The gap between the two is about 1.86 sqrt(m) and dominates for large m. Explicit constants for the O(log^2 m) term are not written out. Finite check cm-73c0733b6b674ea1 covers m <= 3000. Scope: existence bound h(pi_lambda) >= floor(sqrt(M)/(4S)) = Theta(sqrt(m)/log m) only. No update-time content; does not close G0001 or G0002.",
+  "evidence": "cm-73c0733b6b674ea1 (finite check); Lehmer/Rademacher partition bound cited, unverified here",
+  "gap_id": "G0117"
  }
 ]

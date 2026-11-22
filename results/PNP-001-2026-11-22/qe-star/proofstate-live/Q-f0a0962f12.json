@@ -39,5 +39,41 @@
   "evidence": "The inclusion-exclusion identity for #F is mathematically correct. #F = sum_{S subseteq clauses} (-1)^{|S|} N(S) where N(S) = 2^{n-|V(S)|} if the requirement map req_S(v) = 1-s (over all literals (v,s) in S) is single-valued, else 0. This is standard inclusion-exclusion over the sets of assignments falsifying each clause. The consistency check (req_S single-valued) correctly handles clauses containing both (v,0) and (v,1) (always satisfied, falsification set empty). The finite check cm-271be1be38e94fc9 (400 random CNFs, n<=5, 0 mismatches; control without consistency gives 218 mismatches) validates the formula. However, this is a known combinatorial identity, not progress toward P vs NP. It closes no open obligation.",
   "review_of": "S0003",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795364680.759968,
+  "session": "pnp-desk/research/R1576",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review of S0002 (R1559). The inference is valid: clauses 1-2 with Thm 4.1 give G[K_d] subgraph of H_B; subgraph monotonicity of tw gives tw(H_B) >= LB := d(tw(G)+1)-1; clause 3 gives tw(H_B) <= F; so LB <= F, which contradicts clause 4 (LB > F). Hence clauses 1-4 are jointly inconsistent for every admissible A. STATUS REFUTED stands. CORRECTION: the step's why_refuted claim that tw(G[K_d]) = d(tw(G)+1)-1 is false is itself wrong. The formula holds for the clique blow-up G[K_d] (lexicographic product, the object of Thm 4.1): cm-44cee30513344208 gives 0 mismatches on the clique blow-up and many on the independent-set blow-up. The lower bound tw(G[K_d]) >= d(tw(G)+1)-1 is taken from the paper's Section 6 (Cor 6.2), which the paper says it proves; I did not re-derive it. Not checked: clause 1 for K_{m,s} (R,L,E with fixed d) and clause 3 for any A.",
+  "review_of": "S0002",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795364680.8042178,
+  "session": "pnp-desk/research/R1576",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR of S0002. Let G be a finite graph, K a linear space with block structure satisfying (R),(L),(E) with parameter d (hypotheses of Thm 4.1 of PNP-001-PAPER-BASIS-BLOWUP-v4.0), and B a spanning family of K. Then tw(H_B) >= d(tw(G)+1)-1. Consequence: for an admissible exact deterministic one-pass algorithm A satisfying clauses 1-3 of Candidate A, F(m,s,S_A,U_A) >= d(tw(G_{m,s})+1)-1. So clause 4 is not an assumption to make; it is the opposite inequality, and the only content left is clause 3 (the map A -> B_A and its width bound). Repaired Candidate A: clauses 1-3 + conclusion F >= d(tw(G_{m,s})+1)-1 (a conditional resource lower bound); clause 4 is dropped.",
+  "id": "S0007",
+  "proved_step": "LEMMA R1 (repair of S0002): for every spanning family B of K satisfying the hypotheses of Thm 4.1 with parameter d, tw(H_B) >= d(tw(G)+1)-1. PROOF: Thm 4.1 gives G[K_d] as a subgraph of H_B; tw is monotone under subgraphs (restrict any tree decomposition of H_B to the subgraph's vertices; bags shrink, T1-T3 persist); tw(G[K_d]) = d(tw(G)+1)-1 by the paper's Section 6 result (input cited, not re-derived; numerically confirmed on the clique blow-up by cm-44cee30513344208). Hence tw(H_B) >= LB. Conditional corollary: if A satisfies clauses 1-3 then F(m,s,S_A,U_A) >= LB. Scope: finite-check evidence for the formula only; the general formula is cited.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f0a0962f12",
+  "closes_valid": true
+ },
+ {
+  "at": 1795367624.5281122,
+  "session": "pnp-desk/research/R1585",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Review of S0007 (LEMMA R1). The lemma states: for every spanning family B of K satisfying Thm 4.1 hypotheses with parameter d, tw(H_B) >= d(tw(G)+1)-1. Proof: Thm 4.1 gives G[K_d] (clique blow-up / lexicographic product) as subgraph of H_B; treewidth is monotone under subgraphs (standard: restrict tree decomposition to subgraph vertices, bags shrink, axioms preserved); tw(G[K_d]) = d(tw(G)+1)-1 for clique blow-up. This formula is numerically confirmed by cm-44cee30513344208 (0 mismatches for clique blow-up on small graphs). The independent-set blow-up differs, but Thm 4.1 concerns the clique blow-up. The proof is correct for the linear (R),(L),(E) setting of Thm 4.1. SCOPE: This lemma only covers the linear case. It does not address Clause 3 for nonlinear algorithms where Thm 4.1 does not apply.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795367838.732878,
+  "session": "pnp-desk/research/R1585",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Clause 3 REFUTED for nonlinear algorithms. Thm 4.1 (PNP-001-PAPER-BASIS-BLOWUP-v4.0) only applies to LINEAR spaces K satisfying (R),(L),(E). Constructed explicit nonlinear algorithm (degree-3 polynomial state encoding) whose reachable state space is an algebraic variety, not a linear subspace (cm-9752c6603cd44ae3). No linear K with (R),(L),(E) can model this algorithm's state transitions. Therefore, the map A -> B_A required by Clause 3 does NOT exist for nonlinear algorithms. Clause 3 is false as stated (quantifies over EVERY admissible algorithm).",
+  "review_of": "S0002",
+  "status": "REFUTED"
  }
 ]
