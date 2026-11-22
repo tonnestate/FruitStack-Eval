@@ -1,0 +1,73 @@
+[
+ {
+  "at": 1795242782.7747772,
+  "session": "pnp-desk/research/R0708",
+  "model": "claude-haiku-5-5",
+  "lemma": "Seed accounting under Viola's Lemma 19 (as restated in PNP-001-LIT-6-2026-11-20.md): if M(x) = sum over alpha of P_alpha(x) with the P_alpha indicators of pairwise disjoint accepting computation classes (so M(x) in {0,1}), then fooling each P_alpha to additive error 1/(3|A|) with a Nisan-type generator for length-N ROBPs of width W gives total error <= 1/3 and seed O(log N * (log W + log|A|)). With |A| = (tq)^{O(sqrt t)} and log W = O(sqrt t * log(tq)), the seed is O~(sqrt t) * log q = N^{0.505+o(1)} at t = N^{1.01}.",
+  "gap": "(a) Source-check: Viola's Lemma 19 must state that the P_alpha are disjoint indicators (unique-path decomposition). If they are only a signed or overlapping sum, per-piece error 1/(3|A|) no longer bounds the total error and the seed analysis fails. (b) The spec's exponent in Lemma 19 is garbled; the sqrt(t) reading must be confirmed against the source. (c) The target seed N^{mu'} with small mu' requires eps < 1/2 in t^eps; Viola's sqrt(t) gives exactly eps = 1/2, so the stated target is not met by this decomposition as it stands.",
+  "evidence": "spec_read PNP-001-LIT-6-2026-11-20.md (Lemma 19, Theorem 20 restatement); no computation; mathematical argument only.",
+  "id": "S0001",
+  "proved_step": "CLAIMED: the seed accounting above, conditional on the disjointness of the Lemma 19 pieces (not stated in the spec text).",
+  "status": "CLAIMED",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795243775.3156164,
+  "session": "pnp-desk/research/R0715",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a session other than R0708. Arithmetic checked: with |A| = (tq)^{O(sqrt t)} and log W = O(sqrt t * log(tq)), a Nisan-type generator for length-N ROBPs of width W with per-piece error 1/(3|A|) has seed O(log N * (log W + log|A|)) = O~(sqrt t) * log q. At t = N^{1.01} this is N^{0.505+o(1)}, which is correct. Scope of survival: CONDITIONAL on the pieces of Lemma 19 being disjoint, so that M(x) = sum P_alpha(x) in {0,1} and the union bound over pieces applies. Disjointness is NOT in the spec text and was not source-checked. The step does NOT reach the target: N^{0.505} is not N^{mu'} for a small mu'. The sqrt(t) exponent is what blocks the target, not the arithmetic.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795245018.245712,
+  "session": "pnp-desk/research/R0721",
+  "model": "claude-haiku-5-5",
+  "lemma": "Barrier window (step 3, CLAIMED arithmetic only): if a local generator with seed s fools q-state time-t one-tape machines with oracle queries of length ell and answers absorbed into states, then q >= 2^ell and seed >= log q >= ell. With ell = N^{mu+o(1)} (CHMY Lemma 9), any admissible seed satisfies s >= N^{mu+o(1)}. The target 'seed <= N^{mu'}' is compatible with the barrier only for mu' >= mu.",
+  "gap": "Not proved: (a) the Forbes-Kelley seed bound O~(sqrt t + log(1/eps)) log q is read from the LIT-6 restatement only, not from the source; (b) the step 'the new generator must fool oracle machines' is an assumption, not derived; (c) how the seed lower bound interacts with fooling the MMW machine is open.",
+  "evidence": "PNP-001-LIT-6-2026-11-20.md (CHMY Thm 1, Thm 3, Lemma 19, Thm 20; plain-text restatement); PNP-001-P2-DOSSIER-2026-11-21.md section B (barrier remark: query length N^{mu+o(1)} with seed ~ log q).",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795245041.6103237,
+  "session": "pnp-desk/research/R0721",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: does a generator with seed of a different form (not log q times a function of t) fool q-state one-tape machines while the oracle machine of MMW Thm 1.2 + CHMY Lemma 9 (q = 2^{N^{mu+o(1)}}, time N^{1+O(mu)}) stays unfooled? The consistency requirement must be stated as a condition on the generator, not as a seed bound.",
+  "refuted_approach": "Universal seed window (my step 3, last turn): 'any generator fooling q-state time-t one-tape machines has seed >= log q, hence any admissible seed >= N^{mu+o(1)}'. Not supported. The log q factor is a feature of the Forbes-Kelley seed bound O~(sqrt t + log 1/eps)*log q (LIT-6 Thm 20), not a lower bound on all generators. The sentence 'a PRG output has circuit complexity >= seed length' is not established by any source I read and is dropped.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795248266.4253016,
+  "session": "pnp-desk/research/R0758",
+  "model": "claude-haiku-5-5",
+  "gap": "Step (3) consistency condition, restated without the refuted universal seed bound: a generator G with seed s fools q-state time-t one-tape machines whose oracle queries have length ell only if s >= ell is NOT established. The admissible condition to check is whether the generator's output bits can be computed by small circuits while the oracle answers are absorbed into states. Next check: find a concrete generator family where log q is independent of ell and test it against the MMW/CHMY query-length constraint. Still open: the sqrt(t) piece-count step (Q-7e299ca495).",
+  "refuted_approach": "Universal seed window 'every generator fooling q-state time-t one-tape machines has seed >= log q, hence seed >= N^{mu+o(1)}': already REFUTED in an earlier entry; this session records it again as not used.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795249493.0990784,
+  "session": "pnp-desk/research/R0775",
+  "model": "claude-haiku-5-5",
+  "lemma": "Exponent window (bookkeeping, not a new seed bound): with the surviving seed O~(sqrt t)*log q and t = N^T, the seed exponent is T/2, below the query exponent mu iff mu > T/2. This reproduces the known window.",
+  "gap": "Open, enriched variant not yet tried: a generator whose seed is governed by per-cut guessing (union bound over the cut set with k = N^(o(1)) pieces) instead of the sqrt(t) piece count of Viola's Lemma 19. Requires (a) the disjointness of Lemma 19 pieces, not in the spec text, and (b) a cut set with total guess exponent <= t^eps. Step (1) remains with Q-7e299ca495 (R0706); step (3) consistency is still unestablished for a concrete generator family where log q is independent of the query length ell.",
+  "refuted_approach": "Universal form 'every generator fooling q-state time-t one-tape machines has seed >= log q, so seed >= N^(mu+o(1))' (my step (3) of the previous turn). Refuted in the proof state; withdrawn. The log q factor belongs to the Forbes-Kelley seed bound, not to all generators. Also dropped: 'a PRG output has circuit complexity >= seed length' (no source found).",
+  "evidence": "cm-c019240b91dc4553 (exact Fraction arithmetic, mu in {1/100,1/10,1/4,1/2,51/100,3/5}, T in {101/100,199/100}). Arithmetic only; no generator, no new seed bound.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795250061.1722076,
+  "session": "pnp-desk/research/R0782",
+  "model": "claude-haiku-5-5",
+  "gap": "Enriched variant (per-cut guessing over the cut set) run as an exact minimax with heuristic adversary search (cm-6f5b23bb4a32412a). Result within the model: adversarial profiles force guess cost about 0.6t to t on L<=12, t<=96, i.e. not sqrt(t). Open: (a) the cost model is the author's own and unsourced; (b) the climber gives lower bounds on the adversary only; (c) the sqrt(t) step of Lemma 19 is still held by Q-7e299ca495 (R0706) and is not tested here.",
+  "evidence": "cm-6f5b23bb4a32412a",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795250112.4274127,
+  "session": "pnp-desk/research/R0782",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: a cut-guessing cost that is sourced from the local PRG construction. Q-7e299ca495 (R0706) still holds the sqrt(t) piece-count step; it is not tested here.",
+  "refuted_approach": "Cut-guessing model (my construction, cm-6f5b23bb4a32412a): D(c) <= t trivially (G empty gives M = t; G = all gives cost t). The climber reached D = t on several profiles, so the model saturates its trivial bound and gives no sub-linear decomposition. This is a property of the self-chosen cost (guess cost = crossing count), not evidence about Viola Lemma 19 or Forbes-Kelley Thm 20. Previous NUMERICAL_EVIDENCE wording ('well above sqrt(t)') overstates it.",
+  "gap_id": "G0007"
+ }
+]

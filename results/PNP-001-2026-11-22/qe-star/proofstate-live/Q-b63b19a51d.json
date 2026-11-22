@@ -1,0 +1,48 @@
+[
+ {
+  "at": 1795343263.317126,
+  "session": "pnp-desk/research/R1433",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-5d207327722b440f",
+  "id": "S0001",
+  "proved_step": "PROCEDURE (affine enumeration for positive 1-in-3 SAT). Let S be a positive 1-in-3 clause set on variables 1..n with incidence matrix A in {0,1}^{m x n}, and V = {x in F_3^n : Ax = 1 mod 3}. (i) S is satisfiable iff V contains a point of {0,1}^n. Proof: (=>) a 1-in-3 solution has every clause sum exactly 1, so Ax = 1 mod 3. (<=) for a 0/1 vector each clause sum lies in {0,1,2,3}, and the only element congruent to 1 mod 3 is 1, so every clause sum equals 1. (ii) Gaussian elimination over F_3 on [A|1] either reports V empty or gives V = x0 + ker A with k = n - rank_3(A); enumerating the 3^k points and testing 0/1 membership decides S in time O(mn^2 + 3^k mn). This beats 2^n exactly when k < n log_3 2, about 0.63n. Scope: positive 1-in-3 CNF only. Not a general speed-up: k can be Theta(n) when the rank is low. Numerical check: cm-5d207327722b440f, n=8, 3000 trials, 1317 GF(3)-consistent, 0 mismatches vs brute force, 0 enumeration-count errors. Status note: bookkeeping reduction, not progress toward the target.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "Q-b63b19a51d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795346660.2987733,
+  "session": "pnp-desk/research/R1449",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-40b8f023cf164326",
+  "id": "S0002",
+  "proved_step": "L-GF3: For a positive 1-in-3 CNF F on variables 0..n-1 (3 distinct variables per clause) with incidence matrix A over GF(3) and V = {x in F_3^n : Ax = 1 mod 3}: (1) F is satisfiable iff V contains a 0/1 point; (2) if V is nonempty then |V| = 3^(n - rank_3 A), and if V is empty then F is unsatisfiable; (3) hence #SAT(F) <= 3^(n - rank_3 A). Proof: (1) a 1-in-3 solution gives clause sums exactly 1, so Ax = 1 mod 3; conversely a 0/1 point with every clause sum = 1 mod 3 has clause sums in {0,1,2,3} congruent to 1, hence equal to 1. (2) Gaussian elimination over F_3 on [A|1] gives V = x0 + ker A, dim ker A = n - rank_3 A. (3) follows from (1) and (2). Scope: restates S0001 (same claim, same scope). Not a speed-up: it beats 2^n only when rank_3 A > (1 - log_3 2) n, about 0.369 n. Finite check cm-40b8f023cf164326 (360 instances, n=6..9) matches the claim but is not a proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795347589.8688843,
+  "session": "pnp-desk/research/R1461",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-f6bb3e59767d4efd",
+  "id": "S0003",
+  "proved_step": "LEMMA (all-ones kernel). For a positive 1-in-3 CNF F on variables 0..n-1 with exactly 3 distinct variables per clause and incidence matrix A in {0,1}^{m x n}: A*1 = 0 mod 3 (each row sums to 3), so 1 lies in ker_3 A, rank_3 A <= n-1, and k := n - rank_3 A >= 1 for every instance. The affine set V = {x : Ax = 1 mod 3}, if nonempty, is closed under x -> x+1. Proof: each row of A has exactly three entries 1, so (A1)_i = 3 = 0 mod 3. Consequence (REPAIR of the generic-rank formula in S0001/S0002): k = max(0, n-m) is false for m near or above n; the true k is >= 1. The exponent threshold k < 0.631n is unchanged, so this is a constant-level correction, not a speed-up. Scope: positive 1-in-3, 3-uniform clauses. Discovery cm-f6bb3e59767d4efd: H0 (rank = min(m,n)) is refuted for m >= n-1 (deficiency 40/40 at m=n, mean k about 1 for m >= n); H1 (clause dependencies) is confirmed; decision mismatch 0 in all cases.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "none (repair of S0001/S0002 generic-rank formula; no open obligation)",
+  "closes_valid": false
+ },
+ {
+  "at": 1795347716.5606008,
+  "session": "pnp-desk/research/R1461",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-64faf51eeaff42ca",
+  "id": "S0004",
+  "proved_step": "PROCEDURE (coset-window criterion, positive 1-in-3 CNF, 3 distinct variables per clause, incidence A in {0,1}^{m x n}, V = {x in F_3^n : Ax = 1 mod 3}). (a) 1 in ker_3 A (each row sums to 3 = 0), so V is closed under x -> x+c1 for every c in F_3. (b) F is satisfiable iff some y in V takes at most 2 distinct values mod 3. Proof: (=>) a 0/1 solution x lies in V and takes values in {0,1}. (<=) if y in V has residue set R with |R| <= 2, choose c with R+c contained in {0,1} (c=0 for {0,1} and singletons, c=2 for {1,2}, c=1 for {0,2}); then y+c1 in V takes values in {0,1}, so its clause sums are in {0,1,2,3} and congruent to 1 mod 3, hence all equal 1. (c) Enumerating V modulo <1> needs 3^(k-1) coset representatives, k = n - rank_3 A >= 1, so the S0001 enumeration can be cut by a factor 3 (exponent unchanged; still beats 2^n only when k < 0.631n). Scope: positive 1-in-3 CNF, 3-uniform clauses. Evidence: cm-64faf51eeaff42ca (960 instances, n=8,9, m=2..2n: crit_mis=0, shift_mis=0, 419 satisfiable, 440 with V nonempty), which is a finite check; the proof above is the argument.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "none (constant-factor reduction of the S0001 enumeration; no open obligation)",
+  "closes_valid": false
+ }
+]

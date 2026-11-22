@@ -1,0 +1,62 @@
+[
+ {
+  "at": 1795273923.1150203,
+  "session": "pnp-desk/research/R1027",
+  "model": "claude-haiku-5-5",
+  "lemma": "Reading A. Let n, k, D, B, V, T be integers, D, B >= 1, V >= 0, 1 <= k <= n. Let C(x) = [sum_j v_j [W_j . x >= t_j] >= T] over x in {0,1}^n, where for each bottom gate j there is a start a_j in {0..n-k} with W_ji = 0 outside [a_j, a_j+k-1], |W_ji| <= B, |v_j| <= V, at most D gates share a start, and m <= Dn. Then the exact count #C is computed by a left-to-right DP whose layer-i state is (completed sum in [-Vm, Vm], tuple of partial sums of the at most Dk active gates, each in [-Bk, Bk]). Layer size is at most (2Bk+1)^(Dk) (2Vm+1), total time O(n D k (2Bk+1)^(Dk) (2Vm+1)) arithmetic operations. If D k log2(2Bk+1) <= n/2 and V <= n^O(1), time is 2^(n/2) poly(n).",
+  "evidence": "cm-fad78e341bd148c1: exploratory run, 370 random instances n in [3,10], 0 mismatches vs brute force, 0 state-bound violations, max states 256. Exploration only; the claim needs thr2_evaluate and an independent review.",
+  "id": "S0001",
+  "proved_step": "Interval-window DP lemma as stated in lemma (correctness by induction on i; state bound from the window and the completed-sum range). Reading B (V unrelated to v) is excluded: the completed-sum range is then unbounded.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-30b52367b6",
+  "closes_valid": true
+ },
+ {
+  "at": 1795274145.325027,
+  "session": "pnp-desk/research/R1027",
+  "model": "claude-haiku-5-5",
+  "lemma": "Ordering version (generalises S0001). Let pi be an ordering of the n variables. For each bottom gate j let s_j(pi) and e_j(pi) be the first and last positions of supp(W_j) in pi, and let nu(pi) = max_i #{j : s_j <= i < e_j}, the maximum number of gates whose support spans a cut. Then #C is computed by a DP along pi whose layer-i state is (completed sum in [-Vm, Vm], tuple of partial sums of the open gates, each in [-B n, B n]). Layer size is at most (2Bn+1)^(nu(pi)) (2Vm+1), so the time is poly(n, m, V) (2Bn+1)^(nu(pi)). Interval supports of window k with at most D gates per start give nu <= Dk, which recovers S0001 with the sharper partial-sum range 2Bk+1 in place of 2Bn+1.",
+  "evidence": "Exploratory only: interval DP matches brute force on cm-04e003aab25446d5 and cm-771e5512dddc4632. No ordering-version experiment yet; the next step is to run it on random bounded-cut instances under a random permutation of the variables.",
+  "id": "S0002",
+  "proved_step": "Induction on the position i along pi, identical to S0001 with 'active gates' replaced by 'open gates' (those with s_j <= i < e_j). Correctness: each gate's indicator is decided at position e_j, when its partial sum is complete. The state bound uses |partial sum| <= B|supp_j| <= Bn and the cut bound nu(pi). Subsumes S0001 as the special case with nu <= Dk.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-30b52367b6",
+  "closes_valid": true
+ },
+ {
+  "at": 1795274206.0245273,
+  "session": "pnp-desk/research/R1027",
+  "model": "claude-haiku-5-5",
+  "gap": "S0002 takes the variable ordering pi as input. The cost of finding an ordering with small nu is not counted, and minimising nu over orderings is a cut-width/pathwidth-type problem (NP-hard in general). Random orderings of permuted interval instances give nu up to 14 at n<=12 (cm-cd56af3dba8c447d), so the identity ordering is what makes the bound work. S0002 is an algorithm only for a class where a poly-time ordering with nu = o(n/log n) is proved. Also, S0001 with constant D,k is already poly(n): the interval subclass is easy and does not reach the 2^(n(1-delta)) target.",
+  "evidence": "cm-cd56af3dba8c447d (interval_perm: 60 trials, 0 mismatches, 0 bound violations; max nu under a random permutation 14). Exploratory only.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795277507.7880433,
+  "session": "pnp-desk/research/R1060",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by session R1060 (not the claimer R1027). Hand check: induction on the variable order; each gate's indicator is decided when its last support variable is fixed, and the open-gate partial sums lie in [-Bk, Bk]. Exact check cm-feca595568b64cee: 500 instances (identity and random orders), n <= 10, 0 mismatches vs brute force, 0 state-bound violations, max states 512. Scope: correct as a statement; with constant D, k the bound is already poly(n), so it does not reach 2^{(1-delta)n} and closes no obligation. G0001 remains OPEN.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795277507.8040884,
+  "session": "pnp-desk/research/R1060",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by session R1060 (not the claimer R1027). The ordering version is exact for every permutation pi: the same check cm-feca595568b64cee ran random orders with the cut bound (2Vm+1)(2Bk+1)^{nu(pi)}, using the measured open-gate count per position, with 0 mismatches and 0 violations (nu up to 20 on these unbounded-D instances, so the bound is not tested in the small-nu regime). Scope: correct for any given pi; it does NOT give a poly-time ordering with nu = o(n/log n), so G0001 remains OPEN and no obligation is closed.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795277542.5596435,
+  "session": "pnp-desk/research/R1060",
+  "model": "claude-haiku-5-5",
+  "evidence": "Derived from S0001/S0002 reviews in this session. Bound on open gates per position: nu <= Dk (gates with start in (i-k, i]). Layer size <= (2Vm+1)(2Bk+1)^{Dk}. Log2 of the second factor = Dk log2(2Bk+1) = Dc n (1+o(1)). Needs a thr2_evaluate measurement on an interval-supported family before any speed-up claim (owner rule).",
+  "id": "S0006",
+  "proved_step": "COROLLARY (session R1060, CLAIMED, not progress; closes nothing). Let D >= 1, B >= 1, V >= 0 be fixed or polynomially bounded, and let C be an interval-supported THR o THR circuit whose bottom gates have supports [a_j, a_j+k-1], at most D gates per start a_j, and |W_ji| <= B, |v_j| <= V. Take k = floor(c n / log2 n) with 0 < c < 1/D. Then the identity-order DP of S0001 (correct, reviewed) counts #C in time poly(n, m, V) * (2Bk+1)^{Dk} = poly(n) * 2^{(Dc + o(1)) n}, which is 2^{(1-delta) n} for delta = 1 - Dc - o(1) > 0. Hence the window-k subclass with k = Theta(n/log n) has #SAT in 2^{(1-delta) n} time. This corrects the earlier remark that the interval subclass gives only poly(n): that holds for constant k, not for k = Theta(n/log n). Scope: exact counting for the stated subclass only; the poly-time ordering obligation G0001 is untouched.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ }
+]

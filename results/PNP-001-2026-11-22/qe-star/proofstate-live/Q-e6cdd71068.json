@@ -1,0 +1,50 @@
+[
+ {
+  "at": 1795339109.6316078,
+  "session": "pnp-desk/research/R1407",
+  "model": "claude-haiku-5-5",
+  "lemma": "For k >= 3 let M2k be the cubic graph on Z_2k with edges {i,i+1} and {i,i+k}. (i) Its second smallest Laplacian eigenvalue is lambda_2 = 4 sin^2(pi/k), which tends to 0 as k grows. (ii) There is S with |S| = k and exactly 4 edges leaving S when k is even, and exactly 5 when k is odd; so M2k has a balanced cut of width at most 5. Scope: exact for all k >= 3 (closed form); part (ii) gives one cut per k. This is a side lemma: it closes no recorded obligation and does not bound r on the arc cut.",
+  "evidence": "cm-61627a49062645be: exact bisection 5,4,5,4,5,4,5 for n=6..18; gaps match 4 sin^2(pi/k) for k=3..9. Own code and own hand derivation only; needs independent replication from another model family.",
+  "id": "S0001",
+  "proved_step": "PROOF. (i) The Laplacian eigenvalues of the circulant on n=2k are 3 - 2cos(2pi j/n) - (-1)^j for j=0..n-1. j=0 gives 0. Odd j give 4 - 2cos(2pi j/n) >= 2. Even j != 0 give 2 - 2cos(2pi j/n), minimised at j=2 or j=n-2, with value 2 - 2cos(2pi/k) = 4 sin^2(pi/k) < 2. Hence lambda_2 = 4 sin^2(pi/k). (ii) Label u_i = i and v_i = i+k for 0 <= i <= k-1. Edges: rungs u_i v_i; rails u_i u_{i+1} and v_i v_{i+1} for i <= k-2; twisted edges u_{k-1} v_0 and v_{k-1} u_0. For k even take j = k/2 - 1 and S = {u_0..u_j, v_0..v_j}, |S| = k; the edges leaving S are u_j u_{j+1}, v_j v_{j+1}, u_{k-1} v_0, v_{k-1} u_0, so 4. For k odd take j = (k-3)/2 and S = {u_0..u_{j+1}, v_0..v_j}, |S| = 2j+3 = k; the edges leaving S are the rung u_{j+1} v_{j+1}, rails u_{j+1} u_{j+2} and v_j v_{j+1}, and the twisted edges u_{k-1} v_0 and v_{k-1} u_0, so 5. Hand checks: k=3, S={0,1,3} in Z_6 has 5 leaving edges; k=4, S={0,1,2,3} in Z_8 has 4.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795339140.2233715,
+  "session": "pnp-desk/research/R1407",
+  "model": "claude-haiku-5-5",
+  "evidence": "Correction to S0001 hand check: for k=4 the set {0,1,2,3} in Z_8 has 6 leaving edges, not 4. The valid balanced set is {0,1,4,5}, which has 4 leaving edges (1-2, 3-4, 5-6, 7-0). The k=3 check ({0,1,3} in Z_6, 5 leaving edges) and the general construction are unchanged."
+ },
+ {
+  "at": 1795350155.6976073,
+  "session": "pnp-desk/research/R1469",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "id": "S0003",
+  "proved_step": "If G=(V,E) with E=A\u2294B, D=V(A)\u2229V(B)\u2260\u2205, Ao=V(A)\\V(B), Bo=V(B)\\V(A), and \u03a3 is defined as in S0015 (\u03c3(a) for a valid row a covering Ao and some valid column b covering Bo), then for any perfect matching M0 and any collection of vertex\u2011disjoint M0\u2011alternating cycles C1,\u2026,Cr each containing an A\u2011edge and a B\u2011edge, the set \u03a3 contains at least 2^r distinct signatures; therefore |\u03a3|\u22652^r.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0006",
+  "closes_valid": false
+ },
+ {
+  "at": 1795350188.0116658,
+  "session": "pnp-desk/research/R1469",
+  "model": "claude-haiku-5-5",
+  "id": "S0004",
+  "proved_step": "STATEMENT (restates S0015). G=(V,E), E = A disjoint-union B, D = V(A) cap V(B) nonempty, Ao = V(A)\\V(B), Bo = V(B)\\V(A); Sigma as defined in S0015. If G has a perfect matching M0 and vertex-disjoint M0-alternating cycles C_1..C_r, each containing an A-edge and a B-edge, then |Sigma| >= 2^r. PROOF. (1) For S subset of [r], M_S = M0 xor (union of C_i, i in S) is a perfect matching. a_S = M_S cap A covers Ao (every edge at an Ao-vertex is in A), so it is a valid row; b_S = M_S cap B covers Bo, so it is a valid column. (2) Each D-vertex is covered by exactly one M_S-edge, lying in A or in B, so sigma(b_S) = D minus sigma(a_S) and sigma(a_S) in Sigma. (3) For v in D let sigma_v(M) = 1 iff the M-edge at v lies in A. Vertices off the cycles keep their M0 value. For v on C_i, the M_S-edge at v is the M0-edge when i not in S and the other C_i-edge at v when i in S. Hence sigma(M_S) = sigma(M0) XOR (XOR over i in S of f_i) over GF(2), where f_i is the indicator of D-vertices on C_i whose two cycle edges have different labels. (4) C_i contains both an A-edge and a B-edge, so the cyclic label sequence changes at least twice; each change happens at a vertex incident to both an A-edge and a B-edge, i.e. a vertex of D on C_i. So f_i is nonzero. The supports of the f_i are disjoint (cycles are vertex-disjoint), so the f_i are GF(2)-linearly independent. Therefore S -> sigma(M_S) is injective on the 2^r subsets, all images lie in Sigma, and |Sigma| >= 2^r. QED. SCOPE: exact for any graph and any packing as stated. GAP: none found by hand check; the definition of Sigma is taken from S0015 and not re-read. STATUS: CLAIMED. Not reviewed. Authored in a claude-haiku-5-5 session, so it needs a SURVIVED_REVIEW from another model family. Evidence: cm-cbd09ec2d4ad44f4 (own code, n=6, 209 labelled graphs, 0 violations, min |Sigma| = 5 when r >= 2). That check is small (n = 6 only) and does not test n = 8 or larger.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795352131.985894,
+  "session": "pnp-desk/research/R1483",
+  "model": "claude-haiku-5-5",
+  "gap": "Closes no open obligation. Open gap: r = Omega(n) vertex-disjoint crossing alternating cycles on a balanced vtree-node cut of an explicit cubic expander (Q-d97a454cd1). Observed max r is 2 on prisms and 1-4 on Moebius ladders up to n=20 (Q-437eafd803), so the packing route is not yet shown to reach 2^{Omega(n)}. Status: self-made, CLAIMED until a review from another model family; not P vs NP progress.",
+  "gap_id": "G0001",
+  "id": "S0005",
+  "proved_step": "Switching bound (crossing form): let G be cubic bipartite with balanced cut (A,B), M0 a perfect matching, and C_1..C_r pairwise vertex-disjoint M0-alternating cycles, each containing at least one cut edge. For S subset of [r], let M_S = M0 xor (union of C_i for i in S) and sig(M) = M cap E(A,B). Then each M_S is a perfect matching, S -> sig(M_S) is injective, and |Sigma| >= 2^r. Proof: (1) flipping a vertex-disjoint alternating cycle preserves a perfect matching. (2) Let P_i = M0 cap E(C_i) cap E(A,B) and N_i = (E(C_i) minus M0) cap E(A,B). They are disjoint with nonempty union (C_i has a cut edge), so P_i != N_i. (3) By vertex-disjointness, sig(M_S) cap E(C_i) = N_i if i in S and P_i otherwise. (4) For S != S', pick i in the symmetric difference; the signatures differ on E(C_i) by (2). (5) Hence 2^r distinct signatures. Scope: cubic bipartite graphs, any balanced cut. Relation: weakens the S0015 side-changing hypothesis to 'cycle has a cut edge'.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

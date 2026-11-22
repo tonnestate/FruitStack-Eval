@@ -1,0 +1,57 @@
+[
+ {
+  "at": 1795297427.5556762,
+  "session": "pnp-desk/research/R1179",
+  "model": "claude-haiku-5-5",
+  "gap": "Gate question not closed. Open: (1) GF(3) cut ranks, which are the quantity T1 uses; (2) whether growth in n is polynomial or exponential (n <= 14 is not enough, need a larger n or a structured family with proved OBDD lower bounds); (3) literature check of OBDD size of threshold functions with large weights, marked from memory until verified at the source.",
+  "evidence": "cm-4e7c714affcc49ec (n=4..10, 124 instances, DP cross-checked against brute force over all permutations on 60 checks, all OK) and cm-9a37495022e04ecb (n=12,14). Result: the minimum over variable orders of the maximal prefix cut-rank of random THR gates grows from 2 to 25 over n = 4..14; the powers-of-two control stays at 2. Real rank only; GF(3) rank for the T1 counter not yet measured. No lemma proved, no step claimed.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795297985.1568985,
+  "session": "pnp-desk/research/R1179",
+  "model": "claude-haiku-5-5",
+  "gap": "Minute test answered only for n<=12 with random weight families. Not decided: best-order cut rank of a single gate for worst-case weights at n>=16; and the T1 Satz 2 bound needs one fixed order for the whole circuit (multi-gate test not run).",
+  "evidence": "cm-9d29bdab6a2d414a: exact min-max cut rank over variable orders for one THR gate, n=4..12. GF(2)=GF(3)=R on all sampled prefix cuts (flag gf3_le_real_all true). Worst values 3,4,7,12,18 at n=4,6,8,10,12. Earlier runs cm-4e7c714affcc49ec and cm-9a37495022e04ecb (real rank, n=4..14). Exploration only; no proved step.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795298283.7337976,
+  "session": "pnp-desk/research/R1179",
+  "model": "claude-haiku-5-5",
+  "gap": "Not decided: whether a multi-gate circuit admits one variable order that is good for all its gates at once (T1 Satz 2 needs a single order). Single-gate answer: no failure under the best order; failure under a fixed natural order (cut rank 2^(n/2)). Comparator's small best-order width is a known OBDD fact (interleaved order), so it is not new; it is the control for the multi-gate test.",
+  "evidence": "cm-05d844cae1d94f45: comparator THR gate X>=Y (weights 2^i and -2^i on interleaved variables, n=4..10). Min over variable orders of max prefix-cut rank = 2,3,3,3. Natural block order (x variables first) gives x-block cut rank 4,8,16,32. Order dependence is real, and the best-order measure stays small. Real rank via float matrix_rank, not GF(p). Exploration only; no proved step.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795298361.128999,
+  "session": "pnp-desk/research/R1179",
+  "model": "claude-haiku-5-5",
+  "lemma": "Single gate f(x)=[w.x>=t] with integer weights |w_i|<=W, any split S|T with S,T nonempty: rank_F of the cut matrix equals the number of distinct rows over every field F, and that number is at most min(2^|S|, 2W|T|+2). Hence every prefix cut of one gate has rank at most 2Wn+2 under any variable order.",
+  "gap": "Covers one gate with bounded weights only. Open: (a) multi-gate circuits with one shared variable order (G0003); (b) gates with exponentially large weights, where the bound 2W|T|+2 is useless; the comparator X>=Y (W=2^k) is consistent with it.",
+  "gap_id": "G0004",
+  "id": "S0004",
+  "proved_step": "LEMMA (claimed, self-contained): rows of the cut matrix are nested indicator sets {b: w_T.b >= theta}; choosing b_i in R_i minus R_{i-1} gives a unitriangular submatrix, so rank = distinct rows over every field; distinct rows <= |Sigma_T|+1 <= 2W|T|+2 since subset sums of T lie in [-W|T|, W|T|]. Likely known (OBDD size of small-weight threshold functions, Wegener); not claimed as new.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795298483.2518222,
+  "session": "pnp-desk/research/R1179",
+  "model": "claude-haiku-5-5",
+  "gap": "Single gate only. Closes nothing: G0003 (one fixed variable order shared by a whole circuit, T1 Satz 2) stays OPEN. Bound is for one gate with weights up to W; with exponential weights W = 2^n the bound 2W|T|+2 is weaker than 2^|S| and gives no saving. Corrected rank statement is a CLAIMED step until reviewed.",
+  "gap_id": "G0005",
+  "id": "S0005",
+  "proved_step": "LEMMA (single gate, any field). Let f(x)=[w.x >= t] with integer weights, W = max_i |w_i|, and let [n] = S disjoint-union T with S, T nonempty. Let M be the 2^|S| x 2^|T| cut matrix M[a,b] = f(a,b). Then for every field F, rank_F(M) = number of distinct NONZERO rows of M, and this number is at most min(2^|S|, 2W|T|+2). Proof: row a is the indicator of R_a = {b : w_T.b >= t - w_S.a}; these supports are nested (threshold sets of one linear form). Order the distinct nonzero supports R_1 strictly-in R_2 ... strictly-in R_d and pick b_i in R_i minus R_{i-1} (R_0 empty). Then M[row R_j, col b_i] = [j >= i], unitriangular, so rank >= d; rank <= d is trivial. Bound: w_T.b lies in an integer set of size at most 2W|T|+1; nonempty threshold sets are determined by their least value, so d <= 2W|T|+1 <= 2W|T|+2. The earlier draft said 'rank = number of distinct rows' and omitted the nonzero restriction; that version is false when an all-zero row occurs (example w=(1), t=5, n=2, S={x1}: rank 0, one distinct row).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795298530.1687868,
+  "session": "pnp-desk/research/R1179",
+  "model": "claude-haiku-5-5",
+  "gap": "G0005 stands: the bound 2W|T|+1 is useless once weights are exponential (W=2^n gives no saving over 2^|S|). G0003 (one fixed order shared by a whole multi-gate circuit, T1 Satz 2) stays OPEN and is not closed by this lemma. Lane T-B gate answered only in its narrow single-gate form.",
+  "evidence": "cm-4175e70ee1aa4683 (exploratory, own code): corrected single-gate lemma (rank = number of distinct nonzero cut rows; bound 2W|T|+1). Checked 7380 cases (random integer weights, n=4..8, all splits S, GF(2)/GF(3)/R ranks): rank_mismatch 0, bound_violation 0, worst distinct nonzero rows 7, cases with an all-zero row 5141. Still CLAIMED: not reviewed, and the check is finite. Earlier run cm-0774c84fcea84d9d (1244 violations with fixed W=5) is unexplained; I did not inspect its code, so treat it as an unresolved test-harness question.",
+  "gap_id": "G0006"
+ }
+]

@@ -1,0 +1,30 @@
+[
+ {
+  "at": 1795269661.1624916,
+  "session": "pnp-desk/research/R0992",
+  "model": "claude-haiku-5-5",
+  "lemma": "Candidate (valid, not sufficient): for any integer weights, P(nonconst | F) <= min(1, W_F * C(s,floor(s/2))/2^s), where W_F = sum_{j in F} (max(0,w_j) - min(0,w_j)) and s = #{fixed j : w_j != 0}.",
+  "refuted_approach": "Window x fixed-side Erdos point bound: P(nonconst | F) <= min(1, W_F * C(s,floor(s/2))/2^s), s = number of fixed nonzero weights. The inequality is valid (cm-20f1ac64d16b4d33: identity nonconst <=> mn_F < t-Y <= mx_F has 0 mismatches; bound has 0 violations on 40 random instances, n <= 8). It cannot give decay: for unit weights, f free nonzero variables give window length f and point mass ~1/sqrt(s), so the bound is only below 1 when f = o(sqrt(s)). The centred-threshold unit-weight gate [sum x_i >= ceil(n/2)] under the 1/3-model is expected to be non-constant with probability -> 1, which refutes the decay form S-b4e38fa311 (undecided fraction o(m)) at fixed p.",
+  "evidence": "cm-20f1ac64d16b4d33 (identity and bound check, n<=8, 40 instances)"
+ },
+ {
+  "at": 1795269704.6511629,
+  "session": "pnp-desk/research/R0992",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-20f1ac64d16b4d33 (identity nonconst <=> t-Y in (mn_F,mx_F]: 0 mismatches; min(1,W_F*c) bound: 0 violations, 40 instances) and cm-64653810efde4130 (unit weights, centred threshold: exact P_nonconst 0.653 at n=8 rising to 0.9999 at n=128; bound >= exact at all n)",
+  "id": "S0002",
+  "proved_step": "REPAIRED LEMMA (window + Sperner atom bound, exact scope). Setting: integer weights w_1..w_n, threshold t, restriction R in which each variable is independently free (prob 1/3), fixed to 0 (1/3) or fixed to 1 (1/3). Let F = free set, G = fixed set, Y = sum of w_j over fixed-1 j, b_j in {0,1} the fixed values, s = #{j in G: w_j != 0}, W_F = sum_{j in F} (max(0,w_j) - min(0,w_j)), mn_F = sum_{j in F} min(0,w_j), mx_F = sum_{j in F} max(0,w_j). Claim: P(gate nonconstant | F) <= min(1, W_F * C(s, floor(s/2)) / 2^s) <= min(1, W_F / sqrt(s)) for s >= 1. Proof. (1) Gate g = [sum_F x_j w_j + Y >= t] over free x. Its value set over free x is {0,1} iff mn_F + Y < t <= mx_F + Y, i.e. Y in (t - mx_F, t - mn_F - 1]... precisely iff t - Y in (mn_F, mx_F]. This interval contains exactly W_F integers, so P(nonconst | F) = P(Y in a set of W_F integers). (2) Erdos (1945) / Sperner: for nonzero integers |w_j| >= 1, j in G, each value y is attained by at most C(s, floor(s/2)) subsets of G; hence P(Y = y) <= C(s,floor(s/2))/2^s for every y. (3) Union bound over the W_F integers gives the first inequality; min with 1 is trivial. (4) C(s,floor(s/2))/2^s <= 1/sqrt(s) for s >= 1 (standard central-binomial bound). Scope: exact for every integer weight vector and threshold; the 1/3-model enters only through the law of F. Consequence (decay regime): if W_F = o(sqrt(s)) then P(nonconst | F) -> 0. For unit weights this is f = o(sqrt(n)) free variables. At constant free fraction it gives NO decay (E[W_F] ~ n/3 >> sqrt n), consistent with cm-64653810efde4130.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-10b855d84e",
+  "closes_valid": true
+ },
+ {
+  "at": 1795285927.4779208,
+  "session": "pnp-desk/research/R1129",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of S0002 (session R0992), steps 1-4. (1) Gate nonconstant over free x iff mn_F + Y < t <= mx_F + Y, i.e. t-mx_F <= Y < t-mn_F: exactly mx_F - mn_F = sum_{F}|w_j| = W_F integers, so P(nonconst|F) = P(Y in a set of W_F integers). Correct. (2) Sign flip b_j = a_j (w_j>0) or 1-a_j (w_j<0) is a bijection of {0,1}^s, and sum_j a_j w_j = c + sum_j b_j|w_j| with c = sum_{w_j<0} w_j. Level sets of sum_B |w_j| are antichains because all |w_j| >= 1, so Sperner gives at most C(s,floor(s/2)) subsets per value: P(Y=y) <= C(s,floor(s/2))/2^s. Correct. (3) Union bound over W_F integers. Correct. (4) C(s,floor(s/2))/2^s <= 1/sqrt(s): for s=2m, C(2m,m)/4^m <= 1/sqrt(pi m) < 1/sqrt(2m); odd s follows similarly and small cases check. Correct. Lab check of the point-mass ingredient: physalis_code_run cm-534edf47446546f2 (400 random integer weight vectors, k<=10, |w|<=1000): 0 violations of P[sum a_j w_j = v] <= C(k,floor(k/2))/2^k <= 1/sqrt(k). Scope: exact for every nonzero integer weight vector; the bound is linear in W_F and gives decay only if W_F = o(sqrt(s)). It does not by itself close the unbounded-weight gap.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ }
+]

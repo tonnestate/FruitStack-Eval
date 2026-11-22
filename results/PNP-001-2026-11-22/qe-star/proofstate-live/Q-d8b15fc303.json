@@ -1,0 +1,54 @@
+[
+ {
+  "at": 1795352756.9865572,
+  "session": "pnp-desk/research/R1495",
+  "model": "claude-haiku-5-5",
+  "lemma": "LINEAR-CLASS REALIZATION (restricted repair of Stage A, classical in form; own check cm-00f8c4064829428a): for f: {0,1}^N -> F_p and cut matrices M_t[x,w] = f(x*w) with x in {0,1}^t, w in {0,1}^{N-t}, let r_t = rank_p(M_t). Then there is a time-dependent linear read-once program over F_p with state dimension r_t at cut t that computes f exactly, so its width is max_t r_t. Proof idea: pick a row basis at each cut and express each prefix row as a coefficient vector over that basis; the coefficients of the prefix xb are a fixed linear function of those of x, giving M_t(b). Verified on 387 finite instances, not yet proved in full generality.",
+  "gap": "OPEN: Stage A needs a spanning family of a linear space K_{m,s} for ALL polynomial-resource exact Search-MCSP one-pass machines. The lemma covers only the linear class C. The gap is a completeness proof that every MMW19 Thm 1.2 machine (nonlinear state, Sigma3SAT^A oracle, update O~(s^2)) has an equivalent linear representation of width bounded by its cut ranks, or else a proof that no such reduction exists. Q-9c4d56f01f asks the same central question.",
+  "refuted_approach": "Hankel/cut-rank width for the full nonlinear MMW streaming machine: refuted as a direct route, since the state is an arbitrary function of the prefix and the cut-rank bound does not bound its state count by a rank.",
+  "evidence": "cm-00f8c4064829428a: 387 instances, 0 failures; cut-rank profile pairs N=8 p=3 is [1,2,2,2,2,2,2,2,1]",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795357162.0821664,
+  "session": "pnp-desk/research/R1517",
+  "model": "claude-haiku-5-5",
+  "lemma": "Let f: {0,1}^N -> {0,1}, 0<t<N, M_t the 2^t x 2^(N-t) matrix M_t[a,y] = f(a,y), and D_t = number of distinct rows. (i) Any deterministic one-pass machine computing f has at least D_t distinct states reachable after the length-t prefix, so at least ceil(log2 D_t) bits. Proof: prefixes reaching the same state have identical suffix behaviour, so their rows coincide. (ii) For any field F, rank_F(M_t) <= D_t <= |F|^(rank_F(M_t)). Proof: the row space is spanned by the distinct rows, and every row lies in an r-dimensional space with |F|^r elements. (iii) Hence rank_F(M_t) can exceed ceil(log2 D_t). Witness: N=2, t=1, f(a,y)=[a=y]. Rows (1,0),(0,1): D=2, rank_2=2, bits=1. Scope: stated for all f and cuts. Status: classical bookkeeping (Myhill-Nerode / rank-distinct-rows), not progress toward P vs NP. Its use: it shows the rank in Thm 4.1 (R) is a dimension, not a bit lower bound, so Stage A cannot transfer a state-bit bound to rank without an extra argument."
+ },
+ {
+  "at": 1795357245.4996378,
+  "session": "pnp-desk/research/R1517",
+  "model": "claude-haiku-5-5",
+  "lemma": "Let f: {0,1}^N -> {0,1}, 0<t<N, M_t the 2^t x 2^(N-t) matrix M_t[a,b]=f(a,b), F any field, D_t = number of distinct rows of M_t. Then (i) rank_F(M_t) <= D_t; (ii) any deterministic streaming machine whose state after reading prefix a takes D_t distinct values (one per row class) with S state bits satisfies D_t <= 2^S; hence S >= log2 rank_F(M_t). Proof: (i) the rows span a space of dimension rank_F(M_t), and a spanning set can be chosen from the distinct rows, so rank <= D_t. (ii) rows with different contents must have different states, since their outputs differ on some suffix, so there are at least D_t distinct states and therefore at least ceil(log2 D_t) bits; by (i), D_t >= rank_F(M_t). Scope: exact, all N, all fields F; log-loss only (rank alone gives no bit lower bound); no claim of P != NP progress.",
+  "id": "S0003",
+  "proved_step": "CLAIMED. Repair of the Stage A rank-to-bits transfer: rank_F lower-bounds the state count, not the bit count. Needs review by a different model family before use as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d8b15fc303 (partial: Stage A nonlinear-case repair only; Stage A obligation itself remains open)",
+  "closes_valid": true
+ },
+ {
+  "at": 1795357289.4074852,
+  "session": "pnp-desk/research/R1517",
+  "model": "claude-haiku-5-5",
+  "lemma": "Scope boundary for the Stage A rank-to-bits transfer. (a) LINEAR AUTOMATA: f: {0,1}^N -> {0,1} computed by a GF(2)-linear automaton with S state bits (initial s0, per-bit matrices A_0,A_1 in GF(2)^{SxS}, readout f(x)=w^T A(x) s0 over GF(2)) satisfies rank_2 M_t <= S for every 0<t<N, since M_t[a,b] = (w^T A(b)) . (A(a) s0) is a product of a 2^t x S and an S x 2^(N-t) matrix. Exact, no log loss. (b) NONLINEAR MACHINES: the general bound from S0003 is S >= log2 D_t >= log2 rank_F(M_t). Rank alone does not give S >= rank. Status: (a) is classical and already verified by R1495 (cm-00f8c4064829428a); it is not new. (b) is the open part and is the obstruction for Thm 4.1.",
+  "id": "S0004",
+  "proved_step": "CLAIMED (scope statement; (a) classical, (b) reports the gap). Not a progress step; needs review by a different model family before use as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "none; records the precise obstacle to Q-d8b15fc303 Stage A for the nonlinear MMW Thm 1.2 machine",
+  "closes_valid": true
+ },
+ {
+  "at": 1795357313.2701435,
+  "session": "pnp-desk/research/R1517",
+  "model": "claude-haiku-5-5",
+  "lemma": "Exact width for one cut (Myhill-Nerode, classical). Let f: {0,1}^N -> {0,1}, 0<t<N, and M_t[a,b]=f(a,b) for a in {0,1}^t, b in {0,1}^(N-t). Let D_t = number of distinct rows of M_t. Then for any deterministic machine that reads a prefix a of length t, stores a state, and then answers f(a,b) for all suffixes b: the minimum number of states needed after prefix a is exactly D_t, and the minimum number of state bits is exactly ceil(log2 D_t). Proof: rows with distinct contents must have distinct states, because some suffix separates them, so at least D_t states are needed. Conversely, the states can be taken to be the D_t distinct row classes, so D_t states suffice. This replaces the rank-based route: D_t is exact, not a log-loss proxy. Scope: exact, all N, all t, deterministic streaming machines; no claim of P != NP progress. Open obligation: lower-bound D_t for the MMW Thm 1.2 machine's cut matrices.",
+  "id": "S0005",
+  "proved_step": "CLAIMED (classical Myhill-Nerode reframing; not new mathematics). Needs review by a different model family before use as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "none; sharpens the Stage A obstacle from rank to D_t",
+  "closes_valid": false
+ }
+]

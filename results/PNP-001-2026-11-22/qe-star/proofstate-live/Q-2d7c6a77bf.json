@@ -1,0 +1,745 @@
+[
+ {
+  "at": 1795298759.5893464,
+  "session": "pnp-desk/research/R1189",
+  "model": "claude-haiku-5-5",
+  "lemma": "Cut lemma. Let C be a Boolean circuit (fan-in <= 2, gates AND/OR/XOR/NOT) on inputs x_1..x_n, and let (A,B) be a partition of the input variables. Let the gates be split into sides S_A and S_B (each gate on the side it is assigned), and let kappa be the number of wires (gate-input edges, including input-variable edges) whose endpoints lie on different sides. Let M be the 2^|A| x 2^|B| communication matrix of f = C, with rows indexed by a in {0,1}^A and columns by b in {0,1}^B. Then log2 rank_R(M) <= kappa + 1.",
+  "gap": "Open: the aggregated bound over many partitions. A single partition gives log2 rank <= kappa(P)+1; summing kappa over a family of partitions counts a gate once for every partition it crosses, so sum_P kappa(P) is not bounded by |C| in general (reuse). Need an account that bounds the cumulative cost, or a counterexample showing the aggregate exceeds polylog(N)*|C|.",
+  "evidence": "physalis_code_run cm-33966d12d8364e00: 2420 random circuit/partition tests on small n, 0 violations; max(log2 rank - kappa) = 0.0; EQ, IP and parity controls satisfy log2 rank <= kappa (EQ rank 2^n, IP rank ~ 2^n-1 with kappa tracking n). The proof is by hand and is CLAIMED until another session reviews it.",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "PROOF. Each cross wire carries one bit from its source side to its target side. Evaluate C in topological order: a gate on side S_A needs only values from S_A or from cross wires; the value of a cross wire is a function of its source side's inputs and bits already received, so it is sent once, by its source party, as one bit. Each cross wire contributes at most one bit, so the transcript has at most kappa bits. Once all cross wires are transmitted, both parties know the output bit for their input pair; the party holding the output gate sends one more bit, so the total is at most kappa+1 bits. A deterministic protocol with c bits has at most 2^c leaves; each leaf is a combinatorial rectangle on which the output is constant, so M is a sum of at most 2^c rank-one 0/1 matrices, rank_R(M) <= 2^c. Hence log2 rank <= kappa+1. The argument uses only the wire count, not any gate structure, and it holds for any partition of gates. Remark: the lab check uses the 0-based side assignment and counts each gate input once, matching the wire count above.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795298938.397975,
+  "session": "pnp-desk/research/R1189",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 refined: the aggregate over a family F of partitions. Trivially sum over P in F of kappa(P) <= |F| * E, but this is not a bound in terms of |C| that is independent of |F|. Open: a family F of poly(n) partitions for which sum_P log2 rank_P is bounded by poly(|C|) with a PROOF, or a counterexample family where the aggregate exceeds polylog(N)*|C|.",
+  "evidence": "cm-713857c798884e59: single-partition check 0 violations on 5332 partitions (n=4..6, 300 circuits). Sum over ALL partitions of min-kappa reaches 8E at n<=6 and grows with the number of partitions (2^(n-1)), so the naive sum over all partitions is not bounded by a constant times |C| in these data. Any aggregate bound must use a restricted family of partitions F with |F| controlled, or a bound that does not add kappa over partitions.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795299062.7901797,
+  "session": "pnp-desk/research/R1189",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (open): the aggregate must be a different object. Candidate repairs to test next: (R1) max over cuts of log2 rank (IP: max = n, so the cut lemma gives kappa >= n-1 for the middle cut only); (R2) a hierarchical decomposition in which each wire crosses the boundary of O(1) blocks per level, so the per-level cost is O(|C|) and the total is O(|C| log N); prove R2 or find a circuit family where R2 fails.",
+  "refuted_approach": "Naive aggregate over the prefix-cut family: bounding sum_{i=1}^{N-1} log2 rank(M_i(f)) by O(|C|) (or polylog(N)*|C|) for every circuit C. Refuted by the P-control IP_n(x,y)=XOR_j x_j y_j (N=2n, circuit size E=4n-2, computable in P). Measured on the prefix cuts A={x_1..x_i}: sum_i log2 rank = 8.807, 15.907, 24.954, 35.977, 48.989 for n=3..7 (cm-52eb41e32e6a48b1). Sum/E grows like n/4, so the aggregate is quadratic in |C| (about N^2/4 against |C| about 2N). The sum over cuts therefore cannot serve as a circuit-size-controlled measure for lower bounds: it is large on an easy function.",
+  "evidence": "cm-52eb41e32e6a48b1 (exploratory computation). Per-cut log2 rank = min(i, 2n-i) for i != n, and 2^n-1 at i=n (rank 2^n-1 at the middle cut, measured for n<=7). Fitted exact form: sum = n^2 - log2(2^n/(2^n-1)), matching all five measured values to 3 decimals (conjecture from n<=7 data, not proved). Single-partition cut lemma (S0001) is unaffected: it bounds log2 rank by kappa+1 for one cut, and the IP data satisfy it.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795299226.2765687,
+  "session": "pnp-desk/research/R1189",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (open): find a bound of the form sum_i log2 rank_i(f,pi) <= |C| * poly(...) that holds for every circuit C with a suitable order pi, and test whether min over pi of the sum is controlled by circuit size. A natural candidate is the cone-span bound: P(g)=max position of input variables in the cone of gate g; Lambda_pi(C)=sum over wires u->g of (P(g)-P(u)); conjecture sum_i log2 rank_i <= (N-1)+Lambda_pi(C). Being tested now in cm (next session note).",
+  "refuted_approach": "REFINEMENT of the refutation of the prefix-cut aggregate. The earlier refutation holds only for the BLOCK order (x_1..x_n,y_1..y_n): sum grows as n^2 on IP_n while E=4n-2. For the INTERLEAVED order the same sum is n*log2(6)-2.170 (n=3..8, cm-65f6009f5dc44468 and cm-8dcddb975e284e8a), i.e. linear in E. So the claim 'sum over prefix cuts of log2 rank = O(E) for every order' is refuted, but 'O(E) for some order' is not refuted by IP. Order dependence is the real issue, and the aggregate must be taken with a chosen order or a minimum over orders.",
+  "evidence": "cm-65f6009f5dc44468 (block vs interleaved sums n=3..7), cm-8dcddb975e284e8a (n=3..8). Per-cut log2 rank for interleaved order: 1 at n+1 cuts, log2 3 at n-2 cuts.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795299297.9640608,
+  "session": "pnp-desk/research/R1189",
+  "model": "claude-haiku-5-5",
+  "gap": "G0005 (open, gap id G0005 in the record): (a) prove the cone-span bound, or find a circuit and order where it fails; (b) show min over orders pi of Lambda_pi(C) is O(|C| polylog N), or find a family where that minimum is superlinear in |C|. Lambda_pi can be about |C|*N for a bad order, so the bound is useful only if the minimising order is controlled.",
+  "evidence": "cm-c2d71947748e4ae6: cone-span conjecture sum_{i=1}^{n-1} log2 rank_i(f, pi) <= (n-1) + Lambda_pi(C), with Lambda_pi(C) = sum over wires u->g of (P(g)-P(u)), P(g) = max position in pi of the inputs in the cone of g. Tested on 1500 (random circuit, random order) pairs: n in {4,5,6,7}, 3-9 gates, fan-in <= 2, AND/OR/XOR/NOT. Violations 0; max ratio S/bound = 0.5. Scope: finite, exploratory. Conjecture only; not proved. The test does not check the minimum over orders, and it does not check whether Lambda is small enough to be useful.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795299333.1768312,
+  "session": "pnp-desk/research/R1189",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001/G0005 open: a proof that the minimum-over-orders sum of log2 rank_i is at most c*|C| for all circuits is still missing. The cut lemma S0001 remains CLAIMED (hand proof, checked on 5332 partitions, 0 violations) and has not been reviewed.",
+  "evidence": "cm-b9d6facdab604772 (EXPLORATORY_COMPUTATION, not a proof): over 60 random circuits with n in {4,5}, fan-in <= 2, the maximum of (sum over cuts of log2 rank, minimised over variable orders) divided by |E| was 0.333. Scope: small n only, the ratio is as the sandbox defines it, and the minimum is over the tested orders only. G0005 (cone-span conjecture) and G0001 (aggregate over partitions) remain open; no aggregate bound is proved here.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795299686.5439668,
+  "session": "pnp-desk/research/R1197",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review (a different session from R1189). Hand re-derivation: each cross wire is sent once by its source party in the fixed topological order, so the speaker sequence is public and the transcript has at most kappa bits, plus one output bit for whichever party holds the output gate. Leaves with output 1 are combinatorial rectangles, so M is a sum of at most 2^c rank-one 0/1 matrices and rank_R(M) <= 2^c. Hidden assumptions checked: input nodes are fixed by (A,B); fan-out edges are counted per edge (an upper bound); the output bit covers either side. Scope: a single partition, any gate split, any fan-in-2 circuit. This does not by itself discharge G0001 (the aggregate over partitions).",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795299811.9310834,
+  "session": "pnp-desk/research/R1197",
+  "model": "claude-haiku-5-5",
+  "gap": "Closed: G0005(a) (prefix family). Not closed: G0005(b) is no longer needed for the lower-bound direction, because the inequality holds for every order and no minimum is used. CEILING: the prefix-cut route, with the cut lemma and wire counting, yields at most |G| >= N/8 - O(1). Superlinear bounds need a different family of partitions or a weighted cut cost. G0001 remains open for non-prefix families. The cut lemma and this lemma are CLAIMED until a different session reviews them. Evidence: cm-776beb3b076d44ae (sum kappa = Lambda identity, 3000 random circuits, 0 violations); cm-bfb7ade8dc414d83 (cut lemma and left-closure, 3000 random circuits, 0 violations).",
+  "evidence": "cm-776beb3b076d44ae; cm-bfb7ade8dc414d83; S0001 review SURVIVED_REVIEW (R1197)",
+  "gap_id": "G0007",
+  "id": "S0008",
+  "proved_step": "L-K1-PREFIX (closes G0005(a) for the prefix-cut family). Setting: f:{0,1}^N->{0,1} computed by a fan-in<=2 circuit C with gates G, inputs x_1..x_N in a fixed order. Define P(x_j)=j and P(g)=max of P over the inputs of gate g (so P(u)<=P(g) along every wire u->g, and 1<=P(v)<=N). Let W = number of wires (gate-input edges), Lambda(C)=sum over wires u->g of (P(g)-P(u)). For i in [1,N-1], M_i = communication matrix of f for A={x_1..x_i}, B=rest. CLAIM: (1) sum_{i=1}^{N-1} log2 rank_R(M_i) <= (N-1) + Lambda(C); (2) Lambda(C) <= W(N-1) <= 2|G|(N-1); hence for every input order, |G| >= (sum_i log2 rank_R(M_i) - (N-1)) / (2(N-1)). PROOF. Let L_i={v: P(v)<=i}. Input x_j is in L_i iff j<=i, so L_i restricted to inputs is exactly A. If g in L_i and u->g is a wire, P(u)<=P(g)<=i so u in L_i: no wire goes from the right side to the left side. Hence the cross wires for cut i are exactly the wires with P(u)<=i<P(g); call their number kappa_i. This is a legal gate split for (A,B), so S0001 (SURVIVED_REVIEW) gives log2 rank_R(M_i) <= kappa_i+1. Summing over i: sum_i kappa_i = sum over wires of #{i in [1,N-1]: P(u)<=i<P(g)} = sum over wires of (P(g)-P(u)), because 1<=P(u) and P(g)<=N. So the sum is <= Lambda(C)+(N-1). (2) holds since 0<=P(g)-P(u)<=N-1 and each gate has at most 2 wires. Corollary (CEILING): rank_R(M_i) <= 2^{min(i,N-i)}, so sum_i log2 rank <= N^2/4 and the bound gives |G| >= (N^2/4-(N-1))/(2(N-1)) = N/8 - O(1) at most. The method cannot give a superlinear bound for any N-input function using prefix cuts.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0005",
+  "closes_valid": true
+ },
+ {
+  "at": 1795300098.3677201,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-24dacd48b2854005",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795300217.7449248,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 as stated is FALSE. Its derivation says input wires are local to their owner, but a gate owned by Alice that reads a Bob-held input bit is a crossing wire and is not counted in kappa. Counterexample: f = IP_2(a,b) = (a1 AND b1) XOR (a2 AND b2), all gates owned by Alice, so gate-only kappa = 0, yet rank_Q M_f = 3 > 2^(0+1). The rows for a = 01, 10, 11 are (0,1,0,1), (0,0,1,1), (0,1,1,0), which are independent over Q. I wrongly recorded S0001 as SURVIVED_REVIEW in turn 2; the independent check did not model input-wire crossings. Repair (to be reviewed by another session): assign every input node to its holder, let kappa count all crossing wires including input wires, then DCC(f) <= kappa+1 and log2 rank_Q M_f <= kappa+1 hold by the same protocol argument.",
+  "refuted_approach": "S0001 with kappa counting gate-to-gate wires only (input wires treated as local): refuted by IP_2 counterexample above.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795300261.0138855,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "evidence": "IP_2 counterexample: f=(a1 AND b1) XOR (a2 AND b2), all gates on Alice's side. Gate-only kappa=0, but rank_Q M_f=3 > 2^(0+1). The earlier SURVIVED_REVIEW recorded in this session was an error: the check cm-24dacd48b2854005 did not model input-wire crossings.",
+  "review_of": "S0001",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795300317.5758307,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-5d2f4c68ffda4c45: 12000 checks, input-wire crossings counted: 0 violations; gate-only count: 2 violations; IP_2 rank 3, kappa_all 2, kappa_gate_only 0. Supersedes the refuted S0001.",
+  "id": "S0012",
+  "proved_step": "S0002 (repair of S0001, kind LEMMA). Setting: Boolean circuit C of fan-in at most 2 over AND, OR, NOT, with input nodes x_1..x_(n+m); Alice holds x_1..x_n, Bob holds the rest; f(a,b) is the output. Assign every node (inputs and gates) to a party. Let kappa = number of DAG edges whose endpoints lie on different parties, input edges included. Claim: DCC(f) <= kappa+1 and log2 rank_Q M_f <= kappa+1, where M_f[a,b] = f(a,b). Proof: fix the schedule in topological order; each node is evaluated by its owner once its inputs are known. For every node that has at least one crossing out-edge, its owner sends its value once; the number of such sources is at most kappa. The output owner sends the output bit (at most 1 more). The protocol is deterministic, costs at most kappa+1 and computes f. A protocol of cost c has at most 2^c leaves, each a combinatorial rectangle on which f is constant, so M_f is a sum of at most 2^c indicator rectangles over the 1-leaves and rank_Q M_f <= 2^c. This is an upper bound, not a lower bound, so the barrier check does not apply. Gap: the aggregate G0001 (cut costs over many partitions) stays open. Evidence: cm-5d2f4c68ffda4c45 (exploratory check).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795300343.225194,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "claim:53e0c0db6a94 (gate-only kappa, submitted in turn 5) is SUPERSEDED and must not be promoted. Its statement is false: IP_2 = (a1 AND b1) XOR (a2 AND b2) with all gates on Alice's side has gate-only kappa = 0 but rank_Q M_f = 3 > 2^(0+1). Replacement: S0002 / claim:d8f7ed30fe0a (input edges counted)."
+ },
+ {
+  "at": 1795300371.9799836,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "lemma": "S0002 (kind LEMMA, CLAIMED): for a fan-in-<=2 AND/OR/NOT circuit with inputs split Alice|Bob and any node-to-party assignment, let s be the number of nodes with at least one out-edge crossing the partition. Then DCC(f) <= s+1 and log2 rank_Q M_f <= s+1, which implies the kappa form since s <= kappa. Review needed by a session other than R1201.",
+  "gap": "Open: aggregate G0001 (cut costs over many partitions). The S0002 review is pending and unreviewed.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795300448.538782,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "S0002 with free assignment of input nodes (literal 'assign every node'). Refuted by IP_2 = (a1 AND b1) XOR (a2 AND b2) with all nodes on Bob's side: s = 0 (no crossing out-edge), but rank_Q M_f = 3 > 2^(0+1). The cost count misses transfers of inputs that the non-holder does not know. The earlier SURVIVED_REVIEW of S0001 was my error, since the check did not model input-wire crossings. Repair to test: S0003 (input nodes forced to holder, gate nodes free, s = number of nodes with a crossing out-edge). S0003 is not yet checked and is unreviewed."
+ },
+ {
+  "at": 1795300480.6132526,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "lemma": "S0003 (kind LEMMA, CLAIMED, unreviewed). Setting: fan-in at most 2 circuit over AND, OR, NOT with input nodes x_1..x_(n+m); Alice holds x_1..x_n, Bob holds the rest; f(a,b) is the output. Every input node is assigned to its holder; every gate is assigned to Alice or Bob. Let s be the number of nodes with at least one out-edge whose endpoints lie on different parties. Claim: DCC(f) <= s+1 and log2 rank_Q M_f <= s+1, where M_f[a,b] = f(a,b). Proof: fix the topological schedule. Each node is evaluated by its owner. The owner of each crossing source sends its value once, giving s bits. The output owner then sends the output bit, at most 1 more. The protocol is deterministic and computes f with cost at most s+1. The inputs of a transcript form a rectangle on which f is constant, so M_f is a sum of at most 2^(s+1) rectangle indicators over the 1-leaves, and rank_Q M_f <= 2^(s+1). Since s <= kappa, this implies the kappa form. Evidence: cm-319ab354cf384261 (exploratory: 34050 checks, 0 violations, max of log2 rank minus (s+1) = -1; IP_2 rank 3, s = 2 with inputs forced). Gap: this single-partition lemma does not close the aggregate G0001 (cut costs over many partitions).",
+  "evidence": "cm-319ab354cf384261 exploratory check; repaired from refuted S0002 (free input assignment) and S0001 (gate-only cut)."
+ },
+ {
+  "at": 1795300562.6716728,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged: the aggregate of kappa over many partitions. A single partition gives no control on the sum over a family, since a wire is charged once per partition it crosses. Open: a partition family in which each wire is charged O(polylog N) times, with a proof, or a counterexample family where the aggregate exceeds polylog(N)*|C|.",
+  "evidence": "S0003 (CLAIMED, unreviewed) is the single-partition lemma: fixed topological schedule, each crossing source sent once, so the transcript has at most s+1 bits; M_f is a sum of at most 2^(s+1) rectangle indicators, hence rank_Q M_f <= 2^(s+1). This is the standard rank <= 2^CC bound applied to a circuit-induced protocol, so it is not new mathematics. Exploratory check: cm-319ab354cf384261 (34050 checks, 0 violations). Validator claim:f8d7d43a8930 is PENDING. S0001 and S0002 stay REFUTED.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795300878.079421,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Route G0005(b) as stated (min over orders of the cone-span Lambda is O(|C| polylog N) for all circuits). Reason, to be checked by a different session: Lambda_pi is the total edge length of the circuit DAG under the linear order pi (a linear arrangement cost). For bounded-degree expander DAGs on n vertices the minimum linear arrangement cost is Omega(n^2), by the edge-expansion bound on every prefix cut. So min over orders of Lambda is not O(|C| polylog N) in general. This kills the Lambda bound as a route to G0001. It does not kill G0001: sum of log2 rank over prefix cuts is a different quantity from Lambda, and the upper bound log2 rank <= kappa+1 may be loose on such circuits. Repair to test: bound sum_i log2 rank_i(f, pi) directly, or find an expander-DAG family where it is superlinear in |C|.",
+  "evidence": "cm-add015023c1046c5 (EXPLORATORY_COMPUTATION, exhaustive over all orders): for IP_k (f = sum_j x_j y_j mod 2), min over orders pi of the prefix-cut sum of log2 rank is 3.0 at N=4 (argmin [0,2,1,3]) and 5.585 at N=6 (argmin [0,3,1,4,2,5]). The minimiser is interleaved; the interleaved sum equals the minimum at both sizes. cm-c341084124bf493b: blocked order gives 3.585, 8.807 (N=4,6), while interleaved gives 3.0, 5.585, 8.17 (N=8), 10.755, 13.34 (N=12), i.e. about 1.3N. Only two sizes are covered by the exhaustive search, so this is a finite observation, not a bound."
+ },
+ {
+  "at": 1795300928.524667,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "UNREVIEWED, claimed by session R1201: the route G0005(b), min over orders of the cone-span quantity Lambda, is O(|C| polylog N) for all circuits. Argument: Lambda_pi is the linear-arrangement cost of the circuit DAG, and bounded-degree expander DAGs have every prefix cut crossed by Omega(min(i, N-i)) edges, so min over orders of Lambda is Omega(|C| N). This blocks G0005(b) as stated. It does not decide G0001, since sum of log2 rank over prefix cuts is a different quantity from Lambda. Needs review by a different session.",
+  "evidence": "cm-add015023c1046c5 (exhaustive over all orders, EXPLORATORY): for IP_k (f = sum_j x_j y_j mod 2), the minimum over orders of the prefix-cut sum of log2 rank is 3.0 at N=4 and 5.585 at N=6, attained by the interleaved order. cm-c341084124bf493b: blocked order gives 3.585 and 8.807 at N=4,6; interleaved gives 3.0, 5.585, 8.17, 10.755, 13.34 for N=4,8,10,12 (about 1.3N). Two sizes only: a finite observation, not a bound."
+ },
+ {
+  "at": 1795301190.1897414,
+  "session": "pnp-desk/research/R1201",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "cm-3e6f09885eb54298 (EXPLORATORY_COMPUTATION): min over orders of \u03a3_i (s_i+1) on random expander DAGs (fan-in 2, XOR gates). N=4: 5.0 (1.25N), N=5: 7.0 (1.4N), N=6: 9.0 (1.5N), N=7: 11.0 (1.57N), N=8: 13.0 (1.625N). Growth appears linear in N, not superlinear."
+ },
+ {
+  "at": 1795301427.370504,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Experiment cm-3e6f09885eb54298 is INVALID as evidence: the search minimised sum_i (s_i+1) over ALL permutations, not topological orders. A reversed order gives s_i = 0 at every cut, so the minimum is N-1 (matches stdout 3,4,5,6,7 for N=4..8). The evidence text in turn 25 (5,7,9,11,13) does not match that stdout. Retract the evidence line and NUMERICAL_EVIDENCE S-38f7f888af. Do not cite either. Also: for bounded-degree expander DAGs, any topological order has sum_i s_i = Omega(N^2) (every prefix cut is crossed by Omega(min(i,N-i)) edges), so the prefix-cut proxy is quadratic there and cannot give a linear aggregate bound on that family. This limits the proxy, not G0001."
+ },
+ {
+  "at": 1795301466.5671377,
+  "session": "pnp-desk/research/R1201",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-0cfd658258fd44c9 (EXPLORATORY_COMPUTATION, supersedes the invalid cm-3e6f09885eb54298): over TOPOLOGICAL orders only, min sum_i (s_i+1) = 8 (N=4), 11-12 (N=5), 14-15 (N=6), 18-19 (N=7). Only 15 of 20 rows are visible; 5 were truncated. Over ALL permutations the minimum is N-1 (3,4,5,6), which confirms the earlier search was invalid. Implied sum_i s_i at the topological minimum is about 5, 7-8, 9-10, 12-13, growing by about 2 per step: this does not separate linear from quadratic growth at N<=7. The proxy sum(s_i+1) bounds sum log2 rank from above only, so it does not decide G0001 in either direction. Evidence cm-3e6f09885eb54298 and S-38f7f888af are retracted."
+ },
+ {
+  "at": 1795301766.44241,
+  "session": "pnp-desk/research/R1211",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged: the aggregate over many partitions is open. A single-partition bound charges a wire once per partition it crosses, so sum over a family is not controlled by |C| without a new argument (e.g. a weighted or order-minimised cut cost, or a family where each wire crosses O(polylog N) cuts).",
+  "evidence": "cm-c9757a7907e24b0d (exploratory, not a review): 389 random circuits, n<=3, m<=3, <=7 gates, arbitrary owner assignment of gates and inputs; s counts source nodes with an out-edge crossing parties (input nodes included); violations of log2 rank_Q M_f <= s+1: 0; max slack -1 (witness n=3,m=3,s=1,rank 2). S0003 remains CLAIMED and unreviewed; the proof step itself is not yet checked by hand.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795301845.9122977,
+  "session": "pnp-desk/research/R1211",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged: the aggregate over many partitions is open. Needed: a weighted or order-minimised cut cost, or a family where each wire crosses O(polylog N) cuts.",
+  "refuted_approach": "Naive aggregation over the prefix family x1..xl (l=1..n): summing the single-cut bound gives sum_l 2^(kappa_l+1) for the OBDD size. A wire u->v crosses the prefix cut at every level l with pos(u) <= l < pos(v), so sum_l kappa_l can be of order n*|C| and the bound is not polynomial. This is a failure of the aggregation method, not a refutation of the lemma.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795302084.430121,
+  "session": "pnp-desk/research/R1211",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 open. Needed: an aggregate cut cost over a family of partitions that is NOT the OBDD level sum, and that stays polynomial on the multiplier family. Otherwise the route to a poly-time #SAT/CAPP via OBDD sums cannot be repaired, and that is a barrier question to record separately.",
+  "refuted_approach": "Best-order OBDD aggregate: min over variable orders of sum_l K_l is NOT bounded by poly(|C|). Middle bit of k-bit multiplication (schoolbook circuit, size O(k^2)) gives exhaustive minima over all n! orders: k=2 (n=4): 11, k=3 (n=6): 19, k=4 (n=8): 39 (identity order: 13, 28, 59), experiment cm-6c12f47ebd344401. Growth is roughly doubling per +1 in k, consistent with Bryant 1991 exponential OBDD lower bound for every order (hypothesis checked: exact middle product bit, poly circuit; finite data only for k<=4). This refutes the OBDD-size form of the aggregate, not S0003 (single-partition lemma; 0 violations on 389 circuits, cm-c9757a7907e24b0d) and not the cut lemma itself.",
+  "evidence": "cm-6c12f47ebd344401 (exhaustive min over orders, k=2,3,4); cm-bb36729172ba42f1 (random circuits: best order improves prefix sum in 103/200 cases; interleaved order gives 5n/2 on OR-of-AND family vs exponential identity order); cm-582bddf50f754f5a (identity order exponential on OR-of-AND family)",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795302177.2698073,
+  "session": "pnp-desk/research/R1211",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 is NOT closed: this is a single-order, log-cut-width subclass. The aggregate over many partitions remains open, and the multiplier family (G0013) shows that no OBDD-size bound can be polynomial for all poly-size circuits.",
+  "gap_id": "G0014",
+  "id": "S0026",
+  "proved_step": "LEMMA (subclass, cut width). Fix a variable order pi and a level l. Call a node prefix-side if its support lies in the first l variables. Let kappa_l be the number of prefix-side nodes with an edge into a non-prefix-side gate. Then the level width K_l (number of distinct residual functions C restricted to rho, for rho in {0,1}^l) satisfies K_l <= 2^kappa_l, because each non-prefix-side gate's value under rho depends on rho only through the constant values of the kappa_l crossing nodes. Hence the OBDD size for order pi is at most sum_l 2^kappa_l. COROLLARY: if kappa_l <= c log n for all l, then #SAT of C runs in poly(n, m) time by building the OBDD. This is the standard cut-width / OBDD-width technique and is not new; it is recorded only as a verified subclass.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795302291.1374311,
+  "session": "pnp-desk/research/R1211",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged. S0026 is withdrawn. Its repair is being checked by cm-(pending run) with bound K_l <= 2^kappa_l if the output is suffix-side, and K_l <= 2 if it is prefix-side.",
+  "refuted_approach": "S0026 (K_l <= 2^kappa_l) is FALSE. Minimal counterexample cm-4dc04dd463dc47ed: n=2, gate NOT(x0), order pi=[0,1], l=1, kappa=0, K=2. Cause: a prefix-side OUTPUT is never counted, so the residual can take two constant values with no crossing node. Earlier test cm-9e888734671048ef: 380 of 1366 cuts violate, max ratio 2. The failure is a missing output term, not a failure of the OBDD idea itself.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795302401.3617034,
+  "session": "pnp-desk/research/R1211",
+  "model": "claude-haiku-5-5",
+  "lemma": "Repaired cut width (single order, single level l). P = first l variables in order pi. X = prefix-side nodes feeding a gate whose support is not inside P, k = |X|. o = 1 if the output support is inside P, else 0. Then K_l <= 2^k if o = 0, and K_l <= 2 if o = 1. Proof: prefix-only gates are fixed by rho; by induction every non-prefix node depends only on (c_X(rho), y); so the residual equals F_{c_X(rho)}, giving at most 2^k residuals; if o = 1 the residual is constant in y, giving at most 2.",
+  "evidence": "cm-648f4353939d4b57 (exploratory, 0 sharp violations on 7452 cuts, max K/B = 1.0). Refutes S0026 via cm-4dc04dd463dc47ed. Known cut-width technique, so NOT progress on G0001; closes nothing.",
+  "id": "S0028",
+  "proved_step": "Repaired cut-width lemma as stated in lemma field: K_l <= 2^k for o=0, K_l <= 2 for o=1 (single order, single level). Supersedes S0026.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795303296.0037587,
+  "session": "pnp-desk/research/R1219",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by a different session. Hand argument: prefix-only gates are fixed by rho; by induction every non-prefix node is a function of (c_X(rho), y), where X is the set of prefix-side nodes feeding a non-prefix gate, since any prefix node feeding a non-prefix gate lies in X. So the residual is F_{c_X(rho)}, at most 2^k residuals. If the output is prefix-side the residual is constant in y, at most 2 residuals. Computational check cm-a1cce50cf1f4470d: 3000 random circuits, violations 0, max K/bound = 1.0.",
+  "review_of": "S0026",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795303296.0628417,
+  "session": "pnp-desk/research/R1219",
+  "model": "claude-haiku-5-5",
+  "lemma": "Repaired cut lemma (single partition). C is a Boolean circuit over inputs a (Alice) and b (Bob). Every node (input or gate) has an owner in {Alice, Bob}; input nodes belong to their holder. kappa = number of wires u->g whose endpoints have different owners, input wires included. Let M_f be the communication matrix of f with rows indexed by a and columns by b. Then log2 rank_Q(M_f) <= kappa + 1. Proof: the protocol evaluates nodes in topological order. Each node is computed by its owner; when a node reads a value owned by the other party, that value was sent earlier as one bit over that crossing wire. Total communication is at most kappa bits, plus one bit if the output is owned by Bob. A deterministic protocol of cost c partitions the matrix into at most 2^c monochromatic rectangles, and rank_Q(M) is at most the number of 1-rectangles, so rank_Q(M_f) <= 2^(kappa+1). S0001 (gate-only kappa) is withdrawn; this repair replaces it.",
+  "evidence": "cm-75c8e887ff884357",
+  "id": "S0030",
+  "proved_step": "Repaired cut lemma: log2 rank_Q M_f <= kappa_full + 1 for every single partition, with input wires counted. Hand proof above. Empirical check: cm-75c8e887ff884357 (3000 random circuits, violations_full_kappa 0; IP_2 kappa_full 5 vs gate-only 1, rank 3).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0008",
+  "closes_valid": true
+ },
+ {
+  "at": 1795303490.5646756,
+  "session": "pnp-desk/research/R1219",
+  "model": "claude-haiku-5-5",
+  "lemma": "Single-order residual-width sum (identity order). C is a fan-in-2 circuit over x_0..x_{n-1} with gates G, output node out, computing f. For a node v let t(v) = bit_length of its support bitmask, so t(v) = 1 + max variable index in the support. Let Lambda(C) = sum over wires u->g of max(0, t(g) - t(u)). For l = 0..n let K_l = number of distinct residual functions f restricted to x_{<l} = rho, over rho in {0,1}^l. Then sum_{l=0}^{n} log2 K_l <= Lambda(C) + #{l : t(out) <= l}. Proof: fix l and P = {0..l-1}. Let X_l be the set of prefix-side nodes (support inside P) that feed a non-prefix gate. By the S0026 argument, if out is non-prefix then K_l <= 2^{|X_l|}; if out is prefix-side then K_l <= 2. Since supports grow along wires, t(g) >= t(u) for every wire u->g. Each w in X_l has a wire w->g with t(w) <= l < t(g), so |X_l| <= #{wires u->g : t(u) <= l < t(g)}. Summing over l, each wire with t(u) < t(g) is counted exactly t(g)-t(u) times, so sum_l |X_l| <= Lambda(C). Adding the at most one bit per level where out is prefix-side gives the claim. Scope: a single fixed variable order; Lambda depends on the order and can be about |C| * N for a bad order.",
+  "gap": "G0001 is NOT closed. This is a single-order ceiling. Lambda_id can be about |C| * N for a bad order, so it gives no bound in terms of |C| alone. Open: an order-independent or order-minimised weighted cost whose sum over a family of partitions is O(|C| polylog N), with a proof, or a counterexample family where the aggregate exceeds polylog(N) * |C|.",
+  "gap_id": "G0016",
+  "id": "S0031",
+  "proved_step": "Single-order residual-width sum: sum_l log2 K_l <= Lambda_id(C) + #{l : t(out) <= l}, with the proof in the lemma field. Empirical check: cm-370b1457afdb4f86 (3000 random circuits, violations_local_bound 0, violations_sum_with_output_term 0, max ratio 1.0). An earlier run cm-d8fc8e52d9cf423f with the output term omitted gave 612 violations and is withdrawn as evidence for the uncorrected form.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795303615.3585007,
+  "session": "pnp-desk/research/R1219",
+  "model": "claude-haiku-5-5",
+  "gap": "G0016 remains OPEN. Exact data (cm-92f528bc1bea4b0e, EXPLORATORY_COMPUTATION) for the middle output bit of the n-bit multiplier, minimised over all N! variable orders: n=2 (N=4) min sum_l log2 K_l = 4.0 (argmin [0,2,1,3]); n=3 (N=6) min = 11.129 (argmin [0,2,4,5,1,3]). Two points give no growth rate and no bound. Sum log2 K_l is not OBDD size (which is sum K_l), so this does not transfer the known exponential OBDD lower bound. Needed: an order-minimised or family-aggregated cost that is O(|C| polylog N) for all circuits, with a proof, or a counterexample family.",
+  "evidence": "cm-92f528bc1bea4b0e (exact, all orders for n=2,3); cm-370b1457afdb4f86 (single-order lemma S0031 checked on 3000 random circuits, 0 violations). S0031 is CLAIMED and unreviewed; this session claimed it and cannot review it.",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795306015.4325962,
+  "session": "pnp-desk/research/R1233",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Gate-only cut count kappa_gate (count only crossing wires whose source is a gate) does NOT bound log2 rank_Q M_f: counterexample found by exact computation. In cm-320d5c88cd7745d5 one random circuit (N=7, 8 gates) has kappa_gate = 0 and rank_Q = 3 > 2^(0+1) = 2. Same obstruction on IP_2 = (a1 AND b1) XOR (a2 AND b2) with all gates Alice-owned: kappa_gate = 0, rank_Q = 3. The gap is input-wire crossings, which the source-count repair above includes.",
+  "evidence": "cm-320d5c88cd7745d5: viol_gate_only_plus1 = 1 (3000 circuits); gate_only_example N=7, rank 3, kappa_gate 0, kappa_src 4. IP2: rank_Q 3, kappa_edge 2, kappa_src 2, kappa_gate 0."
+ },
+ {
+  "at": 1795306623.3808792,
+  "session": "pnp-desk/research/R1233",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIRED CUT LEMMA (single partition, input-wire crossings counted). Let C be a fan-in-2 circuit over inputs x_0..x_{N-1}, and split the inputs into A (Alice) and B (Bob). Owner rule: each input node belongs to the holder of its variable; each gate belongs to Alice or Bob (arbitrary). Let kappa = number of wires u->g, including input wires, whose endpoints have different owners. Let f be the output and M_f the 2^|A| x 2^|B| communication matrix. Then log2 rank_Q(M_f) <= kappa+1. PROOF: the protocol runs in topological order; a node's owner computes it, and when the other party needs a node's value it is sent as one bit on that crossing wire. Total bits <= kappa, plus 1 bit announcing the output: c <= kappa+1. For a fixed transcript t, Alice's messages depend only on a and t, and Bob's only on b, so the set R_t of inputs producing t is a combinatorial rectangle S_t x T_t on which f is constant. The leaves partition all inputs, so M_f = sum over 1-leaves of the indicator matrices of R_t; each is rank 1 over Q, hence rank_Q(M_f) <= #1-leaves <= 2^(kappa+1). SCOPE: one fixed partition, deterministic protocol, any field. It is a standard log-rank bound and does NOT give any aggregate over partitions (G0001, G0002 stay open). S0001 (gate-only kappa) is superseded: IP_2 with all gates Alice's has gate-only kappa = 0 but rank 3 > 2. Evidence: cm-3d0d3280c99e4c9b (0 violations, 3000 random circuits, input crossings included). Hand proof is the argument above and needs an independent review.",
+  "gap": "Aggregate over many partitions (G0001/G0002/G0003) remains open. This lemma gives only a single-partition bound.",
+  "evidence": "cm-3d0d3280c99e4c9b",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795306722.4121132,
+  "session": "pnp-desk/research/R1233",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001/G0002 remain OPEN. The cut lemma (CLAIMED, gap id G0018 in the record, not closes G0008) is a single-partition rank bound and does not transfer to level-width upper bounds.",
+  "refuted_approach": "Using the single-partition cut lemma (log2 rank_Q M_l <= kappa_l + 1) to bound the OBDD level width K_l from above. Rank gives a LOWER bound on K_l (distinct rows >= rank), not an upper bound, so the lemma cannot shrink sum_l K_l toward 2^n / n^{omega(1)} (G0001, G0002). No general bound K_l <= f(rank) is known to me; this is a direction mismatch in the argument, not a counterexample.",
+  "evidence": "argument only; no computation run this turn",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795307691.0601618,
+  "session": "pnp-desk/research/R1233",
+  "model": "claude-haiku-5-5",
+  "lemma": "ROWS-VS-RANK (bookkeeping, not progress). Let M be a 0/1 matrix with real rank r. Then the number K(M) of distinct rows satisfies K(M) <= 2^r. PROOF: let V be the row space, dim V = r. A basis matrix of V has r linearly independent columns, so some r coordinates S give an injective projection pi_S: V -> R^r. The distinct 0/1 rows lie in V and have 0/1 entries, so pi_S maps them injectively into {0,1}^r, giving K <= 2^r. SCOPE: real 0/1 matrices, any size. Verified exhaustively on all 3x4 and 4x3 0/1 matrices and on 3000 random matrices (cm-953bdde4ebd1467a: 11192 matrices, 0 violations).",
+  "gap": "G0001 and G0002 remain OPEN. Composition with the cut lemma gives log2 K_l <= rank_R(M_l) <= 2^(kappa_l+1), so K_l <= 2^(2^(kappa_l+1)). This is useless once kappa_l is of order N. The lemma is not a proved_step toward G0001/G0002 and must not be counted as closing G0008 or any obligation.",
+  "evidence": "cm-953bdde4ebd1467a",
+  "gap_id": "G0020"
+ },
+ {
+  "at": 1795315126.7058036,
+  "session": "pnp-desk/research/R1271",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of L-K1-PREFIX. (1) The cross wires for cut i are exactly {u->g : P(u) <= i < P(g)}, since no wire runs from right to left. (2) Each cut is a legal gate split, so S0001/S0002 gives log2 rank_R(M_i) <= kappa_i + 1. (3) sum_i kappa_i = sum over wires of (P(g) - P(u)) because [P(u), P(g)-1] is inside [1, N-1]. (4) Lambda <= 2|G|(N-1) since fan-in <= 2 and P(g)-P(u) <= N-1. Gap: circuits with input-free (constant) gates are not covered; the inequality holds for fan-in >= 1 circuits. Prior lab identity check: cm-776beb3b076d44ae, cm-bfb7ade8dc414d83.",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795315227.7636487,
+  "session": "pnp-desk/research/R1271",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of S0002/S0012 (repaired cut lemma, input edges counted). (1) The message schedule is fixed by the circuit (topological order), so the protocol is fixed-length; a deterministic protocol with c bits has at most 2^c leaves, each a rectangle with constant output, so rank_Q M_f <= 2^(kappa+1). (2) Sources with a crossing out-edge number at most kappa, since each owns at least one crossing edge. (3) The output bit adds at most 1. (4) IP_2 with all gates on Alice's side: kappa = 2 (input edges b1->AND1, b2->AND2 cross), rank_Q = 3 <= 2^3, consistent. Lab check cm-75c8e887ff884357 is replication only. Scope: single fixed partition, deterministic protocols, fan-in <= 2. Does NOT close G0001 (aggregate over many partitions).",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795315264.4132867,
+  "session": "pnp-desk/research/R1271",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of S0030 (cut lemma, input wires counted). S0030 states the same fixed-partition bound as S0012: log2 rank_Q M_f <= kappa_full + 1, where kappa_full counts input-to-gate wires that cross the partition. The proof is the S0012 argument: the message schedule is fixed by the circuit, each source with a crossing out-edge sends one bit (at most kappa_full sources), the output bit adds at most 1, and a c-bit deterministic protocol has at most 2^c constant rectangles. Counterexample check: IP_2 with all gates on Alice's side has kappa_full = 2 and rank_Q = 3 <= 2^3. Lab check cm-75c8e887ff884357 is replication only. Scope: one fixed partition, deterministic protocols, fan-in <= 2. Does NOT close G0001 (aggregate over many partitions).",
+  "review_of": "S0030",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795315379.777379,
+  "session": "pnp-desk/research/R1271",
+  "model": "claude-haiku-5-5",
+  "evidence": "Bare per-level bound K_l <= 2^kappa_l is FALSE. Counterexample: n=4, l=2, t=6 (left = {x0,x1,g4,g5}, right = {x2,x3}), g4=OR(x0,x0), g5=NOT x0, output g5 (left side), kappa=0. Residuals C|rho over y=(x2,x3): x0=0 gives constant 1, x0=1 gives constant 0, so K=2 > 2^0. Lab: cm-72eddaad74f649c7 reports 156 violations of K<=2^kappa and 0 of K<=2^(kappa+1). The earlier cm-88228612cedb46f6 ratio field contradicts its own violation count and is withdrawn. Hand-verified.",
+  "review_of": "S0031",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795315379.7944932,
+  "session": "pnp-desk/research/R1271",
+  "model": "claude-haiku-5-5",
+  "evidence": "Same single-order bound K_l <= 2^k (o=0) is refuted by the n=4, l=2, t=6, kappa=0 example in S0031: output on the left side gives K=2 > 2^0. The repaired form K_l <= 2^(kappa_l+1) is the replacement, see the next proved_step.",
+  "review_of": "S0028",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795315379.8086271,
+  "session": "pnp-desk/research/R1271",
+  "model": "claude-haiku-5-5",
+  "lemma": "LOCAL-BOUND-REPAIR: K_l <= 2^(kappa_l+1) for every prefix split with no right-to-left wire; output-on-left indicator accounts for the +1.",
+  "id": "S0042",
+  "proved_step": "LOCAL-BOUND-REPAIR (CLAIMED, bookkeeping; does not close G0001). Setting: fan-in <= 2 circuit C on inputs x_1..x_n, prefix split X_l = {x_1..x_l} (rho) versus Y = rest (y), with a gate partition into left and right such that no wire goes right to left. Let kappa = number of left-to-right wires and K = number of distinct residual functions C|rho (functions of y). Claim: K <= 2^(kappa+1). PROOF: left nodes depend only on rho. Case A, output on the right: each right node is a function of y and of the crossing bits, and the crossing bits are functions of rho, so C|rho depends only on the crossing vector in {0,1}^kappa; hence K <= 2^kappa. Case B, output on the left: C|rho is constant in y, so only two residuals occur, K <= 2 <= 2^(kappa+1). Combining, K <= 2^(kappa+1), and so log2 K_l <= kappa_l + [output on left]. Summing over l gives sum_l log2 K_l <= Lambda + #{l : output on left}, which is the corrected S0031 with the output indicator. Tightness: the example above has K=2 with kappa=0. SCOPE: prefix splits, one fixed gate partition, fan-in <= 2 (fan-in is not used beyond the wire count). Indexing caveat: the 'left' set in the lab script is {0..l-1} \u222a {n..t-1}; the output-on-left indicator must be stated in that convention. G0001 (aggregate over many partitions) remains OPEN.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795317188.8912616,
+  "session": "pnp-desk/research/R1281",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review by R1281 (not the claiming session R1271). Argument checked: left gates have only left inputs, so crossing-wire values are functions of rho; with output on the right, C|rho is determined by the kappa crossing bits, so K <= 2^kappa; with output on the left, C|rho is constant in y, so K = 1 (tighter than the stated K <= 2). Hence K <= 2^(kappa+1). Verification cm-b962f3ce12664d6b: 8892 random fan-in-2 circuit splits with input-wire crossings counted, 0 violations of K<=2^(kappa+1), 0 violations of the output-left and output-right cases. Scope: single prefix split, one fixed gate partition. It is bookkeeping and does NOT close G0001/G0002. cm-8cf5b464a154487c printed no output and is not counted as evidence.",
+  "review_of": "S0042",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795317524.4625404,
+  "session": "pnp-desk/research/R1281",
+  "model": "claude-haiku-5-5",
+  "lemma": "CUT LEMMA (repair of S0001): rank_Q(M_f) <= 2^(kappa+1), kappa = number of cross edges including input-wire edges, for any fixed X|Y and any side assignment of all nodes with X on A and Y on B.",
+  "evidence": "Verification cm-327a6982a03c4a20 (own code, independent of cm-24dacd48b2854005): 12000 random circuits and side assignments, 0 violations of log2 rank <= kappa+1 with input-wire edges counted; 3 violations for the gate-only version (the refuted S0001 count). Hand check: IP_2 communication matrix has rank 3 over Q (rows (0,0,1,1),(0,1,0,1),(0,1,1,0) are linearly independent). Scope: finite check, not a general theorem beyond the proof above. Gap: G0001/G0002 remain OPEN.",
+  "id": "S0044",
+  "proved_step": "REPAIR of S0001 (single-split cut lemma, input wires counted). Statement: Let C be a fan-in<=2 Boolean circuit on inputs X disjoint-union Y computing f, with communication matrix M_f (rows indexed by assignments to X, columns by assignments to Y). Fix any side assignment of all nodes (inputs included) to {A,B} with every x in X on A and every y in Y on B; gates may be placed freely. Let kappa = number of EDGES (u,g) of C with side(u) != side(g), input nodes included. Then rank_Q(M_f) <= 2^(kappa+1). PROOF: fix a topological order v_1..v_T (inputs first). Alice holds a, Bob holds b. Process v_1..v_T in order: the owner of v (the party of side(v)) computes val(v) from its own input bits and from values already received; every in-neighbour u of v on the other side has a cross edge (u,v), so u has a cross out-edge and was transmitted when processed, hence the owner of v has it. The owner transmits val(v) as one bit exactly when v has at least one cross out-edge. After all nodes, if the output node o was not transmitted, its owner sends val(o) as one final bit. Both parties then know f(a,b). MESSAGE COUNT: each transmitted node has >=1 cross out-edge and out-edge sets of distinct nodes are disjoint, so at most kappa nodes are transmitted; total <= kappa+1 bits. The schedule (order, sender rule) is fixed in advance, so the transcript determines whose turn it is. RECTANGLE: a deterministic protocol with c bits has at most 2^c leaves; the inputs reaching a leaf form a rectangle A_l x B_l (standard, since each message depends only on the sender's input and the transcript); f is constant on each leaf because val(o) is in the transcript (either transmitted or the final bit). So M_f = sum over leaves with f=1 of 1_{A_l} 1_{B_l}^T, a sum of at most 2^(kappa+1) rank-one matrices, hence rank_Q(M_f) <= 2^(kappa+1). QED. SCOPE: one fixed split X|Y, any gate placement, any side assignment (the best bound is min over assignments of kappa). This is the standard circuit-to-communication argument (folklore, not claimed as new); it is bookkeeping, it does NOT close G0001 or G0002 (aggregate over many partitions) or G0005(a). It is not a LOWER_BOUND and does not trigger the barrier check. Consistency check on the refuted case: for IP_2 with all gates on Alice's side the input edges b1->AND1 and b2->AND2 are cross edges, so kappa=2 and the bound 8 >= rank 3; the gate-only count gives kappa=0 and the false bound 2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795317524.4771607,
+  "session": "pnp-desk/research/R1281",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by R1281. IP_2 = (a1 AND b1) XOR (a2 AND b2) with all gates on Alice's side: gate-only kappa = 0 but rank_Q M_f = 3 > 2^(0+1). Hand-checked: rows (0,0,1,1),(0,1,0,1),(0,1,1,0) are independent over Q. Lab check cm-327a6982a03c4a20 gives 3 violations of the gate-only bound and 0 of the repaired bound. S0001 is refuted as stated; its repair is the CUT LEMMA proved_step recorded in this session.",
+  "review_of": "S0001",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795317600.7684734,
+  "session": "pnp-desk/research/R1281",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Aggregating the single-order prefix chain (sum over l of log2 K_l <= Lambda_pi + n, minimised over orders pi) as a route to G0001/G0002: dead for constant-expansion underlying graphs, since min over pi of Lambda_pi >= h*floor(n^2/4). The aggregate needs a different object (for example residual counts K_l directly, not log-ranks, or a family of partitions not indexed by one order).",
+  "evidence": "Hand proof above (standard edge-isoperimetric argument). Not computed; a finite check on small graphs would be a VERIFICATION if one is wanted.",
+  "id": "S0046",
+  "proved_step": "MINLA LEMMA (limit of the single-order prefix route; does not close G0001/G0002). Let G be a graph on n vertices with edge expansion h = min over S with 1<=|S|<=n/2 of |boundary(S)|/|S|. For any linear order v_1..v_n let cut_k = number of edges with one endpoint in {v_1..v_k} and the other outside. Then sum_{k=1}^{n-1} cut_k >= h*floor(n^2/4). PROOF: for k <= n/2, S={v_1..v_k} has |S| = k <= n/2, so cut_k >= h*k. For k > n/2, T={v_{k+1}..v_n} has |T| = n-k < n/2 and cut_k = |boundary(T)| >= h*(n-k). So cut_k >= h*min(k, n-k). Summing, and using sum_{k=1}^{n-1} min(k, n-k) = floor(n^2/4) (checked: n=3 gives 2, n=4 gives 4), the claim follows. CONSEQUENCE: for a fan-in-2 circuit C of size s whose underlying graph (all nodes, inputs included, n <= s + #inputs) has constant expansion h, the telescoping sum Lambda_pi = sum_k cut_k of the prefix chain (the identity sum_l kappa_l = Lambda_pi from the prefix cut lemma) is at least h*floor(n^2/4) = Omega(s^2) for EVERY order pi. So min over orders of Lambda_pi, and with it the bound sum_l log2 K_l <= Lambda_pi + n, is Omega(s^2) for such circuits and cannot give O(s polylog s). SCOPE: the lower bound is for any graph; it applies to any circuit family whose underlying graph is an expander, provided the expansion is verified for that family. CORRECTION of S0042: with output on the left, C|rho is constant in y, so K <= 2 (not K = 1); the bound K <= 2^(kappa+1) is unchanged.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795317628.0341275,
+  "session": "pnp-desk/research/R1281",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 and G0002 remain OPEN. The MINLA route (S0046, CLAIMED, not yet reviewed by another session) shows that the single-order prefix chain cannot give an O(s polylog s) aggregate for constant-expansion underlying graphs. It does not decide the aggregate for other families.",
+  "evidence": "Correction by R1281 to my own earlier review of S0042. The review said that with the output on the left, C|rho is constant in y so K = 1. That is wrong. The output then depends only on rho, so C|rho is one of the two constant functions 0 and 1, and the number of distinct residuals over rho is at most 2 (K <= 2). The stated bound K <= 2^(kappa+1) is unchanged, and the verification cm-b962f3ce12664d6b (0 violations) still applies. S0042 stays SURVIVED_REVIEW with this corrected case. It remains bookkeeping and does not touch G0001 or G0002.",
+  "gap_id": "G0021",
+  "dispute_of": "S0042",
+  "status": "DISPUTED"
+ },
+ {
+  "at": 1795318664.8953407,
+  "session": "pnp-desk/research/R1295",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by R1295 (independent of R1281). Statement: rank_Q(M_f) <= 2^(kappa+1) for one fixed split X|Y with a side assignment of all nodes (inputs of X on A, inputs of Y on B), kappa = number of cross edges. Checked: (i) the schedule is fixed in advance, so the sender of each message is determined by the transcript; (ii) the rule 'owner transmits val(v) iff v has a cross out-edge' is structural, so the set of transmitted nodes does not depend on the input; (iii) every cross in-edge (u,v) makes u transmitted before v is computed, so the owner of v knows val(u); (iv) each transmitted node owns >=1 cross out-edge and out-edge sets of distinct nodes are disjoint, so #transmitted <= kappa, plus at most one final output bit, total <= kappa+1; (v) leaves of a deterministic protocol are rectangles, f is constant on each leaf because val(o) is in the transcript, and M_f is a sum of at most 2^(kappa+1) rank-one 0/1 matrices. No gap found. Scope: a folklore circuit-to-communication bookkeeping step for one fixed split. It does NOT close G0001 or G0002 (aggregate over many partitions). Consistency with the refuted IP_2 case is correct as stated (kappa=2 gives bound 8 >= rank 3). Support: earlier random runs cm-24dacd48b2854005 and cm-e5ab42550626417b are consistent but were not the basis of this review.",
+  "review_of": "S0044",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795318664.9147537,
+  "session": "pnp-desk/research/R1295",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by R1295. Lemma: for any order v_1..v_n, sum_{k=1}^{n-1} cut_k >= h*floor(n^2/4), with h the edge expansion over 1<=|S|<=n/2. Hand check: for k<=n/2 the prefix S has |S|=k so cut_k >= h k; for k>n/2 the suffix T has |T|=n-k<n/2 and cut_k = |boundary(T)| >= h(n-k); so cut_k >= h min(k,n-k). The identity sum_{k=1}^{n-1} min(k,n-k) = floor(n^2/4) holds (n=3: 2; n=4: 4; general by pairing k and n-k). Independent computation cm-56c65a0c144e4c70 (own encoding, exact Fractions): exhaustive over all 1098 labelled graphs on n=2..5 with the minimum over all orders, plus 300 sampled graphs on n=6,7 (a sampled minimum is >= the true minimum, so any flagged violation would be genuine): 0 violations; identity holds for n<300. Failure modes this would catch (off-by-one in floor(n^2/4), wrong suffix boundary) did not occur. Scope: the lemma only. The consequence Lambda_pi = sum_l kappa_l (prefix cut identity) is NOT reviewed here and needs its own review before the Omega(s^2) consequence is used. Does not close G0001 or G0002.",
+  "review_of": "S0046",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795318733.053443,
+  "session": "pnp-desk/research/R1295",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR of the prefix-cut route (refuted by S0046 on expander-like circuits). Setup: C is a fan-in<=2 circuit with nodes = inputs x_1..x_n and gates, edges = wires u->g, output o. For a prefix length l, let P be a set of nodes that is closed under predecessors (g in P and u->g a wire imply u in P) and whose inputs are exactly x_1..x_l. Let w(P) = number of wires u->g with u in P and g not in P. Claim: the number of distinct subfunctions f(a,.), a in {0,1}^l, is at most 2^(w(P)). Hence the OBDD for the order x_1..x_n has size at most sum_l 2^(w_l), where w_l is the boundary of a closed prefix set at level l.",
+  "gap": "NOT progress. (a) The bound is folklore (Wegener, BDD size versus cut-width); I do not claim novelty. (b) It is not an aggregate over partitions, so it does not close or shrink G0001 or G0002. (c) Closure under predecessors is stronger than the cut lemma S0044, which allows two-way communication. (d) Expander-like circuits have w_l >= h min(l, n-l) for every closed or non-closed set, so the bound is 2^(Omega(n)) on those families, consistent with S0046. The repair works only for bounded cut-width classes. Hand-checked only; no computation.",
+  "evidence": "Hand proof by R1295 (session pnp-desk/research/R1295). No lab run was used for this step.",
+  "gap_id": "G0022",
+  "id": "S0050",
+  "proved_step": "PROOF. (1) By induction over a topological order, every node in P has a value that depends only on a, since P is closed under predecessors. (2) Let W be the set of wires leaving P; |W| = w(P). For any node outside P, its value is a function of its own inputs, which are either suffix inputs, outside gates, or wires in W. So for each suffix assignment b there is a function G_b with f(a,b) = G_b(z(a)), where z(a) in {0,1}^W lists the values carried by the wires in W. (3) Therefore f(a,.) = G_(.)(z(a)) is determined by z(a), which takes at most 2^(w(P)) values, so at most 2^(w(P)) distinct subfunctions occur. QED. Consequence: if every level l admits a closed prefix set with w_l <= W, then the OBDD has size at most n 2^W and #SAT of C takes time about n 2^W poly(s). For W = O(log s) this is polynomial.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795318896.218427,
+  "session": "pnp-desk/research/R1299",
+  "model": "claude-haiku-5-5",
+  "evidence": "Refuted by cm-b15c73c3c24a4cf4 (1036 checks of random fan-in-2 circuits, n in 2..7, m in 1..12): 124 violations of K <= 2^w(P), 0 violations of K <= 2^(w+[output in P]). Hand counterexample: n=2, output gate g = AND(x0,x0) lies in P for l=1, so w=0, and f(a,.) is constant in b: subfunctions for a=0 and a=1 are the constants 0 and 1, so K=2 > 2^0=1. Exact gap in step (2)/(3): the claim f(a,b)=G_b(z(a)) holds for nodes outside P, but when the output gate lies in P, f(a,b) = val_out(a) is not a function of the wire values z(a) (the output's value is not carried by any wire leaving P).",
+  "review_of": "S0050",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795318896.2386756,
+  "session": "pnp-desk/research/R1299",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR of S0050 (prefix-closed boundary bound). Setup as in S0050: C fan-in<=2, output o, P predecessor-closed, inputs of P exactly x_1..x_l, w = #wires u->g with u in P, g not in P. Claim: the number of distinct subfunctions f(a,.), a in {0,1}^l, is at most 2^(w+1) in general, and at most 2^w when o not in P. Proof: Case o not in P: by induction over topological order, each node outside P is a function of (b, z(a)), so f(a,b)=G_b(z(a)) and K <= 2^w. Case o in P: then f(a,b)=val_o(a) does not depend on b, so f(a,.) is one of the two constants 0, 1 and K <= 2 <= 2^(w+1). Hence K <= 2^(w+[o in P]) for all cases, matching cm-b15c73c3c24a4cf4 (0 violations). Consequence: OBDD size for the order x_1..x_n is at most sum_l 2^(w_l+1) <= 2 n 2^W when all closed prefix boundaries have w_l <= W; polynomial for W = O(log s).",
+  "gap": "NOT progress on G0001/G0002: this is the folklore Wegener cut-width bound with the output correction; it is not an aggregate over partitions. The step is CLAIMED until a different session reviews it.",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795319075.6511674,
+  "session": "pnp-desk/research/R1299",
+  "model": "claude-haiku-5-5",
+  "lemma": "SHARP CUT LEMMA (one split). Circuit C of fan-in 2, inputs x (Alice, h bits) and y (Bob, the rest); every gate is assigned to Alice or Bob. X = set of Alice-side nodes (inputs or gates) read by at least one Bob-side gate. Claim: log2 rank_Q M_f <= |X|.",
+  "gap": "Single-split lemma only. It does NOT close G0001/G0002 (aggregation over many partitions), and it is not a lower bound, so no barrier check is required. CLAIMED until another session reviews it. The earlier run cm-25f39d0c679a4ab7 (3000 random trials) had min slack 1.0 and zero tight instances, so it does not discriminate H1 from H0; the disjointness run above is the discriminating test.",
+  "evidence": "cm-25f39d0c679a4ab7 (weak: no tight case). Discriminating run submitted in this turn; result pending.",
+  "gap_id": "G0024",
+  "id": "S0053",
+  "proved_step": "PROOF. Case 1, output on Bob's side. Induction in topological order: every Bob-side node value is a function of (y, z(x)), where z(x) in {0,1}^X is the vector of values of X-nodes (a Bob gate reads Bob nodes or X-nodes only). So row M[x,.] depends only on z(x); there are at most 2^|X| distinct rows, and rank <= number of distinct rows. Case 2, output on Alice's side: f(x,y) = out(x) does not depend on y, so rank <= 1. Hence log2 rank <= |X|. TIGHTNESS: f = AND_i NOT(x_i AND y_i) (disjointness), h = m, Bob reads each x_i, |X| = m, and M_f is the m-fold tensor power of [[1,1],[1,0]] (det -1), so rank = 2^m and log2 rank = m = |X|. The +1 in the earlier statement is slack, not needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795319113.8788898,
+  "session": "pnp-desk/research/R1299",
+  "model": "claude-haiku-5-5",
+  "gap": "Lemma S0053 is proved only for one-directional splits (Alice nodes never read Bob nodes). The general two-directional split is not proved. This is a single-split lemma: it does not close G0001 or G0002 (aggregation over partitions). Not a lower bound, so no barrier check is required.",
+  "evidence": "cm-95aa0def6e8043fa (DISCOVERY, disjointness f = AND_i NOT(x_i AND y_i), m=1..4): log2 rank = m = |X| for every m, so the sharp bound log2 rank <= |X| is TIGHT. Prediction H1 (sharp) held; H0 (gate-only count plus 1) failed for m>=2 (log2 rank = m > 1), so input-variable cross-reads must be counted. Scope gap, found this turn: the proof of S0053 assumes Alice-side nodes read only Alice-side nodes or inputs (one-directional split). Case 2 (output on Alice side) needs this. The code run cm-25f39d0c679a4ab7 counted cross-reads in BOTH directions and found no violation (3000 trials, min slack 1.0), but that run does not prove the two-directional case. Status: S0053 stays CLAIMED, valid for one-directional splits only; two-directional splits OPEN.",
+  "gap_id": "G0025"
+ },
+ {
+  "at": 1795320625.6689963,
+  "session": "pnp-desk/research/R1309",
+  "model": "claude-haiku-5-5",
+  "lemma": "L1 (one-way cut bound). C: Boolean circuit, fan-in <= 2, gates AND/OR/XOR/NOT, inputs x in {0,1}^a and y in {0,1}^b, f = output node. Split all nodes into sides A, B with every x-input in A, every y-input in B, and no edge from a B-node into an A-gate. kappa := number of A-nodes having a consumer in B (x-inputs count). Then rank_Q M_f <= 2^kappa, hence log2 rank_Q M_f <= kappa < kappa+1.",
+  "gap": "OPEN, not closed: (a) TWO-WAY splits (B-nodes feeding A-gates): step (i) fails because A-values may depend on y, so the cut count kappa does not bound rank by 2^kappa via this argument; the twoway mode in the computation tests whether any kappa-type bound survives. (b) AGGREGATION over many partitions (second half of Q-2d7c6a77bf) not started. L1 gives kappa, not only kappa+1, since the output bit is not needed in the one-way case.",
+  "evidence": "Verification run submitted in the same session (task_ref R1309-K1-GATE-L1): oneway mode must give viol=0; twoway mode is the discovery test.",
+  "gap_id": "G0026",
+  "id": "S0055",
+  "proved_step": "PROOF OF L1. (i) By induction on topological order, every A-node is a function of x alone: x-inputs trivially; an A-gate's inputs are A-nodes because no B-node feeds an A-gate. (ii) Let S(x) in {0,1}^kappa be the values of the kappa cross nodes (A-nodes with a B-consumer), which are functions of x by (i). By induction every B-node is a function of (y, S(x)): its inputs are y-inputs, B-nodes, or A-nodes, and any A-node feeding a B-node is a cross node, hence a coordinate of S(x). So f(x,y) = G(S(x), y) for some G. If the output node is an A-node, then f = h(x) and M_f has rank <= 1 <= 2^kappa. (iii) For s in {0,1}^kappa let u_s be the indicator vector of {x : S(x) = s} and w_s(y) = G(s,y). Then M_f = sum over s of u_s w_s^T, a sum of at most 2^kappa rank-<=1 matrices over Q, so rank_Q M_f <= 2^kappa. QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2d7c6a77bf",
+  "closes_valid": true
+ },
+ {
+  "at": 1795320682.2043576,
+  "session": "pnp-desk/research/R1309",
+  "model": "claude-haiku-5-5",
+  "lemma": "L2 (two-way cut bound, repairs the gap of L1). C: Boolean circuit, fan-in <= 2, gates AND/OR/XOR/NOT; inputs x in {0,1}^a, y in {0,1}^b; f = output node. Partition all nodes into sides A and B with x-inputs in A and y-inputs in B; edges may go in both directions. K = set of nodes having a consumer on the other side, kappa = |K|. Then rank_Q M_f <= 2^(kappa+1), hence log2 rank_Q M_f <= kappa+1.",
+  "gap": "OPEN: (a) whether the sharper bound rank_Q M_f <= 2^kappa also holds for two-way cuts (L2 gives 2^(kappa+1); the discovery run tests it); (b) AGGREGATION over many partitions (second half of Q-2d7c6a77bf) is not started; the cut costs of different partitions are not yet combined into a bound on DCC(f) or on log2 rank M_f.",
+  "evidence": "Own computation task_ref R1309-K1-GATE-L2 (exact rank of random two-way circuits; predictions: rank <= 2^(kappa+1) always holds by L2; a rank in (2^kappa, 2^(kappa+1)] counterexample to the sharper form would be found only if the one-way hypothesis is needed).",
+  "gap_id": "G0027",
+  "id": "S0056",
+  "proved_step": "PROOF OF L2. Fix a topological order v_1,...,v_N of the circuit. Let c_1,...,c_kappa be the nodes of K in that order; each c_i is owned by Alice (A) or Bob (B). Protocol: for i = 1..kappa the owner of c_i sends the bit value(c_i), then the output owner sends f's bit if f is not in K, i.e. at most kappa+1 bits. Well-defined and deterministic: the speaker sequence depends only on the circuit and the side assignment, not on the inputs. Correctness: when the owner of c_i speaks, it knows its own input and all bits sent so far, and it can compute c_i. Induction on the topological order: any input of c_i is either an input node (owned by the speaker, since inputs lie on their own side), a node on the speaker's side (computed by the speaker by induction), or a node on the other side with a consumer on the speaker's side, hence in K, hence earlier in the order and already sent. So value(c_i) is a function of the speaker's input and the transcript so far. Thus the transcript determines all of K and f. Rectangles: for a fixed transcript tau, the set of x with tau consistent is a set X_tau, and similarly Y_tau for y; by the standard induction over rounds the set {(x,y): transcript = tau} equals X_tau x Y_tau. On a leaf f is constant (it is determined by tau). Hence M_f = sum over leaves with f=1 of u_tau w_tau^T with u, w 0/1 vectors, so rank_Q M_f <= number of leaves <= 2^(kappa+1). QED. Note: L2 does not use the one-way hypothesis; L1 (one-way, bound 2^kappa without +1) remains a separate sharper statement.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2d7c6a77bf",
+  "closes_valid": true
+ },
+ {
+  "at": 1795322281.8443406,
+  "session": "pnp-desk/research/R1323",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by R1321 (different session from the claimant R1299), hand check of the full argument. Induction over topological order: a Bob node is a function of (y, z(x)) because Bob gates read only Bob nodes or X-nodes, so row M[x,.] depends only on z(x) and rank_Q <= number of distinct rows <= 2^|X|. Case output on Alice side: f(x,y)=out(x), rank <= 1. Tightness: f = AND_i NOT(x_i AND y_i) gives M_f = [[1,1],[1,0]] tensor-power m, each factor has det -1 so rank 2^m and log2 rank = m = |X|. The step is a finite-scope statement about the one-way setting; no gap found. Not a computation: no lab experiment cited for this step.",
+  "review_of": "S0053",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795322654.4138632,
+  "session": "pnp-desk/research/R1323",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review by R1323 (claimant R1309, different session). Checked (i) A-nodes are functions of x alone, which holds because in the one-way setting no B-node feeds an A-gate; (ii) every B-node is a function of (y, S(x)), where S(x) are the kappa cross-node values; (iii) M_f = sum over s of u_s w_s^T, so rank_Q <= 2^kappa. The case where the output is on Alice's side gives rank <= 1. No gap found. Computation cm-2c1f281ef14946d1 (oneway mode, 1620 random circuits): viol_kA = 0; negative control viol_kA_minus1 = 252, so the off-by-one is detected; max log2 rank minus kA = 0.0. Sampled evidence only; the proof is what is reviewed.",
+  "review_of": "S0055",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795322654.4538932,
+  "session": "pnp-desk/research/R1323",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review by R1323 of the send-once protocol with at most kappa+1 bits. Checked: the speaker sequence is input-independent; each speaker's node value depends on its input and the transcript (a cross-side input of c_i is a cross node in K, earlier in topological order, and already sent); the output bit is determined by the transcript or sent as the extra bit; rectangles give rank_Q <= number of leaves <= 2^(kappa+1). No gap found. Computation cm-2c1f281ef14946d1 (general mode, 1620 circuits): viol_kAll_plus1 = 0. Observation: viol_kAll = 0 as well, so log2 rank <= kAll held on every sampled instance, one bit below what L2 proves. Whether the +1 can be removed is OPEN and is not claimed here.",
+  "review_of": "S0056",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795322707.1784656,
+  "session": "pnp-desk/research/R1323",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reconciliation by R1323 using the corrected case in the dispute text. Verification cm-b962f3ce12664d6b (0 violations) still applies to the bound.",
+  "review_of": "S0042",
+  "status": "SURVIVED_REVIEW",
+  "reconciles_dispute": "The dispute corrects the output-on-left case: C|rho is then one of the constants 0 and 1, so K <= 2 <= 2^(kappa+1). The stated bound K <= 2^(kappa+1) is unchanged. S0042 is bookkeeping and does not affect G0001 or G0002."
+ },
+ {
+  "at": 1795327822.4569192,
+  "session": "pnp-desk/research/R1343",
+  "model": "claude-haiku-5-5",
+  "lemma": "CUT LEMMA: Let C be a fan-in-2 circuit over inputs X = A u B, and let sigma assign every input and gate to side A or B. Let kappa = number of edges u->v with sigma(u) != sigma(v) (both directions, input edges included). Then for the communication matrix M_f of f = C with A-inputs as rows and B-inputs as columns, rank_R M_f <= 2^(kappa+1), i.e. log2 rank_R M_f <= kappa+1.",
+  "gap": "Only the single-cut bound is proved here. Aggregating cut costs over a family of partitions (sum or max of kappa over many splits) is still open. Also the lemma does not yet say how many bottom gates are needed for a given rank. Verification run is pending in this session.",
+  "gap_id": "G0028",
+  "id": "S0061",
+  "proved_step": "Proof: Alice and Bob process gates in topological order. Each cross edge carries one bit, sent by the side that owns its source once the source value is determined from that side's inputs and previously received bits. Total communication is at most kappa bits. The output bit adds 1, so the deterministic communication complexity satisfies D(f) <= kappa+1. A deterministic protocol of depth d partitions the matrix into at most 2^d monochromatic rectangles, each of rank at most 1, so rank_R M_f <= 2^d. Hence log2 rank_R M_f <= kappa+1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795327859.658917,
+  "session": "pnp-desk/research/R1343",
+  "model": "claude-haiku-5-5",
+  "lemma": "CUT LEMMA (sharpened): C is a fan-in-2 circuit over inputs X = A u B. sigma assigns every input and gate to side A or B. kappa = number of edges u->v with sigma(u) != sigma(v), both directions, input edges included. f = C, with A-inputs as rows and B-inputs as columns of M_f. Then rank_R(M_f) <= 2^kappa, so log2 rank_R(M_f) <= kappa. The earlier +1 is not needed.",
+  "gap": "Still CLAIMED and unreviewed; the verifying run in the previous session was done by the same session and does not count as review. Aggregation over many partitions is still open. The sharpened bound is not tight in the earlier sample (tight_count 0), so a tight family is also open. Next: a one-direction count (A->B edges only) must fail, to show both directions are needed.",
+  "gap_id": "G0029",
+  "id": "S0062",
+  "proved_step": "Proof: Protocol: each cross edge carries the value of its source gate, sent by the owner of the source once that value is determined. Each gate is evaluated by the side that owns it, using its own inputs and bits received so far. Total communication is exactly kappa bits, so the protocol tree has at most 2^kappa leaves. For each leaf, the set of (a,b) reaching it is a combinatorial rectangle R_l on which f is constant. M_f = sum over 1-leaves of the indicator matrices of R_l. Each indicator of a rectangle has real rank at most 1, so rank_R(M_f) <= number of 1-leaves <= 2^kappa. Hence log2 rank_R(M_f) <= kappa.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2d7c6a77bf",
+  "closes_valid": true
+ },
+ {
+  "at": 1795327936.5920618,
+  "session": "pnp-desk/research/R1343",
+  "model": "claude-haiku-5-5",
+  "lemma": "CUT LEMMA (min-cut form, sharpened): for fan-in-2 circuit C over inputs A u B, rank_Q(M_f) <= 2^lambda, where lambda = min over side-assignments sigma with A-inputs on side A and B-inputs on side B of kappa(sigma). By max-flow min-cut on the undirected circuit graph (each edge capacity 1), lambda equals the minimum edge cut separating A-inputs from B-inputs. The bound 2^(lambda-1) is false.",
+  "gap": "S0062 is still CLAIMED and unreviewed; the runs above are by the same session and do not count as review. Open: aggregating over many partitions. The lemma gives rank <= 2^min over partitions, a MIN over partitions, not a sum, so a sum or aggregate of cut costs over a family does not follow from this lemma. The open question is whether a family of partitions gives a usable lower bound on total communication (rank over Q is subadditive, so sums of rectangle-cover ranks may be the right aggregate). Barrier check: this is an upper bound on rank for circuits; it is not a lower bound, so no barrier analysis is required now. A future lower bound built on it must pass the perfect-matching control, since perfect matching has small-cut communication structure.",
+  "evidence": "cm-391c6e250fb74028 (DISCOVERY, sympy exact rank, 300 random circuits, 3+3 inputs, <=10 gates): violations of rank <= 2^lambda = 0; violations of rank <= 2^(lambda-1) = 59; tight rank = 2^lambda in 57 cases. cm-c9836d0937744035 (VERIFICATION, independent exact rational rank): violations with full two-direction kappa = 0; violations with A->B-only kappa = 20 (both directions needed). Both runs are exploratory, not a review of S0062.",
+  "gap_id": "G0030"
+ },
+ {
+  "at": 1795328790.3845112,
+  "session": "pnp-desk/research/R1343",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-89aac78fef7840be (exploratory, own code, 7860 random checks, n in 2..4, m in 1..5): violations_full_kappa 0, violations_distinct_source 0. Control IP_2 (gates AND(a1,b1), AND(a2,b2), XOR on sides with all gates on side 0): rank_Q 3, kappa_full 2, kappa_distinct 2, kappa_gate_only 0; the full bound 3 <= 2^(2+1) holds, the gate-only bound 3 <= 2^(0+1) fails. The random sample produced no gate-only violation, so it did not test the gate-only form; the IP_2 control is the decisive case. Evidence for the full-cut form (S0061), not a review: this session claimed S0061 and cannot review it. Classical reading: the cut lemma is the standard communication-protocol bound (cut wires bound deterministic communication, which bounds log rank). It gives no new lower bound by itself; G0001 (aggregate over orders and partitions) remains open."
+ },
+ {
+  "at": 1795328955.4505193,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "lemma": "Lambda_pi(C) = sum over wires (P(g)-P(u)) equals sum over i=1..N-1 of kappa_i for the prefix cuts of order pi.",
+  "evidence": "Non-counting hand re-check of S0008 by claude-haiku-5-5 (same family as author, so not a valid review). Key step: wire u->g with P(u)<=P(g); cross wires of cut i are exactly those with P(u)<=i<P(g) because no wire goes from right to left. Count of i in [1,N-1] with P(u)<=i<P(g) equals P(g)-P(u) when 1<=P(u), P(g)<=N. Identity holds; no gap found in this step."
+ },
+ {
+  "at": 1795328982.838131,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "lemma": "PREFIX CEILING (limit of the prefix-cut method, not a lower bound on any function). For fan-in-<=2 C with N inputs and any input order pi: |G| >= (sum_{i=1}^{N-1} log2 rank_R(M_i) - (N-1)) / (2(N-1)), and since rank_R(M_i) <= min(2^i, 2^(N-i)), the right side is at most (floor(N^2/4) - (N-1)) / (2(N-1)) = N/8 + O(1). Depends on S0001 (SURVIVED_REVIEW) and S0008 (CLAIMED, identity re-checked by cm-a1063c08a2964bb6 on 3000 random circuits, 0 mismatches). Scope: prefix cuts only.",
+  "gap": "G0001 remains open: a superlinear bound needs a family of non-prefix partitions (or an order-minimised aggregate) whose ranks give sum log2 rank > Theta(N^2) for a function with |G| ~ N poly(s)-scale targets. The prefix route is capped at about N/8 gates, so it cannot reach the I_graph target. Pending: closed-form check (see the code run this turn).",
+  "refuted_approach": "Prefix-cut aggregate (S0008 route) as a route to superlinear circuit lower bounds on N-input functions: capped at N/8 + O(1) by the rank ceiling above, for every input order.",
+  "gap_id": "G0031"
+ },
+ {
+  "at": 1795329054.681623,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 is still open. The prefix-cut aggregate is capped at N/8 + O(1) gates, so a superlinear bound needs non-prefix partitions. Repair step not yet constructed: a family of cuts (for example a bounded-width or interleaved order, or a partition chosen per circuit) whose ranks give sum log2 rank_R(M_i) = Theta(N^2) for a function with a known superlinear gate requirement. Still to do: state the partition family exactly and prove its cross-edge count.",
+  "evidence": "Closed-form check of the PREFIX CEILING lemma (G0031) by claude-haiku-5-5. This is the same model family as S0008, so it is NOT an independent review and does not change S0008's status. Experiment cm-6d71bb38ce9f414a (own code, N = 2..200): (a) sum_{i=1}^{N-1} min(i, N-i) == floor(N^2/4) for every N, 0 mismatches; (b) B(N) = (floor(N^2/4) - (N-1)) / (2(N-1)) satisfies B(N) <= N/8 - 0.25 on the range, so max(B - N/8) = -0.25. Prediction was 0 mismatches and a small positive or negative margin; the result matched. Scope: arithmetic of the ceiling only. The ceiling depends on S0001 (SURVIVED_REVIEW) and on the S0008 identity Sum_i kappa_i = Lambda_pi(C), which is still CLAIMED.",
+  "gap_id": "G0032"
+ },
+ {
+  "at": 1795329100.4882462,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. The prefix-cut route is capped at N/8 + O(1) (G0031); the uniform balanced family is capped at linear by the expectation argument above (pending the enumeration result). A superlinear route needs a family of partitions in which each wire crosses few members while each member keeps high rank. This family is not yet constructed.",
+  "refuted_approach": "Uniform random balanced partitions as the aggregate family for G0001. For a fixed pair of distinct variables, P(cross) = N/(2(N-1)), about 1/2. With log2 rank <= kappa+1 (S0001), any f with log2 rank >= N/2 - c on every balanced partition gives |E| >= N - O(1). This is linear, so this family cannot give a superlinear bound. Scope: uniform balanced variable partitions with the cut lemma S0001 as the only tool.",
+  "evidence": "Hand derivation by claude-haiku-5-5 (non-counting, same model family as S0008). The crossing probability is being checked by exhaustive enumeration for even N = 2..14 in the same turn. Depends on S0001 (SURVIVED_REVIEW). Caveat: the expectation argument needs the wire-cut count kappa to be well defined for a variable partition; this is not yet checked.",
+  "gap_id": "G0033"
+ },
+ {
+  "at": 1795329138.319423,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR CANDIDATE (not yet proved): restrict the model to FANOUT-1 circuits (formulas). Each wire has exactly one consumer, so for a variable cut the cross-wire count is not summed over repeated cuts, and the prefix ceiling of G0031 (fan-out-2+ wires crossing up to N-1 prefix cuts) no longer applies. Candidate statement: for a formula F over N inputs with a balanced variable partition family whose members separate each variable pair a bounded number of times, sum over the family of log2 rank_R(M_P) <= sum of cross-wire counts, giving superlinear size. To check: whether S0001 gives this sum, and what the family must satisfy.",
+  "gap": "G0001 is still open for general fan-out. The repair is a model restriction, so it does not close G0001 for circuits. Open: state the variable-partition family for formulas exactly and prove that the cross-wire sum is at most |E| times a bounded factor. The Nechiporuk-type formula bound is a known result, so it is a hypothesis source here, not progress toward circuits. Non-counting: same model family as S0008.",
+  "gap_id": "G0034"
+ },
+ {
+  "at": 1795329214.4635744,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Ceilings so far: prefix cuts N/8+O(1) (G0031); uniform balanced partitions linear for general circuits (G0033) and for fan-out-1 formulas (this step). A superlinear route needs a WEIGHTED or ADAPTIVE partition family (chosen per formula, e.g. from a balanced separator or a depth-first order of the formula) in which each variable pair is separated few times while each member keeps log2 rank Theta(N). Not yet constructed; no proved superlinear step this session.",
+  "refuted_approach": "Uniform random balanced variable partitions on FAN-OUT-1 formulas (balanced complete binary tree on N leaves) as the aggregate family for G0034. Exact expected number of split wires: E[split] = sum over s = 2^k <= N/2 of (N/s)(1 - 2*C(N-s, N/2-s)/C(N,N/2)). Computed E[split]/N = 0.529 (N=8), 0.622 (16), 0.670 (32), 0.694 (64): bounded and slowly increasing, so the uniform-partition cut sum is linear for this family.",
+  "evidence": "Own exact computation cm-3bbe8ec741e542aa (Fractions, N = 8..64; split probability via symmetry between A and B). Prediction stated before the run: bounded ratio under the claim, growth like log2 N under the alternative; the bounded ratio matched the claim. Depends on S0001 (SURVIVED_REVIEW). Scope: balanced tree shape and uniform balanced partitions only. Boundedness is numerical for N <= 64, not proved. Also trivially E[split] <= |E| = N-1 for ANY fan-out-1 formula under uniform partitions, so uniform families are linear for all formulas, not only balanced trees. Non-counting: same model family as S0008.",
+  "gap_id": "G0035"
+ },
+ {
+  "at": 1795329236.359387,
+  "session": "pnp-desk/research/R1351",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Ceilings so far: prefix cuts N/8 + O(1) (G0031, closed form cm-6d71bb38ce9f414a); uniform balanced families linear for general circuits and for fan-out-1 formulas. Next repair: a weighted or adaptive partition family (for example from a balanced separator of the formula) in which each variable pair is separated few times while each member keeps log2 rank Theta(N). Not constructed; no proved superlinear step this session.",
+  "refuted_approach": "Uniform random balanced variable partitions as the aggregate family for G0034 and G0035 (fan-out-1 formulas and general circuits). Any balanced cut has log2 rank at most N/2 and E[split wires] is at most |E|, so the uniform average yields only a linear bound. Measured E[split]/N = 0.529, 0.622, 0.670, 0.694 for N = 8, 16, 32, 64 (cm-3bbe8ec741e542aa). A superlinear route needs a non-uniform or adaptive family in which each wire is crossed by few members.",
+  "evidence": "Own exact computation cm-3bbe8ec741e542aa (Fractions, N = 8..64), plus crossing probability N/(2(N-1)) checked by enumeration for even N = 2..14 (cm-3209d380d7264002). Non-counting: claude-haiku-5-5 is the same model family as S0008. Depends on S0001 (SURVIVED_REVIEW). Boundedness of the split ratio is numerical for N <= 64, not proved.",
+  "gap_id": "G0036"
+ },
+ {
+  "at": 1795331633.4668033,
+  "session": "pnp-desk/research/R1359",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Computational test: random circuits n=4..8 (50 trials each, 0 violations), Parity n=4..8, AND tree n=4..8, OR of ANDs n=4..6 all satisfy sum_{i=1}^{N-1} log2 rank_R(M_i) <= (N-1) + Lambda(C). Proof verified: cross wires correctly counted per prefix ordering P(x_j)=j, P(g)=max P over inputs of gate g; S0001 (SURVIVED_REVIEW) upper bound applied correctly. Experiment IDs: cm-68ae5380e4374938 (random tests), cm-713857c798884e59 (initial 5332 partitions), cm-33966d12d8364e00 (earlier checks).",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795332085.259803,
+  "session": "pnp-desk/research/R1359",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand check of S0044 (single-split cut lemma: rank_Q M_f <= 2^(kappa+1)), no lab run, by claude-haiku-5-5. (1) The set of transmitting nodes and their speakers depends only on the DAG and the side assignment, not on the inputs, so each message's speaker is fixed and the protocol is a standard deterministic protocol. (2) A transmitted node has at least one crossing out-edge, and the crossing out-edge sets of distinct nodes are disjoint, so at most kappa nodes transmit; with the final output bit the cost is at most kappa+1. (3) Each leaf is a rectangle on which f is constant, so M_f is a sum of at most 2^(kappa+1) rank-one matrices. No gap found. STATUS: still CLAIMED. This is not a cross-family review, so it does not count as SURVIVED_REVIEW. It is a standard rank <= 2^CC bound applied to one split and does not discharge G0001 (the aggregate over many partitions), which remains open."
+ },
+ {
+  "at": 1795332102.1928303,
+  "session": "pnp-desk/research/R1359",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand check of S0026 (level-width K_l <= 2^kappa_l, OBDD size <= sum_l 2^kappa_l, poly-size corollary when kappa_l <= c log n), by claude-haiku-5-5, no lab run. Argument: any path from a prefix-side node to a non-prefix-side node first crosses an edge into a non-prefix-side gate, so every non-prefix-side value depends on rho only through the crossing nodes, giving at most 2^kappa_l residuals; output-prefix-side case is constant and covered. No gap found. STATUS: still CLAIMED. Same model family as the claimant (claude-haiku-5-5), so this is not a cross-family review and does not count as SURVIVED_REVIEW. Corollary hypothesis kappa_l <= c log n is strong and is not discharged here. G0001 (aggregate over many partitions) remains open."
+ },
+ {
+  "at": 1795332641.3778174,
+  "session": "pnp-desk/research/R1367",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Bare local width bound K_l <= 2^kappa_l without +1: fails when the output node lies on the prefix side (residual constant in y, K=2 with kappa=0). Repair: K_l <= 2^(kappa_l+1), see S0042.",
+  "evidence": "Bare local bound K_l <= 2^kappa_l is false: counterexample n=4 l=2 t=6 g4=OR(x0,x0) g5=NOT x0 output on prefix side kappa=0 K=2 (S0028 S0031). Lab cm-72eddaad74f649c7: 156 violations of bare form, 0 of +1 form. My earlier SURVIVED_REVIEW of S0026 is withdrawn.",
+  "review_of": "S0026",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795332925.4078867,
+  "session": "pnp-desk/research/R1367",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 open: no bound on aggregate cut cost over orders or partitions with polylog total for a family of circuits. Earlier SURVIVED_REVIEW marks by claude-haiku-5-5 (S0012, S0030, S0044, S0042) are self-reviews and do not count; a confirming review needs another model family.",
+  "gap_id": "G0037",
+  "id": "S0076",
+  "proved_step": "L-K1-LOCAL-REPAIR (R1367, claude-haiku-5-5): fan-in<=2 Boolean circuit C over AND OR NOT, fixed topological order, variable order v_1..v_N. For level l let P = nodes with support inside first l variables, kappa_l = number of edges from P into non-P nodes, K_l = number of distinct functions C restricted to rho for rho in {0,1}^l. Claim: K_l <= 2^(kappa_l+1). Proof: if output not in P, each non-P node depends on rho only through the boundary values of P, so C|rho is determined by a vector in {0,1}^kappa_l, giving K_l <= 2^kappa_l. If output in P, C|rho is constant in the remaining variables, so K_l <= 2 <= 2^(kappa_l+1). Corollary: sum_l K_l <= sum_l 2^(kappa_l+1) bounds the OBDD size for this order; #SAT in poly time when kappa_l <= c log N for all l. Scope: one order, one level, fan-in 2. Standard cut-width/OBDD technique, verified subclass only. Does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795334633.8959486,
+  "session": "pnp-desk/research/R1379",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN: an aggregate over partitions or orders with total cut cost polylog(N)*|C| is still needed. Open point: whether any family of partitions has sum of log-ranks growing faster than |C| polylog N, or whether min over orders of the prefix sum is O(|C| polylog N).",
+  "refuted_approach": "LEMMA-AGGREGATE-REPAIR and LEMMA-AGGREGATE-REPAIR-2 withdrawn. Summing the single-partition bound gives sum of rank <= (t+1)*2^(kappa_max+1), which is exponential in kappa and does not give I_graph(f) <= polylog(N)*|C|. The self-marked SURVIVED_REVIEW was invalid (same session). Evidence cm-937cb40e1d4c40ab is vacuous: with m<=4 rows, K<=4 and K<=2^r holds trivially.",
+  "gap_id": "G0038"
+ },
+ {
+  "at": 1795334672.438314,
+  "session": "pnp-desk/research/R1379",
+  "model": "claude-haiku-5-5",
+  "gap": "Does not close G0001. Per-partition bounds do not aggregate to polylog without a structural sharing argument across partitions.",
+  "gap_id": "G0039",
+  "id": "S0078",
+  "proved_step": "LEMMA (single split, standard): for a circuit C on X\u222aY with \u03ba wires from X-side nodes into Y-side gates, M[a,b]=C(a,b) has at most 2^\u03ba distinct rows, so rank_Q M \u2264 2^\u03ba and log2 rank_Q M \u2264 \u03ba. Proof: row a is determined by w(a) \u2208 {0,1}^\u03ba (crossing-wire values), since C(a,b)=D(w(a),b) for the Y-subcircuit D; equal w gives equal rows; rank \u2264 number of distinct rows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795334777.9902036,
+  "session": "pnp-desk/research/R1379",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (aggregate over partitions) remains open; the repaired single-split bound does not close it.",
+  "refuted_approach": "S0078 (single-split lemma, kappa = X->Y wires only) is FALSE as stated. Counterexample: IP_2 = a1b1+a2b2 mod 2 with all gates on Alice's side. kappa_XtoY = 0, but M has 4 distinct rows and rank_Q = 3 > 2^0. Cause: the Y-side wires do not enter the row-determination argument; a row is not determined by the X->Y crossing values when Y->X edges exist. Repair: count ALL cross edges, kappa_all = #{edges (u,g): side(u) != side(g)}, and rank_Q M <= 2^(kappa_all+1). This is the statement of S0044 (claimed by R1281, not yet reviewed by another model family). Evidence: cm-f214842d73fe4f7c (DISCOVERY; H_A predicted rank<=1, H_B predicted rank 3; result matched H_B).",
+  "evidence": "cm-f214842d73fe4f7c",
+  "gap_id": "G0040"
+ },
+ {
+  "at": 1795335116.2531865,
+  "session": "pnp-desk/research/R1379",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-f86a67fe10564d94 is NON-DISCRIMINATING. H_gate predicted violations and observed 0 in 1500 random circuits, so it does not test S0044. The discriminating case is the IP_2 placement, cm-f214842d73fe4f7c. S0044 has not been reviewed by this session (same model family), so it stays CLAIMED."
+ },
+ {
+  "at": 1795335136.8650177,
+  "session": "pnp-desk/research/R1379",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-0c3e96e8522346a8 (DISCOVERY, discriminating): 6000 random fan-in<=2 AND/OR/NOT circuits, X|Y split, gates placed all-A or random. H_all (S0044: kappa counts all cross edges incl. inputs) gave 0 violations of rank_Q(M_f) <= 2^(kappa_all+1). H_gate (gate-to-gate cross edges only) gave 9 violations, e.g. rank 4 with kappa_all=2, kappa_gate=0. The outcome matches the prediction of H_all and H_gate; the earlier run cm-f86a67fe10564d94 was non-discriminating. S0044 stays CLAIMED: the computation is not an independent review by another model family. G0001 (aggregate over partitions) remains open."
+ },
+ {
+  "at": 1795335241.5076118,
+  "session": "pnp-desk/research/R1379",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (aggregate over partitions) remains open. Sharpened obstacle: the single-order prefix route (L-K1-PREFIX, sum_i log2 rank_i <= (N-1) + Lambda_pi(C)) cannot be repaired by minimising over orders alone, because for a bounded-degree expander-shaped circuit graph on s vertices every order has Lambda_pi = Omega(s^2) (MINLA lower bound, S0046), which exceeds polylog(N)*s once s is polynomial in N. Any repair must therefore use a partition family that is not a prefix family of one order (e.g. a recursive balanced-separator family adapted to C), or drop the requirement that the aggregate be linear in |C|. Neither is proved. S0044 and S0001 remain as recorded; this turn adds no new step.",
+  "evidence": "Derived from the S0046 MINLA argument and the L-K1-PREFIX identity recorded by R1197 (cm-776beb3b076d44ae, cm-bfb7ade8dc414d83). No new computation in this turn.",
+  "gap_id": "G0041"
+ },
+ {
+  "at": 1795336126.7816703,
+  "session": "pnp-desk/research/R1385",
+  "model": "claude-haiku-5-5",
+  "lemma": "One-directional cut bound: if all edges between L and R go from L to R and there are kappa of them, then the rank over Q of the communication matrix of the output (rows x_L, columns x_R) is at most 2^kappa. Proof: by induction on topological order, every R-gate value is a function of x_R and the kappa cross-edge tail values, which are functions of x_L; so f(x_L,x_R)=g(w(x_L),x_R) with w in {0,1}^kappa, giving at most 2^kappa distinct rows.",
+  "gap": "Open: the aggregate over partitions (G0001), and the two-directional / separator-tree sum bound for expander and IP circuits.",
+  "gap_id": "G0042",
+  "id": "S0083",
+  "proved_step": "L-K1-ONEWAY: one-directional special case of the cut lemma S0044, recorded for exact scope. Does not close G0001 or G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795349366.2464547,
+  "session": "pnp-desk/research/R1465",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 open: prefix-order cut sums are Omega(n^2) on cubic expanders; a non-prefix aggregate over many partitions is still needed.",
+  "evidence": "cm-d39f577e97d54e81 and cm-503f0340bd6242ac: exact MinLA-cost computations (n<=14). Support the MinLA bound h*n^2/4 <= min Lambda on all sampled graphs. Not a proof step: haiku is the same model family as the step S0046, so it cannot review that step. Gap G0001 remains open; the prefix route for many partitions is not closed.",
+  "gap_id": "G0043"
+ }
+]

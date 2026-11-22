@@ -1,0 +1,84 @@
+[
+ {
+  "at": 1795300221.43954,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "lemma": "Arithmetic of the Valiant form (spec K9 section E). For d = N^g, d' = N^g' with 0 < g' < g <= 1, L = log2 N: removing w = k*m/log2(d) wires with k = 1 + log2(d/d') gives depth d/2^(k-1) = d' exactly, and removed fraction r(N) = w/m = (g-g')/g + 1/(g*L). r is strictly decreasing in N, and r < 1 iff g'*L > 1. For d = (log2 N)^c and target depth O(1): k = 1 + c*log2(log2 N), r = 1 + 1/(c*log2(log2 N)) > 1 for every N, so the form asks to remove more wires than exist.",
+  "gap": "ARITHMETIC ONLY. The Valiant wire-removal lemma itself is not source-checked; the spec form is taken as given. No open obligation is closed (open_obligations is empty), so this does not count as progress. Polylog to O(1) is infeasible in this form. Polylog to N^{o(1)} is vacuous, because the target N^eps exceeds the source depth for large N. The barrier check does not apply: this is an upper-bound transfer, not a LOWER_BOUND.",
+  "evidence": "cm-3679e6d80f7540df: exact table at logN in {20,40,80,160}. For g=0.5,g'=0.25 the fractions 0.6, 0.55, 0.525, 0.5125 tend to (g-g')/g = 0.5. For g=0.5,g'=0.4 they tend to 0.2. For g=0.9,g'=0.1 they tend to 0.889. For polylog c=1,2,3 the fractions are all above 1 (1.23 at logN=20, c=1).",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "CLAIMED: proof by direct substitution. log2 d = gL and log2(d/d') = (g-g')L give k = 1 + (g-g')L and r = (1+(g-g')L)/(gL). Then r < 1 iff 1 + (g-g')L < gL iff 1 < g'L.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795300329.5619318,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "lemma": "Corrected form (summary restatement of Valiant 1977 in arXiv 1811.04828 intro, NOT yet checked against the primary text): a circuit of size c*n and depth d admits, for any integer k, removal of at most 2*c*k*n/log2(d) wires leaving depth <= d/2^k. For d = N^g and d' = N^g' with 0 < g' < g, L = log2 N, take k = (g-g')L; the removed fraction of wires is r = 2k/log2(d) = 2(g-g')/g, independent of N. So r < 1 iff g' > g/2, and g' = g/2 gives r = 1. For d = (log2 N)^c and target depth O(1): k = c*log2(log2 N), log2(d) = c*log2(log2 N), so r = 2 for every N: infeasible.",
+  "gap": "The summary form is from a secondary restatement, not from Valiant 1977 itself. The spec K9 section E form (k*m/log2 d wires, depth d/2^(k-1)) differs by a factor 2 and a shift in k. Under the spec form, r = (1+(g-g')L)/(gL) < 1 iff g'L > 1, a much weaker threshold. Which is Valiant's statement is OPEN until the primary text is read. No open obligation is closed (G0001 stays open). This is not progress toward P vs NP.",
+  "evidence": "cm-572c78f1a7f64e05 (EXPLORATORY_COMPUTATION, agent-authored): logN in {20,40,80,160}; (g,g')=(0.5,0.25) gives fraction 1.0; (0.5,0.4) gives 0.4; (0.9,0.1) gives 1.7778; polylog gives 2 for every row checked. Matches the algebra above.",
+  "gap_id": "G0002",
+  "id": "S0002",
+  "proved_step": "CLAIMED: direct substitution. log2 d = gL and log2(d/d') = (g-g')L give k = (g-g')L and 2k/log2 d = 2(g-g')/g. For polylog, 2k/log2 d = 2 identically.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795300367.7777784,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "lemma": "Relation of the two Valiant forms. Let j >= 1 be an integer. Form (b): remove at most 2*j*m/log2 d wires to reach depth d/2^j. Form (a) with j = k-1: remove at most (j+1)*m/log2 d wires to reach depth d/2^j. For j >= 2, (a)'s budget (j+1) is below (b)'s budget 2j, so (a) is the STRONGER removal claim and is not implied by (b). For d = N^g -> N^g', L = log2 N, the removed fractions are 2(g-g')/g for (b) and (g-g')/g + 1/(gL) for (a).",
+  "gap": "Form (a) is unsourced. Form (b) is taken from a secondary restatement. Until the primary lemma is read, the spec's feasibility threshold g'L > 1 is not established. Polylog -> O(1) is infeasible under both forms. No open obligation is closed (G0001 stays open).",
+  "evidence": "cm-572c78f1a7f64e05 (exact table for (b) fractions); arithmetic for (a) from cm-3679e6d80f7540df. No primary-source check yet.",
+  "gap_id": "G0003",
+  "id": "S0003",
+  "proved_step": "CLAIMED: direct comparison of budgets (j+1) vs 2j at j >= 2, and substitution into the two fractions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795300404.162894,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. Form (a) (spec K9 section E: remove at most k*m/log2 d wires to reach depth d/2^(k-1)) and form (b) (arXiv 1811.04828 intro: remove at most 2k*m/log2 d wires to reach depth d/2^k) are not yet tied to Valiant's 1977 statement. The ECCC report 2018/192 rev. 3 (Golovnev-Kulikov-Williams, sha256 9c5e200a0f7243802d22ce375ad83460439f366890b635614242cb04389fddf1, retrieved 2026-11-21T22:32:52Z) cites Valiant's reduction only for an OR of 2^(eps n) n^delta-CNFs from log-depth linear-size circuits, which is a depth-3 statement, not the wire-removal lemma. The visible part of that text does not contain the lemma statement. Still needed: the statement of Valiant's lemma in a primary or near-primary source, and the exact constants. Polylog -> O(1) remains infeasible under both forms, and the feasibility threshold g'L > 1 (form a) is not established.",
+  "evidence": "ECCC 2018/192 rev. 3 fetched (81164 chars). Lemma statement not visible in the fetched excerpt. Earlier exact tables: cm-572c78f1a7f64e05 (form b), cm-3679e6d80f7540df (form a). No new computation this turn.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795300781.1373348,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Three candidate readings of the removal lemma: (a) spec K9 sec. E, k*m/log d wires for depth d/2^(k-1); (b) arXiv 1811.04828, 2k*m/log d for depth d/2^k; (c) lecture-note reading, 2k*n/log d for depth d/(2k). Readings (b) and (c) are the same form, up to the log-base and k-index. Under (c) the polynomial-depth transfer is infeasible for all g'<g. Feasibility under (a) requires g'L>1 in the spec's form. Missing: the primary statement and exact constants, which decide between (a) and (c).",
+  "evidence": "cm-2a726d8cb5044166 (EXPLORATORY_COMPUTATION, agent-authored, not a proof). Lecture-note reading (Viola gems-08 le10, search snippet only, not read): remove 2k*n/log2 d wires to reach depth d/(2k). With d=N^g, depth target N^g', L=log2 N: 2k = N^(g-g'), so removed fraction = N^(g-g')/(gL), which exceeds 1 for every fixed g>g' and large N. The lecture reading therefore gives no polynomial depth reduction in this regime; its cost is linear in the depth-reduction factor, whereas form (a) costs (j+1)/(gL) for a factor 2^j. The two readings differ in kind, not only by constants. The primary statement is still unread; G0001 stays OPEN.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795301185.7489982,
+  "session": "pnp-desk/research/R1203",
+  "model": "nemotron-3-ultra-550b",
+  "lemma": "Valiant's wire-removal lemma (primary statement via Jukna/Valiant 1977, cited in Oded Goldreich's review): For any directed acyclic graph of depth d and m edges, and any integer r >= 1, one can remove at most r * m / log2(d) edges to obtain a subgraph of depth at most d / 2^r. This matches the form in Jukna's Boolean Function Complexity (p. 9) and Valiant's 1977 'Graph-theoretic arguments in low-level complexity'."
+ },
+ {
+  "at": 1795301185.7665823,
+  "session": "pnp-desk/research/R1203",
+  "model": "nemotron-3-ultra-550b",
+  "lemma": "Exact k for the spec's form (remove k*m/log2(d) wires, reach depth d/2^(k-1)). Mapping: spec's k = r+1 where r is the lemma's parameter.\n\nCase 1: d = N^\u03b3 \u2192 N^\u03b3' (0 < \u03b3' < \u03b3). We need d/2^r = N^\u03b3' i.e. 2^r = N^(\u03b3-\u03b3') = d^((\u03b3-\u03b3')/\u03b3). So r = ((\u03b3-\u03b3')/\u03b3) log\u2082 d. The spec's k = r+1 = ((\u03b3-\u03b3')/\u03b3) log\u2082 d + 1. Removed fraction = k/log\u2082 d = (\u03b3-\u03b3')/\u03b3 + 1/log\u2082 d \u2192 (\u03b3-\u03b3')/\u03b3.\n\nCase 2: polylog depth (d = (log N)^L) \u2192 O(1) depth. We need d/2^r = O(1) so 2^r = \u0398(d) = \u0398((log N)^L), hence r = L log\u2082 log N + O(1). Removed fraction = k/log\u2082 d = (r+1)/log\u2082((log N)^L) = (L log\u2082 log N + O(1))/(L log\u2082 log N) \u2192 1. Since m = cn, total removed = (1-o(1))m \u2192 more than m for large N, which is impossible. Hence polylog \u2192 O(1) is INFEASIBLE under Valiant's exact lemma."
+ },
+ {
+  "at": 1795301318.918534,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "S-529f7968ce claims polylog depth -> O(1) depth is INFEASIBLE under Valiant's lemma because removed fraction -> 1 'exceeds m'. Refuted: removing r*m/log2 d with r = log2 d - O(1) removes m(1 - O(1)/log2 d) < m edges, which is feasible. Fraction -> 1 is not a contradiction.",
+  "evidence": "Arithmetic check of the cited lemma (Goldreich review of Valiant 1977; Jukna 2012 p. 9). Primary 1977 text not yet verified."
+ },
+ {
+  "at": 1795301318.9387136,
+  "session": "pnp-desk/research/R1203",
+  "model": "claude-haiku-5-5",
+  "lemma": "CITED (not yet verified against the primary text): for a DAG of depth d and m edges and integer r >= 1, removing at most r*m/log2(d) edges yields depth <= d/2^r. Corollary, exact: (a) d = N^g -> N^g' (0<g'<g) needs removed fraction exactly (g-g')/g, feasible. (b) d = (log N)^L -> O(1) needs r = log2 d - O(1), removed fraction 1 - O(1)/log2 d, feasible; the surviving graph has O(m/log d) edges.",
+  "gap": "Confirm the 1977 statement and the exact form of the constant against the primary text (Valiant, MFCS 1977, LNCS 53). Until then the corollary is conditional on the cited lemma.",
+  "gap_id": "G0006"
+ }
+]

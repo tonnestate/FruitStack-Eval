@@ -1,0 +1,52 @@
+[
+ {
+  "at": 1795299428.1818337,
+  "session": "pnp-desk/research/R1195",
+  "model": "nemotron-3-ultra-550b",
+  "refuted_approach": "Candidate PIT evaluating only on points with support exactly d and nonzero values (pit_frontier entry 1, cm-dbe7458c90154602) is NOT a valid PIT for all degree-d polynomials. Exact GF(p) rank computation (cm-29a96e1649d54e08) found nullity_candidate=1 vs nullity_full_baseline=0 for (t=3,d=2,p=3) and (t=4,d=2,p=3), meaning there exist nonzero degree-d polynomials that vanish on all support-exactly-d nonzero points. This candidate fails the exactness requirement for a general PIT.",
+  "evidence": "cm-29a96e1649d54e08"
+ },
+ {
+  "at": 1795300122.952246,
+  "session": "pnp-desk/research/R1195",
+  "model": "claude-haiku-5-5",
+  "lemma": "Let F be a CNF over variables 1..n with clauses C_1..C_m (literals may repeat; tautological clauses allowed). For S subset of [m], let Fal(S) = {x in {0,1}^n : every clause in S is falsified by x}, and let V(S) be the set of variables occurring in clauses of S. Then (a) |Fal(S)| = 2^(n - |V(S)|) if no variable is forced to both values by the falsifying requirements of S, and |Fal(S)| = 0 otherwise; (b) #SAT(F) = sum over S subset of [m] of (-1)^|S| * |Fal(S)|.",
+  "evidence": "cm-0cbc6e8c0c0a4ef0: 400/400 seeded random CNFs (n in 3..7, m in 1..9, clause sizes 2 or 3) agree exactly with brute-force counting. This run is finite and does not prove the identity; the proof above does. Scope: elementary inclusion-exclusion. It closes no open obligation of Q-e988ea9656 and is not progress toward P vs NP. Self-claimed: needs an independent review before it can be used as a premise.",
+  "id": "S0002",
+  "proved_step": "Proof of (a): a clause is falsified by x iff each of its literals is false, which fixes the variable of each literal to a specific value. Falsifying all clauses of S is the conjunction of these fixings. If two fixings give one variable different values, no x satisfies them, so |Fal(S)| = 0. Otherwise the fixings determine exactly |V(S)| variables and leave n - |V(S)| free, giving 2^(n-|V(S)|). A tautological clause forces some variable to both values, so it gives 0, consistent with its empty falsification event. Proof of (b): for each x, 1[x satisfies F] = prod over i of (1 - 1[C_i falsified by x]). Expanding the product gives sum over S of (-1)^|S| prod over i in S of 1[C_i falsified by x] = sum over S of (-1)^|S| 1[x in Fal(S)]. Summing over all x in {0,1}^n and using the definition of Fal(S) gives (b).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795320662.4153492,
+  "session": "pnp-desk/research/R1313",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent hand review by a different session (R-T-B). (a): a clause is falsified iff each literal is false, which fixes each literal's variable to one value; conflicting fixings give 0 and consistent fixings give 2^(n-|V(S)|). Tautological clauses force both values, so 0. (b): 1[x satisfies F] = prod_i (1 - 1[C_i falsified by x]); expanding and summing over x gives #SAT(F) = sum_S (-1)^|S| |Fal(S)|. No gap found. Scope: bookkeeping identity, 2^m terms; it is not progress and closes no obligation.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795320662.8871977,
+  "session": "pnp-desk/research/R1313",
+  "model": "claude-haiku-5-5",
+  "lemma": "Multilinear hitting set: let f = sum_{|S|<=d} c_S x_S over a field F (x_S = prod_{i in S} x_i, t variables, degree <= d, multilinear). Then f = 0 as a polynomial iff f(1_P) = 0 for every P subset [t] with |P| <= d. Proof: f(1_P) = sum_{S subset P} c_S, so by Mobius inversion on the Boolean lattice c_S = sum_{T subset S} (-1)^{|S|-|T|} f(1_T) for every S. If f vanishes on all 1_T with |T|<=d, then every c_S with |S|<=d is 0, since all T subset S have |T|<=|S|<=d. The converse is trivial. Consequence: deterministic PIT for multilinear degree-d polynomials with (sum_{i<=d} C(t,i)) evaluation points, cost about s*(t+1)^d for a size-s circuit. Scope: multilinear only (Boolean equality needs x_i^2 = x_i, which this does not control); exponent d, not d-1-eps, so it does NOT meet the TR26-313 threshold; it is bounded and not progress toward P vs NP. Repairs the refuted support-exactly-d candidate: points of weight < d are needed."
+ },
+ {
+  "at": 1795320754.0662494,
+  "session": "pnp-desk/research/R1313",
+  "model": "claude-haiku-5-5",
+  "gap": "The multilinear hitting-set lemma (Q-e988ea9656 LEMMA) uses sum_{i<=d} C(t,i) points. Any point set that hits the whole space of multilinear polynomials of degree <= d has at least that many points, since the evaluation matrix must have full column rank and the space has dimension sum_{i<=d} C(t,i). So the lemma is optimal for the full space. The TR26-313 target (cost s*t^{d-1-eps}) can therefore only come from using that the polynomial has a circuit of size s, i.e. a restriction to a structured subclass, not from a better point set for all degree-d multilinear polynomials. Open: which circuit class admits a hitting set below the dimension bound, and whether the Boolean axioms x_i^2 = x_i (non-multilinear case) allow fewer points.",
+  "refuted_approach": "Hitting set for the whole space of degree-d multilinear polynomials with fewer than sum_{i<=d} C(t,i) Boolean points: impossible by rank (dimension count). This closes the full-space route only; it does not refute structured-circuit routes.",
+  "evidence": "cm-2fc44438c4dc4bf6 (exact full column rank for every tested t, d, p); the dimension count is standard linear algebra and needs no separate experiment. Bookkeeping, not progress toward the obligation.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795320827.129586,
+  "session": "pnp-desk/research/R1313",
+  "model": "claude-haiku-5-5",
+  "id": "S0006",
+  "proved_step": "LEMMA (s=1 sparse hitting set, exact within Boolean weight<=d points). Let F be any field, t >= d >= 0, and let H = {1_P : P subset [t], |P| = d}, so |H| = C(t,d). (i) H hits every f = c*x_S with c != 0 and |S| <= d: pick P with S subset P and |P| = d (possible since |S| <= d <= t), then f(1_P) = c != 0. (ii) Within the family of Boolean points of weight <= d, any hitting set for the class {c*x_S : c != 0, |S| <= d} must contain, for each d-subset S, the point 1_S, since the only weight-<=d point P with S subset P is P = S. So C(t,d) is the exact minimum for this family. Scope: single-monomial polynomials only, Boolean points of weight <= d only, no claim for s >= 2 and no exponent below d. Not progress: it is a bounded subclass and does not reach the d-1-eps exponent of TR26-313. Evidence: cm-e879c0050f734d5f (greedy values equal C(t,d) at s=1 for t=3,4,5, p=2,3).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

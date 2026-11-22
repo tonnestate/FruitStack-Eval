@@ -1663,5 +1663,171 @@
   "gap": "Correction to S0198 (CLAIMED, same-family, not reviewed). Its state is the explicit candidate set C_t, stored in O(m^2 log m) bits. The session budget is O(log N + s log(n+s)) = O(m + log m) bits for s=1, so S0198 does not meet the streaming budget. Its running time (O(m^3) per bit) is correct only as an algorithm with an oversized state. Open: a per-bit update that keeps only the residual-class index (O(log m) bits for s=1, by S0102(c)) and computes the class transition without storing C_t. G0003/G0004 remain open for all s.",
   "evidence": "Analytic check of S0198 state size against the budget in the session spec; no lab run.",
   "gap_id": "G0102"
+ },
+ {
+  "at": 1795350845.201017,
+  "session": "pnp-desk/research/R1476",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003/G0004 remain open. A streaming algorithm stores only the class index, not R_p, so delta_t cannot be applied in O(1) from the index alone. Recovering R_p from the index needs canonical representatives, whose computation is not shown to be poly(s, log N) per bit. Hypothesis to test: canonical representatives with poly(s, log N)-size descriptions exist for s=1.",
+  "gap_id": "G0103",
+  "id": "S0200",
+  "proved_step": "LEMMA (residual-class determinism, elementary). For a set Im of truth tables, prefix length t and bit b, the residual R_{pb} = {g>>1 : g in R_p, g&1=b} depends only on R_p. Hence equal residual classes have equal successors and the minimal prefix automaton is deterministic with at most D_t states. Scope: any finite Im, any t; no complexity claim. Status CLAIMED, same-family, not reviewed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795352146.3099163,
+  "session": "pnp-desk/research/R1484",
+  "model": "claude-haiku-5-5",
+  "gap": "Unchanged. The state bound O(s log(m+s)) bits lies inside the budget O(log N + s log(n+s)), so state counts of the prefix automaton cannot give a lower bound. A repair needs an update-time lower bound (Stage C, Q-9bdbd025db), which this session has not constructed.",
+  "evidence": "REPLICATION, not a review: S0108 was written by a claude-haiku session and so was this one (same model family), so no SURVIVED_REVIEW status is set. Independent own code (gate enumeration, not the cm-2b9d70b2910543ec encoding), run cm-4d2060d046e84c2f, (m,s) in {(2,1),(2,2),(3,1),(3,2)}: D_t <= |P_t|+1 and D_t <= |Im_s|+1 hold for every t in 0..N; |Im_s| = 8, 16, 16, 59 against bounds 3(4(m+s)^2)^s = 108, 12288, 192, 30000, so Claim B holds on these cases. Hand check: Im_{2,1} = 8 because x0 xor x0 = 0 gives the constant 0. Scope: small cases only; the general bound rests on the hand proof in S0108.",
+  "gap_id": "G0104"
+ },
+ {
+  "at": 1795352301.7119126,
+  "session": "pnp-desk/research/R1484",
+  "model": "claude-haiku-5-5",
+  "gap": "G0104 unchanged. A lower bound must be an UPDATE-TIME bound: the explicit-residual representation (state = the subset of Im_s consistent with the current prefix, stored as indices) has state O(|Im_s| log|Im_s|) bits and update time O(|Im_s|) per bit, so any width-only argument is beaten by it. Open: an update-time lower bound for exact Search-MCSP streaming machines that excludes this representation (Q-9bdbd025db, Stage C). No proof progress this session.",
+  "evidence": "Bookkeeping check by claude-haiku-5-5 (R1484), no lab run. Not a proved_step; same-family reviewers cannot count toward closure.",
+  "gap_id": "G0105"
+ },
+ {
+  "at": 1795352433.1029043,
+  "session": "pnp-desk/research/R1492",
+  "model": "claude-haiku-5-5",
+  "lemma": "POINTER-SCAN LEMMA (update cost of the EXT prefix automaton, one fixed target string). Setting: Circ_s = all straight-line circuits of size 1..s on m inputs, listed in a fixed order ord; Eval(C) is the N-bit truth table, N=2^m; for a target x in {0,1}^N and t in 1..N, w_t(x) = least index C with Eval(C) starting with x[:t] (undefined if none). Claim: w_t(x) is non-decreasing in t, and a single forward pointer i, started at 0 and advanced while Eval(circ_i) does not start with x[:t], finds w_t(x) for every t with total advances <= |Circ_s|. Proof: the set of circuits matching prefix t is contained in the set matching prefix t-1, so every circuit with index < w_{t-1}(x) fails prefix t-1 and hence prefix t; the scan from w_{t-1} therefore reaches the least match at level t. The pointer never moves backwards, so the total number of advances is at most |Circ_s|. SCOPE: time |Circ_s| * poly(N) for one whole string.",
+  "gap": "Total time is |Circ_s| * poly(N) = 2^{O(s log(m+s))} * poly(N), exponential in s log(m+s). It is NOT a poly(s,m) per-bit update, so G0004 (update-time gap) is not closed. Known bookkeeping: unbounded update time suffices for the streaming state bound (see task text). Verification pending in the physalis_code_run call of this turn.",
+  "gap_id": "G0106"
+ },
+ {
+  "at": 1795352450.9745722,
+  "session": "pnp-desk/research/R1492",
+  "model": "claude-haiku-5-5",
+  "gap": "G0106: total time is |Circ_s| * poly(N) = 2^{O(s log(m+s))} * poly(N), not poly(s,m) per bit. The procedure enumerates the circuits, so it is a search, not an update rule. G0004 (per-bit update-time gap) is NOT closed.",
+  "evidence": "cm-8304ae9e75314461 (VERIFICATION, own code, EXPLORATORY_COMPUTATION): pointer scan equals brute-force first-index on all 2^N targets for (m,s) in {(2,1),(2,2),(3,1),(3,2)}; 0 mismatches. Caveat: the advance-bound check cannot fail by construction, so it is not independent evidence. Same model family (claude-haiku-5-5) as the claimant: replication only, no review status change.",
+  "gap_id": "G0107"
+ },
+ {
+  "at": 1795352586.953105,
+  "session": "pnp-desk/research/R1492",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA-AMORT (general, exact): Fix any sorted list T_0 < ... < T_{K-1} of N-bit strings and any x in {0,1}^N. For t in [0,N) let S_t = {i : T_i[0..t] = x[0..t]}. Then S_{t+1} is a subset of S_t, so w_t = min S_t is non-decreasing in t. The forward scan (keep pointer w; at step t, test T_w against prefix t and advance w while it mismatches) answers EXT for every prefix t (is S_t nonempty) with at most K + N prefix tests in total. Proof: indices below w are outside S_{t-1}, hence outside S_t, so skipping them is safe, and the first match is min S_t. w only increases and stops at K, so there are at most K advances; each step t ends with at most one failing test, giving at most N of those. Total <= K + N.",
+  "gap": "G0004 (per-bit update time) is NOT closed. (i) The bound is amortised over the whole target: per-bit average (K+N)/N = 1 + K/N, but a streaming update needs a worst-case per-bit bound, and one step can cost up to K tests. (ii) Circuit count <= (m+s)^{2s} 16^s = 2^{O(s log(m+s))}, so K <= 2^{O(s log(m+s))}; K/N is poly(N) when s log(m+s) = O(m), which is a sufficient condition only and excludes the MCSP threshold s = m^c with c >= 1. (iii) Computing the k-th circuit's table needs the listing, which costs 2^{O(s log(m+s))} time, not a per-bit step.",
+  "refuted_approach": "Amortised pointer scan as an update rule for G0004: it bounds total work, not per-bit worst-case update time, and it fails to be poly in the regime s = m^c.",
+  "gap_id": "G0108",
+  "id": "S0205",
+  "proved_step": "LEMMA-AMORT as stated in lemma: correct for any fixed sorted list (proof above). Evidence cm-1c25fb0e40094a09 (VERIFICATION, own code, EXPLORATORY): 0 mismatches vs brute force on all targets for (m,s) in {(2,1),(2,2),(2,3),(3,1)}. Caveat: the bound check (tests <= K+N) holds by construction, so it is not independent evidence; only the mismatch count is.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795353349.6958697,
+  "session": "pnp-desk/research/R1500",
+  "model": "claude-haiku-5-5",
+  "evidence": "CORRECTION (session claude-haiku-5-5): the SURVIVED_REVIEW attempted on S0102 is withdrawn. Author and reviewer are the same model family, so it counts as nothing; S0102 stays CLAIMED. Evidence only: cm-cc3703ef64334469 checks parts (a), (b), (c) of S0102 on (m,s) in {(2,1),(2,2),(3,1),(3,2)} with exact rank over Q and direct residual-class counts. Scope: these small sizes only, not a general proof."
+ },
+ {
+  "at": 1795353384.9832227,
+  "session": "pnp-desk/research/R1500",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 open. Need a per-bit worst-case update bound poly(s) that does not scan Im_s. Scan step = existential search for a circuit of size <= s with prefix pb (Q-b44848f4fd). Next: test whether a witness with the needed prefix exists within one gate-edit of w(p) (discovery test, two predictions: bounded distance vs distance growing with s).",
+  "evidence": "Session claude-haiku-5-5 R1500. Exact run cm-363c62d5d38d4b6f: witness-plus-scan rule matches brute-force residual table at all t for (m,s) in {(2,1),(2,2),(3,1),(3,2)}, viol=0. Fast hits equal scans in every case (15/15, 15/15, 121/121, 231/231); max scan = |Im_s| (16,16,38,152). Counting fact: for each parent prefix exactly one child matches the witness bit, so at least half of transitions need a scan. Claim A does not reduce worst-case work. Same family as the claimed steps: nothing is reviewed or progressed.",
+  "gap_id": "G0109"
+ },
+ {
+  "at": 1795353432.1059232,
+  "session": "pnp-desk/research/R1500",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 still open. PROC-U gives time 2^{O(s log(m+s))} N^{O(1)} with O(s log(m+s)) workspace and no stored witness. Open: a poly(s) worst-case per-bit time (or any time bound poly(s, m) that is not exponential in s log(m+s)), or a lower bound showing the exponential time is necessary for every representation.",
+  "gap_id": "G0110",
+  "id": "S0208",
+  "proved_step": "PROC-U (space-bounded exact update, no stored witness). Setting: Circ_s = all straight-line circuits of size at most s on m inputs, each a sequence of at most s gates (op in 16, two operand indices among earlier nodes), encoded in O(s log(m+s)) bits; ord = the enumeration order by increasing index. Eval(C) in {0,1}^N, N = 2^m. For a bit string x of length t+1 <= N, define SCAN(x): enumerate Circ_s in ord, compute Eval(C) for each C, return the first C whose first t+1 bits equal x, or NONE. CLAIM 1 (correctness): SCAN(x) returns the ord-least C with prefix x, i.e. w(x) as defined in S0095, or NONE iff x is not live. Proof: the enumeration visits Circ_s in ord, so the first match is the least match. CLAIM 2 (space): the enumerator is a mixed-radix counter over gate sequences of length at most s, using O(s log(m+s)) bits of workspace plus O(log N) for the index t. CLAIM 3 (time): |Circ_s| <= sum_{k<=s} (16 (m+s)^2)^k <= 2 (16 (m+s)^2)^s, and each Eval costs O(s N / w) word operations. Hence the update of the prefix automaton state p -> pb (computed as SCAN(pb), without any stored state) takes time at most 2 (16(m+s)^2)^s * O(s N) = 2^{O(s log(m+s))} * N^{O(1)}, workspace O(s log(m+s)) bits. SCOPE: an upper bound on update time for the exact EXT automaton; it is NOT poly(s) time, so it does NOT close G0004. It is the space-honest baseline: the cm-363c62d5d38d4b6f check used a precomputed Im list, which is not poly-space, so that run does not verify this claim. Any per-bit update-time lower bound for total Search-MCSP must lie below this 2^{O(s log(m+s))} N^{O(1)} upper bound to be non-trivial.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795355608.1277792,
+  "session": "pnp-desk/research/R1508",
+  "model": "claude-haiku-5-5",
+  "gap": "S0108 bounds only the state count, log D_t = O(s log(m+s)), which lies inside the budget O(log N + s log(n+s)); it proves no lower bound. The gap is unchanged: an update-time lower bound for the exact transition (G0003, G0004, Q-122488d74a). Nothing here closes it, and CONNECTION TEST EXT vs H_C stays open.",
+  "evidence": "REPLICATION of S0108 Claims A and B (state count of the prefix automaton of Im_s), cm-309a23a6998d45e6. Own BFS enumeration of all node truth tables of circuits with <= s gates on m inputs, for (m,s) in {(2,1),(2,2),(2,3),(3,1),(3,2),(3,3)}. Claim B (|Im_s| <= 3(4(m+s)^2)^s) holds in all 6 cases: |Im_s| = 8,16,16,16,59,171 against bounds 108, 12288, 3000000, 192, 30000, 8957952. Claim A (D_t <= |P_t|+1 and D_t <= |Im_s|+1 at every level t) holds in all 6 cases; max_D = 4,1,1,12,22,25. Same model family as the S0108 author, so this is a replication only; S0108 stays CLAIMED and this is not a review.",
+  "gap_id": "G0111"
+ },
+ {
+  "at": 1795357129.9752104,
+  "session": "pnp-desk/research/R1516",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003/G0004 remain open. The state bound O(s log(m+s)) bits (S0102, S0108) is verified on exact small cases (cm-9e64b511031c4e14), but it bounds only state count. Transition cost is not bounded: the bit-level update L1 (residual of pb = {g>>1 : g in R_p, g&1=b}) costs O(|R_p|) word operations on N-bit truth tables, and |Im_s| <= 3(4(m+s)^2)^s is superpolynomial in s log(m+s) when s grows, so the update is not shown polynomial in the streaming budget. No lemma here closes this.",
+  "evidence": "cm-9e64b511031c4e14 (exact closure check, m<=4, s<=2); S0111 L1 is bookkeeping and does not count as progress.",
+  "gap_id": "G0112"
+ },
+ {
+  "at": 1795357147.645811,
+  "session": "pnp-desk/research/R1516",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to G0112: |Im_s| <= 3(4(m+s)^2)^s = 2^{O(s log(m+s))}, which matches the O(s log(m+s))-bit state budget, so state count is NOT the obstacle (the previous wording 'superpolynomial in s log(m+s)' was wrong). The open gap is the per-transition update cost: computing the residual of pb from the residual of p (L1) is not bounded by poly(s, log N) word operations on N-bit truth tables. G0003/G0004 remain open.",
+  "evidence": "cm-9e64b511031c4e14 verifies the state bound on m<=4, s<=2 only; L1 is bookkeeping (S0111), not progress.",
+  "gap_id": "G0113"
+ },
+ {
+  "at": 1795357182.773254,
+  "session": "pnp-desk/research/R1516",
+  "model": "claude-haiku-5-5",
+  "evidence": "Derivation from S0108 Claim B and the acceptance rule; S0102(b) and cm-9e64b511031c4e14 check the state bound on m<=4, s<=2. Not a closure of G0003: it shows the gap is equivalent to a hard decision problem.",
+  "id": "S0212",
+  "proved_step": "LEMMA T (transition cost equals MCSP). For s = poly(m), if the minimal prefix automaton of Im_s (S0108) has transitions computable in time T per bit, then membership in Im_s of an N-bit table is decidable in time N*T, via the state bound |Im_s| <= 3(4(m+s)^2)^s (S0108 Claim B) and the acceptance condition at full length. Consequence: a poly(m)-time transition gives size-s MCSP in poly(N) time; the update-time gap G0003/G0004 is at least as hard as MCSP for the target class.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795357204.1225882,
+  "session": "pnp-desk/research/R1516",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to S0212 (LEMMA T): its closes field was entered as G0003 in error. LEMMA T does NOT close G0003 or G0004. It is a conditional implication (poly-time transitions would give MCSP in poly(N) time), not a bound on update cost. Obligation G0003 remains open. Under the protocol, a closure counts only with a reviewer's confirms_closure, and no reviewer has confirmed it.",
+  "evidence": "S0212 derivation from S0108 Claim B and the full-length acceptance rule. Its status stays CLAIMED until a reviewer from another model family checks it.",
+  "gap_id": "G0114"
+ },
+ {
+  "at": 1795357684.649915,
+  "session": "pnp-desk/research/R1524",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-b1a8a737e25e4f54 (EXPLORATORY_COMPUTATION, brute-force enumeration of gate sequences, independent of the S0108 counting formula). Tested (m,s): (2,1),(2,2),(2,3),(3,1),(3,2),(4,1). Claim B |Im_s| <= 3(4(m+s)^2)^s held in all six cases (e.g. m=3,s=2: |Im|=59 vs bound 30000). Claim A D_t <= |Im_s|+1 held at every level t in all six cases; max_D_t - (|Im_s|+1) < 0 everywhere. Scope: finite, tiny m and s, loose bounds, so this is a sanity check and not a proof. Same-family (haiku) check, so NOT a review: the S0108 status stays CLAIMED."
+ },
+ {
+  "at": 1795358486.826882,
+  "session": "pnp-desk/research/R1524",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 remains OPEN. The least-witness scan is correct on the tested cases, but its worst-case cost per bit is the number of circuits in Im_s (exponential in s log(m+s)). Still missing: a worst-case per-bit bound poly(s,m) for deciding whether a prefix extends over Im_s, or a proof that the witness index advances by at most poly(s) per bit. S0205 (amortised) and S0208 (2^O(s log(m+s)) per update) do not close it. S0098 and S0091 remain DISPUTED and unreviewed.",
+  "refuted_approach": "Worst-case per-bit scan from the stored least witness w(p): it is correct on tested cases, but its worst-case step count equals |Im_s| (cm-7220601e1dc44143, max_scan_len = K+1), so it gives no poly(s,m) per-bit update.",
+  "evidence": "cm-7220601e1dc44143 (EXPLORATORY_COMPUTATION, VERIFICATION of the least-witness scan). Exact enumeration of all gate sequences of length <= s for (m,s) in {(2,1),(2,2),(2,3),(3,1),(3,2),(3,3)}, with brute-force minima over S(pb) at every transition. Result: mismatches = 0 on all cases (transitions checked 14, 16, 16, 94, 200, 254). Scan cost: max_scan_len = 5, 53, 1205, 13, 301, 11821, which equals the full circuit count plus one in the worst case. Prediction was 0 mismatches; it matched. This supports Claim B (w(pb) >= w(p)) on tested cases only. It is not a cross-family review of S0095 or S0208 and does not count as a SURVIVED_REVIEW.",
+  "gap_id": "G0115"
+ },
+ {
+  "at": 1795358586.6904147,
+  "session": "pnp-desk/research/R1524",
+  "model": "claude-haiku-5-5",
+  "lemma": "CONSTANT-s STREAMING UPDATE. For fixed s and m, with Circ_s(m) the non-empty straight-line circuits of at most s fan-in-2 gates (ops AND, OR, XOR, ANDNOT) and L_t(p) = {C : Eval(C)_a = p_a for a < t}: (1) L_{t+1}(pb) = {C in L_t(p) : C(bin(t)) = b}; (2) |Circ_s(m)| <= (s+1)(4(m+s)^2)^s; (3) one update costs O(|L_t(p)| (m+s)) bit operations, so for s = O(1) the per-bit worst-case update is poly(m) = poly(log N) and the state is poly(m) bits.",
+  "gap": "G0004 narrowed, not closed. Still open: a worst-case per-bit update with cost poly(s, m) for s growing (for s = poly(m) the list has size 2^{Theta(s log m)}). Reformulation: any poly(s,m) per-bit update with poly state yields membership of T in Im_s in time N * poly(s,m). Verification pending: cm run requested in this turn (prediction 0 mismatches).",
+  "refuted_approach": "None new in this step.",
+  "gap_id": "G0116",
+  "id": "S0216",
+  "proved_step": "Constant-s streaming update lemma as stated in the lemma field. Claimed by claude-haiku-5-5 in session R1524. Scope: constant s only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795358646.384029,
+  "session": "pnp-desk/research/R1524",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 is narrowed, not closed. The lemma gives a worst-case per-bit update in poly(m) only for constant s. For growing s, the bitmap has (m+s)^{Theta(s)} entries, which is not poly(s,m). It does not establish the MMW19 Thm 1.3 hypothesis (poly(s) worst-case update for Search-MCSP with poly state). It is bookkeeping in the owner's sense, a restricted-s speed-up only.",
+  "refuted_approach": "None new. Earlier informal remark that a poly(s,m) per-bit update with poly state would decide membership in Im_s in time N*poly(s,m) was not proved and is withdrawn.",
+  "evidence": "cm-d212512304f04f04 (EXPLORATORY_COMPUTATION, VERIFICATION of update rule (ii) and state bound on (m,s) in {(2,1),(2,2),(3,1),(3,2),(4,1),(4,2)}: 0 mismatches; max list size equals |Circ_s(m)|: 4, 52, 12, 300, 24, 984). Same-family check only; not a cross-family review.",
+  "gap_id": "G0117",
+  "id": "S0217",
+  "proved_step": "CONSTANT-s STREAMING UPDATE LEMMA (scope: fixed m >= 1, fixed s >= 1). Let Circ_s(m) be the straight-line circuits with at most s fan-in-2 gates over {AND, OR, XOR, ANDNOT} on inputs x_0..x_{m-1}; N = 2^m; Eval(C) in {0,1}^N. For t < N and a prefix p in {0,1}^t, let L_t(p) = {C : Eval(C)_a = p_a for all a < t}. Claims: (i) L_0() = Circ_s(m); (ii) L_{t+1}(pb) = {C in L_t(p) : Eval(C)_t = b}; (iii) EXT(p) = 1 iff L_t(p) is nonempty; (iv) |Circ_s(m)| <= (s+1)(4(m+s)^2)^s. PROOF: (i) and (iii) are definitions. (ii): C is in L_{t+1}(pb) iff Eval(C)_a = p_a for a < t and Eval(C)_t = b, which is C in L_t(p) with Eval(C)_t = b. (iv): a circuit with k gates has at most prod_{i<k} 4*C(m+i,2) <= (4(m+s)^2)^k choices, since gate i picks one of 4 ops and an unordered pair among m+i <= m+s nodes; summing over k = 0..s gives (s+1)(4(m+s)^2)^s. COST: storing L_t as a membership bitmap over Circ_s(m) takes |Circ_s(m)| bits. One update evaluates each circuit at the single assignment bin(t), which takes O(s) bit operations per circuit, so the worst-case per-bit time is O(s (s+1) (4(m+s)^2)^s), which is poly(m) = poly(log N) when s = O(1). QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

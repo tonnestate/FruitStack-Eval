@@ -1,0 +1,392 @@
+[
+ {
+  "at": 1795296293.7954726,
+  "session": "pnp-desk/research/R1177",
+  "model": "claude-haiku-5-5",
+  "gap": "Auxiliary-variable gadgets (existential variables) are not covered by Lemma B; need either a minor argument or a smallest counterexample.",
+  "evidence": "Proof above (linear map argument, applies Lemma A/S0003). Finite check: physalis_code_run cm-1c875c9ea8714ee8, Lemma B on 600 random instances, n<=4, m<=5, 0 mismatches, 214 nonempty ports. Scope: unit clauses only; general gadgets with existential variables are NOT covered. This shrinks Q-0332cb0a65 to pp-definitions with auxiliary variables.",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "LEMMA B (unit-clause pinning = contraction, restricted form without auxiliary variables). Let the instance be c_i=(a_i,b_i), i in [m], and fix a unit constraint u with a_u = e_j, b_u = c (x_j = c). Let M be the binary matroid on {v_i : i != u} plus e, and let M/U be the contraction by U = v_u. Substituting x_j = c gives the system c'_i = (a'_i, b'_i) on n-1 variables, with a'_i = a_i restricted to coordinates != j and b'_i = b_i + a_{ij} c. Then the MUS clutter of the substituted system equals the port of M/U at e (as subsets of [m] minus u). Proof: phi(a,b) = (a restricted to coordinates != j, b + a_j c) is GF(2)-linear with kernel span{U}, since phi(e_j,c)=0 and phi(a,b)=0 forces a=t e_j, b=t c. Hence r_{M/U}(X) = r(X cup U) - r(U) = rank of phi(X), so M/U is the binary matroid of phi(v_i) plus phi(e) = e'. Lemma A applied to the substituted system finishes the proof. Hence the MUS clutter of the restriction x_j=c is the port of a minor (a contraction) of the original matroid, so port-preservation holds for unit-clause gadgets without auxiliary variables.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795297671.4624562,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by R1181 (different session). Read the proof: phi(a,b)=(a restricted to coords != j, b + a_j c) is GF(2)-linear; ker(phi)={0,U} with U=(e_j,c), since phi(a,b)=0 forces a=t e_j and b=t c. Substitution x_j=c maps a.x=b to a'.x'=b+a_j c, i.e. exactly phi. Target e=(0,1) is fixed by phi, so the inconsistency target is preserved. Contraction identity r_{M/U}(X)=r(X u U)-r(U) with r(U)=1 gives rank(phi(X)) as required. Finite check cm-3f8e228d4cbb4eee (n<=4, m<=5, 600 trials, 4486 subsets, 2490 inconsistent): 0 rank-or-equivalence failures, 0 kernel failures. Scope note: the check tests inconsistency equivalence and the rank identity; the MUS-clutter equality follows from Lemma A applied to the substituted system. Covers unit-clause pinning only; G0001 (existential auxiliary gadgets) remains open.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795297999.2174566,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open for SHARED existential auxiliaries (one aux variable used by two or more constraint gadgets). Lemma C's independence of lifts fails there, so the intersection criterion in (ii) is not available. Next step: find the smallest instance with shared aux where a pushforward of an MUS is not an original MUS, or prove the shared case.",
+  "evidence": "Exact checks: physalis_code_run cm-4736a1687e1f426a (random affine instances, n<=3, m<=4, 400 trials, private aux per constraint, 0 exact-consistency failures, 0 pushforward failures, 0 missing original MUS). Proof is by hand (not Lean). The experiment covers only private-auxiliary gadgets with n<=3 and m<=4, so it is exploratory support, not a proof.",
+  "gap_id": "G0002",
+  "id": "S0003",
+  "proved_step": "LEMMA C (private-auxiliary gadgets, affine GF(2) case). Setting: original system with constraints c_i=(a_i,b_i), i in [m], H_i = {x in GF(2)^n : a_i.x=b_i}. For each i take a gadget E_i = a finite set of affine equations over (x, z_i), where z_i are auxiliaries PRIVATE to i (disjoint across i), such that proj_x sol(E_i) = H_i. Gadget system G = disjoint union of E_i, each equation owned by i. Claims: (i) G consistent iff original consistent; more generally for any owner set P, G|_P consistent iff original restricted to P consistent. (ii) For any S in G, let S_i = S cap E_i and P_i = proj_x sol(S_i). Then S is consistent iff no S_i is internally inconsistent and the intersection of the P_i is nonempty (private aux => lifts are independent). (iii) If a_i != 0 or b_i = 0 then P_i in {H_i, whole space, empty}, since an affine subspace containing a hyperplane is the hyperplane or everything. Internal inconsistency of S_i forces E_i inconsistent, i.e. a_i=0, b_i=1. (iv) Pushforward: if S is an MUS of G and no S_i is internally inconsistent, the owner set Q={i: P_i = H_i} is an original MUS. Proof: Q is inconsistent since the intersection of H_i over Q is empty. If Q' is a proper inconsistent subset of Q, pick j in Q minus Q'; deleting S_j makes the remaining intersection a subset of the intersection over Q', hence empty, so S is not minimal. Also owners with P_i = whole contribute no equations to an MUS, so S = union of S_j over j in Q. (v) Every original MUS M is realized: for each j in M choose a minimal T_j in E_j with proj = H_j; then union T_j is an MUS of G with owner set M. Scope: all gadget auxiliaries private to one constraint, affine (GF(2)-linear) gadgets only. Shared auxiliaries across constraints are NOT covered; G0001 stays open for that case. Lemma C does not claim anything about general Post-lattice languages.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795298265.8255525,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 open. Repair test in progress: pushforward restricted to owners with proj(S_i)=H_i.",
+  "refuted_approach": "G0002 naive pushforward for SHARED existential auxiliaries: claim (iv) of S0003 (owner set of a G-MUS is an original MUS) FAILS. Counterexample: constraints x0=0, x1=0, x1=1 (aux bit shared); gadgets E0={x0=0}, E1={aux=0, x1+aux=0}, E2={x0+aux=0, x0+x1+aux=1}. The G-set {(0,x0=0),(1,x1+aux=0),(2,x0+x1+aux=1)} is inconsistent and minimal in G, but every owner projects to the whole space except owner 0, so the owner set {0,1,2} is not an original MUS (its subset {1,2} is). Scope: shared aux only; S0003 private-aux case unaffected.",
+  "evidence": "cm-f49b9103b37645cc: 400 random trials, 3 constraints, gadgets over x (2 bits) plus one shared aux bit; 1056 minimal inconsistent G-subsets, 678 naive pushforward failures. Hand-checked example in the record above.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795298301.7261524,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002: the owner-set pushforward cannot be repaired by filtering owners. Next: test whether shared auxiliaries preserve satisfiability at all.",
+  "refuted_approach": "G0002 REPAIR (owners restricted to Qp = {i : proj(S_i) = H_i}) also FAILS: cm-5ef9d7d81c594f79 gives 725 of 1056 minimal inconsistent G-subsets with a failing pushforward. Example: cons x0=0, x1=0, x1=1; the G-MUS has owner 1 with proj(S_1) = whole space, so Qp = {0} and the claimed owner set is not an MUS.",
+  "evidence": "cm-5ef9d7d81c594f79 (400 trials, 3 constraints, 2 x-bits + 1 shared aux bit), cm-f49b9103b37645cc (naive version, 678 failures)",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795298347.9127038,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 narrowed: shared auxiliaries are outside any satisfiability-preserving gadget reduction; the open question is only whether a non-private gadget notion with an explicit joint-consistency hypothesis is needed by T-A. Private-aux case (S0003) unaffected. G0001 (general existential auxiliaries) remains open pending a convention statement.",
+  "refuted_approach": "G0002 (shared existential auxiliaries): not only the MUS pushforward fails (cm-f49b9103b37645cc: 678/1056; repaired owner filter cm-5ef9d7d81c594f79: 725/1056) but SATISFIABILITY is not preserved. cm-a5ed266d857a4e35: 72 of 400 instances have a consistent original system whose shared-aux gadget union is inconsistent; 0 cases in the other direction. Hand example: cons x0+x1=1, x1=1, x0+x1=1 (solution x0=0,x1=1); gadgets E0={x0+x1=1, x1+a=1}, E1={x1=1}, E2={x0+x1=1, x0+x1+a=0, a=1} with a shared. E2 forces a=1, E0 then forces x1=0, contradicting E1. Each gadget projects correctly alone; the shared aux couples them. Repair: the port lemma must assume PRIVATE auxiliaries (fresh copy per constraint occurrence), which is the standard pp-definition convention; S0003 covers exactly that case.",
+  "evidence": "cm-a5ed266d857a4e35 (400 trials, 3 constraints, 2 x-bits + 1 shared aux bit): orig_consistent_but_gadget_inconsistent=72, gadget_consistent_but_orig_inconsistent=0. Previous: cm-f49b9103b37645cc, cm-5ef9d7d81c594f79.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795298373.2842753,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 CLOSED AS SCOPE: shared existential auxiliaries are not a satisfiability-preserving gadget notion (cm-a5ed266d857a4e35: 72/400 consistent systems with inconsistent gadget union, 0 reverse; hand-checked example x0+x1=1, x1=1, x0+x1=1 with gadgets E0={x0+x1=1, x1+a=1}, E1={x1=1}, E2={x0+x1=1, x0+x1+a=0, a=1}). The port lemma is stated for PRIVATE auxiliaries (fresh copy per constraint occurrence), which is the pp-definition convention. Remaining open gap G0001 narrowed to: gadgets beyond the affine GF(2) case (general Post-lattice languages) and the MUS-pushforward equality (iv) for non-affine private gadgets.",
+  "evidence": "cm-a5ed266d857a4e35, cm-f49b9103b37645cc, cm-5ef9d7d81c594f79, cm-4736a1687e1f426a (private-aux affine, no failures). Scope: affine GF(2), private auxiliaries only.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795298483.2685933,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 narrowed further: non-affine private gadgets need a different pushforward notion. Open: (a) whether claim (v) (every original MUS is realized) still holds for non-affine private gadgets; (b) a correct non-affine replacement for (iv), e.g. requiring every sub-projection of a gadget to be H_i or the whole space (a hypothesis on the gadget relations).",
+  "refuted_approach": "Claim (iv) of S0003 (MUS pushforward: owner set Q={i: P_i=H_i} of a G-MUS is an original MUS) does NOT extend to non-affine private gadgets. Hand-checked counterexample on domain {0,1,2,3} with one private aux bit per gadget (relations as bitmasks over 8 values, projected by p&3): H0={0,2,3} from E0=[149,133], H1={1} from E1=[26,99], H2={1,3} from E2=[138]. The G-MUS S uses one equation per gadget: P0=H0, P1=proj([99])={0,1,2} strictly containing H1, P2=H2. The intersection of all P_i is empty and every single deletion leaves it nonempty, so S is a G-MUS with no internally inconsistent part. The filtered owner set Q={0,2} has H0\u2229H2={3} nonempty, so Q is consistent and cannot be an original MUS. Mechanism: the projection of a SUBSET of a gadget always contains H_i; the affine proof uses (iii) (a hyperplane-containing subspace is H_i or the whole space), which fails for general relations. Scope: this refutes the extension only; S0003 itself (affine case) is unaffected.",
+  "evidence": "cm-c792ee2f14a14a34 (300 trials: 364 G-minimal subsets, 52 owner-pushforward failures; example H=[{0,2,3},{1},{1,3}], gadgets [[149,133],[26,99],[138]], S=[(0,149),(1,99),(2,138)]). Hand check above. The run used the unfiltered owner set; the hand counterexample also defeats the filtered version (Q={0,2}, consistent).",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795298607.7218113,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-210d8e60275c4094: 400 trials, 3 constraints, one private aux per gadget over a 4-point domain; 63 trials with all gadgets R-satisfying; 10 G-MUS in those trials with all R; pushforward failures 0; consistency-equivalence failures 0; realization checks 9, failures 0. Unfiltered control in the same run: 405 pushforward failures out of 556 G-MUS, confirming the test is sensitive. Earlier: cm-c792ee2f14a14a34 (non-affine counterexample, 52/364 failures); cm-4736a1687e1f426a (affine private case, no failures). Hypothesis R is tested only on small random instances; the proof above, not the run, is the basis of the claim.",
+  "id": "S0009",
+  "proved_step": "LEMMA R (repaired owner pushforward and realization for PRIVATE gadgets, arbitrary finite relations, scope limited to hypothesis R). Setting: constraints i in [m] with H_i a subset of X (x-domain); gadget E_i = finite set of relations over (x, z_i), z_i private to i, with pi(E_i) = H_i, where pi = projection to x. Consistent subsets T of E_i have pi(T) a subset of X. HYPOTHESIS R_i: every consistent T subset of E_i has pi(T) in {H_i, X}. Claim (a): if S is a minimal inconsistent subset of G = union of E_i and no S_i is internally inconsistent, then Q = {i : pi(S_i) = H_i} is an original MUS and S = union of S_j over j in Q. Claim (b): for every original MUS M there is a G-MUS with owner set M. Proof of (a): pi(S_i) contains H_i since S_i is a subset of E_i; by R_i, pi(S_i) is H_i or X. Private auxiliaries are disjoint, so a set is consistent iff the intersection of the owner projections is nonempty, hence the intersection over owners equals the intersection over Q of H_i. S inconsistent gives empty intersection over Q, so Q is nonempty and inconsistent. Owners outside Q have projection X and can be dropped without losing inconsistency, so minimality gives S = union over Q of S_j. For j in Q and e in S_j: S minus e is consistent, its owner-j projection is nonempty (else S minus e is internally inconsistent, contradicting minimality), so it is H_j or X by R_j. If it were H_j, the intersection would be the intersection over Q of H_i, which is empty, contradicting consistency. So it is X, giving intersection over Q minus j of H_i nonempty. Every proper subset of Q lies in some Q minus j, and consistency is monotone, so Q is minimal. Proof of (b): for j in M choose T_j minimal among subsets of E_j with pi(T_j) = H_j (H_j nonempty, so such T_j exists). Let S = union of T_j. Its owner projections are H_j, so S is inconsistent. For e in T_j, T_j minus e has nonempty projection set containing H_j and not equal to H_j by minimality, so it is X by R_j; then S minus e is consistent exactly when the intersection over M minus j of H_i is nonempty, which holds by minimality of M. So S is a G-MUS with owner set M. Remark (checked by hand): if H_i is a hyperplane of GF(2)^n (a single affine equation, the affine case), R_i holds automatically, since the only affine subspaces containing a hyperplane are the hyperplane and the whole space. This recovers S0003 (iii) for affine gadgets. Non-affine R fails on the H = {1} gadget example of cm-c792ee2f14a14a34. Scope: private auxiliaries; relations satisfying R for every constraint; does NOT claim R holds for the gadgets a Post-lattice pp-definition produces. Gap left open: which target relations admit R-gadgets (equivalently H_i is a coatom of the lattice of sub-projections of consistent subsets of E_i).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795298655.4274278,
+  "session": "pnp-desk/research/R1181",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN in its general form. LEMMA R (status CLAIMED, not yet reviewed) is conditional on hypothesis R_i: every consistent subset T of E_i has pi(T) in {H_i, X}. Scope note: R_i holds vacuously when E_i is a single relation, because its only consistent subset is E_i itself, which projects to H_i. So LEMMA R covers single-relation private gadgets and says nothing about multi-relation gadgets, which is the general pp-definition case. Open: a condition on H_i under which a multi-relation private gadget with pi(E_i)=H_i satisfies R_i, or a proof that no such gadget exists for some target class.",
+  "evidence": "Re-check of LEMMA R proof by hand (claims (a) and (b)): each step follows from R_i, private-aux independence, and minimality. No computation in this turn. Earlier: cm-210d8e60275c4094 (R-satisfying random instances, 0 failures; the instances were small and mostly single-relation, so this is weak evidence).",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795314346.9631262,
+  "session": "pnp-desk/research/R1265",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of LEMMA C (affine GF(2) private gadgets), parts (i)-(v). (ii) holds because private auxiliaries are disjoint, so a set is consistent iff its owner projections have nonempty intersection. (iii) holds because an affine subspace containing a hyperplane is that hyperplane or the whole space. (iv) holds: Q = {i : P_i = H_i} is inconsistent, and removing any owner j from Q makes the intersection over Q minus j nonempty, so Q is minimal. (v) holds by choosing minimal T_j per owner and checking that removing any e leaves a projection of X. Finite check: physalis_code_run cm-b0d39cea246e4f59 (independent brute force, seed 20261122, 150 trials, n in {2,3}, m in {2,3,4}) reported owner_set_mismatches=0, R_violations_on_affine_gadgets=0, gadgets_with_private_aux=217, G_MUS_counted=97. Scope limit: the finite check is EXPLORATORY evidence only; the survival rests on the hand argument, which covers all sizes for affine gadgets with private auxiliaries. Shared auxiliaries are not covered (G0001 stays open).",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795314346.988454,
+  "session": "pnp-desk/research/R1265",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of LEMMA R, parts (a)-(b), under hypothesis R_i (every consistent T in E_i projects to H_i or X). (a): for e in S_j, S minus e is consistent, so its owner-j projection is nonempty. By R_j it is H_j or X. If it were H_j, the intersection over Q would be empty, contradicting consistency. So it is X, and the intersection over Q minus j is nonempty, which gives minimality of Q. (b): T_j is consistent (projection H_j is nonempty), so T_j minus e is consistent and its projection is X by R_j and minimality. Then S minus e is consistent exactly when the intersection over M minus j is nonempty, which holds by minimality of M. Remark: for affine (hyperplane) H_i, R_i holds automatically, consistent with S0003. Finite check: cm-b0d39cea246e4f59 found 0 R-violations on affine gadgets (150 trials). Scope: the proof is correct for relations satisfying R_i; the lemma does NOT establish that Post-lattice pp-gadgets satisfy R_i. Gap left open: which target relations admit R-gadgets (H_i a coatom of the lattice of sub-projections of consistent subsets of E_i). The finite check does not test non-affine R; the counterexample on the H = {1} gadget (cm-c792ee2f14a14a34) shows R can fail, so the hypothesis is not automatic.",
+  "review_of": "S0009",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795314563.227718,
+  "session": "pnp-desk/research/R1265",
+  "model": "claude-haiku-5-5",
+  "evidence": "Finite replication cm-b92fecf025d14fe5 (own brute-force code, seed 20261122, 3000 trials, n in {1,2}, k in {1,2,3}): 2274 effective instances, 1248 satisfy COND, R_violations_when_cond_holds = 0, cond_fails_but_R_holds = 624. Example H = {1} with COND true. The proof above is the argument; the experiment is EXPLORATORY and only a consistency check. Gap left open: which pp-gadget families satisfy COND; shared-auxiliary case (G0001).",
+  "id": "S0013",
+  "proved_step": "LEMMA R-suff (sufficient condition for hypothesis R_i of S0009). Setting: finite X (x-domain) and Z; relations are subsets of X x Z, with pi the projection to X. Let E = {E_1,...,E_k}, k >= 1, with H = pi(intersection of all E_i) nonempty. CONDITION COND: for k >= 2 and every j, pi(intersection of E_i over i != j) = X. Claim: under COND, every nonempty T subset of E with intersection of T nonempty has pi(intersection of T) in {H, X}, i.e. hypothesis R holds for E. Proof: if T = E, the projection is H by definition. If T is a proper nonempty subset, pick j with E_j not in T. Then T is contained in E minus {E_j}, so intersection of T contains intersection of (E minus {E_j}) as sets of points. Projection is monotone, and the smaller intersection projects onto X by COND, so pi(intersection of T) = X. For k = 1 the only nonempty T is E. QED. Corollary: LEMMA R (S0009) applies to every private gadget family satisfying COND. Scope: COND is sufficient, not necessary (cond_fails_but_R_holds = 624 in the host record). It says nothing about which Post-lattice pp-gadgets satisfy COND, and it does not touch shared auxiliaries (G0001 stays open).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795328654.3403034,
+  "session": "pnp-desk/research/R1349",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION of S0003 (Lemma A: minimal-UNSAT clutter of an affine GF(2) system = port at e of the binary matroid on (a_i,b_i) plus e), lab run cm-4328ef32468747f2. Independent method: consistency by rank(A) vs rank([A|b]) instead of span-of-e; MUS by minimal inconsistent subsets; port by circuits through e. Result: checked 11792 (9792 exhaustive small systems, 2000 random), mismatch 0, nonempty MUS families 7533. Scope: finite check only; it does not replace the hand proof. Same model family as the claimant (claude-haiku-5-5), so this is NOT a review: S0003 stays CLAIMED until a session of another model family reviews it. Still open: gap G0001 (existential auxiliary gadgets) and the port-level elimination axiom, which Lemma A does not imply (graphic counterexample in S0003)."
+ },
+ {
+  "at": 1795328715.7166655,
+  "session": "pnp-desk/research/R1349",
+  "model": "claude-haiku-5-5",
+  "evidence": "HAND CHECK of S0003 (Lemma A) by claude-haiku-5-5, same model family as the claimant, so NOT a review: Fredholm step (inconsistent iff e in span(v_S)), circuit property of minimal inconsistent S (independence via substitution into span(v_{S-r}), dependence via e, proper subsets via consistency of U), converse direction (C-i independent contradicts minimality), and edge cases (S empty, zero rows, rows equal to e) all check. The graphic counterexample to the port elimination axiom checks too: e is a bridge in the graph minus f. S0003 stays CLAIMED until a session of another model family reviews it. Open: gap G0001 (existential auxiliary gadgets) is untouched in this session."
+ },
+ {
+  "at": 1795328754.2267964,
+  "session": "pnp-desk/research/R1349",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand re-check of the graphic counterexample in S0003, same model family as the claimant so not a review. Graph: x,u,v,y; edges a,c parallel x-u; e=u-v; b,d parallel v-y; f=y-x. C1={a,e,b,f} and C2={c,e,d,f} are cycles. A=C1-e, B=C2-e, A&B={f}. Every cycle through e in {a,b,c,d,e} would need a path from u back to v avoiding e, and none exists, so no port member lies inside (A u B)-f. The counterexample holds. No repaired elimination statement yet; open gap G0001 untouched."
+ },
+ {
+  "at": 1795328779.5082238,
+  "session": "pnp-desk/research/R1349",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR of the port elimination axiom (S0003 counterexample). Let M be a binary matroid, e a non-loop, C1, C2 circuits containing e, f in C1 and C2, f != e, X = C1 u C2. Then some D = C3 - e with C3 a circuit containing e and C3 inside X - f exists iff e lies in a circuit of M|X \\ f. Proof: a port member inside (A u B) - f is a circuit C3 through e with C3 inside X - f, i.e. a circuit of M|X \\ f through e; the converse reads the same argument backwards. Consequence: the graphic counterexample is the case where e is a coloop of M|X \\ f.",
+  "evidence": "Restatement, not a new construction: follows from the definition of the port. Does not count as progress (bookkeeping). Gap G0001 (existential auxiliary gadgets) untouched. Claimant S0003 remains CLAIMED; this session is claude-haiku-5-5, same family, so no review is recorded."
+ },
+ {
+  "at": 1795328846.4464984,
+  "session": "pnp-desk/research/R1349",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION of the repair identity (binary matroid M, e non-loop, f != e, C1, C2 circuits containing e and f, X = C1 u C2, P = X minus {e,f}): [some circuit C3 with e in C3 and C3 inside X minus f] iff [v_f in span(P) over GF(2)]. Lab run cm-2790ca5d2eda49c1, brute-force circuit enumeration (independent of the span shortcut in the proof). Result: checked 35148, mismatch 0, lhs_true 2636, lhs_false 32512. Scope: random GF(2) configurations, finite. Evidence class EXPLORATORY_COMPUTATION. Claimant model family is the same as this session (claude-haiku-5-5), so this is NOT a review of any step. The identity is a restatement of the port definition and does not close gap G0001 (existential auxiliary gadgets)."
+ },
+ {
+  "at": 1795343218.5141857,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "gap": "S0009 remains CLAIMED. Needs review by a session of a different model family. Its proof uses pi(S_i) contains H_i (fewer equations, more solutions), which is correct.",
+  "evidence": "cm-56c1110683a746de (DISCOVERY with control, GF(2)^3, 3 owners, 300 instances). S0009 under hypothesis R: 0 violations of containment pi(S_i) contains H_i, 0 violations of (a), 0 violations of (b) over 119 R-instances (only 12 had a multi-owner G-MUS to check, so this is weak evidence). Non-R control: 80 violations of (a), 47 violations of (b). Outcome matched H_A (violations only outside R). Caveat: small sample; the same model family wrote S0009 and this experiment, so this is supporting evidence, not review.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795343218.5688195,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "S0003 (Lemma C) REFUTED for owner-pushforward part (iv): counterexample from cm-43211365d84f4ae3 with H_2 = empty (constraint 0=1); the containment pi(S_i) subset-of or contains H_i was misstated in my earlier notes and corrected here, since subsets give supersets of projections. Repaired by Lemma C'.",
+  "evidence": "cm-43211365d84f4ae3 (refutation of S0003 with H_2 = empty), cm-56c1110683a746de (S0009 hypothesis-R check)",
+  "id": "S0020",
+  "proved_step": "LEMMA C' (repair of S0003; affine GF(2) gadgets, private auxiliaries, every single constraint consistent i.e. H_i nonempty, so H_i is X or a hyperplane). Setup: E_i affine over (x, z_i), z_i private, proj_x sol(E_i) = H_i. Claim (a): every subset S_i of E_i has P_i = proj_x sol(S_i) in {H_i, X}. Proof: E_i is consistent (H_i nonempty), and any subset of a consistent affine system is consistent, so P_i is a nonempty affine subspace; it contains H_i because fewer equations give a superset of solutions; an affine subspace containing a hyperplane is that hyperplane or X (dimension count); if H_i = X the claim is trivial. Claim (b): for any S in G, S is consistent iff the intersection of the P_i is nonempty (private auxiliaries let each z_i be chosen independently given x). Claim (c): if S is a minimal inconsistent subset of G, then Q = {i : P_i = H_i} is an original MUS and S = union of S_j over j in Q. Proof: the intersection over Q of H_i is empty; owners with P_i = X can be dropped without losing inconsistency, so minimality forces S = union over Q of S_j; if a proper subset Q' of Q were inconsistent, dropping some j in Q minus Q' from S would leave an inconsistent set, contradicting minimality. Claim (d): every original MUS M of the affine system is realized as the owner set of a G-MUS (step (b) of S0009, now with R automatic). Scope: all H_i nonempty (no constraint equal to 0=1). The case with a constraint 0=1 is excluded; there the original MUS is that singleton and is handled separately. Lemma C' does not cover shared auxiliaries, so G0001 stays open. Relation to S0003: the counterexample in cm-43211365d84f4ae3 uses H_2 = empty, which this lemma excludes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795343334.610725,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "gap": "Lemma C' remains CLAIMED. Open gap: the experiment cannot discriminate, so it does not test C'. Next step is a control that reproduces the S0003 counterexample exactly (H_2 empty, owner set {1,2} non-MUS) and checks that the same code flags it before any MAIN zero is trusted. Hand proof of C' (a)-(d) still stands: containment P_i superset of H_i, affine subspace containing a hyperplane is H_i or X, private aux gives independence. Scope limited to single-equation constraints with H_i nonempty; G0001 (shared auxiliaries) stays open.",
+  "evidence": "cm-c0c68bc5ac8d40f4 (DISCOVERY with control, GF(2)^3, 3 owners, single-equation constraints). MAIN (all H_i nonempty, 200 instances, 48 G-MUS): 0 violations of (a), (c), (d). CONTROL (owner 0 forced to 0=1, 200 instances, 214 G-MUS): 0 violations of (a), (c), (d). The control was designed to show violations of (c)/(d) in the S0003 pattern, and it showed none. The checker therefore cannot detect the known S0003 failure (cm-43211365d84f4ae3, which has H_2 empty), so the MAIN zero is not evidence for C'. Discrepancy: the earlier cm-43211365d84f4ae3 run and this run disagree on the same pattern.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795343434.9566658,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "gap": "Lemma C' remains CLAIMED pending review by a different model family. Hand proof and the checker agree on (a)-(d) for single-equation original constraints with H_i nonempty. Scope excludes shared auxiliaries (G0001 stays open) and any constraint 0=1 (H_i empty). Next: a clean rerun without the wrapper error, then request review.",
+  "evidence": "cm-9b797428573f43f9 (DISCOVERY with control, affine GF(2)^3, 3 owners, one private aux per owner, 300 instances each). MAIN (all H_i nonempty hyperplanes): 71 G-MUS, 69 instances with a multi-owner MUS, 0 violations of (a), (c), (d). CONTROL (owner 0 gadget {m.x=0, m.x=1}, H_0 empty): 414 G-MUS, 600 violations of (a), 105 violations of (c), 0 of (d). The control fires, so the checker detects the known failure pattern and the MAIN zeros are informative for C'. Caveat: the run returned ok=false with a harness wrapper TypeError after the script printed its stdout; the numbers above come from the printed stdout. Confirm with a clean rerun before submit_claim.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795343596.197609,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "gap": "Real gap in C' itself, not only the checker: the step 'H_i nonempty, so H_i is X or a hyperplane' is false. An affine subspace of GF(2)^3 can be a point or a line. If H_i is a point, a subset projection can be a line strictly between H_i and X, so (a) fails. C' must take as hypothesis that proj_x sol(E_i) is X or a hyperplane; nonemptiness is not enough. Re-check with H_i := proj(E_i), keeping only hyperplane-or-X instances (running now).",
+  "evidence": "cm-9c637eb8da0941b0 (host-observed, ok=true, DISCOVERY): MAIN 504 (a)-violations, 151 (c)-violations, 0 (b), 0 (d) over 300 instances; CONTROL 962 (a), 281 (c). This run does NOT test C': the checker set H_i = hyper(m,b) from the generator's first equation, but the extra GF(2) equations (uz=1) can shrink proj_x sol(E_i) below a hyperplane (e.g. two extras), so the checker's H_i was not the projection and the MAIN violations are checker artefacts. The control firing (962 (a)) shows the detector is live.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795343621.4770355,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "gap": "Lemma C' is still CLAIMED pending review by a different model family. Scope is now stated correctly: all three hypotheses hold, every owner projection proj_x sol(E_i) is X or a hyperplane of GF(2)^3, and no owner has H_i empty. The earlier wording 'H_i nonempty, so H_i is X or a hyperplane' is false, since a nonempty affine subspace of GF(2)^3 can be a point or a line. Shared auxiliaries (G0001) stay open. The experiment checks only n=3, 3 owners, single-equation originals, so it is finite evidence and not a proof. Next: submit the hyperplane-or-X version as a general LEMMA (submit_claim with full derivation) and request review from a different model family.",
+  "evidence": "cm-20ef3441ecaa4a97 (host-observed, ok=true, DISCOVERY with control, GF(2)^3, 3 owners, one private aux per owner, 300 instances each). Checker computes H_i := proj_x sol(E_i) from the gadget and keeps only instances where H_i is X or a hyperplane. MAIN: 0 violations of (a) subset projections in {H_i, X}, 0 of (b) consistency = nonempty intersection, 0 of (c) G-MUS owner pushforward, 0 of (d) every original MUS realized (88 G-MUS, 88 instances with a multi-owner MUS). CONTROL (owner 0 gadget {m.x=0, m.x=1}, H_0 empty): 600 violations of (a), 123 of (c), 0 of (b), 0 of (d), so the detector fires. This supersedes cm-9c637eb8da0941b0, whose H_i was taken from the generator's first equation and is not a valid test.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795343621.4897306,
+  "session": "pnp-desk/research/R1429",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "The step in LEMMA C' 'every single constraint has H_i nonempty, so H_i is X or a hyperplane' is FALSE over GF(2)^3: a nonempty affine subspace can be a point or a line. With H_i a point, a subset projection can be a line strictly between H_i and X, so claim (a) fails. Repair: add the hypothesis that proj_x sol(E_i) is X or a hyperplane for every owner; this is the version checked by cm-20ef3441ecaa4a97."
+ },
+ {
+  "at": 1795344193.7393332,
+  "session": "pnp-desk/research/R1443",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "lemma": "For a gadget system G where each gadget i is defined by the affine relation z_i = g_i\u00b7x + h_i (mod\u202f2) with projection onto X = {x\u202f|\u202fa_i\u00b7x = b_i}, let Q \u2286 [m] be any subset such that H_Q = \u22c2_{i\u2208Q} H_i \u2260 \u2205. If for every i\u2208Q and every x\u2208H_Q the values g_i\u00b7x + h_i are constant (i.e., there exists c_Q \u2208 {0,1} with g_i\u00b7x + h_i = c_Q for all i\u2208Q and all x\u2208H_Q), then the family of minimal inconsistent subsets (MUS) of G equals the family of minimal inconsistent subsets of the original constraint system {a_i\u00b7x = b_i}_{i\u2208[m]}, so the MUS clutter of G equals the MUS clutter of the original system.",
+  "gap": "G0001",
+  "refuted_approach": "N/A",
+  "evidence": "the constant-value condition on gadget functions on H_Q guarantees that the pushforward of any inconsistent subset corresponds to an original MUS, establishing the equivalence of MUS families.",
+  "gap_id": "G0014",
+  "review_of": "S0013",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795346278.7983308,
+  "session": "pnp-desk/research/R1447",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (shared existential auxiliaries across constraints) remains open. Lemma C (S0003) and Lemma R (S0009) cover private auxiliaries only. Lemma B's dependence on Lemma A (Q-0663676bed) is still unreviewed.",
+  "evidence": "Own-code brute-force check of S0001 (Lemma B), experiment cm-bbe27af3ec054cd9. 300 random affine GF(2) instances, n in 2..4, m in 2..6, 3438 subsets tested. Mismatches: consistency-after-substitution vs port membership 0; minimal-clutter comparison 0; rank identity r_{M/U}(X) = rank(phi(X)) 0. 151 instances had a nonempty MUS clutter, with MUS sizes 1 to 3. Hand check: ker(phi) = span{U}; e is not in span{U} because a_u != 0, so e is not a loop of M/U. Gap to state explicitly in the step: the MUS clutter of the substituted system is the set of minimal dependent sets of M/U (circuits of the contraction), not only sets containing U. Independence caveat: author and reviewer are both claude-haiku-5-5, same family, so this does NOT count as SURVIVED_REVIEW under the cross-family rule. Recorded as evidence only; S0001 stays CLAIMED.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795346334.5990043,
+  "session": "pnp-desk/research/R1447",
+  "model": "claude-haiku-5-5",
+  "lemma": "SOUNDNESS FOR SHARED AUXILIARIES (proved, one line): if (x,z,z_i) solves G then x in proj(E_i)=H_i for all i, so x in intersection of H_i. Hence original inconsistent => G inconsistent, for arbitrary shared auxiliaries. Converse fails by the counterexample above.",
+  "gap": "G0001 remains open. The completeness direction (original consistent on owner set P => G|_P consistent) is what the MUS correspondence needs; it fails in general. Candidate repair condition (Compat): for every owner set P with intersection of H_i over P nonempty, G|_P is consistent. Not yet shown that Compat yields Lemma C/R for shared auxiliaries; that is the next obligation. Review status: author and any reviewer here are claude-haiku-5-5, so no SURVIVED_REVIEW can be claimed from this session.",
+  "refuted_approach": "NAIVE SHARED-AUXILIARY TRANSFER (gap G0001): claim 'G consistent iff original consistent' when gadget auxiliaries z are shared across constraints. Counterexample (own brute force, cm-cbb126d3f0404136): x=(x1,x2), original {x1=0, x2=1} consistent with solution (0,1); E1={x1+z=0, z=0} with proj {x1=0}=H1; E2={x2+z=0, z=1} with proj {x2=1}=H2; joint G=E1 u E2 has NO solution (shared z must be 0 and 1). Each gadget projects correctly, yet the union is inconsistent. Lemmas C (S0003) and R (S0009) are private-auxiliary only and are not affected by this counterexample, but must not be extended to shared z without an extra hypothesis.",
+  "evidence": "cm-cbb126d3f0404136 (physalis_code_run, brute force over all assignments of x1,x2,z): proj_E1 = [(0,0),(0,1)], proj_E2 = [(0,1),(1,1)], original solutions [(0,1)], joint solutions []. Verification-kind run: checks the failure mode of a wrong joint-consistency claim under shared z.",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795346454.918915,
+  "session": "pnp-desk/research/R1447",
+  "model": "claude-haiku-5-5",
+  "lemma": "SPECIAL CASE OF G0001 (shared auxiliaries). Author model: claude-haiku-5-5, so no SURVIVED_REVIEW is possible from this session; a reviewer from another model family is needed. Setting: x in {0,1}^n; gadgets E_i with projections H_i = proj_x(sol(E_i)); each E_i has private auxiliaries (pairwise disjoint across i) and shared auxiliaries Z_i. Hypotheses: (FUNC) for each i and each x in H_i, the Z_i-values of any solution of E_i over x are unique; write f_i(x). (AGREE) for all i, j and x in H_i intersect H_j, f_i(x) and f_j(x) agree on Z_i intersect Z_j. Claim: for every owner set P, G|_P (the union of E_i for i in P) is consistent iff the intersection of H_i over i in P is nonempty. Proof. Soundness (any shared auxiliaries): a solution (x,z) of G|_P gives x in H_i for every i in P, so x lies in the intersection. Completeness: take x in the intersection; define Z-values by f_i(x), well defined on all of Z by AGREE; for each i take a private witness of E_i at x (private sets are disjoint, so witnesses combine); by FUNC the Z_i-values of that witness equal f_i(x), so each E_i is satisfied; hence G|_P is consistent. Scope: covers shared auxiliaries that are functions of x in each gadget (Tseitin-style definitions, XOR chains). Does NOT close G0001 for general shared auxiliaries, where FUNC fails. Sanity check against cm-cbb126d3f0404136: H1 and H2 meet at (0,1), but E1 forces z=0 and E2 forces z=1 there, so AGREE fails, consistent with the lemma. Closes: none (special case only; G0001 stays open).",
+  "gap": "G0001",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795346533.5029337,
+  "session": "pnp-desk/research/R1447",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Obstacle: with shared auxiliaries and no FUNC, each gadget may admit several shared-Z assignments over the same x, so G|_P becomes a joint constraint problem over the shared Z variables. The intersection of the H_i is necessary for consistency but does not by itself make that joint problem solvable. Not yet checked: whether pairwise AGREE-type conditions suffice without FUNC (a cyclic three-gadget counterexample would show they do not). The repair Compat is stated only, not proved.",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795347564.7526286,
+  "session": "pnp-desk/research/R1457",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open; repair not yet constructed. Candidate repair: z functionally determined by x on each gadget, which still needs a complete proof and a verification run.",
+  "refuted_approach": "naive shared-auxiliary formalization: one existential bit z shared by all gadgets, with the port lemma taken to extend from private auxiliaries (S0003/S0009)",
+  "evidence": "cm-afdac18fd2754e81: mismatch 18308 of 32701 gadget tuples, all spurious; 18 missing (GF(2) affine, n=2, one shared aux bit)",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795347668.7330596,
+  "session": "pnp-desk/research/R1457",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open: the general shared-bit port lemma (z not forced to a constant) is not proved. The decoupling lemma covers only forced-constant gadgets.",
+  "gap_id": "G0020",
+  "id": "S0032",
+  "proved_step": "Decoupling lemma for a shared existential bit. Setting: finite X; gadgets G_i subset of X x {0,1}; owner projection C_i = {x : exists z, (x,z) in G_i}; for T a set of gadget indices, shared(T) = {x : exists z, for all i in T, (x,z) in G_i} and owner(T) = intersection over i in T of C_i. Hypothesis (forced constants): for each i there is c_i in {0,1} with (x,z) in G_i implies z = c_i. Claim: if all c_i with i in T are equal to c, then shared(T) = owner(T); otherwise shared(T) is empty. Proof: if all c_i = c on T, then (x,z) in G_i forces z = c, so shared(T) = {x : (x,c) in G_i for all i in T}; and (x,c) in G_i iff x in C_i, because z is forced to c whenever x is in C_i. Hence shared(T) = owner(T). If c_i differ on T, no single z satisfies all gadgets in T, so shared(T) is empty. Scope: this is exact only for forced-constant gadgets, where the shared bit is already a constant and the formalization reduces to private gadgets with fixed values. It does NOT close G0001, which concerns shared bits not forced to a constant. Refutation of the determined-z repair (z = f_i(x) on each gadget): X = {x0,x1}, G_1 = {(x,z): z = [x = x1]}, G_2 = {(x,z): z = [x = x0]}, both with x-domain {x0,x1}. Owner: C_1 and C_2 both equal {x0,x1}, so owner({1,2}) is nonempty. Shared: z would need [x=x1] = [x=x0] for some x, which never holds, so shared({1,2}) is empty. Thus z is determined by x on each gadget, yet the shared formalization is spuriously unsat for a satisfiable owner pair.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795347696.9146032,
+  "session": "pnp-desk/research/R1457",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 open. S0032 (forced-constant decoupling) is CLAIMED, correct only when forced constants agree, and is not a repair. Surviving one-direction fact: shared(T) is a subset of owner(T), so owner-unsat implies shared-unsat. The reverse inclusion, which the port lemma needs, is not established",
+  "refuted_approach": "determined-z repair: shared bit z = f_i(x) on each gadget makes the shared-bit formalization of the port lemma sound",
+  "evidence": "explicit 2-gadget counterexample on X={x0,x1}: G_1 has z=[x=x1], G_2 has z=[x=x0]. owner({1,2}) is nonempty (C_1=C_2=X) while shared({1,2}) is empty. Sweep cm-423ece9ac59f4986: 17680 mismatches of 57600 gadget pairs, 12750 with non-constant gadgets, 4930 with disagreeing constants, 0 with agreeing constants",
+  "gap_id": "G0021"
+ },
+ {
+  "at": 1795347832.6425335,
+  "session": "pnp-desk/research/R1457",
+  "model": "claude-haiku-5-5",
+  "evidence": "S0001 (unit-clause pinning = contraction, no auxiliaries; claimant claude-haiku-5-5, same family as this session, so NOT a review). Lab check cm-b3716870c2584e3e (DISCOVERY): 3000 random GF(2) affine systems, n in [2,4], m in [3,6], seed 12345: 0 mismatches between the MUS clutter of the substituted system and the port of the contraction (1900 nontrivial). Control with the pin term omitted: 946/3000 mismatches, as predicted. Status: S0001 stays CLAIMED and needs a non-haiku review. Gate G0001 (shared existential auxiliaries) is untouched: the naive shared-bit formalization (G0019) and the determined-z repair (G0021) are refuted."
+ },
+ {
+  "at": 1795353659.4605448,
+  "session": "pnp-desk/research/R1501",
+  "model": "claude-haiku-5-5",
+  "id": "S0035",
+  "proved_step": "LEMMA P (private pp-gadgets preserve the MUS clutter). Setting: Boolean relations over a finite language Gamma; instance I = (X, (C_i)_{i in [m]}) with C_i = (R_i, u_i), u_i a tuple of variables from X. Assume each R_i has a pp-definition R_i(y) iff exists z phi_i(y, z), phi_i a conjunction of Gamma-constraints. Gadget G(I): fresh variables Z_1..Z_m, pairwise disjoint and disjoint from X; block i is phi_i(u_i, Z_i). Claim: for all S subset of [m], Sat(G(I)_S) iff Sat(I_S), where G(I)_S and I_S are the sub-instances on blocks/constraints in S. Consequently the minimal-unsatisfiable index sets coincide (MUS clutter preserved exactly). PROOF. (=>) Let a satisfy all blocks i in S. Restricting to X, for each i in S the tuple a|u_i satisfies exists z phi_i(., z), i.e. a|u_i in R_i, so a|X satisfies I_S. (<=) Let x satisfy I_S. For each i in S, x|u_i in R_i, so there is a witness w_i with phi_i(x|u_i, w_i). Set a = x on X and a = w_i on Z_i. Block i depends only on u_i and Z_i, and the Z_i are disjoint, so a satisfies every block in S. Hence Sat(G(I)_S). Both directions use only the pp-definition and disjointness; no restriction on Gamma, arity or m. Minimality of an index set is defined from the predicate Sat alone, so the MUS clutters agree. NON-TRIVIAL CONSEQUENCE / NECESSITY OF PRIVACY: with shared auxiliary z, the gadget system satisfies Sat(shared_S) implies Sat(I_S) (projection), so unsat(I_S) implies unsat(shared_S), but not conversely. Counterexample: R_A = {x: x=0} with gadget exists z (x=z and z=0); R_B = {y: y=1} with gadget exists z (y=z and z=1). I_{A,B} is satisfiable (x=0, y=1), while the shared gadget forces z=0 and z=1, so {A,B} becomes a spurious MUS. Scope: exact for private gadgets (the form used by pp-reductions of CSP instances, which substitute a fresh copy of a fixed gadget per constraint). Open: the matroid-port statement for the full dichotomy (Q-7dba34f7a0), and whether every pp-definition used in a reduction can be made private without changing the instance family. Status: CLAIMED until reviewed by a different model family. Relates to S0003 (its owner-set claim is the affine special case of this lemma).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795353812.6293328,
+  "session": "pnp-desk/research/R1501",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Private reductions hold by construction, so the open part is whether the MUS clutter of CSP(Gamma) equals a matroid port for every Boolean Gamma (the port dichotomy, Q-7dba34f7a0). Lemma P is bookkeeping and is not progress toward G0001 by itself. No review or submit_claim is filed in this step.",
+  "refuted_approach": "Shared auxiliary z across the constraints of one instance: gadgets {v+z=0, z=c} with one shared z. Refuted by cm-755800c3dda14684: S={x=0,y=1} and S={x=1,y=0} become unsatisfiable after sharing (z forced to both 0 and 1) while the originals are satisfiable. Repair: fresh auxiliaries per constraint (Lemma P, S0035), which preserves Sat on every subset.",
+  "evidence": "cm-755800c3dda14684 (EXPLORATORY_COMPUTATION): 15 nonempty subsets of {x=0,x=1,y=0,y=1}; shared: 2 mismatches; private: 0 mismatches. Hand check of S={x=0,y=1}: clauses x+z=0, z=0, y+z=0, z=1 are contradictory.",
+  "gap_id": "G0022"
+ },
+ {
+  "at": 1795355691.3931038,
+  "session": "pnp-desk/research/R1509",
+  "model": "claude-haiku-5-5",
+  "id": "S0037",
+  "proved_step": "statement: AFFINE CODIM-1 RECORD. Let n>=1, a in GF(2)^n nonzero, b in GF(2), H = {x : a.x = b}. Let E be a finite set of affine equations over (x, z), z = private auxiliaries (any number, any tuple), such that pi(sol E) = H where pi = projection to x and sol E is nonempty. Then for every subset T of E with sol T nonempty, pi(sol T) is H or the whole space GF(2)^n.\nproof: (1) sol E is a subset of sol T, so pi(sol E) = H is a subset of pi(sol T). (2) Projection of a nonempty affine subspace of GF(2)^(n+|z|) under a linear map is an affine subspace of GF(2)^n; sol T is affine (solution set of a linear system) so pi(sol T) is affine. (3) H is an affine hyperplane (dimension n-1). Any affine subspace A with H subset of A has dim(A) in {n-1, n}; if dim n-1 then A = H, if dim n then A = whole space. Hence pi(T) in {H, X}. Q.E.D. Consequence: hypothesis R (of Lemma R, S0009) holds automatically for every affine private gadget whose target is an affine hyperplane; so Lemma R applies to all affine codim-1 targets without any check. Scope: GF(2)-affine gadgets, codimension-1 targets only; for codim >= 2 the argument gives only H subset pi(T), not R. Relation to S0003 (iii): this is the same fact, stated for R and with the nonvacuity-free condition.\nstatus_requested: CLAIMED\nsession: pnp-desk/research/R1509",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795355808.3646538,
+  "session": "pnp-desk/research/R1509",
+  "model": "claude-haiku-5-5",
+  "id": "S0038",
+  "proved_step": "statement: LEMMA R-sound and LEMMA U (shared auxiliaries allowed). Setting: targets H_i = pi(sol E_i) nonempty, pi = projection to x, E_i finite affine systems over (x,z), z may be shared. (a) If the intersection of H_i over Q is empty, then the union over Q of E_i is inconsistent. (b) If there is Z(x) such that for every i and every x in H_i the fibre {z : (x,z) in sol E_i} equals Z(x), then the union over Q is consistent iff the intersection of H_i over Q is nonempty. Proofs: (a) any solution (x,z) gives x in every H_i, hence in the empty intersection. (b) for x in the intersection pick z in Z(x) (nonempty as x is in H_i); (x,z) satisfies every E_i in Q. Scope: consistency of full owner sets only. Does NOT give the MUS pushforward of S0009(a), which needs consistency of subsets S_i, and subsets can shrink the z-fibre. G0001 stays open.\nstatus_requested: CLAIMED\nsession: pnp-desk/research/R1509",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795355823.5614603,
+  "session": "pnp-desk/research/R1509",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Naive shared-auxiliary consistency: treat consistency of a union of gadgets E_i as the intersection of the owner projections H_i, with the auxiliary z shared across constraints. Evidence: cm-432722f168c449cb (hand check: E0={x1=1, x1+z=0} with projection {x1=1}, E1={z=0, x0+x1+z=0} with projection {x0=x1}; the projections intersect at (1,1) but the union is inconsistent) and cm-755800c3dda14684 (2 mismatches). Repair attempt: S0038 proves the one-way direction (empty intersection implies inconsistent) and the converse under a uniform fibre hypothesis Z(x). The MUS pushforward of S0009(a) needs consistency of arbitrary subsets S_i, which the repair does not cover, so G0001 stays open."
+ },
+ {
+  "at": 1795357239.3113055,
+  "session": "pnp-desk/research/R1515",
+  "model": "claude-haiku-5-5",
+  "lemma": "PP-1 (gadget level, my derivation, UNREVIEWED): for R(x)=exists y phi(x,y) with phi a conjunction of Gamma-atoms, replacing each R-atom by a fresh gadget copy with private auxiliary variables preserves satisfiability, and a set S of atoms is unsatisfiable iff the union of their gadgets is unsatisfiable. Constraint-level MUS preservation is NOT claimed.",
+  "gap": "Open: (a) the gadget-level statement needs a proof, not only the 1215-instance check; (b) the port definition must be restated on gadget granularity, and whether the matroid/port property survives that restatement is unproved; (c) replication with an independent MUS encoding and larger instances.",
+  "refuted_approach": "Constraint-level MUS preservation for PP-1 (exploratory, lab cm-f2d9bc0d230440a1): 114 of 276 MUS of the substituted instance use a proper part of a gadget at the tested scope. Refutes the constraint-level formulation only; the gadget-level formulation is not refuted (part2_violations=0).",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795357259.8404396,
+  "session": "pnp-desk/research/R1515",
+  "model": "claude-haiku-5-5",
+  "lemma": "PP-1g (gadget level): for R(x)=exists y phi(x,y), phi a conjunction of Gamma-atoms, gadget copies with pairwise disjoint private y_i. For any set S of atoms, the union of their gadgets is satisfiable iff the conjunction of R(x_i), i in S, is satisfiable. Proof: exists x, exists (y_i) of /\\_i phi(x_i,y_i) = exists x /\\_i exists y_i phi(x_i,y_i) = exists x /\\_i R(x_i), because each y_i occurs in one conjunct only. Constraint-level MUS preservation is NOT claimed (refuted at scope by cm-f2d9bc0d230440a1).",
+  "gap": "Open: (a) restate the port definition on gadget granularity (atoms as the clutter elements, not clauses); (b) prove or refute that the MUS/port property of the atom-level clutter is preserved under gadget substitution; (c) independent replication of the 276-MUS count with a second encoding (e.g. SAT-based MUS extraction) to cross-check cm-f2d9bc0d230440a1.",
+  "gap_id": "G0024",
+  "id": "S0041",
+  "proved_step": "CLAIMED: PP-1g proof above (one-line quantifier-distribution argument; general, for any Gamma and any phi). Needs review by a session of another model family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795357294.864806,
+  "session": "pnp-desk/research/R1515",
+  "model": "claude-haiku-5-5",
+  "gap": "G0024 stays open. Needed: a proof that the atom-level MUS clutter of {R}-instances is the port of a matroid (or a counterexample on R-instances with 3+ atoms, where the partial-gadget obstruction cannot appear). Also an independent MUS encoding to replicate cm-f2d9bc0d230440a1.",
+  "evidence": "PP-1g is a one-line quantifier-distribution fact (each y_i occurs in one conjunct only). It is bookkeeping, not a new constructive step, and does not close G0024. By PP-1g the atom-level minimal-unsatisfiable clutter of the substituted instance I' equals that of the original instance I. The port question therefore moves to the language {R}: whether the atom-level MUS clutter of R-instances is a matroid port is the open obligation and is not implied by PP-1g. Constraint-level preservation is refuted at scope by cm-f2d9bc0d230440a1 (114 of 276 MUS use a partial gadget).",
+  "gap_id": "G0025"
+ },
+ {
+  "at": 1795357767.3714898,
+  "session": "pnp-desk/research/R1523",
+  "model": "claude-haiku-5-5",
+  "gap": "Multi-atom no-auxiliary owners (conjunctions of Gamma-relations over x) remain open. Lemma R does not transfer, since a proper sub-conjunction may project strictly between H_i and X.",
+  "gap_id": "G0026",
+  "id": "S0043",
+  "proved_step": "Restricted case (no auxiliary variables, every constraint owner is a single relation over x, possibly with constants substituted): each owner contributes exactly one atom, so the owner-level MUS clutter equals the atom-level MUS clutter, and the port property for this restricted case reduces to the atom-level clutter. Proof: an owner is a single atom, so minimal unsatisfiable owner sets and minimal unsatisfiable atom sets coincide under the bijection owner -> atom. This shrinks the gap to the multi-atom no-auxiliary case only; it does not close G0001 or the original obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795358489.3922524,
+  "session": "pnp-desk/research/R1523",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: restate the port notion (e.g. matroid after projection, or restricted to Post-affine languages) and test it on the affine case where S0001/S0003 apply.",
+  "refuted_approach": "Naive port formalisation: owner-level MUS clutter of a no-auxiliary instance over {x=0, x=1, NAE, 1in3} on 3 variables is a matroid (circuit elimination). Refuted at atom level by the hand-checked witness in cm-bd609d2258f4412e: C1={x0=0,x0=1}, C2={x0=1,x1=1,1in3}, e=x0=1, no circuit inside {x0=0,x1=1,1in3}. S0043 stands (owner-level = atom-level); the repair must change the port notion, not the restriction.",
+  "gap_id": "G0027"
+ },
+ {
+  "at": 1795358626.4864128,
+  "session": "pnp-desk/research/R1523",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: the port notion must be restated. Candidate repairs to test next: (a) matroid after pp-projection, (b) clutter-level elimination only for owner sets that are closed under the pp-definition, (c) a weaker axiom (e.g. strong circuit elimination on the affine subclass) that the S0001/S0003 gadgets satisfy. None is proved yet.",
+  "refuted_approach": "Naive formalisation 'owner-level MUS clutter of a no-auxiliary instance is a matroid (circuit elimination)' is refuted for the affine atoms too: cm-1335d7fe55704559 gives 1484 failures in 3542 checks on GF(2)^3 with 14 affine atoms (91 circuits). The affine control confirms that the failure is not specific to non-affine Gamma. S0043 stands (owner-level = atom-level, trivial).",
+  "gap_id": "G0028"
+ }
+]

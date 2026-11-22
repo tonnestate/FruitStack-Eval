@@ -1,0 +1,43 @@
+[
+ {
+  "at": 1795341996.2869675,
+  "session": "pnp-desk/research/R1421",
+  "model": "claude-haiku-5-5",
+  "lemma": "Decision-from-search via zero-marker. Let f: {0,1}^N -> {0,1} be a truth table, s >= 1, and S: {0,1}^N -> {0,1}^L a search circuit for search-MCSP[s] of size g and depth d. Assume (E1) if some circuit of size <= s computes f then S(f) != 0^L; (E2) otherwise S(f) = 0^L. Define D(f) = OR_{i<=L} S(f)_i. Then D decides MCSP[s] on f, and D has size <= g + L and depth <= d + ceil(log2 L) (fan-in 2).",
+  "gap": "(E1)/(E2) are assumed, not verified against the exact Circuit-Min-Merge output format. H1 (general-circuit lower bound N*(log N)^k for decision MCSP[m^c], infinitely often) is untouched and remains open.",
+  "evidence": "No computation. Source: MMW19 STOC 2019 Thm 1.4 bullet 3 (primary PDF, offsets 13500 and 53500).",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "Proof: under (E1) some output bit is 1, so D = 1; under (E2) all bits are 0, so D = 0. The OR tree on L inputs has L-1 gates and depth ceil(log2 L). Bookkeeping only; does not close any obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795342565.4341574,
+  "session": "pnp-desk/research/R1427",
+  "model": "claude-haiku-5-5",
+  "gap": "Overhead of V is not shown to be N*polylog(N). H1 (general-circuit lower bound N*(log N)^k for decision MCSP[m^c], infinitely often) is untouched.",
+  "evidence": "cm-2d76fd905caa4ef5 (DISCOVERY, H_zero errors 23900 vs H_verify errors 0 on 25600 trials, n=3, N=8, s=2); cm-ffff41b61c89485d (verification of zero-marker lemma, 0 fails under E1/E2 by construction). Both are finite, own-code, and do not test the verifier overhead.",
+  "gap_id": "G0002",
+  "id": "S0002",
+  "proved_step": "Verifier decision lemma. Fix n, N=2^n, s>=1, f in {0,1}^N. Let V(f,C)=1 iff C is a fan-in-2 circuit on n inputs of size <= s computing f. Let decode map an L-bit string to a circuit or to reject. Define Dec(f)=V(f, decode(S(f))). If S is correct on members (f has a size-<=s circuit implies S(f) encodes one), then Dec(f)=MCSP[s](f) for all f. Proof: member case: S(f) encodes a valid circuit, so V=1. Non-member case: no size-<=s circuit computes f, so V=0 for every string, hence Dec=0. E2 is not used. OPEN (gap): the size of V must be N*(log N)^{O(1)} to be harmless against the N(log N)^k target; only poly(N,s) overhead is shown.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795342863.0143945,
+  "session": "pnp-desk/research/R1427",
+  "model": "claude-haiku-5-5",
+  "gap": "(a) The claim that the search output of Circuit-Min-Merge (MMW19 Thm 1.4) has exactly the encoding format accepted by the decoder is not verified. (b) S0002 needs 'S correct on members' read as: S(f) encodes a circuit computing f of size <= s. (c) This is an analytic counting argument; no finite gate-count check was run. H1 (lower bound N(log N)^k for decision MCSP[m^c], infinitely often) is untouched, so this closes G0002 only and is not P != NP progress.",
+  "evidence": "Analytic only. No computation in this session. Planned check: exact gate count of V for n=3..5, s<=3 against the O(N s max(n,s)) bound, to be run as a VERIFICATION if the desk requires one.",
+  "gap_id": "G0003",
+  "id": "S0003",
+  "proved_step": "Sized verifier lemma. Fix n, N=2^n, s>=1. Encode a fan-in-2 circuit C on n inputs with s gates as L = O(s log(n+s)) bits: each gate stores two operand indices in [0, n+s) plus a gate-type bit. Let V(f,y) be the circuit with inputs f in {0,1}^N and y in {0,1}^L that outputs 1 iff y is well-formed, decodes to a circuit C of size <= s on n inputs, and C(a)=f(a) for all a in {0,1}^n. Claim: V has size O(N*s*max(n,s)). Proof: (i) Well-formedness and decoding of y cost O(L log L) gates, which is negligible. (ii) For each of the N points a, evaluate C(a) with a universal evaluator. Keep a value bank of n+s wires (the n inputs, hard-wired as constants for a, plus the s gate outputs). Gate t computes its two operands by multiplexers over the n+s bank wires, costing O(n+s) gates per operand, then one gate. One point costs O(s*(n+s)) gates. (iii) Compare C(a) with f(a): O(1) per point. Total O(N*(s*(n+s)+1)) = O(N*s*max(n,s)). With n = log N and s <= (log N)^c for a fixed c >= 1, this is O(N*(log N)^{2c}) = N*(log N)^{O(1)}. Consequence: if a search circuit S of size N(log N)^k outputs encodings of size-<=s circuits, then Dec(f)=V(f,S(f)) is a decision circuit of size N(log N)^{k'} with k' = max(k,2c)+O(1). By S0002, Dec = MCSP[s] (E2 not used). Contrapositive: no size-N(log N)^{k'} circuit family for decision MCSP[(log N)^c] implies none for search-MCSP at size N(log N)^k. This is the direction the H1 transfer needs.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": false
+ }
+]

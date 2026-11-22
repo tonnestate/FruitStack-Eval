@@ -1,0 +1,42 @@
+[
+ {
+  "at": 1795337029.2149246,
+  "session": "pnp-desk/research/R1391",
+  "model": "glyph-cluster",
+  "lemma": "Candidate amortised multi-cut bound for B_2 circuits: relate sum_i log2 rank_Q M_{prefix_i(pi)}(f) to physical wire count with an explicit reuse factor; determine validity for D_orc.",
+  "gap": "No amortised multi-cut charging rule with explicit reuse factor is proved for B_2, nor shown/ refuted for D_orc. Need either a B_2-valid rule whose reuse account uses gate fan-in/semantics in a way that breaks for oracle gates, or a proof that every B_2-valid cut-communication charging rule extends to D_orc.",
+  "evidence": "cm-fc17b0e77834434e gives exact IP_n prefix-cut ranks for n=2..5 (exploratory context); single-cut lemma is standard cut-rank argument, CLAIMED here pending independent review.",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "Lemma (single-cut rank bound, B_2). For f:{0,1}^N->{0,1}, partition (A,B), kappa(A,B) crossing wires in a B_2 circuit computing f: rank_Q M_{A,B}(f) <= 2^(kappa(A,B)+1), hence log2 rank_Q M_{A,B}(f) <= kappa(A,B)+1. Proof: fixing kappa crossing-wire values gives <=2^kappa cross assignments; each fixes the A/B contribution so columns fall into <=2^kappa types, rank <=2^kappa (or 2^(kappa+1) under the K1 convention). This is a single-split bound only; it does not amortise over many prefixes and does not address D_orc.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795337529.882336,
+  "session": "pnp-desk/research/R1391",
+  "model": "claude-haiku-5-5",
+  "lemma": "Repair of S0001 (any gate types, no +1) and span bound for the prefix-cut sum Lambda(pi) = sum_i log2 rank_Q M_{A_i}(f).",
+  "gap": "G0001 is shrunk, not closed. The obligation is an order pi and circuit family with sum_i kappa_i = O(size), i.e. a reuse factor O(1) instead of N-1. Nothing in L1 or L2 gives this: a wire with short syntactic span is not forced by the cut structure. Barrier check: L1 and L2 bound communication rank, which is not natural in the Razborov-Rudich sense, and a lower bound transfer needs Lambda superlinear for some f not in P. The IP_n data (Lambda = Theta(n), IP_n in P) show Lambda alone cannot give that. Not a P vs NP progress claim.",
+  "evidence": "L1 and L2 are proved above. Verification run requested in the next call (kind VERIFICATION: independent code, random circuits with fan-in 1-4, negative control kappa_bad that must fail). cm-fc17b0e77834434e is exploratory context only.",
+  "gap_id": "G0002",
+  "id": "S0002",
+  "proved_step": "Lemma L1 (repairs S0001). Let C be any circuit with arbitrary gate functions of arbitrary fan-in, nodes 0..N-1 = input variables and gates in topological order, output node f. Let A be a set of variables with complement B. Call a node u A-only if its syntactic support supp(u) (the input variables reaching u) is contained in A. Let W = {edges (u,v): u A-only, v not A-only} and kappa = |W|. Then rank_Q M_A(f) <= 2^kappa, so log2 rank <= kappa. Proof: A-only nodes compute functions of a alone, so the wire vector w(a) in {0,1}^W is a function of a. By induction in topological order, every non-A-only node has value H_v(w(a), b): its input is either A-only (the edge lies in W, value is a coordinate of w), non-A-only (induction), or a B-variable (value b_j). Constant nodes have empty support and are A-only. If the output is A-only, f depends on a only and rank = 1 <= 2^0. Rows with equal w(a) coincide, so M_A has at most 2^kappa distinct rows. QED. Lemma L2 (span bound). Fix a variable order pi, let m(u) be the largest pi-position of a variable in supp(u) (0 if empty), and let A_i be the first i variables, i = 1..N-1. Since supp(u) is contained in supp(v) for every edge u->v, the edge (u,v) lies in W_i iff m(u) <= i < m(v). Hence sum_i kappa_i <= (N-1)|E(C)|, and Lambda(pi) <= (N-1)|E(C)|. For B_2 circuits |E| <= 2 size, so Lambda(pi) <= 2(N-1) size. For unbounded fan-in or oracle gates |E| is not bounded by size. Consequence: s >= min_pi Lambda(pi) / (2(N-1)) for B_2. For IP_n with Lambda = Theta(n) this gives only s >= Omega(1). Dispute reading (K9-D3): L1 and L2 use no gate-type information, so the same inequality holds for D_orc; the only difference between B_2 and D_orc is that |E| is linear in size for B_2 and not for unbounded fan-in. Both positions stay open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795337561.9104753,
+  "session": "pnp-desk/research/R1391",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002: L1 and L2 give Lambda(pi) <= (N-1)|E(C)|, a trivial bound. Reuse factor N-1 is not reduced to O(1). Open: an order pi and a circuit family with sum_i kappa_i = O(size). The dispute K9-D3 (B_2 vs D_orc) is unchanged: L1 and L2 use no gate-type information, so they hold for D_orc, but |E| is not linear in size there.",
+  "evidence": "VERIFICATION cm-987536cfa2484458 (own code, random circuits with fan-in 1..4, arbitrary gate functions, 400 circuits, 1595 prefix cuts): 0 violations of rank <= 2^kappa (L1) and 0 violations of the span bound (L2); negative control kappa_bad gives 723 violations, so the checker can fail. Same model family as the author (claude-haiku), so this is REPLICATION, not a review; S0002 stays CLAIMED until another family reviews it.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795339265.6872084,
+  "session": "pnp-desk/research/R1409",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-c908a498963444dc: cutwidth corollary of S0044 (rank_Q M_i <= 2^(kappa_i+1) summed over the cuts of one order), 300 random circuits, 0 violations of the per-cut, lambda and cutwidth bounds. CAVEAT: the control without the +1 also gave 0 violations, so this run does not discriminate the +1; the check supports only the stated bounds, not sharpness. The corollary is a trivial sum of S0044 and does not address aggregation across cuts (open dispute point)."
+ }
+]

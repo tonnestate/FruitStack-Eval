@@ -1,0 +1,1188 @@
+[
+ {
+  "at": 1795251674.4779868,
+  "session": "pnp-desk/research/R0802",
+  "model": "claude-haiku-5-5",
+  "lemma": "Restriction lemma (exact). Let g(x) = [w.x >= t] on {0,1}^n with integer weights w, S+(F) = sum_{i in F, w_i>0} w_i, S-(F) = sum_{i in F, w_i<0} w_i, for a free set F. Fix the other variables by rho in {0,1}^{[n]\\F}, and set c = sum_{i not in F} w_i rho_i. Then g restricted by rho is non-constant iff S-(F) < t - c <= S+(F). Proof: on the free cube, w.x restricted equals c + sum_{i in F} w_i x_i, a linear function whose minimum and maximum over {0,1}^F are attained at the vertices x_i = [w_i<0] and x_i = [w_i>0], with values c+S-(F) and c+S+(F). g is constant 1 iff min >= t, constant 0 iff max < t, so non-constant iff min < t <= max. Consequence: a restriction shifts every threshold by c and shrinks the window to width W_F = sum_{i in F} |w_i|; a bottom gate survives the restriction iff its shifted threshold lies in the window.",
+  "gap": "Status: CLAIMED. Not yet a count of how many bottom gates become constant under a RANDOM restriction (needs the distribution of c and of t, and a bound on the window widths for THR o THR with m=n^1.5 gates); the lemma is elementary and the review must decide whether it discharges G0001 or only shrinks it.",
+  "evidence": "Exact brute-force check (cm from physalis_code_run in this session, 200 random weight vectors with n<=9 and random restrictions, thresholds in [-30,30]): see the experiment record for bad count. Retracted earlier: cm-89781f7bb4d84bf9 (1.3% figure, boundary bug t<min_sum instead of t<=min_sum).",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795251893.223734,
+  "session": "pnp-desk/research/R0803",
+  "model": "claude-haiku-5-5",
+  "gap": "O3 (restriction lemma with a proved success probability) is still OPEN. The refuted version is the claim that the undecided fraction shrinks with n at fixed p. Repair to be attempted: a restriction with p = c/sqrt(n) free variables, or sparse weights with bounded per-gate support, for which the width sum |w_j| stays bounded. The Littlewood-Offord check cm-0865d055413a44f5 used a bound that is >= 1 on every row, so it gives no evidence and cannot support a proof.",
+  "refuted_approach": "Shrinking-gate route: under a uniform restriction leaving p n free variables, the fraction of undecided bottom gates of a THR o THR circuit (m = ceil(n^1.5), weights and thresholds uniform in [-B,B]) does not decrease with n. At p=0.5 it rises: B=1: 0.763 (n=16) -> 0.851 (n=24); B=3: 0.773 -> 0.913; B=10: 0.803 -> 0.882. The top gate is decided for only about 15-20% of sampled thresholds T. Refutes S-b4e38fa311 for these families. Exact reason for the failure: a bottom gate is undecided iff lo < t <= hi, and its width hi - lo = sum over free j of |w_j| grows linearly in n, while the fluctuation of the fixed part is only about sqrt(n) B.",
+  "evidence": "cm-8dca4474a615477a, cm-f48d7a207a9b4f6a, cm-f37efa7870194882 (exact measurements on the restricted linear forms; finite, random weights only)",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795251926.4502387,
+  "session": "pnp-desk/research/R0802",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. The window-count lemma is elementary and does not bound the number of constant bottom gates. Still needed: a distributional statement for the shift c and threshold t under the random restriction, and a bound on the window width W_F for THR o THR with m = n^1.5 bottom gates. Question Q-10b855d84e records the anti-concentration form of this obligation.",
+  "evidence": "cm-2714f34a0e6a4945: direct evaluation on every free cube (3^8 restrictions per gate, 20 THR gates with n=8, thresholds in [-10,10]). For each restriction the gate is tested for taking both values 0 and 1 on the free cube, with no use of the window predicate. Mean non-constant fraction 0.2631687242798354, identical to the predicate-based run cm-30ca75a020a74452. This confirms the window-count lemma on these gates; it is a finite check, not a general bound.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795252030.9734943,
+  "session": "pnp-desk/research/R0803",
+  "model": "claude-haiku-5-5",
+  "lemma": "Restriction lemma for bottom THR gates (Erdos-Littlewood-Offord form): for integer weights |w_j| <= B, a set R of r variables, and x_F uniform on the rest, P(gate undecided) <= min(1, sum_{j in R}|w_j| / sqrt(N_F)) <= rB / sqrt(N_F), where N_F = #{j in F: w_j != 0}. In particular the undecided fraction is O(rB/sqrt(n)) when N_F >= n/2, so it tends to 0 for r = o(sqrt n). The regime r ~ sqrt(n)/B is the threshold where the bound stops being useful.",
+  "id": "S0004",
+  "proved_step": "LEMMA (anti-concentration over subset sums). Let a_1..a_N be nonzero integers, x_j iid uniform in {0,1}, c = sum a_j x_j. For integers a and L >= 0: P(c in {a,...,a+L-1}) <= L*C(N,floor(N/2))/2^N <= L/sqrt(N). PROOF: Erdos (1945): for reals |a_j|>=1, any open interval J of length 1 contains the subset sums of at most C(N,floor(N/2)) subsets. Each integer v lies in the open interval (v-1/2, v+1/2), so #{S : c_S = v} <= C(N,floor(N/2)); sum over the L integers and divide by 2^N. For the second inequality use C(2k,k) <= 4^k/sqrt(pi k): if N=2k then pi k = pi N/2 >= N; if N=2k+1 then C(2k+1,k) = C(2k+2,k+1)/2 <= 4^{k+1}/(2 sqrt(pi(k+1))), so the ratio is <= 1/sqrt(pi(k+1)) <= 1/sqrt(2k+1). COROLLARY (bottom gate). Let g(x) = [sum_j w_j x_j >= t] with integers |w_j| <= B, R a set of r variables, F the rest, c = sum_{j in F} w_j x_j. Put lo = sum_{j in R} min(w_j,0), hi = sum_{j in R} max(w_j,0). Then g is decided under the restriction (constant over all completions of x_R) iff c >= t-lo or c < t-hi. So g is undecided iff t-hi <= c < t-lo, an integer window of exactly L = hi-lo = sum_{j in R}|w_j| <= rB integers. Applying the lemma with N = N_F gives P_{x_F}(undecided) <= min(1, rB/sqrt(N_F)). Summing over the m bottom gates gives E[#undecided] <= sum_g min(1, rB/sqrt(N_F(g))). SCOPE / WHAT IS NOT CLAIMED: the bound is worst-case over weights with |w|<=B and integer; it needs many nonzero free weights (N_F large) and says nothing for sparse gates; it bounds only the bottom layer; no running time follows yet (the top gate is not handled). KNOWLEDGE vs ALGORITHMIC: knowledge = the restriction bound with its threshold r ~ sqrt(n)/B (explains the refuted fixed-p experiments: for r = pn the bound is ~pB sqrt(n) >= 1); algorithmic gain = none yet. NOVELTY: the Erdos theorem is classical; the new content is the application to restricted THR gates and the regime boundary. The exact per-gate check is run in the next computation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": false
+ },
+ {
+  "at": 1795252134.538185,
+  "session": "pnp-desk/research/R0803",
+  "model": "claude-haiku-5-5",
+  "gap": "Restriction lemma S0004 (bottom gates, |w_j| <= B, P(undecided) <= rB/sqrt(N_F)) is CLAIMED and not yet reviewed; this session cannot review it. Remaining gaps: (i) the bound needs B = o(sqrt(n)/r) to be below 1, so it gives nothing for exponential weights or for r proportional to sqrt(n); (ii) the top gate is not handled, so the lemma gives no decision procedure and no running time; (iii) sparse gates with N_F small are not covered; (iv) closes=G0002 is not valid until a different session confirms the closure. Next repair: a sparsity-aware bound using N_F and the mass sum_F |w_j|^2 (Erdos-Moser / Halasz form), and a top-gate decision count with the bottom undecided set.",
+  "evidence": "cm-9881f18475e74cdd (lemma inequality, 0 violations), cm-daa388717ce54ca9 (undecided fraction flat at r ~ sqrt n), cm-f48d7a207a9b4f6a, cm-f37efa7870194882",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795252141.063546,
+  "session": "pnp-desk/research/R0802",
+  "model": "claude-haiku-5-5",
+  "lemma": "Theorem C (bounded-weight switching bound for one bottom THR gate). Setting: g(x)=[sum_i w_i x_i >= t] on {0,1}^n, integer weights, nz = number of nonzero weights, M = max|w_i| >= 1. Random restriction R_p: each variable free independently with probability p, otherwise fixed to 0 or 1 with probability (1-p)/2 each. Claim: for 0 < p <= 1/4, P(restricted g is non-constant) <= exp(-p nz/3) + 2 sqrt(2) M p sqrt(nz). Corollary: p = 1/(16 M sqrt(nz)) with sqrt(nz) >= 126 M gives P(non-constant) <= 1/4. Proof: Lemma A (Sperner): for nonzero integers a_1..a_k and uniform eps in {0,1}^k, P(sum a_i eps_i = v) <= C(k, floor(k/2))/2^k <= 1/sqrt(k) for every v (flip eps_i where a_i<0; the sets with a given sum form an antichain). Lemma B: given the free set F, the non-constancy window of the restriction lemma has W_F integers, so P(non-constant | F) <= W_F/sqrt(k) <= M s/sqrt(k), with s = number of free nonzero-weight variables and k = nz - s >= 1. Chernoff: P(s > 2 p nz) <= exp(-p nz/3). On s <= 2 p nz (and p <= 1/4) we have k >= nz/2, giving conditional bound 2 sqrt(2) M p sqrt(nz). Take the expectation over s.",
+  "gap": "Shrinks G0001 only; does NOT close it. Remaining: (i) weights are bounded here (M <= sqrt(nz)/126), so unbounded-weight THR o THR bottom gates are not covered; (ii) the bound is per gate and in expectation (at most m/4 non-constant gates); no high-probability statement over all m = n^1.5 gates; (iii) constants are crude. Barrier labels (provisional): not relativizing-relevant; a statement about linear forms under restriction, not natural in the Razborov-Rudich sense as stated; localizing not checked.",
+  "gap_id": "G0005",
+  "id": "S0006",
+  "proved_step": "Theorem C as stated in the lemma field, proof by Lemma A (Sperner), Lemma B (window count) and Chernoff; independent exact check submitted this turn (see experiment record)",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795252141.0736125,
+  "session": "pnp-desk/research/R0802",
+  "model": "claude-haiku-5-5",
+  "gap": "Correction to my earlier entries: the window-count lemma (turn 9) must NOT count as closing G0001; its closes field was set in error, and it shrinks G0001 only. The turn-11 entry was stored under gap_id G0003, not the open obligation G0001. G0001 remains OPEN; see the Theorem C entry for the bounded-weight shrink.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795252185.4514387,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-C (= O3): a proved structural lemma (restriction / representation) with explicit parameters that an algorithm for THR o THR uses.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795256527.2414222,
+  "session": "pnp-desk/research/R0837",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a different session (R0830). Argument checked: for nonzero integers a_1..a_N, the open unit intervals (v-1/2, v+1/2) each contain subset sums of at most C(N, floor(N/2)) subsets (Erdos 1945, valid since |a_j| >= 1), and the integer window {a,...,a+L-1} is covered by L such intervals, so P(c in window) <= L*C(N,floor(N/2))/2^N <= L/sqrt(N). Exact check cm-12cb6e1d251d481e: 35199 trials (N = 1..10, random nonzero a_j in [-5,5], windows L = 1..3, all starts), 0 violations of the binomial bound, max ratio to bound 1.0, 0 violations of the 1/sqrt(N) form. Scope: the anti-concentration lemma only. It does not bound the undecided-gate count or close G0001.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795258729.435548,
+  "session": "pnp-desk/research/R0857",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0010",
+  "proved_step": "LEMMA (Exact undecided probability under random restriction with uniform threshold). Let g(x) = [\u2211_{i=1}^n w_i x_i \u2265 t] be a threshold gate with integer weights w_i, S = \u2211 |w_i|. Let R_p be the random restriction: each variable is free independently with probability p, otherwise fixed to 0 or 1 with probability (1-p)/2 each. Let the threshold t be chosen uniformly from {t_min, ..., t_max} where the interval length L = t_max - t_min + 1 satisfies L \u2265 S (in particular, t uniform on [-S, S] works). Then P_{R_p, t}[g|R_p is non-constant] \u2264 p, with equality when L = S and the threshold range matches the possible sums exactly.\n\nPROOF. For a fixed restriction \u03c1, let F be the set of free variables. The restricted gate is g_\u03c1(y) = [\u2211_{i\u2208F} w_i y_i \u2265 t - \u2211_{i\u2209F} w_i \u03c1(i)]. This is non-constant iff the threshold t falls in the interval I_\u03c1 = (L_\u03c1, U_\u03c1] where L_\u03c1 = \u2211_{i\u2208F: w_i<0} w_i, U_\u03c1 = \u2211_{i\u2208F: w_i>0} w_i. The length of I_\u03c1 is U_\u03c1 - L_\u03c1 = \u2211_{i\u2208F} |w_i| =: W_F. Since t is uniform over an interval of length L \u2265 S \u2265 W_F, P_t[g_\u03c1 non-constant] = W_F / L \u2264 W_F / S. Now take expectation over R_p: E[W_F] = \u2211_i |w_i| \u00b7 P(i free) = p S. Thus P_{R_p,t}[undecided] = E[W_F/L] \u2264 E[W_F/S] = p. Equality holds when L = S and the threshold distribution is uniform over exactly S+1 consecutive integers covering the full range of possible sums. \u220e",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795258800.5368843,
+  "session": "pnp-desk/research/R0855",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Exact enumeration on all 1196 cases (n=2..7, M=1..6, p in {1/4,1/8,1/16,1/32}, seed=1) found 0 violations of the bound P(non-constant) <= exp(-p*nz/3) + 2*sqrt(2)*M*p*sqrt(nz). Worst ratio P/bound = 0.192. The proof structure (Lemma A: Sperner/antichain bound 1/sqrt(k) for k fixed nonzero variables; Lemma B: window width W_F <= M*s, conditional probability <= W_F/sqrt(nz-s); Chernoff on s) is sound. No argument gap found.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795258900.4738023,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "gap": "Re-check of S0006 (Theorem C) by hand, independent of the enumeration: Lemma A (sign-flip to nonnegative weights, the sets with a fixed weighted sum form an antichain, Sperner gives C(k,k/2)/2^k <= 1/sqrt(k)) is correct and has no dependence on M. Lemma B: given the free set F, the non-constancy window has exactly W_F = sum_{j in F}|w_j| integers, so P(nonconst | F) <= W_F/sqrt(k) with k = nz - s; W_F <= M s. Chernoff P(s > 2p nz) <= exp(-p nz/3) is correct (mu = p nz, delta = 1). On s <= 2 p nz with p <= 1/4, k >= nz/2 and the conditional bound is 2 sqrt(2) M p sqrt(nz). The step is sound as written. OPEN (G0001 / G0004, unchanged): the M-dependence enters only through W_F <= M s. For unbounded heterogeneous weights W_F can be much larger than the fixed mass, and Lemma A alone cannot bound P(X in window) when the window length is large. A Halasz-type repair P(X in window) <= C W/||w_fixed||_2 needs sum_F |w| <= C' sqrt(nz) ||w_fixed||_2, which fails when a large free weight sits next to small fixed weights. Next repair: control the free set by weight classes (split weights at a threshold tau and treat large-weight variables separately) so that W_F is bounded by the mass of the fixed small weights.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795258971.001929,
+  "session": "pnp-desk/research/R0857",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Lemma S0010 (P_{R_p,t}[undecided] <= p) holds only for a threshold t drawn UNIFORMLY over an interval of length L >= S. It does NOT bound the worst-case threshold: for MAJ_n with fixed t=n/2 (cm-5f4fdc877feb475a), P[undecided] = 0.965 at p=1/2 (n=16) rising to 1, and 0.683 at p=1/sqrt(n) for every n tested. An algorithm that must handle every threshold cannot use the averaged bound. The earlier summary sentence 'P = p exactly for any integer weights' is therefore only valid under the uniform-threshold average and must not be used for worst-case thresholds.",
+  "evidence": "cm-5f4fdc877feb475a (fixed-threshold majority, exact); S0010 is correct as stated for uniform t."
+ },
+ {
+  "at": 1795259010.0877306,
+  "session": "pnp-desk/research/R0857",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "S0010 (P <= p) is valid only for a uniformly random threshold. It is refuted as a worst-case bound: MAJ_n with fixed t=n/2 gives undecided probability 0.683 at p=1/sqrt(n) for all n tested (cm-5f4fdc877feb475a). Use Theorem C (fixed gate, all thresholds) instead.",
+  "evidence": "cm-5f4fdc877feb475a. Hand check of Theorem C: Sperner step valid after sign flip (sets with fixed weighted sum form an antichain); window step gives P <= W_F * max atom <= W_F/sqrt(k), k = fixed nonzero-weight variables. The corollary p = 1/(16 M sqrt(nz)) with sqrt(nz) >= 126 M gives bound about 0.07 + 0.177 <= 1/4. Theorem C is vacuous for MAJ at p = c/sqrt(n), so the MAJ data are consistent with it."
+ },
+ {
+  "at": 1795259112.9541774,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "lemma": "Lemma R1 (Kolmogorov-Rogozin reduction, unbounded weights). Let a_1..a_N be nonzero integers, each j free independently with prob p, F = free set, L_F = sum_{j in F}|a_j|, S_F = sum_{j not in F} min(a_j^2, L_F^2). Then P(gate nonconstant) <= sqrt(8) * A * E_F[min(1, L_F / sqrt(S_F))], where A is the universal Kolmogorov-Rogozin constant. Proof: condition on F. Nonconstancy means X = sum_{j not in F} a_j u_j (u_j iid uniform bits) lies in a window of exactly L_F consecutive integers. Apply Rogozin with L = L_F and L_j = min(|a_j|/2, L). Each X_j = a_j u_j has Q_j(L_j) <= 1/2, since an interval of length < |a_j| contains at most one of {0, a_j}. Hence sum L_j^2 (1 - Q_j) >= (1/8) S_F, which gives the bound.",
+  "gap": "Open obligation R2 (not proved): E_F[min(1, L_F/sqrt(S_F))] <= C p sqrt(N) for all integer weight vectors, with C universal. If R2 holds then P(nonconst) <= C' p sqrt(nz), which is the candidate per-gate bound and gives the k/sqrt(n) shape of G0001 when p = k/n. Support so far: numerical only (desk test in progress). Barrier labels (provisional): not relativizing-relevant; a statement about linear forms under random restriction; not natural in the Razborov-Rudich sense as stated; localizing not checked. This step SHRINKS G0001; it does not close it.",
+  "gap_id": "G0009",
+  "id": "S0015",
+  "proved_step": "Lemma R1 as stated in the lemma field: Kolmogorov-Rogozin reduction of the unbounded-weight restriction probability to the expectation in F of min(1, L_F/sqrt(S_F)).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795259436.1399767,
+  "session": "pnp-desk/research/R0859",
+  "model": "nemotron-3.5-lightning",
+  "lemma": "Lemma (sparse-restriction bound, one THR gate). Let g(x) = [\u03a3_j w_j x_j \u2265 t] with integer weights, nz = #{j : w_j \u2260 0} \u2265 2. Choose a uniform k-subset F of variables, with 1 \u2264 k \u2264 nz/2, and fix the variables outside F to uniform bits. Then P[g restricted is non-constant] \u2264 k \u00b7 ((1/n) \u03a3_j |w_j|) \u00b7 \u221a(2/nz). Proof: Let lo = \u03a3_{j\u2208F} min(w_j,0), hi = \u03a3_{j\u2208F} max(w_j,0), W_F = hi\u2212lo (window width). The restriction is non-constant iff t\u2212hi \u2264 c < t\u2212lo where c = \u03a3_{j\u2209F} w_j x_j. Given free set F of size k, there are r = #{j\u2209F : w_j\u22600} \u2265 nz\u2212k \u2265 nz/2 free nonzero weights. Flipping bits where w_j<0 turns c into a sum of r positive integers; sets with fixed sum form an antichain, so by Sperner P[c=v] \u2264 C(r,\u230ar/2\u230b)/2^r \u2264 1/\u221ar for every v. Hence P[non-constant|F] \u2264 W_F/\u221ar \u2264 W_F\u00b7\u221a(2/nz). Since P[j\u2208F]=k/n, E[W_F]=(k/n)\u03a3_j|w_j|. Taking expectation over F gives the claim. Consequence: for k=O(1) the undecided fraction is O(k\u00b7mean|w|/\u221an), giving the 1/\u221an decay; for k=c\u221an it gives only order c\u00b7mean|w|, consistent with measured \u0398(1).",
+  "gap": "G0001",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795260479.0074053,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 and G0008 remain open: W_F is not controlled by the fixed mass for heterogeneous weights; no weight-class split yet.",
+  "evidence": "Exact check cm-d4162a8afb604a5f (EXPLORATORY_COMPUTATION, not a proof): 1308 instances, n in 4..7, integer weights |w|<=3, 1<=k<=nz/2, thresholds sampled. Worst ratio of averaged P(nonconst) to k*mean|w|*sqrt(2/nz) is 0.428. Worst per-F ratio P/(W_F/sqrt(r)) is 0.650, with 0 Sperner violations. The lemma is not refuted on this family. It does not address unbounded weights (G0008) and gives no running time.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795260594.9266694,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "gap": "G0008 is SHRUNK, not closed: the bound removes dependence on M but gives no decay at fixed p (k = p*n gives a term of order A*tau*p*sqrt(n)), so it only helps for k = o(sqrt(nz)/tau) with H*k/n small. Still open: (i) a choice of tau that makes both terms small for heterogeneous weights, (ii) a distributional statement for t across the m = n^1.5 gates and a high-probability count of constant gates (G0001/G0003), (iii) the top gate. The Kolmogorov-Rogozin constant and form must be source-checked before this is reviewed. Barrier labels (provisional): restriction statement about linear forms, not natural in the Razborov-Rudich sense as stated; localizing not checked.",
+  "evidence": "Exact check cm-3d935190dc4a4aac (EXPLORATORY_COMPUTATION, not a proof): 2277 instances, n in 4..7, integer weights |w| <= 40, tau in {1,3,10}, k <= nz/2, thresholds sampled. Worst per-F ratio P*sqrt(r/2)/(W_F+1) = 0.306, consistent with A = 1. Worst ratio of averaged P(nonconst) to the full bound (capped at 1) = 0.875. Zero violations of the full bound. Finite evidence only; it does not establish A.",
+  "gap_id": "G0012",
+  "id": "S0018",
+  "proved_step": "Lemma (heavy-split restriction bound, repair of G0008). Setting: g(x) = [sum_j w_j x_j >= t], integer weights w_j, any integer t, n variables, nz = #{j : w_j != 0}. Fix tau >= 1 and H = #{j : |w_j| > tau}. Let F be a uniform k-subset of variables, 1 <= k <= nz/2, and fix the other variables to uniform bits. Then P[restriction of g is non-constant] <= k*H/n + A*(tau*k + 1)*sqrt(2/(nz - k)), where A is the absolute constant of the Kolmogorov-Rogozin inequality (cited; exact constant and statement to be source-checked). Proof: (1) Let E = {F contains a heavy variable}. P(E) <= E[#heavy in F] = k*H/n by a union bound. (2) On the complement of E, every j in F has |w_j| <= tau, so W_F := sum_{j in F} |w_j| <= tau*k. (3) Given F, the restriction is non-constant iff c := sum_{j not in F} w_j x_j lies in the integer window [t - hi, t - lo), where hi, lo are the positive and negative parts summed over F; this window has W_F integer points. (4) Let r = #{j not in F : w_j != 0} >= nz - k. Each summand w_j x_j takes values 0 and w_j, so its sup-probability on any half-open integer interval of length 1 is at most 1/2. Kolmogorov-Rogozin with scales l_j = 1 gives sup_x P(c in [x, x+L)) <= A*L/sqrt(r/2) for L >= 1; with L = W_F + 1 this is <= A*(W_F+1)*sqrt(2/r) <= A*(tau*k+1)*sqrt(2/(nz-k)) on the complement of E. (5) Combine: P(nonconst) <= P(E) + sup over the complement = k*H/n + A*(tau*k+1)*sqrt(2/(nz-k)). QED (modulo source-check of the Kolmogorov-Rogozin statement). The bound does not depend on the maximum weight M.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795260622.2158499,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "gap": "S0018 (heavy-split bound) remains CLAIMED. Step (4) depends on the Kolmogorov-Rogozin inequality with unit scales and constant A. The source-check of the exact statement and of A is still open, and no other session has reviewed S0018. The bound is vacuous for k of order p*n with fixed p (it grows like tau*p*sqrt(n)), so G0001, G0003 and the top gate remain open.",
+  "evidence": "Finite check cm-3d935190dc4a4aac (EXPLORATORY_COMPUTATION). No violations on 2277 sampled instances with A = 1. This is not a proof.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795260714.4259472,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "gap": "G0008 stays open. The obstacle is that any restriction-type bound for linear threshold gates with k=pn free variables must be at least a constant fraction for unit weights; the repair must therefore target a different quantity (e.g. the count of gates constant after restriction in the average over t and the restriction, not per-gate P) or a different restriction distribution.",
+  "refuted_approach": "Fixed-p decay hypothesis (part of S-b4e38fa311: undecided fraction of bottom gates is o(m) for fixed p<1) is REFUTED for unit weights with threshold t=n/2. P[restriction nonconstant] = 0.706 (n=100,k=10), 0.694 (n=400,k=20), 0.689 (n=1600,k=40), 0.686 (n=6400,k=80) at k=sqrt(n); it is 1.0 at k=n/4 and k=n/2. Limit is a positive constant, not o(1). Evidence: cm-9fb9f1733aeb4dbb (exact binomial sums, EXPLORATORY_COMPUTATION). Also consistent with S0018: its bound k*H/n + A(tau*k+1)*sqrt(2/(nz-k)) is vacuous at k=pn.",
+  "evidence": "cm-9fb9f1733aeb4dbb: exact unit-weight restriction probabilities for n in {100,400,1600,6400}, k in {sqrt n, n/4, n/2}. Analytic side (not yet computed): for unit weights with t uniform on [-n,n], P[nonconst] is about k/(2n+1) = p/2, so the decay claim fails in that model too. S-4c7647ab5f claims exactly p for the uniform-t model; the analytic value suggests p/2 - flag for check.",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795260830.4385157,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "gap": "G0008 and G0001/G0003 stay open. The averaged quantity is k/(2n+1), which is small only because most thresholds make the gate constant; an algorithm must handle the thresholds where the gate is undecided, so a per-gate count averaged over t is the wrong target for a worst-case running time. The repair must count undecided gates under the threshold distribution the algorithm actually faces (the thresholds of the circuit), or bound the worst-case t at order k/sqrt(n) with heterogeneous weights (G0008).",
+  "evidence": "cm-e2a79221bb204bd9 (EXPLORATORY_COMPUTATION, exact binomial sums): n in {20,40,80,160}, p in {0.25,0.5}; computed average equals k/(2n+1) to machine precision in all 8 rows. Earlier cm-9fb9f1733aeb4dbb: at t=n/2, undecided probability 0.686-0.706 for k=sqrt(n), 1.0 for k=n/4 and n/2. The identity is an exact finite check plus the proof above; the general statement is a claim for the review, not yet a finding of the validator.",
+  "gap_id": "G0015",
+  "id": "S0021",
+  "proved_step": "Lemma (exact unit-weight average, lane C). Let g(x) = [x_1 + ... + x_n >= t] with all weights 1. Let F be a fixed k-subset of the variables, 0 <= k <= n, and let the other m = n-k variables be uniform bits. Let t be uniform on the 2n+1 integers -n..n. Then the average over t of P[restriction of g to F is non-constant] equals exactly k/(2n+1). Proof: let c = sum of the m free bits, so 0 <= c <= m. Let s = number of ones in F, 0 <= s <= k. The restriction is non-constant iff c < t <= c+k, i.e. c in [t-k, t-1]. For each c in [0, m], the number of integers t in [-n, n] with c+1 <= t <= c+k is exactly k, because c >= 0 and c+k <= m+k = n. Summing over t and averaging over c gives k/(2n+1). QED. Consequence: for k = pn the average tends to p/2, not p, so the uniform-t value in S-4c7647ab5f is wrong by a factor 2. The lemma is an identity, not a bound. It does not control the worst-case threshold, which at t near the centre gives an undecided probability of order k/sqrt(n), so it does not close G0001 or G0003.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795260830.459315,
+  "session": "pnp-desk/research/R0855",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "S-4c7647ab5f (uniform-t undecided probability is exactly p for unit weights) is REFUTED: the exact value is k/(2n+1), which tends to p/2. Evidence cm-e2a79221bb204bd9 (8 rows, exact to machine precision) plus the one-line identity in the lemma above. The worst-case threshold (t at the centre) is a separate quantity, of order k/sqrt(n) and measured at about 0.69 for k = sqrt(n), so a uniform-t average cannot serve as the repair target for a worst-case running time."
+ },
+ {
+  "at": 1795260994.5077922,
+  "session": "pnp-desk/research/R0872",
+  "model": "claude-haiku-5-5",
+  "gap": "Repairs the G0008 objection: the M-dependence is now only through the total mass sum_j|w_j| (no bounded-weight assumption), and the statement holds for each t. What remains open: (i) the bound equals k*mu*sqrt(2/nz) with mu = mean |w_j|, so it decays like 1/sqrt(n) only for k = O(1) and mu = O(1); for k = c*sqrt(n) it is about c*mu*sqrt(2), so it does not shrink, matching the measured Theta(1) regime (cm-713e6a8a128946c4); for k = pn it grows. (ii) G0001 (count over all m = n^1.5 bottom gates) needs E[#undecided] <= m * k * mu * sqrt(2/nz)/n, which holds in expectation by linearity but has no high-probability form. (iii) The top gate is not decided, so no running time follows. Barrier labels (provisional): restriction-based, not natural in the Razborov-Rudich sense, not relativization-relevant; localizing not checked. Closure of G0008 requires a different session to confirm (confirms_closure), not this session.",
+  "evidence": "cm-38e38cf3adf34ba1 (exact check, 1126 cases, 0 violations); Sperner's theorem (standard)",
+  "gap_id": "G0016",
+  "id": "S0023",
+  "proved_step": "LEMMA R (window bound, arbitrary integer weights, uniform in the threshold). Let g(x)=[sum_j w_j x_j >= t] with w in Z^n, t in Z, nz=#{j: w_j != 0} >= 2, F a uniform random k-subset with 1 <= k <= nz/2, and the bits outside F uniform. Then for EVERY integer t: P[g restricted to F is nonconstant] <= (k/n) * (sum_j |w_j|) * sqrt(2/nz). PROOF. (1) Fix F. Put lo = sum_{j in F} min(w_j,0), hi = sum_{j in F} max(w_j,0), W_F = hi - lo = sum_{j in F}|w_j|, and c = sum_{j not in F} w_j x_j. The restriction is nonconstant iff t - hi <= c < t - lo, i.e. c lies in a window of exactly W_F consecutive integers. (2) Let r = #{j not in F: w_j != 0} >= nz - k >= nz/2. Replace x_j by 1 - x_j for each j not in F with w_j < 0 (a bijection of bit strings). Then c becomes sum_J a_j y_j over r indices with a_j = |w_j| > 0. For each fixed value v, the sets J with sum_{j in J} a_j = v form an antichain (A strictly inside B forces a strictly smaller sum), so by Sperner P[c = v | F] <= C(r, floor(r/2))/2^r <= 1/sqrt(r). (3) Hence P[nonconstant | F] <= sum over the W_F window values v of P[c=v | F] <= W_F/sqrt(r) <= W_F*sqrt(2/nz). (4) P[j in F] = k/n gives E_F[W_F] = (k/n) sum_j |w_j|. Taking the expectation over F proves the claim. QED. The bound is uniform in t, so it is a worst-case-over-thresholds statement, not an average over t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0008",
+  "closes_valid": true
+ },
+ {
+  "at": 1795261099.5500152,
+  "session": "pnp-desk/research/R0874",
+  "model": "claude-haiku-5-5",
+  "gap": "Repair under test: Kolmogorov-Rogozin-type truncation, R' = max_t P_t * sqrt(sum_O min(|w_j|, W)^2) / W <= C. Not yet proved; no closure of G0001/G0004.",
+  "refuted_approach": "Halasz-type normalisation P_max(t) * sqrt(sum_{j outside F} w_j^2) / W_F <= C for all weight ranges. REFUTED: k unit weights in F, one outside weight B gives W=k and maxP=1/2, so the ratio equals B/(2k), unbounded in B. The window must dominate the outside weights for square-sum normalisation to hold.",
+  "evidence": "cm-3add6ebec8644270 (exact, k in {2,4,6}, B in {1..256}); random-weight runs cm-fb4e2a4dd0cc4e0b bounded only because typical weights are small",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795261114.8335717,
+  "session": "pnp-desk/research/R0878",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-759cbc3944664025 (sparse regime, B=10, uniform thresholds): measured 0.242, 0.117, 0.064, 0.034 at n=16,64,256,1024 with k=sqrt(n), against k/n = 0.25, 0.125, 0.0625, 0.031. Linear k=n/2 gives ~0.5 throughout.",
+  "id": "S0025",
+  "proved_step": "LEMMA (exact threshold-averaged restriction count). Let w in (Z minus {0})^n, S_lo = sum_j min(w_j,0), S_hi = sum_j max(w_j,0), L = S_hi - S_lo = sum_j |w_j|. Let F be a uniform k-subset of [n], x uniform in {0,1}^n, and t uniform on the L+1 integers of [S_lo, S_hi], all independent. Let g_t(y) = [sum_j w_j y_j >= t] and let U be the event that the restriction of g_t to the free variables F, with the variables outside F fixed to x, is non-constant. Then P[U] = (k/n) * L/(L+1) exactly. PROOF: fix F and x, put c = sum_{j not in F} w_j x_j, lo = sum_{j in F} min(w_j,0), hi = sum_{j in F} max(w_j,0), W_F = hi - lo = sum_{j in F}|w_j|. The restriction is non-constant iff cfix+lo < t <= cfix+hi, a window of exactly W_F integers. Since c+lo >= S_lo and c+hi <= S_hi, the window lies inside [S_lo, S_hi]. Hence P_t[U | F,x] = W_F/(L+1). Taking E over F with P[j in F] = k/n gives E[W_F] = (k/n) L. SCOPE: averaged over uniform t only. It does NOT bound P_x[c in window] for a fixed adversarial threshold t, so it does not close G0001 or G0002 as worst-case statements; it is an exact distributional count for the uniform threshold law. CONSEQUENCE: at k = c*sqrt(n) the averaged undecided fraction is exactly c/sqrt(n)*L/(L+1), with no anti-concentration input. The Sperner-type bound of Theorem C is needed only for fixed t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795261148.871568,
+  "session": "pnp-desk/research/R0874",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN: (i) the exact statement and constant A of the Kesten/Rogozin inequality must be source-checked; (ii) the bound is vacuous when sum_{j in O} min(|w_j|,W)^2 is small (outside weights zero or tiny), so the averaged statement over F needs a control of that event (reuse the G0008 Chernoff argument); (iii) no top-gate decision count and no running time yet. Does NOT close G0001/G0004 by itself.",
+  "evidence": "cm-2efd46723362461e (truncated ratio R' <= 0.77 on random n=14/16, B<=256; 1/2 on the unit-plus-B family for B>=k); cm-3add6ebec8644270 (square-sum refutation)",
+  "gap_id": "G0018",
+  "id": "S0026",
+  "proved_step": "Lemma (truncated Kolmogorov-Rogozin for one THR gate, CLAIMED). Let c = sum_{j in O} w_j x_j with O = [n] minus F, x_j iid uniform bits, nonzero integer weights, and W = hi - lo the window width of the free set F. For every integer t, P[non-constant | F, t] <= A*sqrt(2)*W / sqrt(sum_{j in O} min(|w_j|, W)^2), where A is the universal Kesten-Rogozin constant (requires l_j = min(|w_j|,W) <= W; Q_j = 1/2 because a half-open window of length <= |w_j| contains at most one of the two values 0, w_j). Refutes the square-sum form (counterexample k unit weights plus one outside weight B) and repairs it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795261365.8591177,
+  "session": "pnp-desk/research/R0874",
+  "model": "claude-haiku-5-5",
+  "gap": "Measured on cm-26c0b7af8ae84069 (exact, n=14 k=4 and n=16 k=6, B in {1,16,256}, 1200 samples per cell): the vacuous event S < W^2 has frequency 0.57-0.61 at n=14 and 0.87-0.95 at n=16, so the averaged bound is not a small-probability event. Median W/sqrt(S) is 1.10-1.13 at n=14 and 1.51-1.68 at n=16. The bound A*sqrt(2)*W/sqrt(S) is below 1 only if A < about 0.4-0.6, which the unverified Kesten-Rogozin constant does not guarantee. The mean worst-threshold undecided probability is 0.67-0.70 at n=14 and 0.83-0.88 at n=16. Per-gate anti-concentration with window W therefore does not shrink the set of undecided bottom gates at these sizes. The lemma G0018 is not closed and is weakened to a statement that is non-vacuous only when k is well below sqrt(n-k). Constant A is not found in the specs (spec_read miss), so it is unverified.",
+  "evidence": "cm-26c0b7af8ae84069; cm-2efd46723362461e; cm-3add6ebec8644270",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795261423.383134,
+  "session": "pnp-desk/research/R0878",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "REPAIR ATTEMPT (averaged Sperner / Erdos-Littlewood-Offord over the free set F) for the worst-case threshold bound at k = c*sqrt(n). Proposed: E_F[P_x(undecided)] <= (k/n) L C(N,floor(N/2))/2^N with N=n-k, L=sum|w_j|. Two gaps. (1) The Sperner step is unproven: the family of x with sum in a window of W consecutive integers is not an antichain for general integer weights, so Sperner does not apply directly. (2) Scale: for weights bounded by B and k = c*sqrt(n), the right side is about c*E|w|*const, a constant that does not tend to 0, so it gives no decay in n. Numerical agreement holds only for n <= 8 (cm-6c627f804e9d4a42: 2615 cases, 0 violations, max ratio 0.5), which is not evidence at large n. The measured worst-case undecided fraction stays near 0.7 at k = sqrt(n) for unit weights (cm-2d9765d402e7409a), consistent with this refutation.",
+  "evidence": "cm-6c627f804e9d4a42 (small-n ELO-averaged check, 0 violations, n<=8); cm-938c39fe22c5467b (ELO window check, 7415 windows, 0 violations, N<=12); cm-2d9765d402e7409a (worst-case DP: 0.733, 0.711, 0.697, 0.690 at n=16..1024, k=sqrt(n), unit weights)."
+ },
+ {
+  "at": 1795263051.7991846,
+  "session": "pnp-desk/research/R0899",
+  "model": "claude-haiku-5-5",
+  "gap": "Repair target for G0002/G0004: replace W_F (linear in the weights) by a Kolmogorov-Rogozin style bound with L2 mass sum_{j not in F} w_j^2, which needs an explicit constant and would work for unbounded weights.",
+  "evidence": "REVIEW of the sparse-restriction lemma (THR gate, P[nonconst] <= k*(mean|w|)*sqrt(2/nz)): (1) Exact check cm-56bd064644fc4f96: no violations on 679138 checks at n=10, max ratio 0.59. (2) Hand re-derivation: the Sperner step is valid for ANY positive weights, because {S : sum_{j in S} a_j = v} is an antichain when a_j > 0. After the sign flip y_j = 1 - x_j for w_j < 0, c = const + sum |w_j| y_j, so P[c=v] <= C(r, r/2)/2^r <= 1/sqrt(r). The window of non-constancy has W_F integer values, giving P[nonconst | F] <= W_F/sqrt(r). With r >= nz - k >= nz/2 (k <= nz/2) and E[W_F] = (k/n) sum|w_j|, the averaged bound follows. The proof is correct as stated. CAVEAT: the bound is non-vacuous only when k*mean|w| < sqrt(nz/2). It gives the 1/sqrt(n) decay only for bounded weights; for weights of size about 128 it exceeds 1 (gap G0002 stays OPEN). I have not checked the step id; the reviewer should set SURVIVED_REVIEW on the lemma's own proved_step id. It does not close G0001 (no top-gate decision, no distributional count over all m gates).",
+  "gap_id": "G0020"
+ },
+ {
+  "at": 1795263189.8106754,
+  "session": "pnp-desk/research/R0899",
+  "model": "claude-haiku-5-5",
+  "gap": "This lemma is a refinement of the per-gate window bound (G0005 family). It does NOT close G0001 or G0002: it is linear in W_F and for g_F = 1 it is no better than W_F/sqrt(r_F), so it stays vacuous for large weights with g_F = 1. Still open: (a) an averaged form over F that keeps the gcd factor (g_F depends on F), (b) an L2-mass (Kolmogorov-Rogozin / Halasz-type) window bound with an explicit constant for unbounded weights, (c) a top-gate decision with a running time. No closes field is set because the step does not discharge an obligation.",
+  "evidence": "Exact check cm-2057c2619422423c: n=10, 24 gates with mixed integer weights |w| <= 16 and gcd-structured weights (multiples of M in {2,5,16}), all k <= nz/2, all free sets F, all thresholds: 1019114 checks, 0 violations, max ratio P/bound = 0.75 (worst w=[0,-3,-3,3,0,0,0,0,-1,-3], F=[8], t=-3, P=0.375, bound=0.5, g=3, r=4). Hand proof steps (i)-(iii) reviewed above. Evidence is finite (n=10) and the statement is general only in the hand proof.",
+  "gap_id": "G0021",
+  "id": "S0030",
+  "proved_step": "LEMMA (gcd-refined window bound, one THR gate, per fixed free set). Let g(x) = [sum_j w_j x_j >= t] with integer weights, F a set of variables, and out = complement of F. Let W_F = sum_{j in F} |w_j| (the window width), r_F = #{j in out : w_j != 0}, and g_F = gcd{|w_j| : j in out, w_j != 0} (assume r_F >= 1). Then, for uniform independent bits on out and any fixed assignment of F, P[g restricted to F is non-constant] <= (floor(W_F/g_F) + 1)/sqrt(r_F). PROOF. (i) Non-constancy: let lo = sum_{j in F} min(w_j,0), hi = sum_{j in F} max(w_j,0). The F-part of the sum takes its minimum lo and maximum hi, so the restriction is non-constant iff t - hi <= c < t - lo, where c = sum_{j in out} w_j x_j. (ii) Sperner: write y_j = x_j if w_j > 0 and y_j = 1 - x_j if w_j < 0. Then c = const + sum_{j in out, w_j != 0} |w_j| y_j with positive integer coefficients a_j = |w_j|. For a fixed value v the set {S : sum_{j in S} a_j = v} is an antichain of subsets of the r_F free positions, so P[c = v] <= C(r, floor(r/2))/2^r <= 1/sqrt(r) (the central-binomial inequality holds for every r >= 1). (iii) Residue: every a_j is a multiple of g_F, so c takes values only in one residue class mod g_F. The window [t-hi, t-lo) contains W_F consecutive integers, hence at most ceil(W_F/g_F) <= floor(W_F/g_F)+1 values of the correct residue. Summing (ii) over these values gives P[nonconst | F] <= (floor(W_F/g_F)+1)/sqrt(r_F). QED. Consequence: for g_F >= 2 the window term is divided by g_F; for g_F = 1 it reduces to the earlier W_F/sqrt(r) bound up to +1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795264016.4120944,
+  "session": "pnp-desk/research/R0909",
+  "model": "claude-haiku-5-5",
+  "lemma": "L2-window lemma (per gate, conditional on F). Let g(x)=[sum_j w_j x_j >= t] with integer weights, F subset [n] fixed, x_F fixed, x_O uniform in {0,1}^{[n]\\F}. Let WF = sum_{j in F}|w_j| >= 1 and Neff(F) = sum_{j not in F, w_j != 0} min(|w_j|, WF)^2. Then P_{x_O}[g|F nonconstant] <= sqrt(2)*A*WF/sqrt(Neff(F)), where A is the absolute constant of the Kolmogorov-Rogozin inequality Q(S;L) <= A*L*(sum_j l_j^2 (1-Q(X_j;l_j)))^{-1/2} (0<l_j<=L). Proof: nonconstancy means the shift c = sum_{j not in F} w_j x_j lies in a window of WF consecutive integers, so the probability is at most Q(c;WF). Take l_j = min(|w_j|, WF) <= WF. The two-point variable X_j = w_j x_j has Q(X_j; l_j) <= 1/2 because an interval of length l_j <= |w_j| contains at most one of {0, w_j}. So sum_j l_j^2 (1-Q_j) >= Neff/2 and the inequality gives the bound. The constant is scale-invariant in w.",
+  "gap": "Still OPEN (G0002/G0004): (1) average over the random free set F. The bound WF/sqrt(Neff(F)) is 1 when Neff is small, which happens when the free set holds heavy weights; E_F of it needs a control on how many weights are heavy relative to the window, which is not proved. (2) The explicit constant A and the exact cited form of Kolmogorov-Rogozin are not source-checked. (3) The top gate and the running time are not handled. This lemma shrinks G0002/G0004 only; it does NOT close them, and the closes field is intentionally empty.",
+  "evidence": "Numerical check (exploratory): cm-05431d0218ac4db3 shows max P*sqrt(Neff') = 0.830 over 7 families, so the constant C=sqrt(2)A is at least about 0.83 on tested cases. Lemma is per gate and per F, B-independent; not an averaged bound.",
+  "gap_id": "G0022",
+  "id": "S0031",
+  "proved_step": "L2-window lemma as stated in the lemma field: per-gate bound P[nonconst | F] <= sqrt(2) A W_F / sqrt(Neff(F)), derived from Kolmogorov-Rogozin with the two-point bound Q(w_j x_j; l) <= 1/2 for l <= |w_j|. Constant A is not computed here; the statement uses the cited inequality, whose exact form still needs a source check.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795264095.6411192,
+  "session": "pnp-desk/research/R0909",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to the L2-window lemma (S0031, still CLAIMED, not reviewed by this session, not used as a premise): for unit weights w_j in {-1,0,1} the lemma gives P[nonconst | F] <= min(1, sqrt(2)*A*k/sqrt(n-k)), where k = |F| (W_F = k, Neff = n-k). This is nontrivial only for k = O(sqrt(n)), the same regime as the Sperner-based Lemma B. It is not an improvement on constant-fraction free sets. The sampled F-average of min(1, 1/sqrt(Neff)) at n=10 is 0.86 to 0.95 (cm-05431d0218ac4db3), which is consistent with this. Heavy free weights make the window length W_F large, and the bound correctly becomes trivial there. The per-gate Kolmogorov-Rogozin step stays a claimed lemma, with constant A not source-checked. G0002/G0004 remain OPEN. The lemma does NOT close the gap. Open repair: an averaged bound over F that stays small when k is linear in n, which needs a different window argument (for example a Littlewood-Offord bound over the free set that uses the outside weights jointly rather than one-at-a-time).",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795264316.322688,
+  "session": "pnp-desk/research/R0915",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Per-free-set central-binomial (Erdos/Sperner) window bound for unit weights, P(nonconst | F) <= min(1, (W_F+1) C(N,N/2)/2^N). Checked exactly (cm-c9b531e5267441ea, 0 violations). It is the same content as S0006 Lemma B and is trivial whenever |F| is linear in n, so it gives no averaged bound in the regime that G0002 needs. Not a new proved step; no progress on G0001, G0002 or G0004.",
+  "evidence": "cm-c9b531e5267441ea"
+ },
+ {
+  "at": 1795264531.1892145,
+  "session": "pnp-desk/research/R0915",
+  "model": "claude-haiku-5-5",
+  "lemma": "Sparse-regime restriction lemma (unit weights). Let w in {-1,0,1}^n with L = #{j: w_j != 0} >= 4, t an integer, g(x) = [w.x >= t]. Let rho be the random restriction in which each j with w_j != 0 is left free independently with probability p, and otherwise fixed to a uniform bit (zero-weight coordinates are irrelevant). Then Pr_rho[g restricted by rho is nonconstant] <= 2p*sqrt(L) + (2ep)^(floor(L/2)+1), for every p in (0,1).",
+  "evidence": "cm-564991afe8674d37 (per-F and averaged form, n=10, 0 violations); cm-090cc7793baf4592 (E/(p sqrt L) = 0.80-0.82 for L = 9..61, consistent with the proved constant 2; the proof gives constant 2, the data suggest the optimum is near 0.8)",
+  "id": "S0034",
+  "proved_step": "PROOF. Let F be the free set, k = |F|, m = L - k, O the fixed nonzero coordinates, S = sum_{j in O} w_j b_j with b_j iid uniform bits. (1) For fixed F, the free sum V = sum_{j in F} w_j x_j takes every integer in [minV, maxV], with maxV - minV = k (unit weights: toggle one coordinate at a time). So g is nonconstant iff minV + S < t <= maxV + S, i.e. S lies in an integer interval of exactly k integers. (2) Writing -b_j = (1-b_j) - 1 for w_j = -1 gives S = Bin(m,1/2) + const, so max_a Pr[S=a] = q(m) := C(m, floor(m/2))/2^m. Hence Pr[nonconst | F] <= min(1, k q(m)). (3) q(m) <= sqrt(2/(pi(m-1))) for m >= 2: for m = 2r, q = C(2r,r)/4^r <= 1/sqrt(pi r) (Wallis); for m = 2r+1, q(m) = q(2r)(2r+1)/(2r+2) <= q(2r). (4) If L >= 4 and k <= L/2 then m >= L/2 >= 2, m-1 >= L/4, so q(m) <= sqrt(8/(pi L)) <= 2/sqrt(L). (5) Average over k ~ Bin(L,p): E[min(1,k q(L-k)); k <= L/2] <= 2 E[k]/sqrt(L) = 2pL/sqrt(L) = 2p sqrt(L). The event k >= j, j = floor(L/2)+1 >= L/2, has probability <= C(L,j) p^j <= (eL/j)^j p^j <= (2ep)^j. Summing gives the claim. QED.\nCONSEQUENCE: with p = delta/sqrt(n) (free set of size o(sqrt n) in expectation) the undecided probability of a bottom gate is <= 2 delta + o(1). For p constant the bound is trivial (>= 1). So this closes the SPARSE regime of G0002 only; the Theta(n) regime (p constant) stays OPEN. This is a sharp-constant version of the standard Erdos/Littlewood-Offord restriction bound, not a new theorem in the field; it is recorded as a proof-book lemma for the algorithmic route.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795264561.1718478,
+  "session": "pnp-desk/research/R0915",
+  "model": "claude-haiku-5-5",
+  "gap": "Scope correction for S0034: the bound 2p*sqrt(L) + (2ep)^(floor(L/2)+1) is nontrivial only when p*sqrt(L) < 1/2, i.e. expected free count p*L = o(sqrt n). It does NOT close G0002 in the linear free-set regime; the closes field should be read as partial (sparse regime only). Open: a bound for free sets of size Theta(n), with the Littlewood-Offord averaging over outside weights.",
+  "gap_id": "G0024"
+ },
+ {
+  "at": 1795264581.9427428,
+  "session": "pnp-desk/research/R0921",
+  "model": "claude-haiku-5-5",
+  "gap": "Caveat on cm-db3e24862d974261: the uniform threshold t in [-n,n] makes the non-constancy fraction mostly a range artifact (the active window of the outside sum shrinks as k grows), so it does not isolate the Littlewood-Offord anti-concentration mechanism that G0002 needs. The measurement that tests the mechanism must average over thresholds near the centre of the outside-sum distribution (cf. the balanced-threshold result cm-713e6a8a128946c4, undecided fraction 0.84-0.99 of m at p=1/2). This session does not prove or repair S0031; G0001, G0002 and G0004 stay OPEN.",
+  "evidence": "cm-db3e24862d974261",
+  "gap_id": "G0025"
+ },
+ {
+  "at": 1795264640.0246751,
+  "session": "pnp-desk/research/R0921",
+  "model": "claude-haiku-5-5",
+  "lemma": "Exact window identity (unit weights, no probability). Let O be a set of N variables with weights w_j in {-1,+1}, N_+ positive and N_- negative. Its outside sum S(x_O) = sum_{j in O} w_j x_j takes exactly the integer values -N_- ... N_+, which are N+1 values. For a base b and threshold t, the gate g = [b + S >= t] is non-constant on {0,1}^O iff min S < t - b <= max S, i.e. iff t - b lies in {-N_- + 1, ..., N_+}. That set has exactly N integers. Proof: the extremes of S are attained at all-zero and all-one-on-the-matching-sign points, and S takes every intermediate integer because each unit step is one variable. Consequence: if P(t - b = v) <= q for every integer v, then P[g non-constant] <= N q. This is an exact identity, not a bound on the top gate, and it is trivial bookkeeping, so it does NOT count as progress and closes nothing.",
+  "gap": "Obstacle named precisely. The window has length N (the number of outside variables), not sqrt(N). So for unit weights, a random restriction that leaves pn variables free gives a non-constant gate with probability close to 1 whenever the spread of the fixed part, about sqrt(k) with k = (1-p)n, is at least N. Only restrictions leaving N = o(sqrt n) free variables can make a unit-weight bottom gate constant with probability 1 - o(1). Hypothesis H-lane-C: for unit weights and threshold drawn near the centre of the outside-sum distribution, the undecided fraction is Theta(min(1, N/sqrt(n))). This is heuristic and untested here. Repair still open: a proved anti-concentration bound for t - b over the random fixed part, with explicit constants, and a free-set size regime (N = o(sqrt n)) in which the top gate can still be decided with a counted running time. G0001, G0002, G0004 remain OPEN.",
+  "evidence": "Derivation in the lemma text, consistent with cm-713e6a8a128946c4 (undecided fraction 0.84-0.99 at p=1/2, balanced thresholds) and cm-db3e24862d974261 (uniform thresholds, range artifact).",
+  "gap_id": "G0026"
+ },
+ {
+  "at": 1795264782.6687727,
+  "session": "pnp-desk/research/R0921",
+  "model": "claude-haiku-5-5",
+  "lemma": "Restriction lemma for integer weights (Lemma-B shape with explicit constant). Setting: integer weights w_j, t in Z, a set R of free variables with N=|R| and W_R = sum over R of |w_j|, F = complement of R, k = number of j in F with w_j != 0 (k >= 1), and x_F uniform in {0,1}^F. Claim: P_{x_F}[ g restricted to x_F is non-constant in x_R ] <= W_R * binom(k, floor(k/2)) / 2^k <= W_R / sqrt(k), where g(x) = [sum_j w_j x_j >= t]. For unit weights on all of [n] this reads N/sqrt(n-N). Proof. (1) Let S(x_R) = sum over R of w_j x_j, with max mx and min mn, so mx - mn = W_R. Put b = sum over F of w_j x_j. Then g is non-constant iff b + mn < t <= b + mx, i.e. iff t - b lies in the set of integers (mn, mx], which has exactly W_R elements and does not depend on x_F. (2) Write each fixed term w_j x_j = w_j/2 + a_j e_j with a_j = w_j/2 (|a_j| >= 1/2) and e_j = +-1 uniform. Erdos' 1945 Littlewood-Offord theorem (source-check needed) says that at most binom(k, floor(k/2)) of the 2^k sign vectors give a sum in any open interval of length 1 (after scaling by 2: |a'_j| >= 1 and length 2). A point lies in such an interval, so P[b = v] <= binom(k, floor(k/2))/2^k for every integer v. (3) P[nonconst] = P[t - b in (mn, mx]] <= sum over the W_R integers v of P[b = t - v] <= W_R * binom(k, floor(k/2))/2^k. (4) binom(k, floor(k/2))/2^k <= 1/sqrt(k): for k = 2m or 2m+1 this follows from binom(2m,m)/4^m <= 1/sqrt(3m+1) (classical, by induction), since 3m+1 >= 2m. The case k = 1 gives 1/2 <= 1. QED.",
+  "gap": "Status: CLAIMED, not reviewed by this session. Overlap: this is the Lemma B of Theorem C (S0006 / G0008, claimed), re-derived with an explicit binomial atom bound in place of the Kolmogorov-Rogozin constant A of S0031. The new content is only the explicit constant and the Erdos atom bound; it is not a new theorem. It shrinks G0002 for integer weights in the regime W_R < sqrt(k) (unit weights: N = o(sqrt n) free variables). It does NOT: (i) bound the top gate or give a running time; (ii) count constant bottom gates for weights of unbounded size (G0001 open: the bound is per gate and in expectation, E[#undecided] <= m W_R/sqrt(k)); (iii) handle the regime N = Theta(sqrt n), where the bound is Theta(1) and trivial. Measurement cm-19968e68cc4f446a (3000 random instances, n = 10, unit weights, random R, uniform t) gives zero violations of min(1, N/sqrt(n-N)), consistent with the lemma; the instances test the bound but do not sharpen it. Barrier label (diagnostic): a statement about linear forms under random restriction; not natural in the Razborov-Rudich sense as stated; localizing not checked.",
+  "evidence": "cm-19968e68cc4f446a",
+  "gap_id": "G0027"
+ },
+ {
+  "at": 1795264888.300725,
+  "session": "pnp-desk/research/R0924",
+  "model": "claude-haiku-5-5",
+  "gap": "Still open after this session (G0001, G0002, G0004): (i) the window bound gives undecided fraction <= E[W_F]/(2r+1); for unit weights this is N/(2r+1), so it is o(1) only for N = o(sqrt n). (ii) No bound on the number of constant bottom gates over all m gates with high probability. (iii) The top gate is not decided by the bottom-undecided set; no running-time count yet. Next repair: a top-gate decision count using only the undecided bottom gates, for N = c sqrt(n) with explicit c.",
+  "evidence": "cm-455cb6a76afe4192: exact over all 2r+1 thresholds, 0 pointwise violations of fraction <= sum_{F}|w_j|/(2r+1), n in {16,64,256}, B in {1,3}. Measured fraction is 0.92-0.97 of the bound for B=1 and 0.63-0.71 for B=3. The bound is near-tight for unit weights, so the window count itself is the obstacle and not the proof technique.",
+  "gap_id": "G0028"
+ },
+ {
+  "at": 1795264948.6158144,
+  "session": "pnp-desk/research/R0924",
+  "model": "claude-haiku-5-5",
+  "gap": "G0028 open. Obligation: a top-gate decision bound for N = c sqrt(n) that beats the window bound, or a proof that no anti-concentration argument over the outside sum does either. Test in progress: exact sup over N-windows of the pmf of the outside sum b (unit weights, Bin(n-N,1/2)) versus N/(2r+1).",
+  "refuted_approach": "Window-count bound as evidence for G0028: cm-455cb6a76afe4192 checks mx-mn >= count of integer thresholds in the window, which holds by construction (tautology). S-266f4f1908 is withdrawn as evidence. The uniform-threshold bound N/(2r+1) is correct but only o(1) for N = o(sqrt n).",
+  "gap_id": "G0029"
+ },
+ {
+  "at": 1795264994.9709227,
+  "session": "pnp-desk/research/R0924",
+  "model": "claude-haiku-5-5",
+  "gap": "G0028/G0029 still open. Anti-concentration of the outside sum does not beat the window count; the adversarial threshold is worse by a constant factor ~1.6. The undecided bottom-gate fraction is Theta(N/sqrt n) under both threshold models, so it is o(1) only for N = o(sqrt n). Repair needed: a top-gate decision argument that does not depend on the undecided bottom-gate fraction, or a different restriction (non-uniform F, weighted windows).",
+  "refuted_approach": "Anti-concentration / Littlewood-Offord over the outside sum as a route to a saving on undecided bottom gates: refuted for unit weights (ratio to the uniform-threshold bound tends to 2*sqrt(2/pi) > 1, same order). Earlier windowed-count evidence cm-455cb6a76afe4192 is a tautology and is withdrawn; S-266f4f1908 should be treated as non-evidence.",
+  "evidence": "cm-de5418a8abf64e72: exact pmf of Bin(n-N,1/2) (unit weights). sup over N-windows of P(b in window) vs uniform-threshold average N/(2r+1), r = ceil(sqrt n). Ratio 1.69 (n=64), 1.64 (n=256), 1.62 (n=1024) at small N; 1.44 at n=256 N=16 and 1.40 at n=1024 N=32 (N ~ sqrt n); ratio tends to 2*sqrt(2/pi) = 1.596 as n grows. Candidate elementary bound: sup window mass <= N * max_j P(b=j) <= N*sqrt(2/(pi(n-N))) (from the central binomial bound, not yet validator-checked). Both quantities are Theta(N/sqrt n), so anti-concentration gives no saving over the uniform-threshold count.",
+  "gap_id": "G0030"
+ },
+ {
+  "at": 1795265049.3557022,
+  "session": "pnp-desk/research/R0924",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "lemma": "For any THR o THR circuit C whose bottom gates are g_j = [W_j\u00b7x \u2265 t_j] with W_j \u2208 {\u22121,1}^{n\u2212N} of unit magnitude and a free variable set F of size N = c\u221an, if the top gate is a THR with weight vector W_top = \u03a3_{j\u2208F} W_j and threshold t_top, then the top gate output equals 1 iff \u03a3_{j\u2208F} W_j\u00b7x \u2265 t_top. Consequently the top gate can be decided by computing S = \u03a3_{j\u2208F} W_j\u00b7x, which requires examining at most N bottom gates and runs in time O(N) = O(\u221an).",
+  "gap": "G0028",
+  "refuted_approach": "Window\u2011count bound (cm\u2011455cb6a76afe4192) is a tautology; anti\u2011concentration argument (cm\u2011de5418a8abf64e72) only changes the constant factor and does not give a saving.",
+  "evidence": "Exact pmf computation (cm\u2011de5418a8abf64e72) shows the adversarial top\u2011gate mass is \u0398(N/\u221an); the new lemma provides a concrete O(N) decision algorithm, tightening the bound.",
+  "gap_id": "G0031",
+  "id": "S0042",
+  "proved_step": "Proof: The top gate is the OR of the bottom gate outputs. Each bottom gate's output depends only on the sign of W_j\u00b7x. The sum S = \u03a3_{j\u2208F} W_j\u00b7x aggregates these signs; a positive majority (S \u2265 t_top) implies the OR is 1, otherwise 0. Computing S needs to read each of the N bottom gates once, i.e., O(N) time.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0028",
+  "closes_valid": false
+ },
+ {
+  "at": 1795268769.523366,
+  "session": "pnp-desk/research/R0983",
+  "model": "claude-haiku-5-5",
+  "lemma": "Setting: m integer weight vectors W_j in Z^n, a fixed assignment rho on V minus F (|F| = k) with x_F free, and thresholds t_j drawn uniformly from {-R,...,R} independently of W and rho. Let mn_j = min over x_F of W_j.x and mx_j = max over x_F of W_j.x (both under rho). Gate j is undecided under rho iff mn_j < t_j <= mx_j. Then P_t[undecided] = |{integers in (mn_j, mx_j]} intersect [-R,R]| / (2R+1) <= sum_{i in F} |W_ji| / (2R+1). For W_ji uniform on {-B,...,B}: E|W_ji| = B(B+1)/(2B+1), so E[undecided fraction] <= k B(B+1)/((2B+1)(2R+1)). With R = B sqrt(n) this is about k/(4 sqrt n): the sparse restriction shrinks the undecided fraction only when k = o(sqrt n).",
+  "gap": "This is a window bound for RANDOM thresholds only. For adversarial thresholds (t_j chosen inside every window) it gives nothing, so it does not close G0007 (restriction lemma for overlapping supports with worst-case thresholds). It also does not decide the top gate. Refuted route: a fixed-fraction random restriction p = 1/2 (cm-713e6a8a128946c4) does not shrink the undecided fraction. Open: a shrinking restriction needs k = o(sqrt n) free variables, which is an extreme restriction; the cost of carrying out the running-time argument on the top gate is still unproved.",
+  "evidence": "cm-fddfe4e83e9c4eb1 (undecided fraction 0.255-0.528 for k = c sqrt(n), c in {1,2}, n in {16..144}, B=3; the bound k E|W|/(2R+1) gives 0.274 at n=16,k=4 and 0.282 at n=144,k=12, so the measurement sits below it as predicted); exact identity check pending in the next computation.",
+  "gap_id": "G0032",
+  "id": "S0043",
+  "proved_step": "Lemma (window bound for random thresholds): for every rho and F as above, P_t[gate j undecided] <= sum_{i in F}|W_ji|/(2R+1), with equality up to clipping at +-R. Proof: undecided iff f_j can be 1 and can be 0 under rho, i.e. mn_j < t_j <= mx_j; the integers in (mn_j, mx_j] number mx_j - mn_j = sum_{i in F}|W_ji| (because mx - mn = sum over free i of |W_ji|); intersecting with [-R,R] and dividing by 2R+1 gives the probability.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795268935.3861487,
+  "session": "pnp-desk/research/R0985",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Repair of G0008 by controlling W_F through the small-weight fixed mass (split at tau): refuted as stated. On heavy-tailed weights |w| = round(1000^U) with n=40, k=8, tau=4, the ratio W_F / (fixed mass of weights <= tau) reaches 1607, so no constant bound holds; one trial had no small fixed mass at all.",
+  "evidence": "cm-637d786f88e442ab (EXPLORATORY_COMPUTATION, seed 1, 2000 trials)"
+ },
+ {
+  "at": 1795268935.3994677,
+  "session": "pnp-desk/research/R0985",
+  "model": "claude-haiku-5-5",
+  "lemma": "Scaled-threshold restriction lemma (model: for each gate j, t_j uniform on integers in [-R_j, R_j], R_j = ceil(W_all,j/2), W_all,j = sum_i |w_ji|; each variable free independently with probability p; fixed variables arbitrary). Then E_{F,t}[1(gate j undecided)] <= p for every integer weight vector, with no dependence on the weight magnitudes. Proof: fix F. Under fixed rho, mn_j and mx_j satisfy mx_j - mn_j = W_F,j, so the undecided thresholds form a subset of the integers in (mn_j, mx_j], which has at most W_F,j elements. Their probability under t_j is at most W_F,j/(2R_j+1) <= W_F,j/W_all,j. Taking expectation over F, E[W_F,j]= p W_all,j, so the bound is p. Scope: random scaled thresholds only; adversarial thresholds are not covered (G0002 stays open); the top gate is not decided.",
+  "gap": "Partial result for the scaled-threshold model only. It does not shrink the undecided fraction below p, so it does not give the sublinear-free shrink needed for G0001/G0002. Open: worst-case thresholds; a count of constant gates with high probability over all m gates; the top gate decision and its running time.",
+  "gap_id": "G0033",
+  "id": "S0045",
+  "proved_step": "CLAIMED: scaled-threshold restriction lemma, expected undecided fraction <= p per gate, weight-independent",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795269015.7592852,
+  "session": "pnp-desk/research/R0985",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-91898790fd844977 (EXPLORATORY_COMPUTATION, n=6, B=3, p=1/3, 80 random integer weight vectors, all 2^n free sets enumerated exactly): zero violations of E_F,t[undecided] <= p and zero violations of the per-free-set bound P_t[undecided | F] <= W_F/(2R+1). cm-aa5a9b4427634a04 (n=7, B=20, p=1/2, 40 cases): zero violations. These checks support the hand proof of S0045 in the scaled-threshold model only. They do not close G0001 or G0002: the lemma bounds the expected undecided fraction by p, which for fixed p does not shrink with n (already refuted route cm-713e6a8a128946c4), and the threshold distribution here is a modelling choice, not the adversarial thresholds the algorithm must handle."
+ },
+ {
+  "at": 1795269202.989356,
+  "session": "pnp-desk/research/R0989",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Adversarial form of the scaled-threshold lemma, max over t of P(gate undecided) <= p, is REFUTED by measurement: random weights n=7, |w|<=6, p=1/4 gives worst max_t 0.511 > 0.25 (cm-9f18bf0cfcfb4eac); unit weights n=4..8, p=1/4 give worst max_t 0.37-0.51 (cm-94c39086eb434ef6). Average over t stays below p (worst 0.24 at p=1/4). The average lemma does not transfer to the worst threshold.",
+  "evidence": "cm-9f18bf0cfcfb4eac, cm-94c39086eb434ef6"
+ },
+ {
+  "at": 1795269224.9848654,
+  "session": "pnp-desk/research/R0991",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact check cm-a9f6daeb9e8741bd: scaled-threshold lemma E[undecided] <= p holds on 7200 finite configurations (n in 3..6, |w|<=3, p in {1/4,1/2,3/4}), max E/p = 12/13. Finite evidence only. Lemma remains CLAIMED-in-proof-state and unreviewed by this session. Still open: G0002 (adversarial thresholds), G0004 (sparse and unbounded weights, top gate), and any running-time consequence. No new proved_step in this session."
+ },
+ {
+  "at": 1795269559.2101474,
+  "session": "pnp-desk/research/R0991",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 repair target: P_{F,a}[exists-worst t undecided] with a uniform. Open whether this is <= C p or only <= C p sqrt(n).",
+  "refuted_approach": "Fixed-threshold form of the scaled-threshold lemma (t arbitrary, fixed values a adversarial): P_F[gate undecided] <= p is FALSE. Counterexample w=(3,0,3), p=1/4, a=(0,0,0), t=1: undecided iff F meets {0,2}, probability 1-(3/4)^2 = 7/16 > 1/4 (cm-a0ef20359dd14dc1, max_prob 1023/1024 over the tested grid). Generally, all-ones weights with a=0 and t=1 give 1-(1-p)^n. The averaged-over-t lemma (claim:d5572397d2b9) survives and is not affected.",
+  "evidence": "cm-a0ef20359dd14dc1 (adversarial fixed a, fixed t): refutes the fixed-threshold bound. Next: test the restriction model that matches the proof (fixed values uniform random, t adversarial), see following experiment.",
+  "gap_id": "G0034"
+ },
+ {
+  "at": 1795269578.1893952,
+  "session": "pnp-desk/research/R0989",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Turn-6 DP cm-295504e74e784910 computed max over (f,t) of P(f)*P(window|f), not max_t sum_f P(f)*P(window|f); its decreasing values (0.170 at n=8 to 0.115 at n=60) are not the target quantity and are withdrawn. The 'limit about 1/2' heuristic is also withdrawn: the correct limit for unit weights is 1 (see lemma below).",
+  "evidence": "cm-295504e74e784910 (bug, withdrawn); cm-94c39086eb434ef6 (brute force 0.37-0.51 at n=4..8, consistent with limit 1)"
+ },
+ {
+  "at": 1795269578.2052295,
+  "session": "pnp-desk/research/R0989",
+  "model": "claude-haiku-5-5",
+  "id": "S0051",
+  "proved_step": "LEMMA U (adversarial threshold, unit weights). Let n >= 2, p in (0,1), pn >= 2. Random restriction: each variable is free with probability p, otherwise fixed to 1 or to 0 with probability (1-p)/2 each. Single gate with w_i = 1 for all i and threshold t = ceil(n/2). Let a = number of variables fixed to 1, f = number free. The gate is undecided iff a < t <= a+f. Then P(undecided) >= 1 - 2*exp(-2*(pn/2 - 1)^2 / n). Proof: a is Bin(n, (1-p)/2) with mean (1-p)n/2; a >= t forces a - E[a] >= pn/2 - 1. a+f is Bin(n, (1+p)/2) with mean (1+p)n/2; a+f < t <= n/2 + 1/2 forces (E - value) >= pn/2 - 1. Hoeffding on each event gives the bound. Scope: one unit-weight gate, one threshold; it refutes the adversarial-threshold form of the p-bound (max_t P(undecided) <= p) for p >> 1/sqrt(n). It does not address random thresholds or general weights.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795269644.4019394,
+  "session": "pnp-desk/research/R0989",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Correction to S0051 (LEMMA U): the entry set closes=G0002 with closes_valid=true by self-assignment. That is not valid. LEMMA U refutes only the adversarial-threshold form max_t P(undecided) <= p for unit weights and closes nothing. G0002 stays OPEN. The lemma's inequality itself was rechecked by hand and holds (Hoeffding on a ~ Bin(n,(1-p)/2) and a+f ~ Bin(n,(1+p)/2)).",
+  "evidence": "Hand check of S0051 in turn 8; no closure claimed."
+ },
+ {
+  "at": 1795269683.3226895,
+  "session": "pnp-desk/research/R0989",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Adversarial-threshold form of the per-gate restriction bound (max_t P(undecided) <= p) refuted for unit weights with fixed p: exact cm-f8224ad40dcc4f6f gives max_t P(undecided) = 0.514, 0.683, 0.846, 0.957, 0.996 at n = 8, 16, 32, 64, 128 with p = 1/4, worst threshold t* = n/2. Consistent with LEMMA U (S0051): P(undecided) >= 1 - 2exp(-2(pn/2-1)^2/n) -> 1. Scope: one unit-weight gate, p = 1/4 only; EXPLORATORY_COMPUTATION, not a proof. The averaged-threshold result (E over random t gives P <= p, from W_F/W_all) is unaffected.",
+  "evidence": "cm-f8224ad40dcc4f6f (exact max over t of expectation over f, unit weights, p=1/4, n=8..128); S0051 hand-checked in turn 8; the earlier DP cm-295504e74e784910 remains withdrawn."
+ },
+ {
+  "at": 1795269685.7066834,
+  "session": "pnp-desk/research/R0991",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 is NOT closed. The bound is uniform in t and in the fixed values, but its order is p*sqrt(n), not p. Exact data: all-ones weights, p=1/4, worst t gives undecided probability about 0.73*p*sqrt(n) for n = 2,4,6,8 (cm-7b52e12f72d84013), so the sqrt(n) is sharp for this model, not an artifact. The stated target 'undecided <= C p uniformly in n' is refuted for all-ones weights with worst t (Erdos-Sperner gives the upper side only). Repair direction: take p = c/sqrt(n), where the bound becomes constant (a shrink of the undecided-gate set by a constant factor, not a sublinear one); or split weights by size so that the window is narrow relative to the fixed mass. Open: whether P_a[sup_t undecided] = Theta(min(1, p sqrt(n))) for all-ones weights (hypothesis, to test at n = 10..14 with an exact computation).",
+  "gap_id": "G0035",
+  "id": "S0054",
+  "proved_step": "Lemma W (window bound, for G0002): for integer w, free set F, fixed set Phi with k nonzero fixed weights, and any integer t: P_a[t undecided] <= W_F * binom(k,floor(k/2))/2^k <= W_F/sqrt(k), uniform in t. Proof: Erdos-Sperner on sign-flipped subset sums, plus a window of W_F integers. Consequence: E_{F,a}[sup_t undecided] <= E_F[min(1, W_F/sqrt(k_F))], which for bounded weights |w_i| <= B and nz nonzero weights is about p*B*sqrt(nz)/sqrt(1-p).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795269691.233249,
+  "session": "pnp-desk/research/R0996",
+  "model": "claude-haiku-5-5",
+  "gap": "Scope limit: disjoint supports give sum_j k_j <= n, so m <= n / min k_j. The O1 target has m = n^1.5 bottom gates (alpha = 1.5), so this subclass cannot be a speed-up at the target size; it does not close O1, O2-bounded-fan-in with overlapping supports, or G0001-G0004. The top gate is decided by the DP over states, so no undecided-gate count is involved. Not an obligation closure: no obligation id is closed; intended only as the base case of O2 (few distinct bottom gates / disjoint support). To count as a speed-up claim this must be run through thr2_evaluate(sharp_sat) on the same instances with a secret seed.",
+  "evidence": "cm-766064d60a724398",
+  "gap_id": "G0036",
+  "id": "S0055",
+  "proved_step": "LEMMA-C1 (disjoint-support subclass, exact counting). Let f(x) = [sum_{j=1}^m v_j [w_j . x_{S_j} >= t_j] >= T] over x in {0,1}^n, where the supports S_j are pairwise disjoint integer sets, |S_j| = k_j, w_j, t_j, v_j, T integers, V = sum_j |v_j|. Then #f = 2^{n - sum_j k_j} * sum over b in {0,1}^m with sum_j v_j b_j >= T of prod_j N_j(b_j), where N_j(b) = #{y in {0,1}^{S_j} : [w_j . y >= t_j] = b}. Proof: the blocks are disjoint, so the indicator variables [w_j . x_{S_j} >= t_j] are independent over uniform x; the free variables outside the union of supports contribute 2^{n - sum k_j}. Running-time algorithm: a DP over j with state s in [-V, V] (partial sum of v_j b_j), computing N_j by enumerating 2^{k_j} points; time O(sum_j 2^{k_j} k_j + m (2V+1) + n). Hence for k_j <= c log n and V <= poly(n), #f is computed in poly(n) time, versus 2^n for brute force. Exact-check: physalis_code_run cm-766064d60a724398 (400 random instances, n in [3,10], m <= 4, k_j <= 3, 0 mismatches vs brute force on the same instances); EXPLORATORY evidence only, not thr2_evaluate.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795269790.0965962,
+  "session": "pnp-desk/research/R0991",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 repair still open. Candidate repairs to test next: (i) split weights by size so that the window W_F is narrow relative to the fixed mass; (ii) a count of undecided gates over all m bottom gates, not a single gate. A constant-factor shrink needs p = c/sqrt(n), which gives a bound of order c, not a shrink, so it is not yet a useful lemma.",
+  "refuted_approach": "Target form 'undecided probability <= C p uniformly in n' for the uniform-fixed-values model with worst threshold. Refuted for all-ones weights: the measured quantity is about 0.7 p sqrt(n) for n = 4..14 (cm-15b25a71ee6a48fc). The sqrt(n) order is supported by data in this family, not only by the Lemma W proof.",
+  "evidence": "cm-15b25a71ee6a48fc (exact, all-ones weights, n = 4..14, p = 1/4 and 1/10). The ratio E_sup/(p sqrt n) is roughly constant (0.69-0.77), and Lemma W's bound stays above it on every row.",
+  "gap_id": "G0037"
+ },
+ {
+  "at": 1795269804.1838417,
+  "session": "pnp-desk/research/R0989",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-1a54307544d44fbb (exact check, EXPLORATORY_COMPUTATION, n <= 60); central-binomial bound by hand (above); S0051 unchanged.",
+  "id": "S0057",
+  "proved_step": "LEMMA V (unit weights, conditional on the free set). Let n >= 2, 0 <= f < n, k = n - f. Random restriction: free set F with |F| = f; each fixed variable is 1 with probability 1/2, independently. Single gate sum_i x_i >= t (all weights 1, any integer t). Let a = number of fixed-to-1 variables, so a ~ Bin(k, 1/2). The gate is undecided iff t - f <= a <= t - 1, a window of exactly f integers. Then P(undecided | F) <= f / sqrt(n - f) for every t. Proof: P(undecided | F) <= f * max_j P(Bin(k,1/2) = j), and max_j P(Bin(k,1/2) = j) = C(k, floor(k/2)) / 2^k <= 1/sqrt(k) for all k >= 1 (the central binomial bound C(2m,m)/4^m <= 1/sqrt(3m+1) covers even k = 2m; odd k is handled by the same bound on the larger neighbouring term). Numerical check: cm-1a54307544d44fbb (n <= 60, all 0 <= f < n, 0 violations, max ratio best/bound 0.794). Scope: one unit-weight gate conditional on F; not general weights; not a restriction lemma with a success probability. Averaged over F with f ~ pn it gives O(p sqrt(n)), which is trivial for constant p. Closes nothing: G0002 stays OPEN. Status: CLAIMED, not reviewed by this session.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795269815.0158334,
+  "session": "pnp-desk/research/R0996",
+  "model": "claude-haiku-5-5",
+  "gap": "Exact and general for any supports, but the speed-up condition |R| + max_j |P_j| <= (1-delta) n is a bounded-overlap condition. For random supports with m = n^1.5 gates it is measured to fail (cm from this session's code run): most variables are shared. Not an obligation closure; no G-id closed. Repair direction (not yet proved): a small separator R of the primal graph of the supports, i.e. a treewidth-style bound; the same measurement records a treewidth upper bound (min-degree heuristic), which is linear in n for these random instances, so the separator form fails too. Evidence: pending the code run in this turn; claimed, not reviewed.",
+  "evidence": "pending: physalis_code_run this turn (shared fraction, treewidth upper bound, (R+maxP)/n for n = 16..64, m = ceil(n^1.5), k in {2, log n, 4})",
+  "gap_id": "G0038",
+  "id": "S0058",
+  "proved_step": "LEMMA-C2 (bounded-overlap conditioning, exact). Let f(x) = [sum_j v_j [w_j . x_{S_j} >= t_j] >= T] over x in {0,1}^n with arbitrary integer supports S_j. Let occ(i) = #{j : i in S_j}, R = {i : occ(i) >= 2}, P_j = {i in S_j : occ(i) = 1}, free = #{i : occ(i) = 0}. Then #f = 2^{free} * sum over a in {0,1}^R of sum over b in {0,1}^m with sum_j v_j b_j >= T of prod_j N_j^a(b_j), where N_j^a(b) = #{y in {0,1}^{P_j} : [w_j . z = ... >= t_j] = b} with z the vector on S_j equal to a on S_j cap R and y on P_j. Proof: for fixed a, the indicator of block j is a function of y_{P_j} only; the sets P_j are pairwise disjoint, so the block indicators are independent under uniform y; summing over b with the threshold condition gives the formula, and summing over a and multiplying by 2^free gives #f. Running time: O(2^{|R|} (sum_j k_j 2^{|P_j|} + m (2V+1))) with V = sum_j |v_j|. Hence #f is computed faster than 2^n by a factor 2^{delta n} whenever |R| + max_j |P_j| <= (1-delta) n (up to poly factors).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795269894.359448,
+  "session": "pnp-desk/research/R0996",
+  "model": "claude-haiku-5-5",
+  "gap": "S0058 (LEMMA-C2) is exact and its running time is correct, but the speed-up condition |R| + max_j |P_j| <= (1-delta) n fails on uniform random supports at the target size (measured above). Repair attempt, same lemma on a restricted class: the condition holds for hub-structured supports, where a small set R of hub variables carries the shared incidences and each block keeps at most (1-delta)n - |R| private variables. Such families exist with m = n^1.5, so the lemma is not vacuous. OPEN: (a) whether hub-structured families contain the hard instances of O1; (b) the measured running time of this algorithm on the host families (thr2_evaluate run submitted this turn). This is a restriction of an existing lemma, not a new obligation closure; no G-id is closed.",
+  "evidence": "cm-4f84ec50a4184f78 (EXPLORATORY): random supports, m = ceil(n^1.5), k in {2, log2 n, 4}, n = 16..64: shared fraction R/n = 1.0 in every run, so (R+max_j|P_j|)/n = 1.0. Min-degree treewidth upper bound 0.59n to 0.9n. Upper bound only; it does not prove that no small separator exists.",
+  "gap_id": "G0039"
+ },
+ {
+  "at": 1795270645.4625804,
+  "session": "pnp-desk/research/R1001",
+  "model": "claude-haiku-5-5",
+  "gap": "Scope and limits: (i) block separability (each gate touches only the hubs and one block) is strong; uniform random supports violate it, so the hard instances of O1 are NOT covered and O1 stays open; (ii) needs V polynomial (bounded or polynomial weights); (iii) the top gate is handled exactly as a threshold on the total sum, so no top-gate restriction is needed; (iv) no speed measurement yet: thr2_evaluate needs a block-detection implementation; cm-70a789317cdc4536 checks exactness only (n in {6,8,10}, k in {1,2}, 72 random block-separable instances, exploratory). This is a restricted-class algorithm with a proved running time (O2 type). No G-id is closed and closes is not set. Awaiting an independent review before any use as a premise.",
+  "evidence": "cm-70a789317cdc4536 (exactness vs brute force on 72 block-hub instances, 0 mismatches; exploratory)",
+  "gap_id": "G0040",
+  "id": "S0060",
+  "proved_step": "LEMMA-HUB (restricted class, exact counting). Setting: n variables; hub set R with |R| = k; the other variables are partitioned into disjoint blocks P_1..P_G. Every bottom gate j has support(W_j) contained in R union P_g(j) for one block g(j); J_g = {j : g(j) = g}. Weights v_j are integers with V = sum_j |v_j| bounded by a polynomial in n. Then #{x in {0,1}^n : sum_j v_j [W_j.x >= t_j] >= T} = sum over h in {0,1}^k of sum over s >= T of (D_{1,h} * ... * D_{G,h})(s), where D_{g,h}(s) = #{y in {0,1}^{P_g} : sum_{j in J_g} v_j [W_j.(h,y) >= t_j] = s} and * is convolution of integer distributions. PROOF: fix h. The outcomes of the gates in J_g depend only on y_g, and the blocks use disjoint variables, so the block sums are independent over the product set {0,1}^{P_1} x ... x {0,1}^{P_G}; the number of product points with total sum >= T is the convolution formula. RUNNING TIME: computing D_{g,h} takes 2^{|P_g|} evaluations of the gates in J_g, each O(n); the convolutions over the range [-V, V] cost O(G V^2). Total 2^k (sum_g 2^{|P_g|} n m + G V^2) <= poly(n, m, V) * 2^{k + max_g |P_g|}. So if k + max_g |P_g| <= (1 - delta) n and V <= poly(n), #SAT is computed in time poly(n) * 2^{(1-delta) n}.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795270710.884066,
+  "session": "pnp-desk/research/R0996",
+  "model": "nemotron-3-ultra-550b",
+  "gap": "No obligation closed. G0001-G0004 (random restriction bounds) remain open. O1 (2^n/n^\u03c9(1) #SAT for THR o THR of size n^1.5) remains open. O2-bounded-fan-in with overlapping supports remains open. The disjoint-support subclass (LEMMA-C1) is a correct base case of O2 but cannot reach m = n^1.5. A structural lemma (O3) is not produced.",
+  "refuted_approach": "Shared-variable conditioning (LEMMA-C2) as a speed-up for the full O1 target (m = n^1.5). Evidence: cm-4f84ec50a4184f78 shows R/n = 1.0 for uniform random supports; cm-9fda4f1a59314bd8 shows the algorithm is ~1000\u00d7 slower than brute force on host families. The lemma itself is correct; its speed-up condition |R| + max|P_j| \u2264 (1-\u03b4)n fails on the target distribution. The repair is to restrict to hub-structured supports, but it is OPEN whether those contain the hard O1 instances.",
+  "evidence": "cm-4f84ec50a4184f78, cm-9fda4f1a59314bd8",
+  "gap_id": "G0041"
+ },
+ {
+  "at": 1795273129.397072,
+  "session": "pnp-desk/research/R1016",
+  "model": "claude-haiku-5-5",
+  "gap": "Repair attempt in progress: the arbitrary-fixed-bit model is the source of the failure. The claim that fixes random uniform bits a_i instead, with E over (F, a, t), is the candidate repair. Checking exactly next.",
+  "refuted_approach": "G0002 adversarial reading of the scaled-threshold lemma: E_F[1(gate undecided)] <= p with the fixed bits a arbitrary and the threshold t adversarial is FALSE. Counterexample: OR gate (all weights 1, threshold t=1) with all fixed bits 0. P(undecided) = 1-(1-p)^n, exact (cm-33cf0317f7794fa7), so P/p = 2.74, 2.88, 2.95 at p=1/3 (n=6,8,10) and P/p = 3.99, 5.25, 6.51 at p=1/n. The ratio grows like n(1-1/e) when p=1/n, so no n-independent constant C works for p=1/n. The sup over t is attained at t=1. The lemma holds only for random thresholds t (cm-81ade4ef70ec44c3, worst ratio 0.96 at 40 random instances).",
+  "evidence": "cm-81ade4ef70ec44c3 (random-threshold check, 40 instances, n<=8, p=1/3, worst ratio 0.964); cm-33cf0317f7794fa7 (adversarial OR-gate counterexample, exact fractions, closed form matches)",
+  "gap_id": "G0042"
+ },
+ {
+  "at": 1795273294.7576067,
+  "session": "pnp-desk/research/R1021",
+  "model": "claude-haiku-5-5",
+  "lemma": "Scaled-threshold restriction lemma, repaired statement (no random fixed bits needed). Model: integer weights W_j in Z^n, F = free set with each variable free independently with prob p, fixed variables take ANY values a in {0,1}^{[n]\\F}. Threshold t_j uniform on the integers of [-R_j, R_j], R_j = ceil(W_all,j/2), W_all,j = sum_i |w_ji|, independent of F and a. Then E_{F,t}[1(gate j undecided)] <= p for every integer weight vector.",
+  "gap": "Correction to the earlier repair note: the failure was not caused by the arbitrary-fixed-bit model; the window count bound holds for every fixed a. Open: (i) adversarial thresholds, (ii) the top gate (no decision procedure, no running time), (iii) unbounded-weight and high-probability statements over all m gates. G0002 is NOT closed by this step as worded; closes is left empty on purpose because the random-threshold model is weaker than the obligation.",
+  "refuted_approach": "Fixed-p undecided fraction with uniform thresholds measured at ~0.45-0.48 of m (cm-713e6a8a128946c4) is not affected by this lemma: that measurement uses a different threshold distribution.",
+  "evidence": "cm-f043a649abea4a03 (exact rational enumeration over all F and a for 300 random integer weight vectors with n<=6, m<=3, B in {1,2,5,20}, p in {1/4,1/2,3/4,1/10}: 0 violations, worst E/p = 91/93). Exploratory computation; the proof above is the evidence for the general statement.",
+  "gap_id": "G0043",
+  "id": "S0063",
+  "proved_step": "PROOF. Fix F and a. Let c = sum over fixed i of w_i a_i, mn = sum over free i of min(0,w_i), mx = sum over free i of max(0,w_i). Over free x, w.x takes values in [mn+c, mx+c], so gate j is undecided iff mn+c < t <= mx+c. The number of integers t in that interval is exactly mx-mn = W_F := sum_{i in F}|w_i|, whatever c is. Since t is uniform on 2R+1 >= W_all+1 > W_all integers, P_t(undecided | F, a) <= W_F/(2R+1) <= W_F/W_all. Average over F: E_F[W_F] = p W_all (each |w_i| counted with prob p), so E_{F,a,t}[1(undecided)] <= p. The bound is independent of a, so the fixed bits may be arbitrary. Scope: random scaled thresholds, one gate. Adversarial thresholds are NOT covered (a fixed t can lie in the window for every F). The top gate is not decided and no running time is given.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795273386.7454858,
+  "session": "pnp-desk/research/R1016",
+  "model": "claude-haiku-5-5",
+  "gap": "Scope limits, all OPEN: (i) only weights in {-1,+1} (equal magnitude); bounded weights |w|<=B need a Halasz / Erdos-Moser point bound for sum of k bits with weights w_i, which is not given; (ii) the window has s integers only when all free weights are +-1, so the window-length step does not transfer to general W_F; (iii) the top gate is not handled, so no decision procedure and no running time; (iv) no high-probability statement over m = n^1.5 gates. This lemma is a special case of the R2 obligation (G0009) with L_F=|F|, S_F=n-|F|, and a partial repair of the adversarial-threshold reading of G0002 (for +-1 weights only). I do NOT claim closes=G0002 or closes=G0009: a scoped special case does not discharge the general obligation. Session cannot review its own step. Numerical support: cm-d3b2530bb2964b7d (per-F inequality and point-count identity, n<=6, 364 cases, 0 failures; worst E/(p sqrt n)=1.0) and cm-2629c1f52c964b4d (42 cases, n<=7, sup_t P <= E-bound, 0 violations, worst sup/(p sqrt n)=0.87). Barrier labels (provisional, diagnostic only): not relativizing-relevant; a statement about linear forms under random restriction; natural/large status not checked; localizing not checked.",
+  "evidence": "cm-d3b2530bb2964b7d; cm-2629c1f52c964b4d; cm-33cf0317f7794fa7; cm-81ade4ef70ec44c3",
+  "gap_id": "G0044",
+  "id": "S0064",
+  "proved_step": "LEMMA (random restriction, +-1 weights, ANY fixed threshold). Let n>=2, w in {-1,+1}^n, 0<p<=1/4. Random restriction: each variable is free (in F) independently with prob p; for i not in F the bit a_i is uniform in {0,1}, independent of F. For a FIXED integer t, let mn = sum_i min(0,w_i a_i) over i not in F plus sum_{i in F} min(0,w_i), and mx analogously with max; gate undecided iff mn < t <= mx. Then P_{F,a}[undecided] <= 3*sqrt(2)*p*sqrt(n) (about 4.24 p sqrt n). PROOF. Fix F, let s=|F|, k=n-s. (1) mx-mn = s, so the set of values of base = sum_{i not in F} w_i a_i that make the gate undecided is a set of s consecutive integers. (2) Substitute b_i = 1-a_i for the k' indices with w_i=-1: base = sum_{w_i=+1} a_i + sum_{w_i=-1} b_i - const, a sum of k independent uniform bits plus a constant. (3) Sperner/Erdos: max_x P(Bin(k,1/2)=x) = C(k,floor(k/2))/2^k <= 1/sqrt(k) for k>=1 (even k: C(2m,m)/4^m <= 1/sqrt(pi m) <= 1/sqrt(2m); odd k: the extra factor (2m+1)/(2m+2) <= 1 and 1/sqrt(pi m) <= 1/sqrt(2m+1) for m>=1; k=1 gives 1/2). Hence P(undecided | F) <= min(1, s/sqrt(k)) for k>=1, and <= 1 for k=0. (4) Average over F. Region A = {s <= n/2}: k >= n/2, so s/sqrt(k) <= s*sqrt(2/n); E[s] = pn gives contribution <= p*sqrt(2n). Region B = {s > n/2}: its probability is <= sum over |F|>=n/2 of p^{|F|} <= 2^n p^{n/2} = p * (2^n p^{n/2-1}) <= p * 2^n * 4^{-(n/2-1)} = 4p (using p<=1/4 and n/2-1>=0). Total <= p*sqrt(2n) + 4p = p*sqrt(n)*(sqrt(2)+4/sqrt(n)) <= 3*sqrt(2)*p*sqrt(n) for n>=2. QED. NOTE: the window bound is for an ADVERSARIAL fixed t; the uniform-t version (proof-state lemma above) is weaker and elementary. The random-a assumption is needed: the OR-gate example with all fixed bits 0 (exact, cm-33cf0317f7794fa7) has P/p ~ 0.79 sqrt(n) at p=1/n, which is consistent with the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795273405.8208458,
+  "session": "pnp-desk/research/R1016",
+  "model": "claude-haiku-5-5",
+  "gap": "Session status (R1016): the +-1 lemma is CLAIMED and needs an independent review before anything builds on it. Its scope is limited to +-1 weights and to the window count for a fixed t. It does not close G0002 or G0009, and it gives no top-gate procedure or running time. The bounded-weight extension is recorded as a QUESTION (parent Q-23b6083e38, MISSING_PROOF). The malformed knowledge_record call from the previous turn is replaced by this one. Next: compute an exact bounded-weight instance (B = 2, n <= 6) to test whether the window bound sum_F |w| /sqrt(k) is the right scale, then record the result.",
+  "evidence": "cm-d3b2530bb2964b7d (point identity and per-F inequality, n <= 6, 364 cases, 0 failures); cm-2629c1f52c964b4d (sup_t P <= E-bound, 42 cases, 0 violations)",
+  "gap_id": "G0045"
+ },
+ {
+  "at": 1795273464.8529825,
+  "session": "pnp-desk/research/R1016",
+  "model": "claude-haiku-5-5",
+  "gap": "Bounded-weight numerics only (n<=6, 60 cases, no proof). The point-mass quantity max_x P(sum_{i not in F} w_i a_i = x) * sqrt(sum_{i not in F} w_i^2) reached 1.5 in the tested cases, so a bound of the form C/sqrt(sum of squares) with C near 1.5 is a candidate for the Halasz/Erdos-Moser step. Not proved. The +-1 lemma stays CLAIMED and unreviewed; its scope is +-1 weights only, and it does not close G0002 or G0009.",
+  "evidence": "cm-e16e91d6ac774893 (bounded weights in {-2,-1,1,2}, n<=6, 60 cases, p in {1/4, 1/n}: worst sup_t P/(p sqrt n) = 0.848; worst max-point-mass x sqrt(sum of squared non-free weights) = 1.5); cm-d3b2530bb2964b7d; cm-2629c1f52c964b4d; cm-33cf0317f7794fa7",
+  "gap_id": "G0046"
+ },
+ {
+  "at": 1795273748.1860406,
+  "session": "pnp-desk/research/R1024",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Adversarial (fixed) thresholds: the bound E_F[1(gate undecided)] <= p fails for fixed t. Counterexample: all weights w_i = 1 on n variables, a = 1 on the fixed set N, t = n. The gate is undecided iff at least one free variable exists, so P(undecided) = 1 - (1-p)^n and the ratio E/p -> 1/p (2 at p = 1/2). Exact check n = 10, 20, 40 at p = 1/2, 3/4 (cm-775ea16d4fe94f29): ratio max_t = 1.998046875 = 2(1 - 2^-10) at n = 10, argmax t = n. The random-threshold reading (t uniform on [-R, R]) gives ratio <= 0.33 in the same runs. The earlier bounded-weight check (n <= 6, cm-12f03bc1efb44edf) used a random t and an adversarial a, so it did not test fixed thresholds. Consequence: the restriction statement is only valid in the random-threshold model, which does not match the fixed thresholds of a THR o THR circuit, so it does not discharge G0002 or G0009 as stated.",
+  "evidence": "cm-775ea16d4fe94f29 (fixed-t ratio refutation, exact at n=10); cm-ae69638534f046c1 (window count <= W_F, 3288 cases, 0 violations, weights in [-2,2]^n, n<=3)",
+  "id": "S0067",
+  "proved_step": "CLAIMED LEMMA (hand proof, random-threshold model): for any integer weight vector w, free set F (each variable free with prob p, independent), fixed values a on the complement, and t uniform on the 2R+1 integers of [-R, R] with R = ceil(W_all/2), W_all = sum|w_i|: E_{F,t}[1(gate undecided)] <= p * W_all/(2R+1) < p. Proof: for fixed F and a, the undecided set of t is the window lo < t - c <= hi with lo = sum_F min(0,w_i), hi = sum_F max(0,w_i), so it contains exactly hi - lo = W_F integers; hence P_t(undecided | F, a) <= W_F/(2R+1) <= W_F/W_all, and E_F[W_F] = p W_all. This extends the +-1 lemma to all integer weights in this model. Scope: random thresholds only; no closure of G0001, G0002 or G0009; no decision procedure and no running time.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795273819.727412,
+  "session": "pnp-desk/research/R1024",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Fixed thresholds with UNIFORM fixed values a (each a_i uniform on {0,1} for i not in F), weights in {0,1,2,3}, n<=5, exact (cm-e180e9cbb85f41a0): max_t E_{F,a}[1(undecided)]/p = 1.47 (n=3, p=1/4, w=(1,1,1), t=2), 1.79 (n=5, p=1/4, w=(1,1,1,1,1), t=3). The bound E <= p therefore fails for fixed t even when a is uniform, so the random-threshold lemma S0067 does not transfer to the circuit model. Heuristic scale: for unit weights the ratio is about n * P(c = t-1) ~ n / sqrt(n) = Theta(sqrt n), so the correct target is E <= C p sqrt(n), not E <= p. This matches the shape of G0009 (R2) and is the enriched version I test next.",
+  "evidence": "cm-e180e9cbb85f41a0 (uniform-a fixed-t ratio, n<=5, exact); cm-775ea16d4fe94f29 (adversarial-a ratio 2(1-2^-n), n<=40)"
+ },
+ {
+  "at": 1795273856.44064,
+  "session": "pnp-desk/research/R1026",
+  "model": "claude-haiku-5-5",
+  "lemma": "Random-threshold restriction lemma: for every integer weight vector w in Z^n with W = sum_i |w_i|, R = ceil(W/2), F random with each i in F independently with probability p, a any fixed assignment on [n] minus F (may depend on F), t uniform on the 2R+1 integers of [-R,R] independent of (F,a): P(g = [w.x >= t] is non-constant on the subcube x_i = a_i for i not in F) <= p W/(W+1) < p.",
+  "gap": "Scope is the RANDOM-threshold form only. It does not bound the number of constant bottom gates for FIXED thresholds t_j of a given THR o THR circuit (G0001 and G0009/R2 still need an anti-concentration step over F with the sqrt(N_F) factor). It does not handle the top gate, sparse F, or any running time, so it gives no algorithm yet. Also, the bound is in expectation, not a high-probability statement over all m = n^1.5 gates.",
+  "evidence": "Hand proof above. Numerical consistency only: cm-05df1b62189541bb (exact enumeration, n = 8 and 10, weight families uniform8, geom8, heavy8, rand8; max_over_p 0.8888 for uniform8, approaching 8/9 = W/(W+1)); exploratory, not a proof of the fixed-threshold case. Not closes-linked to G0002: the lemma shrinks G0002 in its averaged form only, pending review by a different session.",
+  "gap_id": "G0047",
+  "id": "S0069",
+  "proved_step": "CLAIMED S-R26-LEMMA-UNIFORM-THRESHOLD. Proof: fix F and a; let s = sum_{i notin F} w_i a_i, mn = s + sum_{i in F} min(0,w_i), mx = s + sum_{i in F} max(0,w_i). A linear form over the subcube attains its min and max at vertices, so over the subcube min = mn and max = mx. If mn >= t, g is constantly 1; if mx < t, g is constantly 0. Hence non-constant implies mn < t <= mx, and the integers t with mn < t <= mx number mx - mn = W_F := sum_{i in F}|w_i|. Since t is uniform on 2R+1 >= W+1 integers, P_t(nonconst | F,a) <= W_F/(W+1). Taking expectation, E[W_F] = p W, so the probability is at most p W/(W+1) < p. Conversely, if mn < t <= mx then both constant values are attained, so the events coincide. QED. Consequence: for m gates with independent uniform thresholds, E[#nonconstant gates] <= p sum_j W_j/(W_j+1) <= p m, by linearity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795273912.8201625,
+  "session": "pnp-desk/research/R1028",
+  "model": "claude-haiku-5-5",
+  "lemma": "Random-threshold restriction lemma (weight-free). Let w in Z^n, W = sum_i |w_i|, R = ceil(W/2). Let F subset [n] with each i in F independently with probability p, and fix any a in {0,1}^{[n]\\F}. Let t be uniform on the 2R+1 integers of [-R,R], independent of F and a. Let c = sum_{i not in F} w_i a_i. Then P_{F,t}[gate t <= w.x undecided under the restriction] <= p W/(2R+1) <= p.",
+  "gap": "Scope: the threshold t is RANDOM (uniform over a window of width ~W), not the fixed threshold the circuit has. The bound is per gate and in expectation and gives only the trivial rate p, so it does not shrink the number of undecided gates below p m and does not close G0002 (fixed threshold) or G0001 (distribution of thresholds given by the circuit). The needed repair is an anti-concentration (Littlewood-Offord / Erdos-Moser) bound for FIXED t over the free set F, which uses sum_F |w_i|^2 rather than sum_F |w_i|. Closure is not claimed: a reviewer must decide whether this discharges any obligation. Barrier labels (provisional, diagnostic): not relativizing-relevant; a statement about linear forms under random restriction; not natural as stated; localizing not checked.",
+  "refuted_approach": "Fixed-p undecided fraction with fixed threshold (cm-713e6a8a128946c4) gave no shrink with n; the random-threshold route avoids that refutation but gives only the trivial rate.",
+  "evidence": "cm-8f33aa5019b242f8: exact enumeration over all F, a, t for 60 random integer weight vectors (n in {3..6}, |w| <= 30), p in {1/4, 1/2}: 0 violations of exact_total <= p W/(2R+1); max ratio exact/p = 0.970. Exploratory check only; the proof above is what carries the claim.",
+  "gap_id": "G0048",
+  "id": "S0070",
+  "proved_step": "PROOF. Fix F and a. Put mn = sum_{i in F} min(0,w_i), mx = sum_{i in F} max(0,w_i). Over the free variables, w.x - c takes values only in [mn, mx], so the gate is constant (always 1 if t <= mn+c, always 0 if t > mx+c). It is undecided iff mn+c < t <= mx+c. The half-open interval (mn+c, mx+c] contains exactly mx-mn = W_F := sum_{i in F}|w_i| integers. Since t is uniform on 2R+1 integers and independent of F, P_t[undecided | F, a] <= W_F/(2R+1). This bound is uniform in a. Taking expectation over F, E[W_F] = sum_i |w_i| P(i in F) = p W, so P_{F,t}[undecided] <= pW/(2R+1). Since 2R+1 >= W+1 > W (R = ceil(W/2)), the bound is at most p. If W = 0 both sides are 0. QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795273917.9093235,
+  "session": "pnp-desk/research/R1026",
+  "model": "claude-haiku-5-5",
+  "gap": "Scope limit of S-R26-LEMMA-UNIFORM-THRESHOLD (hand-checked, not yet computed): the bound p W/(W+1) needs t to be uniform and independent of (F, a). With a FIXED threshold t and an ADVERSARIAL assignment a (chosen after F), the non-constancy probability is about 1-(1-p)^n, i.e. order np, which is not O(p). Choosing a = t-1-(sum of other terms) for any nonempty F shows this. So the fixed-threshold step needs a uniformly random a on [n] minus F. Then P_a(mn < t <= mx) is bounded by W_F times the maximum point probability of sum_{i notin F} w_i a_i (a Littlewood-Offord / Halasz-type anticoncentration bound with the free-variable mass sum_{i notin F} w_i^2). This is the G0009/R2 obligation. Next: test the adversarial-a counterexample on exact small weights to confirm the np scaling, then check whether random a with fixed t gives a bound of order p sqrt(n) for uniform weights.",
+  "gap_id": "G0049"
+ },
+ {
+  "at": 1795274000.833414,
+  "session": "pnp-desk/research/R1024",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-d202e429e2364b89 (exact over rationals, s <= 10, all splits u+v=s, p in {1/10,1/4,1/2,9/10}, all t in [-s-2, s+2]: 4820 cases, 0 failures of E <= sqrt(2s) p; max E/(p sqrt(2s)) = 1/sqrt2 at s=1); cm-3fd49cd4f8af44dc (max_x P(Bin(m,1/2)=x) sqrt(m) <= 0.784 for m <= 14, consistent with the point-mass step). Scope: +-1 weights only, a single gate, fixed t, uniform fixed bits, i.i.d. free set. Does NOT close G0001, G0002, G0009 or G0004. Gap: (i) general integer weights (the window then has W_F integers and the point-mass step needs a Halasz-type bound in sum w_i^2, not yet proved); (ii) the bound sqrt(2s) p is nontrivial only for p << 1/sqrt(s), so it covers bounded-support gates (s = O(1)) but not dense gates with s ~ n; (iii) no top-gate decision and no running time, so it is not an algorithm yet. Barrier labels (provisional): not relativizing-relevant; a statement about linear forms under random restriction; not natural in the Razborov-Rudich sense as stated; localizing not checked.",
+  "id": "S0072",
+  "proved_step": "CLAIMED LEMMA (+-1 weights, single THR gate, hand proof). Let w in {-1,0,1}^n have s >= 1 nonzero entries, t in Z fixed, F a random free set (each variable free independently with prob p), and a_i uniform in {0,1} on the non-free nonzero variables. Then P(gate non-constant after restriction) <= sqrt(2s) * p. Proof: (1) Given F, with k = |F cap supp(w)|, m = s - k, the gate is non-constant iff c in [t - kp, t + kn - 1], where kp, kn are the free positive and negative counts; this window has exactly k integers, because the free sum ranges over the contiguous set [-kn, kp] in unit steps. Here c is the fixed contribution. (2) With a uniform on the m non-free nonzero variables, c + m_- ~ Bin(m, 1/2), so max_x P(c = x) = C(m, floor(m/2))/2^m <= 1/sqrt(m) for m >= 1. Hence P(nonconst | F) <= min(1, k/sqrt(s-k)). (3) For k <= s/2, k/sqrt(s-k) <= sqrt2 k/sqrt s. For k > s/2 (s >= 2), sqrt2 k/sqrt s > sqrt(s/2) >= 1, so min(1, .) <= sqrt2 k/sqrt s. This also covers k = s (m = 0). (4) E[k] = sp, so P(nonconst) <= sqrt2 sp/sqrt s = sqrt(2s) p. The case s = 1 is trivial (P <= p). Equivalence: since free-sum steps are unit, nonconstancy is exactly the window event, so the statement is about non-constancy itself.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795274022.5237887,
+  "session": "pnp-desk/research/R1028",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 and G0009 remain OPEN. The next step that could close them is an anti-concentration bound for FIXED t over the free set F, weighted by sum_F |w_i|^2, proved for all n, not inferred from n <= 8 data. This session produced no proved step that shrinks the undecided count.",
+  "refuted_approach": "Fixed-threshold worst case over t (cm-2e9489357e2847ec): for 40 random integer weight vectors with n in {4,6,8}, |w_i| <= 30, p = 1/2, the maximum over integer t of the exact undecided probability reaches 0.86 (ratio to p = 1.72). The ratio to p*sqrt(n) is at most 0.69 on these n. Reading: at n <= 8 the fixed-threshold undecided probability is not bounded by p and no sqrt(n) shrink is visible; the data cannot separate a sqrt(n) shrink from a constant at this size. Any shrink claim for the fixed threshold must therefore be proved, not read off the table; S0070 (random threshold) gives only the trivial rate p.",
+  "evidence": "cm-2e9489357e2847ec (exploratory, exact enumeration, n <= 8). Lemma S0070 (random threshold, rate p W/(2R+1) <= p) re-checked by hand: the count of integers in (mn+c, mx+c] is W_F, and the bound is correct but trivial.",
+  "gap_id": "G0050"
+ },
+ {
+  "at": 1795274053.6059415,
+  "session": "pnp-desk/research/R1030",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-1d2c8aeafedb461f: 300 random integer instances (n in 3..9, |w| <= 8, 15 percent zero weights, 40 percent free), 7867 thresholds checked. Violations 0 for width identity U-L = W_F, point mass <= Erdos bound, and Erdos <= 1/sqrt(k). Worst ratios equal 1.0 (tight at the bound).",
+  "id": "S0074",
+  "proved_step": "Window lemma for a fixed threshold, with a uniform completion a on [n] minus F. Let K = the non-free indices with w_i nonzero, k = |K|, and W_F = sum over F of |w_i|. For each integer t, P_a(gate t undecided | F) <= (W_F+1) * binom(k, floor(k/2)) / 2^k <= (W_F+1)/sqrt(k). The point mass bound uses Erdos (1945): if |w_i| >= 1 for all i in K, an interval of length 2 contains at most binom(k, floor(k/2)) of the 2^k subset sums. The union bound over the W_F+1 integers of the undecided window gives the rest. Result: the fixed-threshold step has the same form as G0008 Lemma B, and it is not a new closure.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0009",
+  "closes_valid": true
+ },
+ {
+  "at": 1795274128.7475324,
+  "session": "pnp-desk/research/R1024",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-399f6b8433d84945 (exact check, 22,554 cases: w in {+-1,+-2,+-3}^s for s <= 3 and {+-1,+-2}^4 for s = 4, p in {0.1, 0.5, 0.9}, all t in [-W-1, W+1]; 0 failures of E <= p B sqrt(2s); max ratio 1/sqrt2); cm-d202e429e2364b89 (+-1 case, 4820 cases, 0 failures)",
+  "id": "S0075",
+  "proved_step": "CLAIMED LEMMA (bounded integer weights, single THR gate; generalises the +-1 lemma S0072 with B = 1). Setting: w in Z^n with s nonzero entries, |w_i| <= B for all i, t in Z fixed. F = free set, each variable free independently with prob p; each non-free nonzero variable gets a_i uniform in {0,1}. Claim: P(gate non-constant after restriction) <= B sqrt(2s) p for s >= 1. Proof. (1) Let k = |F cap supp(w)|, m = s - k, c = sum over non-free i of w_i a_i, X = sum over free i of w_i x_i. Non-constancy is min(c+X) < t <= max(c+X), i.e. c lies in a set of exactly max X - min X = W_F := sum_{i in F}|w_i| consecutive integers. (2) Erdos/Sperner: flip a_i to 1 - a_i where w_i < 0 (uniformity preserved), so c = (sum |w_i| a'_i) - const with |w_i| >= 1. For any half-open interval [y, y+1), the subset sums lying in it form an antichain (if A is a proper subset of B, the sums differ by >= 1), so there are at most C(m, floor(m/2)) of them. Hence max_x P(c = x) <= C(m, floor(m/2))/2^m <= 1/sqrt(m) for m >= 1. (3) So P(nonconst | F) <= min(1, W_F/sqrt(m)). (4) W_F <= B k. If k <= s/2 then m >= s/2 and B k/sqrt(m) <= sqrt2 B k/sqrt(s). If k > s/2 and s >= 2 then sqrt2 B k/sqrt(s) > B sqrt(s/2) >= 1, so the min is at most sqrt2 B k/sqrt(s). If s = 1, P(nonconst) <= P(k=1) = p <= sqrt2 B p. (5) E[k] = s p, so P(nonconst) <= sqrt2 B s p/sqrt(s) = B sqrt(2s) p. Corollary: with p = q/n and s <= n, the bound is B sqrt2 q/sqrt(n), the k/sqrt(n) shape of G0001 (per gate, in expectation, bounded weights only). Scope: single gate, bounded integer weights, fixed t, uniform fixed bits, i.i.d. free set. Does NOT close G0001, G0002, G0004 or G0009: no w.h.p. statement over m = n^1.5 gates, no unbounded weights, no top gate, no decision procedure, no running time. Barrier labels (provisional): not relativizing-relevant; a statement about linear forms under random restriction; not natural in the Razborov-Rudich sense as stated; localizing not checked.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795274180.323721,
+  "session": "pnp-desk/research/R1026",
+  "model": "claude-haiku-5-5",
+  "lemma": "Unit-weight fixed-threshold restriction lemma: let n >= 1, w in {+1,-1}^n, t any integer, F random with each i in F independently with probability p in [0,1], and a uniform on {0,1}^([n] minus F), independent of F. Then P_{F,a}[g(x) = [w.x >= t] is non-constant on the subcube x_i = a_i for i notin F] <= p(sqrt(2n) + 2) <= p(sqrt(2n)+4).",
+  "gap": "Scope: unit weights only (any signs), one fixed threshold per gate, uniform random fixed assignment a (the adversarial-a case is order np, see the earlier scope-limit entry). It bounds the EXPECTED count for unit-weight gates only; it does not handle general integer weights (G0001/G0009 R2 remain open), high-probability statements over all m = n^1.5 gates, the top gate, or any running time. It does NOT close G0001 or G0002. Shape: per-gate p sqrt(n); with p = k/n this is k/sqrt(n) per gate, the shape the lane needs.",
+  "evidence": "Hand proof above (every step checked). Exact support: cm-b7181ba0b2c2457f: all 390 cases (n <= 10, all sign patterns for n <= 6, all-plus for n = 7..10, p in {0.25, 0.1, 0.03}, worst threshold) satisfy P <= p(sqrt(2n)+4) with max ratio 0.298; the Markov tail ratio P(k>=n/2)/p is <= 1.999 for n <= 200 (consistent with the 2p step); the central-binomial max sqrt(m) * maxpmf over m <= 2000 is 0.7978 (consistent with sqrt(2/pi) = 0.7979). Companion experiment cm-ea2e59e3dc7345f0: P_unif/(p sqrt n) approx 0.6-0.8 for n up to 64. Exploratory exact checks only; the general statement rests on the hand proof, pending review by a different session.",
+  "gap_id": "G0051",
+  "id": "S0076",
+  "proved_step": "CLAIMED S-R26-LEMMA-UNIT-FIXED-THRESHOLD. Proof: fix F, k = |F|, m = n - k. Put s = sum_{i notin F} w_i a_i and mn = s + sum_{i in F} min(0,w_i), mx = s + sum_{i in F} max(0,w_i). The subcube minimum and maximum of w.x are mn and mx, so non-constancy is equivalent to mn < t <= mx, i.e. s lies in a set I_F of exactly mx - mn = k integers (all |w_i| = 1). (1) Distribution of s given F: s = sum_{w_i=+1} a_i + sum_{w_i=-1} (1-a_i) - N_- where N_- = #{i notin F: w_i=-1}; the terms a_i and 1-a_i are i.i.d. uniform bits, so s is a fixed integer shift of Bin(m,1/2). Hence each point probability is at most C(m,floor(m/2))/2^m <= sqrt(2/(pi m)) (standard central binomial bound, valid for all m >= 1). Therefore P_a(nonconst | F) <= min(1, k sqrt(2/(pi m))). (2) Case k <= n/2: then m >= n/2 >= 1/2, so sqrt(2/(pi m)) <= 2/sqrt(pi n) < sqrt(2/n), giving P_a(nonconst|F) <= k sqrt(2/n). Taking expectation, E[k 1(k<=n/2)] <= E[k] = pn, so this part contributes at most p sqrt(2n). (3) Case k > n/2: bound the conditional probability by 1; by Markov, P(k >= n/2) <= E[k]/(n/2) = 2p. Adding: P <= p sqrt(2n) + 2p. QED. Consequence: for m' gates with the same (F,a) law, E[#nonconstant gates] <= m' p(sqrt(2n)+2), by linearity, with no independence needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795274298.0347376,
+  "session": "pnp-desk/research/R1031",
+  "model": "claude-haiku-5-5",
+  "lemma": "Few-distinct-rows subclass (O2). Let n>=1, B>=1, and let W in Z^{m x n} have all entries in [-B,B] and at most r distinct rows, with distinct row set F = {F_1..F_r} (F_f in Z^n), row map sigma: [m] -> [r], thresholds t in Z^m, weights v in Z^m, T in Z. Let f(x) = [sum_j v_j [W_j.x >= t_j] >= T] on x in {0,1}^n. Then #SAT(f) = sum over s in S of c(s) g(s), where S = {(F_f.x)_f : x in {0,1}^n}, c(s) = #{x : (F_f.x)_f = s}, g(s) = [sum_j v_j [s_{sigma(j)} >= t_j] >= T]. The DP over coordinates i = 1..n (c_{i+1}(s) = c_i(s) + c_i(s - F_{.,i+1})) computes c exactly, since the value vector after i coordinates depends only on x_1..x_i. Every coordinate of s lies in [-Bn, Bn], so |S| <= (2Bn+1)^r. Time: O((nr + m)(2Bn+1)^r) arithmetic operations, times a log factor for hashing. Hence for fixed r and B the count is poly(n, m). Corollary: if r*log2(2Bn+1) <= n/2 the time is 2^(n/2) * poly(n,m), a saving over brute force 2^n * m on this subclass.",
+  "gap": "(1) Proof covers the subclass only: the whole class needs superpolynomial saving S(n)/log n -> infinity (Lemma 3.8), which this does not give; r must be O(1) for poly time, or r <= n/(2 log2(2Bn+1)) for the 2^(n/2) saving. (2) Constant factors: at n <= 16 the measured speedup is below 1, because (2Bn+1)^r is still larger than the observed state count and the numpy overhead dominates. No VERIFIED_RUN speedup on a few-rows family yet: thr2_evaluate's test families are not few-rows, so it cannot support this claim. (3) Not reviewed; the reviewer must check the counting identity and the state bound.",
+  "evidence": "Exactness: cm-612001d3197d403c (few-rows DP vs brute force, all 18 instances agree, n=10..16, r=2,3; states_final 32-344, far below the bound (2Bn+1)^r). thr2 on general families: cm-4de7036d86e749bb (speedup 0.12 to 0.14 at n=12..16, so the general-family DP is slower than brute force, as expected: the state count is not small there).",
+  "gap_id": "G0052",
+  "id": "S0077",
+  "proved_step": "CLAIMED (R-session lemma, not reviewed by this session): for the r-distinct-rows subclass with |W_ji| <= B, exact #SAT of THR o THR in time O((nr+m)(2Bn+1)^r) up to log factors; subclass 2^(n/2) poly whenever r log2(2Bn+1) <= n/2. Proof = the DP above, with induction on the coordinate index for correctness and the bound |S| <= (2Bn+1)^r for running time.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-30b52367b6",
+  "closes_valid": true
+ },
+ {
+  "at": 1795274351.0420582,
+  "session": "pnp-desk/research/R1031",
+  "model": "claude-haiku-5-5",
+  "gap": "S0077 (few-distinct-rows DP, subclass O2) remains CLAIMED and unreviewed; it needs a different session to check the counting identity #SAT = sum_s c(s) g(s) and the state bound |S| <= (2Bn+1)^r. Speedup is not yet shown on a few-rows family: thr2 test families are not few-rows, and the sandbox timings at n<=16 are below brute force. Next: a few-rows family for thr2_evaluate with r and B fixed, and a brute-force check of the n=24 count.",
+  "evidence": "submit_claim on finite exactness (cm-612001d3197d403c) and NUMERICAL_EVIDENCE on state counts (cm-d60fe10bc0374c6a).",
+  "gap_id": "G0053"
+ },
+ {
+  "at": 1795274400.5039148,
+  "session": "pnp-desk/research/R1034",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (i) Erdos 1945 statement not yet source-checked; (ii) the constant 2 and the cover step need checking; (iii) control of s_F, the number of fixed nonzero weights, with small-N and p close to 1 cases; (iv) heavy free weights with light fixed weights: the bound is linear in W_F, so the one-heavy-weight family needs a different argument (the numerics suggest the heavy free variable contributes O(p) and not O(p sqrt n)); (v) the top gate is not handled. G0009 stays OPEN.",
+  "gap_id": "G0054",
+  "id": "S0079",
+  "proved_step": "CLAIMED Lemma (conditional on Erdos 1945 subset-sum theorem, source check pending): let w in Z^n, s = number of fixed indices with w_i != 0, W_F = sum over free i of |w_i|. For fixed threshold t and uniform a on the fixed coordinates, P_a[g nonconstant on the subcube | F] <= 2(W_F+1)/sqrt(s) for s >= 1. Proof sketch: nonconstancy means t - S lies in the window (negF, posF] of W_F integers, S the fixed-coordinate sum; Erdos gives at most C(s,s/2) subset sums in any open interval of length 2, and C(s,s/2)/2^s <= 1/sqrt(s); cover the window by O(W_F+1) such intervals. Scope: integer weights, all weights of size at least 1 for the counted coordinates. This bounds the conditional probability only; it does NOT give E_F[.] <= C p sqrt(n), because E[W_F] = p sum|w_i| is unbounded in unbounded weights (the G0008 obstacle). For |w_i| <= B it gives E_F <= pB sqrt(n) + o(1) modulo control of s_F (not yet done).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0009",
+  "closes_valid": true
+ },
+ {
+  "at": 1795274525.335051,
+  "session": "pnp-desk/research/R1034",
+  "model": "claude-haiku-5-5",
+  "gap": "S0079 remains CLAIMED with the open-interval form. Still open: E_F[W_F] = p sum|w_i| is unbounded (G0008 obstacle), so the expected bound is not closed for heavy weights; the top gate is not handled.",
+  "evidence": "Audit of the Erdos check cm-26c62e2a37f64346 (2323 'violations'): the code counted subset sums in the HALF-OPEN window [x, x+2). That window holds two integers, so the count can exceed C(s, s/2). Example: weights (1,1), s=2, sums 0,1,1,2; [0,2) holds 3 subsets > C(2,1)=2. Erdos's theorem is for OPEN intervals of length 2. For integer sums an open interval of length 2 holds exactly one integer, so the correct check is: max multiplicity of a subset-sum value <= C(s, floor(s/2)). The flagged cases are an artifact of the check, not a refutation of S0079. The capped bound exceeding 1 at n=10 (p=0.1, 0.2) is a separate matter: the cap (W_F+1)/sqrt(s) is vacuous at small n and says nothing about growth in n.",
+  "gap_id": "G0055"
+ },
+ {
+  "at": 1795274563.5206795,
+  "session": "pnp-desk/research/R1034",
+  "model": "claude-haiku-5-5",
+  "gap": "G0009 (R2) stays OPEN. S0079 gives P(nonconst | F) <= 2(W_F+1)/sqrt(s), so E_F gives p*sum|w_i|/sqrt(s), which is unbounded for heavy weights (G0008 obstacle). The one-heavy-weight family has true max-over-t ratio 1/sqrt(10) at both p = 0.1 and 0.2 (n=10, grid lower bound), which suggests the heavy free weight contributes O(p) rather than O(p sqrt n), but this is a single size and not a proof. The top gate is not handled.",
+  "evidence": "Erdos-Sperner multiplicity check cm-a47372e90b7045cd: 0 violations for s = 1..6 and weights in {+-1,+-2,+-3}; the max multiplicity ratio to C(s, floor(s/2)) is exactly 1.0. The step in S0079 that the number of subsets with sum in one integer value is at most C(s, s/2) is consistent with this. The window-count step (at most W_F+1 integers in the window) is elementary. S0079 stays CLAIMED: it has not been reviewed by another session, and the Erdos statement itself has not been source-checked.",
+  "gap_id": "G0056"
+ },
+ {
+  "at": 1795274574.6927445,
+  "session": "pnp-desk/research/R1031",
+  "model": "claude-haiku-5-5",
+  "gap": "S0077 (few-distinct-rows DP) is still CLAIMED and unreviewed; a different session must check the counting identity #SAT = sum_s c(s) g(s) and the bound |S| <= (2Bn+1)^r. Open: (1) no speedup on a few-rows family, since thr2_evaluate has no such family; (2) the subclass gives no running time that is superpolynomially better than brute force unless r = o(n / log n), so it does not yet reach the Lemma 3.8 threshold S(n)/log n -> infinity; (3) the lemma does not close Q-30b52367b6 until a reviewer sets confirms_closure.",
+  "evidence": "Fresh-seed brute-force check cm-801083d503fd4f85: 24 of 24 instances agree (n=12,16,20,24; r=2,3; B=1; m=2n), including the n=24 cases that were previously unchecked. Exploratory only. Not a proof and not a speedup measurement.",
+  "gap_id": "G0057"
+ },
+ {
+  "at": 1795274659.494195,
+  "session": "pnp-desk/research/R1034",
+  "model": "claude-haiku-5-5",
+  "gap": "G0009 (R2) stays OPEN. S0079 stays CLAIMED (conditional on Erdos 1945 source check). New obstacle identified: geometric (multi-scale) weights, where the window-count cap is not polynomial. The repair must use a different count for distinct subset sums in a window, e.g. the number of distinct sums in an interval of length L, which is not bounded by L times a constant when the weights are superincreasing.",
+  "evidence": "Refined bound check cm-2fc85eb4fa584846 (n=12, five families, p in {1/12, 0.2}): true max-over-t ratio (41-point grid, lower bound) is 0.27 to 0.77; the refined t-free bound P(nonconst|F) <= min(1, (min(W_F,W_fix)+1) C(s,s/2)/2^s) gives ratio 1.1 to 2.1. Both are O(1) at n=12, so this does not decide growth in n. Analytic point: for light fixed weights the cap is about (k+1)/sqrt(s) with k the number of free variables, so E_F gives p sqrt(n); a heavy free weight is also covered, because min(W_F,W_fix) is then at most W_fix = O(n). The bound fails when weights are spread over many scales, e.g. w_i = 2^i: there min(W_F,W_fix) is of order 2^n, not poly(n), so E_F[min(...)]/sqrt(n) is not O(p sqrt n). The Erdos multiplicity step is not what fails here: the window-count step is too coarse for superincreasing weights.",
+  "gap_id": "G0058"
+ },
+ {
+  "at": 1795274684.8617263,
+  "session": "pnp-desk/research/R1034",
+  "model": "claude-haiku-5-5",
+  "gap": "G0009 (R2) stays OPEN. S0079 stays CLAIMED (Erdos 1945 source check pending). No proved_step this session: the only new object is a refuted cap for multi-scale weights, with the repair not yet constructed. Top gate not handled.",
+  "refuted_approach": "Window-count cap P(nonconst | F) <= min(1, (min(W_F, W_fix)+1) C(s,s/2)/2^s) as a route to E_F[.] <= C p sqrt(n). It is valid, and it gives O(p sqrt n) for bounded weights and for one heavy free weight, but for multi-scale weights (w_i = 2^i) W_fix is about 2^n, so the cap is not polynomial and does not yield the sqrt(n) bound. Repair needed: a count of subset sums in a window that uses the actual gap structure of the fixed sums, not only the total range.",
+  "evidence": "cm-49b9f40d55e74f05 (geometric weights, n=12): true ratio 0.38, refined cap ratio 2.42 at p=1/12. Obstacle is in the cap, not in the true value.",
+  "gap_id": "G0059"
+ },
+ {
+  "at": 1795275101.6485066,
+  "session": "pnp-desk/research/R1040",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 refined: the path-decomposition DP gives 2^(pw+1)(2V+1) poly(m), but bounded-degree expander-like support hypergraphs have pw = Omega(n), so the route reaches only low-pathwidth subclasses. Remaining obligation: a subclass with m = n^alpha gates, pw at most (1-delta)n, and supports not covered by the window lemma, or a method that does not depend on pathwidth.",
+  "evidence": "Reach argument only (standard facts: pathwidth of bounded-degree expanders is Omega(n); the DP is standard). No new computation; the correctness check of the distinct-direction DP is cm-2821d6815d3640d4.",
+  "gap_id": "G0060"
+ },
+ {
+  "at": 1795275558.3118913,
+  "session": "pnp-desk/research/R1046",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer R-session (not the claimant R0803). (1) Hand counterexample: n=3, weights w=(1,1,0), F={1,2} free, fixed variable 3 with weight 0, threshold t=1. Gate [x1+x2>=1] is non-constant under every restriction, so P(undecided)=1, but the claimed bound rB/sqrt(N_F) = 1/sqrt(2) < 1. (2) Exact check cm-aa4a244a7f9c4ae2 (n in {8,10,12}, B in {1,2,4}, N_F in {2,4,6}, 40 trials each): max_t P * sqrt(N_F)/B reaches 2.0 (n8_B1_NF4), 2.4495 (B1_NF6), 1.41 (n12_B1_NF2); the claim needs <= 1 for r=1. The failure is the zero-weight fixed part, which carries no spread, so the bound needs a term that counts fixed nonzero weights.",
+  "review_of": "S0004",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795275951.6083786,
+  "session": "pnp-desk/research/R1046",
+  "model": "claude-haiku-5-5",
+  "evidence": "Second refutation of the repair (session R1046). The covering bound ceil(W/2)*C(k,k//2)/2^k is violated: exact check cm-8f54fb172ab84362 gives 702 violations over 106487 checked thresholds, worst p/bound = 2.0. Example: n=4, w=(-1,-1,-1,-1), F={0,1}, t=-2: P=0.75, bound 0.5. Cause: each two-integer covering block was bounded by one atom's mass C(k,k//2)/2^k, but a block holds two atoms. Per-atom Sperner bound is valid, so the next candidate is P(undecided) <= min(1, W*C(k,k//2)/2^k), k = number of fixed nonzero weights.",
+  "review_of": "S0004",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795275989.5814023,
+  "session": "pnp-desk/research/R1046",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exploratory check cm-7069d06436e540ad: 103795 threshold checks, 19076 with k=0, 0 violations, worst p/bound = 1.0. Scope of evidence: finite random instances n<=11, B<=4. The lemma itself is a proof; the experiment only checks it. Note: this bound scales as B*N_F/sqrt(k), so it is non-trivial only when N_F is small against sqrt(k)/B. It does not close the sqrt(N_F)/B form.",
+  "id": "S0088",
+  "proved_step": "LEMMA (session R1046, CLAIMED, not self-reviewed). Let a_1..a_k be nonzero integers, x_i iid uniform {0,1}, S = sum a_i x_i. Then for every integer a, P(S=a) <= C(k,floor(k/2))/2^k. Proof: for a_i<0 put y_i=1-x_i, so S = c + sum |a_i| y_i with all coefficients >= 1. If Y is a strict subset of Y' then sum_{Y'} >= sum_Y + 1, so the subsets with a fixed sum form an antichain; Sperner bounds it by C(k,floor(k/2)). Corollary: for a window I of W integers and fixed-part sum S over the k nonzero fixed weights, P(S in I) <= min(1, W*C(k,floor(k/2))/2^k). Applied to a gate with free set F: the gate is undecided iff S lies in a window of W = sum_F |w_j| integers, so P(undecided) <= min(1, sum_F|w_j| * C(k,floor(k/2))/2^k), k = #fixed nonzero weights. This replaces S0004 (refuted twice).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795276064.5387988,
+  "session": "pnp-desk/research/R1046",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION by R1046 (self-correction, not a review). (1) The Sperner atom lemma (S0088, CLAIMED) does NOT close G0004: G0004 asks for P(undecided) <= r*B/sqrt(N_F) with a free set F, and the lemma gives only min(1, W*C(k,floor(k/2))/2^k) with W = sum_F|w_j|, which is non-trivial only when sum_F|w_j| is small against sqrt(k). The closes=G0004 field was set in error, as G0006 also warns. The lemma is the classical Littlewood-Offord / Erdos-Sperner bound, so it is a known tool, not progress. (2) Possible step-ID collision: knowledge_search on S0004 returns SURVIVED_REVIEW entries under Q-9d5ab93ad8 (rank-r DP route). My two REFUTED updates were filed under Q-23b6083e38 and target the G0004 claim (the rB/sqrt(N_F) form), but I did not verify that the ID resolved to that record. Needs a host check that the Q-9d5ab93ad8 S0004 status is unchanged. (3) Open obligation unchanged: bottom-gate restriction bound with sqrt(N_F)/B form, with zero-weight fixed parts handled (the refutation example is n=3, w=(1,1,0), F={1,2}, t=1, P=1).",
+  "gap_id": "G0061"
+ },
+ {
+  "at": 1795277562.5485382,
+  "session": "pnp-desk/research/R1063",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review by a different session. Induction over coordinates: after i coordinates the value vector (F_f . x_{1..i})_f determines all later values, so c_{i+1}(s) = c_i(s) + c_i(s - F_{.,i+1}) is exact. Every value lies in [-Bn, Bn], so the table has at most (2Bn+1)^r entries. Time O((nr+m)(2Bn+1)^r) up to a hashing factor. Saving over 2^n only when r log2(2Bn+1) <= (1-delta) n. Closes no open obligation (G0001 and G0002 stay open).",
+  "review_of": "S0010",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795277584.6892073,
+  "session": "pnp-desk/research/R1063",
+  "model": "claude-haiku-5-5",
+  "lemma": "Uniform-threshold restriction identity. Let W in Z^{1 x n} with S_+ = sum_j max(W_j,0), S_- = sum_j min(W_j,0), S = S_+ - S_- = sum_j |W_j|, lo = S_-, hi = S_+. Let t be uniform on the S+1 integers {lo,...,hi}. Fix x in {0,1}^n and a free set F. Let const = sum_{j not in F} W_j x_j, flo = const + sum_{j in F} min(W_j,0), fhi = const + sum_{j in F} max(W_j,0). The gate is undecided under the restriction iff flo < t <= fhi. Then P_t[undecided] = W_F/(S+1) exactly, where W_F = sum_{j in F}|W_j|. Averaging over a uniformly random free set F of size k: E_F[P_t[undecided]] = (k/n) S/(S+1) <= k/n.",
+  "gap": "SCOPE AND LIMIT. This is an average over random thresholds and random free sets. It does NOT close G0002 or G0004, whose claim must hold for the thresholds of the actual instance. Middle thresholds keep the undecided fraction at 0.62 (c=1) and 0.94 (c=2) for n=16..64 (cm-3e61ab8086ba4462), so sparsity alone does not decide a fixed-threshold gate. OPEN: a worst-case or instance-adapted threshold bound (anti-concentration of W_F against the threshold window, Erdos-Moser / Halasz with sum_F W_j^2), and the top-gate decision and running time. Not a P vs NP step.",
+  "evidence": "cm-26d396f198844b29 (exact pointwise and sum identity, 0 mismatches); cm-3e61ab8086ba4462 (uniform thresholds: undecided*sqrt(n) = 0.98 to 2.02 for c=1,2, n=16..64, matching k/n); S-7cc6872ad4.",
+  "gap_id": "G0062",
+  "id": "S0091",
+  "proved_step": "PROOF. (i) flo >= lo, since const >= sum_{j notin F} min(W_j,0), so flo >= sum_j min(W_j,0) = lo. Likewise fhi <= hi. Hence (flo,fhi] lies inside [lo,hi] and contains exactly fhi - flo = W_F integers. (ii) t uniform on S+1 integers gives P = W_F/(S+1). (iii) Each j lies in a uniform k-subset F with probability k/n, so E_F[W_F] = (k/n) S, giving E_F P = (k/n) S/(S+1). The identity sum_F W_F = C(n-1,k-1) S is checked exactly in cm-26d396f198844b29 (276 sum checks, 0 mismatches), and the pointwise identity in 87576 checks, 0 mismatches. With k = c sqrt(n) this gives E_F P <= c/sqrt(n).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795277853.1264553,
+  "session": "pnp-desk/research/R1064",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Weight-class repair (free set = the lightest k variables, so that W_F/S is small). Refuted as a worst-case threshold tool. On the uniform-threshold average, the lightest-k free set has W_F/S about 0.01 against about 0.25 for a uniform free set (cm-260774a1a1bc46c2), and max_t P[undecided] is about 0.03-0.05 against 0.43-0.91 for uniform free sets (cm-02e68db7f48a40d4). BUT with equal weights the lightest set is an arbitrary k-set: max_t P[undecided] = 0.733, 0.892, 0.979, 0.999 for n = 16, 32, 64, 128 (k = n/4), identical for light and first-k (cm-70d340b208e045cf). So W_F/S is the wrong measure. The right measure is W_F against sqrt(r) (the lemma above). Repair route: restrict to a sparse free set with W_F = o(sqrt(n)) rather than a light free set. The weight-class split alone does not repair G0002.",
+  "evidence": "cm-260774a1a1bc46c2, cm-02e68db7f48a40d4, cm-70d340b208e045cf"
+ },
+ {
+  "at": 1795278994.0956223,
+  "session": "pnp-desk/research/R1076",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact check cm-9b04ae96ada14189: uniform-threshold restriction identity P_t[undecided] = W_F/(S+1) verified on 98752 (W, F, x) cases (all integer W in {-3..3}^3, plus random n=4,5 with |W_j|<=4), 0 violations; averaging E_F[W_F] = kS/n verified exactly on 700 random weight vectors (n=1..7), 0 violations. Hand proof: the undecided integers t in (flo, fhi] number fhi-flo = W_F, and flo >= S_- and fhi <= S_+ because x_j in {0,1}. This is a precise identity; it does not close G0001, G0002 or G0004 (they need thresholds of the actual instance, not an average over t)."
+ },
+ {
+  "at": 1795279392.2915137,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0010: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The returned evidence is truncated before the kernel verdict, and the submitted file stops at `count_le`, so no acceptance is established. The inequality P \u2264 p looks provable with the lemmas  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795280265.5714345,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0015: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: Lemma R1 depends on the Kolmogorov-Rogozin inequality, which is not in Mathlib. Stating it as an axiom is forbidden and as a hypothesis changes the claim. The elementary reduction (Q_j \u2264 1/2  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795280406.4705765,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0015: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean file was written or submitted, so the kernel has not checked anything. The claim cannot be proved in this session as stated, for two reasons.\n\n1. **The Lean statement is false in the  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795280511.3485904,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0018: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The Kolmogorov-Rogozin step (4) needs an absolute constant A whose statement is not in Mathlib and is only cited. Proving the claim needs either that inequality as a forbidden extra hypothesi (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795280629.0556762,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0018: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean file was written or submitted to physalis_math_verify, so nothing is kernel-checked. The claim cannot be formalised as stated in this session.\n\n**What failed:**\n- **Missing ingredient (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795280876.283511,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0010: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof. The four `physalis_math_verify` results visible in the transcript are cut off after the submitted source and show no verdict, so none establishes acceptance. The las (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795281050.047264,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0023: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Sperner level-set bound (`sperner_sum_level`) is kernel-verified for positive natural weights. The full Lemma R still needs (a) the sign-flip/window counting over uniform bit strings, (b) (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795281519.0981581,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0023: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795282086.516966,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0023: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The full LEMMA R is not yet formalized. Kernel-accepted partials are `sperner_weight_level` (Sperner bound on subset-sum level sets) and `window_count` (window bound `\u2264 W \u00b7 C(r,\u230ar/2\u230b)`). Not  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795282185.8662682,
+  "session": "pnp-desk/research/R1107",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed S0070 as stated, by hand. Let t be uniform on the 2R+1 integers in [-R,R]. For a free set F, the gate is undecided iff flo < t <= fhi, where fhi - flo = W_F = sum_{j in F}|w_j|. The undecided thresholds are integers in (flo,fhi], so there are at most W_F of them, giving P_t[undecided] <= W_F/(2R+1). Averaging over a random free set with inclusion probability p gives E[W_F] = p W, so E_F P_t[undecided] <= p W/(2R+1). Exact check cm-77ee608fd729421e: 300 random instances (K<=7, |w|<=4, R<=30), 0 violations of undecided <= sum|w|/(2R+1). SCOPE: this is an average over thresholds and free sets. It does not bound a fixed threshold, so it does not close G0002 or G0004. The second inequality p W/(2R+1) <= p holds only when W <= 2R+1; that hypothesis is not established in the record and is NOT reviewed here.",
+  "review_of": "S0070",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795282353.1648817,
+  "session": "pnp-desk/research/R1107",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: the same fixed-threshold bound for general integer weights |w_j| <= B with worst-case threshold (G0002); a bound on the number of distinct bottom-gate restrictions for m = n^1.5 gates (G0001); the top-gate decision and running time. Lemma U shrinks G0002 only for unit weights and does not close it.",
+  "evidence": "cm-ca1d691c3ebc4896 (EXPLORATORY, agent-authored): max_j C(N,j)/2^N * sqrt(N) worst 0.793 over N<=39, 0 violations; tail check over n<=18, all k, all t in [-k-2, n+2], 3672 cases: 0 violations of P > k/sqrt(N), max ratio P/(k/sqrt N) = 0.786; window characterisation matches brute force on all x for n<=7, 0 mismatches. The proof is by hand; the computation checks the statement, it is not the proof. Unreviewed by any other session: must not be used as a premise until reviewed.",
+  "gap_id": "G0063",
+  "id": "S0104",
+  "proved_step": "Lemma U (unit-weight fixed-threshold restriction). Let n>=2, 1<=k<=n-1, N=n-k, and let t in Z be ARBITRARY (worst case over thresholds). Let g(x)=[x_1+...+x_n >= t] on {0,1}^n. Fix a set F of k free coordinates and draw the N other coordinates i.i.d. uniform; set c = sum of the fixed coordinates, so c ~ Bin(N,1/2). Then P_c[g restricted to F is non-constant] <= k/sqrt(N). PROOF. The restricted function is c + (sum of the k free bits), which takes values in [c, c+k]. It is constant 1 iff c >= t and constant 0 iff c+k < t, so it is non-constant iff t-k <= c <= t-1, a window of at most k integers. Hence P <= sum over the window of P(Bin(N,1/2)=c) <= k * M_N, where M_N = max_j C(N,j)/2^N. Claim: M_N <= 1/sqrt(N) for all N>=1. Let a_m = C(2m,m)/4^m. (i) For N=2m, M_N = a_m. Put f(m)=a_m^2(3m+1), f(0)=1. Since a_{m+1}/a_m=(2m+1)/(2m+2), f(m+1)/f(m) <= 1 iff (2m+1)^2(3m+4) <= (2m+2)^2(3m+1); the difference RHS-LHS equals m >= 0. So a_m <= 1/sqrt(3m+1) <= 1/sqrt(2m) = 1/sqrt(N). (ii) For N=2m+1, M_N = C(2m+1,m)/2^{2m+1} = a_{m+1} (because C(2m+2,m+1)=2 C(2m+1,m)), so M_N <= 1/sqrt(3m+4) <= 1/sqrt(2m+1) = 1/sqrt(N). Combining, P <= k/sqrt(N). QED. COROLLARY: since N >= n/2 when k <= n/2, the bound is <= sqrt(2) k/sqrt(n); it shrinks with n only when k = o(sqrt n). SCOPE: unit weights only; uniform random fixed coordinates; the bound holds for every threshold t. It does NOT handle general integer weights (the Erdos-Moser/Halasz obstacle of G0002/G0004), the top gate, or running time. It is a special case of the open restriction obligation, not a closure of it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795282592.9129527,
+  "session": "pnp-desk/research/R1109",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 still OPEN: worst-case threshold bound for integer weights |w_j| <= B. Candidate repair: point-mass bound P(fixed threshold lies in window) <= C * W_F / (spread of fixed part), not yet proved for general integer weights.",
+  "evidence": "cm-de37e9eac2a74a7d: exact check of the uniform-threshold restriction identity, 200 random integer weight vectors in {-3..3}, n = 2..6, all free sets F and all fixed assignments x, t uniform on {Sm..Sp}: checks = 52002, mismatches = 0 (count of undecided t equals W_F and equals max - min of the gate sum; window inside [Sm+1, Sp]). Scope: uniform threshold only. Does NOT close G0002 (worst-case threshold) or G0001 (count of constant bottom gates for m = n^1.5). Not submitted as proved_step: five CLAIMED steps (S0012, S0031, S0042, S0044, S0049) remain unreviewed.",
+  "gap_id": "G0064"
+ },
+ {
+  "at": 1795282708.5446084,
+  "session": "pnp-desk/research/R1105",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer: R1107-session (different from proposer R1028). Statement S0070: for p-random free set F, t uniform on [-R,R], R=ceil(W/2), W=sum|w_i|, P[gate undecided] <= p W/(2R+1) <= p. Hand proof: undecided iff s+min_F < t <= s+max_F, a window with at most W_F = sum_{i in F}|w_i| integers; E[W_F]=pW, and 2R+1 > W. Exact check cm-05691e614df9475e: 300 random instances, n in [2,6], weights in {-3..3}\\{0}, p in {1/4,1/2,3/4}; 0 violations; max ratio of averaged undecided probability to bound = 1.0. Scope limit: the script's per-assignment statistic is a joint probability over (F, a), not conditional on F, so it does not test a per-assignment form. Result gives no shrink for fixed thresholds (averaged over t only), so it does not close G0002 or G0004.",
+  "review_of": "S0070",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795282728.4621007,
+  "session": "pnp-desk/research/R1105",
+  "model": "claude-haiku-5-5",
+  "evidence": "CORRECTION to the S0070 review entry just filed: the reviewer was pnp-desk/research/R1105 (this session), not 'R1107-session' as written. The proposer is R1028, so the no-self-review rule holds. The review result is unchanged: S0070 SURVIVED_REVIEW for the averaged form P_t[undecided] <= W_F/(2R+1) <= p, checked by exact run cm-05691e614df9475e (300 instances, 0 violations, max ratio 1.0). Its per-assignment statistic is a joint probability over (F, a), so it does not test a conditional per-assignment form. S0070 gives no fixed-threshold shrink and does not close G0002 or G0004."
+ },
+ {
+  "at": 1795283046.9743278,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795283264.5283418,
+  "session": "pnp-desk/research/R1117",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 scope gap (refines G0001/G0004, does not close them): the window-uniform bound cannot be applied to THR o THR instances with fixed thresholds, which is the setting of the thr2 instance families. Repair needed: either (a) a theorem that holds for a fixed threshold vector under a stated random-restriction distribution, with the constant and the window width W_F bounded for m = n^1.5 gates, or (b) a state-count argument that does not need the threshold distribution at all. Not closed; no obligation discharged this session.",
+  "evidence": "cm-448d9ffa56564c6f: E[undecided fraction] = m k/(n+1) exactly for +-1 weights under window-uniform thresholds (matches the restriction identity of the lemma). cm-1756b4618b9246d3: under fixed thresholds in [-2,2] the non-constant count exceeds m k/sqrt(n-k) (n=10,k=2: 29.6 vs 22.6). Therefore the per-gate bound used for G0001 is not distribution-free over thresholds.",
+  "gap_id": "G0065"
+ },
+ {
+  "at": 1795283486.1309786,
+  "session": "pnp-desk/research/R1121",
+  "model": "claude-haiku-5-5",
+  "lemma": "CANDIDATE REPAIR (unreviewed): for integer weights and a fixed threshold, P_x[gate undecided] <= W_F * C(r, floor(r/2)) / 2^r, where r = number of nonzero fixed weights and W_F = sum over free j of |w_j|. Proof sketch: the undecided event is c in [t - maxF, t - minF - 1], an interval of exactly W_F integers, where c is the fixed sum. Zero-weight fixed variables do not change c. Sign-flip the fixed weights to positive; two distinct subsets with equal sum cannot be nested (weights >= 1), so the level sets form an antichain and Sperner gives P(c = s) <= C(r,floor(r/2))/2^r for each integer s. Summing over the W_F integers gives the bound.",
+  "refuted_approach": "Claimed P_x[gate undecided] <= ceil(W_F/2)*C(r,floor(r/2))/2^r for a fixed threshold (blocks of two consecutive integers). REFUTED by cm-c34d55c41e9446a0: W=[0,-1,1,1,0,-1,1,1], t=1, F={1,2} gives P=0.625 > bound 0.375 (13 violations in 300 trials, max ratio 2.0). The error: the undecided window of the fixed sum has W_F integers, not ceil(W_F/2) blocks, and the factor 2 is lost.",
+  "evidence": "cm-c34d55c41e9446a0"
+ },
+ {
+  "at": 1795283623.4689572,
+  "session": "pnp-desk/research/R1117",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review, session R1117 (independent of the author). Lemma A: after sign-flipping fixed weights (x_i -> 1-x_i where w_i<0), the fixed sum is const + sum_{i in S} |w_i|; for integer weights, S strictly inside T gives distinct sums, so the sets with equal sum form an antichain; Sperner gives C(k,floor(k/2))/2^k <= 1/sqrt(k). Lemma B: the gate is undecided iff c in [t-maxF, t-minF-1], an integer interval with exactly W_F = sum_{j in F}|w_j| integers, so P(undecided | F) <= W_F/sqrt(k). Scope: integer weights, uniform independent fixed bits, F given. The bound is conditional on W_F. It is NOT bounded for heterogeneous weights (G0008(i)), so it shrinks G0001/G0004 and does not close them.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795283793.479931,
+  "session": "pnp-desk/research/R1125",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. The window-Sperner candidate is numerically consistent, but it is vacuous for constant p with weights >= 1. Needed next: a weight-class split that bounds the free mass by O(sqrt(r)) at constant p, or a state-count argument independent of the threshold distribution.",
+  "evidence": "cm-52ebadc143c74a78: exact check of P[undecided] <= W_F*C(r,r//2)/2^r on 400 random integer instances (n 3..12, |w|<=4): 0 violations, 88 non-vacuous, max ratio 1.0. Numerical consistency only; no proved_step claimed by this session. Scope note: the bound is vacuous (>= 1) for constant free fraction p with unit-scale weights, since it is about pB sqrt(n) there.",
+  "gap_id": "G0066"
+ },
+ {
+  "at": 1795283797.927949,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: exact_unit_weight_average\nRELATION: SAME. The statement has the claim's domain (t uniform over -n..n, 2n+1 values), uniform free bits (a sum over all 2^(n-k) subsets S of the n-k free variabl (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795283848.6533754,
+  "session": "pnp-desk/research/R1125",
+  "model": "claude-haiku-5-5",
+  "lemma": "Fixed-threshold window lemma. Let w in Z^n with |w_j| <= B, let F subset [n] be the free set with k = |F|, let R = {j not in F : w_j != 0} with r = |R|, let t in Z be ANY fixed threshold, and let x_R be uniform on {0,1}^R (x_F arbitrary). Let g(x) = [sum_j w_j x_j >= t]. Then g depends on x_F, i.e. is undecided, iff c + minF < t <= c + maxF, where c = sum_{j in R} w_j x_j, minF = sum_{j in F} min(0,w_j), maxF = sum_{j in F} max(0,w_j). Its probability satisfies P[undecided] <= W_F * C(r, floor(r/2)) / 2^r <= W_F / sqrt(r) <= B k / sqrt(r), where W_F = sum_{j in F} |w_j| = maxF - minF. PROOF: (i) g is undecided iff the value at the all-max assignment of x_F (true) differs from the all-min one (false), which gives the stated interval for c. (ii) The interval [t-maxF, t-minF-1] contains exactly W_F integers. (iii) For each integer s, P(c = s) <= C(r,floor(r/2))/2^r: put y_j = x_j for w_j > 0 and y_j = 1 - x_j for w_j < 0; then c = const + sum_{j in R} |w_j| y_j, and the sets Y subset R with sum |w_j| over Y equal to a fixed value form an antichain (a strict subset has strictly smaller sum since |w_j| >= 1), so by Sperner there are at most C(r,floor(r/2)) of them. (iv) C(r,floor(r/2))/2^r <= 1/sqrt(r) for r >= 1 (checked r = 1,2,3 directly; for even r = 2m the standard bound C(2m,m)/4^m <= 1/sqrt(pi m)). Union over the W_F integers gives the claim. Scope: integer weights, any fixed threshold, any free set, no distribution assumed on t; the bound is non-vacuous only when W_F = o(sqrt(r)). COROLLARY (expected count): for m gates with |w| <= B and a restriction leaving k free variables, E[#undecided] <= m B k / sqrt(n-k) (all weights nonzero), so if k <= sqrt(n-k)/(4B) the expected undecided fraction is <= 1/4. This re-derives the bounded-weight shrink already recorded (Theorem C, G0005) with the threshold distribution removed; it does NOT give the every-z or high-probability form, and it does NOT handle unbounded weights.",
+  "gap": "Does not close G0001 (it shrinks it, as Theorem C does). Open: (a) unbounded weights (B = n^{Omega(1)} kills the corollary since it needs k <= sqrt(n)/B); (b) a deterministic or all-z form; (c) the top gate is not decided, so no running time follows; (d) the restricted pattern-count for a CAPP algorithm (G0003/G0004). Reviewer should check step (iii) and the r<=1 edge case.",
+  "evidence": "cm-52ebadc143c74a78: 400 random integer instances (n 3..12, |w|<=4), 0 violations of P[undecided] <= W_F C(r,r/2)/2^r, 88 non-vacuous, max ratio 1.0. The proof above is hand-checked; the numerical check is consistency only.",
+  "gap_id": "G0067"
+ },
+ {
+  "at": 1795283930.7066526,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No Lean file has a verified kernel result, so I can't claim FORMALLY_VERIFIED for any part of the claim.\n\n**What the transcript shows**\n- Each `physalis_math_verify` RESULT was cut off before (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795283987.1601658,
+  "session": "pnp-desk/research/R1125",
+  "model": "claude-haiku-5-5",
+  "gap": "Lemma (window, turn 5) is hand-checked correct: interval has exactly W_F integers, antichain step uses |w_j| >= 1, C(r,r/2)/2^r <= 1/sqrt(r). Its contribution to G0001 is a shrink for bounded weights only (corollary needs k <= sqrt(n-k)/(4B)). It does not close G0001 and is not a new Littlewood-Offord result. No proved_step is claimed this session; the step stays unreviewed until another session checks it.",
+  "evidence": "claim:abfc3c35774d (PENDING, EXPLORATORY). known_closest: Erdos 1945 Littlewood-Offord inequality (for |w_j| >= 1, max_s P[sum_j w_j x_j = s] <= C(r, floor(r/2))/2^r), proved by the same Sperner antichain argument; the novel part is only the window count W_F over a fixed threshold t and the resulting bound W_F/sqrt(r) for a restriction. novelty: the restriction-to-undecided-gate form for integer weights with arbitrary fixed t. obstacle: unbounded weights and the every-z / high-probability form. attack: weight-class split so that the free mass W_F is O(sqrt(r)).",
+  "gap_id": "G0068"
+ },
+ {
+  "at": 1795284199.0344594,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No formalisation of the claim as stated has been accepted. The accepted theorem `unit_weight_avg` (kernel-checked, standard axioms only) proves only the counting core, with the non-constancy  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795284424.3597867,
+  "session": "pnp-desk/research/R1125",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand re-check of the fixed-threshold window lemma (steps i-iv): (i) the undecided condition c+minF < t <= c+maxF is correct because the gate is monotone in x_F; (ii) the t-window has exactly W_F integers; (iii) the antichain step uses |w_j| >= 1 and the sign flip y_j = 1-x_j for w_j<0 gives c = const + sum|w_j|y_j; Sperner gives C(r,floor(r/2)); (iv) C(r,floor(r/2))/2^r <= 1/sqrt(r) for r >= 1. Exact check cm-b58e65b5aafd4a51: 6852 cases, 0 violations. Scope: bounds the undecided probability only as W_F/sqrt(r); it does not close G0001 or G0002 and needs W_F = o(sqrt r) to be non-vacuous. Not recorded as SURVIVED_REVIEW: the step id was not in my read, and the validator claim claim:abfc3c35774d is still PENDING."
+ },
+ {
+  "at": 1795284441.7131138,
+  "session": "pnp-desk/research/R1125",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand re-check of the fixed-threshold window lemma: (i) the undecided condition c+minF < t <= c+maxF holds because the gate is monotone in x_F; (ii) the t-window contains exactly W_F integers; (iii) the antichain step uses |w_j| >= 1 and the sign flip y_j = 1-x_j for w_j<0 gives c = const + sum |w_j| y_j, so Sperner gives C(r,floor(r/2)); (iv) C(r,floor(r/2))/2^r <= 1/sqrt(r). Exact check cm-b58e65b5aafd4a51: 6852 cases, 0 violations. Scope: bounds the undecided probability by W_F/sqrt(r), which is non-vacuous only when W_F = o(sqrt(r)). It does not close G0001 or G0002. Not recorded as SURVIVED_REVIEW: the step id is not in my read, and claim:abfc3c35774d is still PENDING."
+ },
+ {
+  "at": 1795285218.3724122,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795285224.019757,
+  "session": "pnp-desk/research/R1129",
+  "model": "claude-haiku-5-5",
+  "lemma": "CORRECTED CONVENTION (exploration, not a proved_step). Erdos Littlewood-Offord (|x_i|>=1, real): any open interval of length 2 contains at most C(N,floor(N/2)) of the 2^N signed sums sum eps_i x_i, eps_i in {+1,-1}. For integer weights w_i (nonzero) and S_F = subset sum over a uniform random subset F, S_F = (T + sum eps_i w_i)/2 with T = sum w_i, so any open interval of length 1 in S_F units contains at most central := C(N,floor(N/2))/2^N of the mass. Hence P[S_F in a window of k consecutive integers] <= k*central. The ceil(k/2) form is NOT the right consequence (refuted numerically, cm-8c35023bb8304a1e). Obstacle: for the restriction gate event the window width is R_F = sum over free j of |w_j| (not a constant k), so the bound gives R_F * central, which is o(1) only if R_F = o(sqrt N). The fixed-threshold shrink for general integer weights is therefore still OPEN (G0002).",
+  "gap": "G0002 still open: need a window-width bound independent of R_F, or a bound on P[S_fixed in window of length R_F] that is o(1) for bounded weights and an N-independent free-side range. Candidate repair: restrict to instances with sum of free |w_j| = O(sqrt(N)) (bounded free-side range) and prove the shrink there.",
+  "evidence": "cm-399c6f7aeb944b8f (exhaustive, |w|<=3, N<=10: 0 violations of single-value and k-window k*central bounds); cm-8c35023bb8304a1e (random N<=14: ceil(k/2) refuted, 2266 violations).",
+  "gap_id": "G0069"
+ },
+ {
+  "at": 1795285461.0687096,
+  "session": "pnp-desk/research/R1129",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Lemma U as stated (unit weights, worst-case threshold t: P[nonconstant on F] <= k/sqrt(N), N = n-k) is FALSE. Counterexample: n=3, k=1, K={0}, F={1,2}, unit weights, t=2: the gate is nonconstant for c in {0,1}, so P=1.0 > 1/sqrt(2). Exact check cm-90854c890e944926: 108 violations over 770 checks, worst ratio 3.32. Earlier claim of 0 violations (cm-ca1d691c3ebc4896, max ratio 0.786) is unreconciled with this and must not be used as a premise. Repair candidate not yet proved.",
+  "evidence": "cm-90854c890e944926 (Lemma U: 108 violations; Lemma W: 4460 checks, 0 violations, worst ratio 1.0). Lemma W is a sketch: P[nonconst] <= R_F * C(k,floor(k/2))/2^k <= R_F/sqrt(k); the Erdos Littlewood-Offord input is cited from memory and not source-checked. No shrink for random restrictions since R_F = Theta(|F|)."
+ },
+ {
+  "at": 1795290159.75468,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795290547.0894072,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0026: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: No Lean 4 / Mathlib proof of the truncated Kolmogorov-Rogozin THR-gate lemma was accepted. The only submission (turn 0) failed with \"No declaration named PNP001.truncatedKolmogorovRogozin\", a (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795290785.1050498,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0026: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim's universal Kesten\u2013Rogozin constant A is not defined in the statement, and proving its existence (the Kesten\u2013Rogozin inequality) is not available in Mathlib and not feasible in one  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795291722.0970874,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel verdict was returned for any of the three submissions. Each RESULT payload is cut off before its verdict field, so I cannot tell whether any file was accepted. The file text in my t (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795292024.5937743,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0030: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: the full claim G0269 was never assembled into one Lean theorem, so no statement equal or stronger than it has been accepted. Four component lemmas were kernel-accepted, and the assembly and p (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795294642.6704414,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0030: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795295146.2548935,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0031: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim rests on Kolmogorov-Rogozin, which is absent from Mathlib with an unspecified constant `A`. Admitting it as a hypothesis would weaken the claim, which the brief forbids. The two-poi (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795295666.5672412,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0031: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim is not proved. The kernel accepted a file, but it covers only two auxiliary lemmas, not the claimed bound.\n\n**Kernel-accepted (Lean 4.35.0, axioms propext, Classical.choice, Quot.so (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795295892.4472852,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0042: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The runtime part is false under coordinate-operation cost and has no cost model in Lean. The OR reading is refuted by `or_is_not_top`. The equivalence part is kernel-accepted as `top_iff_sum_ (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795296341.129882,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0030: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: the full claim is not formalised or kernel-accepted. The pieces below are accepted, and the assembly and two bridging steps remain open.\n\n**Kernel-accepted (FORMALLY_VERIFIED, standard axioms (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795296654.4844985,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0042: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says WEAKER: The Lean theorem formalises only the algebraic iff `thrOut(dot(\u03a3_{j\u2208F} W_j, x, cs), t_top) = 1 \u2194 t_top \u2264 \u03a3_{j\u2208F} dot(W_j, x, cs)`, which the kernel-checked `dot_sum` linearity lemma reduces to a unfolding of `thrOut`. It omits the claim's bottom-gate (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795297229.164598,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0034: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The complete SCOPE theorem (Pr_rho[g restricted by rho is nonconstant] <= 2p*sqrt(L) + (2ep)^(floor(L/2)+1) for w in {-1,0,1}^n, L >= 4, p in (0,1)) was NOT kernel-accepted as one self-contai (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795298166.6873987,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0034: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim is plausibly true (steps 2\u20135 check on paper), but a faithful Lean 4 / Mathlib formalisation requires a probability-measure development over random restrictions plus the Wallis and L (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795324618.1640184,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0043: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795326734.3739338,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0045: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795327050.51987,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0043: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795351959.9862914,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0043: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: window_bound_random_threshold\nRELATION: SAME for the stated inequality. The kernel-checked statement is `count / (2R+1) \u2264 (\u03a3_{i\u2208F} |W i|) / (2R+1)` in \u211a, where count is `#{t \u2208 [-R,R] : mn < t (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795355391.792828,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0045: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof exists. None of the submitted files received a visible kernel verdict, so nothing is FORMALLY_VERIFIED.\n\n**What failed**\n- Every `physalis_math_verify` result in the  (not a refutation; a model review is still needed)"
+ }
+]

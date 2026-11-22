@@ -1,0 +1,611 @@
+[
+ {
+  "at": 1795252185.4531734,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-H: a proved bound, for ALL THR o THR circuits of size n^alpha, on the size of a joint representation of the bottom gates that survive a restriction, smaller than their number, that the CAPP step can use.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795253484.4107292,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Compression of surviving bottom gates by distinct truth-table columns on the free cube (function-equality representation). Counterexample at finite scope: random THR o THR, n in {10,12,14}, weights in {-3..3}, m = n^1.5 gates, random restriction fixing half the variables: distinct columns = survivors in 20/20 instances (cm-27e42447c780458b). Counting bound: distinct gates over f variables with weights in [-K,K] is at most (2K+1)^f (2Kf+1), which is 2^{Theta(n)} for f = n/2, larger than m, so no pigeonhole collapse.",
+  "evidence": "cm-27e42447c780458b (distinct columns); cm-4f1b3eae6dc74ded (rank = n/2 by construction, about 80% survival at n=16, so no compression from rank). Scope: random bounded-weight instances, n <= 14. Not an asymptotic statement."
+ },
+ {
+  "at": 1795253549.7310023,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Span-based joint representation of surviving bottom gates (enriched variant 1 of O-H). Finite scope: random THR o THR, n in {10..18}, weights in {-3..3}, m = n^1.5, random restriction fixing half the variables. The real rank of the 0/1 truth matrix (2^f rows, one column per surviving gate) equals the survivor count in every instance, so the truth columns are R-linearly independent and the span gives no compression. The rank of the surviving linear forms is f, which is only the trivial bound. Thresholds break linearity.",
+  "evidence": "cm-1386ccb9aab84396 (truth-matrix rank = survivors); cm-27e42447c780458b (distinct columns = survivors); cm-4f1b3eae6dc74ded (rank = f, about 80% survival at n=16). Scope: random bounded-weight instances, n <= 18. Not asymptotic; adversarial families untested."
+ },
+ {
+  "at": 1795253626.502893,
+  "session": "pnp-desk/research/R0815",
+  "model": "claude-haiku-5-5",
+  "gap": "O-H is still open. Repair attempt (CLAIMED, not a closure): if W_free = P Q with Q an r x f matrix, r = rank_R(W_free), then every surviving gate depends on x only through y = Qx in R^r, so the patterns on the cube number at most the cells of k affine hyperplanes in R^r, i.e. <= sum_{i<=r} C(k,i) (Cover 1965 / Zaslavsky). This is a true but weak lemma: for generic weights r = f and it gives nothing. It is non-trivial only for rank-deficient weight matrices, which is lane D's territory (Q-9d5ab93ad8), so it does not close G0001 for lane H. Open: a structural mechanism that makes surviving gates share a low-dimensional description under restriction for ALL circuits of the class, not only low-rank ones.",
+  "refuted_approach": "Threshold / arrangement criterion: patterns of k surviving gates on f free bits <= min(2^f, sum_{i<=f} C(k,i)). Vacuous whenever k >= f, which is the regime of m = n^1.5 gates with f = O(sqrt n) free variables (measured in cm-7a87f9468f0b4459). Compression needs k < f, the wrong direction for this class. Not a route for the general lemma.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795253703.5356262,
+  "session": "pnp-desk/research/R0815",
+  "model": "claude-haiku-5-5",
+  "lemma": "RANK-CELL LEMMA (not a closure of G0001). Let W be a k x f integer matrix of free-variable weights of k non-constant surviving THR gates on {0,1}^f, with real rank r. Then the number of distinct joint output patterns (indicators [W_j . x >= t_j]) over x in {0,1}^f is at most sum_{i<=r} C(k,i). Proof: (1) factor W = P Q with Q an r x f real matrix; each gate value depends on x only through y = Qx in R^r. (2) Let delta > 0 be below every nonzero |P_j . Qx - t_j| over the finite cube; then [P_j . y >= t_j] = [P_j . y - (t_j - delta) > 0] on the cube, so each joint pattern is realised by a point of the arrangement of the k affine hyperplanes {P_j . y = t_j - delta} in R^r, and distinct patterns lie in distinct open cells. (3) k affine hyperplanes in R^r have at most sum_{i<=r} C(k,i) open cells (induction R(k,r) <= R(k-1,r) + R(k-1,r-1)). Hence patterns <= sum_{i<=r} C(k,i). Known as the Cover/Zaslavsky cell count; the contribution here is only its application to the restricted gate family.",
+  "gap": "G0001 / O-H remains OPEN. The lemma is non-trivial only when r < f and sum_{i<=r} C(k,i) < 2^f, i.e. rank-deficient free-part weights (overlap with lane D, Q-9d5ab93ad8). For generic weights r = f and the bound is vacuous (k >= f in every measured case, cm-7a87f9468f0b4459). Still needed for the general class: a structural mechanism under restriction that forces the surviving gate matrix to have rank well below f for ALL THR o THR circuits of size n^alpha, or a proved reduction of the restricted family to a rank-deficient one. Restriction choice (adversarial free-variable selection with low free-part rank) is not analysed.",
+  "evidence": "cm-48946263998949e2, cm-7a87f9468f0b4459 (random instances, EXPLORATORY_COMPUTATION; they show no joint compression at f = n/2 or f = ceil(sqrt n)). Not a proof for the general class.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795253704.2591662,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "Correction to the distinct-direction bound. For D directions and f free variables, the number of distinct functions [d.x >= t] over all surviving gates is at most D(2Kf+1), not D*K*f as used in cm-ef4b765a72044916. The check in that run used the wrong bound. Re-check the counts against D(2Kf+1). The random-restriction survival tests so far used weights in {-3..3}, where about 80% of gates stay non-constant; this is not the regime where the gap needs survival of only about m k/sqrt(n). Next: measure survival as a function of the weight bound K (cm pending).",
+  "evidence": "Counting: a threshold function on f variables with integer weights bounded by K is determined by its direction and the threshold value, and the thresholds that matter lie in [-Kf, Kf]. Scope: finite, random.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795253737.2500975,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 status: the K-sweep cm-a855893f59624d26 is only partly visible (K=3 rows: 25-40% of gates survive at n=16-36 when thresholds are scaled by Kn/2; the K=10,30,100 rows were truncated). Correction to my earlier note: cm-ef4b765a72044916 was checked against D*K*f, not the correct bound D(2Kf+1). Its counts were below both bounds, so the qualitative result stands but the 'holds' column is not evidence for the corrected bound. Next run measures survival and distinct nonconstant functions against the number of free variables k (cm pending), which is the regime the gap needs.",
+  "evidence": "cm-a855893f59624d26 (K=3 rows only); cm-ef4b765a72044916 (wrong bound in its check column).",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795253774.4989693,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0005 status: cm-ef80778a951a41bc (n=16, K=3, k=2..5 free variables) shows survival fraction 0.06-0.25 of m, far below the m k/sqrt(n) scale the gap needs (0.5-1.25 at n=16). Random instances are easier than the gap's regime, so no conclusion about the gap. Distinct truth tables equal survivors except at k<=4 (e.g. 9 survivors, 8 distinct). The bound min(s, 2^(2^k)) is bookkeeping, not progress. Next: adversarial family with D directions and thresholds in [-Kf, Kf], measuring survivors and distinct functions against D(2Kf+1).",
+  "refuted_approach": "Scope correction to the random-instance refutations (cm-27e42447c780458b, cm-1386ccb9aab84396): they refute compression ONLY for random bounded-weight instances at n <= 18, not for the adversarial or worst-case instances the gap concerns. cm-ef4b765a72044916 was checked against the wrong bound D*K*f and is not evidence for D(2Kf+1).",
+  "evidence": "cm-ef80778a951a41bc (survival and distinct functions vs k, n=16..49 subset); cm-a855893f59624d26 (K=3 rows only); cm-ef4b765a72044916 (wrong-bound check column).",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795253826.2173367,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0006 status: cm-efbff2dc2ccb4897 (shared directions, n=16..36, k=2..5, D=2,4,8, K=3, thresholds in [-Kk,Kk]) is only partly visible (14 of 108 rows). Visible rows: distinct functions 1-12 against 5-29 survivors, always within D(2Kk+1). Scope limits: (a) the compression is built into the family, since shared directions force at most D(2Kk+1) distinct functions, so this is bookkeeping and not a structural lemma for arbitrary THR o THR; (b) at k=2 the trivial bound 2^(2^k)=16 is below D(2Kk+1), so the bound is not tested there; (c) k <= 5 is far from the regime k ~ n/2 needed by the gap. Random instances have D close to m, so any compression must come from a structural property of the circuit, not from counting.",
+  "evidence": "cm-efbff2dc2ccb4897 (partial); cm-ef80778a951a41bc (survival vs k); cm-1386ccb9aab84396 (truth-matrix rank = survivors for random instances).",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795253870.4062185,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0007 refinement (candidate reduction, NOT proved). The compression statement cannot be proved for arbitrary restrictions: shared-direction families compress by design, so the claim must be stated for a RANDOM restriction and an averaged count. Candidate route: for a uniformly random fixing of n-k variables and a bottom gate with integer weights w, the gate is non-constant iff V = sum over fixed variables of w_i b_i lies in a window of width sum over free i of |w_i|. Littlewood-Offord / Erdos anti-concentration would bound this probability by roughly (sum |w_free| + 1) * max-atom(V), with max-atom(V) = O(1/sqrt(#nonzero fixed weights)). Open: whether the width term can be controlled for the weight families in the gap, and whether the resulting expected survivor count is about m k / sqrt(n).",
+  "evidence": "No computation supports this yet. Relevant experiments: cm-a855893f59624d26 (K=3 survival fractions 0.25-0.40 at n=16-36), cm-ef80778a951a41bc (survival 0.06-0.25 vs k at n=16), cm-efbff2dc2ccb4897 (partial, shared-direction family, bookkeeping only). Next check: measure the averaged survival over random restrictions against the anti-concentration bound on weights with |w| <= K, for n up to 36.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795254310.187834,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "lemma": "Window lemma for a restricted threshold gate (G0008). Let g(x)=[sum_i w_i x_i >= t], w in Z^n, F subset [n] the free set, b uniform on {0,1}^([n]\\F). Let W_F = sum_{i in F} |w_i| and N = |supp(w) \\ F|. Then Pr_b[g|restriction is non-constant in the free variables] <= W_F * C(N,floor(N/2))/2^N <= W_F/sqrt(N) (N>=1). Corollary: for F uniform among k-subsets, a gate with |w_i|<=K and support size s satisfies E_F[Pr_b[nonconstant]] <= sqrt(2) K k / sqrt(n) whenever k^2 <= n/2. Hence E[#non-constant bottom gates] <= sqrt(2) K k m / sqrt(n) for m gates with |w|<=K, k <= sqrt(n/2).",
+  "gap": "Open in this step: (1) the bound is nontrivial only when k < sqrt(n)/K, i.e. the free set must be o(sqrt n); for k ~ n/2 it is vacuous. (2) Whether the gap's m k/sqrt(n) survival is needed in the k ~ n/2 regime is unresolved. (3) Independent review needed: the step is CLAIMED and this session cannot review it. Label (LABEL step): relativizing: yes (pure counting/anti-concentration); natural: not a lower-bound property; algebrizing: n/a; localizing: n/a. Novelty of the explicit constant is not established: Littlewood-Offord is classical; the new part is only its use for random restriction survival.",
+  "evidence": "Analytic proof only. Finite check of the per-gate inequality is scheduled in physalis_code_run (next call).",
+  "gap_id": "G0009",
+  "id": "S0011",
+  "proved_step": "PROOF. Put lo = sum_{i in F} min(w_i,0), hi = sum_{i in F} max(w_i,0). Restricted g is constant 1 iff V+lo >= t, constant 0 iff V+hi < t, where V = sum_{i not in F} w_i b_i. So g is non-constant iff V lies in [t-hi, t-lo), a set of hi-lo = W_F consecutive integers. Erdos (1945) Littlewood-Offord: for integers |c_i|>=1, any open interval of length 2 contains at most C(N,floor(N/2)) of the 2^N sums of subsets of {c_i}. Apply it to 2V - sum w_i = sum w_i eps_i with eps_i = 2b_i - 1 (nonzero coefficients only; zero weights contribute constants) to get max_x Pr[V=x] <= C(N,floor(N/2))/2^N. Union over the W_F integer values gives the first inequality; C(N,floor(N/2))/2^N <= 1/sqrt(N) gives the second. For N=0 the bound is W_F and is trivially valid. CORROLLARY: E_F[W_F] = (k/n) sum_i |w_i| <= kKs/n. Since N >= s-k deterministically: if s >= 2k, 1/sqrt(s-k) <= sqrt(2/s), so the bound is <= sqrt(2) kK sqrt(s)/n <= sqrt(2) kK/sqrt(n). If s < 2k, use the bound with c <= 1: kKs/n <= 2k^2K/n <= sqrt(2) kK/sqrt(n) since k^2 <= n/2. Summing over gates gives the stated count.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795254550.6059744,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0009 status: the window lemma (CLAIMED step S0011) passed its finite per-gate check. cm-2634b0170c7c4a5e: 1,276,128 (gate, F, t) checks, 0 violations of Pr_b[nonconstant] <= W_F*C(N,floor(N/2))/2^N, max ratio P/bound = 1.0; 120 averaged cases, 0 violations, max averaged survival / (sqrt(2)Kk/sqrt(n)) = 0.124. The finite check supports the inequality but is not a proof. Remaining open: (1) the bound is nontrivial only for k < sqrt(n)/(sqrt2 K), i.e. the scale m*k/sqrt(n) that the gap asks for, and it is vacuous for k = Theta(n); (2) the lemma is CLAIMED and needs an independent SURVIVED_REVIEW before it can be used as a premise or sent to submit_claim.",
+  "evidence": "cm-2634b0170c7c4a5e (window check, exploratory, finite n<=~16 per-gate checks, 120 averaged cases). Proof text in S0011 (Erdos 1945 Littlewood-Offord applied to 2V - sum w_i = sum w_i eps_i).",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795254581.5572526,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0010 review (reading, not independent of the claiming session): S0011 checked line by line. (i) Window: g nonconstant on the free variables iff V in [t-hi, t-lo), a set of exactly W_F consecutive integers. OK. (ii) Erdos 1945 Littlewood-Offord applied to sum w_i eps_i = 2V - sum w_i, with eps_i = 2b_i - 1, gives max point mass of V at most C(N,floor(N/2))/2^N. OK. (iii) Union over W_F values gives the first inequality; C(N,N/2)/2^N <= 1/sqrt(N) for N>=1. OK. (iv) N=0 case: P <= min(1, W_F) holds, so the W_F bound is valid. (v) Expectation: E_F[W_F] = (k/n) sum|w_i| <= kKs/n; N >= s-k gives the two cases s>=2k and s<2k, and both reduce to sqrt(2) K k/sqrt(n) when k^2 <= n/2. OK. Scope caveats: (a) the bound is below 1 only when k < sqrt(n/2)/K, so it is vacuous for k = Theta(n); (b) earlier notes said the gap needs k near n/2, while S0011's gap section says it covers the gap's scale. These two statements conflict, and the gap statement must be fixed before S0011 is used. Status: review reading passes; not an independent SURVIVED_REVIEW.",
+  "evidence": "Reading of S0011 (Erdos 1945; sign-sum reformulation). Finite check cm-2634b0170c7c4a5e (0 violations) is consistent with the reading. No new computation in this step.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795254605.0425246,
+  "session": "pnp-desk/research/R0814",
+  "model": "claude-haiku-5-5",
+  "gap": "G0012 correction to S0011 scope (no change to its proof): the window bound E_F[#non-constant bottom gates] <= sqrt(2) K k m / sqrt(n) is proved only under k^2 <= n/2, and it is nontrivial only when sqrt(2) K k / sqrt(n) < 1. It therefore does NOT cover the k = Theta(n) regime, and the earlier statement that it covers the gap's scale is incorrect. The valid form is E[#non-constant] <= m * min(1, sqrt(2) K k / sqrt(n)). Whether the gap needs k = Theta(n) remains unresolved, and no proof progress is counted for this session.",
+  "evidence": "Reading of S0011 (scope check against the stated hypothesis k^2 <= n/2). Finite check cm-2634b0170c7c4a5e covers small n only; no new computation.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795255386.4800744,
+  "session": "pnp-desk/research/R0820",
+  "model": "claude-haiku-5-5",
+  "evidence": "Finite check cm-ae2a3f7e313d4ac3 (n in {6,8,10}, K in {1,2}, random integer weights and thresholds, k^2 <= n/2): per-F bound Pr_b[non-constant] <= W_F*C(N,floor(N/2))/2^N held on 4553 (F, threshold) cases with 0 violations; expectation bound sqrt(2)*K*k/sqrt(n) held on 242 cases with 0 violations. The Erdos-Littlewood-Offord step (a_i = w_ji with |a_i| >= 1, integer window of length W_F) was also re-read and is correct. Finite check only; the proof is what carries the claim.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795255386.5025768,
+  "session": "pnp-desk/research/R0820",
+  "model": "claude-haiku-5-5",
+  "lemma": "REPAIR OF G0012 (corollary scope). Let w in Z^n with |w_i| <= K, support size s >= 1, F a uniform k-subset, 1 <= k <= n-1, b uniform on the complement. Then E_F[Pr_b[g restricted to F is non-constant]] <= (sqrt(2) + 2/sqrt(n)) * K * k / sqrt(n). No condition k^2 <= n/2 and no restriction on s. PROOF: J = |supp(w) cap F| is hypergeometric with E[J] = sk/n; N = s - J. If J = 0 the gate is constant, contribution 0. Per-F lemma (S0011): Pr_b <= min(1, W_F * g(N)) with W_F <= K*J and g(N) = C(N,floor(N/2))/2^N <= 1/sqrt(N) for N >= 1. Case J <= s/2 with J >= 1: N >= s/2 >= 1 (s >= 2), so g(N) <= sqrt(2/s) and E[K J sqrt(2/s) 1{J<=s/2}] <= K (sk/n) sqrt(2/s) = sqrt(2) K k sqrt(s)/n <= sqrt(2) K k/sqrt(n) using s <= n. Case J > s/2: Pr_b <= 1 and Markov gives P(J >= s/2) <= 2k/n = (2/sqrt(n)) k/sqrt(n) <= (2/sqrt(n)) K k/sqrt(n) since K >= 1. For s = 1 only J = 0 or J = 1 occur, and J = 1 > s/2 falls in the Markov case. Adding the two cases gives the claim. QED. SCOPE: bookkeeping, not a joint representation. It is non-trivial only when K k < sqrt(n) (roughly k < sqrt(n)/K), so it does not cover k = Theta(n).",
+  "gap": "G0001 (O-H) remains OPEN. The repaired corollary bounds the expected count of surviving gates for all k, but it does not describe the surviving gates jointly, so it does not shrink the number of objects the CAPP step must approximate. Still needed: a proved bound, for all THR o THR circuits of size n^alpha, on a joint representation of the surviving gates that is smaller than their count.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795255826.1505322,
+  "session": "pnp-desk/research/R0820",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Open part: a bound on the number of distinct restricted gate types valid at k = Theta(sqrt(n)) (where the per-restriction VC bound is trivial), or a joint description of the surviving gates over all restrictions with size o(m k/sqrt(n)) for all THR o THR circuits of size n^alpha. The VC bound does not reach this regime. Candidate repair direction: use the bounded weight range |w| <= K to replace VC dimension by a bound that depends on K and the number of distinct directions a_j, which requires a structural property of THR o THR restrictions not yet proved.",
+  "evidence": "cm-36040ff49f6d41f0 (threshold counts 4/14/104, k=1..3, 900 checks, 0 violations); cm-005595e5ac384f64 (Sauer count D_k, 1600 checks, 0 violations); cm-975a6f669d5c4404 (corollary, 972 checks, 0 violations).",
+  "gap_id": "G0014",
+  "id": "S0017",
+  "proved_step": "LEMMA (kind LEMMA, repair attempt for G0013; not claimed to close G0001). Setup: w_1..w_m in Z^n, thresholds t_1..t_m, a set F of k free coordinates, complement R with |R| = n-k, and a fixed assignment b in {0,1}^R. Restricted gate g_j|_b(y) = [sum_{i in F} w_ji y_i >= t_j - S_j(b)], S_j(b) = sum_{q in R} w_jq b_q, for y in {0,1}^F. Claim: the number of distinct functions {0,1}^F -> {0,1} among {g_j|_b : j <= m} is at most sum_{i=0}^{k+1} C(2^k, i) <= (2^k+1)^{k+1} <= 2^{(k+1)^2}, independent of m and n. PROOF: Each g_j|_b is the trace on the cube {0,1}^F of the halfspace H_j = {y in R^k : a_j . y >= theta_j} with a_j = (w_ji)_{i in F}, theta_j = t_j - S_j(b). Halfspaces in R^k have VC dimension k+1. Sauer-Shelah applied to the family of traces on the 2^k-point cube gives at most sum_{i<=k+1} C(2^k,i) distinct traces. Distinct functions are distinct traces, so the bound follows. QED. Exact finite check cm-36040ff49f6d41f0 (k <= 3) gives threshold counts 4, 14, 104 matching the known counts, with 0 violations. SCOPE: a bound on the number of distinct restricted gate TYPES per fixed restriction. It is a compression of m objects into D_k types only when D_k << m, i.e. k^2 << log2 m. At k of order sqrt(n) (the regime of G0001), D_k is about 2^n, which exceeds m. It does not bound the surviving count itself and does not give a joint description of the m gates across all restrictions b.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795257008.317417,
+  "session": "pnp-desk/research/R0837",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a different session (R0837) of the G0012 corollary: for w with |w_i|<=K, support size s, uniform k-subset F, uniform b on the complement, E_F[Pr_b[restriction non-constant]] <= (sqrt(2)+2/sqrt(n)) K k/sqrt(n). Argument checked: the window has at most K*J integers (J = |supp(w) cap F|), so Pr_b <= K J g(N) with g(N)=C(N,floor(N/2))/2^N <= 1/sqrt(N) and N = s-J. Case 1<=J<=s/2: N>=s/2, so g<=sqrt(2/s) and E[K J sqrt(2/s)] <= K (sk/n) sqrt(2/s) <= sqrt(2) K k/sqrt(n). Case J>s/2: Markov gives P(J>=s/2) <= 2k/n <= (2/sqrt n) K k/sqrt n. Exact check cm-79883724fccd4211 (400 random instances, n=2..8, K=1..4, all k and F, thresholds sampled): 4656 checks, 0 violations, max ratio 0.36. Scope: bounds the EXPECTED COUNT of non-constant bottom gates (a survivor count). It does not compress them, so O-H / G0001 (joint representation of survivors) stays OPEN. Non-trivial only when k < sqrt(n)/K."
+ },
+ {
+  "at": 1795257274.2381144,
+  "session": "pnp-desk/research/R0837",
+  "model": "claude-haiku-5-5",
+  "lemma": "SURVIVOR COMPRESSION (bounded weights, R0837). Let w_1..w_m in Z^n with |w_{j,i}| <= K, thresholds T_j, a k-set F, and a fixing b in {0,1}^{[n]\\F}. Let g_{j,b}(x) = [sum_{i in F} w_{j,i} x_i >= T_j - sum_{i not in F} w_{j,i} b_i] for x in {0,1}^F. Then the number of distinct NON-CONSTANT functions among all g_{j,b} is at most D_k = 2Kk(2K+1)^k. PROOF: for fixed u in [-K,K]^F the values u.x (x in {0,1}^F) lie in an integer interval of length 2Kk, so at most 2Kk+1 distinct values; a non-constant table x -> [u.x >= tau] is determined by the cut among the distinct values, so at most 2Kk non-constant tables per u; the restricted weight vectors lie in [-K,K]^F, so at most (2K+1)^k choices of u; union bound. Consequence: the restricted top sum equals const + sum over at most D_k fixed tables of coefficient * table (exact identity).",
+  "gap": "G0001 / O-H remains OPEN. Still needed: a joint description of surviving gates with size o(mk/sqrt n) for ALL THR o THR circuits of size n^alpha, including k = Theta(sqrt n) and unbounded weights, and a bound that turns the table compression into a CAPP running-time gain.",
+  "evidence": "Exact checks cm-aa459561352f460b (15000 checks, 0 violations of D_k, max ratio 0.67) and cm-ceee1e2fc07d4821 (1491504 identity checks, 0 violations; 0 violations of V(k) = sum_{i<=k+1} C(2^k,i) and of 2Kk(2K+1)^k). The hand proof is the lemma text; the checks are exploratory and support it, they do not prove it.",
+  "gap_id": "G0015",
+  "id": "S0019",
+  "proved_step": "CLAIMED: survivor-table compression lemma above (kind LEMMA). Does not close G0001: non-trivial only when (2K+1)^k = o(m/(K sqrt n)), i.e. k <= (1-o(1)) log_3(m/sqrt n) for K = O(1). Does not cover k = Theta(sqrt n) or unbounded weights.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795261084.3661313,
+  "session": "pnp-desk/research/R0876",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Session result (R0821-type check): the bounded-weight table bound D_k = 2Kk(2K+1)^k is correct (proved by reading, cm-18a986e401764b57 confirms it exactly for K<=2, k<=5), but it compresses m k/sqrt(n) survivors only for k <= (alpha-1/2) log_3 n. The gap needs k = Theta(sqrt n) and unbounded weights; there D_k and the unbounded threshold-function count (2^{Theta(k^2)}, Zuev/Muroga, source-check before citing) both exceed the survivor count. So gate-by-gate counting cannot give O-H. Remaining obligation: a structural mechanism that makes the surviving gates share a low-dimensional description across the FIXED weight matrix at k = Theta(sqrt n).",
+  "evidence": "cm-18a986e401764b57",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795261133.206673,
+  "session": "pnp-desk/research/R0876",
+  "model": "claude-haiku-5-5",
+  "gap": "This step is a bookkeeping lemma. It does NOT close G0001. For k = Theta(sqrt n) it gives |T_{K,k}| <= 2^{Theta(sqrt(n) log n)}, which exceeds the survivor count m k / sqrt(n), so it is not a compression at the required scale. Still open: a structural property of the FIXED weight matrix (restriction-stable low-dimensional description of surviving directions) at k = Theta(sqrt n), for bounded and unbounded K. Evidence cm-18a986e401764b57 confirms the count exactly for K <= 2, k <= 5.",
+  "gap_id": "G0017",
+  "id": "S0021",
+  "proved_step": "LEMMA (bounded-weight table count, complete proof). Let K, k >= 1, let U = [-K,K]^k, and let T_{K,k} be the set of NON-CONSTANT functions {0,1}^k -> {0,1} of the form x -> [u.x >= tau] with u in U and tau in Z. Then |T_{K,k}| <= 2Kk(2K+1)^k. PROOF: fix u in U. For x in {0,1}^k, u.x lies in [lo,hi] with lo >= -Kk and hi <= Kk, so hi - lo <= 2Kk. The table x -> [u.x >= tau] is constant unless lo < tau <= hi, and for tau in (lo,hi] the table is determined by tau, giving at most hi - lo <= 2Kk distinct non-constant tables per u. There are (2K+1)^k vectors u, so the union bound gives the claim. Consequence (exact identity): for any surviving bottom gates with weights in U and any top weights v, the restricted top sum equals a constant plus sum over T in T_{K,k} of c_T * T, with c_T the sum of v_j over gates whose restricted table is T.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795261237.8703089,
+  "session": "pnp-desk/research/R0876",
+  "model": "claude-haiku-5-5",
+  "gap": "G0017 remains OPEN. Correction to my earlier S0021 gap text: for bounded K, D_k = 2Kk(2K+1)^k = 2^{Theta(k)} at k = sqrt(n), i.e. 2^{Theta(sqrt n)}, not 2^{Theta(sqrt(n) log n)}. Still needed: a restriction-stable structural lemma for the FIXED weight matrix W that gives a joint description of the surviving gates at k = Theta(sqrt n), for bounded and unbounded K.",
+  "refuted_approach": "VC enrichment (R0876, second enrichment): restrict bottom weight vectors u to an r-dimensional subspace V. The tables x -> [u.x >= tau], u in V, are traces of halfspaces in R^r under x -> B^T x, so VC dimension <= r+1, and Sauer-Shelah gives at most sum_{i<=r+1} C(2^k, i) tables on {0,1}^k. This beats the survivor count m k / sqrt(n) only when k(r+1) <= (alpha - 1/2) log2 n + O(log k), i.e. k = O(log n / r), the same range as the bounded-weight table count. Refuted as a compression at k = Theta(sqrt n). The r-dimensional restriction is not the mechanism.",
+  "evidence": "cm-ecd582749721430f. Exploratory: 30 random integer subspaces per (k,r), grid a in [-2,2]^r, k in {3,4,5}, r in {1,2}; the count stayed below the Sauer bound (max ratio 0.5). This is a sanity check on random subspaces. The Sauer bound itself is standard.",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795262713.671828,
+  "session": "pnp-desk/research/R0896",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 / O-H stays open. Open: (a) the minimum over free sets F of surviving non-constant gates, which an algorithm could exploit, measured at n >= 16 with k near sqrt(n); (b) a restriction-stable structural lemma for fixed W that bounds the joint description of the survivors at k = Theta(sqrt n) for bounded and unbounded K; (c) Chen-Williams 2019 verbatim (Q-05bce643f5).",
+  "evidence": "cm-0eb828b6d8734b26 (exploratory, n=12, k=3, m=41): max over all free sets F and fixings b of non-constant survivors = 18-24, distinct = 17-24; D_k = 162 and 6174 exceed m, so the bound is vacuous here. Measures the max over F, not the min an algorithm could choose. No proved_step is claimed this session; G0001/G0003 remain open.",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795262791.1302445,
+  "session": "pnp-desk/research/R0898",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "SURVIVOR COMPRESSION lemma (bounded weights, D_k = 2Kk(2K+1)^k distinct non-constant surviving functions) as a route to G0001/O-H at the gap's scale k ~ sqrt(n), m = n^1.5. Exact log2 check cm-c5d6a4f05be5471f: for n in {16,...,16384}, K in {1,2,3}, log2 D_k > log2 m in all 18 rows (e.g. n=1024, K=1: log2 D_k = 56.7 vs log2 m = 15). The bound is 2^{Theta(sqrt n)} while the survivor count is only poly(n), so the distinct-function count is never below the trivial survivor count. Refuted as a compression at this scale. Repair attempt: restricting to k = O(log n) makes D_k = poly(n), but survivors there are about m k / sqrt(n) = O(n log n), still below D_k, so no saving follows. Counting distinct functions cannot be the mechanism; the saving would have to come from the cost of the approximation or evaluation step over survivors.",
+  "evidence": "cm-c5d6a4f05be5471f (exact log2 arithmetic, 18 rows, all D_k_beats_m = false)"
+ },
+ {
+  "at": 1795262798.8825786,
+  "session": "pnp-desk/research/R0896",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 / O-H stays open. Open: (a) the same min-over-F measurement at n >= 16 with k near sqrt(n), to see whether the ratio to m falls as n grows; (b) a restriction-stable structural lemma for fixed W bounding the joint description of the survivors at k = Theta(sqrt n), for bounded and unbounded K; (c) Chen-Williams 2019 verbatim (Q-05bce643f5). The bound D_k = 2Kk(2K+1)^k is vacuous at these sizes, so it cannot be the route at n = 12.",
+  "evidence": "cm-b1cacc9d60a14fa9 (exploratory, n=12, k=3, m=41): min over free sets F of the max over fixings b of non-constant survivors = 14-19 (about 0.34-0.46 m). Together with cm-0eb828b6d8734b26 (max over F: 18-24), the free-set choice changes the worst-case count by only about 4-5 gates at this size. No proved_step claimed; G0001/G0003 remain open.",
+  "gap_id": "G0020"
+ },
+ {
+  "at": 1795262926.7610936,
+  "session": "pnp-desk/research/R0898",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact proof above (finite algebra, no computation needed). Crossover table: physalis_code_run task_ref Q-17aaaf1774 in this session, to be cited by its experiment id.",
+  "id": "S0026",
+  "proved_step": "LEMMA (K = 1 repair of the SURVIVOR COMPRESSION step; does NOT close G0001). Statement: let n, k >= 1, F subset [n], |F| = k, weights w_j in {-1,0,1}^n for j = 1..m, integer thresholds T_j, and a fixing b in {0,1}^([n] minus F). Define g_{j,b}(x) = [sum_{i in F} w_{j,i} x_i >= T_j - sum_{i not in F} w_{j,i} b_i] for x in {0,1}^F. Then the number of distinct functions {0,1}^F -> {0,1} among all g_{j,b} (over all j and b) is at most 3^k (2k+2). PROOF: fix j, b. Put v = (w_{j,i})_{i in F} in {-1,0,1}^F and tau = T_j - sum_{i notin F} w_{j,i} b_i in Z. Then g_{j,b}(x) = [s(x) >= tau] with s(x) = v.x, and s(x) is an integer in [-k, k] for all x in {0,1}^F. Replace tau by tau' = min(max(tau, -k), k+1). If tau < -k then tau' = -k and both functions are identically 1, since s(x) >= -k. If tau > k+1 then tau' = k+1 and both functions are identically 0, since s(x) <= k. Otherwise tau' = tau. So g_{j,b} = [v.x >= tau'] with tau' in {-k, ..., k+1}, a set of 2k+2 values. Hence each restricted function is determined by the pair (v, tau') in {-1,0,1}^F x {-k..k+1}, which has 3^k (2k+2) elements. Counting these pairs bounds the number of distinct functions. Non-constant ones form a subset. QED. SCOPE: holds for all n, k, m with weights in {-1,0,1}. It is non-trivial only when 3^k(2k+2) < m, i.e. k below about log_3 m (about 0.95 log_2 n for m = n^1.5). At k = floor((1/2) log_3 n) the count is at most sqrt(n)(2 log_3 n + 2), which is below the number of surviving gates n log n in the window lemma regime. WHY THIS DOES NOT CLOSE G0001: G0001 asks for a bound on sum_l K_l (the total OBDD size over all levels for a constructible order), and this lemma bounds only the distinct restricted functions for ONE fixed set F of k variables, for a restricted range of k. It does not bound the number of distinct residual functions at all levels with 2^(n-k) assignments. Also, the lemma gives no saving at k ~ sqrt(n), where the refuted bound applies. The ratio of this bound to the trivial count, and the exact crossover k, are checked by cm (see the code run in this session).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795263024.4567451,
+  "session": "pnp-desk/research/R0896",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 / O-H stays open. Still needed: (a) a min-over-F measurement with m growing with n (for example m = n^2 or more) and k = Theta(sqrt n), to see whether survivors fall below m k/sqrt(n); (b) a restriction-stable structural lemma for fixed W bounding the joint description of the survivors at k = Theta(sqrt n), for bounded and unbounded K; (c) Chen-Williams 2019 verbatim (Q-05bce643f5).",
+  "evidence": "cm-320102dd713e49d1 (exploratory, n=16, k=4, m=41): min over free sets F of the max over fixings b of non-constant survivors = 18-19 (ratio 0.44-0.46 of m). Compare n=12 k=3: 14-19. No proved_step claimed; G0001/G0003 remain open. Caveat: m is fixed at 41 while n grows, so the test does not measure the m-scaling that the gap needs.",
+  "gap_id": "G0021"
+ },
+ {
+  "at": 1795263128.8804996,
+  "session": "pnp-desk/research/R0896",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 / O-H remains OPEN. This lemma covers only k <= log_{2K+1} m, where it is vacuous at k = Theta(sqrt n). Still needed: a restriction-stable structural lemma for fixed W that bounds the joint description of the surviving gates at k = Theta(sqrt n), for bounded and unbounded K.",
+  "evidence": "cm-0bc53074033e4ee8 (exploratory, exact check): n=10, k=3, m=12, K in {1,2}, seeds 1-3, exhaustive over all 120 free sets F and all fixings b. Max over F of distinct non-constant restricted tables = 4-7, within the bound Kk(2K+1)^k = 81 (K=1) and 750 (K=2) in every row. Note: the run's label 'bound_Kk(2K+1)^k' is the tightened bound above, not S0021's D_k, so it validates the sharper statement. Finite check only; the proof above is the actual argument. Not progress on G0001.",
+  "gap_id": "G0022",
+  "id": "S0028",
+  "proved_step": "CLAIMED LEMMA (tightened restriction-count bound, repairs S0021). Let W in {-K..K}^{m x n}, t in Z^m, F a k-subset of [n], C = [n]\\F, and for a fixing b in {0,1}^C let g_{j,b}(x) = [W_{j,F}.x >= t_j - W_{j,C}.b] for x in {0,1}^F. Then the number of distinct NON-CONSTANT functions among {g_{j,b} : j, b} is at most K k (2K+1)^k. PROOF: fix a vector u in [-K,K]^F. The values u.x (x in {0,1}^F) lie in an integer interval of length L = sum_i |u_i| <= Kk, so they take at most Kk+1 distinct values v_0 < ... < v_r with r <= Kk. The table x -> [u.x >= tau] is constant iff tau <= v_0 or tau > v_r. For tau in (v_0, v_r] the table depends only on which v_i are >= tau, so there are at most r <= Kk distinct non-constant tables for this u. Every restricted gate has its direction u = W_{j,F} in [-K,K]^F, which gives at most (2K+1)^k directions. Union bound: at most Kk(2K+1)^k. This is sharper than the 2Kk(2K+1)^k in S0021 by a factor of 2. SCOPE: deterministic, every F, every fixing b, arbitrary thresholds, bounded weights. It is bookkeeping, not progress: at k = Theta(sqrt n) the bound is 2^{Theta(sqrt n)}, which exceeds m = poly(n), so it does NOT close or shrink G0001 / O-H.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795263163.7589226,
+  "session": "pnp-desk/research/R0902",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. Repair needed: a compression that is not a count of distinct functions over all of {0,1}^k. Candidates: (a) bound the number of distinct restricted patterns on a random sub-cube of dimension O(log m), averaged over restrictions; (b) a low-degree polynomial approximation shared by surviving gates, with a number of monomials below the survivor count; (c) use the top-gate sum rather than the individual gates.",
+  "refuted_approach": "COUNTING COMPRESSION via SURVIVOR COMPRESSION lemma (D_k = 2Kk(2K+1)^k distinct non-constant restricted gate functions, independent of m) does NOT close G0001 in the gap regime. D_k = (2K+1)^k * 2Kk is 2^{Theta(k)} and exceeds the survivor count m*k/sqrt(n) = Theta(n^{1.5}) as soon as k >= c*log n, i.e. already well below k = Theta(sqrt n). The lemma is a correct bound but is vacuous at k = Theta(sqrt n). Measured: the number of distinct non-constant tables tracks the survivor count (65 vs 68 at K=1,k=5; 71 vs 72 at K=2,k=5) on random gates, so no joint compression appears at these sizes. Enriched variants tried: K in {1,2}, k in {2..5}, 200 random gates per trial, 10 trials; distinct tables vs survivors vs D_k vs 2^(2^k).",
+  "evidence": "cm-9bb700960abd4578 (EXPLORATORY_COMPUTATION; maxima over 10 trials, the two maxima may come from different trials)",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795263204.0660267,
+  "session": "pnp-desk/research/R0896",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (a) C and c, and the exact form of Kolmogorov-Rogozin used, must be checked; (b) sparse rows (sum_{C} W^2 < c K^2 n) are not covered; (c) only the average over b, not the worst b that a CAPP algorithm must handle; (d) reviewer required before any use as a premise. Targets G0001.",
+  "evidence": "Measurement to follow in the next experiment (E_b survivors / (m k/sqrt n) over all F).",
+  "gap_id": "G0024",
+  "id": "S0030",
+  "proved_step": "CLAIMED CANDIDATE (averaged, dense rows; NOT yet proved in full). For W in {-K..K}^{m x n}, t in Z^m, F a k-subset, C = [n]\\F, b uniform on {0,1}^C: gate j is non-constant on restriction b iff t_j - sum_{i in C} W_ji b_i lies in (lo_j, hi_j], lo_j = sum_{i in F} min(0,W_ji), hi_j = sum_{i in F} max(0,W_ji); the interval has length <= Kk. By the Kolmogorov-Rogozin inequality (constant and half-open convention to be checked), Pr_b[j non-constant] <= C Kk / sqrt(sum_{i in C} W_ji^2). Hence for every row with sum_{i in C} W_ji^2 >= c K^2 n: E_b[#non-constant gates] <= C' m k / sqrt(n).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795263281.681207,
+  "session": "pnp-desk/research/R0896",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 / O-H stays OPEN. (a) Sparse rows (sum_{i in C} W_ji^2 < c K^2 n) are not covered for the chosen F. Adversarial W can make many rows supported mostly on F, so a CAPP algorithm must choose F to make most rows dense; this needs a counting argument over F (for example a random F of size k), not the worst F. (b) The bound is an average over uniform b, not the worst fixing b, so it does not bound the survivors a deterministic algorithm must handle for every b. (c) Only the expectation is controlled; the variance over b is not. (d) m-scaling is untested: the lab runs use m=41 fixed. Needed: a count of rows that are sparse on C for a random F (uniform k-subset), and an algorithm that pays only for the average or for a fixed-b decomposition. Reviewer required before any use as a premise; does not close G0001 by itself.",
+  "evidence": "cm-cc508637717548eb (n=16, k=4, m=41) and cm-aa4e1e464dc84b2e (n=12, k=3, m=41), exploratory, K in {1,3}, seeds 1-2: over all F, the ratio E_b[#non-constant gates] / (m k / sqrt n) lies in 0.22-0.40 (min over F 0.226-0.287, max over F 0.296-0.397). m is fixed at 41, so this does not test the m-scaling. Not evidence for the claim at large n.",
+  "gap_id": "G0025",
+  "id": "S0031",
+  "proved_step": "CLAIMED CANDIDATE, sharpened (still not reviewed). Setting: W in {-K..K}^{m x n}, t in Z^m, F a k-subset, C = [n]\\F, b uniform on {0,1}^C. Gate j is non-constant under b iff lo_j < t_j - s_j(b) <= hi_j, with s_j(b) = sum_{i in C} W_ji b_i, lo_j = sum_{i in F} min(0,W_ji), hi_j = sum_{i in F} max(0,W_ji), so the window length is <= Kk. Rogozin's inequality (Kolmogorov-Rogozin, absolute constant A): for L >= max_i L_i, Q(sum X_i; L) <= A L / sqrt(sum_i L_i^2 (1 - Q(X_i; L_i))). Take X_i = W_ji b_i (b_i uniform) with L_i = |W_ji|/2 <= K/2 <= L. Then Q(X_i; L_i) = 1/2, since 0 and W_ji differ by |W_ji| > L_i. Hence Pr_b[gate j non-constant] <= A sqrt(8) Kk / sqrt(sum_{i in C} W_ji^2). For rows with sum_{i in C} W_ji^2 >= c K^2 n this is <= A' k/sqrt(n) with A' = A sqrt(8/c). Summing over rows: E_b[#non-constant gates] <= A' m k / sqrt(n) for every F and every such dense row. So the constant is now explicit, and the only cited input is Rogozin's inequality.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795263287.1647983,
+  "session": "pnp-desk/research/R0902",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. The counting route is closed at the gap scale. Open repairs: candidate (c), the top-gate sum sum_j v_j g_j over surviving gates, and candidate (a), averaging over random restrictions. Neither is proved.",
+  "refuted_approach": "CORRECTION to the COUNTING COMPRESSION refutation. (1) The earlier note said distinct tables track survivors (65 vs 68 at K=1,k=5; 71 vs 72 at K=2,k=5). Those are per-metric maxima over 10 trials, not a paired comparison, so the tracking claim is retracted. (2) The trivial bound on distinct non-constant restricted tables is min(survivors, 2^(2^k)), not 2^k. (3) Proved no-go for the counting route, scope: fixed K, weights in [-K,K], thresholds in an integer interval of length 2Kk+1. Distinct non-constant restricted tables are at most (2K+1)^k (2Kk+1), since each table is fixed by the weight vector and the threshold. This exceeds m once 3^k > m, i.e. k >= log_3 m. At k = Theta(sqrt n) with m = n^1.5 the bound is vacuous. This refutes the counting route only. It is not progress on G0001.",
+  "evidence": "cm-9bb700960abd4578 (row data, maxima over trials); the (2K+1)^k(2Kk+1) bound is a text proof, not a lab result",
+  "gap_id": "G0026"
+ },
+ {
+  "at": 1795263355.7378516,
+  "session": "pnp-desk/research/R0902",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "CORRECTION (session R0902, second correction). The statement that min(m, 2^k) beats D_k at k = Theta(sqrt n) is WRONG: 2^k is far above m = n^1.5 there. The valid trivial bound on distinct non-constant restricted tables is min(survivors, 2^(2^k)), which is also vacuous at k = Theta(sqrt n). No lab result is claimed for the tracking statement; it is retracted.",
+  "evidence": "text correction; cm-9bb700960abd4578 gives per-trial maxima only, not a paired comparison"
+ },
+ {
+  "at": 1795263394.4032288,
+  "session": "pnp-desk/research/R0902",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. Survivors are all distinct at k>=6, and the top sum is dense in the monomial basis, so candidates (b) and (c) in their sparsity form are refuted at these sizes. Still open: candidate (a), averaging over random restrictions. New observation, not proved: the top sum takes few distinct integer values on the cube (7-19 across k=4..10, growing slowly in k) - a value-image property to test at larger k and m.",
+  "refuted_approach": "CANDIDATE (c) TESTED, sparsity form refuted (session R0902, exact integer computation). Top-gate sum S = sum_j v_j g_j over the full cube {0,1}^k, v_j in {-1,1}, m=200 random THR gates, K in {1,2}, k in {4,6,8,10}, 5 trials each. Nonzero integer multilinear (Mobius) coefficients of S: about 11-16 at k=4, about 55-61 of 64 at k=6, about 228-255 of 256 at k=8, about 938-983 of 1024 at k=10. S is not sparse in the monomial basis; the count grows like 2^k, far above the survivor count of about 40-70. Repair attempt: none found. PAIRED CORRECTION: per trial, distinct non-constant tables equal the survivor count exactly for k=6,8,10 (no duplicates); k=4 shows 3-13 duplicates. The earlier 'tracks survivors' statement compared maxima across different metrics and is retracted.",
+  "evidence": "cm-39a4d026294740d5 (EXPLORATORY_COMPUTATION, row data with per-trial values)",
+  "gap_id": "G0027"
+ },
+ {
+  "at": 1795263455.865416,
+  "session": "pnp-desk/research/R0902",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. Next test: for k in {6,8,10}, compute the least-degree d such that a polynomial of degree d approximates S within error eps*m on the cube (LP over GF-free reals), and count monomials at that degree. Compare against the survivor count.",
+  "refuted_approach": "CORRECTION to the candidate (c) refutation recorded in this session. cm-39a4d026294740d5 tested EXACT Mobius sparsity of S = sum_j v_j g_j on {0,1}^k. That is not the property candidate (c) needs. The repair needs an APPROXIMATE representation: a polynomial p of degree d or with few monomials such that |S(x) - p(x)| is small on most of the cube, with the monomial count compared to the survivor count. Exact sparsity failing says nothing about approximate sparsity. Status of the claim: the exact-sparsity result stands as a measurement only; the statement 'candidate (c) refuted' is WITHDRAWN. Candidate (c) is OPEN and untested in its correct form.",
+  "evidence": "cm-39a4d026294740d5 (exact integer Mobius coefficients; measures exact sparsity only)",
+  "gap_id": "G0028"
+ },
+ {
+  "at": 1795263475.0600708,
+  "session": "pnp-desk/research/R0905",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-8e30046beac14311: exact max over all fixings b at n=12 (k=2: 9 distinct, 13 non-constant gates of m=48; k=4: 17 distinct, 18 gates) and sampled max at n=16,20 (k=2: 10-11 distinct; k=4,K=2: 21 distinct). All below D_k. Consistent with the SURVIVOR COMPRESSION lemma (re-checked by reading). This is bookkeeping, not a proved step. G0001 remains OPEN; no new lemma."
+ },
+ {
+  "at": 1795263551.4157083,
+  "session": "pnp-desk/research/R0902",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays OPEN. Sup-norm approximate degree at k<=10 does not compress below the survivor count. Still open: candidate (a) (averaging over random restrictions) and an L1 or most-of-cube approximation whose error threshold is derived from the decision the lemma needs.",
+  "refuted_approach": "APPROXIMATE-DEGREE TEST of candidate (c), sup-norm form (session R0902, cm-3c6ea1e1a3534c29, EXPLORATORY). S = sum_j v_j g_j on the full cube {0,1}^k, m=200 random bounded-weight THR gates, v_j in {-1,1}, k in {6,8,10}, 3 trials. Minimax LP over all polynomials of degree d; monomial count in brackets, sup error in brackets after the d value. k=6: d=4 [57] err 0.48-0.85; d=5 [63] err 0.09-0.28. k=8: d=5 [219] err 0.87-1.04; d=6 [247] err 0.52-0.59. k=10: d=5 [638] err 1.13-1.41; d=6 [848] err 0.80-0.96. Survivor counts are 50-82. At sup error about 1 the monomial count is about equal to the survivor count at k=6 (57 vs 50-62), about 3-4 times it at k=8 (219 vs 55-71), and about 8-12 times it at k=10 (638 vs 55-82). The gap grows with k, so no compression appears in this norm at k<=10. Scope limits: sup norm on the whole cube, absolute scale (S has magnitude up to m), error threshold not derived from the lemma, three trials only.",
+  "evidence": "cm-3c6ea1e1a3534c29",
+  "gap_id": "G0029"
+ },
+ {
+  "at": 1795263558.7353575,
+  "session": "pnp-desk/research/R0905",
+  "model": "claude-haiku-5-5",
+  "lemma": "VC COUNT OF RESTRICTED BOTTOM GATES (no weight bound). Let k >= 1, N = 2^k, and let H_k = { x -> [u.x >= tau] restricted to {0,1}^k : u in R^k, tau in R }. Then |H_k| <= sum_{i=0}^{k+1} C(2^k, i) <= (k+2) * 2^{k(k+1)}. Consequently, for any family of m bottom THR gates on n variables and any k-set F of free variables and any fixing b of the other variables, the number of distinct NON-CONSTANT restricted tables is at most min(m, (k+2) 2^{k(k+1)}), independent of the weight bound K and of the thresholds. PROOF. (1) Lift x -> (x,1) in R^{k+1}; then [u.x >= tau] = [(u,-tau).(x,1) >= 0], so H_k restricted to the cube is a homogeneous halfspace class in R^{k+1}, which has VC dimension k+1 (standard, Vapnik; Shalev-Shwartz and Ben-David Thm 9.2). (2) Sauer-Shelah: a class of VC dimension d on N points realises at most sum_{i<=d} C(N,i) dichotomies. Here N = 2^k points and d = k+1. (3) For i <= k+1 and N >= 1, C(N,i) <= N^i <= N^{k+1}, so the sum has at most k+2 terms each <= 2^{k(k+1)}. (4) The restricted gate g_{j,b}(x) = [sum_{i in F} w_{j,i} x_i >= T_j - sum_{i notin F} w_{j,i} b_i] is an element of H_k with u = restricted weights and tau = restricted threshold, so the distinct non-constant tables are a subset of H_k. QED. SCOPE AND LIMITS (checked by hand): for k = 2, H_2 has 14 non-constant threshold tables, consistent with the bound 4 * 2^6 = 256. The bound beats the earlier D_k = 2Kk(2K+1)^k only when K is large relative to 2^k (roughly K >= 2^k); for K = 1 it is weaker.",
+  "gap": "G0001 is NOT closed and NOT shrunk in the gap regime. The VC count is at most (k+2) 2^{k(k+1)}, which is below the number of surviving gates m k/sqrt(n) only when k(k+1) < log2 m roughly, i.e. k up to about sqrt(log m). The gap needs k of order sqrt(n) with m = poly(n), where log m is much smaller than n, so this count is vacuous there (it is 2^{Theta(n)} >= m). Any distinct-table counting is capped by m itself, so a repair must give a joint representation of the surviving gates that is smaller than their count without relying on counting distinct tables. Open: a structural mechanism for THR o THR circuits, not a count.",
+  "evidence": "No computation. Hand check on k = 2: 14 non-constant threshold tables on two variables, within the bound 256. The inequality C(N,i) <= N^{k+1} and the VC dimension k+1 of homogeneous halfspaces in R^{k+1} are standard facts.",
+  "gap_id": "G0030"
+ },
+ {
+  "at": 1795263616.9132628,
+  "session": "pnp-desk/research/R0905",
+  "model": "nemotron-3-ultra-550b",
+  "refuted_approach": "Distinct-table counting bound (D_k or VC bound) as a route to compress surviving bottom gates for THR o THR. The bound is either K-dependent and large (D_k) or K-independent but still 2^{k(k+1)}, which is >= m in the gap regime (k ~ sqrt(n)). Neither closes G0001.",
+  "evidence": "G0001 record and VC lemma proof above. The VC bound was constructed as an enriched variant (K-independent) and proved, but it does not apply in the gap regime. Owner directive: change the approach or the model after 15 sessions."
+ },
+ {
+  "at": 1795264905.680784,
+  "session": "pnp-desk/research/R0926",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Needed: a structural, non-counting joint representation of the gates that survive a restriction, for ALL THR o THR circuits of size n^alpha, with size below their number. The counting route is exhausted for k ~ sqrt(n).",
+  "refuted_approach": "VC/Sauer-Shelah counting of distinct restricted bottom-gate tables (lemma in proof state, bound (k+2) 2^{k(k+1)}) cannot close G0001 in the gap regime k ~ sqrt(n), m = poly(n): the bound is 2^{Theta(n)} >= m there, so it is vacuous. Checked the lemma's finite scope (not the gap): at k=2,3,4 the bound holds, but it is loose (measured distinct non-constant threshold tables in the box K=3: 12, 102, 1880 vs bound 256, 20480, 6291456; cm-80cff120e8414640). The box count is a lower bound on the true number of tables, so 'holds' is only a consistency check.",
+  "evidence": "cm-80cff120e8414640",
+  "gap_id": "G0031"
+ },
+ {
+  "at": 1795264963.2804832,
+  "session": "pnp-desk/research/R0926",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Needed: a non-counting joint representation of surviving gates for all THR o THR circuits of size n^alpha, with size below their number.",
+  "refuted_approach": "Lattice count: restricted surviving gates have weight vectors in [-K,K]^k and thresholds in a window of width about kK, so at most (2K+1)^k (2kK+1) distinct gates. Vacuous when k is of order sqrt(n) and m is polynomial, since k log K is much larger than log m. No repair of G0001 from this count.",
+  "evidence": "cm-80cff120e8414640",
+  "gap_id": "G0032"
+ },
+ {
+  "at": 1795265266.0331402,
+  "session": "pnp-desk/research/R0926",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Citation correction: the binding spec PNP-001-THR-SAT-2026-11-21.md (read pages 1-2) has no label 'O-H'. The matching obligation is O3 (structural lemma: restriction/decomposition of THR o THR with a proved success probability) and, for subclasses, O2. Needed: a non-counting joint representation of surviving gates, proved for all THR o THR circuits of size n^alpha, with size below their number. No proved_step has been recorded in this session; both counting routes (VC/Sauer-Shelah and lattice count) are vacuous in the gap regime.",
+  "evidence": "cm-80cff120e8414640",
+  "gap_id": "G0033"
+ },
+ {
+  "at": 1795274585.3791342,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0017: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The core step, VC dimension of halfspaces in R^k \u2264 k+1 (via Radon), is not formalised here and I could not confirm it is in Mathlib. Sauer\u2013Shelah and the arithmetic tail were not checked as L (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795274803.1936219,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0017: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The reduction to counting traces of halfspaces on the cube is clear, and Sauer\u2013Shelah is plausibly available in Mathlib. The missing piece is a formal proof that halfspaces in R^k have VC dim (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795275289.794835,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0019: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof. Both `physalis_math_verify` results were truncated in the transcript before the kernel verdict, so I cannot confirm that `sc_survivor_compression` was accepted. My e (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795275468.3648958,
+  "session": "pnp-desk/research/R1040",
+  "model": "claude-haiku-5-5",
+  "gap": "Scope correction to the VC lemma, my own check (not a change to the bound). Exact count cm-a40a94a2a4e34ec1 over integer weights u in [-3,3]^k and all thresholds, on the cube {0,1}^k: k=1: distinct 4, non-constant 2, Sauer bound 4; k=2: distinct 14, non-constant 12, Sauer bound 15; k=3: distinct 104, non-constant 102, Sauer bound 163. The earlier phrase 'H_2 has 14 non-constant threshold tables' is wrong: 14 is the total including the 2 constants; non-constant is 12. The inequality |H_k| <= sum_{i<=k+1} C(2^k, i) holds in all three cases. The VC/Sauer step itself is unchanged and still does not close G0001 (the bound is vacuous when k is about sqrt(n) or larger).",
+  "gap_id": "G0034"
+ },
+ {
+  "at": 1795275586.508092,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795275980.6172185,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795276895.9824655,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: No Lean proof was accepted by the kernel. Every `physalis_math_verify` call returned an error, so `BoundedWeight.bounded_weight_table_count` has never been checked.\n\n**What failed**\n- Nine of (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795277297.457053,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0019: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: The Lean formalization was not accepted: every submitted source was truncated before the declaration of `PNP.survivor_compression`, so the lab's pre-check reported \"No declaration named PNP.s (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795277841.5895088,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: bounded_table_count\nRELATION: SAME for the table-count bound. It has the same K, k \u2265 1 hypotheses, the same domain U = [-K,K]^k, and the same non-constancy condition. `Set (Fin k \u2192 Bool)` sta (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795278088.290403,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0026: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof of `survivor_compression_K1` is visible in this transcript.\n\n**What the transcript shows:**\n- The only visible kernel verdict for this file family is turn 8: `kernel_ (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795278601.4671774,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0026: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: survivor_restriction_count\nRELATION: SAME. The quantifiers, domain (`n, k \u2265 1`, `|F| = k`, weights in `{-1,0,1}`, arbitrary integer thresholds) and bound `3^k (2k+2)` are those of the claim,  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795278709.1982467,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0030: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim needs the Kolmogorov\u2013Rogozin anti-concentration inequality for sums of independent integer-weighted Boolean variables, which is not in Mathlib. Formalising it, together with the mea (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795278815.3536775,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0030: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim is not stated with explicit quantifiers and constants, so the Lean theorem cannot be stated exactly yet. Its core per-gate step is a Kolmogorov\u2013Rogozin anti-concentration bound over (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795278934.990101,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0031: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: Kolmogorov\u2013Rogozin is not in Mathlib, and assuming it would be an extra hypothesis the lab forbids. The elementary steps (Q = 1/2, window \u2264 Kk, the final algebra) check by hand but are not ke (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795279074.261218,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0031: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim rests on an existential absolute constant from the Kolmogorov\u2013Rogozin inequality for mixed-size weights. Mathlib has no such result, the rules forbid assuming it as a hypothesis, an (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795279506.1416202,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0028: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof of the claim.\n\n- **Attempts:** Four Lean files for `G0237` went to `physalis_math_verify` (backend `lean`, theorem `nonconst_gate_count`). Each result was truncated a (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795280183.9559066,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0028: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: restricted_gate_count_stronger (general form: `restricted_gate_count_gen`, same statement)\nRELATION: STRONGER. The Lean theorem drops the W, t, F, C, b structure and bounds the number of non- (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795285752.6770873,
+  "session": "pnp-desk/research/R1133",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 / G0003 remain open. Repair needed for k = Theta(sqrt n): a structural reason that surviving gates share a description of size o(m k / sqrt n) for all THR o THR circuits of size n^alpha, not only for bounded k.",
+  "evidence": "Hand check of the VC lemma (lemma field, no ledger step id recoverable from proof_state_read output, so NOT recorded as a proved_step review). Lifting [u.x >= tau] to the homogeneous halfspace [(u,-tau).(x,1) >= 0] in R^(k+1) gives VC dimension k+1; Sauer-Shelah on N = 2^k points gives at most sum_{i<=k+1} C(2^k,i) dichotomies; each C(N,i) <= N^(k+1) = 2^(k(k+1)), so |H_k| <= (k+2) 2^(k(k+1)). Every step checks by hand. Exact check cm-a40a94a2a4e34ec1 (integer weights in [-3,3]^k, all thresholds): k=1: 4 distinct / 2 non-constant; k=2: 14 / 12 (Sauer bound 15); k=3: 104 / 102 (Sauer bound 163). Scope: the bound is independent of K and of thresholds. It beats the surviving-gate count m k / sqrt(n) (m = n^1.5) only while 2^(k(k+1)) < n, i.e. k of order sqrt(log n). It does not reach the k = Theta(sqrt n) regime of G0001 and does not close G0001 or G0003. Bookkeeping, not progress.",
+  "gap_id": "G0035"
+ },
+ {
+  "at": 1795286056.3411822,
+  "session": "pnp-desk/research/R1139",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "COUNTING DISTINCT RESTRICTED TABLES AS JOINT REPRESENTATION (session R1139). Exact counts (cm-9c85851e1f764760): for integer weights in [-K,K]^k and integer thresholds, the number D_K(k) of distinct non-constant tables on {0,1}^k is D_1(k) = 2k*3^(k-1) for k=1..7 (2,12,54,216,810,2916,10206); D_2(k) = 2,12,102,984,8330 for k=1..5; D_3(k) = 2,12,102,1880 for k=1..4. Consequence: the compression D <= m (m = number of surviving gates) holds only for k <= about log_3(m) (about 0.63 log2 n for m = n^1.5). At the gap's scale k = Theta(sqrt n) the count 3^k exceeds m, so the counting route gives no joint description of the surviving gates and is refuted for that regime. The VC bound (k+2)2^(k(k+1)) is also vacuous there. REPAIR NEEDED: a mechanism other than table counting, e.g. a structural bound on the number of distinct surviving directions after restriction for ALL THR o THR circuits of size n^alpha, which is G0001 itself.",
+  "evidence": "cm-9c85851e1f764760 (exact enumeration, K=1..3, k up to 7/5/4; exhaustive over integer weights in [-K,K]^k and integer thresholds, since sums are integers)"
+ },
+ {
+  "at": 1795287389.3448007,
+  "session": "pnp-desk/research/R1139",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to the VC COUNT lemma: 'H_2 has 14 non-constant threshold tables' should read '14 threshold tables in total, 12 non-constant'. The bound |H_k| <= sum_{i<=k+1} C(2^k,i) <= (k+2)2^{k(k+1)} is unchanged and checked by hand (lift to homogeneous halfspaces in R^{k+1}, VC dimension k+1, Sauer-Shelah). Scope is still bookkeeping: for k = Theta(sqrt n) the bound 2^{k^2} exceeds 2^n, so G0001 / O-H stays OPEN.",
+  "evidence": "cm-0332865c68d649cd: exact enumeration of all threshold tables [u.x >= tau] on {0,1}^k with integer u in [-3,3]^k and half-integer tau (exhaustive over this grid). k=2: 14 tables in total, 12 non-constant. k=3: 104 in total, 102 non-constant. The VC lemma's text says H_2 has 14 non-constant tables; that is wrong. The correct count is 14 total, 12 non-constant. Bound check: k=2 gives 4*2^6=256 >= 14, and k=3 gives sum_{i<=4} C(8,i)=163 >= 104, so the Sauer-Shelah bound itself holds.",
+  "gap_id": "G0036"
+ },
+ {
+  "at": 1795289269.9920695,
+  "session": "pnp-desk/research/R1147",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged: the VC-count bound is independent of K and of thresholds but grows as 2^{k(k+1)}, which exceeds 2^n once k is about sqrt(n). A structural mechanism is still needed that forces the surviving gate matrix to have rank well below the number of free variables for all THR o THR circuits of the class (see G0003).",
+  "evidence": "Independent recomputation cm-6042ce35b0524378 (EXPLORATORY_COMPUTATION, enumeration over integer weights in [-4,4] and thresholds): k=2 gives 14 threshold tables incl. constants, 12 non-constant (matches the corrected VC COUNT note); k=3 gives 104 incl. constants, 102 non-constant, consistent with the proved bound |H_3| <= sum_{i<=4} C(8,i) = 163. Enumeration uses integer weights in [-4,4], so it is a subset of H_k: it checks consistency, not the full bound.",
+  "gap_id": "G0037"
+ },
+ {
+  "at": 1795290234.4379802,
+  "session": "pnp-desk/research/R1147",
+  "model": "claude-haiku-5-5",
+  "lemma": "BOUNDED-WEIGHT TABLE COUNT. Let T_j(x)=[w_j.x>=t_j] on {0,1}^n with integer |w_{j,i}|<=K, and let F be a set of k free variables with the other variables fixed. The number of distinct non-constant restricted tables is at most (2K+1)^k * K k, independent of m and of the thresholds. Proof: restricted gate is [u.y>=tau], u in [-K,K]^k; non-constant only for tau in (a,b], an interval of at most sum|u_i|<=Kk integers, where a=sum min(0,u_i), b=sum max(0,u_i). Scope: beats m only for k=O(log n); fails at k ~ sqrt n.",
+  "gap": "G0001 unchanged. Bound is 2^{Theta(sqrt n)} at the critical scale k ~ sqrt n, exceeding any poly(n) m. G0003 (low-rank free-part mechanism for the class) remains open.",
+  "evidence": "cm-e9c90b6da1bb45f1: K in {1,2}, k in {2,3}: 12<=18, 54<=81, 12<=100, 102<=750.",
+  "gap_id": "G0038"
+ },
+ {
+  "at": 1795290623.1120055,
+  "session": "pnp-desk/research/R1149",
+  "model": "claude-haiku-5-5",
+  "lemma": "FACTORISATION-CELL LEMMA (bookkeeping, NOT PROGRESS on G0001). Let W in R^{s x f} have rank r and let x in {0,1}^f. (a) W = CQ with C in R^{s x r}, Q in R^{r x f}. (b) Gate j computes [C_j.(Qx) >= t_j], so the surviving patterns are cells of s affine hyperplanes in R^r. (c) Distinct patterns <= min(2^f, sum_{i<=r} C(s,i)). Proof: (a) Q a basis of the row space; (b) substitution; (c) cell count of s hyperplanes in R^r (Buck 1943 / Zaslavsky). Scope: for r >= 1 the bound is >= s+1, so it never falls below the survivor count s; for generic weights r = f and it is vacuous.",
+  "gap": "G0001 and G0002 remain OPEN. No compression below s for general THR o THR circuits. The lemma bites only for r well below s and f (lane D territory).",
+  "evidence": "cm-70c9743fbb40407c, cm-1d9b61fc4b3c45fa: 0 violations of the cell bound over 2 x 5 rank settings at n = 14, 16. The proof-step call with status 'bookkeeping' was rejected by the host schema and not resubmitted.",
+  "gap_id": "G0039"
+ },
+ {
+  "at": 1795290704.8454869,
+  "session": "pnp-desk/research/R1147",
+  "model": "claude-haiku-5-5",
+  "lemma": "PER-FREE-SET SURVIVAL LEMMA. Let w in Z^n with 1<=|w_i|<=K on its support S (s=|S|), t in Z, F subset [n] with |F|=k, j=|S cap F|, N=s-j>=1. Fix the variables outside F to independent uniform bits, V=sum_{i notin F} w_i b_i. Then Pr_V[ sum_{i in F} w_i y_i >= t-V is non-constant on {0,1}^F ] <= (sum_{i in F}|w_i|) * C(N,floor(N/2))/2^N <= K j / sqrt(N). Proof: with a=sum_F min(0,w_i), b=sum_F max(0,w_i), non-constant iff V in [t-b, t-a), a set of b-a = sum_F|w_i| <= Kj integers; each integer v has Pr[V=v] <= C(N,floor(N/2))/2^N by Erdos 1945 (open interval of length 2 contains at most C(N,floor(N/2)) subset sums of N reals with |x_i|>=1); last step is the central-binomial bound. Independent of t. Scope: per fixed F, uniform over the outside bits; no averaging over F.",
+  "gap": "G0001 unchanged (survivor count, not a joint representation). G0008 averaged statement OPEN: E_F[#survivors] <= O(mKk/sqrt n) needs control of E[j/sqrt(s-j)] (Jensen goes the wrong way) and gates with small N, where the bound is vacuous. G0003 unchanged.",
+  "evidence": "cm-d17bab3ae77d4f25: 7108 (gate, F) cases, n<=8, K<=3, 0 violations of K j/sqrt(N) and of the crude K k/sqrt(s-k); worst ratio 0.75 (case K=1,j=1,N=4, frac 0.375 = 1*C(4,2)/16 exactly). Sharp-form check pending.",
+  "gap_id": "G0040"
+ },
+ {
+  "at": 1795290821.5485976,
+  "session": "pnp-desk/research/R1147",
+  "model": "claude-haiku-5-5",
+  "lemma": "AVERAGED SURVIVAL LEMMA (per gate). Let w in Z^n with 1<=|w_i|<=K on its support S, s=|S|>=1, t in Z. Let F be a uniformly random k-subset of [n]; fix every variable outside F to an independent uniform bit. Then E_F[ Pr_bits[ the restricted gate [sum_{i in F} w_i y_i >= t - V] is non-constant on {0,1}^F ] ] <= (k/n)(K sqrt(2s) + 2), where V = sum_{i notin F} w_i b_i. Consequence: for m gates with s<=n, E_F[#survivors] <= m k (sqrt2 K / sqrt n + 2/n). Proof: put j=|S cap F|, so E_F[j]=ks/n. If j<=s/2 then N=s-j>=s/2 and G0040 gives Pr <= K j / sqrt N <= K j sqrt(2/s). If j>s/2 then Pr<=1<=2j/s. Take expectations. Scope: a per-gate statement for a uniform random restriction with k free variables; the survivor bound is nontrivial only when K = o(sqrt n); no joint representation of surviving gates.",
+  "gap": "G0001 unchanged (no joint low-dimensional representation of surviving gates). G0003 unchanged (no rank-deficiency mechanism for all THR o THR circuits). G0008 averaged-survival statement is now proved for a fixed weight bound K, so it no longer needs the Jensen step. Open: bounds for K growing with n (the bound is vacuous once K >= sqrt n), and any mechanism that makes survivors share a low-dimensional description.",
+  "evidence": "cm-112f2c370eab4296 (764 gate-k cases, n<=8, K<=3, 0 violations, worst ratio E/bound 0.38); earlier per-F lemma G0040 checked by cm-d17bab3ae77d4f25 and cm-381765194bd74eef. Hand proof re-derived in this session; the Erdos 1945 Littlewood-Offord step is used as stated, not checked against the primary source.",
+  "gap_id": "G0041"
+ },
+ {
+  "at": 1795290957.4010463,
+  "session": "pnp-desk/research/R1147",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "lemma": "ROGOZIN SURVIVAL LEMMA. Let w in Z^n with 1<=|w_i|<=K on its support S (s=|S|>=1), t in Z. Let F be a uniformly random k-subset of [n]; fix every variable outside F to independent uniform bits. Then Pr_bits[ the restricted gate [sum_{i in F} w_i y_i >= t - V] is non-constant on {0,1}^F ] <= 2 * j / sqrt(N), where j=|S cap F|, N=s-j, V=sum_{i notin F} w_i b_i. Proof: Erd\u0151s\u2013Rogozin (1968) gives Pr[V=v] <= C(N,floor(N/2))/2^N for any integer v, and the window of non-constancy has size sum_{i in F}|w_i| <= Kj. Summing over the window yields the bound. Empirical max ratio p*sqrt(N)/j = 1.34 (cm-6347fa44b5b94da1, K=4, n=7, k=1, N=6), so constant 2 suffices.",
+  "gap": "G0001 unchanged (survivor count, not a joint representation). G0003 unchanged. G0008 averaged-survival statement now has a constant bound 2 for K in [2,8], so it no longer needs the Jensen step. Open: extend to K growing with n (K >= sqrt n makes bound vacuous), and any mechanism that makes survivors share a low-dimensional description.",
+  "evidence": "cm-6347fa44b5b94da1 (11504 gate-F cases, n<=8, K in {2,4,6,8}, max ratio 1.34, worst case K=4,j=1,N=6,p=0.546875). Hand proof re-derived in this session; Erd\u0151s\u2013Rogozin step used as stated, not checked against primary source.",
+  "gap_id": "G0042"
+ },
+ {
+  "at": 1795291445.55698,
+  "session": "pnp-desk/research/R1147",
+  "model": "claude-haiku-5-5",
+  "lemma": "CORRECTED ROGOZIN LEMMA. Let w in Z^n with 1 <= |w_i| <= K on its support S, s = |S| >= 1, t an integer. Let F be a uniform k-subset of [n], bits outside F independent uniform, V = sum over i not in F of w_i b_i. Let j = |S cap F| and N = s - j. Then Pr_bits[the restricted gate sum_{i in F} w_i y_i >= t - V is non-constant on {0,1}^F] <= (K j + 1) * sqrt(2/(pi N)) <= (K j + 1)/sqrt(N) for N >= 1. Proof: the gate is non-constant iff tau = t - V lies in the integer interval (min, max] where max - min = sum_{i in F}|w_i| <= K j, so at most K j integers tau qualify. Erdos 1945 Littlewood-Offord (nonzero integer weights) gives Pr[V = v] <= C(N, floor(N/2))/2^N <= sqrt(2/(pi N)) for every integer v. Union bound over the at most K j values of tau gives the claim.",
+  "gap": "G0042 RETRACTED: the constant-2 statement (no K-dependence) was not justified; the union bound gives a factor K j. Open: whether a K-free bound holds for any restricted class; G0001 (no joint representation of survivors) and G0003 unchanged.",
+  "refuted_approach": "Constant-2 Rogozin survival lemma (turn 23): the window of size sum_{i in F}|w_i| <= K j is summed over and produces a factor K j, not a constant. Repair: the corrected lemma above, which gives (K j + 1)/sqrt(N) and recovers the K-dependence of G0041.",
+  "evidence": "cm-6347fa44b5b94da1 (11504 gate-F cases, n <= 8, K in {2,4,6,8}, max ratio 1.34). This is consistent with the corrected bound and does not test K growing with n. Erdos 1945 used as stated, not checked against a primary source.",
+  "gap_id": "G0043"
+ },
+ {
+  "at": 1795291515.8156052,
+  "session": "pnp-desk/research/R1147",
+  "model": "claude-haiku-5-5",
+  "lemma": "CITATION CORRECTION to G0040 and G0041 (bounds unchanged). For V = sum of w_i b_i over N indices with integer weights |w_i| >= 1 and b_i in {0,1}: any OPEN interval of length 1 contains at most C(N, floor(N/2)) of the 2^N subset sums. Proof: flip b_i to 1-b_i for w_i < 0, giving positive weights (a constant shift). If subsets A strictly inside B both have sums in an open interval of length 1, their sums differ by at least 1, a contradiction, so the subsets whose sums lie in the interval form an antichain; Sperner gives the bound. The earlier wording 'open interval of length 2' is false (N=1, w=1: sums 0 and 1 both lie in (-0.5, 1.5)). The consequence Pr[V=v] <= C(N, floor(N/2))/2^N for integer v still holds, using the interval (v-1/2, v+1/2).",
+  "gap": "G0001 (no joint low-dimensional representation of survivors) and G0003 unchanged. K-growing regime open: bounds are vacuous once K >= sqrt n.",
+  "evidence": "Hand proof of the flip and Sperner step; N=1 counterexample checked by hand. No new computation.",
+  "gap_id": "G0044"
+ },
+ {
+  "at": 1795292158.544547,
+  "session": "pnp-desk/research/R1163",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review of S0017 (bounded-form DP, cm-3afd1e849d0c4c48). Claim: for a THR o THR circuit whose bottom gates have only r distinct weight vectors with integer entries bounded by B, the count #SAT is computed by a DP whose states are the vectors of partial sums in [-Bn, Bn]^r, giving time poly(n,m) * (2Bn+1)^r. Check: induction over the variables fixes the partial-sum vector of each distinct form; each bottom gate is a function of its form's sum, so the state determines all gate outputs and the final top-threshold value. The DP is exact. Scope: it is polynomial only when r * log2(2Bn+1) <= (1-delta) n, so it gives 2^{(1-delta)n} only for that regime. For generic weights r = m = n^1.5 it is vacuous. It does not discharge G0001 or G0002. Verdict: the step is a correct, standard pseudo-polynomial DP with the stated scope and is not progress on the gap.",
+  "review_of": "S0017",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795292780.2623026,
+  "session": "pnp-desk/research/R1163",
+  "model": "claude-haiku-5-5",
+  "lemma": "Sperner bound for open unit intervals (corrected G0040/G0041). Let V = sum_{i<=N} w_i b_i with integers |w_i| >= 1 and b_i in {0,1}. Then every OPEN interval of length 1 contains at most C(N, floor(N/2)) of the 2^N subset sums. Proof: replace b_i by 1-b_i where w_i < 0, which makes all weights positive and shifts V by a constant. If two subsets A strictly inside B both have sums in one open unit interval, their sums differ by at least 1, a contradiction. So the subsets with sums in the interval form an antichain, and Sperner's theorem gives the bound. Consequence: Pr[V = v] <= C(N, floor(N/2))/2^N for integer v.",
+  "gap": "G0001 still open: no proved bound, for all THR o THR circuits of size n^alpha, on a joint representation of surviving bottom gates smaller than their number. The Sperner bound gives C(N, N/2)/2^N per integer value, which is vacuous once the window count is comparable to 2^N, so it does not reach the regime K >= sqrt(n) (G0008 window route).",
+  "evidence": "Exact check cm-225059a426f44dd3: N = 1..10, 60 random weight vectors per N with weights in {-3..3}, 600 checks, 0 violations, worst ratio 1.0 (attained). Scope: a bound on anticoncentration of one linear form; it does not bound the number of surviving gate functions and does not discharge G0001 or G0002.",
+  "gap_id": "G0045"
+ },
+ {
+  "at": 1795292926.4631786,
+  "session": "pnp-desk/research/R1163",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. S0011 bounds the expected number of non-constant surviving gates (about K k m/sqrt n), not a joint representation of them. At the gap's own scale k = sqrt n that count is about K m, so the bound gives no compression there. The survivor count is below m only for k < sqrt(n)/(sqrt2 K).",
+  "evidence": "Review of S0011 (window lemma from R0814) by a session that did not claim it. Finite checks: cm-99f60b694cf741dd (bound (sqrt2+2/sqrt n) K k/sqrt n for the averaged non-constant probability; n in {6,8,10}, K<=3, k<=3; 216 checks, 0 violations, max ratio 0.29) and cm-ae2a3f7e313d4ac3 (0 violations, reported by the claiming session). Argument check: for integer weights, a bottom gate's window has integer length sum over free i of |w_i| <= K*j, where j is the number of free support variables, so it contains at most K*j integers. For each integer, Pr <= C(N,floor(N/2))/2^N <= sqrt(2/(pi N)) over the N fixed nonzero weights (Sperner with the sign-flip, weights |w|>=1). Full-support case: E[Pr] <= 0.8 K k/sqrt(n-k). Zero-weight supports need averaging over the hypergeometric j, which is not written out in the record and was checked only for supports <= 2. Verdict: argument consistent; NOT SURVIVED_REVIEW for the all-supports corollary until the averaging is written and checked.",
+  "gap_id": "G0046"
+ },
+ {
+  "at": 1795293258.7066686,
+  "session": "pnp-desk/research/R1163",
+  "model": "claude-haiku-5-5",
+  "gap": "Closes nothing. G0001 (a joint representation of the surviving bottom gates, smaller than their number, for all THR o THR circuits of size n^alpha) stays OPEN. This step repairs the all-supports averaging left open in G0046 for S0011. The bound is not a compression: at k = sqrt(n) it is about K*m non-constant gates. Reviewer should check step (2) (Sperner and the antichain claim) and step (4) (Markov on j).",
+  "evidence": "Exploratory only: cm-5eb8786ec5b04f2e, 756 exact checks over n in 2..8, K <= 3, all supports, all k, 0 violations, max ratio avg/bound 0.25. The printed check code is truncated in the transcript, so the exact bound expression tested cannot be confirmed here. Finite checks are not proof.",
+  "gap_id": "G0047",
+  "id": "S0074",
+  "proved_step": "LEMMA (repair of G0046, all supports). Let w in Z^n have support S with |S| = s >= 1 and 1 <= |w_i| <= K on S. Let F be a uniform random k-subset of [n], b uniform on the coordinates outside F, and g = [w.x >= t] for any integer t. Then E_F Pr_b[g non-constant] <= (sqrt2*K + 2/sqrt(n)) * k/sqrt(n). Proof: (1) g is non-constant iff V = sum over i outside F of w_i b_i lies in a half-open window of integer length L = sum over i in F of |w_i| <= K*j, where j = |S cap F|, so the window holds at most K*j integers. (2) Let N = s - j be the number of fixed support variables. After replacing b_i by 1-b_i where w_i < 0, the N weights are positive integers and subsets with equal sum form an antichain, so Sperner gives Pr[V=v] <= C(N, floor(N/2))/2^N <= 1/sqrt(N) for N >= 1. Hence Pr_b[non-constant | F] <= min(1, K*j/sqrt(s-j)) for j < s. (3) On the event j <= s/2: the bound is <= sqrt2*K*j/sqrt(s), and E[j] = s*k/n gives E of this term <= sqrt2*K*sqrt(s)*k/n <= sqrt2*K*k/sqrt(n). (4) On the event j > s/2 (this includes j = s, i.e. N = 0) use the trivial bound 1 and Markov: P(j >= s/2) <= E[j]/(s/2) = 2k/n = (2/sqrt(n))*k/sqrt(n). Adding (3) and (4) gives the claim. Constant gates (s = 0) contribute 0. The bound is independent of t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795294642.6610436,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0019: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: survivor_compression\nRELATION: SAME. The Lean statement has the claim's quantifiers and domain: all `j`, all fixings `b`, `|w_{j,i}| \u2264 K`, `|F| = k`, and the count of distinct non-constant `g (not a refutation; a model review is still needed)"
+ }
+]

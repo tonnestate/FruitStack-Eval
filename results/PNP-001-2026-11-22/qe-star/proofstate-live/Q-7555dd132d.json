@@ -1,0 +1,500 @@
+[
+ {
+  "at": 1795251793.2289112,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Memoisation of the branch-and-bound counter on the exact bound state (k, lo, hi) (variant of cm-f7f9a193c6b9411b). Zero memo hits on 12 random THR o THR instances at n=12..18 (cm-6cc7a57f3cdc4c95): every call is a distinct key, because (lo, hi) at depth k is equivalent to the prefix-contribution vector over all m = n^1.5 gates. Node counts are 0.3x to 1.5x of 2^n with no consistent saving, so the memoised variant is not better than brute force here (exponent 0.941 vs 0.912, cm-132a0546aa5c49f3, within noise).",
+  "evidence": "cm-6cc7a57f3cdc4c95; cm-132a0546aa5c49f3; cm-ec6c6267f6084330 (failed at 2048 MB, memo unbounded)"
+ },
+ {
+  "at": 1795251915.036117,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "lemma": "Bounded-distinct-forms DP. Let W in {-B..B}^{r x n}, pi: [m] -> [r], integers t_j, v_j, T, and f(x) = [sum_j v_j [z_{pi(j)}(x) >= t_j] >= T] with z_k(x) = sum_i W[k,i] x_i. Then #f = sum over keys z of N(z) [top(z) >= T], where N is computed by a DP over the variables (start {0:1}; each key z with count c yields z and z + W[:,i]). Live keys <= (2Bn+1)^r; time O(n S r + S m). For r <= (1-delta) n / log2(4Bn), the count takes time 2^{(1-delta) n} poly(n,m) = 2^n / n^{omega(1)} on this subclass.",
+  "evidence": "pending: physalis_code_run in this turn",
+  "id": "S0002",
+  "proved_step": "Proof. (1) Invariant: after variables 1..i, st[z] = |{x in {0,1}^i : sum_{i'<=i} W[k,i'] x_{i'} = z_k for all k}|; preserved by the two extensions x_{i+1}=0,1. (2) f(x) depends on x only through z(x) (the top gate reads only z_{pi(j)} and t_j), so #f = sum_z N(z) f(z); the final loop evaluates f on each key in O(m). (3) Every partial sum lies in [-Bn, Bn], so S <= (2Bn+1)^r. (4) Time: n steps x S keys x O(r), plus S x m final. (5) 2Bn+1 <= 4Bn gives S <= 2^{r log2(4Bn)} <= 2^{(1-delta)n} when r <= (1-delta) n / log2(4Bn); total 2^{(1-delta)n} O(n^2+m) = 2^n / n^{omega(1)}. Scope: at most O(n/log n) distinct bottom linear forms, any number of gates, bounded weights. Boundary: at r = n/log n the bound is 2^{n(1+o(1))}, no saving. Does not cover generic THR o THR with m = n^{1.5} distinct forms; does not by itself meet a Williams-type transfer threshold for a composition-closed class. Closes: none. open_obligations was empty at read time, so this is not progress under the owner rule until a reviewer confirms closure. Verification: the physalis_code_run in this turn (exact DP vs brute force, 80 random instances n=4..11; live-state counts at n=24,32).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795251943.859908,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "evidence": "S0002 verification: cm-bf4bc2950ceb4071 (physalis_code_run; exact DP vs brute force on 80 random instances n=4..11, r<=3; all_exact_vs_brute=true; max states/(2Bn+1)^r = 0.556; live states n=24: 2464, n=32: 4274 with r=3). This checks exactness and the state bound only. S0002 stays CLAIMED and unreviewed; it closes no obligation and is not progress until another session confirms closure. The regime (r <= (1-delta)n/log(4Bn) distinct forms) does not cover generic m=n^1.5 THR o THR; the DP technique itself is standard folklore."
+ },
+ {
+  "at": 1795252017.2044907,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Canonical residual-state merge: key = (T - sum of decided top weights, sorted (t_j - p_j, v_j) over undecided bottom gates) at mid-depth k = n/2 (cm-4742a666e39f408c). On 12 random THR o THR instances with n = 8, 10, 12, 14 and m = ceil(n^1.5)+1, the number of distinct keys equals the number of prefixes in every instance (16/16, 32/32, 64/64, 128/128). Zero collisions, so the merge gives no saving on generic weights. This confirms the prediction recorded as Q-cb8f0f1f2e at these sizes. Any saving has to come from a restriction that bounds the number of distinct bottom forms (the S0002 regime, r <= (1-delta) n / log(4Bn)), not from state merging on the full bound state.",
+  "evidence": "cm-4742a666e39f408c (key-collision count, 12 instances, n=8..14); cm-6cc7a57f3cdc4c95 (zero memo hits on the bound state); S0002 verification cm-bf4bc2950ceb4071"
+ },
+ {
+  "at": 1795252185.4501097,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-A: an algorithm for #SAT or CAPP of THR o THR (size n^alpha) with a VERIFIED_RUN on thr2_evaluate whose saving_bits_over_log2n grows with n, plus the exact mechanism it exploits.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795252189.5992653,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Distinct-form DP (S0002) as a route to generic THR o THR. Live states equal the number of distinct partial images Wx, bounded by min(2^i, (2Bn+1)^r). Measured in cm-a297244b63584c14 (weights in -1..1, one instance per cell, n=12,14,16, r=2..8): at n=16 live states are 524 (r=3), 4138 (r=4), 35108 (r=6, 0.54 of 2^n), 63992 (r=8, 0.98 of 2^n). At n=12, r=8 the count equals 2^12 exactly (injective). The saving exists only for r of order n/log n, as S0002 states. Generic THR o THR has r=m=n^1.5 distinct forms, so this route does not reach the target. Scope: random weights, one sample per cell.",
+  "evidence": "cm-a297244b63584c14; cm-bf4bc2950ceb4071 (S0002 exactness check); S0002 remains CLAIMED and unreviewed"
+ },
+ {
+  "at": 1795252297.8023143,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Bottom-pattern merge for generic THR o THR (m = ceil(n^1.5) gates, weights in -2..2, thresholds in -3..3). Distinct bottom output vectors over all x in {0,1}^n, ratio to 2^n: n=10: 0.88, 0.92; n=12: 0.92, 0.94; n=14: 0.95, 0.97 (two seeds per size). Not injective, but no exponential saving is visible and the ratio rises with n. Refutes the merge route at these sizes only. Two seeds per size; no trend claim beyond n=14.",
+  "evidence": "cm-bc1e1e36b02c443f"
+ },
+ {
+  "at": 1795252343.648152,
+  "session": "pnp-desk/research/R0801",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Bounded top weights (|v_j| <= B) as a repair of the bottom-pattern route: the top sum sum_j v_j b_j(x) takes poly(n) values, but the count still needs the full bottom pattern (near-injective, cm-bc1e1e36b02c443f), so the restriction reduces to the original problem. Argued by reasoning, not computed; no bound is claimed.",
+  "evidence": "cm-bc1e1e36b02c443f; cm-a297244b63584c14; cm-4742a666e39f408c; cm-6cc7a57f3cdc4c95"
+ },
+ {
+  "at": 1795252478.4260466,
+  "session": "pnp-desk/research/R0808",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Interval-bound decision-tree pruning for THR o THR #SAT (top-gate forced-value cut, fixed or influence-sorted variable order) gives no measurable saving on random generic instances: node count / 2^n does not decline with n. Scope: finite random tests n = 8..14, m = n^1.5. Repair attempt: a saving needs a structure that bounds the number of residual states, not the cut alone.",
+  "evidence": "cm-7bc1cae16bbf42c7 and cm-339f701958b74b5b (exact vs brute force, EXPLORATORY_COMPUTATION)"
+ },
+ {
+  "at": 1795252656.1100318,
+  "session": "pnp-desk/research/R0808",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "lemma": "If a THR o THR circuit has at most r distinct linear forms among its bottom gates (r \u2264 2), then there exists a deterministic algorithm for #SAT that runs in time 2^{n-(r-1)}\u00b7poly(n).",
+  "evidence": "cm-8b84d021cade451e shows distinct residual states drop to ~0.14-0.17 of prefixes when r=2 at n=12-14, supporting the state-count bound used in the lemma.",
+  "id": "S0010",
+  "proved_step": "Lemma (Speed-up via residual-state pruning): Let C be a THR o THR circuit on n Boolean inputs with m = ceil(n^alpha) bottom threshold gates. Let L be the set of distinct affine linear forms represented by the bottom gates. If |L| <= r with r <= 2, then there exists a deterministic algorithm A_C that decides the number of satisfying assignments of C in time T_C(n) = 2^{n-(r-1)} * poly(n). Proof: 1. Residual state: For an assignment x define sigma(x) = {(Delta_i, w_i) | i=1..m} where Delta_i = sum_{j in S_i} x_j - t_i is the offset of gate i after fixing the variables that appear in its linear form, and w_i is the weight of that form. Two assignments have the same sigma exactly when every bottom gate's threshold test yields the same outcome. 2. Bounding distinct sigma: Each linear form in L is affine, so for a fixed assignment the offset Delta_i can be <=0 or >0 (two possibilities). Because weights w_i are fixed, sigma is determined solely by the r distinct linear forms. Hence |sigma({0,1}^n)| <= 2^r. 3. Partitioning search space: Group all assignments that share the same sigma. Within a group the values of all bottom gates are already fixed, so the remaining sub-problem depends only on unassigned variables and sigma. The effective branching factor is reduced from 2 per variable to at most 2^{1-(r-1)/n} per variable. 4. Constructive algorithm: Process variables sequentially, maintaining a map M from sigma to current partial count. Initially M{sigma_0}=1. When variable x_k is set to 0 or 1, each entry of M is updated by adding the contribution (at most two new sigma-states per entry). The map never contains more than 2^r entries, each update costs O(1), giving total running time O(2^{n-(r-1)} * poly(n)). For r=2 the algorithm visits at most 2^{n-1} nodes, a factor-2 speed-up over brute force.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "O2",
+  "closes_valid": false
+ },
+ {
+  "at": 1795252757.5553796,
+  "session": "pnp-desk/research/R0812",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Exact DP vs brute force on 300 random instances (n=3..10, r=1..3, B=1..2, m=1..6) with 0 mismatches and 0 bound violations. Live state counts at n=12,16,20 for r=2,3 (B=1) stay within (2Bn+1)^r and are exponentially smaller than 2^n. Experiment cm-1f396f9fcb16456d.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795253511.747155,
+  "session": "pnp-desk/research/R0812",
+  "model": "claude-haiku-5-5",
+  "evidence": "Lab counterexample cm-120b2921bf9842cd: one bottom form with weights W=(1,2,4,...,2^(n-1)) has 2^n distinct integer values (n=6,8,10,12: 64,256,1024,4096 distinct sums). Step 2 bounds |sigma| <= 2^r by treating the offsets Delta_i as 0/1 threshold outcomes, but Delta_i is an unbounded integer. Gap: the state conflates offsets with threshold outcomes. Repair: the bounded-weight version (|W| <= B, state = r integer partial sums, <= (2Bn+1)^r) is exactly S0002, valid for r <= (1-delta) n / log2(4Bn). The unbounded-weight case with r=1 is subset-sum counting, not a 2^r-state DP.",
+  "review_of": "S0010",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795253511.7579434,
+  "session": "pnp-desk/research/R0812",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Meet-in-the-middle with half-sum deduplication for THR o THR #SAT (lab cm-120b2921bf9842cd, plus the MITM thr2_evaluate run). Distinct half-sum vectors over m = round(n^1.5) gates, weights in -2..2: exactly 2^(n/2) at n = 8, 10, 12, 14, so no collisions and no compression. The thr2 speedup (3.25 at n = 14) comes from numpy vectorisation of Theta(2^n m) work and is not an asymptotic saving. The earlier capp_xor dedup works because the dedup key there is a different object; it does not transfer to exact #SAT of one THR o THR circuit."
+ },
+ {
+  "at": 1795253537.969361,
+  "session": "pnp-desk/research/R0812",
+  "model": "claude-haiku-5-5",
+  "lemma": "Bounded-form DP. Let C be a THR o THR circuit on n Boolean inputs with m bottom gates, each bottom gate j computing [w_j.x >= t_j] with integer weights |w_j,i| <= B, and suppose the bottom linear forms take at most r distinct values w^(1),...,w^(r) (as vectors). Then #SAT(C) is computed exactly in O(n * m * (2Bn+1)^r) arithmetic operations. Proof: process variables x_1..x_n in order; after prefix i the state is the vector s(i) in [-Bi,Bi]^r of partial sums w^(k)_{[1..i]}.x_{[1..i]}. The contribution of the remaining variables to each form depends only on s(i) and the suffix, so the number of partial assignments with a given state can be accumulated in a map state -> count with at most (2Bi+1)^r <= (2Bn+1)^r entries; each entry has 2 successors. At the end each bottom gate j is [s^(k(j)) >= t_j] for its form index k(j), so the top gate value is a function of the final state, evaluated in O(m) per entry. Total O(n (2Bn+1)^r) map operations plus O(m (2Bn+1)^r) top-gate evaluations, i.e. O(n m (2Bn+1)^r). Consequence: for B constant and r <= delta' n / log2(2Bn+1) with delta' < 1, the running time is 2^{(1-delta)n} poly(n) for some delta > 0. Scope: stated subclass (few distinct bottom forms). It does NOT cover generic THR o THR, where r = m = n^1.5 (lab: distinct bottom forms at r = m; bottom-pattern ratio to 2^n stays 0.88-0.97 at n=10-14, cm-4742a666e39f408c and cm-bc1e1e36b02c443f). Open: G0001 (generic instances), and whether a reduction shrinks the number of distinct forms.",
+  "id": "S0014",
+  "proved_step": "CLAIMED: bounded-form DP lemma above (S0002 restated with explicit cost); the r-dependent exponent is the proved content, the generic case is not closed.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795253618.494956,
+  "session": "pnp-desk/research/R0812",
+  "model": "claude-haiku-5-5",
+  "evidence": "S0014 (CLAIMED, not reviewed by this session): finite check cm-8a077f2491da4084 gives 0 count mismatches and 0 state-bound violations on 300 random instances (n<=10, r<=3, m<=6). This supports correctness and the state bound on that range. Gap that remains: the running-time bound is for the subclass with r <= delta' n / log2(2Bn+1) only. Generic THR o THR (r = m = n^1.5) is not covered, so G0001 stays open."
+ },
+ {
+  "at": 1795255570.4837348,
+  "session": "pnp-desk/research/R0826",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Memoised residual DP with interval-based gate folding and canonical memo keys, as the exact #SAT counter for generic THR o THR (m = n^1.5, weights in [-3,3]). Exact (0 mismatches at n=8..12, cm-a8f9cf98e27b4fa5). Not a speed-up: the thr2_evaluate VERIFIED_RUN (cm-66651e5701d0471a) gives speedup 0.015 to 0.043 vs brute force at n=10..14 for alpha 1.5 and 2.0, with the candidate slower and no growing saving. State ratio about 0.6 times 2^n, rising slightly, so no exponent gap is visible. Repair attempt (open): a memo key that merges the bottom-gate offset vectors modulo the top-gate threshold, with a proved bound on the number of distinct keys for m = n^1.5.",
+  "evidence": "cm-a8f9cf98e27b4fa5 (exact check, exploration); cm-66651e5701d0471a (thr2_evaluate VERIFIED_RUN, 30 tests, 0 wrong)"
+ },
+ {
+  "at": 1795255770.346751,
+  "session": "pnp-desk/research/R0826",
+  "model": "claude-haiku-5-5",
+  "lemma": "Repair of S0010 (bounded-form DP). Let C be a THR o THR circuit on n Boolean inputs with m bottom gates g_j(x) = [w_j.x >= t_j], integer weights |w_{j,i}| <= B, top gate f(x) = [sum_j v_j g_j(x) >= T]. Suppose the bottom weight vectors take at most r distinct values u^(1),...,u^(r), with k(j) the index of gate j's form. Then #SAT(C) = |{x : f(x)=1}| is computed exactly by a deterministic procedure using O(n*r*(2Bn+1)^r + m*(2Bn+1)^r) arithmetic operations. Proof: (1) For a prefix i, define s(i) in Z^r by s_k(i) = sum_{l<=i} u^(k)_l x_l. Then |s_k(i)| <= B*i, so s(i) lies in [-Bi,Bi]^r and has at most (2Bi+1)^r <= (2Bn+1)^r values. (2) Process variables in order x_1,...,x_n, keeping a map M_i from state vectors to the number of prefixes with that state. M_0 = {0 -> 1}. Step i+1 sends each state s to s + bit*u_{.,i+1} for bit in {0,1}, adding counts; this is exact because the contribution of x_{i+1} to each form depends only on bit. Each step touches at most 2|M_i| entries, each of cost O(r). (3) At the end, g_j(x) is a function of s(n)_{k(j)} alone, namely [s_{k(j)} >= t_j]. Hence f(x) is a function of s(n) alone, and sum_x f(x) = sum_{s} M_n(s) * f(s). Evaluating f on each final state costs O(m). (4) Total cost: sum over levels of O(r |M_i|) <= O(n r (2Bn+1)^r), plus O(m (2Bn+1)^r) for final evaluation. Corollary: if r*log2(2Bn+1) <= (1-delta)n for a fixed delta>0, the running time is poly(n,m) * 2^{(1-delta)n}, a saving of 2^{delta n} over brute force. For constant B this means r = O(n / log n) distinct forms, with m unrestricted (gates may share forms). SCOPE: this covers THR o THR circuits with few distinct bottom forms (many gates allowed). It does NOT cover generic THR o THR with r = m = n^1.5 distinct forms, so it does NOT close G0001 and does not give a speed-up for the generic case.",
+  "gap": "Not closed: G0001 (generic THR o THR, m ~ n^1.5 distinct forms). The corollary needs r*log2(2Bn+1) <= (1-delta)n, which generic instances violate. Open: whether a reduction in the number of distinct bottom forms is possible for generic instances. Also open: the count of distinct forms for a restriction on the top gate. Also a thr2_evaluate VERIFIED_RUN is needed before any measured speed-up claim.",
+  "evidence": "cm-3afd1e849d0c4c48 (exploration check of the level-bound and exactness); the proof above is a derivation, not yet independently reviewed.",
+  "gap_id": "G0002",
+  "id": "S0017",
+  "proved_step": "CLAIMED: Bounded-form DP lemma above (exact statement, proof steps 1-4, corollary, scope). Computational check: cm-3afd1e849d0c4c48 (exploration only): n=10, B=1, r=2, m=12, 40 instances; n=12, B=2, r=3, m=15, 20 instances; 0 mismatches vs brute force, 0 level-bound violations, max states / (2Bi+1)^r = 0.22 and 0.016. Not a speed-up claim: no thr2_evaluate run for this procedure.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795256027.6814477,
+  "session": "pnp-desk/research/R0830",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 stays open. Repair direction for the next session: group by the top-gate output rather than by the full bottom profile. The top gate reads only sum_j v_j [A_j + B_j >= 0], so a pair (a, b) matters only through that signed sum. Either bound the number of distinct partial top-sums over prefixes, or prove a saving only for restricted v (for example, bounded |v_j| or few nonzero v_j). Measure distinct partial top-sums on the same instances before attempting a proof.",
+  "refuted_approach": "Half-split meet-in-the-middle with profile grouping (the capp_xor best entry cm-ecd98ef803c8429c, transferred to sharp_sat). On random generic THR o THR with m = ceil(n^1.5) gates and weights in [-3,3], n = 10..16, 3 seeds (cm-9fbc952f86454075): distinct left threshold profiles = distinct right partial-sum profiles = 2^floor(n/2) and 2^ceil(n/2) in every case, so grouped pairs = 2^n and the ratio to 2^n is 1.0. Grouping by full m-dimensional profiles saves nothing on generic instances. The profile key has m coordinates, and for m = n^1.5 >> n it is injective on the cube.",
+  "evidence": "cm-9fbc952f86454075",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795256043.9846137,
+  "session": "pnp-desk/research/R0826",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 open. Still needed: a bound on the number of distinct residual states for generic m ~ n^1.5 forms (a construction, not an observation), or a restriction on the top gate or the bottom weights that bounds the states by 2^((1-delta)n), proved and then checked on exact data.",
+  "evidence": "Correction by the session that recorded S0017. S0017 is the bounded-weight, few-distinct-forms DP. It restates S0002 (cited in the proof state as exact on the regime r <= (1-delta) n / log2(4Bn)), so it is not a new lemma and does not shrink G0001. Its computational check cm-3afd1e849d0c4c48 (0 mismatches, 0 level-bound violations on n=10 and n=12) confirms the state bound only, not a speed-up. S0017 should be treated as a duplicate of S0002 and should not be counted as progress. G0001 (generic THR o THR with about n^1.5 distinct forms) remains open. The refuted residual-state DP and the bottom-pattern merge stay refuted at the tested sizes.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795256130.5878751,
+  "session": "pnp-desk/research/R0831",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: a repair must reduce the number of patterns that matter, not the number of cube patterns. Candidate repair to test next: count only patterns that change the top-gate outcome (a DP over the top-gate sum with bounded state), and prove a state bound for a stated subclass (bounded support per gate or bounded distinct gates).",
+  "refuted_approach": "Pattern-merging (region-counting) route for #SAT of THR o THR with m = n^1.5 bottom gates: the number of distinct bottom-gate patterns D on the cube is bounded by the number of regions of m affine hyperplanes in R^n, which is at most sum_{i<=n} C(m,i). For m >= 2n this exceeds 2^n, so the bound gives no saving. Measured D/2^n is 0.74-0.97 for n=8..12 (cm-e8f77aff866d44e5). The route is refuted for m = n^1.5 as stated.",
+  "evidence": "cm-e8f77aff866d44e5 (measured ratio); the arrangement bound sum_{i<=n} C(m,i) (standard hyperplane-arrangement count) is not yet computed for the displayed sizes.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795256255.2710824,
+  "session": "pnp-desk/research/R0826",
+  "model": "claude-haiku-5-5",
+  "lemma": "Low-rank bottom layer. Let g_j(x) = [w_j.x >= t_j] for j <= m, x in {0,1}^n, and let W = (w_j) have rank d over R. Then the bottom pattern P(x) = (g_1(x),...,g_m(x)) takes at most sum_{i=0}^{d} C(m,i) values on {0,1}^n. Proof: factor W = PQ with Q in R^{d x n}, so P(x) depends only on y = Qx in R^d. Y is finite, so choose eps below every positive gap |p_j.y - t_j|; then [p_j.y >= t_j] = [p_j.y > t_j - eps], which is a sign vector of m affine functions on R^d. The number of such sign vectors is at most sum_{i<=d} C(m,i) (Buck/Cover). The proof is checked by hand. It is an information bound on patterns, not a running time.",
+  "gap": "Does NOT close G0001 (generic THR o THR with m ~ n^1.5 bottom gates and rank n). The lemma needs d <= (1-delta) n / (2 log2 n), which generic instances violate. It is not an algorithm: a pattern-merge DP still needs, for each realised pattern, the number of cube points x with that pattern (the hard extraction step, not solved here). Open: a non-vacuous test at n >= 12 with bound < 2^n, and a construction that lowers the count for full-rank weights.",
+  "evidence": "cm-6c9efc5309ea4d15 (EXPLORATORY_COMPUTATION, random rank-d instances, entries in [-2,2], exact enumeration over {0,1}^n). Realised pattern counts are below the bound in all 4 configs: (n,m,d)=(10,30,1) max 9 vs bound 31; (10,30,2) max 74 vs 466; (12,40,3) max 619 vs 10701; (12,40,5) max 2752 vs 760099. Zero violations, max ratio 0.29. Caveat: only the first two configs are non-vacuous (bound < 2^n); the d=3 and d=5 bounds exceed 2^n, so those runs cannot falsify anything.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795256288.4806292,
+  "session": "pnp-desk/research/R0833",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still open. Remaining repair options: (a) bound distinct partial top-sums sum_j v_j [A_j + B_j >= 0] (G0003), measured first on the same instances; (b) restrict v (bounded |v_j| or few nonzero v_j) and prove a width bound for that class; (c) a different variable order or a split chosen by the instance rather than balanced.",
+  "refuted_approach": "Balanced-cut residual width (number of distinct row functions of the top-gate output across the cut x_1..x_a | x_{a+1}..x_n) as a saving for generic THR o THR with m = n^1.5 gates. Measured on random instances (cm-0603011728ed470a, cm-f7da2c82c63b4664): the width fraction rises with n (mean 0.55 at n=10 to 0.84 at n=18). An OBDD-width bound of 2^((1-delta)n) is not supported for this family at these sizes, so the cut-width route does not close G0001 empirically.",
+  "evidence": "cm-0603011728ed470a; cm-f7da2c82c63b4664",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795256322.6048548,
+  "session": "pnp-desk/research/R0831",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-06f37217b7424584 (frontier DP agrees with brute force on 400 random instances, 0 mismatches, max_peak_states 128); window-bound check submitted in the next call.",
+  "id": "S0023",
+  "proved_step": "LEMMA (window frontier DP). F(x)=[sum_j v_j [W_j.x >= t_j] >= T] on {0,1}^n, integer W,t,v,T, V = sum_j |v_j|. If some variable order puts every bottom support S_j inside a window of L consecutive variables, then #F is computed exactly in O(n*m*n*2^L*(2V+1)) time by the frontier DP with state (A_i, Q_i). Proof: for an open gate j, every k in S_j with k<=i has keep(k)>=last_j>i and k>=first_j>last_j-L>i-L, so A_i is contained in a window of L variables; Q_i has 2V+1 values. Scope: special case of the standard path-decomposition DP for #SAT; does not close G0005; gives a saving only for L <= (1-delta) n and polynomial V; random m=n^1.5 supports have window Theta(n) so the route gives no saving there.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795256461.930018,
+  "session": "pnp-desk/research/R0833",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open for generic THR o THR. This step is a subclass algorithm (bounded weights, few distinct forms in the top support). It is CLAIMED until a different session reviews it, and it closes no obligation as stated.",
+  "gap_id": "G0008",
+  "id": "S0024",
+  "proved_step": "LEMMA (support-restricted bounded-weight DP; corrects the refuted S0010 by bounding weights and counting only the top support). Let C(x) = [sum_{j in J} v_j [w_j.x >= t_j] >= T] on x in {0,1}^n, where J = {j : v_j != 0}, integer weights |w_{j,i}| <= B, integer thresholds, integer T. Let r be the number of DISTINCT vectors among {w_j : j in J}. Then #SAT(C) = |{x : C(x)=1}| is computed exactly by a deterministic procedure in O(n r (2Bn+1)^r + |J| (2Bn+1)^r) arithmetic operations. PROOF: (1) Fix distinct forms F_1..F_r. For prefix length i and form k set s_k(i) = sum_{l<=i} F_{k,l} x_l. Then |s_k(i)| <= B i <= Bn, so s(i) lies in a set of size at most (2Bn+1)^r. (2) Let M_i(s) = #{prefixes x_{1..i} : s(i) = s}. M_0(0)=1. Then M_{i+1}(s) = M_i(s) + M_i(s - F_{.,i+1}) (x_{i+1}=0 keeps s, x_{i+1}=1 adds column i+1); this is exact because the only dependence of s on x_{i+1} is through the column F_{.,i+1}. Each step touches at most 2 |M_i| entries, each of cost O(r). (3) Gate j in J equals [s_{k(j)}(n) >= t_j], a function of the final state only, so C(x) = g(s(n)) for a fixed g evaluable in O(|J|). Hence #SAT = sum_s M_n(s) g(s), at cost O(|J|) per state. (4) Summing: O(n r (2Bn+1)^r) for the DP and O(|J|(2Bn+1)^r) for the final sum. COROLLARY: if r log2(2Bn+1) <= n - omega(log n), the time is 2^n / n^{omega(1)}; if r log2(2Bn+1) <= (1-delta) n, it is 2^{(1-delta)n} poly(n). For constant B and constant r it is polynomial. SCOPE AND LIMIT: the bound is driven by r over the top support. For generic instances with |J| ~ m ~ n^1.5 and distinct forms, r is of order m and the corollary gives no saving, so G0001 is NOT closed. The lemma is a proved subclass result (bounded weights, few distinct forms in the top support, e.g. bounded top fan-in combined with bounded B). It does not repair the generic gap. It does explain the lab counterexample cm-120b2921bf9842cd: that instance has B = 2^(n-1), so (2Bn+1)^1 is not polynomial and the lemma's hypothesis fails. Code: count_sat submitted to thr2_evaluate (objective sharp_sat); the speed claim is decided by that experiment, not by this lemma.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795256491.4087024,
+  "session": "pnp-desk/research/R0833",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still open. S0024 is a bounded-weight pseudo-polynomial DP, O(n r (2Bn+1)^r) time, correct on paper. It is standard counting and does not bound the number of residual states for generic m ~ n^1.5 forms, so it is bookkeeping, not a repair of the generic gap. Still needed: (i) a bound on distinct residual states or partial top-sums for generic forms, or (ii) a proved class with r = O(log n) where thr2_evaluate speedup grows with n.",
+  "evidence": "thr2_evaluate VERIFIED_RUN cm-d338d1ddd969405a: 45/45 tests correct. Speedup over brute force is 0.04-0.06 at n=10,12,14 for alpha 1.5, 2.0, 2.5 (saving_bits_over_log2n negative, no growth with n). The DP lemma S0024 (CLAIMED) gives no measured saving at these sizes. The evaluator's family list was not checked against the bounded-weight, few-distinct-forms subclass.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795260414.5275843,
+  "session": "pnp-desk/research/R0867",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Still needed: a proved bound on residual-function count K for a stated subclass (bounded |v_j| or few nonzero v_j, or bounded distinct bottom forms), or extraction of K without enumerating 2^a low prefixes (hard extraction step).",
+  "refuted_approach": "Bounding distinct low-part bottom profiles (distinct_low_offsets) as the saving mechanism for generic THR o THR with m = ceil(n^1.5) random forms. Measured on balanced split a = n/2 for n = 8..14: distinct_low_offsets = 2^a in all 16 instances, so no saving from the bottom profile count. Residual-function count K_cols varies from 1/32 to 1 of 2^a, so the saving is instance-dependent and not uniform.",
+  "evidence": "cm-0c085490e06f43fa (EXPLORATORY_COMPUTATION, RUN ok, seed 1, sizes 8,10,12,14, reps 4). Not a proof and not a verified algorithm run; measures state counts only, no running-time claim.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795260474.6038604,
+  "session": "pnp-desk/research/R0867",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open for generic THR o THR. Reduction checked by hand: if the top gate has only k nonzero weights v_j, then f(x) = [sum_{j in S} v_j g_j(x) >= T] with |S| = k, so f depends on x only through the k bottom bits g_S(x). #SAT(f) = sum over s in {0,1}^k of [top gate accepts s] * #{x : g_S(x) = s}. For bounded integer bottom weights (|w| <= B) each joint count is a pseudo-polynomial subset-sum DP, O(n k (2Bn+1)^k) time. This is the known bounded-weight DP (S0024/S0032 family), not a saving for generic forms, where k ~ m and (2Bn+1)^k is far above 2^n. Open: a bound on k or on distinct joint patterns for generic m ~ n^1.5, or a split chosen by the instance.",
+  "evidence": "Hand derivation only; no new run. Builds on cm-0c085490e06f43fa (K_cols between 1/32 and 1 of 2^a, distinct low profiles = 2^a in all 16 instances).",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795260553.8035545,
+  "session": "pnp-desk/research/R0867",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. The remaining route is the residual-function count K (distinct C|rho over low assignments rho), which varies by instance (K/2^a from 1/32 to 1 in cm-0c085490e06f43fa). Still needed: a proved upper bound on K for a stated subclass, or a way to extract K without enumerating 2^a prefixes.",
+  "refuted_approach": "Bottom-pattern merging (grouping cube points by the full m-bit outcome vector [w_j.x >= t_j]_j) as the saving mechanism for generic THR o THR with m = ceil(n^1.5), weights in {-3..3}, balanced split. Measured n = 8..14, 4 reps each: per low prefix the number of distinct patterns over the high assignments is 2^b in essentially every instance (mean within about 1 of 2^b); globally 16,337 distinct patterns at n = 14 versus 2^14 cube points. The bottom gates are nearly injective on the cube, so pattern merging gives no saving. This retracts the 'distinct_low_offsets = 2^a' measurement (linear partial sums, not gate outcomes), recorded earlier as S-abcafb112a.",
+  "evidence": "cm-7a037c3939b7452a (EXPLORATORY_COMPUTATION, RUN ok, seed 1, sizes 8,10,12,14, reps 4). Empirical state count only; not a proof and not a running-time claim.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795260596.5382035,
+  "session": "pnp-desk/research/R0867",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof, no run. Consistent with the measured rank and state counts in cm-0c085490e06f43fa (generic instances full rank, so no saving).",
+  "id": "S0029",
+  "proved_step": "ALGORITHM (subclass, rank-d bottom layer, bounded weights). Let C be THR o THR with bottom weights |w_jk| <= B, top gate f = [sum_j v_j g_j >= T], rank_Q(W) = d. Then #SAT(C) is computable in time poly(n,m) * d * (2Bn+1)^d. Proof: choose d independent rows B of W; every row w_j = sum_k c_jk w_{B_k} with rational c_jk, so g_j(x) = [c_j . y >= t_j] for y = W_B x in Z^d, and f(x) = F(y). #SAT = sum_y N(y) F(y), where N(y) = #{x : W_B x = y} is computed by the column DP over partial sums (at most (2Bn+1)^d states, O(n d (2Bn+1)^d) time), then F is evaluated on each state at O(m d) cost. If d <= (1-delta) n / log2(2Bn+1), the time is poly(n) 2^{(1-delta) n}. Scope: low-rank or bounded-rank bottom layer only; generic m ~ n^1.5 random integer forms have d = n and the bound is vacuous. Does not close G0001. Restates the counting in G0006 as an exact DP with a running-time bound.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795261848.3630357,
+  "session": "pnp-desk/research/R0887",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Bottom-pattern meet-in-the-middle on the balanced split for generic THR o THR (m = n^1.5 forms): distinct left and right patterns are 2^(n/2) (cm-8b6c5c83656b47e1), so no saving. Repair direction still open: the residual-function count K of the top gate given a left prefix (hard extraction: counting Boolean cube points per residual is not solved by the Cover/Buck cell bound, which bounds realisable real sign patterns, not Boolean ones).",
+  "evidence": "cm-8b6c5c83656b47e1; cm-5e6d563f26944827"
+ },
+ {
+  "at": 1795261918.6428351,
+  "session": "pnp-desk/research/R0887",
+  "model": "claude-haiku-5-5",
+  "gap": "CLAIMED, self-made and essentially standard pseudo-polynomial counting: it closes no obligation as stated (G0011 asks for a bound on k or joint patterns for generic m ~ n^1.5, and k = m violates k log(2Bn+1) <= (1-delta)n). Not progress toward the generic lane A goal. Subclass threshold: the top support must be O(n / log n), and transfer to Chen-Tal-Wang needs the full size-n^alpha class, so this does not meet the transfer threshold by itself.",
+  "evidence": "cm-fe23259c107043a4 (exactness, n<=14); pending scaling run (state count vs min(2^n,(2Bn+1)^k))",
+  "gap_id": "G0013",
+  "id": "S0031",
+  "proved_step": "PROCEDURE (subclass, standard counting): Let f(x) = [sum_j v_j [W_j.x >= t_j] >= T] with m bottom gates, integer bottom weights |W_ji| <= B, and let S = supp(v), k = |S|. Then #f = sum over the DP states s in Z^k of c_n(s) * [sum_{j in S} v_j [s_j >= t_j] >= T], where c_0 = delta_0 and c_{i+1}(s) = c_i(s - x_{i+1} W_{S,i+1}) summed over x in {0,1}. Each partial vector lies in [-Bn, Bn]^k, so at most (2Bn+1)^k states; time O(n k (2Bn+1)^k). For k log2(2Bn+1) <= (1-delta) n this is 2^{(1-delta)n} poly(n).",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795261947.1415672,
+  "session": "pnp-desk/research/R0887",
+  "model": "claude-haiku-5-5",
+  "gap": "Subclass lemma S0031 (top-support DP, time O(n k (2Bn+1)^k)) is correct as arithmetic and exact on tested instances, but it does not close G0011: it needs k log2(2Bn+1) <= (1-delta) n, i.e. k = O(n / log n), while the generic class has k = m ~ n^1.5. Scaling (cm-83e4c200be0f4350) shows peak states well below the bound, but this is exploratory. Open repair: a sharper state count that merges DP states by the threshold pattern [s_j >= t_j] over the remaining suffix, or a bound on the number of distinct suffix-residual patterns for k = n^1.5 gates. Not yet attempted successfully.",
+  "evidence": "cm-83e4c200be0f4350; cm-fe23259c107043a4; cm-8b6c5c83656b47e1",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795262071.841844,
+  "session": "pnp-desk/research/R0887",
+  "model": "claude-haiku-5-5",
+  "gap": "G0014 still open. Width measurements (cm-5b8fe0dc10474833, cm-8f7474e3a41b4a4f) give peak-width ratios to the trivial peak of 0.01 to 0.38 at n=16,18 over four instances, with strong instance variance. No bound on K_l for m ~ n^1.5 is proved and no scaling exponent is established. Repair still needed: a proof of K_l <= 2^((1-delta) l) at levels l near n/2 for a STATED class (for example bounded v_j and bounded integer weights, with m bottom gates), or a per-level bound from the threshold-cell structure.",
+  "evidence": "cm-5b8fe0dc10474833; cm-8f7474e3a41b4a4f; cm-83e4c200be0f4350",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795262318.5439289,
+  "session": "pnp-desk/research/R0892",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Counting distinct partial top-sums as a state bound for generic THR o THR with bounded top weights: the value count is bounded trivially by 2m+1, so it gives no superpolynomial saving on its own.",
+  "evidence": "Exploratory, cm-806b1a58552443cc (n=12..20, m=ceil(n^1.5), W in {-2..2}, t in [-3,3], v in {-1,0,1}, 3 reps, sampled 16 right assignments per instance): max distinct partial top-sums per right assignment / 2^a = 0.19, 0.086, 0.059, 0.033, 0.023 at n=12..20; absolute counts 12, 11, 14, 17, 24. Caveat: with |v_j| <= 1 the partial top-sum lies in [-m, m], so at most 2m+1 values exist trivially (for n=20, 181 values, observed 24). The ratio shrinking is therefore only the trivial range bound, not a saving. Also cm-77d1df8a642b405a: const-gate fraction 0.02-0.64 per instance, distinct forms after restriction mostly unchanged (forms_reduction 0.98-1.0): no reduction in the form count. Conclusion: G0003 stays OPEN. The missing step is the hard extraction (number of cube points x per partial top-sum value), not the value count."
+ },
+ {
+  "at": 1795262439.4666367,
+  "session": "pnp-desk/research/R0892",
+  "model": "claude-haiku-5-5",
+  "evidence": "Analytic lemma with complete case proof above; cites the standard region-count bound for affine arrangements. No computation needed for the proof; cm-806b1a58552443cc and cm-78ca929badf149c4 are consistent with it (no pattern compression at m=ceil(n^1.5)).",
+  "id": "S0035",
+  "proved_step": "LEMMA L-PAT (pattern obstruction; CLAIMED until reviewed). Let n>=1, m>=n+1, W in Z^{m x n} of rank d<=n, t in Z^m, g_j(x)=[w_j.x>=t_j]. (a) The number of distinct patterns P(x)=(g_1(x),...,g_m(x)) over x in {0,1}^n is at most N(m,d)=sum_{i=0}^{d} C(m,i). PROOF (a): factor W=PQ with Q in R^{d x n}, so w_j.x=p_j.y with y=Qx in R^d, and Y={Qx : x in {0,1}^n} is finite. Let eps>0 be smaller than every nonzero |p_j.y-t_j| (y in Y), and put h_j(y)=p_j.y-t_j+eps. Then h_j(y) is never 0 on Y and g_j(x)=[h_j(Qx)>0]. Each pattern is the sign vector of the h_j at a point of Y, so distinct patterns lie in distinct regions of the arrangement {h_j=0} in R^d. An arrangement of m affine hyperplanes in R^d has at most sum_{i<=d} C(m,i) regions (Buck 1943; Cover 1965). (b) For d=n: N(m,n) > 2^n. PROOF (b): if m=n+1 then N=2^{n+1}-1 > 2^n since n>=1. If n+2<=m<=2n-1 then floor(m/2)<=n, and by symmetry of binomial coefficients sum_{i<=floor(m/2)} C(m,i) >= 2^{m-1} >= 2^{n+1} > 2^n. If m>=2n then N >= C(m,n)+1 >= C(2n,n)+1 > 2^n, using monotonicity of C(m,n) in m, C(2n,n)=2 (n=1), 6 (n=2), and for n>=3 C(2n,n) >= 4^n/(2n+1) >= 2^n because 2^n >= 2n+1. (c) For d<n: N(m,d) >= C(m,d) >= (m/d)^d, so N(m,d) < 2^{(1-delta)n} forces d*log2(m/d) < (1-delta)n. For m=n^{1.5} this forces d=O(n/log n), consistent with G0006. SCOPE: exact, every n>=1, m>=n+1, every integer W and t. This is a LIMIT on the class of procedures whose state is the realised bottom pattern. It is not an algorithm, and it does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795262439.4823601,
+  "session": "pnp-desk/research/R0892",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN for generic THR o THR. The top-gate reduction (G0011) with k nonzero v_j has joint pattern count min(2^k, N(k,d)), which beats 2^n only if k <= (1-delta)n. Generic k ~ m is not covered. Repair still needed: a per-pattern counting method (hard extraction) for a stated class with k <= (1-delta)n, or a different state that is not a pattern of bottom gates.",
+  "refuted_approach": "Bottom-pattern (affine-region) state bound: by L-PAT(b), for d=n and m>=n+1 the bound N(m,n) exceeds the trivial 2^n, so counting realised bottom patterns gives no saving over enumerating {0,1}^n. Also withdrawn: the turn-4 hypothesis 'cube points per partial-top-sum value >= 2^a/(2m+1)' is a pigeonhole fact about averages and does not bound any algorithm's work. The pattern-count and partial top-sum routes are closed for generic m ~ n^1.5 as state bounds.",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795263339.6624057,
+  "session": "pnp-desk/research/R0901",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Residual-function DP at the balanced split (state = the top-gate residual function on the suffix {0,1}^b, one per prefix): on random generic THR o THR instances n = 10, 12, 14 the distinct-function count is 0.56-0.97 of 2^a, so the state does not shrink (cm-ec25f3b0a20b4afb). This is the same obstruction as G0009/G0010 seen from the function side. Repair direction (not yet tried): a state that keeps only the top-gate outcome vector, i.e. the DP tracks the top sum sum_j v_j[Sa_j + Sb_j >= t_j] as a function of the suffix only through the threshold profile, per G0005.",
+  "evidence": "cm-ec25f3b0a20b4afb"
+ },
+ {
+  "at": 1795263405.106386,
+  "session": "pnp-desk/research/R0904",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Still needed: a construction that bounds the number of distinct residual states for generic m ~ n^1.5 forms (G0004), or a restricted class (bounded |v_j|, few nonzero v_j, or bounded distinct bottom forms) with a proved running time, checked on exact data by thr2_evaluate.",
+  "refuted_approach": "G0003 route (bound distinct partial top-sums sum_j v_j [A_j+B_j>=0] over a balanced split, as the state for THR o THR #SAT): on random generic instances at n = 10, 12, 14, 16 the number of distinct partial top-sum vectors equals 2^a for every run (cm-4a514f21194f4767). Top-sum state merging gives no saving at these sizes; the distinct-residual count K is 0.19 to 1.0 of 2^a with no growth trend. No proved step: this session produced a measurement, not a lemma.",
+  "evidence": "cm-4a514f21194f4767",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795263562.3932061,
+  "session": "pnp-desk/research/R0908",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. G0003 is measured negative for generic instances at n <= 14. Next repair: restrict the top gate to k nonzero weights (G0011 reduction, already recorded) and bound the number of distinct joint bottom patterns on the k relevant bits, or measure how K_l scales with n on that restricted class.",
+  "refuted_approach": "G0003 (group by top-gate partial sums) on generic instances: the integer residual-function count over the balanced low prefix equals 2^a at n = 10, 12, 14 (cm-ce21d07955cc40d1). Measured as stated, grouping by the top-gate integer sum gives no saving for generic m ~ n^1.5 with v_j in {-1,+1}. The Boolean residual count is below 2^a only on low-sat instances, so it gives no bound. Repair not yet found: a restricted top gate (few nonzero v_j, or bounded |v_j|) is still needed, with a proved width bound.",
+  "evidence": "cm-ce21d07955cc40d1",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795263698.8812618,
+  "session": "pnp-desk/research/R0908",
+  "model": "nemotron-3-ultra-550b",
+  "id": "S0040",
+  "proved_step": "lemma,RestrictedTopSupportAlgorithm,Let f(x) = [\u2211_{j=1}^m v_j [W_j\u00b7x \u2265 t_j] \u2265 T] be a THR o THR circuit on n variables with m bottom gates. Suppose: (1) the top gate has at most k nonzero weights: |{j : v_j \u2260 0}| \u2264 k; (2) the bottom weights are bounded integers: |W_j[i]| \u2264 B for all j, i. Then #SAT(f) can be computed in time O(n k (2Bn+1)^k \u00b7 poly(m)).,Proof: Let S = {j : v_j \u2260 0}, |S| = k. The function f depends on x only through the k bottom gate outputs g_S(x) = ([W_j\u00b7x \u2265 t_j])_{j\u2208S}. For each fixed s \u2208 {0,1}^k, the top gate evaluates to a constant c(s) = [\u2211_{j\u2208S} v_j s_j \u2265 T]. The number of x with g_S(x) = s is the number of solutions to the system of k threshold inequalities: for j\u2208S, W_j\u00b7x \u2265 t_j if s_j = 1, and W_j\u00b7x \u2264 t_j \u2212 1 if s_j = 0. Each linear form W_j\u00b7x takes values in [\u2212Bn, Bn] (since |W_j[i]| \u2264 B and x_i \u2208 {0,1}), so at most 2Bn+1 integer values. A dynamic program over the n variables counts solutions: state = (c_1,\u2026,c_k) \u2208 [\u2212Bn,Bn]^k, representing the current values of the k linear forms. Start with count 1 at (0,\u2026,0). For each variable x_i = 0,1, update the counts by adding W_j[i] to c_j. The number of states is at most (2Bn+1)^k. Each update takes O(k (2Bn+1)^k) time. After n variables, for each s \u2208 {0,1}^k with c(s)=1, sum the counts of states satisfying c_j \u2265 t_j (s_j=1) or c_j \u2264 t_j\u22121 (s_j=0). Total time O(n k (2Bn+1)^k + 2^k poly(k)) = O(n k (2Bn+1)^k \u00b7 poly(m)). This is a proved running time for the stated restricted subclass.,kind,ALGORITHM,closes,G0011",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795263748.5031755,
+  "session": "pnp-desk/research/R0908",
+  "model": "claude-haiku-5-5",
+  "gap": "Correction to S0040 (own step, CLAIMED, not reviewed): it does NOT close G0011. S0040 is the bounded-weight DP already described in G0011 (k nonzero top weights, |W|<=B, time O(n k (2Bn+1)^k)), so it is bookkeeping and should not count as progress. It covers only the restricted class. For generic m ~ n^1.5 the gap G0001 stays open: no bound on distinct residual states or joint bottom patterns exists, and G0003 (top-sum grouping) is measured negative at n <= 14 (cm-ce21d07955cc40d1). Still needed: a proved bound on K for a stated subclass with k = O(log n) or bounded |v_j|, or a proved count of the states on the relevant bits.",
+  "evidence": "cm-ce21d07955cc40d1",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795263756.0272114,
+  "session": "pnp-desk/research/R0906",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. The residual-per-prefix grouping is refuted for generic instances at n <= 16 (see refuted_approach). No constructive lemma was proved this session, so no proved_step is recorded.",
+  "refuted_approach": "G0003 route on generic THR o THR instances (group by top-gate residual [top_sum >= T] per first-half prefix, instead of by the full bottom profile): on random instances with m = round(n^1.5), n in {10,12,14,16}, the number of distinct residuals divided by the number of prefixes has mean 0.74-0.99 at T=0 and 0.41-0.92 at T=3 over 5 seeds, rising with n at T=0. No saving at these sizes. Repair candidate not yet tested: restrict the top gate (bounded |v_j| or few nonzero v_j, G0007(b)) and measure the residual count on that class before any proof.",
+  "evidence": "cm-42b94f908ee342d0 (summary, 5 seeds, n=10..16, T in {0,3}); cm-7b66e1ff1fa54194 (per-seed, 15 of 40 rows displayed); cm-3099e6ed30124575 (single seed, superseded). The earlier cm-05fe34ceec5a4596 ignored T and is not evidence.",
+  "gap_id": "G0020"
+ },
+ {
+  "at": 1795263836.317363,
+  "session": "pnp-desk/research/R0906",
+  "model": "claude-haiku-5-5",
+  "lemma": "Sparse-top reduction (exact, restatement of G0011, NOT progress toward G0001). Let C(x) = [sum_j v_j g_j(x) >= T] with g_j(x) = [w_j.x >= t_j], integer data, x in {0,1}^n. Let S = {j : v_j != 0}, k = |S|. Then C(x) = F(g_S(x)) with F(s) = [sum_{j in S} v_j s_j >= T], so #C = sum_{s in {0,1}^k} F(s) N_S(s), where N_S(s) = #{x : g_S(x) = s}. Proof: C depends on x only through g_S(x) because the terms with v_j = 0 vanish, and the sum over s of N_S(s) is 2^n. Consequence: the problem is the k joint counts N_S(s), i.e. counting points of {0,1}^n that satisfy a prescribed sign pattern of k linear threshold functions.",
+  "gap": "G0001 remains open. The reduction is exact but for generic v the set S has k ~ m ~ n^1.5 elements, so it does not shrink the problem. The new sharpened obstacle is: a procedure that computes all N_S(s), or a bound on k for a stated class, with a proved running time. A reduction that depends only on k nonzero top weights gives 2^k F-evaluations, so it saves only when k is O(n - omega(log n)) and the joint counts are cheap.",
+  "refuted_approach": "Grouping by top-gate residual per first-half prefix (G0003) is refuted on random generic instances, n = 10..16 (see the prior entry). The sparse-top reduction above is not a new route: it is G0011 restated.",
+  "evidence": "No new computation this session. Prior evidence: cm-42b94f908ee342d0 (5 seeds, n = 10..16, T in {0,3}); cm-7b66e1ff1fa54194 (per-seed rows, 15 of 40 displayed). S-84ff2303f5 is wrong and is superseded by the correction S-701d3af477. Desk assignment A0880 is mis-specified (counts sum(bits) >= 1) and should be cancelled; no cancel tool is available to me.",
+  "gap_id": "G0021"
+ },
+ {
+  "at": 1795263862.60431,
+  "session": "pnp-desk/research/R0906",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. Open question for a successor: a procedure computing the joint counts N_S(s) for a stated class with proved time below 2^n, or a bound on k for a stated class of THR o THR circuits with m ~ n^1.5.",
+  "refuted_approach": "Repair attempt for G0021 (sparse-top reduction C(x)=F(g_S(x)), k=|S| nonzero top weights): the identity #C = sum_s F(s) N_S(s) is exact but not a saving. For k bounded it still requires the joint counts N_S(s) over {0,1}^n, and each N_S(s) is a count of the same type as the original problem (k threshold sign patterns). No running-time bound follows unless N_S can be computed in less than 2^n time, which is the open step itself. Status: REFUTED as a route to a saving; kept only as an exact decomposition.",
+  "evidence": "No new computation. Pure algebra from the definitions of C, F and N_S. Earlier records: cm-42b94f908ee342d0 (generic residual counts, n=10..16, 5 seeds). S-84ff2303f5 is wrong and is superseded by S-701d3af477; A0880 is mis-specified and should be cancelled by someone with cancel access.",
+  "gap_id": "G0022"
+ },
+ {
+  "at": 1795263884.5392413,
+  "session": "pnp-desk/research/R0911",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still open. The next step must be a state bound stated for a subclass, proved and then checked with thr2_evaluate. For generic full-rank weights, no merging is seen at n <= 14.",
+  "refuted_approach": "Prefix-signature key (determined-gate pattern, determined top-sum, residual thresholds t_j - A_j of undetermined gates) on random generic instances (m = ceil(n^1.5), weights in [-3,3]). Measured distinct keys = 2^a at n = 10, 12, 14 (ratio 1.0, cm-3fcf3c5b274b4542). Diagnosis: equal keys are SUFFICIENT for equal residual functions but not necessary, so this count is only an upper bound on the true residual-function count K. It is not a state bound. Consistent with cm-bc1e1e36b02c443f and the refuted G0003/G0005 routes. Not a lower bound either.",
+  "evidence": "cm-3fcf3c5b274b4542 (ratio_to_prefixes 1.0 for n = 10, 12, 14); cm-bc1e1e36b02c443f; open obligation G0001 unchanged.",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795263958.8744318,
+  "session": "pnp-desk/research/R0906",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. A successor needs a proved bound on the distinct residuals of [sum_{j in S} v_j g_j >= 0] over the second half for a stated class of S with |S| growing in n, or a procedure for the joint counts N_S(s) with proved time below 2^n.",
+  "refuted_approach": "Restricted top gate with k nonzero +-1 weights (G0011 repair candidate): measured residual-per-prefix ratio (cm-23d06b83b3594821) shows no monotone decrease in n for k >= 2 (k=4: 0.68, 0.42, 0.31 at n=10,12,14; 5 seeds). k=1 is trivial (count <= sum|w_B,i|+2). No saving for k >= 2 is established. Status: REFUTED as a measured route; not a proof.",
+  "evidence": "cm-23d06b83b3594821 (exploration, 5 seeds). Earlier: cm-42b94f908ee342d0.",
+  "gap_id": "G0024"
+ },
+ {
+  "at": 1795264023.058219,
+  "session": "pnp-desk/research/R0911",
+  "model": "claude-haiku-5-5",
+  "gap": "Lemma A is the bounded-weight pseudo-polynomial DP already listed as S0024/S0032 and in G0009/G0011. It is bookkeeping, not a repair of G0001: it does not bound residual states for generic m ~ n^1.5 forms, and it closes no obligation. G0001 stays open. Next needed: a bound on k (or on distinct joint patterns) for generic forms, or a proved subclass where the thr2_evaluate speed-up grows with n.",
+  "evidence": "cm-c5b742bae1a24b25: 200 random subclass instances (n in small range, m in [2,5], |w| <= B, some v_j = 0) - DP count equals brute-force count in all cases (all_ok true, 0 failures). Correctness evidence only; no running-time or speed-up measurement.",
+  "gap_id": "G0025",
+  "id": "S0047",
+  "proved_step": "CLAIMED. Lemma A (few-top-gate DP, subclass). Let f(x) = [sum_j v_j [w_j.x >= t_j] >= T] on x in {0,1}^n, integer weights |w_ji| <= B, integers t_j, v_j, T. Let S = {j : v_j != 0}, k = |S|. Then #f = |f^{-1}(1)| is computed exactly in O(mn + n k (2Bn+1)^k) integer operations. Proof: (1) gates with v_j = 0 do not affect f. (2) Process x_1..x_n in order; keep N_i(p) = #{(x_1..x_i): partial sums p_j = sum_{l<=i} w_jl x_l equal p for j in S}. (3) N_0 = {0 -> 1}; N_{i+1}(q) = sum_{b in {0,1}} N_i(q - b w_{.,i+1}). (4) |p_j| <= B i <= Bn, so the table has at most (2Bn+1)^k entries; each step costs O(k) per entry per bit. (5) [w_j.x >= t_j] = [p_j >= t_j] at i = n, so #f = sum_p N_n(p) [sum_{j in S} v_j [p_j >= t_j] >= T]. (6) If k log2(2Bn+1) <= (1-delta) n the time is poly(n) 2^{(1-delta)n}; if k = O(log n) and B <= n^{O(1)} the time is 2^{O(log^2 n)} <= 2^n / n^{C} for every fixed C at large n. QED. Scope: bounded-weight, few-nonzero-top-weight subclass. Not a speed-up claim on generic instances (k ~ m ~ n^1.5 > n makes the bound vacuous).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795264060.6065528,
+  "session": "pnp-desk/research/R0906",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open. A successor needs a proved running-time bound, for a stated class of THR o THR circuits, that is below 2^n, or a proved bound on the distinct residuals or joint counts N_S(s) for such a class.",
+  "refuted_approach": "Correction to the frontier reading: the best sharp_sat entry cm-5e6d563f26944827 has a measured saving that rises slightly from n=16 to n=18 (saving_bits_over_log2n 0.516 to 0.575 at alpha=1.5). This is two exploratory sizes only. Its worst-case cost is Theta(|U_A|*|U_B|*m), which is about 2^n*m for generic weights, so no proved sub-2^n running time follows. Status: no proof progress.",
+  "evidence": "cm-5e6d563f26944827, cm-e33a640fc7f1418e (thr2_frontier output, this session); cm-42b94f908ee342d0 and cm-23d06b83b3594821 (earlier residual-count measurements).",
+  "gap_id": "G0026"
+ },
+ {
+  "at": 1795265659.261363,
+  "session": "pnp-desk/research/R0934",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Running-time claim from the top-support DP. The DP (cm-9cea41fd6d634203, 192 instances, 0 mismatches) is exact, but its bound O(n k (2Bn+1)^k) is polynomial only for fixed k and B. For generic m ~ n^1.5 it exceeds 2^n, so it does not close G0001 or G0002. It restates G0011 and S0024 and is not a new lemma.",
+  "evidence": "cm-9cea41fd6d634203 (EXPLORATORY_COMPUTATION; exactness check only, timings not used)"
+ },
+ {
+  "at": 1795265756.485846,
+  "session": "pnp-desk/research/R0934",
+  "model": "claude-haiku-5-5",
+  "lemma": "Bounded-support DP (repair of G0009(ii)). Let n >= 1, B >= 1 integers. Let g_j(x) = [w_j . x >= t_j] for j = 1..k, with w_j in {-B,...,B}^n, integer thresholds t_j, and nonzero integer top weights v_j. Let T be an integer and F(x) = [sum_j v_j g_j(x) >= T] for x in {0,1}^n. Then #F = #{x : F(x)=1} can be computed exactly in O(n k (2Bn+1)^k) arithmetic operations. Corollary: for the class with k <= c log2 n (c, B fixed; bottom gates with zero top weight dropped), the time is 2^{O(log^2 n)} = 2^{n - omega(1)}... more precisely the ratio to 2^n is n^{-omega(1)}.",
+  "gap": "Open after this step: (i) no bound for generic m ~ n^1.5 forms with all top weights nonzero (G0001); (ii) the bounded-weight assumption is essential to the (2Bn+1)^k state count; unbounded weights need another state bound; (iii) a thr2_evaluate VERIFIED_RUN is still needed before any measured speed-up claim.",
+  "gap_id": "G0027",
+  "id": "S0050",
+  "proved_step": "PROOF. Process variables x_1..x_n in order. After i variables, the state is the vector p^(i) = (sum_{l<=i} w_{j,l} x_l)_{j=1..k}, which lies in {-Bi,...,Bi}^k, so at most (2Bi+1)^k <= (2Bn+1)^k distinct states occur. Maintain a dictionary from state to the number of prefixes reaching it. Step i+1: each state p with count c spawns p (x_{i+1}=0) and p + w_{.,i+1} (x_{i+1}=1), each with count c. This keeps the multiset of prefix-states exact by induction on i, because the final state depends only on the prefix sums. After n steps every state p gives g_j = [p_j >= t_j] for all j, so the top value is sum_j v_j g_j, and #F = sum over states with top value >= T of their counts. Each step does O(k) work per state, so the total is O(n k (2Bn+1)^k) and space is the same up to the number of states. CORRECTNESS: the count of prefixes per state is preserved, and the final test uses exactly the bottom gates' values since w_j . x = p_j after n steps. COROLLARY: if k <= c log2 n and B is constant, (2Bn+1)^k = 2^{c log2(n) log2(2Bn+1)} = 2^{O(log^2 n)}, so the total time is 2^{O(log^2 n)} poly(n), and the ratio to brute force 2^n is 2^{-(n - O(log^2 n))} = n^{-omega(1)}. SCOPE: class C(c,B) = THR o THR with at most c log2 n bottom gates of nonzero top weight and bottom weights in [-B,B]; no restriction on the number of bottom gates with zero top weight. NOT covered: generic m ~ n^1.5 bottom gates with all top weights nonzero (k = m), where the bound is (2Bn+1)^{n^1.5}, which exceeds 2^n. This does NOT close G0001 and does NOT close G0002, G0004 or G0006. Transfer status: the class uses bounded bottom weights, so it is not claimed to fall under the Williams or Chen-Tal-Wang transfer without a separate check.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0009",
+  "closes_valid": true
+ },
+ {
+  "at": 1795266560.92407,
+  "session": "pnp-desk/research/R0949",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Meet-in-the-middle pair enumeration on the sharp_sat leader (cm-5e6d563f26944827) as a source of saving on generic THR o THR instances: on random integer weights in [-2,2], m = ceil(n^1.5), seed 1, n = 10, 12, 14, all half-sums are pairwise distinct, so |Ua|*|Ub| = 2^n exactly (cm-cabfa3c2fee0474c). No collision saving at these sizes. The leader's 4-6x speedup is a constant factor (exploratory, n = 16, 18 only).",
+  "evidence": "cm-cabfa3c2fee0474c (pair count), cm-5e6d563f26944827 (leader timings, exploratory), cm-e33a640fc7f1418e (earlier v2 recheck). Scope: single seed, n <= 14 for the pair count, bounded weights. Not a proof and not a running-time claim."
+ },
+ {
+  "at": 1795266659.3531604,
+  "session": "pnp-desk/research/R0949",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "CORRECTION to the meet-in-the-middle record: the claim that the leader's 4-6x speedup is a constant factor from vectorisation was NOT measured and is withdrawn. The measured fact is only that half-sums are pairwise distinct on generic instances at n = 10, 12, 14 (cm-cabfa3c2fee0474c), which forces |Ua|*|Ub| = 2^n.",
+  "evidence": "cm-cabfa3c2fee0474c; cm-5e6d563f26944827 (exploratory timings only)."
+ },
+ {
+  "at": 1795266682.6195273,
+  "session": "pnp-desk/research/R0949",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "WITHDRAWN (correction to the previous turn). I claimed the number of distinct bottom-output patterns is at most sum_{i<=n} C(m,i) by Sauer-Shelah. That applies the VC dimension (n+1) of the gate class on the cube, but the pattern count is a count of distinct points of the dual class (cube points as concepts on the m gates). The bound needs the DUAL VC dimension, which I have not checked. So the pattern route is NOT refuted. It is open, and no proof progress is claimed.",
+  "evidence": "No computation supports either side. The earlier meet-in-the-middle result cm-cabfa3c2fee0474c (distinct half-sums at n = 10, 12, 14, single seed, bounded weights) is unaffected by this correction."
+ },
+ {
+  "at": 1795266724.360403,
+  "session": "pnp-desk/research/R0949",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (known bound, applied to cube patterns; not a new theorem). Let C be a THR o THR circuit on n Boolean variables with m bottom gates, integer weights W_j and integer thresholds t_j. Then the number of distinct bottom-output vectors (f_1(x), ..., f_m(x)) for x in {0,1}^n is at most sum_{i=0}^{n} binom(m,i). Proof: for integer data, W_j.x >= t_j iff W_j.x > t_j - 1/2, so each output is the strict sign of an affine function of x. The output vector at x is the sign label of the point x in the arrangement of the m affine hyperplanes W_j.x = t_j - 1/2 in R^n. Distinct labels occupy distinct cells, and an arrangement of m hyperplanes in R^n has at most sum_{i=0}^{n} binom(m,i) cells (Buck 1943; Zaslavsky). Gates with W_j = 0 are constant and add no hyperplane. Consequences: for m at most n the bound is exactly 2^m, so for m at most (1-delta) n it is at most 2^{(1-delta) n}; for m = n^alpha with alpha > 1 the bound is at least binom(m,n) > 2^n, so it gives no saving there.",
+  "gap": "The lemma gives a pattern count, not an algorithm. A #SAT algorithm needs, for each realised pattern, the number of cube points in its cell, which is counting lattice points in a cell. That is the hard extraction step, not the information bound. Open: a way to compute the per-cell counts in time about the pattern count, or a family where the cell count is small and the per-cell counts are easy. G0001(iii) and G0006 are not closed by this lemma.",
+  "gap_id": "G0028"
+ },
+ {
+  "at": 1795266745.9082463,
+  "session": "pnp-desk/research/R0949",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Pattern-count route for THR o THR #SAT. The Buck/Zaslavsky cell bound gives at most sum_{i<=n} C(m,i) distinct bottom-output vectors. For m <= n this equals 2^m, which is the trivial bound. For m = n^alpha with alpha > 1 it is at least C(m,n) > 2^n, so it gives no saving over brute force. The route gives no running-time saving for the target regime. The per-cell cube-point counting step remains open and is not addressed.",
+  "evidence": "Known bound (Buck 1943), applied in the previous turn. No computation. Scope: pattern count only, not an algorithm."
+ },
+ {
+  "at": 1795274859.1664453,
+  "session": "pnp-desk/research/R1036",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review (session not the author of S0017). Claim: for integer weight directions d_1..d_r with |entries| <= B, the DP over i = 1..n whose state is the vector of partial sums (sum_{i'<=i} d_k[i'] x_{i'})_{k<=r} computes #{x : sum_j v_j [d_{g_j}.x >= t_j] >= T} exactly, with at most (2Bn+1)^r states. Correctness: the final state determines every bottom-gate value, so the top-gate test on the final state is exact; the DP is a sum over all paths. State bound: each partial sum lies in [-Bi, Bi] for i <= n, so at most (2Bn+1)^r states. Check: physalis_code_run cm-14ee03dae3c74de1 (exploratory): 300 random instances, n in 3..8, r in 1..3, m in 1..5, |w|<=2, 0 mismatches against brute force on the same instances, max_states_seen 220, 0 state-bound violations. Scope: this is the standard pseudo-polynomial DP. It is correct, but it is bookkeeping and closes no open obligation: it does not bound the number of directions r, so it does not close G0001 (generic m ~ n^1.5 distinct forms, where r = m and (2Bn+1)^r is exponential in n). Recorded as SURVIVED_REVIEW for correctness only, not as progress.",
+  "review_of": "S0017",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795303024.1713378,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0035: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795303978.7751772,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0040: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim is a running-time bound, \"time O(n k (2Bn+1)^k \u00b7 poly(m))\", and Lean 4 with Mathlib has no cost model that could state it. Any kernel-checked statement I could write would be a diff (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795305180.0614724,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0035: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof. Local checking is unavailable (Bash disabled), and the last lab result was truncated before showing success or errors. Part (c) is not formalized. (not a refutation; a model review is still needed)"
+ }
+]

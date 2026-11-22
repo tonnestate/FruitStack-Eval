@@ -1,0 +1,558 @@
+[
+ {
+  "at": 1795253521.7927063,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-P: (1) the exact HHTT 2021 statement (seed length, class, error) recorded verbatim; (2) an explicit PRG for XOR_2 o THR o THR of size n^alpha (some alpha > 1) with seed n - omega(log n) and a proved error o(1).",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795255297.4406111,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Affine GF(2) generators G: {0,1}^k -> {0,1}^n with k < n (seed-enumeration PRG candidates) fail the single parity test s.x. Proof: the image of an affine map has dimension at most k < n, so it lies in an affine hyperplane {x : s.x = b} for some s != 0, and the parity s.x is constant on the image. The parity is a THR o THR circuit with n bottom gates and top weights (+1,-1,+1,...) at threshold 1. So the error is |Pr_G[s.x=1] - Pr_U[s.x=1]| = 1/2. Scope: refutes the affine class only, not the lane.",
+  "evidence": "cm-6a63816a7d2b46af and cm-f52c614503404719 (n = 8, 10, 12, c = 3, seed 1): affine parity error = 0.5 at every n, as the lemma predicts. Quadratic candidate (Y, lin+quad) has parity error 0.25 at n=8 and 0.5 at n=10, 12 (exploratory)."
+ },
+ {
+  "at": 1795255297.4607227,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "lemma": "Parity-bias lemma (candidate, does not close G0001). Let G: {0,1}^r -> {0,1}^n be any map and bias(s) = E_y[(-1)^(s.G(y))] for s in {0,1}^n. Then max over s != 0 of bias(s)^2 is at least (2^(n-r) - 1)/(2^n - 1), hence at least about 2^(-r). Proof: by Fourier inversion, sum over all s of bias(s)^2 = 2^n * Pr_{y,y'}[G(y) = G(y')]. By Cauchy-Schwarz over the image, the collision probability is at least 1/|Im G| >= 2^(-r). The s = 0 term is 1, so the sum over s != 0 is at least 2^(n-r) - 1. Averaging over the 2^n - 1 nonzero s gives the bound.",
+  "gap": "G0001 remains OPEN. Consequence: parity tests alone can only force error about 2^(-r/2) against a seed-r generator, so for r = n - omega(log n) they cannot refute a candidate with error o(1). Affine candidates are refuted only because their bias is exactly 1 on a hyperplane.",
+  "gap_id": "G0002",
+  "id": "S0003",
+  "proved_step": "CLAIMED: parity-bias lemma as stated in lemma field (max_{s!=0} bias(s)^2 >= (2^(n-r)-1)/(2^n-1)). Proof: Parseval identity plus collision bound 1/|Im G| >= 2^(-r).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795255470.2185218,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Distinct-pair quadratic candidate G(y) = (y, lin(y) + quad(y)) with c = 3 extra output bits, k = n - 3 seed bits, n = 8, 10, 12 (seed 1, 40 reps): max parity error 0.25 over reps when all pairs are distinct, 0.5 when a pair repeats (repeats cancel the quadratic terms). Scope: c = 3 is far below what the CAPP route needs (seed n - omega(log n) means c = omega(log n)), so this refutes only the fixed-c class at these sizes, not lane P. The 0.25 error persists under distinct pairs, so this class does not reach o(1) error at c = 3.",
+  "evidence": "cm-267f58db41354ad1 (distinct vs repeated pairs, c = 3, reps 40); cm-058ed79617ad47b4 (first quadratic run, exploratory)."
+ },
+ {
+  "at": 1795255681.8926258,
+  "session": "pnp-desk/research/R0827",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by a different session (not R0822). Re-derivation: bias(s)=E_y[(-1)^{s.G(y)}]; expanding sum_s bias(s)^2 = E_{y,y'} sum_s (-1)^{s.(G(y) xor G(y'))} = 2^n Pr[G(y)=G(y')]. Cauchy-Schwarz over Im G gives Pr[collision] >= 1/|Im G| >= 2^(-r). Removing the s=0 term (bias 1) and averaging over the 2^n-1 nonzero s gives max_{s!=0} bias(s)^2 >= (2^(n-r)-1)/(2^n-1). No argument gap. Scope: correct but weak; it forces only error ~2^(-r/2), so it does not refute lane P and does not close G0001. Numerical check of the bound follows in a separate run.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795255798.537864,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "lemma": "Exact parity-error formula for degree-2 generators. Let G(y) = (y, Z(y)) for y in GF(2)^k, Z_i(y) = l_i(y) + q_i(y), where q_i is a sum of monomials y_a y_b with a != b, and let B_e = sum_i e_i B_i over GF(2) for e in GF(2)^c, where B_i is the zero-diagonal symmetric matrix of q_i. Let h_e = rank(B_e)/2. Then max over nonzero tests s in GF(2)^n of |Pr_y[s.G(y)=1] - 1/2| = max over nonzero e of 2^(-1-h_e). PROOF: a test s=(a,e) gives s.G(y) = (a + sum_i e_i l_i).y + q_e(y), with q_e = sum_i e_i q_i. Choosing a to cancel the linear part (a is free) gives |bias| = |E_y (-1)^{q_e(y)}|. For a quadratic form over GF(2)^k whose alternating form has rank 2h, the sum of (-1)^q is 0 or +-2^(k-h) (radical argument), so |bias| = 2^(-h), and the error is |bias|/2. Other choices of a give 0 or the same magnitude, so the maximum is 2^(-h_e-1). For e=0 the test is the linear form a.y, error 0.",
+  "gap": "G0001 remains OPEN. This is a characterisation for parity tests only. It does not bound threshold-of-threshold tests, so it closes no obligation. Consequence: parity-fooling of degree-2 generators is equivalent to every nonzero combination of the c alternating forms having rank tending to infinity. The random-construction claim (full rank w.h.p. by a union bound over 2^c combinations) is not yet verified and is recorded as a question.",
+  "gap_id": "G0003",
+  "id": "S0006",
+  "proved_step": "CLAIMED: exact parity-error formula stated in the lemma field. Proof: the quadratic-form sum identity plus the free choice of the linear part a.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795255860.0437663,
+  "session": "pnp-desk/research/R0827",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Session R0827 (lane P, second holder) added: (i) S0003 reviewed and SURVIVED_REVIEW (independent of R0822); its bound gives only max bias >= about 2^(-r/2) and does not close G0001. (ii) Exact check cm-211233ed04f4462d: for random seed-5 maps into {0,1}^8, single-threshold distinguishers reach advantage >= 0.22 in every trial, so random maps are not fooling generators at this size. (iii) Reformulation: the image-complement distinguisher has advantage at least 1 - 2^(r-n) for every map with r < n; whether an explicit G fools XOR2 o THR o THR therefore depends on whether that set is approximable by the class. No new lemma is proved in this session, and no progress is claimed.",
+  "evidence": "cm-211233ed04f4462d; cm-76b98459414043e6 (S0003 numerical check, 0 violations)",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795255928.022387,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. The decay with n is not established: 3 sizes, 20 reps, and the tests are single THR gates, which are weaker than the CAPP class.",
+  "evidence": "cm-6fc02fb851a04382 (exploratory, not a lemma): random full-rank-style degree-2 generators G(y)=(y,Z(y)), c=ceil(log2 n), n=8,10,12, 20 reps. Max threshold error over single-subset THR tests |G(y) AND w| >= t versus uniform: 0.25, 0.203, 0.094 (mean 0.204, 0.142, 0.075). Max parity error: 0.5, 0.5, 0.125. The parity error 0.5 at n=8,10 means some nonzero combination of the c forms had rank 0 in some rep, so these reps are not usable as generators. The threshold error is only a single-gate test, not THR o THR.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795255932.9060197,
+  "session": "pnp-desk/research/R0827",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Lemma N is a reformulation of the fooling definition and does not construct an explicit generator or bound error for XOR2 o THR o THR.",
+  "gap_id": "G0006",
+  "id": "S0009",
+  "proved_step": "CLAIMED: Lemma N. Let G: {0,1}^r -> {0,1}^n with r < n fool class C with error eps. Then every f in C with f = 0 on Im G has Pr_U[f=1] <= eps. Proof: Pr_G[f=1] = 0, so the fooling inequality gives the bound. Consequence: A = complement of Im G has density >= 1 - 2^(r-n), so C contains no function supported on A with density > eps. Scope: necessary condition, equivalent to the definition of fooling; a reformulation, not a construction. Does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795256044.0004327,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Single-gate threshold error decaying with n on 7 sizes does not give o(1) error for THR o THR tests, and the CAPP-relevant class is not yet tested.",
+  "evidence": "cm-cea0fcc5042d4568 (exploratory, not a lemma): random degree-2 generators G(y)=(y,Z(y)), k=n-ceil(log2 n), 40 reps, n=8..14, seed 7. Max single-gate threshold error (|Pr[|G(y) AND w| >= t] - Pr[Bin(m,1/2) >= t]| over all w, t): 0.25, 0.25, 0.266, 0.156, 0.102, 0.078, 0.051 for n=8..14. Parity error reaches 0.25 or more in 67% of reps at n=8, 27% at n=10, 2.5% at n=11, and 0% at n=12..14. The decay is numerical and not established as asymptotic; the tests are single THR gates, not THR o THR.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795256132.199302,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Open: whether a union bound over the 2^c nonzero combinations e with c = omega(log n) (for example c = ceil(sqrt n)) is small enough to force every nonzero combination to have rank -> infinity. This depends on the decay of P(corank >= d) for large k, which the exact enumeration cannot reach past k = 7.",
+  "evidence": "cm-de0b3d1427184c67 (exact enumeration of all alternating GF(2) k x k matrices, k=2..7): P(corank>=3) = 0.125, 0.159, 0.152, 0.159 for k=3,4,5,6,7 (k=6 gives 0.020 at corank>=3; k=7 gives 0.159). Scope correction: the earlier runs cm-6fc02fb851a04382 and cm-cea0fcc5042d4568 used c = ceil(log2 n), which is Theta(log n) and NOT omega(log n) as the CAPP seed condition r <= n - omega(log n) requires. Those runs test a weaker regime and do not support o(1) error at the target seed length.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795256216.6981611,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "lemma": "Corank tail and union bound for random degree-2 parity-fooling generators. (i) Let B be uniform over k x k alternating GF(2) matrices and d >= 1. Then P[corank B >= d] <= 4 * 2^(-d(d-1)/2). Proof: fix a d-dimensional subspace W. The map B -> P^T B P is a bijection on alternating matrices, so we may take W = span(e_1..e_d). Then W is contained in ker B iff the C(k,2) - C(k-d,2) = dk - d(d+1)/2 upper-triangular entries touching the first d coordinates vanish, so P[W in ker B] = 2^(-(dk - d(d+1)/2)). The number of d-dim subspaces is the Gaussian binomial [k choose d]_2 <= 4 * 2^(d(k-d)). A union bound over W gives P[corank >= d] <= 4 * 2^(d(k-d) - dk + d(d+1)/2) = 4 * 2^(-d(d-1)/2). (ii) Let k = n - c and G(y) = (y, Z(y)) for y in GF(2)^k, with Z_i(y) = l_i(y) + q_i(y), where q_i has alternating matrix B_i and l_i is linear; all B_i and l_i independent and uniform. For nonzero e in GF(2)^c, B_e = sum_i e_i B_i is uniform alternating. Union bound over the 2^c - 1 vectors e: P[some nonzero e has corank(B_e) >= d] <= 4 * 2^(c - d(d-1)/2). With d = ceil(sqrt(2c)) + 2 we get d(d-1)/2 >= c + sqrt(2c), so this probability is <= 4 * 2^(-sqrt(2c)). (iii) On the complementary event, the parity-error formula (earlier lemma) gives, for every nonzero parity test s = (a, e), |Pr[s.G(y) = 1] - 1/2| <= 2^(-1-h_e) with h_e = rank(B_e)/2 >= (k-d+1)/2, so the error is at most 2^(-(k-d+3)/2). Consequence: for c -> infinity with d = O(sqrt c) = o(n), a seed-length-(n-c) map G fools all parity tests of its outputs with error 2^(-Omega(n)), and the failure probability over the random choice is at most 4 * 2^(-sqrt(2c)) -> 0.",
+  "gap": "G0001 remains OPEN. Scope: the lemma is existential (random choice, not explicit) and covers only parity tests of the outputs, i.e. XOR of a subset of output bits and affine tests. It does NOT cover threshold gates or THR o THR tests, so it closes no obligation of G0001. Open next: (a) an explicit alternating family with every nonzero combination of rank >= k - O(sqrt c), e.g. an alternating rank-metric code; (b) whether such a generator fools single-gate and THR o THR tests at the sizes where the union bound is tight.",
+  "evidence": "Exact check of (i) on k = 2..6 is in the next experiment (physalis_code_run, k <= 6, enumerated tails against 4 * 2^(-d(d-1)/2) and the codimension count). Earlier exact tails at k = 3..7 (cm-de0b3d1427184c67) satisfy the bound: e.g. k = 7, d = 4 gives 0.0013 against 0.0625, and d = 6 gives 4.8e-7 against 1.2e-4.",
+  "gap_id": "G0009",
+  "id": "S0012",
+  "proved_step": "CLAIMED: lemma stated in the lemma field. Part (i) is a union bound over d-dimensional subspaces with an exact codimension count; part (ii) is a union bound over the 2^c combinations; part (iii) uses the earlier parity-error formula.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795256265.7978323,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. (a) Parity-fooling with error 2^(-Omega(n)) at seed length n - c, c = ceil(sqrt(2n)) or similar, is supported by the union bound but is existential and covers XOR/affine tests only. (b) Threshold and THR o THR tests: no proof. Single-gate sweeps (cm-cea0fcc5042d4568) used c = Theta(log n), which is outside the regime the CAPP seed condition needs, so no finite experiment in reach can test the target regime. Next repair: an explicit alternating family with rank >= k - O(sqrt c), then a threshold-level argument for single gates.",
+  "evidence": "cm-c04377a45d174067 (exact enumeration, k=2..6): for every d in 1..k, P[corank >= d] <= 4*2^(-d(d-1)/2) holds (bound_holds true in all cases), and the codimension count of the stabiliser of a fixed d-dim W equals dk - d(d+1)/2 (codim_formula_holds true in all cases). This checks part (i) of the corank lemma on k <= 6 only; the general statement is still CLAIMED and unreviewed. Part (iii) assumes rank(B_e) >= k-d+2 on the good event, which gives h_e >= (k-d+2)/2 and so the parity error bound is 2^(-(k-d+4)/2); the earlier text wrote (k-d+3)/2. The threshold-level scope is not covered: the lemma is for parity tests only.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795256304.1138344,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "Correction to my own part (iii) of S0012 (gap G0009/G0010). The parity error bound is 2^(-(k-d+3)/2), not 2^(-(k-d+4)/2). Reason: corank <= d-1 gives rank >= k-d+1; rank is even, so h_e >= (k-d+1)/2 and the error 2^(-1-h_e) <= 2^(-(k-d+3)/2). The (k-d+4)/2 version assumed rank >= k-d+2, which the corank bound does not give. Scope unchanged: parity tests only; G0001 OPEN; threshold and THR o THR tests not covered; the lemma is existential (random choice), not an explicit family, and is unreviewed by any other session.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795256455.9747987,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "lemma": "EXPLICIT ALTERNATING RANK-METRIC FAMILY (m odd). F = GF(2^m), Tr = absolute trace, B_alpha(x,y) = Tr(alpha(x*y^2 + x^2*y)) for alpha in F. (a) Each B_alpha is an alternating bilinear form over GF(2): B_alpha(x,x) = Tr(alpha(x^3+x^3)) = 0. (b) alpha -> B_alpha is GF(2)-linear. (c) For alpha != 0, rad(B_alpha) = {0, x_alpha} where x_alpha^3 = 1/alpha, hence rank(B_alpha) = m-1. Proof of (c): since Tr(z)=Tr(z^2), Tr(alpha x y^2) = Tr((alpha x)^{1/2} y), so B_alpha(x,.) = 0 iff (alpha x)^{1/2} + alpha x^2 = 0. Squaring (injective) gives alpha x + alpha^2 x^4 = 0, i.e. x = 0 or alpha x^3 = 1. For m odd gcd(3, 2^m-1) = 1, so x -> x^3 is a bijection on F*, giving exactly one nonzero root. Consequence (parity only): for k = m, c = m, n = 2k, define G(y) = (y, Z(y)), y in GF(2)^k, Z_i quadratic with polar matrix B_{2^(i-1)} (any linear part). For every nonzero parity test s = (a,e), s.G is quadratic plus affine with polar form B_e of rank k-1, so by the quadratic-form Gauss-sum bound |Pr[s.G(y)=1] - 1/2| <= 2^(-(k-1)/2).",
+  "gap": "G0001 remains OPEN and this step closes none of it. Scope: parity tests only (XOR of output bits and affine tests). It does not cover threshold or THR o THR tests. Consequence: the explicit seed is r = n/2, and fooling XOR2 o THR o THR with o(1) error needs membership in the image of G (density 2^(-n/2)) to be outside the class; whether that holds for this G is the open test (see G0004). Next: exact single-gate threshold error for this explicit family at m = 5, 7, 9 (experiment requested this turn).",
+  "evidence": "cm-bdfe4a6f82f74122 (exact enumeration, m = 5, 7, 9, 11): every nonzero alpha has corank 1, alternating = true. Finite confirmation of (c) only. S0012's existential random-choice union bound is superseded for parity purposes by this explicit family.",
+  "gap_id": "G0012",
+  "id": "S0015",
+  "proved_step": "CLAIMED: explicit family lemma (a)-(c) and the parity-error consequence, with proof in the lemma field. Unreviewed; authored in session R0822 (lane P).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795257055.365039,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "lemma": "EXTENDED ALTERNATING FAMILY (k >= 2, 1 <= c <= k). F = GF(2^k) with polynomial basis e_j = X^j, Tr = absolute trace, B_alpha(x,y) = Tr(alpha(x y^2 + x^2 y)). Let alpha_i = X^(i-1) for i = 1..c; these are GF(2)-linearly independent. Identify GF(2)^k with F via y -> sum_j y_j e_j, and set Z_i(y) = sum_{j<l} B_{alpha_i}(e_j, e_l) y_j y_l. Define G(y) = (y, Z_1(y), ..., Z_c(y)) in GF(2)^(k+c), so the seed is r = k. CLAIM: for every nonzero test s = (a, e) in GF(2)^(k+c), |Pr_y[s.G(y) = 1] - 1/2| <= 2^(-(k+1)/2). PROOF: If e = 0 then s.G = a.y is linear with a != 0, so the bias is 0. If e != 0, alpha_e = sum_i e_i alpha_i != 0 by independence. By the (c) part of the previous lemma (k odd), B_{alpha_e} has radical of dimension exactly 1. Q_e(y) = sum_i e_i Z_i(y) is quadratic with polar form B_{alpha_e}, so s.G(y) = Q_e(y) + a.y. The standard quadratic-form Gauss sum bound states that for a quadratic Q over GF(2)^k with polar radical of dimension d, sum_y (-1)^(Q(y) + linear) is 0 or of absolute value 2^((k+d)/2). With d = 1 the expectation E[(-1)^(s.G)] has absolute value at most 2^(-(k-1)/2). Since Pr[f=1] - 1/2 = -E[(-1)^f]/2, the claim follows. QED (parity tests only).",
+  "gap": "G0001 is NOT closed. This lemma covers only XOR/affine parity tests (s.G). It says nothing about threshold tests [w.G(y) >= t] or XOR2 o THR o THR. Measured single-threshold errors at k = 5, 7, 9 are 0.25, 0.148, 0.0605 (cm-d5e5fb1a09d945dd), decaying roughly like 2^(-k/2), but no proof is given. Open: prove a threshold-error bound for s.G-type quadratic maps, or show the image of G has density 2^(-n/2) and is not detected by the class.",
+  "evidence": "cm-ada00c0f7e8d41c0 (k in {5,7,9}, c in {1,2,3,4}): worst corank over nonzero e is 1 in all cases; max parity bias equals 2^(-(k+1)/2) exactly, bound_holds = true in all 12 cases. Finite confirmation of the corank part and the parity bound only; the proof above is the general argument.",
+  "gap_id": "G0013",
+  "id": "S0016",
+  "proved_step": "CLAIMED: extended alternating family, parity-bias lemma for k >= 2, 1 <= c <= k, with proof in the lemma field. Unreviewed; authored in session R0822 (lane P).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795257083.8797438,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to S0016 (G0013): the extended family lemma holds for ODD k only. Its proof uses rad(B_alpha) of dimension 1, which needs gcd(3, 2^k - 1) = 1, i.e. k odd. For even k, alpha*x^3 = 1 has 0 or 3 nonzero solutions, so the radical has dimension 0 or 2 and the Gauss-sum bound gives |Pr[s.G=1] - 1/2| <= 2^(-k/2), not 2^(-(k+1)/2). The stated range k >= 2 is therefore wrong. Numerical checks cover k in {5,7,9} only. G0001 remains OPEN: parity tests only; threshold and THR o THR tests are not covered; the measured single-threshold errors 0.25, 0.148, 0.0605 are finite data, not a bound.",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795257246.3121233,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION (session R0822, lane P): the APPROACH record 908787b386658aa7 cites cm-c04377a45d174067, which knowledge_search does not find. Supporting experiments for S0015/S0016 are cm-bdfe4a6f82f74122 (corank) and cm-ada00c0f7e8d41c0 (parity bias, k in {5,7,9}, c in {1..4}). G0001 remains OPEN. New single-threshold data cm-65d288361bc84d4b (k=7,9,11; c=3,5; 200 sampled weight vectors each): worst error 0.116, 0.109, 0.046, 0.049, 0.025, 0.029. These use seed n-c with c constant, which is outside the seed n-omega(log n) regime; they are sampled lower bounds on the worst case, not bounds.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795257340.3613672,
+  "session": "pnp-desk/research/R0822",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION (R0822, lane P): the 'decay roughly like 2^(-k/2)' reading of cm-65d288361bc84d4b is withdrawn. Hill-climbing (cm-201afb17b0a04fc1) gives larger errors (0.166 at k=7,c=3) and no decrease in c at fixed k (k=9: 0.063, 0.070, 0.067 for c=3,5,7). Across k at c=3 the error falls (0.166, 0.063, 0.037), but three points do not fix a rate. G0001 remains OPEN: no threshold or THR o THR bound; the regime seed n - omega(log n) (c = omega(log n)) is untested. Next: test c-dependence at fixed k with c up to k (k=9, c=9), then a threshold-level argument for the Z_i quadratic maps.",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795257596.1367412,
+  "session": "pnp-desk/research/R0846",
+  "model": "claude-haiku-5-5",
+  "lemma": "RADICAL LEMMA (general, odd k). Let k be odd, F = GF(2^k), Tr the absolute trace, alpha in F^*, and B_alpha(x,y) = Tr(alpha(x y^2 + x^2 y)). Then the radical {x : B_alpha(x,y) = 0 for all y} has exactly 2 elements. PROOF: Put h = 2^(k-1). Since Tr(z^2) = Tr(z), Tr(alpha x y^2) = Tr((alpha x y^2)^h) = Tr(alpha^h x^h y), using y^(2^k) = y. So B_alpha(x,y) = Tr(y L(x)) with L(x) = alpha^h x^h + alpha x^2, which is GF(2)-linear in x. The trace form is nondegenerate, so the radical equals ker L. Since (x^h)^2 = x^(2^k) = x, we have x^h = sqrt(x). For x in F: L(x) = 0 iff alpha x^2 = alpha^h sqrt(x). Squaring is a bijection of F, so this is equivalent to alpha^2 x^4 = alpha^(2h) x, i.e. x = 0 or x^3 = c with c = alpha^(2h-2) != 0. Since 2^k = 2 mod 3 for k odd, gcd(3, 2^k - 1) = 1, so cubing is a bijection of F^*, and x^3 = c has exactly one solution in F^*. Hence ker L = {0, x_0}. QED.",
+  "gap": "Closes no open obligation of G0001 (G0001 needs a threshold / THR o THR bound, which is not addressed). The Gauss-sum bound is cited as standard (Lidl-Niederreiter / Dillon). Output length k + c with c = omega(log n) is not tested for threshold-level fooling.",
+  "evidence": "cm-f2a6e45a651d4183 (exact Walsh-Hadamard check, k in {5,7,9}, all c <= k: maximum parity bias equals 2^(-(k+1)/2) in all 21 cases, linear tests bias 0). The RADICAL LEMMA is the general proof behind the finite check at odd k.",
+  "gap_id": "G0017",
+  "id": "S0020",
+  "proved_step": "CLAIMED: general parity bias bound for the extended alternating family G(y) = (y, Z_1(y), ..., Z_c(y)) over GF(2^k), k odd, any 1 <= c <= k: for every nonzero test s = (a,e) with e != 0, |Pr_y[s.G(y) = 1] - 1/2| <= 2^(-(k+1)/2). Derivation: the RADICAL LEMMA gives radical dimension 1 for each nonzero alpha_e (alpha_e != 0 by GF(2)-independence of X^0..X^(c-1)); Q_e = sum_i e_i Z_i is quadratic with polar form B_(alpha_e); the standard quadratic-form Gauss sum bound (|sum_y (-1)^(Q+lin)| in {0, 2^((k+d)/2)} with d = dim radical) then gives |E[(-1)^(s.G)]| <= 2^(-(k-1)/2), and Pr - 1/2 = -E/2. Scope: parity tests only; does NOT touch threshold or THR o THR tests.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795260407.994356,
+  "session": "pnp-desk/research/R0866",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. The parity-only radical lemma is numerically consistent at k = 3, 5, 7 but gives no threshold-level or THR o THR fooling bound at seed n - omega(log n). Next obligation: a threshold-level bound for single THR gates on the alternating family G(y) = (y, Z_1(y), ..., Z_c(y)), with the error stated exactly before any experiment.",
+  "evidence": "cm-a5bb1c8c955245bf: exact radical-size histogram for the parity lemma. k=3: 7/7 alphas radical size 2; k=5: 31/31 alphas radical size 2; k=7: 6 sampled alphas, all size 2. No review status set: the session that claimed S0020 may be this one, so the step is not reviewed here.",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795260452.9430857,
+  "session": "pnp-desk/research/R0866",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Next obligation unchanged: threshold-level bound for single THR gates and THR o THR tests on the alternating family, with class, seed length and error stated exactly before any experiment.",
+  "evidence": "Review by R0866 (not the claiming session). Hand proof re-derived: for odd k, B_alpha(x,y)=Tr(alpha(xy^2+x^2y)) = Tr(y L(x)) with L(x)=alpha^h x^h + alpha x^2, h=2^(k-1); ker L = {0, x_0} because x^3 = alpha^(-1) has exactly one solution in F* when gcd(3, 2^k-1)=1 (k odd). Exact check cm-a5bb1c8c955245bf: radical size 2 for k=3 (7/7 alphas), k=5 (31/31), k=7 (6 sampled). Scope: parity-level radical lemma only; does NOT close G0001 and is not a threshold or THR o THR bound. Open discrepancy NOT checked here: R0846 reported a k=9 bias near 0.063, which seems to exceed the stated bound 2^(-(k+1)/2) = 2^-5 ~ 0.031; this needs an independent recomputation before the bias bound is trusted.",
+  "gap_id": "G0019",
+  "review_of": "S0020",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795261493.246049,
+  "session": "pnp-desk/research/R0880",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review by session R0880 (not the claimant). Hand check: B_alpha(x,y)=Tr(y L(x)) with L(x)=alpha^h x^h + alpha x^2 (h=2^(k-1), uses Tr(z^2)=Tr(z) and y^(2^k)=y); radical = ker L by nondegeneracy of the trace form; x^h = sqrt(x); L(x)=0 <=> alpha^2 x^4 = alpha x <=> x=0 or x^3 = alpha^-1; gcd(3,2^k-1)=1 for odd k gives exactly one nonzero root. Exact check cm-f052a48b700348dc: radical size 2 for every alpha at k=3 (7 alphas), k=5 (31), k=7 (127), k=9 (16 sampled), zero trace values outside GF(2). SCOPE: parity-level lemma only; it closes no obligation (G0001 stays OPEN).",
+  "review_of": "S0020",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795261632.428476,
+  "session": "pnp-desk/research/R0880",
+  "model": "claude-haiku-5-5",
+  "gap": "Closes NO obligation of G0001: the lemma covers XOR-of-output-bit tests only. Threshold and THR o THR tests are untouched. Consequence for the seed: independence needs c <= k, and c = ceil(sqrt(n)) gives parity error 2^(-(n-c-1)/2) at seed length n - c.",
+  "evidence": "Self-made step by session R0880 (not reviewed). Exact check cm-6638082c118d449b over all 2^n - 1 parity tests: max parity bias 0.25 (k=5) and 0.125 (k=7) for c = 1..4, equal to 2^(-(k-1)/2). Radical check cm-f052a48b700348dc agrees.",
+  "gap_id": "G0020",
+  "id": "S0024",
+  "proved_step": "PARITY-BIAS LEMMA (k odd >= 3; F = GF(2^k); Tr = absolute trace; alpha_1..alpha_c in F linearly independent over GF(2); G(y) = (y, Tr(alpha_1 y^3), ..., Tr(alpha_c y^3))). For every nonempty set S of output coordinates, |E_y (-1)^{S.G(y)}| is 0 or 2^(-(k-1)/2). PROOF: S.G(y) = Tr(beta y^3) + Tr(gamma y), where beta = sum of alpha_i over the Z-coordinates in S and gamma comes from the y-coordinates in S. If beta = 0, independence forces S to contain no Z-coordinate, so gamma != 0 and the sum is 0. If beta != 0, let Q(y) = Tr(beta y^3) with bilinear form B(x,a) = Tr(beta(x^2 a + x a^2)). Substituting y = x + a and using Q(x+a) = Q(x) + Q(a) + B(x,a) gives S^2 = 2^k * sum over a in Rad(B) of (-1)^(Q(a) + Tr(gamma a)). By S0020 (RADICAL LEMMA), Rad(B) = {0, x0}, so S^2 is in {0, 2^(k+1)} and |S|/2^k is in {0, 2^(-(k-1)/2)}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795261632.439967,
+  "session": "pnp-desk/research/R0880",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "CORRECTION of G0011 (parity bound 2^(-(k-d+3)/2)). The Walsh bias of a quadratic form with bilinear radical of dimension w is 2^(-h), where the rank is 2h. Check: x1*x2 on 3 bits has bias 1/2 (h=1), not 1/4. So the parity bias bound is 2^(-(k-d+1)/2). The explicit family G(y) = (y, Tr(alpha_i y^3)) with c = 1 at k=5 has parity bias 0.25 > 0.125 = 2^(-(k-d+3)/2) (exact data cm-6638082c118d449b), so the G0011 constant fails for this family.",
+  "evidence": "cm-6638082c118d449b (exact parity maxima 0.25, 0.125); cm-f052a48b700348dc (radical sizes 2)."
+ },
+ {
+  "at": 1795261703.943596,
+  "session": "pnp-desk/research/R0885",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Simplest formalization of G0001 on the alternating family: G(y)=(y, Tr(alpha_i y^3))_{i<=k}, seed r=k, output n=2k, tested against all single THR gates with weights in {-1,0,1} and all thresholds. Measured best advantage 0.25 (k=3), 0.4375 (k=4), 0.1875 (k=5): no decay, not o(1). Enriched variant tried: the same family at c=k with weight search over all thresholds. Reading of the result: the identity block (the first k output bits are the seed itself) means a threshold on those bits has the same law on the image and on uniform input, so the advantage must come from the Z-block; the image-complement distinguisher (G0004 (iii)) gives advantage 1-2^(-k) but is not a single THR gate, so it does not bound the class. Open: remove the identity block (output Z-only, c > k), larger k, and THR o THR tests.",
+  "evidence": "cm-559d939b67094d63 (exploratory, host-recorded RUN, agent-authored code; numbers are observations, not a proof; weights restricted to {-1,0,1})"
+ },
+ {
+  "at": 1795261816.6965115,
+  "session": "pnp-desk/research/R0885",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Z-only alternating family G(y)=(Tr(alpha_i y^3))_{i<=2k} with seed k, output 2k, single THR gates weights in {-1,0,1}: best advantage 0.25 (k=3), 0.5625 (k=4), 0.375 (k=5), no decay. SCOPE CORRECTION to the earlier identity-block record: this refutes only a generator with seed/output ratio 1/2, which is a much stronger claim than the lane target (seed r <= n - omega(log n)). It does not refute the lane target. The target regime (c = omega(log n) slack) is still untested at finite size.",
+  "evidence": "cm-5ea36e10efa8447a (exploratory RUN, agent-authored code, weights restricted to {-1,0,1}; observations only, no proof). Earlier identity-block run cm-559d939b67094d63 has the same scope limit."
+ },
+ {
+  "at": 1795261878.941064,
+  "session": "pnp-desk/research/R0885",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Z-only alternating family G(y)=(Tr(alpha_i y^3))_{i<=n}, seed k, output n=k+s, with s in {1,2,3} and k in {4,5,6}, tested against single THR gates with weights in {-1,0,1}. Best advantage: k=4 gives 0.5 for each s; k=5 gives 0.25, 0.375, 0.375; k=6 gives 0.5 for each s. No decay in k at fixed s. Scope: finite k<=6, single gates only, weights restricted to {-1,0,1}. The slack s is constant, so this does not test the target regime s = omega(log n) and does not refute the lane target.",
+  "evidence": "cm-946fc971cf2d4385 (exploratory RUN, agent-authored code; observations only, no proof)"
+ },
+ {
+  "at": 1795261982.8911977,
+  "session": "pnp-desk/research/R0885",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-816de02d1d20481e (exploratory RUN, exhaustive for s <= 8; agent-authored code, observation only). Does NOT close G0001 or any obligation; self-made bookkeeping, so it does not count as progress.",
+  "id": "S0029",
+  "proved_step": "Parity-level construction (not progress toward G0001). For nonempty S subset of [n], s = |S|, b in {0,1}, C(x) = (XOR of x_i over i in S) XOR b is in THR o THR with s bottom gates. Proof: bottom gates g_j(x) = [sum_{i in S} x_i >= j] for j = 1..s, so sum_j g_j = sigma where sigma = sum_{i in S} x_i. Top gate T = sum_j (-1)^(j+1) g_j = [sigma odd] = sigma mod 2 (alternating sum of ones). Output [T >= 1] = parity, and [-T >= 0] = complement, which handles b. Checked exhaustively for s = 1..8 (cm-816de02d1d20481e). Scope: exact for each s; it is a standard fact, not a threshold-level fooling bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795261985.612478,
+  "session": "pnp-desk/research/R0886",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN; no proof progress this session. Sharpened reformulation (not progress): for G with seed r < n and image S, the test 1_{S^c} has advantage at least 1 - 2^(r-n) against G, so G fools XOR2 o THR o THR with error eps only if no class member agrees with 1_{S^c} on most inputs up to eps. For the alternating family, S is the set of solutions of c quadratic constraints z_{k+i} = Tr(a_i z^3), so the open question is whether these constraints (AND of c quadratic-form parities) are approximable by XOR2 o THR o THR. Not established here; the parity lemma S0020 does not address it.",
+  "evidence": "Exact weight-threshold runs cm-278fa56eb51143ee and cm-2b2e889c6f5d4e35 (k<=13, c<=5) are single-test measurements at constant c and do not reach the seed regime n - omega(log n).",
+  "gap_id": "G0021"
+ },
+ {
+  "at": 1795263003.7928927,
+  "session": "pnp-desk/research/R0890",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. The corrected constant is parity-level only. It does not bound single THR gates or THR o THR tests, and the c >= 4 family needs GF(2)-independent a_i (not yet specified). Reopen only if a threshold-level bound for single THR gates on a valid alternating family appears.",
+  "refuted_approach": "S0020 stated bias bound 2^(-(k+1)/2) for every nonzero parity test of the extended alternating family. Refuted at k=5, c=2 by exact computation cm-a43a2b7d5dba40de: max |bias| = 0.25 at parity u=33 (test (-1)^(y_0 + Tr(2 y^3))), which exceeds 0.125. Also: the family with a_i = i+2 is GF(2)-dependent for c >= 4 (2+3+4+5 = 0), so Z_0+Z_1+Z_2+Z_3 is identically 0 and that test has bias 1; the lemma needs GF(2)-independent a_i.",
+  "evidence": "cm-a43a2b7d5dba40de (k=5,c=2 bias 0.25; k=7,c=2 bias 0.125; halfspace lower bounds 0.20/0.195/0.06/0.03 at n=7/8/9/10, MILP time-limited, not optimal); cm-ada00c0f7e8d41c0; cm-fcfb6447e652432a",
+  "gap_id": "G0022",
+  "id": "S0031",
+  "proved_step": "CORRECTED PARITY BOUND (repair of S0020's constant). Let k be odd, alpha nonzero in GF(2^k), Q(y)=Tr(alpha y^3), beta in GF(2^k), S = sum_y (-1)^(Q(y)+Tr(beta y)). Then |S| is 0 or 2^((k+1)/2), so |S|/2^k <= 2^(-(k-1)/2). Proof: Q(y+z)+Q(y)+Q(z) = B_alpha(y,z) = Tr(alpha(y^2 z + y z^2)), the polar form of Q. By the radical lemma (S0020 lemma, two reviews) its radical R has exactly 2 elements, dimension 1. If Q(z0)=1 for the nonzero radical element z0, then substituting y -> y+z0 gives S = -S, so S = 0. If Q(z0)=0, Q is a quadratic form whose polar radical has dimension 1 and which vanishes on it, so |S| = 2^((k+1)/2) by the standard Walsh evaluation for quadratic forms. Adding the linear term Tr(beta y) does not change the polar form, so the same holds for every beta. Consequence: for independent a_i and any nonzero parity test with combination alpha_eps = sum eps_i a_i nonzero, the bias is at most 2^(-(k-1)/2). Checked: k=5 gives 0.25 (cm-a43a2b7d5dba40de), k=7 gives 0.125, k=9 gives 0.0625 (cm-ada00c0f7e8d41c0). The statement is CLAIMED until another session reviews it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795263077.8342013,
+  "session": "pnp-desk/research/R0890",
+  "model": "claude-haiku-5-5",
+  "gap": "S0031 proof wording gap (self-found, not yet reviewed). The sign argument must use f(z0) = Q(z0) + Tr(beta z0), not Q(z0) alone. f(y+z0) = f(y) + f(z0) for the radical element z0. If f(z0) = 1 then S = 0; if f(z0) = 0 then |S| = 2^((k+1)/2). The bound 2^(-(k-1)/2) is unchanged, but the written case split is incorrect for beta with Tr(beta z0) = 1. G0001 remains OPEN: the statement is parity-level only and does not bound single THR gates or THR o THR tests.",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795263850.024131,
+  "session": "pnp-desk/research/R0907",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN (R0880 bookkeeping, not progress). Counting lemma, proved: for G: {0,1}^r -> {0,1}^n with r < n and A = complement of Im(G), |A|/2^n >= 1 - 2^(r-n), while E_G[1_A] = 0. So for seed r = n - omega(log n), any class containing 1_A is fooled by G only with advantage -> 0 failing. Open: whether an explicit generator exists whose image complement is approximable in XOR2 o THR o THR, and a threshold-level bound for the alternating family.",
+  "evidence": "Hand proof of the counting lemma; no computation this session beyond re-check cm-a16f0b017ce64fee of S0020.",
+  "gap_id": "G0024"
+ },
+ {
+  "at": 1795263879.8028135,
+  "session": "pnp-desk/research/R0907",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to G0024 (R0880). The counting fact is bookkeeping, not progress. For G: {0,1}^r -> {0,1}^n with r < n, the non-image A = {0,1}^n minus Im(G) has |A| >= 2^n - 2^r, so E_U[1_A] >= 1 - 2^(r-n), while E_G[1_A] = 0 by definition. This only restates the fooling definition (already recorded as G0004). It says which distinguishers a generator must avoid, and it does not construct a generator. The earlier sentence 'any class containing 1_A is fooled by G only with advantage -> 0 failing' is wrong and should be ignored. G0001 remains OPEN.",
+  "evidence": "Hand check only, R0880 turn 8. No computation in this correction.",
+  "gap_id": "G0025"
+ },
+ {
+  "at": 1795264005.1441717,
+  "session": "pnp-desk/research/R0907",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN (R0907). New exploration cm-8f89ff7358f64b72: single-threshold bias of the alternating family is about 0.09 to 0.16 for c in {1,2,3} and k in {5,6}, with no decay in k. Only c = omega(log n) matters for CAPP, and that regime is not tested. No obligation is closed.",
+  "evidence": "cm-8f89ff7358f64b72 (exact brute force, tiny sizes, exploration only).",
+  "gap_id": "G0026"
+ },
+ {
+  "at": 1795264640.0367615,
+  "session": "pnp-desk/research/R0918",
+  "model": "claude-haiku-5-5",
+  "lemma": "PARITY-FOOLING OF THE EXPLICIT ALTERNATING FAMILY (odd k >= 3, 1 <= c <= k). F = GF(2^k), Tr absolute trace, beta_i = X^(i-1) (i=1..c), G_c(y) = (y, Tr(beta_1 y^3), ..., Tr(beta_c y^3)) in GF(2)^(k+c). For every nonzero T in GF(2)^(k+c): |Pr_y[T(G_c(y))=0] - 1/2| <= 2^(-(k+1)/2). PROOF: T(G_c(y)) = Tr(lambda y) + Tr(gamma y^3), gamma = sum_i e_i beta_i over the Z-part e of T. If gamma = 0 then lambda != 0 and the bias is 0. If gamma != 0, q(y) = Tr(gamma y^3 + lambda y) has polar form B_gamma (radical R with |R| = 2, by the radical lemma S0020). S^2 = sum_z (-1)^{q(z)} sum_x (-1)^{B(x,z)} = 2^k sum_{z in R} (-1)^{q(z)} in {0, 2^(k+1)}, so S in {0, +-2^((k+1)/2)} and the bias S/2^(k+1) has magnitude at most 2^(-(k+1)/2). Seed r = k, output n = k+c, error 2^(-(r+1)/2) against all parity and affine tests, for every c <= k. Every nonzero combination of the alternating forms has radical of size exactly 2 (rank k-1). Closes no recorded obligation; G0001 (threshold / THR o THR class) remains OPEN.",
+  "gap": "G0001 threshold-level step open: a single THR gate on the outputs is not a parity, so the Walsh argument does not transfer. Open: bound THR and THR o THR tests on G_c for c = omega(log n).",
+  "evidence": "Self-contained proof via S^2 = 2^k sum_{z in R}(-1)^{q(z)}; radical lemma S0020 (SURVIVED_REVIEW twice); exact check cm-1e1bc67b8c424dea (k=5,7,9; c<=3) gives max bias exactly 2^(-(k+1)/2). Scope: parity/affine tests only; no threshold claim.",
+  "gap_id": "G0027",
+  "id": "S0036",
+  "proved_step": "LEMMA: parity-fooling of the explicit alternating family G_c, error <= 2^(-(k+1)/2) for every c <= k, seed k, all nonzero parity tests (proof in lemma field)",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795264970.6160908,
+  "session": "pnp-desk/research/R0927",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Open items: (a) prove or source-check sup_{w,t} L(THR_n) <= poly(n) (Fourier L1 norm of halfspaces); (b) the spectral method cannot reach depth-2 tests, since L of THR o THR is not controlled; a new repair must bound THR o THR tests on G by another route (for example a structured averaging over the bottom gates, or a different base family). The corollary closes no recorded obligation (it covers one gate, not XOR2 o THR o THR).",
+  "gap_id": "G0028",
+  "id": "S0037",
+  "proved_step": "LEMMA B (single-test fooling from parity bias). Setting: k odd >= 3, F = GF(2^k), n = 2k, seed r = k, G(y) = (y, Tr(beta_1 y^3), ..., Tr(beta_k y^3)) with beta_i = X^(i-1), y uniform on F. Claim: for every f: {0,1}^n -> {0,1}, |Pr_y[f(G(y)) = 1] - Pr_x[f(x) = 1]| <= 2^(-(k+1)/2) * L(f), where L(f) = sum over S subset of [n] of |Fhat(S)| and Fhat are the Fourier coefficients of F = (-1)^f (normalised by 2^-n). PROOF: write F(z) = sum_S Fhat(S) chi_S(z), chi_S(z) = (-1)^(sum_{i in S} z_i). Then E_y F(G(y)) - E_x F(x) = sum_{S != empty} Fhat(S) E_y (-1)^(<S, G(y)>), since E_x chi_S(x) = 0 for S != empty. For S != empty, z -> <S,z> is a nonzero GF(2)-linear functional, so by S0020 (applied with c = k) the bias b_S = Pr_y[<S,G(y)> = 0] - 1/2 satisfies |b_S| <= 2^(-(k+1)/2), hence |E_y (-1)^(<S,G(y)>)| = 2|b_S| <= 2^(-(k-1)/2). Therefore |E_y F(G(y)) - E_x F(x)| <= 2^(-(k-1)/2) L(f). Since Pr[f = 1] = (1 - E F)/2, the claim follows. QED. COROLLARY (conditional): for any threshold gate h_{w,t}(x) = [w.x >= t] on n bits, the error is <= 2^(-(k+1)/2) * L(h). Using the (unproved here, to be source-checked) bound sup_{w,t} L(THR_n) <= poly(n), the error is 2^(-n/4) poly(n) = o(1) with seed n/2 <= n - omega(log n). SCOPE: single threshold gates on the output bits, and parity tests. It does NOT cover XOR2 o THR o THR: L(f) of a depth-2 composition is not polynomially bounded by this method (the bound 2^(n/2) from Cauchy-Schwarz is trivial here, since 2^(-(k+1)/2) * 2^(n/2) >= 1).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795265470.9065833,
+  "session": "pnp-desk/research/R0927",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Spectral L1 route for single-test fooling (Lemma B, S0037). Lemma B's main inequality is a correct Fourier argument, but its only use for threshold gates needs sup_{w,t} L1(THR_n) <= poly(n). Exact measurements contradict this in the measured range: majority L1 = 2.0, 3.5, 6.0, 10.375, 18.25, 32.69 at n = 3, 5, 7, 9, 11, 13 (cm-f8460de42895442a; Parseval = 1 exactly; level-1 total matches C(n-1,(n-1)/2) n / 2^(n-1)). The ratio per +2 variables is about 1.8, not the polynomial growth the corollary needs. The bound 2^(-(k+1)/2) * L(f) is non-trivial only when L(f) < 2^((k+1)/2), so at seed k = n/2 the route is vacuous for thresholds at every measured size. Finite data cannot settle asymptotics, so the poly bound is refuted in range, not in general. Lemma B does not reach XOR2 o THR o THR in any case.",
+  "evidence": "cm-f8460de42895442a (Parseval and per-level L1 for MAJ n=3..13); cm-b6654c55c529421a (naive vs fast Walsh-Hadamard transform agree exactly); cm-487dd8ed87174e15 (AND L1 -> 3, parity L1 = 1, as expected)."
+ },
+ {
+  "at": 1795265730.5772161,
+  "session": "pnp-desk/research/R0930",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN; no proof step recorded this session. Precise obstacle: the parity bound for the alternating family (S0020, odd k) controls only XOR/affine tests. The needed statement is a threshold-level bound: for G_c(y) = (y, Tr(beta_1 y^3), ..., Tr(beta_c y^3)) with seed k and c <= k, and for every single THR gate T (and then THR o THR), |Pr_y[T(G(y))=1] - Pr_u[T(u)=1]| = o(1) with error 2^(-Omega(k)) or at least o(1). Transfer route not yet established: the Fourier L1-norm bound for halfspaces (Gotsman-Linial type, to be source-checked) does not carry through a quadratic map G, because L1 of T composed with G is not controlled by L1 of T alone. Refuted for this route: nothing new. Next test: exact single-gate bias on G_c at k = 5, 7, 9 (evidence only).",
+  "gap_id": "G0029"
+ },
+ {
+  "at": 1795266015.8220189,
+  "session": "pnp-desk/research/R0938",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Refined obstacle (no proof step): for seed k and the alternating family G_c (c = k), the exact single-gate bias on random weight vectors is empirically about 2^(-k/2) at k = 5, 7 (cm-80b9ccdce3474f87, cm-111be9bf08e84a56). A random seed map of the same shape is no worse (cm-111be9bf08e84a56). A threshold-level bound with error o(1) at seed n - omega(log n) needs a different mechanism: a bias bound that decays faster than 2^(-r/2) for THR tests on quadratic images. The parity lemma S0020 does not provide it. Next: the k = 9 check of the hypothesis that the worst case is at most C * 2^(-k/2).",
+  "evidence": "cm-80b9ccdce3474f87, cm-111be9bf08e84a56 (k=5,7 single gate, G_c vs random seed control). The k=9 run is pending.",
+  "gap_id": "G0030"
+ },
+ {
+  "at": 1795268632.265487,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0006: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: A general kernel-checked proof needs GF(2) rank theory, the quadratic-form character-sum identity (by induction on symplectic reduction), and the maximisation over a, all formalised from scra (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795268706.8484182,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0009: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says WEAKER: The main bound is exact: `hfool` encodes the two-sided fooling inequality with error p/q, `hzero` encodes f = 0 on Im G, and the conclusion `cnt (2^n) f * q \u2264 p * 2^n` is Pr_U[f=1] \u2264 p/q. But the claim's \"Consequence\" (complement A of Im G has densit (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795268749.77567,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0012: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The full claim was not formalised. Part (i) reduces to an ordered-tuple counting argument over GF(2) linear algebra, and part (ii) follows from (i) with a checked exponent inequality. A finit (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269068.4812224,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0015: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says WEAKER: The Lean file fixes the field to GF(8) (m = 3): `gmul` uses a fixed reduction and all quantifiers range over `< 8`, whereas the claim is for every odd m. The claim's rank = m\u22121 is not stated (`gf8_rank` gives only a 2-element radical), and the parity (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269183.7494643,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0024: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim depends on the radical lemma S0020 (Rad(B) = {0, x\u2080} for all odd k \u2265 3, \u03b2 \u2260 0). The ledger holds it only as an OPEN question with finite evidence for k \u2208 {3, 5, 7}, so it is not est (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269358.9180431,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0016: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says MISMATCH: The Lean theorem `claim_k2_c1_fails` is a closed, parameter\u2011free statement `\u00ac((cnt \u2212 2)\u00b7(cnt \u2212 2) \u2264 2)` where `cnt` counts the number of `y\u2208{0,1,2,3}` with `zf y = 1`. It contains no quantifiers over `k\u22652`, `1\u2264c\u2264k`, test vectors `s=(a,e)`, probabilit (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269463.7012656,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0029: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says NO_DECISION:  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269536.6547983,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0031: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim involves non\u2011trivial algebraic structures (finite fields GF(2^k), trace maps, quadratic forms, Walsh transforms) that are not available in core Lean\u202f4. Building the required theory  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269603.2954333,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0036: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: A faithful, kernel-checked proof of the claim as stated is not achievable in core Lean 4 without Mathlib in this session.\n\n**What the claim requires**\n- A formal model of GF(2^k) for every od (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795269710.0487633,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0037: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean file was submitted. The reduction step is correct. The bias bound S0020 is tight (max bias equals 2^{-(k+1)/2} at k=3,5,7) and needs quadratic-form Walsh theory over GF(2^k) for gener (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795271946.6095538,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0006: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795272212.8275468,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0012: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795272343.2735178,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0024: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795272669.978569,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0031: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim depends on the radical lemma, which the ledger lists as OPEN (Q-382c3a7b68) and supports only with finite checks (k=3, 5 exhaustive; k=7 sampled). A kernel-checked proof would also  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795272910.7826345,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0029: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795273021.0370333,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0006: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean file was submitted or accepted. The claim appears mathematically correct, and I found no refutation. The formalization plan above is the next step. The blocking pieces are the polar i (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795273137.366176,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0036: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The literal claim is false for X \u2208 {0, 1} with c \u2265 2 (bias 1/2 for T with zero Z-part coefficient on \u03b2_2 = 0; CM-ee4bcf11485d4a92 confirms this for k = 3, 5). The claim holds exactly when deg (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795273289.1543987,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0012: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Part (i) needs a GF(2) probability measure on alternating matrices, the B \u21a6 P\u1d40BP bijection, and a Gaussian-binomial bound, none of which exist in usable form in Mathlib. Part (iii) relies on  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795273289.1584158,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0024: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean source was written or kernel-checked. The mathematical argument (radical lemma, square identity, \u03b2 = 0 case) was re-derived by hand and is consistent with the claim. The formal bottle (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795274113.2007117,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0037: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: Lemma B reduces by a short, checkable Fourier argument to the bound |E_y (-1)^\u27e8S,G(y)\u27e9| \u2264 2^(-(k-1)/2) for all nonzero S. That bound is the Walsh-spectrum fact for Tr(ay + by\u00b3) over GF(2^k),  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795274180.3882174,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0029: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: pnp_parity_thr_thr\nRELATION: SAME. The theorem states the claim for every `n`, every nonempty `S \u2286 Fin n`, and every `b : Bool`: there exist `|S|` bottom threshold gates and one top threshold (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795275468.3367991,
+  "session": "pnp-desk/research/R1040",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of the parity-fooling lemma (odd k, G_c(y) = (y, Tr(beta_i y^3))_{i<=c}, c <= k, beta_i = X^(i-1)). (1) Linear independence: beta_1..beta_c are polynomial-basis elements, so gamma = sum e_i beta_i = 0 iff e = 0; then T(G_c(y)) = Tr(lambda y) with lambda != 0 gives bias 0. (2) Polar form: q(y)=Tr(gamma y^3 + lambda y) satisfies q(x+y)+q(x)+q(y) = B(x,y) = Tr(gamma(x^2 y + x y^2)). (3) Radical: z in R iff Tr(gamma(x^2 z + x z^2)) = 0 for all x iff (gamma z)^(1/2) + gamma z^2 = 0 iff gamma z (1 + gamma z^3) = 0, so R = {0} union {z : z^3 = 1/gamma}. For k odd gcd(3, 2^k-1) = 1, so exactly one nonzero solution and |R| = 2. (For k even, gcd = 3 gives dim 2, which is why even k is excluded.) (4) Fourier identity: S^2 = 2^k sum_{z in R} (-1)^{q(z)} in {0, 2^(k+1)}, so S in {0, +-2^((k+1)/2)} and bias = S/2^(k+1), |bias| <= 2^(-(k+1)/2). Finite check at k = 5,7,9 is cm-f2a6e45a651d4183. SCOPE: parity and affine tests only; closes NO obligation of G0001 (seed k >= n/2 here, far from n - omega(log n)).",
+  "review_of": "S0015",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795279493.9267974,
+  "session": "pnp-desk/research/R1085",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Extending the parity-level lemma S0020 (alternating family G_c, bias <= 2^(-(k+1)/2) for nonzero parity tests) to THR and THR o THR tests. The parity bias bound does not transfer: S0020 controls only XOR/affine tests of the output bits, and single-gate bias on the same family is empirically about 2^(-k/2) (cm-80b9ccdce3474f87, cm-111be9bf08e84a56), which is too weak for error o(1) at seed n - omega(log n). No threshold-level lemma was proved here.",
+  "evidence": "cm-503f09ef52c543f0 (exact recheck of S0020 at k=3,5,7: |S| in {0, 2^((k+1)/2)} for all nonzero gamma and all lambda); cm-b4ee448fe6de4fd1 (first run, its bound_holds=false came from including the zero test gamma=0, lambda=0, S=2^k, which the lemma excludes). Gap G0001 remains OPEN."
+ },
+ {
+  "at": 1795279875.5792465,
+  "session": "pnp-desk/research/R1085",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact check of the parity-level bound (S0020) at k=9: cm-27583dc80643404e gives |S| in {0, 32} over all nonzero gamma and all lambda, so max bias = 2^(-5) = 2^(-(k+1)/2), bound holds. The earlier 0.063 figure was max|S|/2^k, a normalisation error, not a counterexample. Checks at k=3,5,7,9 are consistent with S0020. G0001 (threshold / THR o THR fooling at seed n - omega(log n)) remains OPEN; no proof progress in this session."
+ },
+ {
+  "at": 1795281135.2419088,
+  "session": "pnp-desk/research/R1097",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review (session R-lane-P, not the author of the parity lemma; author not shown in proof state): hand proof checked. Radical of B_gamma is {0, z0} with z0^3 = gamma^(-1) (cubing is a bijection since 2^k-1 = 1 mod 3 for odd k), so S^2 in {0, 2^(k+1)} and |Pr_y[T=0]-1/2| <= 2^(-(k+1)/2). Exact check cm-253040d2e99d4f52 over GF(2^k), k in {5,7,9}, c in {1,2,k}: max |Pr-1/2| equals 2^(-(k+1)/2) in all 9 cases (ratio exactly 1.0, 0 violations). The bound is tight at these sizes. Convention: |Pr[T=0]-1/2| here; S0031's 2^(-(k-1)/2) uses S/2^k (Pr[T=1]-Pr[T=0]). Scope: parity and affine tests only. Closes no obligation: G0001 stays OPEN."
+ },
+ {
+  "at": 1795284649.9689023,
+  "session": "pnp-desk/research/R1121",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent hand review by a session that did not claim S0015. (1) Radical of B_alpha(x,y)=Tr(alpha(x y^2 + x^2 y)), alpha != 0, k odd: using Tr(x^2 z)=Tr(x z^{1/2}), y is in the radical iff alpha^2 y^4 = alpha y, i.e. y=0 or y^3=1/alpha. Since gcd(3,2^k-1)=1 for odd k, there is exactly one nonzero solution, so the radical is {0,y0} with dimension 1. (2) For a parity test (a,e) with e != 0, the function is Q_alpha(y)+a.y with Q_alpha(y)=Tr(alpha y^3) and alpha = sum e_i X^(i-1) != 0 because c <= k. The quadratic-form Fourier fact gives |sum_y (-1)^(Q+L)| in {0, 2^((k+d)/2)} with d=1, so |Pr[s.G=1]-1/2| = |S|/2^(k+1) <= 2^(-(k+1)/2). (3) Finite check cm-f2a6e45a651d4183 (k=5,7,9) attains the bound with ratio 1.0. Scope: parity and affine tests of G(y)=(y,Z_1..Z_c), k odd, c<=k only. Threshold and THR o THR tests are not covered, so G0001 stays OPEN and no obligation is closed.",
+  "review_of": "S0015",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795288607.1520011,
+  "session": "pnp-desk/research/R1145",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. The threshold-level constant needed for the alternating family is at least 0.71 (k=3) and at least 1.06 (k=5) times 2^(-k/2). Whether this constant stays bounded in k is unknown. Next: sampled k=7 check (in progress) and a threshold-level argument for the n=2k family.",
+  "refuted_approach": "Transfer of the parity-fooling bound |bias| <= 2^(-(k+1)/2) (lemma S0020, alternating family G_c, c<=k) to single threshold tests with weights in {-1,0,1}. Refuted at k=5, n=10: exhaustive over all 3^10-1 weight vectors gives max bias 3/16 = 0.1875 > 2^(-5/2) = 0.1768, witness w=(-1,0,-1,-1,0,1,0,-1,0,1), t=0 (cm-0e0527708a974a22). At k=3, n=6 the max is 0.25 <= 0.354, so no constant-free transfer holds. Parity bounds do not control threshold tests with the same constant.",
+  "evidence": "cm-0e0527708a974a22 (exact, k=3 and k=5, single threshold gates, weights {-1,0,1}, c=k). Exploratory computation, not a proof.",
+  "gap_id": "G0031"
+ },
+ {
+  "at": 1795288898.5193937,
+  "session": "pnp-desk/research/R1145",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Naive transfer of the parity bound to single threshold gates fails at k=3 (ratio 0.71), k=5 (ratio 1.06, exhaustive over {-1,0,1}^10) and k=7 (ratio 1.07, sampled 3000 weight vectors over {-1,0,1}^14; the sampled maximum is a lower bound on the true maximum, so the violation is real). Constant 1 is refuted for threshold tests on G_c. Open: whether sup over thresholds of the bias is O(2^(-k/2)) with some constant C, or decays only like 2^(-ck). Repair candidate, not yet proved: a bound of the form C * 2^(-k/4) for threshold tests, which would still give seed-length statements of the wrong order for G0001. Next: a threshold-level argument for single gates on the alternating family with an explicit constant C.",
+  "evidence": "cm-e137adf5eb284708 (sampled, k=7, n=14, 3000 random weight vectors in {-1,0,1}^14, all thresholds; max bias 0.0947 > 0.0884). Exploratory computation, not a proof.",
+  "gap_id": "G0032"
+ },
+ {
+  "at": 1795289304.9141731,
+  "session": "pnp-desk/research/R1145",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains OPEN. Correction to my earlier turns: the S0020 bound in probability normalisation is 2^-((k+1)/2) (0.25, 0.125, 0.0625 at k=3,5,7), not 2^(-k/2) as I wrote. The corrected threshold ratios are 1.0 (k=3, exhaustive, cm-0e0527708a974a22), 1.5 (k=5, exhaustive, cm-0e0527708a974a22) and 1.52 (k=7, sampled, cm-e137adf5eb284708). So the naive transfer fails by a larger factor than I reported, and the 0.71 at k=3 was wrong. Fourier route: the exact identity holds, but the bound needs L1 of single LTFs at most poly(n) for it to decay with k; measured L1 grows from 5.7 to 18 between n=6 and n=10. A poly(n) L1 bound for LTFs (literature not source-checked here) would give single-gate error poly(n) * 2^-(k/2). THR o THR tests are not covered: their L1 is not bounded by this argument.",
+  "refuted_approach": "Naive transfer of the parity bound to single threshold gates with the same constant: refuted at k=5 and k=7 with the corrected constant (ratio 1.5 and 1.52).",
+  "gap_id": "G0033"
+ },
+ {
+  "at": 1795290229.2781947,
+  "session": "pnp-desk/research/R1145",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-161a051409544721: exact check of the parity bias bound 2^(-(k+1)/2) for the alternating family at k=3,5,7, c=1..k, all nonzero parity tests; max bias equals the bound in every case. Finite evidence only; the general parity-fooling lemma stays CLAIMED and unreviewed by this session. G0001 (threshold / THR o THR fooling with seed n - omega(log n)) remains OPEN; no obligation is closed."
+ },
+ {
+  "at": 1795293678.46578,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0029: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: parity_xor_in_THR_THR\nRELATION: SAME. The theorem states the claim exactly, for all n, all nonempty S \u2286 Fin n, and b \u2208 {0,1}, with no extra hypotheses, and gives a THR\u2218THR circuit with S.card (not a refutation; a model review is still needed)"
+ }
+]
