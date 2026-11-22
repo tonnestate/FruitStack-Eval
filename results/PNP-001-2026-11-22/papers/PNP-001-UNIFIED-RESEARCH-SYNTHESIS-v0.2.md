@@ -107,7 +107,7 @@ The short phrase “more than \(N\operatorname{poly}(s)\) gates” must always b
 
 ### 0.5 Main conditional theorem
 
-**Theorem 0.2 (L* implies P ≠ NP, conditional).** If Hypothesis L* is true in the exact total-search and streaming model of MMW Theorem 1.3, and the fixed-polynomial machine-to-circuit simulation of S0037 holds with the prescribed output accounting, then \(P\ne NP\).
+**Corollary 0.2 (L* implies P ≠ NP; conditional composition of existing results).** If Hypothesis L* is true in the exact total-search and streaming model of MMW Theorem 1.3, and the fixed-polynomial machine-to-circuit simulation of S0037 holds with the prescribed output accounting, then \(P\ne NP\).
 
 *Proof.* Assume \(P=NP\). By MMW Theorem 1.3 and its oracle-assisted construction under the hierarchy collapse, total Search-MCSP for the chosen \(s,A\) admits an ordinary deterministic one-pass streaming machine with polynomial space \(S\) and polynomial worst-case update time \(U\). By S0037, each update has a Boolean circuit of size polynomial in \(S,U,m\), and the output stage is similarly bounded under the specified convention. Because \(s(m)\ge m\), there are fixed exponents \(c,d\) such that \(S\le s^c\) and the total circuit cost after E2 unrolling satisfies
 
@@ -118,7 +118,7 @@ G(\mathcal C)\le N\operatorname{poly}(s)+\operatorname{poly}(s)
 
 for all sufficiently large \(m\). The unrolled circuit solves the **entire total search relation**, so it contradicts L*. Hence \(P\ne NP\). \(\square\)
 
-This proves **the conditional implication**. The antecedent L* remains unproved. The proof does not assert its converse.
+This proves **the conditional implication**, by composing a model conversion with the published MMW theorem; it does not independently establish a new complexity-class separation. The antecedent L* remains unproved. The proof does not assert its converse.
 
 ### 0.6 The precise role of the universal Hall theorem
 
@@ -197,6 +197,97 @@ For PNP-001, the strongest precise claim now justified is:
 > **We have established numerous genuine mathematical transfer results and a complete conditional argument from the explicitly quantified online-circuit hypothesis L* to \(P\ne NP\). What remains open is a proof of L*, potentially through a new representation-preserving transfer from arbitrary online Boolean circuits to the linear-space embedding theorem.**
 
 This is neither a dismissive description of the programme as “only structural observations” nor an unwarranted assertion that \(P\ne NP\) has already been proved.
+
+---
+
+### 0.10 Three decisive constraints on the QE* route
+
+The 22 November cross-review identifies three logically separate obstructions. They do not erase the transfer theorems that PNP-001 already possesses. They identify the precise additional premise needed to connect those theorems to an unconditional separation.
+
+**Constraint I: State counting does not lower-bound update work (S0006 / G0004).** Let \(N=2^m\), let \(\mathrm{Circ}_{m,s}\) be the finite set of permitted size-at-most-\(s\) circuits under a fixed description convention, and let \(\mathrm{Im}_{m,s}\) be their output truth tables. Standard description counting gives
+
+\[
+|\mathrm{Im}_{m,s}|\le|\mathrm{Circ}_{m,s}|
+   =2^{O(s\log(m+s))}.
+\tag{F1}
+\]
+
+At each prefix length, there are at most \(|\mathrm{Im}_{m,s}|\) live prefixes, plus one dead state. Thus counting alone cannot force more than \(O(s\log(m+s))\) **abstract** state bits, even if it says nothing about the cost of transitioning between state names.
+
+For the **total search problem**, the small-workspace mechanism can also be described constructively. Maintain a size-\(\le s\) circuit \(C\) that agrees with every previously read input bit, the index \(t\), and a dead-state flag. If the next bit \(b=C(t)\), keep \(C\). On a mismatch, enumerate candidate circuits \(C'\) and require
+
+\[
+\bigl(\forall j<t,\ C'(j)=C(j)\bigr)\ \land\ C'(t)=b.
+\tag{F2}
+\]
+
+If a candidate exists, store one; otherwise enter the dead state permanently. The induction works because the current \(C\) *encodes the observed prefix*: for every earlier position, its output agrees with the actual stream. No separate copy of that prefix is needed. At the end, the stored \(C\) is a correct witness or the dead state correctly reports that no circuit exists. **The enumeration may consume enormous time per input bit.** For ordinary bounded-fan-in circuit descriptions the stored circuits and evaluator have \(O(s\log(m+s))\)-type space bounds. If size-\(s\) circuits contain arbitrary \(A\in PH\) oracle gates, evaluation can require further polynomial workspace; the robust fully general uniform bound is \(\operatorname{poly}(s)\), pending an exact oracle-evaluation space audit.
+
+Therefore a **pure-space** lower bound cannot refute the existence of every polynomial-workspace Search-MCSP streaming algorithm. The unproved general **update computation** lower bound G0004 is essential. The argument does not disprove lower bounds within special restricted affine-update models, nor does it grant a polynomial-time prefix-extension test. A decision-language residual quotient must not silently be assumed to supply a valid total-search witness.
+
+**Constraint II: E2 is complete for online Boolean circuits, not for linear spanning families (Q-9c4d56f01f).** The reviewed E2 step (Q-0b7da33369, S0011; R1090 review) chains the stage update circuits \(F_t\) and final decoder \(D\) into one Boolean DAG of size at most
+
+\[
+\sum_t\mathrm{CC}(F_t)+\mathrm{CC}(D),
+\tag{F3}
+\]
+
+with at most \(S\) *persistent state wires across input-time boundaries*. This accommodates nonlinear, redundant and time-dependent state codes, ordinary DAG gate sharing, and deferred work charged to \(D\). It is **not** a bound on the conventional internal layer width of every stage.
+
+Theorem 4.1 of *Every Basis Sees the Blow-Up* instead applies to **spanning families of a fixed coordinate-defined linear space** satisfying the precise projection-rank and support-intersection conditions (R), (L), (E). E2 supplies no map from general nonlinear online circuits to such families. The missing proposed theorem is therefore
+
+\[
+\forall \mathcal C\in\mathsf{ExactOnlineSearchMCSP}:
+\quad \mathcal C\mapsto(K_{m,s},G_{m,s},B_{\mathcal C}),
+\quad
+\operatorname{tw}(H_{B_{\mathcal C}})
+  \le F(m,s,S,G(\mathcal C)),
+\tag{F4}
+\]
+
+with verified Search-MCSP semantics, (R), (L), (E), and a bound \(F\) strong enough to contradict the Hall lower bound under all relevant polynomial resource exponents. Neither a generic gate-dependency graph nor a hand-selected inconvenient representation automatically qualifies as \(H_B\). A fast function can be implemented with redundant high-width wiring; the desired conclusion concerns the suitable representation **forced by every admissible fast implementation**.
+
+**Constraint III: Large overlap treewidth alone is not computation hardness (Propositions 6.5 and 10.2).** For \(G=K_n\), \(n\ge4\), the minimum basis-overlap treewidth is \(2n-1\), yet the unsatisfiable colouring formula contains a fixed \(K_4\) contradiction and consequently admits a constant-size Resolution refutation. For \(G=K_{n,n}\), \(\operatorname{tw}(G)=n\) and the minimum basis-overlap width is \(2n+1\), although the graph is plainly 3-colourable. Neither example refutes the Hall embedding. Both defeat the shortcut “unavoidable width implies slow general computation.”
+
+A valid new bridge must exploit a mathematically established **Search-MCSP-specific property** not shared by those easy controls. It must also satisfy the G0005 oracle test: McKay–Murray–Williams construct a fast streaming solver when allowed an additional \(\Sigma_3\mathrm{SAT}^{A}\) oracle. An argument that also forbids this algorithm when those queries cost one unit is invalid. The precise nonrelativising premise must be identified, not asserted by name.
+
+### 0.11 Verified conditional chain and exact status
+
+The precise route, with already existing transformations distinguished from the open computational lower bound, is
+
+\[
+\boxed{
+\mathrm{S0037}\longrightarrow\mathrm{E2}
+\quad\xrightarrow{\ L^*\ \mathrm{OPEN}\ }\quad
+\mathrm{QE^*}\xrightarrow{\ \mathrm{MMW19,\ Thm\ 1.3}\ }P\ne NP .
+}
+\tag{F5}
+\]
+
+S0037 is a model-scoped machine-to-stage-circuit simulation: polynomial workspace and worst-case polynomial update time induce polynomial-size Boolean stage circuits, and the final output computation is also charged. The archived 199-event QE* proofstate marks S0037 as CLAIMED; the research director reports a newer other-model-family review whose transcript was not independently present in that archived state.
+
+E2 is a circuit unrolling construction, recorded as SURVIVED_REVIEW in the 133-event Q-0b7da33369 proofstate. **E2 is not a hardness lower bound.** S0036 admits all correct streaming algorithms to the general state/update optimisation but does not map them into the linear-space representation required by the Hall theorem.
+
+The original McKay–Murray–Williams paper, STOC 2019, Theorems 1.2 and 1.3 and Section 5, confirms the implication: for some time-constructible \(s(m)\ge m\) and \(A\in PH\), exclusion of **all deterministic one-pass streaming algorithms using polynomial space and polynomial worst-case update time** for total Search-MCSP would imply \(P\ne NP\). Importantly, the oracle \(A\) appears in the **output-circuit gate set**, while the efficient published solver is allowed a **separate \(\Sigma_3\mathrm{SAT}^{A}\)** oracle. These are not interchangeable permissions.
+
+**Corollary 0.2 (conditional restatement, not a new complexity separation).** The explicit stronger online-circuit hypothesis L* in Section 0.4 implies the streaming lower-bound premise and hence \(P\ne NP\), via S0037/E2 and the published MMW theorem. This is a **complete proof of a conditional implication**, not a proof of L*. The proposed Hall-to-L* route is one way to seek the still-unproved premise, not a logically necessary part of every possible proof of \(P\ne NP\).
+
+| Component | Inspected evidence | Status |
+|---|---|---|
+| S0006 / small-space witness mechanism | Q-156fa9c912 S0006; explicit induction (F2) | Space upper bound; no update-time bound |
+| S0036, algorithm inclusion | Q-156fa9c912 S0036 | CLAIMED in archived snapshot |
+| S0037, resource simulation | Q-156fa9c912 S0037 | CLAIMED in archived snapshot; later review reported |
+| E2, unrolling | Q-0b7da33369 S0011 and R1090 | SURVIVED_REVIEW |
+| Hall embedding, all-field subgraph statement | *Every Basis Sees the Blow-Up*, Theorems 4.1 and 5.4 | Paper proof; not yet Lean formalised in full |
+| L*, general online-circuit hardness | Section 0.4 | OPEN |
+| Embedding to L*, Q-9c4d56f01f | Required map (F4) | OPEN |
+| G0005, oracle-locality distinction | QE* state and MMW Theorem 1.2 | OPEN |
+| Four-front union, Q-a1e6376406 | Director research question | OPEN |
+| MMW19 Theorem 1.3 | [Original publication](https://people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf) | PUBLISHED conditional implication |
+
+The staging proofbook README reports **9,657** hash-chained events. The archived **199-event** QE* live proofstate and **133-event** E2 proofstate were inspected directly. The raw 10.5 MB staging JSONL could not be retrieved fully through the available GitHub content endpoint; accordingly this paper does **not** claim an independent line-by-line audit of every staging event. The director's newer entry 48a049b39cfb9efa is reported but was not independently recovered from the archived GitHub snapshot. The reported inconsistent finite \(|\mathrm{Im}_s|\) counts at \(m=3\), \(s=2,3\), remain under reproducibility review; no contested measurement is used to infer L*.
+
+**Scientifically admissible conclusion.** The research already has genuine mathematical transfer results and a complete **conditional** route from L* to \(P\ne NP\). What is not yet proved is L* itself or the proposed nonlinear-online-circuit-to-linear-Hall-space transfer. High overlap width alone does not fill that gap.
 
 ---
 
@@ -577,7 +668,7 @@ Let \(\mathcal I_{m,s}\subseteq\{0,1\}^N\) be the truth tables computed by circu
 \tag{18}
 \]
 
-At each prefix length \(t\), the number of nonempty residual languages \(\{q:pq\in\mathcal I_{m,s}\}\) is at most \(|\mathcal I_{m,s}|\), plus a dead residual. Hence the minimal state encoding has size \(O(s\log(m+s))\) bits **if transition computation is free**.
+At each prefix length \(t\), the number of nonempty residual languages \(\{q:pq\in\mathcal I_{m,s}\}\) is at most \(|\mathcal I_{m,s}|\), plus a dead residual. Hence the abstract live-prefix state encoding has size \(O(s\log(m+s))\) bits **if transition computation is free**. Section 0.10 additionally supplies a constructive small-workspace witness-replacement algorithm for total search, with potentially enormous update computation and explicit qualification for (A\in PH\) oracle evaluation.
 
 This is a serious obstruction to pure state-count, Myhill–Nerode and one-way communication arguments. Such methods do not prove the required worst-case update-time lower bound. The project labels this observation S0006 in the QE* proof state.
 
@@ -640,7 +731,7 @@ No theorem of the form “every algorithm for a high-width colouring kernel pays
 
 A promising repaired statement must therefore incorporate an additional property specific to the **Search-MCSP input family**, not just width. Candidate properties include the computational complexity of exact residual transitions, the necessity of finding a replacement witness under arbitrary bit arrivals, or a quantified inability to eliminate shared gates in the relevant circuit family. These are research candidates, not accepted mathematical invariants.
 
-The project question **Q-9c4d56f01f** is intended to address this bridge. **Section 0** gives the exact existing S0037/E2 circuit transfers and the remaining hypothesis L*. The question identifier comes from the newer director report, not independently checked in the older GitHub snapshot.
+The project question **Q-9c4d56f01f** is intended to address this bridge. Sections 0.10–0.11 reconcile the genuine S0037/E2 circuit transfers with the still-unproved online-circuit-to-Hall-space implication and the Search-MCSP-specific negative controls. The identifier comes from the newer director report, not independently checked in the older GitHub snapshot.
 
 ---
 
