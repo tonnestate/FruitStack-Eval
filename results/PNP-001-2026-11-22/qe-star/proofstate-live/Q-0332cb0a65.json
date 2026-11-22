@@ -476,5 +476,61 @@
   "proved_step": "statement: Single-row owners over GF(2): for affine rows r_1..r_m (rhs bit included) and target e != 0, the minimal nonempty S with e in span(r_S) and e not in span(r_{S\\{j}}) for all j in S are exactly the circuits through e of the binary matroid on {e, r_1..r_m}, i.e. its port at e.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795377765.8660848,
+  "session": "pnp-desk/research/R1721",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0001-naive: treat a shared auxiliary z like a private one, so that G is consistent iff the original is consistent. Refuted by cm-dc33435c007c4ad8 (E1={x1+z=0,z=0}, E2={x2+z=0,z=1}; original {x1=0,x2=1} consistent, G has no solution). Repair candidate (fiber condition, to be checked): if for every constraint i and every x in H_i both z-values lie in sol(E_i), then G is consistent iff the intersection of the H_i is nonempty."
+ },
+ {
+  "at": 1795377866.0159128,
+  "session": "pnp-desk/research/R1721",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0001-union-of-fibres: take I = union over z in {0,1} of C_z (C_z = gadget subsets S whose fibres H_i(z) have nonempty common intersection) as the independence family of a matroid. Refuted by a finite GF(2) instance over (x1,x2,z): E1={x1=1, x1+z=1}, E2={x1=0}, E3={z=1}, E4={x2=0}; A={E1} and B={E2,E3} are in I, but neither {E1,E2} nor {E1,E3} is in I, so augmentation fails. Hand-checked. Evidence: cm-6fc0ba64cf79451f (68/300 random trials violate augmentation). The case split on z itself is NOT refuted and stays open."
+ },
+ {
+  "at": 1795378214.0733047,
+  "session": "pnp-desk/research/R1721",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exhaustive check cm-ff155bd741f54e0b: MUS by brute-force SAT vs port by GF(2) rank, 0 mismatches over nv<=3, m<=4 (9,360 instances). Hand proof: step 2 (inconsistent iff e in row span) and step 3 (every circuit in S+e contains e, so S+e is a circuit) checked line by line.",
+  "id": "S0059",
+  "proved_step": "statement: For GF(2) affine constraints a_i.x=b_i (i in [m], x in GF(2)^n, no auxiliary variables), let v_i=(a_i,b_i) in GF(2)^(n+1) and e=(0,...,0,1). Then S is a minimal inconsistent subset iff S is a minimal set with e in span(v_S), and these are exactly the sets C-e with C a circuit of the binary matroid on {v_i}+{e} containing e (the port of that matroid at e). Scope: no auxiliaries; GF(2) only; classical binary port description; does not address existential or shared auxiliaries (G0001).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795378351.5035748,
+  "session": "pnp-desk/research/R1721",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0001-rank1-restriction: restricting shared-auxiliary gadgets to rank-1 rows (so the MUS clutter is a binary port) was proposed as the repair. Refuted as a general route: 2-row gadgets give non-port clutters (cm-9f4576c0327a49da, 114/3000 at m=3, 571/3000 at m=4). Projecting an existential auxiliary typically yields multi-row gadgets, so the restriction does not cover pp-definitions. Repair not yet constructed; G0001 remains open."
+ },
+ {
+  "at": 1795378526.97402,
+  "session": "pnp-desk/research/R1721",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Owner-granularity port form: for affine constraints where one owner (constraint) is a whole subspace of codimension 2, the MUS clutter over owners is a binary port at e of single vectors. Refuted by the finite example A={x1=0}, B={x2=0,x1=1}, C={x1+x2=0,x1=1} with clutter {AB,AC,BC} (cm-0b15aac72bd24c45, hand-checked). Refinement: S0059 still holds when each atomic row is its own element. The port property therefore depends on constraint granularity, so any claim for H_aff must say whether constraints are atomic equations or whole affine relations. G0001 stays open."
+ },
+ {
+  "at": 1795380215.9218876,
+  "session": "pnp-desk/research/R1747",
+  "model": "claude-haiku-5-5",
+  "id": "S0062",
+  "proved_step": "LEMMA R-aff (affine gadgets, hyperplane scope). Setting: X = GF(2)^k; constraint i has gadget E_i, a finite system of affine equations over (x, z_i), with z_i private to constraint i; pi = projection to x; H_i = pi(sol(E_i)) is assumed to be an affine hyperplane of X. Claim: for every T subset of E_i with sol(T) nonempty, pi(sol(T)) is H_i or X, so hypothesis R_i holds. Proof: T subset of E_i implies sol(T) contains sol(E_i), so pi(sol(T)) contains H_i. pi(sol(T)) is an affine subspace, being a linear image of an affine space. A hyperplane is a maximal proper affine subspace, so any affine subspace containing H_i is H_i or X. Scope: affine gadgets with H_i a hyperplane only. Not covered: H_i of codimension >= 2 (the 12 point-H violations in cm-7a7d151bb1f24830), and non-affine gadgets (G0001 open, 853 violations).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795381660.8178952,
+  "session": "pnp-desk/research/R1747",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "General lemma R (S0009: every consistent sub-gadget of a private single-aux gadget projects to H or X, for arbitrary finite relations) is REFUTED as stated. Evidence: cm-96f9186d73324803 (random non-affine r=2..3: 4551 violations of 13628) and cm-9b50df168a604a4c (exhaustive over all r=2 pairs on GF(2)^2 x {0,1}: 35700 violating pairs of 58975, with |H|=2 in 17052 of them). Smallest violation: R1={((0,0),0)}, R2={((0,0),0),((0,1),0)}, H={(0,0)}, pi(R1)={(0,0),(0,1)}. The hyperplane restriction of R does not repair it for non-affine gadgets. Still open: G0001 (non-affine shared or private gadgets). Repair direction: restrict to affine gadgets (S0062, hyperplane H), or find a different invariant for non-affine gadgets.",
+  "evidence": "cm-96f9186d73324803; cm-9b50df168a604a4c; the affine-only scope check is the DISCOVERY run in this same turn."
+ },
+ {
+  "at": 1795381796.5385656,
+  "session": "pnp-desk/research/R1747",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Lemma R-aff (S0062, affine gadgets, hyperplane H) is REFUTED as stated under the explicit reading: consistency = nonempty intersection, H = pi(R1) & pi(R2), violation if pi(cap T) not in {H, X} for some nonempty T subset of {R1,R2}. Evidence: cm-b0dcf4ea13df4326 (DISCOVERY, all 51 affine relations on GF(2)^2 x {0,1}): violating pairs by |H| = {1: 960, 2: 240, 4: 48}. Smallest |H|=2 counterexample (checkable by hand): R1={(0,0,0),(0,1,0)}, R2={(0,0,1),(0,1,0)}, H={(0,0),(0,1)}, R1 cap R2={(0,1,0)}, pi(R1 cap R2)={(0,1)} not in {H,X}. The earlier zero-at-|H|=2 result cm-810de80653cb4023 used a reading that I could not reproduce from its record and is superseded. Repair status: the only property that survives is that pi(cap T) is a nonempty affine subspace of H, which is trivial and too weak for the R_i use. Gap still open: G0001 (non-affine gadgets). No step in this question depends on S0062."
  }
 ]

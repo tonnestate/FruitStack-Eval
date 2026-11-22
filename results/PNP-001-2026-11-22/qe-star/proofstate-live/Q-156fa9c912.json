@@ -2329,5 +2329,82 @@
   "gap": "G0003 CORRECTED FRAMING (no proof step, no review needed): G0003 does not require poly level counts. The state of the EXT prefix automaton after reading a prefix p is determined by p, and its size is O(s log(n+s)) bits by the counting bound S0091. The open quantity is the per-update cost of computing the next state from the current state and one bit. If that cost were poly(s), the final state at t=N would decide EXT(x)=1 iff x in Im_{n,s}, i.e. MCSP with threshold s, in N*poly(s) time. This is a consequence to check, not a result. The level counts 1, 38, 1744 for (n,s)=(3,2) do not bear on the update cost.",
   "evidence": "Reasoning from S0091 and the definition EXT_{n,s}(p)=1 iff some circuit of size <= s has truth table starting with p. Checked by reading only; no new computation.",
   "gap_id": "G0150"
+ },
+ {
+  "at": 1795377631.9218554,
+  "session": "pnp-desk/research/R1716",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 UNIFORMITY CAVEAT (no proof step, no review needed): the consequence in G0150 needs the transition function (state, bit) -> next state to be computable in poly(s) time by a uniform procedure. Finitely many states, each of O(s log(n+s)) bits by S0091, do not supply that: the transition table has up to 2^{poly(s)} entries, and building it is the hard step. So G0150 is an equivalence between a uniform poly(s)-update procedure and an N*poly(s) MCSP[s] decision procedure, not a consequence of the state count. This is reasoning from the definitions only; no computation was run.",
+  "evidence": "Reading of the definitions of EXT_{n,s} and the counting bound S0091 in the transcript. Checked by reading; no new computation.",
+  "gap_id": "G0151"
+ },
+ {
+  "at": 1795377886.435535,
+  "session": "pnp-desk/research/R1724",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact computation cm-5c676961b49b429f (DISCOVERY, all circuits of size <= s, all outputs). Reading H1 (total distinct residual sets over all levels <= M+1) is FALSE: n=3, s=1, M=38, per-level counts [1,2,4,8,13,15,6,3,2], sum 54 > 39. Reading H2 (per level <= M+1) holds in all 5 tested cases (n=2 s=1,2,3; n=3 s=1,2). The written part (iii) is refuted; the per-level form is only supported by a 5-case computation, not proved.",
+  "review_of": "S0121",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795378189.1574347,
+  "session": "pnp-desk/research/R1724",
+  "model": "claude-haiku-5-5",
+  "evidence": "Verification cm-5e646b2e67664f65 (independent gate-sequence encoding): (n,s)=(2,1) M=16 max_per_level=1; (2,2) M=16 max 1; (3,1) M=38 max 15 <= 39; (3,2) M=152 max 21 <= 153; per-level sums for (3,1) = 54, matching cm-5c676961b49b429f. The bound holds on all four cases but is loose by a factor of 2 to 7 here, so the check cannot detect a sharper error. Reviewer status: this session is claude-haiku, same family as the authors of the open claimed steps, so this is recorded as the author's own verification, not a review.",
+  "id": "S0281",
+  "proved_step": "R1 (per-level repair of S0121(iii), trivial): for N=2^n, Im subset of {0,1}^N with M=|Im|, and every prefix length t, the number of distinct residual sets {q : pq in Im} over prefixes p of length t is at most M+1. Proof: P_t = {x[:t] : x in Im} has |P_t| <= M; prefixes outside P_t have empty residual; so the distinct residuals are among {res(p): p in P_t} plus the empty set, at most |P_t|+1 <= M+1. SCOPE: a state-count statement only; it gives no update-time bound and does not close G0003.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795378878.447845,
+  "session": "pnp-desk/research/R1732",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (open): no poly(s,n) per-bit update is known for the exact EXT_{n,s} prefix automaton. The naive method re-checks every circuit of size <= s against the prefix, which costs on the order of |Im_s| * N per bit. This is an upper bound for one method, not a lower bound for all algorithms, and it is not shown to be polynomial in s. The earlier claim of n^{O(s)} update cost was not established and is withdrawn.",
+  "evidence": "cm-10b06d848d344f74 (exact, n=3, N=8, EXPLORATORY): |Im_s| = 38, 152, 232 for s=1,2,3; max residual count K = 14, 21, 11. This is state-count data only and says nothing about update time. The table in f2848d743591016e is superseded (wrong at t=5..8). Nothing here is a proved_step.",
+  "gap_id": "G0152"
+ },
+ {
+  "at": 1795379370.2771254,
+  "session": "pnp-desk/research/R1740",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s,n) per-bit update of the EXT prefix automaton) remains open. Candidate-set lemma CS gives state O(s log(n+s)) bits and update (16(n+s)^2)^{s+1}*O(s): exponential in s, so it does not close G0003. A closing step needs a poly(s) compression of the surviving candidate set for general prefixes; the exact obstacle is that such compression is the circuit-extension search itself.",
+  "evidence": "Hand check of CS against the counting bound in S0125 and the state bound in S0108 (Claims A and B). No new computation this session. S0091 and S0098 remain DISPUTED and unreviewed; this session is claude-haiku, the same family as the claimants of S0121, S0125, S0127 and S0135.",
+  "gap_id": "G0153"
+ },
+ {
+  "at": 1795379667.003767,
+  "session": "pnp-desk/research/R1740",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s,n) per-bit update of the EXT prefix automaton) remains open. CORRECTION to the CS note: the candidate-set bit vector over Circ_{n,s} has |Circ_{n,s}| = (16(n+s)^2)^(s+1) bits = 2^{Theta(s log(n+s))} bits, not O(s log(n+s)) bits; O(s log(n+s)) is the length of one circuit description. Update cost is exponential in s. CS does not give a poly(s) state or update bound.",
+  "evidence": "Hand check of the counting bound in S0125 against the bit-length of the candidate vector. No new computation. The max_D statistic in cm-c14de82becfe4660 is trivial (see record b025d8c3dcb3957e); use max over t<N.",
+  "gap_id": "G0154"
+ },
+ {
+  "at": 1795380918.5412493,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0021: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim requires definitions (live prefix, SC_s, Satz B) that are not provided, so it cannot be formalized or proven yet. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795381806.0795496,
+  "session": "pnp-desk/research/R1756",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "S0138 as stated with rank over GF(2): the cut-rank equality rank_GF2(M_t) = rank_Q(M_t) fails. At n=3, s=2 (N=8, Im_size=152) cuts t=2..6 have rank2 < rankQ (e.g. t=4: rank2=5, rankQ=13; t=3: 5 vs 8). The equality holds for n=2 and for n=3, s=1 at every cut.",
+  "evidence": "cm-af922193ec0243d3 (DISCOVERY, field test of S0138, n in {2,3,4}; n=4 rankQ not computed). Hypothesis H0 (equal ranks over GF(2) and Q) is refuted at n=3, s=2. Repair to test next: the statement over Q or GF(p) for a large prime p, which must match rankQ on the same instances."
+ },
+ {
+  "at": 1795381909.5827093,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0024: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof of L_F3 after three submissions. Every run returned `kernel_accepted: false` with `exit_code: 1` and an empty `errors` list, and the sandbox log was 0 bytes, so the L (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795381910.6836405,
+  "session": "pnp-desk/research/R1756",
+  "model": "claude-haiku-5-5",
+  "gap": "S0138 over GF(2) is refuted (cm-af922193ec0243d3: n=3,s=2 cuts t=2..6; n=4,s=1 cuts t=7,8,9, e.g. t=7 rank2=36 < rank_p=38). Candidate repair, NOT PROVED: state the cut-rank bound over Q (or GF(p) for a large prime p). Experiment cm-92472a736e70483f (EXPLORATORY, DISCOVERY) shows rank over p=1000003 and p=2^31-1 agree at every cut for n=2,3,4 and s=1,2 (large_prime_disagree empty), and matches rankQ where computed (n=3,s=1 t=4: 13; n=3,s=2 t=4: 13). Open: a proof that rank_Q(M_t) is bounded by the claimed quantity for every n, and a proof that the large-prime rank equals the rational rank (the experiment is finite evidence only).",
+  "evidence": "cm-92472a736e70483f: n in {2,3,4}, s in {1,2}, primes {2,3,1000003,2147483647}. Im sizes 16,16,38,152,70,526 match recorded values. Prediction under H0 (field-stable at large p): no large_prime_disagree cut, observed none. Prediction under H1 (field-dependent): some disagreement, not observed. GF(2) gap cuts appear, so the GF(2) lemma stays refuted and the repair must use a large field.",
+  "gap_id": "G0155"
  }
 ]

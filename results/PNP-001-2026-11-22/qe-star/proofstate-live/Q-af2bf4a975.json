@@ -32,5 +32,47 @@
   "proved_step": "proved_step: Reduction of G0001 to (D). Let a, c >= 1 be constants and B a fixed binary basis. If every f with CC_B(f) = s has a fan-in-2 B-circuit of size s' <= s^a and depth d' <= c*log2(s'), then L_B(f) <= s^(a*c) for all such f, i.e. a fixed-q simulation L(f) <= C*CC(f)^q with q = a*c and C = 1.\nderivation: Take a minimal circuit C for f, |C| = s. Apply (D) to get C' with s' <= s^a gates and depth d' <= c*log2(s'). S0002 gives that the full unfolding F_{C'} computes f and has at most 2^{d'} leaves. Then 2^{d'} <= s'^c <= s^(a*c), and formula size equals leaf count, so L_B(f) <= s^(a*c). Scope: exact reduction of G0001 to (D). It does not close G0001; (D) is the new open obligation and only needs to hold for the MMW-derived families.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795377969.595226,
+  "session": "pnp-desk/research/R1723",
+  "model": "claude-haiku-5-5",
+  "evidence": "Verification experiment cm-3f8a4addc51c42fc: 4000 random fan-out<=2 DAGs (n<=6, s<=25), 0 violations, max size/bound = 1.0. Fibonacci fan-out-2 chains at s=5,10,20,40 give log2 size 4.64, 8.16, 15.11, 29.0 against log2 bound 6.81, 12.58, 23.46, 44.39. Random sample is not adversarial: it supports the bound but not the general case. Prediction (bound holds on every instance) matched. Replication of the bound's form, not of a published result.",
+  "id": "S0004",
+  "proved_step": "Restricted fan-out bound (shrinks G0001, does not close it). Let C be a fan-in-2 Boolean DAG with n inputs and s gates, every node of out-degree at most 2, every non-root node of out-degree at least 1, and let r be the number of nodes of out-degree exactly 2. Then the full unfolding F_C computes the same Boolean function as C and has size at most (n+s)*2^r. Corollary: if r <= c*log2(s) then |F_C| <= (n+s)*s^c. PROOF: For a node u let P(u) be the set of directed paths from u to the root. The unfolding has exactly |P(u)| copies of u, so |F_C| = sum_u |P(u)| <= (n+s)*max_u |P(u)|. Let R be the set of out-degree-2 nodes, |R| = r. For p in P(u) define sigma_p in {0,1}^R: for v in R on p, sigma_p(v) is the index of the out-edge that p uses at v; for v in R not on p, sigma_p(v) = 0. Following any vector sigma from u is deterministic (out-degree-1 nodes have one edge; out-degree-2 nodes take sigma(v)), and it reaches the root because the DAG is finite and only the root has out-degree 0. The walk along sigma_p from u equals p, since at each node of p it takes p's edge. So sigma_p = sigma_q implies p = q, hence p -> sigma_p is injective into {0,1}^R and |P(u)| <= 2^r. Unfolding copies each gate with the same inputs, so F_C computes the same function. Multi-edges are handled by indexing the two edges of a gate. QED. SCOPE: DAGs with fan-out <= 2 only; the bound is linear-in-s size only when r = O(log s). It does not bound fan-out-2 chains (r = s). Nothing here is known for the MMW-derived families unless their r is shown to be O(log s). Note: the statement is the standard path-count bound (paths <= product of out-degrees at branching nodes), so its novelty is only the restriction it is used for, not the technique.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795378136.7326229,
+  "session": "pnp-desk/research/R1707",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Arithmetic check: contradiction holds iff q*theta < 2+beta. With beta in {0.1,...,0.9}, q in {1,2,3,4}, the condition theta_max = (2+beta)/q is mathematically correct. This is bookkeeping confirming the necessary condition for contradiction between the CJW20 lower bound N^(2+beta-eps) and the simulation L(f) <= C*CC(f)^q yielding N^(q*theta). No error found in the arithmetic or the grid check. The step is valid as bookkeeping evidence for the necessary condition.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795378136.7588146,
+  "session": "pnp-desk/research/R1707",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Depth-leaf bound: Induction on depth shows unfolding F_C has at most 2^d leaves for a fan-in-2 DAG of depth d. Base: input has 1 = 2^0 leaf. Inductive step: gate at depth k has inputs at depth <= k-1, so L(v) = L(a)+L(b) <= 2*2^(k-1) = 2^k. Corollary: if d <= c*log2(s) then |F_C| <= s^c. This is a correct proof, though it only covers depth O(log s) and does not close G0001 since MMW-derived families have depth poly(s). The proof is mathematically sound.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795378136.7849944,
+  "session": "pnp-desk/research/R1707",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Reduction of G0001 to condition (D): If every f with CC_B(f) = s has a fan-in-2 B-circuit of size s' <= s^a and depth d' <= c*log2(s'), then L_B(f) <= s^(a*c). The derivation is correct: take minimal circuit C with |C|=s, apply (D) to get C' with s' <= s^a gates and depth d' <= c*log2(s'), then by S0002 the unfolding has <= 2^(d') <= s^(a*c) leaves, so L_B(f) <= s^(a*c). The scope is exact and the derivation is valid. Does not close G0001 but correctly reduces it to (D).",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795378136.8116522,
+  "session": "pnp-desk/research/R1707",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Restricted fan-out bound: For a fan-in-2 DAG with n inputs, s gates, and r nodes of out-degree exactly 2, the unfolding size is at most (n+s)*2^r. Proof uses injective path-vector mapping from each node to {0,1}^R where R is the set of out-degree-2 nodes. This is a standard path-count bound. The corollary: if r <= c*log2(s) then |F_C| <= (n+s)*s^c. The proof is mathematically correct. Scope is DAGs with fan-out <= 2 only; not directly applicable to MMW-derived families unless their r = O(log s).",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
  }
 ]

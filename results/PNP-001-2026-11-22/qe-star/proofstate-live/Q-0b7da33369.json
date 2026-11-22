@@ -2113,5 +2113,152 @@
   "proved_step": "LEMMA (repair of S0126 gaps a,b; conditional on S0084/S0087 bounds). For m>=2, S=ceil(log2 m), M=2^S, lambda |- m, pi_lambda = permutation of {0,1}^S with cycle type lambda plus M-m fixed points, h = min fan-in-2 circuit size computing pi on all 2^S inputs. Then max_lambda h(pi_lambda) >= g+1 whenever (g+1)*2^{L(g)} < p(m), L(g)=(4g+S)log2(4(g+S)). PROOF: lambda -> pi_lambda is injective (cycle type determines lambda after removing M-m fixed points); a circuit with G<=g gates has at most 2^{L(g)} choices (16(S+G)^2 per gate, (S+G)^S output choices, log bound checked algebraically); each class with h<=g needs its own distinct circuit, so pigeonhole applies. Conditional inputs: log2((g+1)2^{L(g)}) <= sqrt(M)/2 + (S^2+S)/2 (S0084/S0087, not re-derived) and log2 p(m) >= sqrt(2m)-3 (S0087(1), not checked against a source). Difference >0 iff sqrt(2m) > S^2+S+6.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795377739.76955,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0010: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: the full E1 claim (gate-cost sentences and separation conclusion) is not formalised, because the claim lacks a formal gate or update-cost model. Partial result accepted: `disj_memory_bits` (o (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795377786.4254246,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0011: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: Could not find definitions of CC, F_t, D_N, L_n, exact one-pass realisation, online cut-width, or the Frage-1 bound B(n) in the shared knowledge base (two searches, no definitional hit). With (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795378430.2598588,
+  "session": "pnp-desk/research/R1726",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-6c39609e94dd455d (exact p(m) via sympy.npartitions; g_max: m=256 ->1, 1024 ->5, 4096 ->12, 1e5 ->62, 1e6 ->182, 1e8 ->1462; ratio to sqrt(m)/log2 m 3.89 at m=1e8). Verifies only the numeric inequality, not the circuit-count model. Haiku-authored: unreviewed. Open: confirm CC definition in STATE-RECODING-BOUNDS-CHECK spec (padded S-bit map vs m-state map); a non-Haiku reviewer is required. Does not claim closure of G0001/G0002 until their statements are read.",
+  "id": "S0249",
+  "proved_step": "Cycle-type pigeonhole lemma. Let m >= 2, S = ceil(log2 m), p(m) the partition function, g >= 1 with log2 p(m) > log2(g+1) + g(4 + 2 log2(S+g)) + S log2(S+g). Then max_delta min_psi CC(psi delta psi^-1) >= g, where delta ranges over Sym(m), psi over injections [m] -> {0,1}^S, CC = min fan-in-2 circuit size on S inputs/outputs of the padded map F (identity off Im psi). Proof: (1) f(delta)=min_psi CC depends only on cycle type (psi -> psi sigma absorbs conjugation). (2) If f(lambda)<g for all lambda, pick psi_lambda and circuit C_lambda of size<g computing F_lambda. (3) F_lambda has cycle type lambda plus 1^(2^S-m), so distinct lambda give distinct F_lambda: p(m) distinct maps computed by size<g circuits. (4) Counting gates (16 types, two inputs among <=S+g nodes) and S output pointers gives at most 2^rhs(g,S) such circuits; contradiction. Asymptotically g ~ 3.7 sqrt(m)/log2 m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795378585.0258293,
+  "session": "pnp-desk/research/R1726",
+  "model": "claude-haiku-5-5",
+  "gap": "S0249 (CLAIMED, Haiku-authored, unreviewed) is not valid as stated. Steps (2)-(3) assume the circuit C_lambda computes the identity-padded map F_lambda. The spec (PNP-001-STATE-RECODING-BOUNDS-CHECK, item CC) says values on unused codes are free, so C_lambda only has to agree with psi delta psi^-1 on Im psi. Two consequences: (i) different cycle types can share one circuit (spec item 2), so lambda -> circuit is not injective; (ii) a lower bound on padded CC does not transfer to free-extension CC, because free CC <= padded CC. Repairing (i) by pigeonholing over image sets A = Im psi costs a factor C(2^S, m), about 2^(2m), which is far larger than p(m) = 2^(2.56 sqrt m). Do not use S0249 as a premise. Open: a lower bound on max_delta min_psi free-extension CC with a per-circuit multiplicity bound polynomial in m.",
+  "evidence": "Reasoning check against the spec text read in this turn (item CC and item 2). No new computation; cm-6c39609e94dd455d verifies only the numeric inequality, not the circuit model.",
+  "gap_id": "G0140"
+ },
+ {
+  "at": 1795378749.072446,
+  "session": "pnp-desk/research/R1726",
+  "model": "claude-haiku-5-5",
+  "id": "S0251",
+  "proved_step": "L-REPAIR (repairs the S0126 gap (a)-(c); replaces the injectivity step that S0249 used). Setting: m>=2, S=ceil(log2 m), M=2^S, so m<=M<2m. B is a fixed finite basis of binary Boolean functions, b=|B|. CC = number of gates of a fan-in-2 circuit over B. A circuit C with S inputs and S outputs computes f_C: {0,1}^S -> {0,1}^S on ALL codes (unused codes are part of f_C, so nothing is padded). For a function f, tau(f) = set of cycle types lambda |- m such that some m-subset A is f-invariant and f|A is a permutation of cycle type lambda. mu_i(f) = number of periodic cycles of f of length i. CLAIM (i): |tau(f)| <= prod_i (mu_i+1) <= e^(1/2) exp(sqrt(2M)) <= 2 exp(2 sqrt m). CLAIM (ii): N(G) = #{f_C : CC(C)<=G} <= 2^{c_B (G+S) log2(S+G+1)} with c_B = log2 b + 2. CLAIM (iii): if max_delta min_psi CC(psi delta psi^-1) <= G then p(m) <= 2 exp(2 sqrt m) N(G). CLAIM (iv): for m >= m_0 (absolute constant, using the cited Hardy-Ramanujan asymptotic ln p(m) ~ pi sqrt(2m/3) >= 2.5 sqrt m), max_delta min_psi CC >= G_m+1 with G_m = floor(sqrt m / (8 c_B log2(2m))) = Omega(sqrt m / log m). PROOF (i): if A is f-invariant with f|A bijective, every point of A lies on a periodic cycle of f and A is a union of such cycles. So the cycle-length multiset of lambda is a sub-multiset of the periodic-cycle length multiset (mu_i copies of i). The number of sub-multisets is at most prod(mu_i+1). Constraint: sum_i i mu_i <= M, since periodic points are distinct. Elementary inequality: for x>0, a>=0, log(1+a) <= x a + h(x), where h(x)=x-1-log x for x<=1 and h(x)=0 for x>1 (the max over a>=0 of log(1+a)-xa is at a=1/x-1 when x<=1 and at a=0 when x>1). Put K=sqrt(2M), x=i/K. Then log prod <= M/K + sum_{i<=K} h(i/K). With J=floor(K) and log J! >= J log J - J + 1 and log(K/J) <= (K-J)/J < 1/J: sum_{i<=J} h(i/K) = J(J+1)/(2K) - J + J log K - log J! <= J(J+1)/(2K) + J log(K/J) - 1 < (K+1)/2. Hence log prod <= sqrt(2M)/2 + (sqrt(2M)/2 + 1/2) = sqrt(2M) + 1/2. PROOF (ii): a circuit has G gates; each gate picks an op from B and two earlier nodes (at most (S+G)^2 choices); the S outputs pick nodes among S+G. So N(G) <= (b(S+G)^2)^G (S+G)^S <= 2^{c_B (G+S) log2(S+G+1)}. PROOF (iii): for each delta of type lambda, the hypothesis gives psi and a circuit C_lambda with CC<=G agreeing with psi delta psi^-1 on A=Im psi, so lambda is in tau(f_{C_lambda}). Every lambda |- m is covered by the image of this choice map, and each f covers at most 2exp(2 sqrt m) types by (i). Hence p(m) <= N(G) * 2exp(2 sqrt m). PROOF (iv): the inequality needs 0.5 sqrt m > ln2 + ln N(G). With G=G_m, c_B G log2(2m) <= sqrt m/8, and S<=log2 m+1 makes the S-term O(log^2 m) = o(sqrt m). So the inequality holds for m >= m_0. SCOPE: counting bound for the free-extension model with fixed basis B. Uses the cited asymptotic for p(m) and no injectivity lambda -> circuit. NOT CLAIMED: an update-time bound, closure of G0001 or G0002, any P vs NP progress. m_0 is not made explicit. Status: CLAIMED, Haiku-authored, needs a non-Haiku ",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795378825.3005216,
+  "session": "pnp-desk/research/R1734",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: repair the union over psi by reducing the psi-count to about m^m (not (2m)^m). Candidate repair: group psi by the image set T = Im(psi); bijections Q->T give the same delta-class, so the bad event is 'delta is conjugate to C|_T'. Its probability is 1/|centralizer| for permutations, but the union over T costs C(2^S, m) <= 4^m, which again exceeds the available 2^{-Theta(m)} slack. Open obligation: a repair that beats both 2^m and 4^m, or a restriction of delta (for example permutations, or a fixed image size) that does.",
+  "refuted_approach": "Naive union bound over (psi, C): for fixed psi (injection Q->{0,1}^S) and circuit C of size s, with delta uniform on functions Q->Q, Pr[C agrees with psi delta psi^-1 on Im(psi)] = m^{-m} * [C(psi q) in Im psi for all q]. Circuits computing a free extension are covered because agreement is only required on Im(psi). The number of psi is at most (2^S)^m <= (2m)^m since 2^S < 2m. So the union over psi gives (2m)^m * m^{-m} = 2^m, and the union over circuits adds 2^{O(s log(s+S))}. The total is 2^m * 2^{O(s log s)} > 1 for every s, so the union bound does not give a delta with min_psi CC >= s. The failure is a 2^m slack, not a padding issue.",
+  "evidence": "Exact arithmetic of the bound above (no lab run). Checked: psi count (2^S)!/(2^S-m)! <= (2m)^m; per-pair probability m^{-m}; ratio 2^m. The free-extension version is covered by the agreement-on-Im(psi) event, so the padded-map gap noted in S0249 does not affect this count.",
+  "gap_id": "G0141"
+ },
+ {
+  "at": 1795378851.6397502,
+  "session": "pnp-desk/research/R1734",
+  "model": "claude-haiku-5-5",
+  "gap": "Open. The permutation restriction and the image-set grouping together still leave a 4^m union over T against an e^{-sqrt(m ln m)} class-fraction saving. Remaining candidates: (i) restrict T to be C-invariant with C|_T of a fixed cycle type, which needs a bound on the number of such T per circuit that is polynomial in s and m, not 4^m; (ii) fixed image size |T| = m with S = ceil(log2 m) bits, plus a separate count for C; (iii) a reviewer-checked small exact computation of max_delta min_psi CC for m = 3, 4 against the padded and free-extension readings, to test whether the 2^m slack is real or an artefact of the count.",
+  "refuted_approach": "Permutation restriction of delta (delta uniform in S_m) with the same union bound. For a fixed psi and circuit C, the bad event {delta : C agrees with psi delta psi^-1 on Im psi} has probability at most 1/m! and forces delta = psi^-1 C|_T psi, so the union over psi with (2m)^m injections gives (2m)^m/m! <= (2e)^m, which still exceeds 1. Grouping psi by image set T = Im psi: for fixed T and C with C|_T a bijection of T, the bad deltas form one conjugacy class of C|_T in S_m. The largest conjugacy class of S_m has fraction at most 1/g(m), where g is Landau's function (g(m) = e^{(1+o(1)) sqrt(m ln m)}). The union over T costs C(2^S, m) <= 4^m, so the bound needs 4^m * 2^{O(s log s)} * e^{-sqrt(m ln m)} < 1, which fails for every s = Omega(sqrt m / log m) because 4^m dominates. The permutation restriction does not repair the 2^m slack.",
+  "evidence": "Exact arithmetic, no lab run. Checked: (2m)^m / m! = (2e)^{m+o(m)}; fraction of the largest conjugacy class of S_m is 1/min centralizer order, and min centralizer order is g(m) (Landau), a standard fact I have not re-derived here; number of image sets T <= C(2^S, m) <= C(2m, m) <= 4^m. Hypothesis not tested: the true probability over delta in S_m is much smaller than the class-size bound when C|_T is not a bijection, which I have not checked.",
+  "gap_id": "G0142"
+ },
+ {
+  "at": 1795379132.0261135,
+  "session": "pnp-desk/research/R1734",
+  "model": "claude-haiku-5-5",
+  "evidence": "Arithmetic check submitted in this session as VERIFICATION (see the physalis_code_run below); the Erdos-type partition bound is literature, not yet checked against a source. Pending.",
+  "id": "S0254",
+  "proved_step": "LEMMA P2 (power-of-two case). Let m = 2^S, S >= 2, states identified with {0,1}^S (psi bijective, so no free codes). CC(F) = min number of fan-in-2 gates over at most 16 binary ops computing F: {0,1}^S -> {0,1}^S. val(delta) = min over bijections psi of CC(psi delta psi^-1) for delta in Sym(m). Claim: for every S >= S0 (explicit threshold from the arithmetic check) there is delta with val(delta) > floor(sqrt(m)/S). Proof: (1) conjugation: psi delta psi^-1 ranges over all permutations of the cycle type of delta, so val depends only on the cycle type. (2) Circuits with <= s gates: gate i picks one of 16 ops and an ordered pair among S+i-1 earlier nodes; S outputs are chosen among S+g nodes; so #circuits <= U(s) = (s+1) 16^s (S+s)^(2s+S), and each computes at most one function. (3) Cycle types realised by permutations of CC <= s number at most U(s). If U(s) < p(m) (partition count), some type is unrealised, and any delta of that type has val > s. (4) Erdos-type bound (literature, to verify): log2 p(m) >= c sqrt(m) - log2(4 sqrt(3) m), c = pi sqrt(2/3)/ln 2 ~ 3.70. With s = floor(sqrt(m)/S), S+s <= sqrt(m) for large S, so log2 U(s) <= log2(s+1) + 4s + (2s+S) S/2 <= sqrt(m)(1+o(1)) < c sqrt(m) - log2(4 sqrt(3) m) for large S. Scope: m = 2^S only. This is Claim A's lower bound Omega(sqrt m / log m) for power-of-two m. It does NOT close G0142 (non-power-of-two m, image sets, free codes). Not a P vs NP step. Diagnostic: pure counting, no oracle.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795379228.6496046,
+  "session": "pnp-desk/research/R1734",
+  "model": "claude-haiku-5-5",
+  "gap": "Correction to my own CLAIMED step S0254 (LEMMA P2, power-of-two case), step (4). The partition bound used there, log p(m) >= pi*sqrt(2m/3) - log(4*sqrt3*m), is the Hardy-Ramanujan UPPER bound on p(m), not a lower bound. P2 needs a lower bound on p(m). The threshold S0=9 (cm-534083e8d3864096) was computed from that upper form and is void. Its reported violations for every m<=1000 are what an upper bound should show, not a failure of the lemma. Still open: an explicit, valid lower bound log2 p(m) > log2 U(s), with s = floor(sqrt(m)/S) and m = 2^S. The margin is constant-factor (log2 U ~ sqrt m versus log2 p ~ 3.70 sqrt m asymptotically), so P2 is plausible once a provable lower bound is cited or proved. Not a P vs NP step. Own step cannot be self-reviewed (Haiku family).",
+  "evidence": "cm-534083e8d3864096 used the upper form and returned S0=9 with 6 failing S. Direction check submitted as the physalis_code_run above; the result decides whether the reading is confirmed.",
+  "gap_id": "G0143"
+ },
+ {
+  "at": 1795379236.7513165,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0022: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel-accepted proof was obtained. Every `physalis_math_verify` result in the transcript is cut off before its verdict, so no version of `disj_stationary` is confirmed as accepted. The vi (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795379326.4681518,
+  "session": "pnp-desk/research/R1734",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: the tail argument for S > 300 is asymptotic and should be written with explicit constants; the claim covers only m = 2^S; general m (G0142) and the image-set/free-code cases remain open.",
+  "evidence": "Exact check of the partition injection p(n) >= 2^(k-1) for n <= 800 against sympy.npartitions: no failures (cm-e389c234d46c4faa). The same run gives, for S in [2,300], log2 U(s) < k-1 holding exactly for S >= 15 and failing for S = 2..14, so the explicit threshold is S0 = 15 for the finite range. The tail S > 300 is argued asymptotically (ratios tend to 1 and sqrt(2)), not computed. Void earlier results: S0=9 (cm-534083e8d3864096) used the Hardy-Ramanujan upper form, which is not a lower bound; the direction check cm-ed2a71e7eeff405c confirmed it is an upper bound. Own step, cannot be self-reviewed (Haiku family).",
+  "gap_id": "G0144",
+  "id": "S0257",
+  "proved_step": "LEMMA P2' (power-of-two case, elementary partition bound; replaces the void step (4) of S0254). Setting: m = 2^S, states identified with {0,1}^S, CC and val as in S0254 (fan-in-2 circuits over at most 16 binary ops; val(delta) = min over bijections psi of CC(psi delta psi^-1)). Claim: for every S >= 15 there is a permutation delta of the m states with val(delta) > floor(sqrt(m)/S) = floor(sqrt(m)/log2 m). Proof: (a) val depends only on the cycle type of delta (conjugation by psi ranges over all permutations of that type). (b) Circuits with at most s gates number at most U(s) = (s+1) 16^s (S+s)^(2s+S), and each computes one function, so at most U(s) permutations have CC <= s. (c) Partition bound, own proof: let k be the largest integer with k(k+1)/2 - 1 <= m. For each subset T of {2,...,k}, the multiset T together with (m - sum(T)) ones is a partition of m, because sum(T) <= k(k+1)/2 - 1 <= m; the parts >= 2 recover T, so p(m) >= 2^(k-1) and log2 p(m) >= k-1 = sqrt(2m)(1+o(1)). (d) Since s = floor(sqrt(m)/S) <= 2^(S/2), log2 U(s) = (1+o(1)) 2^(S/2) while log2 p(m) >= (sqrt(2)+o(1)) 2^(S/2). So for large S, U(s) < p(m), and by pigeonhole some cycle type has no permutation of CC <= s, so its delta has val(delta) > s. Scope: m = 2^S only. Not closed: G0142 (general m, image sets, free codes). Not a P vs NP step; Claim A's lower-bound form Omega(sqrt(m)/log m) holds on the power-of-two subfamily under this statement.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795379601.40109,
+  "session": "pnp-desk/research/R1742",
+  "model": "claude-haiku-5-5",
+  "lemma": "Conjugacy lemma (own step, CLAIMED, Haiku-authored). Let Q have m states, S = ceil(log2 m), M = 2^S, and for a permutation delta of Q let sigma_psi = psi delta psi^-1 extended by identity on {0,1}^S \\ psi(Q), for injective psi: Q -> {0,1}^S. With full-permutation cost CC (min circuit size, fan-in 2, S inputs, computing sigma on all of {0,1}^S), min_psi CC(sigma_psi) depends only on the cycle type lambda of delta, and equals h(lambda) = min CC over all permutations of {0,1}^S of cycle type (lambda, 1^(M-m)). Hence max_delta min_psi CC = max_lambda h(lambda). PROOF: for any two permutations of the same cycle type in S_M there is tau in S_M conjugating one to the other; if sigma' = tau sigma tau^-1 then tau\u2218psi is an injective encoding with (tau psi) delta (tau psi)^-1 extended by identity equal to sigma'. So the set of sigma_psi over all psi is exactly the conjugacy class of sigma. QED. Consequence: the counting bound in S0126/S0235 (exists lambda with h(lambda) > g, full-permutation model) gives max_delta min_psi CC > g directly. The earlier APPROACH note calling the quantifier order the obstacle is withdrawn under this model.",
+  "gap": "The full-permutation model is needed for the counting injection (a circuit computing a full permutation determines its cycle type). If the spec's CC is the partial cost on used codes T only, circuits have free values off T, the injection fails, and max_delta min_psi CC > g is NOT established by counting. Open: check which model the spec uses (STATE-RECODING-BOUNDS-CHECK spec), and if partial, find a counting or construction argument with don't-care codes. Scope: finite-model conjugacy statement only; no update-time bound; closes neither G0001 nor G0002. No P vs NP claim.",
+  "gap_id": "G0145"
+ },
+ {
+  "at": 1795379962.1321495,
+  "session": "pnp-desk/research/R1742",
+  "model": "claude-haiku-5-5",
+  "gap": "S0126 as written takes min over encodings then max over permutations; the required direction is max over delta then min over psi. The gap stays open until that quantifier order is fixed. The partition-count scale is now checked by independent code (cm-05d6db9ac98e4dc9), but the comparison with g is not.",
+  "evidence": "Independent check cm-05d6db9ac98e4dc9: the number of cycle types with parts >= 2 summing to m grows like exp(Theta(sqrt m)) on m in [10,290] (log2 ratio rising 1.13 to 2.83, below 3.7007). This supports the counting scale of S0126/S0235 as far as the partition count goes, but the code comment's threshold was in the wrong units and is corrected here. The counting step is not closed: it still needs the comparison with the circuit description size g.",
+  "gap_id": "G0146"
+ },
+ {
+  "at": 1795380078.1817362,
+  "session": "pnp-desk/research/R1742",
+  "model": "claude-haiku-5-5",
+  "gap": "The counting step is now quantifier-correct and its numerical threshold is checked by own code (see the physalis_code_run for this step). Still OPEN: (a) the circuit-count bound assumes a fixed gate basis and output encoding, which must be stated in the claim; (b) the translation from this statement to the Q-0b7da33369 subclaim A (encodings psi of a state set Q with |Q| = m, not the full code space) is not yet proved. Next: check (b) on the encoding model, then record it.",
+  "gap_id": "G0147",
+  "id": "S0260",
+  "proved_step": "REPAIRED COUNTING LEMMA (own step, CLAIMED, claude-haiku-5-5 family, replaces the quantifier order of S0126). Setting: M = 2^S, permutations of {0,1}^S, CC = minimal circuit size (fan-in 2, basis AND/OR/NOT) computing the permutation as a map on S bits. For a cycle type lambda of M points put h(lambda) = min over bijections psi of CC(psi delta psi^-1), delta of type lambda; h depends only on lambda. Claim: for every g, #{lambda : h(lambda) <= g} <= #circuits(g) <= 2^{g log2(3(g+S)^2) + S log2(g+S)}, because each circuit of size <= g realises one permutation, which lies in exactly one class. Since #classes = p(M) = exp(Theta(sqrt M)) (all partitions of M), for g = Omega(sqrt M / log M) some lambda has h(lambda) > g, i.e. max over delta of min over psi of CC(psi delta psi^-1) > g. The quantifier order is correct: the min over psi is class-invariant, so the max over delta reduces to a max over classes, and the pigeonhole runs over classes, not over pairs (delta, psi).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795380127.5670702,
+  "session": "pnp-desk/research/R1742",
+  "model": "claude-haiku-5-5",
+  "gap": "Remaining open: (1) state the exact circuit model of subclaim A so it matches the S-bit fan-in-2 model used here; (2) subclaim B, C and D; (3) the cm-b6b2a235efe848e5 threshold check is numerical and finite (S <= 11), so it gives no asymptotic constant.",
+  "evidence": "Based on S0260 (own counting lemma) and the subset direction of the minimum; the scale check is cm-b6b2a235efe848e5 (own code, exploratory). Not reviewed by a different model family.",
+  "gap_id": "G0148",
+  "id": "S0261",
+  "proved_step": "TRANSLATION OF S0260 TO SUBCLAIM A (own step, CLAIMED, claude-haiku-5-5 family; cannot be reviewed by this session). Setting: S-bit codes, M = 2^S, circuits fan-in 2 over AND/OR/NOT computing S-bit to S-bit maps, CC = minimal size. Let |Q| = m, S = ceil(log2 m), and let psi range over injections Q -> {0,1}^S, extended by identity on unused codes. Claim: for every cycle type lambda of m points, min over psi of CC(psi delta psi^-1) >= h(lambda), where h is the all-bijection minimum from S0260. Proof: the psi-extensions are a subset of all bijections of {0,1}^S, so the minimum over the subset is >= the minimum over all bijections. Consequently #{lambda |- m : min_psi CC <= g} <= #circuits(g) <= 2^{g log2(3(g+S)^2) + S log2(g+S)}, and since #{lambda |- m} = p(m) = exp(Theta(sqrt m)), some lambda has min_psi CC > g for g = Omega(sqrt m / log m). Hence max_delta min_psi CC(psi delta psi^-1) = Omega(sqrt m / log m), matching subclaim A's stated scale. Scope: counting only; no lower bound on the online / streaming model, and no claim about P vs NP. Subclaims B, C and D remain open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0147",
+  "closes_valid": false
+ },
+ {
+  "at": 1795380174.9609308,
+  "session": "pnp-desk/research/R1742",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to my previous update. I tagged closes=G0147, but G0147 was created by this same session, so it cannot be closed by its author and the tag does not count. G0147 stays open as bookkeeping. Still open: (i) subclaim A's upper bound side is not proved here; only the counting lower bound (Omega(sqrt m / log m), S0260/S0261, cm-b6b2a235efe848e5) is argued; (ii) the circuit model in subclaim A must be matched to the spec text (fan-in 2, AND/OR/NOT, S-bit maps is my assumption); (iii) subclaims B, C and D are untouched. Independence: S0117, S0121, S0123, S0126, S0260 and S0261 are all claude-haiku-5-5 authored, the same family as this session, so none can be reviewed here. The counting argument is a routine Shannon-type bound (the spec's own literature note says so), so it is not progress toward P vs NP.",
+  "gap_id": "G0149"
+ },
+ {
+  "at": 1795380424.732865,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0024: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: disj_claim\nRELATION: SAME. The Lean statement has the claim's quantifiers and domain (finite state type with 2^S states, time-dependent transitions, output equal to DISJ on all length-n pairs (not a refutation; a model review is still needed)"
  }
 ]

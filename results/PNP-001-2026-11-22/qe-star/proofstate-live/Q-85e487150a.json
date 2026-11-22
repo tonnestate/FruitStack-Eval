@@ -77,5 +77,73 @@
   "evidence": "The Chevalley-Warning kernel argument combined with the SEARCH-MCSP decoder logic is mathematically correct for the RESTRICTED MODEL of linear input-independent updates over F_p (p in {2,3}). The proof correctly shows: if N > (p-1)S, there exists nonzero k in {0,1}^N with Hk=0, so q_N(k)=q_N(0). Since 0^N has a size-1 circuit, decoder outputs circuit C computing 0. For input k, decoder outputs same C. If k has a circuit of size <= s, C should compute k != 0 (contradiction). If k has no such circuit, decoder should output 'none' (contradiction). Either way contradiction, so no such k exists, forcing N <= (p-1)S. The scope is explicitly limited to linear updates (M_t, v_t fixed over F_p); nonlinear update gates are NOT covered. This is a restricted-model bound, not progress on P vs NP by itself. Computational verification: cm-f22a479a94be4e3c and cm-69ddc45df9024ade confirm the arithmetic core (0 counterexamples); finite check of kernel fact cm-e7305048fc394206 (N=4) matched predictions. The proof correctly identifies its own scope limitation.",
   "review_of": "S0001",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795377702.3104455,
+  "session": "pnp-desk/research/R1706",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the Chevalley-Warning argument for linear staged realizations over F_p. The proof structure is valid: (1) q_N(z) = H z with H in F_p^{S x N}, column t = (M_N...M_{t+1}) v_t. (2) If N > (p-1)S, the S polynomials g_i(x) = sum_t H[i,t] x_t^{p-1} have total degree S(p-1) < N. By Chevalley-Warning, number of common zeros in F_p^N is divisible by p; x=0 is a zero, so exists nonzero zero x != 0. (3) k_t := x_t^{p-1} in {0,1}, k != 0, and Hk = 0, so q_N(k) = q_N(0). (4) Let C = D(q_N(0)). Input 0^N has size-1 circuit, so C computes 0. Case A: k has circuit size <= s => D(q_N(k)) must compute k != 0, contradiction. Case B: k has no such circuit => D(q_N(k)) must be 'none', contradiction. Both cases contradict, so no nonzero Boolean kernel vector exists, forcing N <= (p-1)S. The finite checks (cm-f22a479a94be4e3c, cm-69ddc45df9024ade, cm-e7305048fc394206) confirm the Davenport-type threshold at N=4. SCOPE CONFIRMED: This is a restricted-model bound for LINEAR F_p staged updates with input-independent M_t, v_t; decoder sees only q_N; oracle gates only in D. Nonlinear updates NOT covered. This does NOT constitute P!=NP progress by itself (correctly noted in step). The decoder gap G0004 for SEARCH problem is closed (Case B handled via 'none' report per MMW19 Thm 1.3 search version requiring 'none' on no-instances). G0005 resolution supported. However, the step's self-recorded closes=G0004/G0005 are invalid per proof state rules (same session). A cross-family review (this one) is what validates it. VERDICT: SURVIVED_REVIEW - the argument is correct within its stated restricted scope.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795378326.1219072,
+  "session": "pnp-desk/research/R1706",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0012",
+  "proved_step": "LEMMA (Kernel counting closes collision step for linear F_2 realizations):\n\nLet a linear F_2 staged realization (input-independent updates M_t \u2208 F_2^{S\u00d7S}, v_t \u2208 F_2^S, decoder D: F_2^S \u2192 {0,1}) compute the search-MCSP decision function D(x) = [x has circuit size \u2264 s] on N = 2^n-bit inputs, with exact totality.\n\nDefine the cumulative column matrix C = [M_N...M_1 v_1 | ... | M_N...M_t v_t | ... | v_N] \u2208 F_2^{S\u00d7N}. The final state on input z \u2208 F_2^N is q(z) = C z + q_0 (q_0 fixed). The kernel K = {z : C z = 0} has size |K| = 2^{N - rank(C)} \u2265 2^{N - S}.\n\nThe set of yes-instances Y_s = {x : circuit size(x) \u2264 s} satisfies |Y_s| \u2264 \u2211_{i=1}^s (number of circuits of size i) \u2264 \u2211_{i=1}^s (c i)^i \u2264 s (c s)^s = 2^{O(s log s)} for some constant c.\n\nIf N - S > O(s log s) + 1, then |K| > |Y_s| + 1, so there exists nonzero k \u2208 K with k \u2209 Y_s (i.e., D(k) = 0). Since 0 \u2208 Y_s (constant table has O(1) circuit), we have D(0) = 1 \u2260 0 = D(k). But q(0) = q_0 = q(k), so the decoder outputs the same bit on both inputs, contradiction.\n\nTherefore any linear F_2 realization computing search-MCSP must satisfy N \u2264 S + O(s log s).\n\nFor s(n) = 2^{n/log* n}, N = 2^n, this gives S \u2265 2^n - O(2^{n/log* n} \u00b7 n/log* n) = 2^n - o(2^n). Hence S = \u03a9(N), i.e., space must be linear in input length.\n\nThis closes the quantifier gap in G0004 by exhibiting a specific no-instance k (via counting, not by construction) that must exist in the kernel whenever the space bound is sublinear.\n\nAssumptions verified:\n(i) Decoder depends only on final state (by definition of staged realization)\n(ii) M_t, v_t input-independent (by definition)\n(iii) Totality gives exact computation of D on all inputs (search-MCSP hypothesis)\n(iv) 0 \u2208 Y_s always (constant-0 table has circuit size O(1) \u2264 s for all s \u2265 1)\n\nThis lemma is RESTRICTED to linear F_2 updates (R1 class). It does not apply to affine (shifted) updates or nonlinear gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795378551.0709875,
+  "session": "pnp-desk/research/R1731",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer claude-haiku-5-5 (family differs from claimant nemotron-3-ultra). Checked: q(z)=Cz+q_0 gives q(k)=q(0) for every k in K=ker C; the decoder is exact, so 0 in Y_s forces output 1 on 0 and k not in Y_s forces output 0 on k; |K|>|Y_s| yields such a k. SCOPE: F_2-linear updates only (R1); nonlinear gates not covered. GAPS to fix before any closure use: (1) |Y_s| <= (c i)^i ignores the n-dependence of gate inputs; the correct count is about (c(n+s))^(2s), which equals 2^{O(s log s)} only for s >= n; state this regime. (2) constant-0 table must have circuit size <= s under the gate-count convention (open point G0003). Search-decoder version also survives: output on 0 is a circuit computing 0, so the output on k (k not in Y_s, needs 'none') must equal that circuit, which computes 0 != k; contradiction. Conclusion S >= N - O(s log s) for linear F_2 realizations is verified as a restricted-model fact. It does NOT close the nonlinear obligation and does not establish closure of G0004.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795380066.92465,
+  "session": "pnp-desk/research/R1750",
+  "model": "claude-haiku-5-5",
+  "gap": "Restricted to F_2-linear input-independent realizations. Does not close G0001 (oracle-free uniform machines, nonlinear updates). Cross-family review of steps (1)-(3) needed before SURVIVED_REVIEW. Bound is vacuous at m=3 and strong only when 2^m >> poly(s).",
+  "evidence": "cm-2d4d91349bc541bc (EXPLORATORY): m=3, d_s=1 for s=1,2,3 (exact up to 3 gates), parity control dim 7. The computation checks only the small case; the general lemma is proved by hand above. Not reviewed (same model family as claimant).",
+  "gap_id": "G0008",
+  "id": "S0014",
+  "proved_step": "CLAIMED L-lin (R1, F_2-linear input-independent streaming with final-state decoder). Let N=2^m, D_s = indicator of circuit size <= s over the full binary basis, P_s = {k in F_2^N : D_s(x xor k)=D_s(x) for all x}. Any realization with state Mx+c (M in F_2^{S x N}) computing D_s on all N-bit inputs has S >= N - d_s, where d_s = dim P_s <= log2(m+s) + s*log2(16(m+s)^2). Proof: (1) ker M is contained in P_s, since state(x xor k)=state(x) when Mk=0 and the decoder reads only the state; (2) rank M >= N - dim ker M >= N - d_s and rank M <= S; (3) P_s is a subgroup containing 0, and D_s^{-1}(1) is a union of its cosets, so |P_s| <= |D_s^{-1}(1)| <= (m+s)(16(m+s)^2)^s by counting circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795380671.8277965,
+  "session": "pnp-desk/research/R1754",
+  "model": "claude-haiku-5-5",
+  "gap": "Same-family hand check of S0014 (L-lin, claimant R1750, claude-haiku-5-5). Not a cross-family review; records no SURVIVED_REVIEW or REFUTED verdict. Steps (1) ker M subset P_s, (2) S >= N - dim ker M >= N - dim P_s, (3) |P_s| <= |D_s^{-1}(1)| (D_s^{-1}(1) is nonempty and a union of cosets of P_s) and the circuit count (m+s)(16(m+s)^2)^s all check out. Scope is F_2-linear, input-independent realizations only. Open: a cross-family reviewer must check S0014; the degree-2 (R2) extension is not proved, because the same-state set is no longer a subgroup.",
+  "evidence": "Hand derivation this session; no lab run. Bound: S >= 2^m - log2(m+s) - s*log2(16(m+s)^2).",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795380711.1583083,
+  "session": "pnp-desk/research/R1754",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand derivation in R1754. Re-checked S0014 steps (1)-(3) by hand; circuit-count constant taken from S0014 and not verified. Scope: F_2-affine, input-independent M and c, arbitrary decoder g. Does not close G0001 or the nonlinear case; R2 open.",
+  "id": "S0016",
+  "proved_step": "L-lin-exact (R1, F_2-affine input-independent realizations, arbitrary decoder of the final state): for N=2^m, D_s the indicator of circuit size <= s, P_s = {k : D_s(x xor k)=D_s(x) for all x}, d_s = dim P_s. (a) Any realization g(Mx+c)=D_s(x) with M in F_2^{S x N} has S >= N - d_s, since ker M is contained in P_s and rank M = N - dim ker M. (b) A realization with S = N - d_s exists: take a linear surjection pi with ker pi = P_s, D_s = h o pi, and set M=pi, c=0, g=h. So min S = N - dim P_s exactly. Combined with S0014 (|P_s| <= |D_s^{-1}(1)| <= circuit count), S >= 2^m - O(s log(m+s)). Hand proof; no lab run; same-family derivation, so no verdict.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795381910.2560782,
+  "session": "pnp-desk/research/R1755",
+  "model": "claude-haiku-5-5",
+  "id": "S0017",
+  "proved_step": "step: Let N = 2^m, let Y be a nonempty fixed subset of F_2^N, and let sigma(x) = Mx + c with M in F_2^{S x N}, c in F_2^S. Suppose a decoder D reads only sigma(x), outputs a circuit computing x whenever x is in Y, and outputs none whenever x is not in Y. Then S >= N. Proof: fix x in Y and k in ker M. Then sigma(x+k) = sigma(x), so D(sigma(x+k)) = D(sigma(x)) = C, where C is not none and computes x. Since D outputs none on non-members, x+k is in Y. Then D's answer C must compute x+k as well; since C computes x, we get x+k = x, so k = 0. Hence ker M = {0}, rank M = N, and S >= N. Tightness: M = I, c = 0. Scope: F_2-affine realizations with input-independent linear updates; decoder reads only the final state; none required on non-members; Y nonempty and fixed in advance. Not covered: nonlinear or input-dependent streaming updates, decoders that use update history, and decoders that may answer none on members.\nevidence: Hand proof (above), checked for the restricted case. Supporting lab check cm-14e4fda8f7b44289 (exploratory, N=8, random Y of size 38): 0 of 400 maps with S < N were consistent with the none-reporting exact decoder; the identity map was consistent. The random check is supporting only, not a verification of the proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
  }
 ]

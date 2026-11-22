@@ -17,5 +17,34 @@
   "proved_step": "LEMMA Thm1-two-valued (manuscript eq. (3), all n>=3, E subset of T_n): F_E is satisfiable iff some z in A_E = {z in F_3^n : A_E z = 1} takes at most two values. Proof. (a) If x in {0,1}^n satisfies F_E, then each clause sum is an integer in {0..3} that is 1 mod 3, hence 1; so z = x in A_E has values in {0,1}. (b) Let z in A_E take at most two values, E nonempty (E empty: z=0). A constant value a gives clause sums 3a = 0 mod 3, not 1, so the value set is {0,1}, {0,2} or {1,2}. Case {0,1}: x = z is Boolean with clause sums 1. Case {0,2}: z = 2y, y Boolean; 2(y_a+y_b+y_c) = 1 mod 3 gives y_a+y_b+y_c = 2 exactly (range {0..3}); x = 1-y is Boolean with x_a+x_b+x_c = 1. Case {1,2}: z = 1+y; clause sum = 3 + (y_a+y_b+y_c) = 1 mod 3 gives sum y = 1 exactly; x = y. In each case x satisfies F_E. QED. Closes: none (reformulation, no open obligation).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795377741.8467803,
+  "session": "pnp-desk/research/R1717",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-4906c42044a5471c: exhaustive check, n=3,4,5, all nonempty E (1, 15, 1023 sets), rank <= n'-1 and count = 3^(n'-rank) on every consistent E: 0 violations. Finite confirmation only; the proof above is the content.",
+  "id": "S0003",
+  "proved_step": "statement: Let A be a matrix over F_3 with n' columns and rank r. If Az = 1 has a solution z_0 in F_3^{n'}, then its solution set is exactly z_0 + ker A, so it has 3^(n'-r) elements. For A_E (rows = clauses of E, each row a 0/1 indicator of 3 variables), the all-ones vector lies in ker A_E, so r <= n'-1.\nderivation: (1) If Az_0 = 1 and Az = 1 then A(z - z_0) = 0, so the solution set is z_0 + ker A; rank-nullity gives |ker A| = 3^(n'-r). (2) Each row of A_E has exactly three 1-entries, so its sum is 3 = 0 mod 3; hence A_E * 1 = 0 and dim ker A_E >= 1, giving r <= n'-1. Both steps are standard linear algebra over a field.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "none (bookkeeping lemma, does not close an open obligation)",
+  "closes_valid": false
+ },
+ {
+  "at": 1795378512.3285785,
+  "session": "pnp-desk/research/R1725",
+  "model": "claude-haiku-5-5",
+  "id": "S0004",
+  "proved_step": "statement: Lemma F_q (extension of manuscript Prop 14, eq. (40d)). Let q = p^k be a prime power and r, N >= 1 integers with r(q-1) < N. For every W in F_q^{r x N} there is z in {0,1}^N, z != 0, with Wz = 0 (the 0/1 vector is read in F_q^N).\nderivation: (1) For j = 1..r put f_j(X) = sum_i W_{ji} X_i^{q-1} in F_q[X_1..X_N]. Each f_j is homogeneous of degree q-1, so sum_j deg f_j = r(q-1) < N. (2) Chevalley-Warning (valid over any finite field F_q of characteristic p): if sum_j deg f_j < N, the number of common zeros x in F_q^N of f_1..f_r is divisible by p. (3) The zero vector is a common zero, so the count is a positive multiple of p, hence at least p >= 2. Pick a common zero x != 0. (4) Set z_i = x_i^{q-1}. For x_i != 0 this is 1 (Lagrange in F_q^*), for x_i = 0 it is 0, so z in {0,1}^N, and z != 0 because x != 0. (5) (Wz)_j = sum_i W_{ji} x_i^{q-1} = f_j(x) = 0 for all j, so Wz = 0. QED. Remark: the prime case q = p is Prop 14; only the degree bound and the characteristic are used. Scope: linear W over F_q with r(q-1) < N; nothing on nonlinear, input-dependent or oracle-assisted updates, and nothing on manuscript eq. (8) or (40a).\ncloses_obligation: none (general lemma; no open obligation recorded for it)",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795381769.5095863,
+  "session": "pnp-desk/research/R1753",
+  "model": "claude-haiku-5-5",
+  "evidence": "Counterexample cm-8a33959345444224 (independent brute force and GF(3) elimination, exhaustive over z in F_3^4). E = {234, 235, 245, 345}, relabelled to variables 0..3 as {012, 013, 023, 123}. boolean_sat(E) = False. rank_F3(A_E) = 3, but |E| = 4, so 'rank = |E|' fails. A_E z = 1 is unsolvable over F_3, so the step's premise is not met. Each E minus one clause is Boolean-satisfiable, so E is minimal unsatisfiable. First false line: Prop 5 'rank = |E|' used the solvability of A_E z = 1 without deriving it. Repair (hand-proved here, NOT reviewed, so not a verdict): Prop 5' : if E is minimal unsatisfiable and A_E z = 1 is solvable over F_3, then rank(A_E) = |E|. Proof: a dependence sum lambda_i r_i = 0 with lambda_j != 0 gives sum lambda_i = 0 by applying a solution z; minimality gives a Boolean x satisfying E minus clause j, so r_j.x = 1 and the dependence forces r_j.x = 1 for every such x, which contradicts x not satisfying E. Unconditional bound: rank(A_E) <= min(|E|, n-1), since the all-ones vector lies in ker A_E. The rank = |E| claim is therefore open without the solvability hypothesis. Experiment kind: VERIFICATION (replicates the claimed rank step with its own elimination and brute force), not a proof.",
+  "review_of": "S0001",
+  "status": "REFUTED"
  }
 ]

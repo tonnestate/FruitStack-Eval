@@ -1772,5 +1772,75 @@
   "proved_step": "LEMMA (cost-2 drop, B2, all n>=2): if f: {0,1}^n -> {0,1} has exact B2 size 2 then there exist i != j and a,b in {0,1} such that f|x_i=a,x_j=b is constant or a literal. Proof: minimal circuit G1=psi(l1,l2), G2=phi(G1,l); l is a constant (then size<=1, contradiction) or a literal of x_r; fix x_r so phi(.,c) is constant (done with any other j) or +-psi'(l1',l2') on variables p,q != r; fix x_q so psi' is constant/literal in x_p; pair (r,q). Restrictions do not increase size, so the drop is exactly 2. Scope: B2, exact size 2, all n. Closes no obligation; no superlinear progress.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795378162.1679132,
+  "session": "pnp-desk/research/R1720",
+  "model": "claude-haiku-5-5",
+  "gap": "Open gap G-restr (session R1720): the single-variable restriction drop (every B2 function f on n variables with s(f) >= s0(n) has some x_i=b with s(f|x_i=b) <= s(f)-2) is proved only for n=3 (S0062, hand proof). For general n it is unproved, and the n=4 status is recorded only through the R1160 counterexample (Q-8c01cdfe11) whose exact statement is not yet checked. Even a proved drop of 2 per restriction gives only linear bounds (S0062 scope note), so the step cannot reach N(log N)^k by itself. Session model family claude-haiku-5-5 cannot review the CLAIMED steps S0062, S0087, S0103, S0104, S0106 (can_review=false), so they stay unreviewed.",
+  "evidence": "proof_state_read output for Q-10bbdfaf2a (this session); cm-ef5273f88a4b43cb (independent BFS check of S0062 m=3, earlier this session).",
+  "gap_id": "G0150"
+ },
+ {
+  "at": 1795378196.053808,
+  "session": "pnp-desk/research/R1720",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Single-variable restriction drop >= 2 (every B2 f on n>=3 variables with s(f) >= s0(n) has some x_i=b with s(f|x_i=b) <= s(f)-2). REFUTED for every n>=3 by parity: XOR_n|x_i=a is XOR_{n-1} or its complement (negation free in B2), so by Schnorr C(XOR_m)=m-1 every single restriction drops the cost by exactly 1. S0062 (m=3, cost>=3 case) is not contradicted, since s(XOR_3)=2. Repair candidate: the two-variable restriction drop of 2 (XOR_n|x_i=a,x_j=b = XOR_{n-2} or complement, drop exactly 2; this is S0103). That repair is UNPROVED for general non-parity f with cost >= 3 (S0104 covers cost 2 only). Even if proved, a drop of 2 per two-variable restriction gives only linear bounds, so this route does not reach N(log N)^k.",
+  "evidence": "Argument only (no lab run): XOR_n|x_i=a = XOR_{n-1} or complement; Schnorr 1976 C(XOR_m)=m-1 for B2; negation free in B2. Consistent with Q-e01b29675f."
+ },
+ {
+  "at": 1795378317.6735332,
+  "session": "pnp-desk/research/R1728",
+  "model": "claude-haiku-5-5",
+  "gap": "Open obligation: a general fan-in-2 circuit lower bound for MCSP[m^c] above N(log N)^k for every fixed k (G0001). Reduction S0106 (decision-to-search) is consistent in size and depth. Its first arrow, NP in P/poly implying search-MCSP circuits of size N*poly(s), still needs its exact MMW19 Thm 1.4 hypotheses checked. All known read-set and gate-elimination arguments in this question stop at linear bounds (S0002, S0013).",
+  "evidence": "Session R1728 read-only so far; no computation run. Reviewer independence: the claimed steps are all from the same model family, so they stay open for a different-family reviewer.",
+  "gap_id": "G0151"
+ },
+ {
+  "at": 1795378493.344546,
+  "session": "pnp-desk/research/R1728",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open: a general fan-in-2 lower bound of size N(log N)^k for MCSP[m^c] needs a non-gate-elimination argument. Current best general circuit lower bounds for explicit NP functions on N inputs are linear (about 3N), so this target is an open-problem-level obligation, not a step for this session.",
+  "refuted_approach": "Gate elimination / restriction-drop route for the N(log N)^k target. If every restriction fixing k variables kills at least g gates, the bound is about (g/k)N, which is linear in the N-bit input. Superlinear N(log N)^k would need g/k unbounded, which the single- and pair-restriction drop statistics (cm-82a649a2055545c3, cm-cdb2df6cc1874b4e, parity counterexample) do not give. Scope: this rules out only this measure with constant-size restrictions, not all circuit lower-bound methods.",
+  "evidence": "Scaling argument on the restriction-drop measure; consistent with the parity refutation (single-variable drop is exactly 1 for every n) and with the n=4 exhaustive checks. Source check: MMW19 Thm 1.4 bullet 3 (primary PDF, sha256 7077714b...) needs circuit lower bounds of N*poly(s) size, poly(s) depth, and a general-circuit bound implies it.",
+  "gap_id": "G0152"
+ },
+ {
+  "at": 1795379109.4496117,
+  "session": "pnp-desk/research/R1736",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA T' (repair of S0106). Fix c>=1. If for every fixed k, decision MCSP[m^c] has no general circuits of size N(log N)^k (any depth), then for every polynomial p, search-MCSP[m^c] has no circuits of size N*p(s) and depth p(s); with A = empty (in PH) and s(n)=n^c>=n, MMW19 Thm 1.4 bullet 3 gives NP not in P/poly. Proof: a search circuit C of size N p(s) outputs a candidate of size O(s log s) or bottom; a universal evaluator on each of the N inputs costs N poly(s) gates and poly(s) depth; AND of the N comparisons with x; output 0 on bottom; correctness from the search spec. Decision circuit size N(log N)^k for some k depending on p and c, depth poly(s)+log N, contradicting the hypothesis at that k.",
+  "gap": "S0106 as written uses only one exponent k=e+1, but its conclusion (no circuits of size N*poly(s) for every polynomial) needs the decision lower bound for every fixed k. Repaired statement recorded in the lemma field. Not a review: the reviewing session shares model family claude-haiku with the author R1384.",
+  "gap_id": "G0153"
+ },
+ {
+  "at": 1795379166.3554394,
+  "session": "pnp-desk/research/R1736",
+  "model": "claude-haiku-5-5",
+  "gap": "Not verified by a lab computation. The universal-circuit size bound poly(s) is cited as standard and not proved here. The P2 obligation (decision lower bound N (log N)^k for MCSP[m^c] against general circuits) is untouched and is not reachable by known methods.",
+  "evidence": "Primary text of MMW19 Thm 1.3 and Thm 1.4 bullet 3 read via web_read (sha256 7077714b...). Quantifier check: the bullet has no 'for all c'; the 'for every polynomial' reading follows from 'does not have circuits of N poly(s) size'. The '\u2284' symbol was rendered as 'NP 1 P/poly' by text extraction; read from context. Author model claude-haiku-5-5 shares a family with R1384, so this step is UNREVIEWED and must be reviewed by another model family.",
+  "gap_id": "G0154",
+  "id": "S0217",
+  "proved_step": "S-R1736-T-prime: LEMMA T' (repair of S0106, closes gap G0153). Setup: N = 2^m, s = m^c, c >= 1 fixed; search-MCSP[s] and MCSP[s] are as in MMW19 STOC 2019, with oracle A = empty (A in PH). Hypothesis H_dec: for every fixed k, MCSP[m^c] has no general fan-in-2 circuits of size N (log N)^k, of any depth. Claim: H_dec implies that for every polynomial p, search-MCSP[m^c] has no circuits of size N p(s) and depth p(s); hence NP not in P/poly by MMW19 Thm 1.4 bullet 3 (valid since s = n^c >= n). Proof: (1) Let C be a search circuit of size N p(s), depth p(s), with input x in {0,1}^N. Its output is a description D(x) of O(s log s) bits, or the symbol bottom. (2) Build the decision circuit: for each index i in [N], feed D(x) and the hard-wired index i into a universal evaluator U for circuits of size s on m inputs; U has size poly(s) and depth poly(s) (standard O(s log s) universal circuit, gate descriptions as wires). (3) Output bit i of the candidate is compared with x_i; AND the N comparisons; if D(x) = bottom, output 0. (4) Correctness: if the search output is a circuit of size <= s computing x, the comparisons all succeed and the output is 1; if x has no circuit of size <= s, search outputs bottom, so output 0; a circuit of size <= s computing x exists iff search outputs a valid description. (5) Size: N p(s) + N poly(s) = N (log N)^{k(p)} for some k(p) depending only on p and c, since poly(s) = poly(log N). Depth: p(s) + poly(s) + O(log N) = poly(log N). (6) H_dec at k = k(p) is contradicted by this circuit. Since p is arbitrary, H_dec for every fixed k yields 'no search circuit of size N poly(s) and depth poly(s)'. QED. SCOPE: conditional reduction, A = empty, s = m^c. It needs the decision bound for every fixed k; a single k does not suffice, because the polynomial p given by NP in P/poly is not known in advance. It closes no obligation (the P2 obligation is the decision lower bound itself, still open). Classification: bookkeeping reduction, not progress toward P != NP; no LOWER_BOUND is claimed, so no perfect-matching or naturality test is required for this step.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795379366.5431502,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0013: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: THEOREM: none\nRELATION: not attempted in Lean.\nGIVE_UP: The full claim needs a large formalisation of circuits, Hamming distance over Y, the uniform measure with a Hoeffding bound, and the cone and co (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795381833.472561,
+  "session": "pnp-desk/research/R1744",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof (graph connectivity count). Checkable by the validator on n<=4 exact B2 sizes from cm-b14021d12b494d1e (n=3) and cm-24d1903c900b4265 (n=4).",
+  "id": "S0219",
+  "proved_step": "LEMMA (closes Q-5392a81ad0, lower-bound half): every fan-in-2 B2 circuit with free constants computing a function with n essential variables has size >= n-1. Proof: prune gates not reaching the output; the undirected graph on the n essential inputs, c constants and s gates is connected with at most 2s edges, so 2s >= n+c+s-1 and s >= n-1. Tight for XOR_n via the chain (n-1 gates, n>=2). Scope: all B2 circuits, all n>=1. Not progress toward the MCSP target.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-5392a81ad0",
+  "closes_valid": true
  }
 ]

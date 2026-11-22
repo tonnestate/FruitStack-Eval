@@ -1751,5 +1751,65 @@
   "gap": "S0214 (copy-class coordinate lemma, CLAIMED) gives S >= max_t kappa(P_t) = 6 for SC_{3,1} under literal wiring (cm-a8210938c70c4f40). This is a necessary condition only and does not decide H1 vs H2 at S=6. Open: (1) whether the bound is tight for literal wiring, which needs an exact G=0 decider or a construction; (2) extension to AND/XOR/general B2 gates, where a gate can combine two state bits and the reference-set argument fails; (3) the update-time bound G_max, which this lemma does not touch. The H1 vs H2 SAT/UNSAT conflict remains unresolved.",
   "refuted_approach": "Reading the S=6 UNSAT record as evidence for a lower bound of 7 or 8 in the copy class: this is contradicted by the same lemma, since the copy class only forces S >= 6.",
   "gap_id": "G0121"
+ },
+ {
+  "at": 1795377807.2139473,
+  "session": "pnp-desk/research/R1722",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent recount (cm-ac32238b48c44d66) reproduces |SC_{3,s}| = 3, 38, 152 for s = 0,1,2 and the stated live-prefix profiles. No proved_step is recorded here. The G_max measurement by pysat over encodings is the next step and is not yet run."
+ },
+ {
+  "at": 1795377916.0907052,
+  "session": "pnp-desk/research/R1722",
+  "model": "claude-haiku-5-5",
+  "evidence": "CORRECTION to the turn-2 evidence (S-6181c7e469). That claim of 'reproduces |SC_{3,s}| = 3, 38, 152' is NOT supported. Run cm-5179a85e05c94774 (exact <=s-gate DAG enumeration over 3 inputs, with the constants 0 and 1 as leaves) gives: with constants and inputs counted, |F| = 5, 38, 152 for s = 0, 1, 2; excluding the constants, |F| = 3, 36, 150. The spec's 3, 38, 152 matches the nonconstant count at s=0 and the with-constants count at s=1,2. The family definition (whether constants and inputs are members of SC_{n,s}, and whether s counts gates or rounds) is therefore not pinned by the spec. Round-based enumeration (cm-cb401fe9370d48e3) gives 232 at round 2, which equals the spec's s=3 value, so it is not the same family. No G_max value is established. Next step: fix the family as 'nonconstant truth tables of <=s-gate DAGs over inputs and constants' and report G_max under both conventions, labelled exploratory."
+ },
+ {
+  "at": 1795378081.8644793,
+  "session": "pnp-desk/research/R1722",
+  "model": "claude-haiku-5-5",
+  "gap": "Obstacle: the spec's family SC_{3,s} (sizes 3, 38, 152) is not reproduced by either convention I computed (constants and inputs included: 5, 38, 152; excluded: 3, 36, 150; round-based: 232 at round 2, which is the spec's s=3 value). Until the convention is fixed, no G_max is measurable. Open question Q-0465d8bb56 asks the owner which convention applies.",
+  "evidence": "cm-5179a85e05c94774 (exact <=s-gate DAG enumeration), cm-cb401fe9370d48e3 (round-based). Both EXPLORATORY_COMPUTATION. No proved_step submitted; none is claimed.",
+  "gap_id": "G0122"
+ },
+ {
+  "at": 1795378178.4671283,
+  "session": "pnp-desk/research/R1722",
+  "model": "claude-haiku-5-5",
+  "gap": "Still open: (1) the s = 0 convention point (3 vs 5); (2) no G_max measurement yet. The joint-SAT G_max for n = 3, s = 1, 2 needs an update-time model, with UNSAT certificates for G - 1. The bound used here is too weak to be a barrier-free lower bound on update time, as noted in turn 8.",
+  "evidence": "VERIFICATION cm-3df7163fd1674248 (exact DAG enumeration, own code, convention: constants 0/1 and inputs included, s = gate count). Reproduces SC_{3,1} = 38 and SC_{3,2} = 152 from the spec. Does NOT reproduce s = 0: computed 5 with constants (3 nonconstant), spec says 3, so the s = 0 entry is still an open convention point. Live-prefix profiles at s = 1: [1,2,4,8,16,22,30,38,38]; at s = 2: [1,2,4,8,16,32,60,108,152]. Per-step bound S_t >= ceil(log2(L_t + [L_t < 2^t])) gives max 6 (s=1) and 8 (s=2). This is a BOOKKEEPING bound (log of live-prefix count, identical to S >= log2|P_t|), not an update-time bound, so it cannot establish G_max. Scope: n = 3, s <= 2 only.",
+  "gap_id": "G0123"
+ },
+ {
+  "at": 1795378810.0505822,
+  "session": "pnp-desk/research/R1730",
+  "model": "claude-haiku-5-5",
+  "gap": "G=1 per-step synthesis for SC_{3,1} starting at S=7 is still open: the earlier synchronous G=1 run timed out at 800 s. Next step is to submit it as a background job (desk_submit, budget_s 3600) with the same family check and the S=7 width, and to report SAT/UNSAT/UNKNOWN per G. Nothing here is a proved lemma.",
+  "refuted_approach": "G=0 static wiring for SC_{3,1} with S<=7 (state width 6 or 7). Two encodings give UNSAT at S=6 and S=7 (cm-89ebb528da5b4889, cm-05e4621ab2e04501). The 6-bit claim cm-8fff5163faa54747 is not reproduced. Minimum static width under G=0 is S=8 for n=3, N=8.",
+  "evidence": "cm-89ebb528da5b4889 (S6 UNSAT, S7 UNSAT, S8 SAT, own CNF, Cadical153, decoded SAT model re-simulated); family size 38 re-derived by hand and in code (cm-2254a596ec82485a).",
+  "gap_id": "G0124"
+ },
+ {
+  "at": 1795378987.2263436,
+  "session": "pnp-desk/research/R1730",
+  "model": "claude-haiku-5-5",
+  "evidence": "S0080 mechanical check, run by claude-haiku-5-5 (same model family as the claimer R1274, so NOT a cross-family review; no SURVIVED_REVIEW status recorded). Run cm-70930837a0224fa4 (physalis_code_run, exploratory). Enumerated one-gate programs over S=2 state bits plus one input bit b, with free NOT and constants, and compared with the stated form (each output coordinate is a literal, a constant, or +/-g for one two-literal gate g). Result: stated_form_size=604, brute_size=604, equal=true, in_brute_not_form=0, in_form_not_brute=0, num_gate_functions=38. Scope: S=2 only, one-step, single-gate. It does not cover general S, multi-step machines or G_max. Needs a different-family reviewer."
+ },
+ {
+  "at": 1795379136.8981943,
+  "session": "pnp-desk/research/R1738",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof above; no lab computation run this session.",
+  "id": "S0222",
+  "proved_step": "LEMMA-LIVE-SEPARATION-COUNT (search model, unbounded update and decoder cost). N=2^n, F subset {0,1}^N, states q_t in {0,1}^S, q_{t+1}=F_t(q_t,b), decoder D with D(q_N(w)) = circuit computing w if w in F, reject otherwise. L_t = {p in {0,1}^t : exists u with pu in F}, D_t = {p : pu not in F for all u}. Then q_t is injective on L_t and its image avoids q_t(D_t), so 2^S >= |L_t| + [D_t nonempty]. Proof: if q_t(p)=q_t(p') with pu in F, the states agree on all suffixes, so D returns the same circuit C on pu and p'u; if p'u in F, C would compute two distinct strings (they differ in the first t bits), impossible; if p'u not in F, D must reject but outputs C. The dead-live case is symmetric. Scope: S bound only; says nothing about G_max, update cost, or gaps G0001-G0004. Correction recorded: affine S=4 is not excluded by L_4=8 (16 >= 9); the first affine contradiction is S >= 5 from L_5=16.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795381723.3558545,
+  "session": "pnp-desk/research/R1746",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Control (a) as an exact affine family of size |SC_{3,s}|: impossible, since |SC_{3,1}|=38 and |SC_{3,2}|=152 are not powers of 2. Measured: the largest affine subspace of SC_{3,1} has 16 elements and of SC_{3,2} has 32 elements (cm-f3eb7efe51de4e63, cm-9b52277d1d5449ae), so the 'SC is nearly affine' hypothesis is refuted at n=3 and the control must be a size-matched non-affine family.",
+  "evidence": "cm-f3eb7efe51de4e63 (s=1: max affine size 16, fraction 0.421); cm-9b52277d1d5449ae (s=2: max affine size 32, fraction 0.211). Scope: n=3, N=8, exact enumeration over B2 circuits with 16 ops, all nodes as functions."
  }
 ]
