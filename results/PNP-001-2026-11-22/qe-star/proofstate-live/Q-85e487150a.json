@@ -241,5 +241,27 @@
   "evidence": "The proof assumes decoder D outputs a circuit for every input in Y, but Search-MCSP decoder can output 'none' for some inputs. The kernel collision argument breaks because ker M \u2286 P_s requires D to be non-none on all of Y. The all-zero truth table 0^N has a trivial circuit (size O(1) \u2264 s), forcing D(q(0)) \u2260 'none', but the proof didn't use this to propagate the collision correctly.",
   "review_of": "S0014",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795425688.7391007,
+  "session": "pnp-desk/research/R2012",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0029",
+  "proved_step": "REPAIR of S0014 for DECISION version (R1, F_2-linear/affine staged realization). Let N=2^m. Let D_s: F_2^N -> {0,1} be the indicator of circuit size <= s (full binary basis). Consider a one-pass streaming algorithm with affine state updates: q_0 = c_0 in F_2^{S_0}, q_t = M_t q_{t-1} + L_t x_t + c_t for t=1..N, where M_t, L_t, c_t are fixed matrices/vectors over F_2. Final state q_N = M x + c with M in F_2^{S x N}, c in F_2^S. Decoder D: F_2^S -> {0,1} (decision bit). Correctness: D(q_N(x)) = D_s(x) for all x in F_2^N. Then S >= N - d_s where d_s = dim P_s <= log2(m+s) + s*log2(16(m+s)^2), P_s = {k in F_2^N: D_s(x+k)=D_s(x) for all x}. Proof: (1) For any k in ker M, q_N(x+k) = M(x+k)+c = Mx+c = q_N(x). Since decoder D is a function of q_N, D(q_N(x+k)) = D(q_N(x)) for all x. By correctness, D_s(x+k) = D_s(x) for all x, so k in P_s. Hence ker M subseteq P_s. (2) dim ker M <= dim P_s = d_s. Rank M = N - dim ker M >= N - d_s. Since M has S rows, rank M <= S. Thus S >= N - d_s. (3) Bound on d_s: P_s is a subgroup of F_2^N. D_s^{-1}(1) is a union of cosets of P_s (since if D_s(x)=1 and k in P_s, D_s(x+k)=1). So |P_s| <= |D_s^{-1}(1)|. Number of circuits of size <= s over full binary basis is at most (m+s)*(16(m+s)^2)^s (each gate: choose type from 16 binary connectives, choose two inputs from <= m+s previous gates/inputs). Thus |D_s^{-1}(1)| <= (m+s)*(16(m+s)^2)^s, so d_s = log2|P_s| <= log2(m+s) + s*log2(16(m+s)^2). This proof holds for the DECISION version (decoder outputs 0/1). For the SEARCH version (decoder outputs circuit or 'none'), the kernel argument fails because D(q(x)) = 'none' does not imply D_s(x)=0; the correct bound for SEARCH is S >= N (trivial, since ker M = {0} as shown by R1674's objection: q(0)=c, D(c) must be a circuit for constant-0; if k in ker M\\{0}, q(k)=c so D(c) would be the same circuit, which cannot compute k).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795426990.443558,
+  "session": "pnp-desk/research/R2012",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0030",
+  "proved_step": "REPAIR of S0014 for SEARCH version (R1, F_2-linear/affine staged realizations). Let N=2^m. The total search problem SearchMCSP^A[s] receives x\u2208F_2^N and must output a circuit of size \u2264s computing x, or 'none' if none exists. Consider a one-pass streaming algorithm with affine state updates over F_2: q_0 = c_0, q_t = M_t q_{t-1} + L_t x_t + c_t for t=1..N, where M_t\u2208F_2^{S\u00d7S}, L_t\u2208F_2^{S\u00d71}, c_t\u2208F_2^S. Final state q_N = M x + c with M\u2208F_2^{S\u00d7N}, c\u2208F_2^S. Decoder D: F_2^S \u2192 {circuits of size \u2264s} \u222a {'none'}. Correctness: \u2200x, if x has circuit size \u2264s then D(q_N(x)) is a circuit computing x; else D(q_N(x)) = 'none'.\n\nClaim: S \u2265 N.\nProof: The all-zero truth table 0^N has a trivial circuit (constant 0, size O(1) \u2264 s), so it is a YES instance. Thus D(q_N(0)) = D(c) = C_0, a circuit computing the constant 0 function.\nNow suppose k \u2208 ker M, k \u2260 0. Then q_N(k) = M k + c = c = q_N(0). By correctness, D(q_N(k)) = D(c) = C_0. But C_0 computes the constant 0 function. For this to be the correct output on input k, we would need k to be the constant 0 function, i.e., k = 0^N. Contradiction since k \u2260 0. Therefore ker M = {0}. Hence rank M = N. Since M has S rows, S \u2265 rank M = N = 2^m.\n\nThis bound S \u2265 2^m is exponential in m, while s^O(1) is polynomial in m (since s \u2265 m). Therefore no R1 realization can have S = s^O(1), proving equation (8) for the class R1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]
