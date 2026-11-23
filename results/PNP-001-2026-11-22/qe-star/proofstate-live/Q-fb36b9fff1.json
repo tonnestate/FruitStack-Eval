@@ -311,5 +311,118 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795460689.674392,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "evidence": "Truth-table compilation gives a generic circuit upper bound O(q\u00b72^q) per q-bit query function, not the claimed lower bound \u03a9(g\u00b72^q). No lower bound for the specific \u03a3\u2083SAT^A query functions is established. This argument also does not establish MMW's exact query length or that T0 requires this compilation.",
+  "review_of": "S0033",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795460750.2692976,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "evidence": "Shannon counting applies to uniformly random Boolean functions on q bits. This step gives no distribution on PH or reduction showing that the particular function Sigma3SAT^A is random. Also q=O~(s) does not imply q=Omega(s); q=O(log s) satisfies that upper bound and has polynomial-size truth-table compilation. Hence the claimed 2^Omega(s) conclusion does not follow. This reviews the argument as stated, not the direction under additional hypotheses.",
+  "review_of": "S0034",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795460750.2903013,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0037",
+  "proved_step": "statement: Lemma (truth-table compilation upper bound). For any Boolean function h:{0,1}^q->{0,1}, a circuit with g oracle gates querying h on q-bit inputs can be replaced by an equivalent fan-in-2 Boolean circuit of size O(g q 2^q). Proof: Express h as the OR of conjunctions specifying each accepting q-bit string. Each conjunction needs at most q-1 AND gates; at most 2^q such terms need at most 2^q-1 OR gates. The empty accepting set is constant 0. Replace each oracle gate independently and sum the gate counts. This is an upper bound only; it gives no matching lower bound for a particular h and does not by itself yield a uniform resource-preserving streaming simulation.\nevidence: The DNF construction works for every h and q>=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795460934.3555567,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0038",
+  "proved_step": "statement: Conditional compilation lemma. Let s>=2. Suppose each streaming update makes at most s^a oracle queries, each query has length q(s)<=b log_2 s, and the queried Boolean function is fixed for that input length. Replacing each oracle query by its full truth-table DNF yields an oracle-free fan-in-2 circuit for the update of size O(s^a q(s) 2^{q(s)} + C(s)), where C(s) is the size of the non-oracle update computation. In particular this is polynomial in s whenever C(s) is polynomial in s. Proof: for a query of q bits, encode each accepting input by a conjunction of its q literals, then OR the terms; shared input negations and binary fan-in give O(q 2^q) gates, including the constant-function cases. Substitute this circuit at each query gate, sum over at most s^a queries, and retain the original C(s) non-oracle gates. Since 2^{q(s)}<=s^b and q(s)<=b log s, the added size is O(s^{a+b} log s). This is a conditional upper bound, not a claim that MMW19 meets q=O(log s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795460982.1402552,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains OPEN. The conditional truth-table compilation lemma applies when query length is O(log s), but the cited MMW19 bound is only query length O~(s); no polynomial-in-s simulation follows. Still unverified: exact query representation/circuit inputs and query construction cost, plus whether charging the oracle calls preserves the stated per-update bound. The lemma's metadata closes=G0001 must not be treated as closure.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795461086.0194762,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0040",
+  "proved_step": "statement: Residual-function compiler. For a Boolean function h on q ordered input bits, let W be the total number of distinct nonconstant residual functions at levels 0 through q-1, where a residual is obtained by fixing a prefix of the ordered bits. Then h has a fan-in-2 circuit with at most 3W+q gates, allowing constant terminals at no cost. Proof: At each level make one node for each distinct residual. For a residual r at level i, its restrictions r0 and r1 after fixing bit i+1 are either constants or residuals represented at level i+1. Compute r as (not x_{i+1} AND r0) OR (x_{i+1} AND r1), using at most three fan-in-2 gates and one shared negation per input bit. At level q all residuals are constants, so no further nodes are needed. Induction upward shows each node computes its named residual, including h at the root. Summing gives at most 3W mux gates plus q shared negations. This is an upper bound; it makes no claim that W is small for any particular oracle predicate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795461185.0928793,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0041",
+  "proved_step": "statement: Bounded residual-width compilation. Let h:{0,1}^q->{0,1} have a fixed variable order. Suppose that at every prefix length i in {0,...,q-1}, the set of distinct nonconstant residual functions obtained by fixing the first i variables has size at most w. Then h has a fan-in-2 Boolean circuit of size at most 3qw+q, with free constant terminals. Proof: At each level i create one circuit node per distinct nonconstant residual at that level. For each such residual r, its two restrictions r0,r1 under the next variable are constants or residuals at level i+1. Realize r=(not x_{i+1} AND r0) OR (x_{i+1} AND r1), using at most two AND gates and one OR gate; share one NOT gate per input variable. Build from level q-1 upward. Induction on q-i shows each node computes its residual, so the root computes h. There are at most qw residual nodes and q shared NOT gates, hence at most 3qw+q gates. In particular, q may be superlogarithmic in a parameter s while the compilation remains polynomial in s if q(s)w(s) is polynomial in s. The hypothesis is a residual-width condition; no such bound is established here for MMW19's oracle predicates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795461294.50986,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains open. The proof state contains unreviewed claims S0037, S0038, S0040, and S0041, all recorded by this same session, so this session cannot review them or use them as premises. The validator also returned CLARIFICATION_REQUIRED for claim:d4bc9aa45ace because its wording could mean a bound on the entire circuit; only replacement overhead is bounded. Before extending the proof, another session must review the claims and the DNF claim must be restated with explicit surrounding-circuit size.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795461434.4417944,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0043",
+  "proved_step": "statement: Oracle-gate replacement bound. Let C be a fan-in-2 circuit with B non-oracle gates and g gates computing one fixed h:{0,1}^q->{0,1}, where q>=1. Replacing the oracle gates gives an equivalent oracle-free circuit with at most B+g(2^q(q+1)+1) gates. Proof: For each oracle gate, write h as a DNF with one term for each accepting input. Each term uses at most q-1 AND gates, the OR uses at most 2^q-1 gates, and at most q NOT gates provide negative literals. Constants handle empty or full accepting sets. This costs at most 2^q(q+1)+1 gates per replacement. Substitute each replacement and retain the B other gates; fan-out adds wires but no gates. This bounds replacement overhead separately from the surrounding circuit. It does not establish MMW19 query lengths or close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795461778.429901,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction is correct: any Boolean function h on q variables has a DNF with at most 2^q terms (one per accepting input). Each term is a conjunction of at most q literals, requiring at most q-1 fan-in-2 AND gates. The OR of all terms requires at most 2^q-1 fan-in-2 OR gates. At most q NOT gates provide negative literals. Total per oracle gate: (q-1)2^q + (2^q-1) + q = q 2^q + q - 1 = O(q 2^q). For g oracle gates the overhead is O(g q 2^q). This is a valid upper bound; the step makes no claim of optimality or lower bound. No counterexample exists because the construction works for every h and q>=1.",
+  "review_of": "S0037",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795461778.4456592,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The calculation is correct: each of the at most s^a oracle queries on q bits can be replaced by a DNF of size O(q 2^q) as established in S0037. Total overhead = s^a * O(q 2^q) = O(s^a q 2^q). Given q(s) <= b log_2 s, we have 2^{q(s)} <= s^b and q(s) <= b log s. Thus overhead = O(s^a * b log s * s^b) = O(s^{a+b} log s). Adding the non-oracle computation size C(s) gives total update circuit size O(s^{a+b} log s + C(s)), which is polynomial in s whenever C(s) is polynomial in s. The step correctly labels this as a conditional upper bound and does not claim MMW19 meets q=O(log s). No counterexample.",
+  "review_of": "S0038",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795461778.4610314,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This describes a standard OBDD-to-circuit compilation. At each level i (0 <= i < q), for each distinct nonconstant residual r, we create a node computing r = (not x_{i+1} AND r0) OR (x_{i+1} AND r1), where r0, r1 are the restrictions after fixing bit i+1. This uses at most 2 AND gates + 1 OR gate = 3 fan-in-2 gates per residual. One shared NOT gate per variable (q total) provides negated literals. Since there are W distinct nonconstant residuals across all levels, total mux gates <= 3W. Adding q shared NOT gates gives <= 3W + q gates. The induction from level q-1 (where residuals are constants) upward is valid. This is an upper bound; no claim that W is small for any particular h. The construction works for every h and variable order. No counterexample.",
+  "review_of": "S0040",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795461778.4751356,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Direct corollary of S0040. If at each of the q levels there are at most w distinct nonconstant residuals, then total W <= q * w. Applying S0040's bound 3W + q gives <= 3qw + q gates. The step correctly notes this is an upper bound under a residual-width hypothesis, and that q may be superlogarithmic while the compilation remains polynomial if q(s)w(s) is polynomial in s. No claim that MMW19's oracle predicates satisfy this. The arithmetic is correct. No counterexample.",
+  "review_of": "S0041",
+  "status": "SURVIVED_REVIEW"
  }
 ]

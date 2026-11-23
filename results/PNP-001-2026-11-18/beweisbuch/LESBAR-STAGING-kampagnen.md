@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 12236 entries from 3229 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 12309 entries from 3257 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For some structured oracle predicates used by streaming reductions, the number W of distinct residual functions under a useful variable order may be polynomial in the stream parameter even when query length is O~(s), permitting polynomial-size oracle-free comp
   - For a balanced split X|Y, if q=rank_Q{w_j|_X : j≤m}=o(n/log n) and W=poly(n), rank-sensitive signature grouping runs in 2^(n/2+o(n))*poly(n). The useful parameter may be restricted-form rank q rather than the number r of distinct bottom forms.
   - For each fixed eta in (0,1), the same permutation pair can be chosen to resist every stationary injective encoding with code length R from ceil(log2 m) through floor((2-eta)ceil(log2 m)), with at least one transition requiring more than floor(eta*m/8) gates in
   - For fixed m,s and radius d, every edge of the radius-d Hamming graph on truth tables crossing the MCSP[s] boundary has both endpoints in the complexity band [s-2md,s+2md].
   - For a fixed nonempty family F of N-bit words, on the exact full-search contract with unrestricted decoder and arbitrary time-dependent wire relabelling, is S=N the least state width that can always attain G_max=0? Test by deriving the necessary and sufficient 
   - For the MMW one-pass algorithm at fixed admissible s,A, the number of oracle queries between successive input reads and during final reporting, the maximum query length, and the queried languages’ uniform decider costs under P=NP all have fixed polynomial boun
-  - To close G0001 it may suffice to show that each MMW19 Thm 1.2 oracle-assisted streaming implementation has an oracle-free implementation in the manuscript class with polynomial space and worst-case inter-read and final-output time, under the exact same input-l
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -32,19 +32,19 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
-  - None -> None
-  - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3026 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3030 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-ba4473e767 [ASSUMPTION, OPEN] The claim 'For every finite forest G=(V,E) with n vertices and c connected components, the number of Boolean solutions of manuscript system (14)-(15) is 3^c 2^(n-c).' admits several readings with different truth values: 
+  - Q-4b2d1029c2 [IMPLICATION, OPEN] Can the explicit low-weight and co-low-weight regions of MCSP[m^c] be combined with a structural property of the boundary layer to constrain the circuit size of the MCSP decision function?
+  - Q-b6003764b6 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:90f06b7808ab by pnp-desk/research/R2250:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I did not produce a kernel-checked pro
+  - Q-deb6bbdbfe [ASSUMPTION, OPEN] The claim 'For every q>=1, every Boolean function h:{0,1}^q->{0,1}, and every g>=0, g oracle gates querying h can be replaced by an equivalent fan-in-2 circuit of size O(g q 2^q).' admits several readings with different 
   - Q-b149b447bf [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'For n=3, let F consist of the 38 Boolean truth tables generated by constants and literals with at most one binary Boolean gate applied to two members of {0,1,not 
-  - Q-94051fe7e8 [MISSING_PROOF, OPEN] For the fixed-tape oracle-stage lemma with a length-at-most-ell query tape, what exact machine encoding guarantees that query construction and routing cost O(ell) per oracle call while retaining a uniform circuit over al
-  - Q-5f37ecf7cb [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:86ce1d1e60ba by pnp-desk/research/R2192:gpt-6-luna@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For every finite F⊆{0,1}^N, cut t, and correct determinis
-  - Q-4fefea7031 [MISSING_PROOF, OPEN] For EXT_{n,s}, what richer state than one-bit prefix extendibility supports a forward update with real fan-in-two cost, and can it be represented by boundedly many operations on H_C for arbitrary MCSP decision circuits?
-  - Q-a7ef063323 [MISSING_PROOF, OPEN] Can the candidate-circuit incidence update for EXT_{n,s} be compressed to polynomially many fan-in-two gates while retaining enough information to decide whether any candidate remains?
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

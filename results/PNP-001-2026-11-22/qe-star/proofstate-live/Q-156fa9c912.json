@@ -3569,5 +3569,34 @@
   "proved_step": "statement: REPAIR LEMMA (candidate-suffix characterization with valid residual count). Let F be a nonempty finite set of binary strings of length N. For each t in {0,...,N}, let P_t be the set of length-t prefixes of members of F. For p in P_t define R_t(p)={u in {0,1}^{N-t}: pu in F}. The residual language after prefix p is exactly R_t(p), so the number D_t of distinct residuals is at most min(|P_t|, 2^{2^{N-t}}). For b in {0,1}, R_{t+1}(pb)={u in {0,1}^{N-t-1}: bu in R_t(p)} whenever pb is a prefix of a member of F.\nproof: A suffix u of length N-t completes p to a member of F if and only if pu is in F. Thus the residual continuation language after p is exactly R_t(p). There is one such set for each p in P_t, so D_t\u2264|P_t|. Each R_t(p) is a subset of the universe {0,1}^{N-t}, which has 2^{N-t} elements. That universe has 2^{2^{N-t}} subsets, so D_t\u22642^{2^{N-t}}. Finally, for every u of length N-t-1, u belongs to R_{t+1}(pb) exactly when pbu belongs to F, which holds exactly when bu belongs to R_t(p). This proves the transition identity. Scope: finite fixed-length binary languages; this gives no succinct encoding or gate-cost bound for the transition through H_C.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795462435.7878654,
+  "session": "pnp-desk/research/R2260",
+  "model": "gpt-6-luna",
+  "id": "S0430",
+  "proved_step": "statement: Lemma (unique computation transcript for H_C). Let C be any Boolean circuit with a fixed topological ordering of q gates and Boolean inputs x. Define H_C(x,y)=T_out AND AND_{i=1}^q (y_i <-> T_i(x,y_{<i})), where T_i is gate i's Boolean function applied to its input wires and earlier gate outputs, and T_out is the designated output wire. For each fixed x there is exactly one y in {0,1}^q satisfying the q equivalences; consequently sum_y H_C(x,y)=C(x), interpreting Boolean values as 0 or 1.\nproof: Fix x and construct y in gate order, setting each y_i to gate i's value on x and the already assigned predecessor outputs. This satisfies every equivalence. For uniqueness, induction on i shows that any satisfying y must have the same y_i: its predecessors are fixed inputs or agree with the constructed values by induction, so gate i's function determines y_i. Thus exactly one y satisfies the equivalences. On that y, T_out equals C(x). Hence H_C is 1 for exactly one y if C(x)=1, and is 0 for every y if C(x)=0. Summing over y gives C(x).\nscope: All deterministic Boolean circuits with a fixed topological gate order and the stated H_C encoding. This does not give a bounded-gate translation from EXT residual transitions to H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795462530.488576,
+  "session": "pnp-desk/research/R2260",
+  "model": "gpt-6-luna",
+  "id": "S0431",
+  "proved_step": "statement: Lemma (truth-table transition bound for binary state encodings). Let X be a finite set of D>=1 states, let Y be a finite set of E>=1 states, and let delta_b:X->Y be deterministic for b in {0,1}. Encode X by distinct m=ceil(log2 D) bit strings and Y by distinct r=ceil(log2 E) bit strings, with arbitrary unused strings allowed. Then on valid encodings (x,b), the map (x,b)->code(delta_b(x)) has a fan-in-two AND/OR/NOT circuit of at most r(2^m+1)(m+1) gates.\nProof: For each output coordinate j, form a DNF with one term for each of the D valid input codes x together with each b in {0,1} for which output coordinate j equals 1. The input has m+1 bits. Each term is a conjunction of at most m+1 literals, costing at most m AND gates with fan-in two. There are at most 2D terms, whose OR costs at most 2D-1 gates (or 0 if there are none); input negations are shared and cost at most m+1 gates. Thus one output bit costs at most 2Dm+(2D-1)+(m+1) <= (2^m+1)(m+1) gates because D<=2^m. Repeat independently for r coordinates, giving the claimed bound. Unused encodings may be assigned arbitrary outputs and are irrelevant to the stated valid-input guarantee.\nScope: This is a generic finite transition-function upper bound for arbitrary stationary injective encodings and fan-in-two Boolean gates. It does not exploit MCSP structure, does not bound circuit-description update time uniformly in (n,s), and supplies no lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795462726.0001125,
+  "session": "pnp-desk/research/R2260",
+  "model": "gpt-6-luna",
+  "id": "S0432",
+  "proved_step": "statement: For any fixed n-input Boolean circuit C with s fan-in-two gates, a state (i,a) tracks whether the first k streamed truth-table bits match C: on next bit b, compute c=C(i), set a'=a AND (b iff c), and increment i modulo 2^n. This transition uses O(s+n) gates. Initially (i,a)=(0,1); induction on k proves that i is the next assignment and a records agreement on every bit read. The circuit C is hardwired. This does not bound the cost of merging candidates in EXT.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
