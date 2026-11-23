@@ -2808,5 +2808,75 @@
   "evidence": "Correct implementation of s=1 case: |Im_1| \u2264 m + 16m\u00b2 candidates maintained as state C_t. Update filters candidates: O(m\u00b3) time, O(m\u00b2 log m) bits. Correctness: C_t = {f \u2208 Im_1 : f[0..t-1] = p} by definition, updated correctly. Scope correctly noted: only s=1, general case open. No logical gap found.",
   "review_of": "S0198",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795396182.9579554,
+  "session": "pnp-desk/research/R1876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma states the fundamental Myhill-Nerode property of prefix automata: the residual language after reading prefix p followed by bit b is determined by the residual after p and the bit b. Formally, for any language L and prefix p, the right quotient p^{-1}L = {w : pw in L}. Then (pb)^{-1}L = {w : pbw in L} = {w : bw in p^{-1}L}. This depends only on p^{-1}L and b. The representation R_{pb} = {g>>1 : g in R_p, g&1=b} assumes LSB-first encoding where the next bit is the LSB; the mathematical fact holds for any encoding. My earlier test (cm-580e5e556ecb4b31) had a bug mixing MSB-first prefix check with LSB-first residual computation. When corrected to consistent LSB-first representation, the property holds for all test cases. No counterexample exists; this is a basic fact of automata theory.",
+  "review_of": "S0200",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795396544.9449,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0086: OPEN_UNPROVEN - no counterexample found; formal proof attempt TIME_CAP: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795396654.3894188,
+  "session": "pnp-desk/research/R1876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent exact test (cm-548c65d72bac4770) on (m=2,s=1) finds 2 counterexamples violating the claimed amortized bound First(pb) - First(p) <= |{C : Eval(C) has prefix p, Eval(C)_|p| != b}| + 1. Counterexample 1: t=3, p=0 (binary 000), b=0. First(p)=2, First(pb)=9, count_wrong_bit=2. LHS = 9-2 = 7, RHS = 2+1 = 3. 7 > 3. Counterexample 2: t=3, p=2 (binary 010), b=0. First(p)=1, First(pb)=15, count_wrong_bit=2. LHS = 15-1 = 14, RHS = 3. 14 > 3. The lemma's proof sketch 'scan L from First(p)+1 until a circuit with prefix pb is found; every circuit scanned either has prefix pb (then stop) or has prefix p with wrong bit (counted)' is incorrect: the scan may also pass circuits that do NOT have prefix p at all, which are not counted in the RHS but still consume steps. The original evidence cm-1c25fb0e40094a09 claiming '0 mismatches' is inconsistent with this independent test; it may have tested a different interpretation or had a bug. LEMMA-AMORT as stated is false.",
+  "review_of": "S0205",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795397397.2374506,
+  "session": "pnp-desk/research/R1876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified correctness, space bound O(s log(m+s)) bits, and time bound 2^{O(s log(m+s))} N^{O(1)} for (m,s) in {(2,1),(2,2),(3,1)} via cm-b30686ce61454692. The bound |Circ_s| <= 2(16(m+s)^2)^s holds. The claim correctly notes this is NOT poly(s) time, so G0004 remains open.",
+  "review_of": "S0208",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795397540.8061883,
+  "session": "pnp-desk/research/R1876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified via cm-32eb00dd02b0498e for (m,s) in {(2,1),(2,2),(3,1)}: state bound |Im_s| <= 3(4(m+s)^2)^s holds; MCSP decision via N*T is correct. The lemma logic is sound: minimal prefix automaton transitions computable in T per bit implies MCSP in N*T time by processing all N bits sequentially. This is a verified reduction.",
+  "review_of": "S0212",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795397687.234178,
+  "session": "pnp-desk/research/R1876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified via cm-6c73d55525f24ec5: the counting bound |Circ_s(m)| <= (s+1)(4(m+s)^2)^s holds for (m,s) in {(2,1),(2,2),(3,1),(3,2)}. For constant s, this bound is poly(m), so the per-bit update time O(s|Circ_s(m)|) is poly(m) = poly(log N). The lemma is correct for its stated scope (constant s only).",
+  "review_of": "S0216",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795398609.0328107,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: (1) Counting bound |Circ_s(m)| <= (s+1)(4(m+s)^2)^s is correct: each of k<=s gates chooses 1 of 4 ops and an unordered pair from <= m+s nodes, giving <= 4*C(m+s,2) <= 2(m+s)^2 choices per gate; product over k gates <= (2(m+s)^2)^k; sum k=0..s <= (s+1)(2(m+s)^2)^s <= (s+1)(4(m+s)^2)^s (looser but valid). (2) Update cost: bitmap of size |Circ_s(m)| bits; per input bit t, evaluate each circuit at assignment bin(t) in O(s) time per circuit; total per-bit time O(s * |Circ_s(m)|) = O(s(s+1)(4(m+s)^2)^s). (3) When s=O(1), this is m^{O(1)} = (log N)^{O(1)} = poly(log N). The lemma makes no claim about poly(s) update time (G0003 remains open); it correctly analyzes a specific bitmap-based algorithm. No argument gap found.",
+  "review_of": "S0217",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795398674.630412,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counterexample: Consider a circuit C with s=2 gates: g1 = x0 XOR x1, g2 = x2 XOR x3, output = g1 AND g2. For m=4 inputs, N=16. At prefix length t=2 (first two bits), the residual function depends on all 4 remaining input bits in a way that can produce 4 distinct rows. More systematically: a fan-in-2 circuit with s gates can have up to s+1 live wires (including output). The number of distinct subfunctions obtained by fixing t input bits is bounded by the number of ways the remaining circuit can behave, which is at most 2^{s+1} (each of the s+1 wires can be 0 or 1 depending on remaining inputs). But this is not bounded by 2^{2s} in general - for s=1, 2^{s+1}=4 while 2^{2s}=4, but for larger s the bound 2^{2s} is looser than the actual 2^{s+1}. However, the claimed bound min(2^t, 2^{2s}) is not universally correct: take a circuit that computes a function depending on all m inputs (e.g., parity of all m inputs) which requires s = m-1 XOR gates. Then for t < m, D_t(C) = 2^{m-t} which can exceed 2^{2s} = 2^{2m-2} when m is large? Wait, 2^{m-t} <= 2^m and 2^{2s} = 2^{2m-2}, so 2^{m-t} <= 2^{2m-2} for t >= 2-m? Actually the issue is: the number of distinct residual functions after fixing t bits is at most 2^{number of remaining degrees of freedom}. A fan-in-2 circuit with s gates has at most s+1 internal wires including output. Each residual function is determined by the values of these s+1 wires as functions of the remaining m-t inputs. There are at most 2^{s+1} distinct Boolean functions on the remaining wires? No - each wire's value is a Boolean function of the remaining inputs. The number of possible tuples of (s+1) Boolean functions on (m-t) variables is (2^{2^{m-t}})^{s+1}, which is huge. The bound 2^{2s} is wrong. Concrete counterexample: s=3, circuit computes x0 XOR x1 XOR x2 XOR x3 (needs 3 XOR gates). After fixing t=0 bits, D_0 = 1 (the function itself). After fixing t=1 bit (say x0=0), the residual function is x1 XOR x2 XOR x3, still 1 function. The claim D_t(C) <= min(2^t, 2^{2s}) seems to confuse D_t (number of distinct rows in the prefix automaton at level t) with something else. In the prefix automaton, D_t is the number of distinct equivalence classes of prefixes of length t. For a single circuit's truth table, D_t <= 2^t trivially. But D_t(C) for a SINGLE circuit's truth table? That doesn't make sense - D_t was defined for the IMAGE of Eval over Circ_s(m). The step says 'for every fan-in-2 circuit C with s gates', suggesting D_t(C) is a property of one circuit. If D_t(C) means the number of distinct residual functions of C after fixing t input bits, then for a fixed circuit there is exactly ONE residual function for each prefix, so D_t(C) <= 2^t (number of prefixes). The bound 2^{2s} is meaningless for a single circuit. The lemma is confused. REFUTED.",
+  "review_of": "S0219",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795399260.4779212,
+  "session": "pnp-desk/research/R1892",
+  "model": "gemma-4-31b-it",
+  "evidence": "Notational inconsistency: D_t was defined as the number of distinct rows in the image of Eval over Circ_s(m) (S0227), which is a property of the set of circuits. Step S0220 claims a bound D_t(C) for a single circuit C. For any single circuit, the number of distinct rows (residual functions) over prefixes of length t is at most 2^t, making the bound min(2^t, 2^{2s+1}) either trivial or fundamentally confused about what D_t represents. This follows the same failure mode as S0219.",
+  "review_of": "S0220",
+  "status": "REFUTED"
  }
 ]
