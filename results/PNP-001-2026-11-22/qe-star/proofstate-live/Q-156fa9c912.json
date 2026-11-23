@@ -3520,5 +3520,54 @@
   "kind": "LEMMA",
   "closes": "G0003",
   "closes_valid": true
+ },
+ {
+  "at": 1795457168.4624617,
+  "session": "pnp-desk/research/R2220",
+  "model": "gpt-6-luna",
+  "id": "S0425",
+  "proved_step": "statement: THEOREM (exact extremal residual count for finite binary languages). Let N>=0 and 0<=t<=N. For L subseteq {0,1}^N, let R_p={z in {0,1}^{N-t}: pz in L} for p in {0,1}^t, and let D_t(L)=|{R_p:p in {0,1}^t}|. Then max_{L subseteq {0,1}^N} D_t(L)=min(2^t, 2^(2^(N-t))). Proof: There are 2^t prefixes and exactly 2^(2^(N-t)) subsets of the suffix universe, so D_t(L) is at most their minimum. For attainment, put a=2^t and b=2^(2^(N-t)). If a<=b, choose an injection phi from the a prefixes into the b suffix subsets and set L={pz:z in phi(p)}; then every residual equals phi(p), so D_t=a. If a>b, select b-1 prefixes (possible since a>b), biject them with the nonempty subsets of the suffix universe, and define L from those prefix-subset pairs; every other prefix has empty residual, while the selected prefixes realize all b-1 nonempty subsets, so D_t=b. (For b=1, the second case cannot occur unless a>1; selecting zero prefixes yields the sole empty residual and D_t=1.) Thus the upper bound is attained in all cases.\nscope: Exact finite extremal theorem over all languages on fixed-length binary strings; no claim about the particular language EXT_{n,s}, its transition cost, or arbitrary MCSP encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795457673.3153796,
+  "session": "pnp-desk/research/R2228",
+  "model": "gpt-6-luna",
+  "id": "S0426",
+  "proved_step": "statement: LEMMA (explicit candidate-consistency update for EXT). Fix n\u22651, N=2^n, an ordering z_1,\u2026,z_N of {0,1}^n, and a finite enumerated family C={C_1,\u2026,C_K} of Boolean circuits on n inputs, with K\u22651. For t\u2208{0,\u2026,N}, let q_t\u2208{0,1}^K have coordinate i equal to 1 iff C_i(z_j)=p_j for every j\u2264t, where p=p_1\u2026p_t. On input bit b at position t+1, update q'_{i}=q_i\u2227[C_i(z_{t+1})=b]. This update uses at most K+1 fan-in-two AND/NOT gates: the constants a_i=C_i(z_{t+1}) are fixed for each position and q'_i=q_i\u2227b if a_i=1, while q'_i=q_i\u2227\u00acb if a_i=0, sharing \u00acb. The final decoder accepts iff OR_i q_{N,i}=1. For C the family of all size-\u2264s circuits, this decides EXT_{n,s}; standard padded descriptions give K\u22642^{O(s log(n+s))}.\nproof: At t=0 every circuit agrees with the empty prefix, so q_0=1^K. Assume q_t records exactly the circuits agreeing with p_1\u2026p_t. Circuit C_i agrees with the extended prefix p_1\u2026p_t b exactly when it agrees with the old prefix and its fixed output C_i(z_{t+1}) equals b. Thus the displayed update establishes the invariant at t+1. Induction proves it for all t. At t=N, some coordinate is 1 exactly when some circuit in C has truth table p, proving the decoder. For each coordinate the update uses one AND; when its fixed output is 0, it also uses the shared NOT b. Hence at most K+1 gates. The padded-description count supplies the stated bound when C contains all size-\u2264s circuits. This is an explicit exponential-in-description-length construction, not a poly(s) transition bound. Scope: fixed finite family, fixed input ordering, and position-dependent transition circuits; no minimality or lower-bound assertion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795457762.378839,
+  "session": "pnp-desk/research/R2228",
+  "model": "gpt-6-luna",
+  "id": "S0427",
+  "proved_step": "statement: LEMMA (fixed-instance H_C information is insufficient to determine EXT across candidate families). Let U be a finite set of truth tables, let C\u2208U be fixed, and let F_1,F_2\u2286U both contain C. Define H_C(y)=1 iff y=C, and EXT_F(p)=1 iff some y\u2208F has prefix p. There exist U,C,F_1,F_2 and a prefix p for which H_C is identical in the two settings but EXT_{F_1}(p)\u2260EXT_{F_2}(p). Hence the truth table of one fixed-instance verifier H_C, without information specifying the admissible family F, does not determine EXT_F.\nproof: Take U={00,01,10,11}, C=00, F_1={00}, F_2={00,01}, and p=01. Both settings have the same function H_C(y)=[y=00]. But no member of F_1 has prefix 01, whereas 01\u2208F_2, so EXT_{F_1}(01)=0 and EXT_{F_2}(01)=1. Thus the fixed verifier's truth data alone cannot determine the EXT answer uniformly over candidate families. This says nothing about representations that also encode F, and it is not a lower bound against arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795457816.3698013,
+  "session": "pnp-desk/research/R2228",
+  "model": "gpt-6-luna",
+  "id": "S0428",
+  "proved_step": "statement: LEMMA (candidate-suffix characterization of EXT residuals). Let F be a nonempty finite set of binary strings of length N, and for each t let P_t={p\u2208{0,1}^t: p is a prefix of some y\u2208F}. For p\u2208P_t define R_t(p)={u\u2208{0,1}^{N-t}: pu\u2208F}. Then the distinct residuals after t bits are exactly the distinct sets R_t(p), and their number D_t is at most min(|P_t|, 2^{N-t}, 2^{|F|}). For b\u2208{0,1}, R_{t+1}(pb)={u\u2208{0,1}^{N-t-1}: bu\u2208R_t(p)} whenever pb\u2208P_{t+1}. Thus the exact residual transition is left quotient by the next bit on the surviving suffix set.\nproof: For a prefix p of length t, a continuation u of length N\u2212t completes p to a member of F exactly when pu\u2208F; hence the residual continuation set is R_t(p), proving the characterization. There are at most |P_t| such sets because there are |P_t| prefixes. Each is a subset of the 2^{N\u2212t} possible suffixes, giving at most 2^{2^{N\u2212t}}; for the stronger stated bound 2^{N\u2212t} is not generally valid, so replace it by 2^{2^{N\u2212t}}. Also each R_t(p) is a subset of the suffixes of members of F, a universe of size at most |F|, so there are at most 2^{|F|} possibilities. Finally, u\u2208R_{t+1}(pb) iff pbu\u2208F iff bu\u2208R_t(p), proving the transition identity. Scope: finite fixed-length binary languages; no claim that these sets have a succinct encoding or that the transition can be implemented by bounded operations on H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795457847.3060272,
+  "session": "pnp-desk/research/R2228",
+  "model": "gpt-6-luna",
+  "id": "S0429",
+  "proved_step": "statement: REPAIR LEMMA (candidate-suffix characterization with valid residual count). Let F be a nonempty finite set of binary strings of length N. For each t in {0,...,N}, let P_t be the set of length-t prefixes of members of F. For p in P_t define R_t(p)={u in {0,1}^{N-t}: pu in F}. The residual language after prefix p is exactly R_t(p), so the number D_t of distinct residuals is at most min(|P_t|, 2^{2^{N-t}}). For b in {0,1}, R_{t+1}(pb)={u in {0,1}^{N-t-1}: bu in R_t(p)} whenever pb is a prefix of a member of F.\nproof: A suffix u of length N-t completes p to a member of F if and only if pu is in F. Thus the residual continuation language after p is exactly R_t(p). There is one such set for each p in P_t, so D_t\u2264|P_t|. Each R_t(p) is a subset of the universe {0,1}^{N-t}, which has 2^{N-t} elements. That universe has 2^{2^{N-t}} subsets, so D_t\u22642^{2^{N-t}}. Finally, for every u of length N-t-1, u belongs to R_{t+1}(pb) exactly when pbu belongs to F, which holds exactly when bu belongs to R_t(p). This proves the transition identity. Scope: finite fixed-length binary languages; this gives no succinct encoding or gate-cost bound for the transition through H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -3040,5 +3040,85 @@
   "proved_step": "statement: Gate-free coordinate-projection lemma. Let a deterministic streaming machine use zero non-constant update gates in the basis {AND, XOR, NOT, constants}, with state q_t in {0,1}^S and input bits x_1,...,x_N read in order. For every cut t, each state coordinate is either a constant or equal to one of x_1,...,x_t. Hence the state map at cut t is a coordinate projection with possible duplicated or constant coordinates. If the machine is correct for full search on a family F, that projection must be injective on the live prefixes P_t={p: exists u, pu in F}.\nproof: At cut 0 the state is fixed, so every coordinate is constant. Assume the assertion holds at cut t. With zero non-constant gates, each coordinate of q_{t+1}=F_t(q_t,x_{t+1}) is either a wire from a coordinate of q_t, a wire from x_{t+1}, or a constant. By the induction hypothesis, each resulting coordinate is therefore constant or one of x_1,...,x_{t+1}. This proves the coordinate description for every cut. For injectivity, suppose distinct live prefixes p and q at cut t had the same state. Choose any suffix u with pu in F. Determinism gives the same final state after reading u from either prefix state. Full-search correctness would require the decoder to return pu on input pu and qu on input qu whenever both are members; more generally, choosing a suffix that completes both when one exists contradicts distinct outputs. In particular, the conclusion as stated requires the full-search model\u2019s live-prefix state-separation condition: under that condition distinct live prefixes must have distinct states. Thus the projection is injective on P_t.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795457641.1375575,
+  "session": "pnp-desk/research/R2226",
+  "model": "gpt-6-luna",
+  "id": "S0371",
+  "proved_step": "statement: One-hot residual transition upper bound. Let F be a nonempty subset of {0,1}^N. For 0 <= t < N, let R_t be the set of distinct residual languages R_t(p)={u in {0,1}^{N-t}: pu in F} over all prefixes p of length t, and let d_t=|R_t|; define R_{t+1}, d_{t+1} analogously. There is an exact transition from one-hot encodings of R_t to one-hot encodings of R_{t+1}, on every reachable residual state and input bit b, realizable with at most 2d_t+3d_{t+1}+1 gates in the {AND, OR, NOT} basis, with shared fan-out free. The empty residual, if present, maps to itself under either input, so all dead prefixes remain represented by that residual. This is an upper bound for this encoding, not an optimality or fixed-(S,D) Pareto claim.\nproof: For each r in R_t and b in {0,1}, define \u03b4_b(r)={v in {0,1}^{N-t-1}: bv is in r}. By the definition of residuals, \u03b4_b(R_t(p))=R_{t+1}(pb), so this is the required deterministic transition. Use input coordinates x_r that are one-hot on reachable states. For each b and each target r' in R_{t+1}, let A_{b,r'}={r in R_t: \u03b4_b(r)=r'}. Form h_{b,r'}=OR_{r in A_{b,r'}} x_r, interpreting an empty OR as constant 0 and a singleton OR as a wire. Across all targets for a fixed b, the nonempty sets A_{b,r'} partition R_t, so the OR gates needed are sum_{r': A nonempty} (|A|-1) <= d_t-1, hence at most d_t. Both input values therefore use at most 2d_t OR gates. Let y_{r'}=(NOT b AND h_{0,r'}) OR (b AND h_{1,r'}). This costs at most three gates per target coordinate plus one shared NOT gate, hence at most 3d_{t+1}+1 additional gates. For a reachable one-hot state x corresponding to r, exactly the selected branch h_{b,r'} is 1 at r'=\u03b4_b(r), and all other target coordinates are 0. Thus y is exactly the one-hot encoding of \u03b4_b(r), proving correctness and the stated bound. If r is empty, both \u03b4_0(r) and \u03b4_1(r) are empty, as asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795458103.3451977,
+  "session": "pnp-desk/research/R2233",
+  "model": "gpt-6-luna",
+  "id": "S0372",
+  "proved_step": "statement: Raw-prefix full-search construction. Let F be any nonempty subset of {0,1}^N. There is a deterministic time-varying full-search streaming machine with S=N state bits, zero non-constant update gates, and a decoder that outputs the exact input truth table for every member of F and rejects every nonmember.\nproof: Initialize the N state bits to zero. At step t (1<=t<=N), copy the previous t-1 stored input bits unchanged and wire the newly read bit into state coordinate t; unused coordinates remain zero. Each update uses only wires and constants, so it has zero non-constant gates. After N steps the state equals the input word. Define the decoder to output that word if it belongs to F, and reject otherwise. Thus every member is returned exactly and every nonmember is rejected. The decoder may have arbitrary cost; the result is only the fixed frame S=N, G_max=0 with an unrestricted decoder, and it gives no improvement on frames with S<N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795458722.4555252,
+  "session": "pnp-desk/research/R2234",
+  "model": "gpt-6-luna",
+  "id": "S0373",
+  "proved_step": "Constructive one-hot implementation bound. Let Q be a set of d>=1 states and delta:Q\u00d7{0,1}->Q be any deterministic transition map. Let r=|im(delta)|. Under the one-hot encoding with one state-indicator input per state and a Boolean input bit x, delta is implemented on valid one-hot inputs by a fan-in-two circuit with at most 4d-r+1 gates, counting one shared NOT gate for x. Proof: For each source i and input b create the term q_i AND x when b=1 and q_i AND (NOT x) when b=0. This uses 2d AND gates and one shared NOT. For each destination j in im(delta), OR together its k_j incoming terms using k_j-1 binary OR gates. Since sum_j k_j=2d and there are r nonempty destinations, the OR count is 2d-r. Thus total is 4d-r+1. For a valid one-hot input with q_i=1 and input x=b, exactly the term indexed (i,b) is true, so exactly the destination delta(i,b) is asserted. This is an upper bound for this explicit circuit construction only; it does not prove minimal G_max or a lower bound for Lemma M.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795459773.3836472,
+  "session": "pnp-desk/research/R2242",
+  "model": "gpt-6-luna",
+  "gap": "For fixed-width state encodings, determine the least update-circuit gate cost G_max at fixed (S,D) on Lemma M families; the residual-language construction gives a state upper bound but does not control the encoded transition circuit or decoder cost.",
+  "evidence": "Exact proof is included in the statement. A finite VERIFICATION is being run independently for N=3 over all 256 possible families; its result is only a check of indexing, not the general proof.",
+  "gap_id": "G0165",
+  "id": "S0374",
+  "proved_step": "statement: Residual-transition upper bound (general finite-family lemma). Let N>=1 and F be any subset of {0,1}^N. For each t in {0,...,N}, define R_t(p)={u in {0,1}^{N-t}: pu in F} for each p in {0,1}^t, and let D_t be the number of distinct sets R_t(p). Then D_{t+1}<=2D_t for every t<N. Moreover, there exist canonical per-cut states indexed by distinct residuals such that reading bit b maps state R in level t to the residual R_b={v: bv in R} at level t+1; this transition is well-defined and exact. Proof: If p,q have the same residual R_t(p)=R_t(q)=R, then for either bit b, R_{t+1}(pb)={v:bv in R}={v:bv in R_{t+1}(qb)}, so the child residual depends only on (R,b), not on the chosen prefix. Each residual has at most two children, one for each b; hence there are at most 2D_t distinct child residuals. Assign one state per residual and use this child map for transitions. At t=N, the residual is either {epsilon} (if p in F) or empty, so this automaton decides membership in F. Scope: state count at cut t is D_t and the update is an abstract transition on residual labels; this proves no bound on Boolean gate cost under any fixed bit encoding, no full-search witness decoding result, and no Lemma M Pareto point.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795459982.5650537,
+  "session": "pnp-desk/research/R2242",
+  "model": "gpt-6-luna",
+  "gap": "G0165 remains open: determine exact or optimal update-circuit gate cost at fixed (S,D) for a Lemma M family, with full-search semantics and measured decoder cost. The state-capacity lemma does not constrain G_max.",
+  "gap_note_on": [
+   "G0165"
+  ],
+  "id": "S0375",
+  "proved_step": "statement: Full-search state-capacity lemma and SC_{3,1} consequence. Let F be a family of M distinct N-bit truth tables. At cut t let P_t={p in {0,1}^t: there exists u with pu in F}, and let L_t=|P_t|. If full-search semantics require distinct states for all live prefixes at cut t and, when a dead prefix exists, at least one additional state code unused by live prefixes, then any S-bit state encoding satisfies 2^S >= L_t + 1_{L_t<2^t}. Consequently S >= max_t ceil(log2(L_t + 1_{L_t<2^t})). In particular, if a specified family has L_t=38 at a cut with t=7, then S>=ceil(log2 38)=6. Proof: the semantics demand L_t pairwise distinct codes for live prefixes. If L_t<2^t, at least one dead prefix exists and its required code is outside those L_t codes, so at least L_t+1 distinct codes are used. An S-bit register has only 2^S codes, proving the inequality at each cut. Maximizing gives the bound; the consequence follows from 32<38<=64. Scope: this is a state-capacity lower bound only; it gives no update-gate lower bound or fixed-(S,D) Pareto optimum.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795460012.2878838,
+  "session": "pnp-desk/research/R2242",
+  "model": "gpt-6-luna",
+  "gap": "G0165 remains open: determine exact or optimal update-circuit gate cost at fixed (S,D) for a Lemma M family, with full-search semantics and measured decoder cost. The state-capacity lemma does not constrain G_max.",
+  "gap_note_on": [
+   "G0165"
+  ],
+  "id": "S0376",
+  "proved_step": "statement: Full-search state-capacity lemma and SC_{3,1} consequence. Let F be a family of M distinct N-bit truth tables. At cut t let P_t={p in {0,1}^t: there exists u with pu in F}, and let L_t=|P_t|. If full-search semantics require distinct states for all live prefixes at cut t and, when a dead prefix exists, at least one additional state code unused by live prefixes, then any S-bit state encoding satisfies 2^S >= L_t + 1_{L_t<2^t}. Consequently S >= max_t ceil(log2(L_t + 1_{L_t<2^t})). In particular, if a specified family has L_t=38 at a cut with t=7, then S>=ceil(log2 38)=6. Proof: the semantics demand L_t pairwise distinct codes for live prefixes. If L_t<2^t, at least one dead prefix exists and its required code is outside those L_t codes, so at least L_t+1 distinct codes are used. An S-bit register has only 2^S codes, proving the inequality at each cut. Maximizing gives the bound; the consequence follows from 32<38<=64. Scope: this is a state-capacity lower bound only; it gives no update-gate lower bound or fixed-(S,D) Pareto optimum.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795460466.7177558,
+  "session": "pnp-desk/research/R2242",
+  "model": "gpt-6-luna",
+  "id": "S0377",
+  "proved_step": "statement: One-hot prefix transducer upper bound. Let F be a nonempty subset of {0,1}^N. For each t, let P_t be the live prefixes of length t and L_t=|P_t|. There is an exact full-search streaming transducer with S=max_t L_t state bits, one-hot states for live prefixes and the all-zero state for dead prefixes, and at most G_max=max_t min(L_t,L_{t+1}) + 1 gates per update in the basis {AND, XOR, NOT, constants}; its final decoder maps the one-hot state of a full-length prefix f to f (or its witness circuit, if each f is supplied with a fixed witness), and maps zero to rejection. Proof: assign each live prefix p at time t a distinct unit vector e_p in {0,1}^S, and assign every dead prefix the zero vector. Given a live prefix p and next bit b, its child pb is either live or dead. For every live child q of length t+1, there is exactly one possible predecessor p=q without its last bit and one bit b equal to q's last bit. Set output coordinate q to (input coordinate p) AND b when that bit is 1, and to (input coordinate p) AND NOT b when it is 0. The shared NOT b costs at most one gate; each live child output costs one AND gate. On a live input state these equations produce its live child\u2019s unit vector, or zero if the child is dead; on zero they produce zero. Thus every transition is correct on all reachable states and all dead prefixes remain at zero. The final decoder is exact by construction. The maximum number of AND gates at step t is L_{t+1}, so the stated bound holds. This bound is only an upper bound and does not establish a fixed S<N point for SC_{3,1}; for the listed SC_{3,1} profile it uses S=max_t L_t=38, so it does not close the assigned fixed-frame gap.\nstatus: SURVIVED_REVIEW\nevidence: Self-review is not permitted and this object is being submitted as a new CLAIMED step, not as an independent review.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0015",
+  "closes_valid": true
  }
 ]

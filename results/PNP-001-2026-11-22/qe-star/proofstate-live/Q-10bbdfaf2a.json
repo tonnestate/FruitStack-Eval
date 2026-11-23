@@ -2747,5 +2747,103 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0332: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The checker rejected the only Lean attempt because `Finset.filter` could not infer a proposition from the Boolean-valued assignment. That attempt addressed only a point-cost fact; I did not f (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795457261.0239317,
+  "session": "pnp-desk/research/R2224",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and gate count; no asymptotic or decision-circuit consequence is claimed.",
+  "id": "S0335",
+  "proved_step": "Let f:{0,1}^m->{0,1} depend on exactly r>=1 variables and have w>=1 accepting assignments on those r variables. In the fan-in-two DAG model over all 16 binary Boolean operations, counting input negations as gates and allowing free input wires, f has a circuit of size at most r+wr-1. Proof: compute the negation of each of the r relevant variables once (r gates). For each accepting assignment form its r-literal minterm with r-1 AND gates, then OR the w minterms with w-1 gates. The total is r+w(r-1)+(w-1)=r+wr-1. Irrelevant variables are unused, so the circuit computes f exactly. For r=0, each constant function has size at most one gate. Consequently, if r>=1 and r+wr-1<=s, then f is in MCSP[s]. This is an individual truth-table upper bound and does not imply a lower bound for the MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795457538.2251723,
+  "session": "pnp-desk/research/R2224",
+  "model": "gpt-6-luna",
+  "id": "S0336",
+  "proved_step": "statement: For every m>=2, consider fan-in-two DAG circuits over all 16 binary Boolean gates, with the m input wires free and with no constant wires supplied. Let f:{0,1}^m->{0,1}, and let f_0,f_1 be its restrictions at x_1=0 and x_1=1, viewed as functions on the remaining m-1 variables. If each f_b has a circuit of at most s gates in this same model, then f has a circuit of at most 2s+8 gates. Proof: Lift each cofactor circuit to the m-input model by ignoring x_1. If its output is a nonconstant gate output or an input wire, no adjustment is needed. If its output is constant 0 or 1, generate that constant using x_2: form NOT(x_2) with one gate, then x_2 AND NOT(x_2) for 0 or x_2 OR NOT(x_2) for 1 with one more gate. Each branch output is therefore available at cost at most s+2. Form NOT(x_1), AND it with the f_0 output, AND x_1 with the f_1 output, and OR the products. These four gates implement (NOT x_1 AND f_0) OR (x_1 AND f_1), which equals f on both slices. Total size is at most 2(s+2)+4=2s+8. This bounds individual function complexity and does not imply a lower bound for the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795458135.2384484,
+  "session": "pnp-desk/research/R2232",
+  "model": "gpt-6-luna",
+  "evidence": "The proof is a direct shared-minterm construction in the fan-in-two DAG model. Small boundary computations cm-539a86beb3064e8e agree with the gate formulas for m=2..5 and c=1,2; they are exploratory checks only.",
+  "id": "S0337",
+  "proved_step": "step: For every m>=1, s>=0, and Boolean function f:{0,1}^m->{0,1} whose support has size t, if t>=1 then f has a fan-in-two circuit of at most tm-1 gates when input negations are free, and at most m+tm-1 gates when input negations are charged as gates. Moreover, every restriction of f obtained by fixing any set of input variables has support size at most t, so the same construction bounds every restricted function by tm-1 (free negations) or m+tm-1 (charged negations).\nproof: Let A be the t accepting assignments. For each a in A, form its minterm by ANDing its m literals using m-1 binary AND gates. OR the t minterms using t-1 binary OR gates. This computes f and uses t(m-1)+(t-1)=tm-1 gates, excluding the input negations. If negations are charged, compute each of the m negated input literals once and share them across all minterms, adding at most m gates. For any restriction, each surviving accepting assignment is the projection of one or more elements of A; hence the restricted support has size at most |A|=t. Applying the same construction to the restricted function proves the stated restricted bounds. Thus if tm-1<=s, every such restriction is in MCSP[s] under free negations; if m+tm-1<=s, this holds when negations are charged.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795458280.6095524,
+  "session": "pnp-desk/research/R2232",
+  "model": "gpt-6-luna",
+  "id": "S0338",
+  "proved_step": "statement: Let m>=1, N=2^m, and let f:{0,1}^m->{0,1} have 1<=w<=N-1 accepting inputs. In fan-in-two DAG circuits over all 16 binary Boolean gates, with input wires free and negations charged, let q_1 be the number of input variables appearing negated in at least one accepting minterm and q_0 the number appearing negated in at least one rejecting minterm. Then C(f)<=min(q_1+wm-1, q_0+(N-w)m). Proof: For the first bound compute the q_1 needed input negations once; each accepting minterm is formed with m-1 AND gates, and the w minterms are combined with w-1 OR gates, total q_1+w(m-1)+(w-1)=q_1+wm-1. For the second, compute the q_0 needed negations and form the N-w rejecting minterms and their OR, using q_0+(N-w)(m-1)+(N-w-1) gates; one additional NAND self-gate negates this output, giving q_0+(N-w)m. Each construction computes f exactly. This is an individual-function upper bound and implies no lower bound for the MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795458349.0024831,
+  "session": "pnp-desk/research/R2232",
+  "model": "gpt-6-luna",
+  "id": "S0339",
+  "proved_step": "statement: Let m>=1, let C(f) be the minimum gate count of a fan-in-two DAG circuit over all 16 binary Boolean gates computing f:{0,1}^m->{0,1}, with input wires free and negations charged, and put F_s(f)=1 iff C(f)<=s. For all f,g, |C(f)-C(g)|<=2m d_H(f,g). Consequently, if F_s(f)!=F_s(g), then both C(f) and C(g) belong to [s-2m d_H(f,g), s+2m d_H(f,g)]. Proof: For any row a, its indicator delta_a is computed by negating each input variable whose bit in a is zero, using at most m NAND self-gates, and ANDing the m resulting literals with m-1 gates. Appending one XOR gate to a circuit for h yields h XOR delta_a, which toggles exactly row a and costs at most 2m new gates. Toggle each differing row from f to g to obtain C(g)<=C(f)+2m d_H(f,g); reverse the roles to get the absolute-value inequality. If F_s(f)=1 and F_s(g)=0, then C(f)<=s<C(g); the inequality gives C(f)>s-2md and C(g)<=s+2md. If the labels are reversed, exchange f,g. This is an exact stability statement for individual truth-table complexity and a necessary condition on every label-changing restriction pair; it does not yield gate consumption or a lower bound for circuits computing F_s.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795458486.106609,
+  "session": "pnp-desk/research/R2232",
+  "model": "gpt-6-luna",
+  "evidence": "A direct inductive circuit construction on the prefix trie; the proof accounts for shared negations and at most three binary gates at each nonempty internal prefix.",
+  "id": "S0340",
+  "proved_step": "statement: Let m>=1 and f,g:{0,1}^m->{0,1} differ on D. Let T(D) be the number of nonempty prefixes of elements of D of lengths 0 through m-1. In the fan-in-two Boolean circuit model with free input wires and charged negations, C(g)<=C(f)+m+3T(D)+1.\nproof: Compute each negated input literal once, at cost at most m gates. For every nonempty prefix p of length less than m, construct the indicator h_p of suffixes z such that pz is in D, in decreasing order of prefix length. At length m-1, h_p is either the remaining input bit, its negation, or a constant, requiring no gates beyond the shared negations. At a shorter prefix p, h_p=(\u00acx_{i+1}\u2227h_{p0})\u2228(x_{i+1}\u2227h_{p1}); empty children are represented by 0. This uses at most three fan-in-two gates per nonempty prefix. Hence h_empty, the indicator of D, costs at most m+3T(D). XOR it with a minimum circuit for f using one gate. Since f XOR 1_D equals g pointwise, the claimed circuit bound follows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795459526.2875085,
+  "session": "pnp-desk/research/R2240",
+  "model": "gpt-6-luna",
+  "gap": "This is a local robustness lemma for the individual-table MCSP_s label. It does not bound circuits computing the decision predicate; the assigned superlinear decision-circuit lower-bound obligation remains open.",
+  "gap_id": "G0177",
+  "id": "S0341",
+  "proved_step": "statement: For every m>=1, s>=0, and Boolean functions f,g:{0,1}^m->{0,1} with C(f)<=s<C(g), where C is minimum fan-in-two gate count over all 16 binary Boolean gates with free inputs, d_H(f,g)>=ceil((s+1-C(f))/(2m)). Proof: For each input a on which f and g differ, form its indicator delta_a using at most m gates to negate needed literals and m-1 AND gates, then toggle the current output by one XOR gate. Thus each differing row changes a circuit into one for the next function using at most 2m gates. Applying this to all d_H(f,g) rows gives C(g)<=C(f)+2m d_H(f,g). Since C(g)>=s+1, rearranging yields the stated bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795459744.8662107,
+  "session": "pnp-desk/research/R2240",
+  "model": "gpt-6-luna",
+  "gap": "The direct lower bound for MCSP[m^c] decision circuits of size N(log N)^k remains open. The latest symmetry route cannot transport a boundary witness across all truth-table coordinates: input-variable permutations preserve Hamming-weight shells. Need a different group action or invariant that controls general decision circuits.",
+  "gap_id": "G0178"
+ },
+ {
+  "at": 1795459803.942034,
+  "session": "pnp-desk/research/R2240",
+  "model": "gpt-6-luna",
+  "gap": "G0178 is narrowed: the affine input action generated by translations and coordinate permutations is transitive on truth-table row indices, and translation changes individual function circuit complexity by at most the number of flipped input bits. Thus this action preserves MCSP labels only outside a threshold band of width at most m; behavior within that band and the direct MCSP decision-circuit lower bound remain open.",
+  "evidence": "Complete constructive proof is in the proved_step. The accompanying exploratory symmetry check cm-85b8b7a456b544fd confirmed on m=1,2,3,4 that coordinate permutations preserve Hamming-weight shells and are not transitive on all rows; it is motivation only, not evidence for the general lemma.",
+  "gap_note_on": [
+   "G0178"
+  ],
+  "id": "S0343",
+  "proved_step": "statement: For every m>=1, Boolean function f:{0,1}^m->{0,1}, and a in {0,1}^m, in fan-in-two DAG circuits over all 16 binary gates with free input wires, |C(f(\u00b7 xor a))-C(f)| <= |a|. Proof: Given a circuit for f, replace each input x_i by x_i when a_i=0 and by a single shared NOT(x_i) wire when a_i=1. Each needed negation costs one gate, so this computes x\u21a6f(x xor a) using at most |a| additional gates. Since translation by a is an involution, applying the same construction to f(\u00b7 xor a) gives the reverse inequality. Coordinate permutations cost zero gates by renaming free input wires. Consequently, for any threshold s, translations by a preserve MCSP[s] membership whenever C(f)<=s-|a|, and preserve nonmembership whenever C(f)>s+|a|. The transitive translation action therefore controls labels outside the threshold band but need not preserve labels inside it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795459900.398081,
+  "session": "pnp-desk/research/R2240",
+  "model": "gpt-6-luna",
+  "lemma": "For the specified fan-in-two DAG model, translating the input cube by a changes individual function circuit complexity by at most |a| gates. Consequently, MCSP[s] labels are preserved for functions at least |a| gates below or above the threshold; the band near s remains uncontrolled.",
+  "gap": "The direct lower bound for MCSP[m^c] decision circuits of size N(log N)^k remains open. The translation lemma does not control labels inside the threshold band or imply a lower bound for the decision function.",
+  "evidence": "Complete constructive proof: substitute shared input negations for the coordinates where a_i=1; this adds at most |a| gates. Apply the involution a twice for the reverse inequality.",
+  "gap_id": "G0179"
  }
 ]

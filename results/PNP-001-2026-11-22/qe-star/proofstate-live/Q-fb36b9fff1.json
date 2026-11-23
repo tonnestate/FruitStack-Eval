@@ -246,5 +246,70 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795457148.777022,
+  "session": "pnp-desk/research/R2217",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Let an oracle update circuit have at most g ordinary fan-in-two gates and t oracle gates. Suppose every oracle gate computes a fixed Boolean function on at most Q input bits. There is an oracle-free fan-in-two circuit for the same update with at most g + 3t(2^Q-1) gates, up to constant wiring overhead. In particular, if g,t are polynomial in s and Q <= a log_2(s) for a fixed constant a, the resulting circuit has polynomial size in s. Proof: For each oracle function on q<=Q bits, construct its complete binary decision tree. Each internal node is a 2-to-1 mux, implementable with a constant number (at most three) of fan-in-two Boolean gates, so the tree uses at most 3(2^q-1) gates and computes the truth-table function on every input. Replace each oracle gate by its tree, connecting the original query wires to the tree inputs. In topological order, every replacement returns the same answer as the oracle gate; induction over the original circuit's gate order shows every subsequent wire and the output are unchanged. Summing the costs gives the bound. If Q<=a log_2(s), then 2^Q<=s^a, and polynomial g,t imply polynomial total size. This is only a size statement; uniform construction still requires access to each truth table or an appropriate uniform compiler.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795458369.6454577,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Binary decision tree construction is correct: a depth-q binary decision tree has 2^q leaves, 2^q-1 internal nodes. Each internal node is a 2-to-1 multiplexer (MUX). A MUX with fan-in-2 gates can be implemented as (sel AND a) OR (NOT sel AND b) = 3 gates (AND, NOT, AND, OR). So 2^q-1 MUXes give 3(2^q-1) = O(2^q) gates. Replacing t oracle gates independently gives O(t 2^q). The statement correctly notes no uniform construction from arbitrary oracle is asserted. This is a standard and correct construction.",
+  "review_of": "S0025",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458370.1367009,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard circuit composition: replacing each oracle gate by its known circuit preserves function on all inputs. Topological induction shows all wire values preserved. Gate counts add: g + sum a_i. Wiring overhead is constant (connecting q_i inputs to the replacement circuit's inputs). The uniform compiler condition is correctly stated as conditional. This is a standard and correct construction. No gap.",
+  "review_of": "S0026",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458634.73331,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Classic counting argument: 2^(2^q) functions vs (q+g)^(O(g)) circuits. For g=floor(2^q/(Dq)), (q+g)^(O(g)) < 2^(2^q) for large q. Correct, non-constructive, relativizes. Perfect-matching control does not apply (no explicit function lower bound).",
+  "review_of": "S0027",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458634.7470105,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard decision-tree compilation: a q-bit Boolean function has a complete binary decision tree with 2^q-1 internal nodes, each a 2-to-1 mux implementable with \u22643 fan-in-2 gates. Replacing each oracle gate with its tree preserves all wire values by topological induction. Total gates \u2264 g + 3t(2^Q-1). When g,t=poly(s) and Q\u2264a log\u2082(s), 2^Q\u2264s^a so total is poly(s). Correct circuit-size compilation; uniform construction requires truth-table access. No gap in the size bound.",
+  "review_of": "S0028",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795459072.1884568,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0033",
+  "proved_step": "statement_start: LEMMA (Oracle query length barrier for transfer T0). In the MMW19 Thm 1.2 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT\u1d2c oracle, the oracle queries have length q = \u00d5(s) bits. Any simulation that replaces each oracle gate by its full truth table (as in S0026) yields a standard circuit of size \u03a9(g \u00b7 2^q) = 2^\u00d5(s), which is exponential in the stream parameter s. Since the transfer T0 requires a resource-preserving simulation with poly(s) circuit size to connect streaming bounds to circuit lower bounds via Theorem 4.1, this simulation step FAILS for the MMW19 oracle algorithm. The exact broken step is the claim that the streaming algorithm's oracle transitions can be compiled into a poly(s)-size oracle-free circuit while preserving the update-time bound. MMW19's \u00d5(s)-length queries make the truth-table compilation exponential, and no alternative poly(s) compilation is known for \u03a3\u2083SAT\u1d2c. Therefore, the transfer bound tw(H_{B_C}) \u2264 \u03a8(m,s,S,\u0393) together with Thm 4.1 does NOT exclude the MMW19 oracle algorithm; the oracle gates break the poly(s) simulation premise.\nsession: R2231\nmodel: nemotron-3-ultra-550b",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795459578.2087524,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0034",
+  "proved_step": "statement_start: LEMMA (Formal Oracle Query Length Barrier for Transfer T0). Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a Sigma3SAT^A oracle (Thm 1.2). Its oracle queries have length q = O~(s). For any simulation that replaces each oracle gate by a standard circuit computing the same function on all q-bit inputs, the resulting circuit has size 2^Omega(s) for almost all oracles A. Proof: (1) MMW19 gives q = O~(s). (2) The oracle computes f_A: {0,1}^q -> {0,1} where f_A is Sigma3SAT^A. For random A, f_A is a random function. (3) Shannon's theorem: almost all functions on q bits require circuit size >= (1-o(1)) 2^q / q. (4) With q = c s log^k s, this is 2^{c s log^k s} / (c s log^k s) = 2^Omega(s). (5) Any poly(s)-size simulation would contradict Shannon. (6) Transfer T0 requires poly(s) simulation to apply Theorem 4.1 (streaming-to-circuit connection). (7) Since 2^Omega(s) is not poly(s), the simulation premise fails. Therefore T0 does not exclude the MMW19 oracle algorithm; the oracle gates break the poly(s) simulation premise exactly at the query length q = O~(s).\nsession: R2231\nmodel: nemotron-3-ultra-550b-a55b",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]
