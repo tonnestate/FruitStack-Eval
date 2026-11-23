@@ -2165,5 +2165,40 @@
   "kind": "ALGORITHM",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795471779.9683864,
+  "session": "pnp-desk/research/R2325",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification on 20 random disjoint-support instances (n=10, m=3, supports of varying sizes) plus edge cases (empty supports, negative top weights v_j, f=0 no free variables) - all matched brute force exactly. The formula 2^f * sum_{e>=T} [z^e] prod_j ((2^{|S_j|}-c_j) + c_j z^{v_j}) correctly computes #SAT. The DP over exponents in [-V,V] with V=sum|v_j| correctly implements the Laurent polynomial product. No counterexample found; the constructive proof (independent supports => product of counts, polynomial multiplication groups by total score) is sound.",
+  "review_of": "S0249",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471793.517541,
+  "session": "pnp-desk/research/R2325",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification of the component factorization lemma: tested on 30 random instances with overlapping supports (n=8, m=4), constructing the row-intersection graph, computing connected components, and verifying that the formula 2^{n-|union U_C|} * sum_{e>=T} [z^e] prod_C (sum_e a_C(e) z^e) matches brute force exactly. The proof is sound: components have disjoint variable unions by definition (if two components shared a variable, their rows would be connected via that variable's column), so assignments on different U_C are independent and their top scores add, making polynomial multiplication correct. Variables outside all supports contribute 2^f. The complexity O(sum_C 2^{|U_C|} (|C|+|U_C|) + |C| V) is correct. This only handles bounded component-union width w=O(log n).",
+  "review_of": "S0252",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795474622.593651,
+  "session": "pnp-desk/research/R2338",
+  "model": "gpt-6-luna",
+  "id": "S0255",
+  "proved_step": "statement: Repair of S0002 (signed-weight disjoint-support counting). Let W be an integer m-by-n matrix with pairwise-disjoint row supports S_j, let t,v be integer vectors and T an integer. Define c_j=|{y in {0,1}^{S_j}: sum_{i in S_j} W[j,i]y_i >= t_j}| and L=sum_j max(0,-v_j). Then # {x in {0,1}^n: sum_j v_j [sum_i W[j,i]x_i >= t_j] >= T} equals 2^(n-sum_j |S_j|) times sum_{e>=T+L} [z^e] z^L product_j ((2^|S_j|-c_j)+c_j z^(v_j)). The shifted expression is an ordinary polynomial of degree at most sum_j |v_j|.\nproof: Expand the product, choosing for each j the false-gate term or true-gate term. A truth vector b has exponent sum_j v_j b_j and coefficient equal to the product of its local assignment counts. Disjoint supports make these local choices independent; variables outside the supports contribute 2^(n-sum_j|S_j|). Thus coefficients count assignments aggregated by weighted truth sum. The minimum exponent before shifting is sum_{v_j<0}v_j=-L, so z^L makes every exponent nonnegative. The original condition is equivalent to shifted exponent >=T+L. The maximum shifted exponent is L+sum_{v_j>0}v_j=sum_j|v_j|.\nevidence: Experiment cm-c39705bd9c9e4d99 independently compared against brute force on 420 generated pairwise-disjoint instances with n=0..6, m<5, signed gate weights in [-2,2]. The computation corroborates; the proof establishes the identity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795474911.428362,
+  "session": "pnp-desk/research/R2338",
+  "model": "gpt-6-luna",
+  "evidence": "Discovery experiment: 640 generated signed-weight instances for n=0..7 and m<6; component-convolution results matched direct enumeration in every case. The proof is the componentwise assignment bijection; computation checks the implementation and boundary cases.",
+  "id": "S0256",
+  "proved_step": "statement: Incidence-component factorization lemma. Let W be an integer m-by-n matrix, with gate j depending on support S_j={i:W_{ji} != 0}, integer thresholds t_j, top weights v_j, and target T. Form the bipartite incidence graph between gates j and variables i, with edge ji iff i in S_j. Let its components be C_1,...,C_r; let U_a be the variable vertices in C_a and J_a its gates. Define H_a(z)=sum_{x in {0,1}^{U_a}} z^{sum_{j in J_a} v_j [sum_{i in U_a} W_{ji}x_i >= t_j]}. Then the exact count is 2^{n-|union_a U_a|} times sum_{e>=T}[z^e] product_a H_a(z). Proof: each gate's support lies wholly in one incidence component, and distinct components have disjoint variable sets. Assignments on covered variables therefore decompose uniquely into component assignments, while the total top score is the sum of component scores. Multiplication of the H_a enumerates assignments by total score with multiplicity preserved. Variables outside all U_a are irrelevant and contribute the factor 2^{n-|union U_a|}; selecting exponents e>=T gives exactly the satisfying assignments. If each component has at most b variables, local polynomials are computed by enumerating at most 2^b assignments per component. For polynomially bounded sum_j |v_j|, their convolution has polynomially many score coefficients and can be performed in polynomially many arithmetic operations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
