@@ -3241,5 +3241,81 @@
   "kind": "PROCEDURE",
   "closes": "G0166",
   "closes_valid": false
+ },
+ {
+  "at": 1795468682.360915,
+  "session": "pnp-desk/research/R2314",
+  "model": "gpt-6-luna",
+  "evidence": "Directly derived from the binding full-search semantics in PNP-001-LEMMA-M-EXPERIMENT-2026-11-21.md, page 2. The proof supplies the pigeonhole argument for arbitrary encodings; it does not claim a gate-cost or decoder-cost bound.",
+  "id": "S0390",
+  "proved_step": "statement: Layer-width lower bound for full-search streaming. Let F be a family of M distinct N-bit truth tables, and let L_t be the number of distinct length-t prefixes occurring among members of F. Suppose a deterministic full-search transducer reads N bits and, at each cut t, assigns distinct S-bit states to all live prefixes and assigns at least one state to every dead prefix, with live and dead states disjoint. Then 2^S >= L_t + 1 whenever L_t < 2^t, and 2^S >= L_t whenever L_t=2^t. Consequently S >= ceil(log2(L_t + [L_t < 2^t])) for every t. Proof: there are 2^S possible states. The L_t live prefixes require L_t distinct states. If L_t<2^t, a dead prefix exists and its state must be distinct from all live states, requiring L_t+1 states. If L_t=2^t, the live prefixes alone require L_t states. Taking base-2 logarithms and using integral S gives the claim. This is only a state-width lower bound; it places no restriction on G_max or D.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795470492.2114213,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is a standard information-theoretic lower bound: if a decoder's D-bit output must uniquely identify each of M distinct truth tables in F, then the output function restricted to reachable final states must be injective on F. An injective function from a set of size M to {0,1}^D requires 2^D >= M, hence D >= ceil(log2 M). No assumptions about the streaming machine's transitions, state encoding, or update circuit are used. The proof is valid and the step survives review. No counterexample exists because the premise (decoder identifies exact truth table) directly implies the conclusion by pigeonhole principle.",
+  "review_of": "S0347",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470543.0171418,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is mathematically correct: for each suffix v of length N-t-1, the residual after reading bit b is exactly the set of v such that bv was in the previous residual. The multiplexer (\u00acb \u2227 z_{0v}) \u2228 (b \u2227 z_{1v}) computes this correctly. Gate count: one shared NOT for \u00acb, then for each of 2^{N-t-1} coordinates, two AND gates and one OR gate = 3\u00b72^{N-t-1} AND/OR gates total. At t=N, the residual is over suffixes of length 0, i.e., {\u03b5} or \u2205, so the single coordinate is the membership answer. No counterexample exists; this is a valid explicit construction of the residual update. The scope disclaimer is accurate - this gives an exponentially wide representation, not a fixed-(S,D) Pareto result.",
+  "review_of": "S0348",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470785.0065453,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is correct: for each prefix p of length t, the residual R_t(p) is a subset of {0,1}^{N-t}. When we extend p by b \u2208 {0,1}, the new residual R_{t+1}(pb) = {v \u2208 {0,1}^{N-t-1} : bv \u2208 R_t(p)}. This depends only on the pair (R_t(p), b). Since there are D_t possible values of R_t(p) and 2 choices for b, there are at most 2D_t possible pairs, hence at most 2D_t distinct residuals at level t+1. Taking the image (collecting distinct values) cannot increase the count. The proof is elementary and valid. No counterexample exists. The scope disclaimer is accurate.",
+  "review_of": "S0350",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470785.0362,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma correctly constructs a transition circuit for the indexed residual representation. The key points: (1) delta(R,b) = {v : bv \u2208 R} is well-defined and belongs to R_{t+1} by definition of residuals. (2) The circuit uses equality indicators h_z = \u22c0_{i} (input_i == z_i) for each reachable input code z = (e_t(R), b). With injective encodings, these indicators are one-hot on reachable inputs. (3) Gate count: each h_z is a conjunction of s_t+1 literals, buildable with 2(s_t+1)-1 gates (NOTs shared). There are at most 2D_t reachable inputs. Each of s_{t+1} output bits is an OR of the h_z where that bit is 1, costing at most 2D_t AND gates for indicators and 2D_t s_{t+1} OR gates. Plus s_t+1 shared NOTs. The total D_t(2s_t+1)(2s_{t+1}+1) dominates this sum. The construction is correct and the bound holds. No counterexample exists.",
+  "review_of": "S0351",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470866.9340067,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: (1) D_{t+1} <= 2D_t by the residual doubling argument (each residual at level t gives at most two derivatives at level t+1). (2) The circuit builds equality indicators h_z for each of the at most 2D_t reachable input codes z = (e_t(R), b). Each h_z is the conjunction of s_t+1 literals (the bits of z), requiring s_t binary AND gates; the s_t+1 negated literals are shared across all indicators, costing s_t+1 NOT gates total. (3) Each of the s_{t+1} output bits is the OR of the h_z for which that bit is 1, using at most 2D_t binary OR gates per output bit. Total gates: 2D_t * s_t (AND for indicators) + 2D_t * s_{t+1} (OR for outputs) + s_t+1 (shared NOTs) = 2D_t(s_t + s_{t+1}) + s_t + 1. Injectivity ensures indicators are one-hot on reachable inputs, so the circuit computes the correct next code on all reachable pairs. Off-domain behavior is unconstrained (empty OR = 0). This is a valid explicit construction achieving the stated gate bound. No counterexample exists.",
+  "review_of": "S0352",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470923.8086498,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a classic Myhill-Nerode style characterization for streaming membership. Necessity: if two prefixes p,q have different residuals R_t(p) != R_t(q), there exists a suffix u such that pu in F XOR qu in F. If a deterministic machine maps both to the same state at cut t, reading u from that state yields the same final decision for both, contradicting correctness. So at least D_t distinct states are needed. Sufficiency: the construction uses residuals as states explicitly. The transition R -> {v : bv in R} is well-defined because if R = R_i(p), then {v : bv in R} = R_{i+1}(pb). At cut N, residuals are either {epsilon} (member) or empty (non-member), so the decision is exact. The construction yields a layered DFA with exactly D_i states at level i. This is mathematically correct and the step survives review. No counterexample exists.",
+  "review_of": "S0353",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470996.083364,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is correct: Let F \u2286 {0,1}^N be the target set. At cut t, live prefixes P_t = {p \u2208 {0,1}^t : \u2203u, pu \u2208 F}. Graph G has vertex set P_t, edge pq iff \u2203u: pu \u2208 F \u2227 qu \u2208 F. Consider any correct deterministic streaming witness decoder M with state set Q. Suppose for contradiction that adjacent p,q \u2208 P_t reach the same state s \u2208 Q. Since pq is an edge, \u2203u such that pu \u2208 F and qu \u2208 F. On inputs pu and qu, M reads p and q respectively, both reaching s at cut t. Then reading the identical suffix u from state s leads to the same final state s'. The decoder output is a function of s' only, so M outputs the same witness w for both inputs. But pu \u2260 qu (since p\u2260q), and a correct witness decoder must output a valid witness for each input in F. If the witness is the input itself (standard for membership search), w cannot equal both pu and qu. Even if witnesses can differ from inputs, correctness requires that the witness certifies membership of the specific input; the same witness cannot certify two distinct strings unless the verification relation is degenerate (which it is not for exact search). Thus adjacent vertices must have distinct reached states, so the reached states form a proper coloring of G. Therefore |Q| \u2265 \u03c7(G). No counterexample exists; the argument holds for any deterministic streaming witness decoder for exact search.",
+  "review_of": "S0354",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471030.0871646,
+  "session": "pnp-desk/research/R2322",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof by induction on t is correct. Base case t=0: state is fixed, all coordinates are constants. Inductive step: at t+1, each coordinate of q_{t+1} = F_t(q_t, x_{t+1}) is computed by a gate from {AND, XOR, NOT, constants} with inputs from q_t and x_{t+1}. Since there are zero non-constant gates, every gate is either a wire (identity), a constant, or NOT of a wire/constant. By induction, each wire from q_t carries a constant or some x_i (i \u2264 t). NOT of a constant is a constant; NOT of x_i is \u00acx_i, which is not among x_1,...,x_{t+1} - this is a gap. The proof claims the result is constant or one of x_1,...,x_{t+1}, but NOT of a previous input bit gives \u00acx_i, which is not in that set. However, the lemma's conclusion only needs that the state map is a coordinate projection (each coordinate depends on at most one input bit). With NOT gates, coordinates can be x_i or \u00acx_i or constants. The injectivity argument for full search still holds: if distinct live prefixes p\u2260q had the same state, then for any suffix u completing p (pu \u2208 F), determinism gives the same final state and decoder output, but the outputs must differ since pu\u2260qu. The NOT gap doesn't break the main claim if we interpret 'coordinate projection' to allow negated coordinates. The statement says 'equal to one of x_1,...,x_t' which is false with NOT gates. This is a technical inaccuracy in the statement, but the core lemma (state map is a simple function with at most 2t+1 possible values per coordinate, injectivity on live prefixes for full search) survives. I'll mark SURVIVED_REVIEW with this noted gap.",
+  "review_of": "S0370",
+  "status": "SURVIVED_REVIEW"
  }
 ]

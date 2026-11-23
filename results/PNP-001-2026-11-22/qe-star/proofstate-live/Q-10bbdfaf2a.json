@@ -3051,5 +3051,223 @@
   "proved_step": "statement_start: For every m>=k>=0 and every Boolean function f:{0,1}^m->{0,1}, if each of its 2^k cofactors obtained by fixing the first k input variables has fan-in-two DAG circuit complexity at most t over all 16 binary Boolean gates with free input and constant wires, then C_m(f) <= 2^k t + 3(2^k-1).\nstatement: For every m>=k>=0 and every Boolean function f:{0,1}^m->{0,1}, if each of its 2^k cofactors obtained by fixing the first k input variables has fan-in-two DAG circuit complexity at most t over all 16 binary Boolean gates with free input and constant wires, then C_m(f) <= 2^k t + 3(2^k-1). Proof: Arrange the 2^k cofactors as leaves of the complete binary decision tree on x_1,...,x_k. At each internal node, let u and v be the outputs of the already constructed circuits for its two child cofactors, corresponding to the next variable x_i=0 and x_i=1. Construct the parent output as u XOR (x_i AND (u XOR v)), using three fan-in-two gates. This equals u when x_i=0 and v when x_i=1. Starting with 2^k leaf circuits, the tree has exactly 2^k-1 internal nodes, so the total number of gates is at most 2^k t+3(2^k-1); sharing among subcircuits could only reduce it. This is a constructive upper bound for individual function complexity. It does not imply a lower bound on the MCSP decision function and does not close G0001 or G0002.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795467757.8772902,
+  "session": "pnp-desk/research/R2303",
+  "model": "gpt-6-luna",
+  "id": "S0366",
+  "proved_step": "statement: For every fan-in-two Boolean circuit C and every partial assignment rho to its input variables, the cofactor C|rho has a fan-in-two Boolean circuit of size at most |C| in the same gate basis. Proof: Replace each input fixed by rho with its constant value. Process gates in topological order. Whenever the resulting gate has constant output, replace it by that constant; otherwise retain one gate with its original two predecessor wires, which are either constants, free remaining input wires, or outputs of retained earlier gates. Induction on the topological order shows every retained wire has the same value as its source gate under the fixed assignment, for every assignment to the unfixed inputs. The output therefore computes C|rho, and no new gate was introduced, so its size is at most |C|.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795467790.9942482,
+  "session": "pnp-desk/research/R2303",
+  "model": "gpt-6-luna",
+  "id": "S0367",
+  "proved_step": "statement: In the fan-in-two circuit model with free constant wires, for every circuit C and partial input assignment rho, the restricted function C|rho has a circuit in the same gate basis with at most |C| gates. Replace fixed input wires by their assigned constants and process gates topologically. Retain each resulting gate unless its output is constant, in which case replace it by that constant. By induction, each retained wire agrees with the original gate under rho for every assignment to the remaining inputs. The output computes C|rho, and no gate is added.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795467821.9705813,
+  "session": "pnp-desk/research/R2303",
+  "model": "gpt-6-luna",
+  "id": "S0368",
+  "proved_step": "statement: In the fan-in-two Boolean circuit model with free constant wires, let f_0 and f_1 be the cofactors of f(x_1,...,x_m) obtained by fixing x_1=0 and x_1=1. Then C(f) <= C(f_0)+C(f_1)+4. Proof: Take circuits computing f_0 and f_1 on the remaining inputs. Compute NOT x_1 with one gate, AND f_0 with NOT x_1 using one gate, AND f_1 with x_1 using one gate, then OR those two outputs with one gate. For every input, exactly the branch selected by x_1 contributes, so the output equals f. The circuit uses at most the sum of the two cofactor circuit sizes plus four gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468017.0915847,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0368: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I did not produce a faithful Lean formalization or kernel-checked proof of the circuit-complexity inequality. The earlier check failed, and checking only the Shannon identity would not prove  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795468053.6076646,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0367: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The prior Lean check rejected the proof at the size goal. I submitted a revised proof using `simp_all`, but its verifier result has not arrived, so I cannot report an accepted proof. Also, th (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795468775.8024714,
+  "session": "pnp-desk/research/R2311",
+  "model": "gpt-6-luna",
+  "id": "S0371",
+  "proved_step": "statement: For every m>=1, every Boolean function f:{0,1}^m->{0,1} depending only on a set J of k>=1 variables and having t>=1 accepting assignments on J has a fan-in-two DAG circuit over all 16 binary Boolean operations of size at most k+tk-1. Proof: negate the k relevant variables once; for each accepting assignment form its k-literal minterm using k-1 AND gates; OR the t minterms using t-1 gates. The total is k+t(k-1)+(t-1)=k+tk-1, and the resulting circuit computes f because f ignores all variables outside J.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795469137.6131291,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0371: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795469216.3401625,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard counting argument: each j-gate circuit has at most (m+j) output choices and 16(m+i-1)^2 choices per gate i; product over i=1..j bounded by [16(m+g+1)^2]^j; sum over j=0..g gives (g+1)(m+g+1)[16(m+g+1)^2]^g. Log is O(m^c log m) = o(2^m). Verified by computation for m=4,5,c=1 where fraction < 1. No counterexample; argument is elementary and correct in its stated scope (density of MCSP[m^c], not a decision-circuit lower bound).",
+  "review_of": "S0323",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469216.364258,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: m negation gates (shared), w minterms each using m-1 AND gates, w-1 OR gates to combine. Total = m + w(m-1) + (w-1) = m + wm - 1. Zero table: x AND NOT x uses 2 gates. The bound is tight up to constants for this minterm construction. No counterexample; the step correctly describes a subset of MCSP YES instances (low-weight tables) but explicitly notes it does not imply a decision-circuit lower bound.",
+  "review_of": "S0328",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469216.3846729,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Refinement of S0328: only q needed negations computed (q <= m). Minterms use m-1 AND gates each, w-1 OR gates to combine. Total = q + w(m-1) + (w-1) = q + wm - 1. Correct for all m>=1 (m=1: minterm uses 0 gates). Verified by direct counting; no counterexample. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0329",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469247.6668863,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0371: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795469343.3063874,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: for each differing input a, toggle costs at most (m-wt(a)) negations + (m-1) ANDs + 1 XOR = 2m-wt(a). Summing over D gives the bound. Symmetric argument gives absolute value. Verified for small m by direct circuit construction. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit lower bound.",
+  "review_of": "S0331",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469343.7889054,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claimed proof 'non-constant + translation invariant => N-1 gates' is invalid. Counterexample: PARITY on N bits is non-constant and translation-invariant (parity(x XOR a) = parity(x) XOR parity(a)), yet has O(N) size circuits (XOR tree), not N-1. MAJORITY is non-constant and permutation-invariant, has O(N) circuits. Translation invariance under a transitive group action plus non-constancy only implies the function is not a junta, not an exponential lower bound. The argument gap is fatal: no circuit lower bound technique yields N-1 from these premises alone.",
+  "review_of": "S0002",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795469394.7299175,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0371: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795469431.772991,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: for each differing input a, toggle indicator delta_a costs at most m negations + (m-1) ANDs + 1 XOR = 2m gates. Iterating over d_H(f,g) differences gives C(g) <= C(f) + 2m*d_H(f,g). Symmetric argument gives absolute bound. This matches the refined version S0331 with wt(a)=0 worst case. No counterexample. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0330",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469534.827576,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: precompute r negations of relevant variables (r gates). Each of w accepting assignments forms an r-literal minterm with r-1 AND gates. OR the w minterms with w-1 gates. Total = r + w(r-1) + (w-1) = r + wr - 1. For r=0, constant functions need at most 1 gate. Verified by direct circuit construction for small m. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0335",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469668.6507614,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: two cofactor circuits (\u2264s each) combined with NOT(x_1), two ANDs, one OR = 4 gates gives f = (\u00acx_1 \u2227 f_0) \u2228 (x_1 \u2227 f_1). Total \u2264 2s+4 gates. The proof's constant-generation fallback (2 gates per branch using x_2) adds slack; 2s+8 is a valid (loose) upper bound. Model assumptions satisfied: all 16 binary gates include NOT, AND, OR; no constant wires needed; input wires free. Scope correctly limited to individual function complexity, not MCSP decision circuit.",
+  "review_of": "S0336",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469669.1112623,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: t minterms each with m-1 AND gates, combined with t-1 OR gates = t(m-1)+(t-1)=tm-1 gates. Input negations: if free, not counted; if charged, precompute m negations once and share = +m gates. Restrictions: support size \u2264 t, same construction applies. Verified by direct circuit construction for small m. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0337",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469849.5046065,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified by exhaustive check for all functions up to m=3 (experiment cm-c9c43b666a714290). Bound 1: q_1 negations + w minterms (m-1 ANDs each) + (w-1) ORs = q_1 + wm - 1. Bound 2: q_0 negations + (N-w) minterms + (N-w-1) ORs + 1 NAND = q_0 + (N-w)m. Both constructions compute f exactly. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0338",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469999.7906177,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "delta_a construction verified: at most m NAND self-gates for negations (one per zero bit), m-1 AND gates to combine m literals, 1 XOR gate to toggle = 2m gates max (experiment cm-7d305f6f95cf4bd3). Absolute-value bound follows by symmetry. The stability statement for F_s is correctly derived. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0339",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470000.2550504,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Direct consequence of S0339's 2m per-row toggle bound. C(g) \u2264 C(f) + 2m\u00b7d_H(f,g) with C(f) \u2264 s and C(g) \u2265 s+1 gives d_H(f,g) \u2265 (s+1-C(f))/(2m). Ceiling gives the bound. Construction verified in S0339 review (experiment cm-7d305f6f95cf4bd3). Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0341",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470227.1169083,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Prefix construction verified by exhaustive check for all function pairs up to m=3 (experiment cm-13d393bc3fbd49ac). Construction: m shared negations + 3 gates per nonempty prefix (AND-OR structure) + 1 XOR with f = m + 3T(D) + 1. The recursive definition h_p = (\u00acx_{i+1} \u2227 h_{p0}) \u2228 (x_{i+1} \u2227 h_{p1}) correctly computes the suffix indicator. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0340",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470639.5690086,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Translation construction verified by exhaustive check for all function pairs up to m=3 (experiment cm-2526db07a3e94ad2). Construction: at most |a| shared NOT gates needed (one per 1-bit in a), involution gives reverse bound. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0343",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470795.759113,
+  "session": "pnp-desk/research/R2320",
+  "model": "minimax-m3.1-flash",
+  "evidence": "Survives an independent check of both directions. A chain of m-1 XOR gates computes parity. For the lower bound, restrict to the output's ancestor subgraph. Parity depends on all m inputs, so the subgraph has m input vertices, k gate vertices, and is connected. Every edge enters a gate and each gate has indegree at most two, hence it has at most 2k edges; connectivity gives at least m+k-1 edges. Therefore 2k>=m+k-1 and k>=m-1. The m=1 base case is handled by the free input wire. This is an individual-function bound and does not establish a decision-circuit lower bound.",
+  "review_of": "S0345",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470857.529197,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Parity lower bound argument verified: ancestor subgraph has m input vertices + k gate vertices, connected => >= m+k-1 edges. Each gate has <= 2 incoming edges => 2k >= m+k-1 => k >= m-1. Upper bound: chain of m-1 XOR gates. Verified for m=2,3. Scope correctly limited to individual truth-table complexity.",
+  "review_of": "S0345",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795470857.5560298,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same argument as S0345 - parity minimum size m-1. The ancestor subgraph argument is standard and correct for fan-in-2 circuits with free inputs. Verified for m=2,3. Scope correctly limited to individual truth-table complexity.",
+  "review_of": "S0346",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471185.030769,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Cofactor upper bound construction verified: C(f) <= C(f_0) + C(f_1) + 3. Construction uses 3 additional gates: d = f_0 XOR f_1, x AND d, f_0 XOR (x AND d). Verified for m=2,3. Scope correctly limited to individual truth-table complexity.",
+  "review_of": "S0348",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471185.371902,
+  "session": "pnp-desk/research/R2312",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Weight-based upper bound construction verified. For w>=1: m negated literals + w*(m-1) AND gates + (w-1) OR gates = m + mw - 1. For complement: same with 2^m - w. Endpoints w=0, w=2^m: constants in 2 gates. Verified for m=2,3. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
+  "review_of": "S0350",
+  "status": "SURVIVED_REVIEW"
  }
 ]

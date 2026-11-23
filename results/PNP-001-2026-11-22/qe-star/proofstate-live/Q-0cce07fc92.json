@@ -522,5 +522,60 @@
   "evidence": "CONFIRM REFUTATION (independent family: nemotron). The proof proposes padding real oracle queries shorter than ell to length ell. For Sigma3SAT^A, a query is a pair (phi, a) where phi is a 3CNF formula and a is an assignment. Appending padding bits to phi or a changes the formula/assignment, so the oracle answer can change. No general padding invariance holds for Sigma3SAT^A. Dummy queries for unused slots do not fix the problem for real queries that are shorter than ell. The construction fails unless the oracle language is padding-invariant, which Sigma3SAT^A is not. This confirms R1805's refutation.",
   "review_of": "S0017",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795467826.7090454,
+  "session": "pnp-desk/research/R2306",
+  "model": "gpt-6-luna",
+  "gap": "A different-family review is needed. The lemma repairs the input-head counter cost only; the tableau-scope and streaming lower-bound hypotheses remain open.",
+  "gap_id": "G0010",
+  "id": "S0064",
+  "proved_step": "statement: LEMMA (bounded stage-circuit simulation). Fix a deterministic Turing machine with fixed finite state set and tape alphabet. Let its configuration contain S>=1 work-tape cells, one work-tape head, and an input-head position in {0,...,N}. For every integer tau>=1, the map taking an initial configuration and the sequence of the tau input symbols scanned during the next tau steps to the resulting configuration is computed by a fan-in-2 Boolean circuit of size O(tau*(S+log(N+1))).\nproof: Encode each work-tape symbol with a constant number of bits, the work head with S one-hot bits, the state with a constant number of bits, and the input-head position with L=ceil(log2(N+1)) bits. In one step, each scanned work-symbol bit is the OR over the S cells of the AND of that cell's head bit and symbol bit, using O(S) fan-in-2 gates. The fixed transition table computes the new state, written symbol, and head movements with O(1) gates after the scanned symbols are known. Updating all S work cells and one-hot head bits takes O(S) gates. The input-head position changes by at most one; binary increment, decrement, and stay circuits each use O(L) fan-in-2 gates, so selecting and applying the move costs O(L). Thus one step costs O(S+L). Compose tau copies, connecting the scanned input symbol for each step to the corresponding supplied symbol. Circuit composition adds their sizes, giving O(tau*(S+L))=O(tau*(S+log(N+1))).\nscope: Fixed machine, fixed alphabet and state set; bounded work tape; explicit supplied scanned-symbol sequence. Does not imply O(tau*S) when S<log(N+1), model RAM addressing costs, establish oracle-query padding, or close the broader streaming lower-bound obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795467966.5075686,
+  "session": "pnp-desk/research/R2306",
+  "model": "gpt-6-luna",
+  "gap": "A new constructive one-step lemma is claimed; independent review remains necessary. The finite check does not establish the asymptotic bound.",
+  "gap_id": "G0011",
+  "id": "S0065",
+  "proved_step": "statement: LEMMA (explicit-input bounded one-step simulation). For a fixed deterministic single-work-tape Turing machine with finite tape alphabet and state set, on S>=1 work cells and input-head positions 0..N, one transition given the currently scanned input symbol explicitly is computed by a fan-in-2 Boolean circuit of O(S+log(N+1)) gates, including clamped work-head and input-head moves.\nproof: Encode work symbols and state with constant-width bit strings, the work-head position with S one-hot bits, and the input-head position with L=ceil(log2(N+1)) bits. For each work-symbol bit, OR together the S terms h_i AND c_i, costing O(S) fan-in-2 gates. The fixed transition table computes the new state, written symbol, and movement choices with O(1) gates. Mux each cell between its old symbol and the write symbol using h_i, costing O(S) gates. Each next work-head indicator is a fixed Boolean combination of neighboring indicators and movement bits, with boundary indicators implementing clamping; this costs O(S). Binary increment/decrement/stay logic updates the input-head position in O(L) gates. The total is O(S+L)=O(S+log(N+1)); all outputs are determined for every legal configuration and supplied input symbol.\nscope: One transition of a fixed finite-state, finite-alphabet single-work-tape machine, with explicit supplied scanned input symbol and clamped heads. Does not cover RAM random access, oracle gates, or the streaming lower-bound transfer.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468216.4285786,
+  "session": "pnp-desk/research/R2306",
+  "model": "gpt-6-luna",
+  "id": "S0066",
+  "proved_step": "statement: LEMMA (exact-length oracle-query simulation). Let A be any language over {0,1}*, and suppose an oracle query is presented as a string y of length k, where 0<=k<=L, together with an encoding of k and the L-bit padded storage y[1..L]. In an oracle-circuit model that permits an A-gate on each exact-length string, the answer 1[y in A] is computable with at most L+1 A-gates and O(L log(L+2)) ordinary gates, without changing the semantics of any real query. Consequently q such queries require at most q(L+1) A-gates. Proof: For each j in {0,...,L}, create an A-gate whose input is exactly y[1..j] (the empty string for j=0). Compute the equality indicator [k=j] using O(log(L+2)) fan-in-2 gates per j, and output the OR over j of [k=j] AND A(y[1..j]). Exactly one equality indicator is true, namely j=k, so the output equals A(y) and no query is padded. Summing gate counts gives the stated bounds.\nscope: An exact-length A-oracle circuit with explicit binary length and padded storage. This repairs only the query-padding operation; it does not assert that the resulting circuit conforms to MMW19's oracle-circuit model or establish a streaming lower bound.\nproof: For each possible length j from zero through L, issue the oracle query on exactly the j-bit prefix. Compute [k=j] for each j, and OR the conjunctions of these indicators with their respective oracle answers. Since k is the actual query length, exactly one term is selected, preserving A-query semantics. There are L+1 oracle gates and O((L+1)log(L+2)) ordinary gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795469038.9602199,
+  "session": "pnp-desk/research/R2315",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is sound: single-tape TM with S work cells, one-hot head encoding, binary input-head position (L=ceil(log2(N+1))). Scanned symbol via OR of (head_i AND symbol_i) costs O(S) per bit. Fixed transition table O(1). Work cell updates and head movement O(S). Input-head increment/decrement/stay O(L). One step O(S+L). Compose tau copies for O(tau*(S+L)). No counterexample found; boundary clamping implicit in one-hot head update. Scope limitations correctly noted.",
+  "review_of": "S0064",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469222.9137924,
+  "session": "pnp-desk/research/R2315",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction matches S0064 one-step analysis with explicit clamping and MUX details. Computational verification (cm-9eb7aefc303e4fef) confirms gate counts scale as Theta(S + log N) with constant ratio ~18 across S=1..1000, N=10..10000. Scanned symbol O(S), transition O(1), work cell MUX O(S), work head update O(S) with boundary clamping, input head binary inc/dec/stay O(L). Total O(S+L)=O(S+log(N+1)). No counterexample found.",
+  "review_of": "S0065",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795469222.930288,
+  "session": "pnp-desk/research/R2315",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is valid for the stated oracle-circuit model. Given y of length k (0<=k<=L) padded to L bits, create L+1 A-gates on prefixes y[1..j] for j=0..L. Compute equality [k=j] with O(log L) gates each. OR over j of ([k=j] AND A(y[1..j])) selects exactly the j=k term, outputting A(y). Other A-gate outputs are masked by 0. Uses L+1 A-gates and O(L log L) ordinary gates. Works for ANY language A (no padding invariance required) because only the correct-length query's answer is used. Scope caveat correctly noted: does not assert conformance to MMW19's specific oracle model.",
+  "review_of": "S0066",
+  "status": "SURVIVED_REVIEW"
  }
 ]

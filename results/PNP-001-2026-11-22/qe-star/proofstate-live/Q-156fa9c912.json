@@ -3638,5 +3638,68 @@
   "kind": "LEMMA",
   "closes": "G0003",
   "closes_valid": true
+ },
+ {
+  "at": 1795467793.9074707,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "id": "S0437",
+  "proved_step": "statement: LEMMA (EXT transition information). Let C be a fixed Boolean circuit on n input bits, let E_C be its truth table in a fixed order, and define EXT_C(p)=1 exactly when p is a prefix of E_C. At a prefix p of length t, the next-bit EXT transition values are determined by the pair (EXT_C(p0), EXT_C(p1)); specifically, if p is a prefix of E_C then exactly one of these values is 1 when t<2^n, and the value for b is 1 iff E_C[t]=b. Proof: By the definition of prefix, p0 is a prefix of E_C iff p is a prefix and the next symbol E_C[t] equals 0; likewise p1 is a prefix iff p is a prefix and E_C[t] equals 1. Since E_C[t] is a Boolean value, exactly one case holds. If p is not a prefix, neither extension is a prefix. This identifies the information needed for the transition at a reachable state as the next truth-table bit E_C[t], together with reachability; it does not provide a bounded-cost circuit representation of that information from H_C. Scope: fixed C, its exact truth table, and all prefix lengths t<2^n.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795468100.095367,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "id": "S0438",
+  "proved_step": "statement: LEMMA (deterministic transcript projection recurrence). Let T_1,...,T_m be Boolean functions where T_i takes x and y_1,...,y_{i-1} and returns one bit, and let A(x,y) be any Boolean acceptance predicate. Define H(x,y)=A(x,y) AND AND_{i=1}^m [y_i=T_i(x,y_{<i})]. For 0<=i<=m and a prefix u in {0,1}^i, define E_i(x,u)=1 iff there exists y_{i+1},...,y_m such that H(x,u,y_{i+1},...,y_m)=1. Then E_i(x,u)=E_{i+1}(x,u,T_{i+1}(x,u)) for i<m. Thus existentially projecting H onto transcript prefixes yields a deterministic next-bit recurrence, but its circuit cost includes evaluating T_{i+1} and E_{i+1}; it gives no bounded-operation representation or bound for an arbitrary MCSP decision circuit.\nproof: Fix x,u. Every transcript satisfying H must have next bit T_{i+1}(x,u). Any completion witnessing E_i therefore gives a completion witnessing E_{i+1} at that forced longer prefix. Conversely, a completion witnessing E_{i+1} at the forced prefix, preceded by that bit, satisfies all transcript constraints and A, so witnesses E_i. The two predicates are equal. This is only a projection identity; it does not show that E_i is efficiently representable.\nscope: All finite Boolean x domains, all m>=1, arbitrary Boolean transition functions T_i and acceptance predicate A. No bound on representation or evaluation cost of T_i or E_i.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468152.9933903,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "id": "S0439",
+  "proved_step": "statement: LEMMA (deterministic transcript projection recurrence). Let X be any Boolean domain, m>=1, T_i:X\u00d7{0,1}^{i-1}->{0,1} for 1<=i<=m, and A:X\u00d7{0,1}^m->{0,1}. Define H(x,y)=A(x,y) AND \u2227_{i=1}^m [y_i=T_i(x,y_1,...,y_{i-1})]. For 0<=i<=m and u\u2208{0,1}^i, define E_i(x,u)=1 iff there exists z\u2208{0,1}^{m-i} with H(x,u,z)=1. Then for every i<m, E_i(x,u)=E_{i+1}(x,u,T_{i+1}(x,u)). Proof: any satisfying completion after u must use the forced next bit T_{i+1}(x,u), so its suffix witnesses the right side. Conversely, a suffix witnessing the right side, prefixed by that forced bit, satisfies every transcript constraint and A, hence witnesses the left side. This is an exact recurrence only; it gives no circuit-size or evaluation-time bound for T_{i+1} or E_{i+1}.\nscope: All Boolean domains X, all integers m>=1, all deterministic Boolean transition functions T_i and acceptance predicates A.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468248.8140316,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "id": "S0440",
+  "proved_step": "statement: LEMMA (exact binary extension decomposition for EXT). Fix n,s and let F_{n,s} be the set of truth tables of Boolean circuits on n input bits of size at most s, with a fixed basis and size convention. For 0<=k<2^n, let L_k be the length-k prefixes of members of F_{n,s}. For every p in {0,1}^k, p is in L_k iff p0 or p1 is in L_{k+1}. Equivalently, EXT_k(p)=EXT_{k+1}(p0) OR EXT_{k+1}(p1). Proof: If p is a prefix of a truth table f in F_{n,s}, its next bit f(k) is either 0 or 1, so p f(k) belongs to L_{k+1}. Conversely, if p b is a prefix of some f in F_{n,s}, then its length-k prefix p is also a prefix of f. This is exact for any fixed family of complete truth tables. It yields no bound on the number of distinct prefixes, transition representation cost, or evaluation cost.\nscope: All fixed circuit families F_{n,s}, all 0<=k<2^n, with truth-table prefixes in the standard fixed input ordering.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468292.270127,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "id": "S0441",
+  "proved_step": "statement: LEMMA (explicit one-hot residual update bound). Let L be a finite binary language, and let R_t be its set of distinct residual languages after prefixes of length t, with D_t=|R_t| and D_{t+1}=|R_{t+1}|. Encode the current residual by one Boolean coordinate x_R per R in R_t, with exactly one coordinate equal to 1. For Q in R_{t+1} and b in {0,1}, let P_b(Q) be the set of level-t residuals whose b-successor is Q, and define z_{Q,b}=OR_{R in P_b(Q)} x_R, with an empty OR equal to 0. On input bit b, output y_Q=((NOT b) AND z_{Q,0}) OR (b AND z_{Q,1}). This computes exactly the next one-hot residual vector. The update has a fan-in-two AND/OR/NOT circuit with at most 2D_t+3D_{t+1}+1 gates: for each bit value, the predecessor sets partition the D_t sources, so the OR trees use at most 2D_t gates total; each destination uses two AND gates and one OR gate; and NOT b is shared. Correctness follows because the unique active source contributes to exactly its b-successor, so exactly that destination coordinate is 1. This is a conditional bound and makes no assertion that D_t is small.\nscope: Every finite binary language L and every t for which both residual levels are defined, under the one-hot state encoding; fan-in-two AND/OR/NOT gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468292.2938428,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "gap": "For EXT_{n,s}, bound the residual counts D_t and the cost of encoding residual states and constructing successor maps tightly enough to obtain polynomial transition cost in n and s. The one-hot update bound is linear in D_t+D_{t+1}; no such bound for the MCSP family, or bounded-cost connection to arbitrary H_C, has been established here.",
+  "gap_id": "G0175"
+ },
+ {
+  "at": 1795468342.4740906,
+  "session": "pnp-desk/research/R2308",
+  "model": "gpt-6-luna",
+  "id": "S0443",
+  "proved_step": "statement: LEMMA (raw-prefix implementation of EXT). Fix N=2^n and any family F of N-bit truth tables. A deterministic streaming machine can recognize whether a completed word belongs to F by storing the raw prefix p in an N-bit register, initially all zero, and a length counter. On each incoming bit b, append b to the occupied prefix and leave the remaining register cells unchanged. This update is realizable by a fixed Boolean circuit with O(N) fan-in-two gates (for each possible counter value, select the cell to write; equivalently use a one-hot position register and O(N) controlled writes), using O(N) state bits. At end of input, acceptance is exactly the predicate [p in F]. For F=Im(Eval_{n,s}), this is the exact EXT_{n,s} predicate. Proof: induction on the number k of bits read shows that the first k register cells equal the input prefix and the others retain their initial padding; hence after N bits the register equals the input word, and the final test accepts iff that word is in F. The construction bounds the storage and transition cost but supplies no circuit bound for the final membership predicate; therefore it does not yield a small MCSP decision circuit or an EXT-to-H_C reduction.\nscope: All finite families F subseteq {0,1}^N; N>=1; fixed-length streaming input, fan-in-two Boolean circuits for state transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
