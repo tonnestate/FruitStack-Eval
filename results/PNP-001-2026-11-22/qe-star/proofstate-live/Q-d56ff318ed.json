@@ -1,0 +1,67 @@
+[
+ {
+  "at": 1795444603.454342,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "gap": "To reach D7's target, prove an aggregate restriction inequality for every unrestricted fan-in-2 B2 circuit computing MCSP[m^c], with arbitrary sharing and fan-out, strong enough to imply CC_B2(F_m) not in O(2^m m^k) for each fixed k. Per-restriction gate consumption alone does not control repeated use of shared gates.",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "statement: For m>=1 and a Boolean function f:{0,1}^m->{0,1} with t>=1 accepting inputs, a DNF using one minterm for each accepting input computes f with at most tm-1 binary AND/OR gates when input negations are free; if NOT gates are charged but shared, at most tm-1+m gates suffice.\nproof: For each accepting input a, form the conjunction of its m literals, using m-1 binary AND gates (for m=1 this is one literal and uses zero). OR the t conjunctions using t-1 binary OR gates. The resulting DNF is true exactly on the accepting inputs. Its AND/OR cost is t(m-1)+(t-1)=tm-1. With charged NOT gates, negate each input variable that occurs negatively in any minterm once and share that output; there are at most m such variables, adding at most m gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444812.7577147,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "gap": "This identity does not bound the aggregate number of gates needed to eliminate arbitrary fan-in-2 circuits with unrestricted fan-out/sharing; the D7 aggregate inequality remains open.",
+  "gap_id": "G0002",
+  "id": "S0002",
+  "proved_step": "statement: For every n>=1, every A subseteq {0,1}^n, and every q in {0,...,n}, the average over uniformly chosen prefixes p in {0,1}^q of |{x in A: x_1...x_q=p}| equals |A|/2^q. Proof: sum_p sum_{x in A} 1[x begins with p] = sum_{x in A} 1 = |A|, since each x has exactly one length-q prefix; divide by 2^q.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444935.968137,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "gap": "The collision identity does not control aggregate gate elimination for arbitrary fan-in-2 circuits with unrestricted sharing. A useful next obligation is to relate prefix collision counts of MCSP[m^c]'s accepting truth table to gate-elimination cost under a specified restriction process.",
+  "gap_id": "G0003",
+  "id": "S0003",
+  "proved_step": "statement: For every finite A subseteq {0,1}^n and q in {0,...,n}, if R_p=|{x in A:x_1...x_q=p}| for p in {0,1}^q, then 2^{-q} sum_p R_p^2 = 2^{-q}|{(x,y) in A^2: x_1...x_q=y_1...y_q}|. Proof: expand R_p^2 as sum over ordered pairs (x,y) in A^2 of the indicator that both have prefix p; summing over p counts the pair once if their prefixes agree and zero otherwise. Dividing by 2^q gives the identity. This expresses the second moment as a collision statistic and is sensitive to prefix clustering, unlike the first moment.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445223.231998,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0002: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I have not obtained an accepted Lean proof. The previous attempts failed during parsing, and I did not complete another verification call. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795445314.0173771,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "id": "S0005",
+  "proved_step": "statement: For integers K,B>=1 and 0<=t<=KB, among all integer vectors (R_1,...,R_K) with 0<=R_i<=B and sum_i R_i=t, the minimum of sum_i R_i^2 is (K-v)u^2+v(u+1)^2 where t=uK+v, 0<=v<K; the maximum is aB^2+r^2 where t=aB+r, 0<=r<B. Proof: for the minimum, if R_i>=R_j+2, replacing (R_i,R_j) by (R_i-1,R_j+1) changes the sum by -2(R_i-R_j)+2<0, so at a minimum all entries differ by at most one; the fixed sum forces v entries u+1 and K-v entries u. For the maximum, if 0<R_j<=R_i<B, moving one unit from j to i changes the sum by 2(R_i-R_j)+2>0; hence at a maximum at most one entry is strictly between 0 and B, and all others are 0 or B; the fixed sum forces a entries B, one entry r if r>0, and the rest 0. These vectors are feasible since t<=KB.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": false
+ },
+ {
+  "at": 1795445458.6241176,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "statement: For integers m>=1 and s>=0, the number of Boolean functions on m inputs computable by circuits with at most s ordered fan-in-2 gates over a basis of at most 16 Boolean operations is at most (m+s)(16(m+s)^2)^s (interpreting the s=0 case directly). Proof: Pad a circuit with unused gates to exactly s gates. In an ordered description, each gate chooses one of at most 16 operations and an ordered pair of predecessors among at most m+s available input or gate wires, giving at most 16(m+s)^2 choices. The output chooses one of at most m+s wires. Thus the number of descriptions is at most (m+s)(16(m+s)^2)^s, and each computes at most one Boolean function, so the number of distinct functions is no larger.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445581.3541944,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0003: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The attempted Lean proof did not pass kernel verification. The verifier reported unsolved goals in the fiber-count and fiber-sum steps; I don\u2019t have a verified replacement proof. (not a refutation; a model review is still needed)"
+ }
+]

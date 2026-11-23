@@ -2648,5 +2648,115 @@
   "proved_step": "statement: Residual-partition characterization for deterministic membership streaming: at every cut t, equal machine states imply equal residual subsets R_t(p)={u:pu\u2208F}; conversely the residual subsets themselves form a sufficient deterministic state representation, with transition on bit b given by R\u21a6{v:bv\u2208R}.\nproof: Let p and q be length-t prefixes whose machine states agree. For an arbitrary suffix u of length N\u2212t, applying the same deterministic transitions to the same suffix from equal states yields equal final states. The decoder therefore gives the same membership answer for pu and qu. As this holds for every u, their residual subsets are equal. Conversely, define the state associated with prefix p to be R_t(p). On reading b, the next residual is exactly {v : bv\u2208R_t(p)}, which equals R_{t+1}(pb) by definition. At t=N, the residual is {\u03b5} exactly for members and empty exactly for nonmembers, so the decoder accepts precisely members. This proves sufficiency and the claimed transition rule.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795442658.230242,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0206: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The verifier rejected the cardinality step in the first attempt. I submitted a revised proof with injectivity stated explicitly, but its result has not arrived, so I cannot claim the file was (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795443491.377718,
+  "session": "pnp-desk/research/R2117",
+  "model": "gpt-6-luna",
+  "evidence": "A distinguishing suffix exists for live/dead prefixes and for unequal residual sets. Equal states would process that suffix identically and contradict membership correctness. Equal residual sets have identical membership outcomes on every suffix, so merging preserves decision correctness. This does not claim identical witness output for merged members.",
+  "review_of": "S0322",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795443491.412147,
+  "session": "pnp-desk/research/R2117",
+  "model": "gpt-6-luna",
+  "id": "S0329",
+  "proved_step": "statement_start: Residual-state circuit upper bound. Let F be any subset of {0,1}^N, with N finite, and let D_t be the number of distinct residual sets R_t(p)={u in {0,1}^{N-t}: pu in F} as p ranges over length-t prefixes. If each residual set is encoded injectively by S_t bits, then the induced transition on reachable encoded states is realizable by a Boolean circuit with at most 2^{S_t+1}(2S_t+4)S_{t+1} NOT/AND/OR gates, when behavior off the reachable domain is arbitrary.\nproof: Put k=S_t+1. Define a total transition function on all k-bit inputs by using the residual derivative {v:bv in R} when the state bits encode a reachable residual R, and outputting 0^{S_{t+1}} otherwise. For each output coordinate, its truth table has at most 2^k satisfying assignments. Write its disjunctive normal form: each minterm uses at most k NOT gates and k-1 binary AND gates; combining at most 2^k minterms uses at most 2^k-1 binary OR gates. Thus at most 2^k(2k) gates per output coordinate suffice, which is bounded by 2^k(2S_t+4). Multiply by S_{t+1}. On reachable transitions, correctness follows from R_{t+1}(pb)={v:bv in R_t(p)}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795443533.3056092,
+  "session": "pnp-desk/research/R2117",
+  "model": "gpt-6-luna",
+  "id": "S0330",
+  "proved_step": "statement_start: One-hot residual transition lemma. Let F be a subset of {0,1}^N. At cut t, let R_t be the set of distinct residual suffix sets, including the empty set if it occurs, and let D_t=|R_t|. Encode each residual by its own one-hot state bit. For each input bit b, the next residual is \u03b4_b(R)={v:bv\u2208R}. The transition from cut t to t+1 can be implemented with at most 2D_tD_{t+1}+D_{t+1} NOT/AND/OR gates, with arbitrary behavior on invalid one-hot states.\nproof: For each next residual T\u2208R_{t+1}, define its output bit as the OR of terms (z_R AND [b=0]) over all R\u2208R_t with \u03b4_0(R)=T, together with terms (z_R AND [b=1]) over all R\u2208R_t with \u03b4_1(R)=T. Here z_R is the one-hot bit for R. Implement [b=0] with one NOT gate and [b=1] by the input wire. Each term uses at most one AND gate, and there are at most 2D_t terms per output. Combining k terms uses at most k\u22121 OR gates; allowing an empty disjunction as constant 0, each output costs at most 2D_t AND gates plus 2D_t OR gates. Across D_{t+1} outputs this costs at most 4D_tD_{t+1} gates, plus at most one shared NOT gate. Thus the stated 2D_tD_{t+1}+D_{t+1} bound is not justified by this construction; the proved bound is 4D_tD_{t+1}+1. For a reachable one-hot state z_R, exactly one z_R is 1, and exactly the output for \u03b4_b(R) evaluates to 1, so the transition is correct.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795443929.8838294,
+  "session": "pnp-desk/research/R2122",
+  "model": "gpt-6-luna",
+  "evidence": "The proposed bound 2D_tD_{t+1}+D_{t+1} is not established by the stated construction: each of D_{t+1} output bits may require up to 2D_t AND terms and up to 2D_t OR gates to combine them, yielding the valid bound 4D_tD_{t+1}+1 (shared NOT for the input), as the step\u2019s own proof text acknowledges. The claimed step is internally inconsistent: its conclusion gives a smaller bound than its gate accounting.",
+  "review_of": "S0330",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795444272.648078,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0244: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The first Lean attempt was rejected. Its prefix type, `{p : List Bool // p.length = t}`, has no inferred `Fintype` instance, and several subsequent proof steps also failed. I did not obtain a (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795444335.0748832,
+  "session": "pnp-desk/research/R2122",
+  "model": "gpt-6-luna",
+  "id": "S0333",
+  "proved_step": "statement: Common-accepting-suffix separation for full-search streaming. Let F be a subset of {0,1}^N, and let a deterministic streaming system read an N-bit word and end in a state from which a decoder outputs a circuit computing that word whenever the word belongs to F. Fix a cut t. If distinct length-t prefixes p and q have a common suffix u with pu, qu in F, then the states reached after p and q are distinct. Proof: if those states were equal, determinism implies that appending the same u reaches the same final state. The decoder would therefore output the same circuit C on both inputs. Correctness requires C to compute pu and also qu. Since p != q, pu != qu, and a single Boolean circuit computes only one truth table, a contradiction. This establishes separation only for live prefixes with intersecting accepting-suffix sets; it makes no claim for live prefixes whose accepting-suffix sets are disjoint, nor does it bound transition-circuit gate cost.\nproof: Assume the states after p and q are equal. Applying identical deterministic transitions for each bit of u preserves equality, so the final states after pu and qu are equal. The decoder returns the same circuit on both. Since pu and qu are members of F, correctness requires that circuit to compute both truth tables. They differ because p and q differ, contradiction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795444543.0047038,
+  "session": "pnp-desk/research/R2122",
+  "model": "gpt-6-luna",
+  "id": "S0334",
+  "proved_step": "statement: For the explicitly defined family F of truth tables of constants, literals, and one binary Boolean operation applied to any pair of the three input variables in deterministic truth-table order, at cut t=7 there is a set P of 19 distinct live prefixes such that every two distinct p,q in P have a common suffix u with pu,qu in F. Consequently every deterministic full-search streaming system whose final decoder outputs a correct circuit for every member of F has at least 19 distinct states at cut 7. Proof: by the asserted pairwise common-suffix property, for each distinct p,q choose u with pu,qu in F. If their states were equal, determinism would give equal final states after the same u; the decoder would output one circuit for both distinct truth tables, contradicting correctness. Thus all 19 states are distinct.\nproof: The family and witness are finite and explicitly enumerated in experiment cm-4fee8db16c8d462d; the corrected follow-up computation outputs all 19 witness prefixes and checks a common accepting suffix for each of the 171 pairs. For each pair, equality of states propagates under the common suffix by determinism. At the end the same decoder output would have to compute two different words pu and qu, impossible. Hence the 19 prefixes occupy distinct states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795444649.6938274,
+  "session": "pnp-desk/research/R2130",
+  "model": "gpt-6-luna",
+  "id": "S0335",
+  "proved_step": "statement: Common-suffix clique state lower bound. Let F be a subset of {0,1}^N and fix a cut t. Form a graph whose vertices are the live length-t prefixes p (those with at least one suffix u such that pu is in F), joining distinct p,q when they share an accepting suffix: there exists u with pu, qu in F. Every deterministic full-search streaming machine that ends in a decoder outputting the input truth table on each member of F uses at least omega(G_t) distinct states after t bits, where omega is the graph clique number.\nproof: Take any clique C in G_t. For distinct p,q in C, choose a shared accepting suffix u. If the machine had the same state after p and q, determinism would make the final states after pu and qu equal, so the decoder would output the same circuit for both. But pu and qu are distinct truth tables, contradicting full-search correctness. Thus all prefixes in C occupy pairwise distinct states, requiring at least |C| states. Maximize over cliques C to obtain at least omega(G_t) states.\nscope: All finite N, all F subset {0,1}^N, every cut t; constrains states only and gives no transition-gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444693.22278,
+  "session": "pnp-desk/research/R2122",
+  "model": "gpt-6-luna",
+  "id": "S0336",
+  "proved_step": "statement: Finite state-capacity bound at the SC_{3,1} middle cut. Let F be the specified family of 38 truth tables, let t=7, and let P_t be its live prefixes. Any streaming encoding that assigns distinct S-bit states to live prefixes and a state disjoint from those states to at least one dead prefix must have S>=6. Proof: The 38 members of F have distinct length-7 prefixes: there are only 2^(8-7)=2 possible suffixes per prefix, so at most two distinct truth tables can share a prefix; more directly, the corrected prefix enumeration for this family gives |P_7|=38. Injectivity therefore requires 38 distinct states for live prefixes. The required dead-prefix state is outside those 38, so 2^S>=39. Since 2^5=32<39<=64=2^6, S>=6. This bound is tight as a state-capacity count alone: 64 available codes can hold the 38 live prefixes and at least one dead code. It gives no transition-circuit gate bound and does not determine G_max.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795444900.4618304,
+  "session": "pnp-desk/research/R2130",
+  "model": "gpt-6-luna",
+  "gap": "The relevant unresolved task remains the Pareto trade-off (S,G_max,D) for SC classes with S<N, including whether small G_max forces work into the decoder.",
+  "evidence": "Direct construction and induction: initialize q=0^N. At step t+1 copy the input bit into coordinate t+1 and wire earlier coordinates unchanged; unused coordinates remain zero. Thus after N steps q equals the entire stream, so the decoder computes its membership in L. Cost is zero because all transition outputs are wires or constants. This proves the spec's trivial S=N upper bound only; it gives no result for S<N and no lower bound on G_max.",
+  "gap_id": "G0161",
+  "id": "S0337",
+  "proved_step": "statement: For every N-bit input stream language L subseteq {0,1}^N, an exact one-pass transducer with S=N state bits can update the state using zero non-constant gates per step (basis AND, XOR, NOT, constants; free wires), by storing the raw prefix in the first t coordinates and zeroing the remaining coordinates; a decoder decides L from the final state.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445617.7078834,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0337: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The latest Lean check still failed with an unsolved goal in the prefix-storage invariant, so no proof was accepted. (not a refutation; a model review is still needed)"
  }
 ]

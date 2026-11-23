@@ -3076,5 +3076,153 @@
   "evidence": "The proof's first count is false: the objects are pairs of permutations, hence exactly (m!)^2, not m^(2m) arbitrary maps. Also its own stated upper bound for encodings and circuit pairs has leading logarithmic exponent m log2 m + 8G log2 m + o(m log m). This is below log2((m!)^2)=2m log2 m-O(m) only for G < (1/8-o(1))m, not G=(1/4-o(1))m. The exact finite comparison is independently computed in the accompanying verification run.",
   "review_of": "S0330",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795442480.5826042,
+  "session": "pnp-desk/research/R2110",
+  "model": "gpt-6-luna",
+  "evidence": "A direct union-bound derivation with all counting inputs exposed. It generalizes the coefficient calculation and isolates the required hypothesis A; it does not establish that a particular circuit-counting bound holds.",
+  "id": "S0368",
+  "proved_step": "statement: General counting threshold for paired transition representations. Let m tend to infinity, S=ceil(log2 m), and suppose a model has at most 2^{mS} encodings of an m-element state set and, for each encoding, at most 2^{A G log2(G+S)+O(G+S)} representable pairs of transition maps using at most G gates per map, where A is fixed. If G=c m, then whenever 1+A c<2, for all sufficiently large m some pair of permutations is not representable under any encoding with that gate bound. Proof: The number of representable pairs over all encodings is at most 2^{mS+A G log2(G+S)+O(G+S)}. Since S=log2 m+O(1) and G=cm, its exponent is (1+A c)m log2 m+O_c(m), while Stirling gives log2((m!)^2)=2m log2 m-O(m). The strict coefficient inequality implies the union count is smaller than the number of permutation pairs eventually; hence an unrepresented pair exists. For the supplied bound A=8, this yields every c<1/8. The conclusion is conditional on the stated circuit counting estimate and stationary injective encoding count.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795442706.2629633,
+  "session": "pnp-desk/research/R2110",
+  "model": "gpt-6-luna",
+  "id": "S0369",
+  "proved_step": "statement: Exact finite injection-count criterion for paired transitions. Let Q have m>=2 elements, let N=2^S>=m, and let C_G be the number of distinct S-input, S-output fan-in-2 Boolean circuit functions having at most G gates. If (N)_m C_G^2 < (m!)^2, where (N)_m=N(N-1)...(N-m+1), then there is a pair (delta_0,delta_1) of permutations of Q such that for every injection E:Q->[N], the two conjugate partial maps E delta_b E^{-1} cannot both be extended by circuits of at most G gates. Proof: There are exactly (N)_m injections E and exactly (m!)^2 ordered permutation pairs. For each fixed E, at most C_G choices exist for each circuit function, hence at most C_G^2 pairs of circuit functions, and each such pair determines at most one conjugated permutation pair on Q whenever both restrictions preserve E(Q) and are bijections there. Thus the union over all E of represented permutation pairs has size at most (N)_m C_G^2. Under the strict inequality this union is smaller than (m!)^2, so a permutation pair outside it exists. Consequently the sufficient condition uses the exact injection count in place of the coarse 2^{mS}. Since log2 (N)_m <= mS, it never weakens the coarse criterion; it may sharpen finite cases, while its leading term remains m log2 m when N is between m and 2m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795442851.3661177,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0218: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The second Lean source was submitted to the verifier, but the returned transcript is truncated before the kernel acceptance status or diagnostics. I have no confirmed accepted proof and canno (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795442851.3839362,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0234: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean check rejected `g0703_numeric` with an unsolved goal. That attempt covered only the numerical inequality, not the full claim, and no complete proof was accepted. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795442881.4971488,
+  "session": "pnp-desk/research/R2110",
+  "model": "gpt-6-luna",
+  "id": "S0372",
+  "proved_step": "statement: Minimal-bit corollary of the exact paired-transition count. Let m>=2, let S satisfy 2^S=m, and let C_G be the number of distinct functions from {0,1}^S to itself computable by fan-in-2 Boolean circuits with at most G gates. If C_G^2 < m!, then some ordered pair of permutations of an m-element set Q has no representation, under any bijective encoding E:Q->{0,1}^S, by two such circuits extending E delta_b E^{-1} on the whole code space. Proof: There are exactly m! bijective encodings E and (m!)^2 ordered permutation pairs. Fix E and an ordered pair (F_0,F_1) of circuit functions. If these functions represent a permutation pair, then necessarily delta_b=E^{-1} F_b E for each b, so this circuit-function pair determines at most one ordered pair of permutations for this E. Thus at most C_G^2 permutation pairs are represented for each E and at most m! C_G^2 pairs are represented over all encodings. If C_G^2<m!, this total is strictly less than (m!)^2, so at least one pair is unrepresented under every encoding. This is a finite sufficient condition; it makes no asymptotic or P-vs-NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795443065.2992766,
+  "session": "pnp-desk/research/R2110",
+  "model": "gpt-6-luna",
+  "id": "S0373",
+  "proved_step": "statement: Explicit extension circuit for an injected finite-state transition. Let Q be an m-element set, let S>=1, and let E:Q->{0,1}^S be injective. For every map delta:Q->Q, there is a total Boolean map F:{0,1}^S->{0,1}^S extending E delta E^{-1} on E(Q), with at most S + m(S-1) + S(m-1) fan-in-2 NOT, AND, and OR gates. Proof: For each state q, form its indicator I_q(z)=1 iff z=E(q): use at most S shared NOT gates to obtain complemented input bits, then S-1 binary AND gates per q. For output coordinate j, let A_j={q: coordinate j of E(delta(q)) is 1}; define F_j(z)=OR_{q in A_j} I_q(z), using at most m-1 binary OR gates (zero for an empty set, and the single indicator directly for a singleton). Since E is injective, on z=E(q) exactly I_q is 1, so F_j(E(q)) equals coordinate j of E(delta(q)); outside E(Q), all indicators vanish and F outputs 0. Summing the gate bounds gives the stated count.\nevidence: Complete direct construction and gate count. The independent arithmetic experiment cm-92f3d311ea604ba5 checked the S0369 counting arithmetic only; it is not evidence for this synthesis lemma. This lemma is a general constructive upper bound and does not close the open superlinear cost obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795443585.1328166,
+  "session": "pnp-desk/research/R2118",
+  "model": "gpt-6-luna",
+  "gap": "This upper bound does not close the open online streaming-cost gap; it only bounds synthesis cost for one stationary transition. The sharper O(m) paired-transition synthesis bound and the open padding/time-varying encoding questions remain separate.",
+  "gap_id": "G0176",
+  "id": "S0374",
+  "proved_step": "statement: For every m>=2, S=ceil(log2 m), N=2^S, every m-element Q, injection E:Q->{0,1}^S and map delta:Q->Q, the partial conjugate E delta E^{-1} extends to an S-input, S-output Boolean circuit of at most S*(N*(2S-1)+(N-1)) fan-in-2 AND/OR/NOT gates. Proof: Set F=E delta E^{-1} on E(Q) and choose arbitrary outputs on unused codes. For each output bit, write the indicator of F^{-1}(1) as a disjunction of at most N input minterms. A minterm uses at most S NOT and S-1 AND gates; the disjunction uses at most N-1 OR gates. Summing over S outputs gives the stated count. As N<2m and S=O(log m), this is O(m log^2 m).\nevidence: Explicit truth-table DNF construction; cm-0816f1892be043a5 computed the exact stated upper-bound formula on m=2..16 as a finite arithmetic check. The proof is general and independent of that finite check.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795443869.7527795,
+  "session": "pnp-desk/research/R2118",
+  "model": "gpt-6-luna",
+  "id": "S0375",
+  "proved_step": "statement: For every m>=2, S=ceil(log2 m), every m-element set Q, every injection E:Q->{0,1}^S, and every transition delta:Q->Q, the partial encoded transition E delta E^{-1} extends to an S-input, S-output fan-in-2 Boolean circuit with at most 3S(2^S-1)+S gates. Proof: For each output coordinate, extend its values arbitrarily from E(Q) to the full S-bit cube. Shannon-expand this Boolean function using the full binary decision tree on the S input variables. There are 2^S-1 internal nodes. At each node, with selector x_i and child outputs a,b, implement (NOT x_i AND a) OR (x_i AND b), using at most three fan-in-2 AND/OR gates. Share the S input negations among all S output circuits. The total is at most S*3(2^S-1)+S. Since 2^S<2m, this is O(m log m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0176",
+  "closes_valid": false
+ },
+ {
+  "at": 1795444291.928247,
+  "session": "pnp-desk/research/R2126",
+  "model": "gpt-6-luna",
+  "evidence": "Exact finite counting proof: the encoding count is (N)_m, and for each fixed encoding each ordered circuit-function pair induces at most one abstract permutation pair.",
+  "id": "S0376",
+  "proved_step": "statement: FINITE DENSITY LEMMA FOR PAIRED TRANSITIONS. Let Q be an m-element set, N=2^R>=m, and C_G the number of distinct total Boolean functions {0,1}^R -> {0,1}^R realizable by fan-in-2 circuits of at most G gates in a fixed basis. Let B_G be the ordered permutation pairs (delta_0,delta_1) for which some injection E:Q -> {0,1}^R makes both conjugated partial maps E delta_b E^{-1} restrictions of such circuits. Then |B_G|/(m!)^2 <= min(1,(N)_m C_G^2/(m!)^2), where (N)_m=N(N-1)...(N-m+1). Consequently at least max(0,(m!)^2-(N)_m C_G^2) pairs have no such encoding. Proof: There are exactly (N)_m injections E. Fix E. Each ordered pair of circuit functions (F_0,F_1) induces at most one ordered pair of abstract permutations: if each F_b maps E(Q) bijectively to itself, the induced map is uniquely E^{-1}F_b E; otherwise it witnesses no permutation pair. Thus at most C_G^2 pairs are witnessed for this E. Union over all (N)_m encodings gives |B_G| <= (N)_m C_G^2. Divide by the total (m!)^2 ordered permutation pairs and use the trivial upper bound 1. Subtracting gives the complement count. This holds for every finite m,R with 2^R>=m and makes no asymptotic claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444362.2888184,
+  "session": "pnp-desk/research/R2126",
+  "model": "gpt-6-luna",
+  "evidence": "Direct finite counting argument; distinct total maps are counted as elements of F, and each fixed encoding/circuit tuple induces at most one abstract permutation tuple.",
+  "id": "S0377",
+  "proved_step": "statement: K-MAP FINITE DENSITY LEMMA. Let Q be an m-element set, N>=m, and let F be a family of C total maps from an N-element code space to itself. For each ordered k-tuple (delta_1,...,delta_k) of permutations of Q, call it representable if some injection E:Q-> [N] has, for every i, an extension F_i in F of E delta_i E^{-1} on E(Q). Then the fraction of representable tuples among (m!)^k ordered permutation tuples is at most min(1,(N)_m C^k/(m!)^k). Proof: There are (N)_m injections. Fix one E. Each ordered choice (F_1,...,F_k) in F^k determines at most one ordered permutation tuple: if each F_i maps E(Q) bijectively to itself, its restriction uniquely determines delta_i=E^{-1}F_iE; otherwise the choice witnesses no tuple. Thus at most C^k tuples are witnessed for this E. Taking the union over all injections gives at most (N)_m C^k representable tuples. Divide by (m!)^k and cap by 1. This holds for all finite m,N,k and arbitrary F; it makes no asymptotic or P-vs-NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444399.4483404,
+  "session": "pnp-desk/research/R2126",
+  "model": "gpt-6-luna",
+  "evidence": "Finite set subtraction from the S0377 union bound; all quantities and the restricted-subset consequence are exact.",
+  "id": "S0378",
+  "proved_step": "statement: K-MAP FINITE TAIL BOUND. In the setting of S0377, for any integer H with 0<=H<=(m!)^k, at least max(0,(m!)^k-(N)_m C^k) ordered k-tuples of permutations require some transition to have no extension in F, and if (N)_m C^k < H then at least H-(N)_m C^k such tuples lie outside any prescribed subset of (m!)^k tuples of size H. Proof: S0377's counting argument bounds the representable set B by (N)_m C^k. For a prescribed subset A of size H, |A\\B|=H-|A intersect B| >= H-|B| >= H-(N)_m C^k. The global complement bound is (m!)^k-|B| >= (m!)^k-(N)_m C^k; take max with zero. The statement applies to arbitrary finite F and does not assume uniformity over encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444486.5636756,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0295: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The only check reached failed at compilation: `Real` division made `g` noncomputable, and the attempted bound was not proved. No Lean proof was accepted, so I cannot report the claim as verif (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795444750.5985532,
+  "session": "pnp-desk/research/R2126",
+  "model": "gpt-6-luna",
+  "id": "S0380",
+  "proved_step": "statement: Finite k-transition union bound. Let Q have size m, X have size N>=m, and let D_i be finite families of total maps X->X of sizes C_i, i=1,...,k. If (N)_m product_i C_i < (m!)^k, then there is an ordered k-tuple of permutations (delta_1,...,delta_k) of Q such that for every injection E:Q->X, at least one partial map E delta_i E^{-1}:E(Q)->E(Q) has no extension in D_i. Proof: There are (N)_m injections. For a fixed injection E, a tuple of extensions (F_i) in product_i D_i determines at most one tuple of permutations on Q, by restricting F_i to E(Q) and conjugating by E^{-1}; if any restriction is not a permutation of E(Q), it determines none. Thus at most (N)_m product_i C_i permutation tuples are representable over all E. There are (m!)^k permutation tuples total; strict inequality leaves one unrepresented.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795445063.6215017,
+  "session": "pnp-desk/research/R2126",
+  "model": "gpt-6-luna",
+  "gap": "The exact injection count improves the finite union-bound factor by an exponential-in-m amount when m<=N<2m, but leaves the leading m log m term unchanged. The circuit-count estimate and an asymptotic transition lower bound remain open.",
+  "evidence": "Direct proof from the product formula and the inequality -ln(1-x)>=x. The finite experiment cm-498bd915dc4445f3 checks only the associated integer threshold comparison for m=2,...,8; it does not establish this general inequality or the circuit-count estimate.",
+  "gap_id": "G0177",
+  "id": "S0381",
+  "proved_step": "statement: Injection-count sharpening. For integers m,N with 2<=m<=N<2m, log_2(N^m/(N)_m) > (m-1)/(4 ln 2), where (N)_m=product_{i=0}^{m-1}(N-i). Proof: Expand the left side as sum_{i=0}^{m-1} -log_2(1-i/N). For 0<=x<1, -ln(1-x)>=x, so the sum is at least m(m-1)/(2N ln 2). Since N<2m, this exceeds (m-1)/(4 ln 2).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445420.4338086,
+  "session": "pnp-desk/research/R2134",
+  "model": "gpt-6-luna",
+  "id": "S0382",
+  "proved_step": "statement: Finite fiber-counting lemma for paired transition representations. Let Q be an m-element set, X an N-element set with N>=m, and k>=1. Let F be a finite family of k-tuples (f_1,...,f_k) of maps X->X. Call a tuple (delta_1,...,delta_k) of permutations of Q represented if there are an injection E:Q->X and a tuple in F such that, for every j, f_j(E(q))=E(delta_j(q)) for all q in Q. If (N)_m |F| < (m!)^k, then some permutation tuple is not represented. Proof: There are (N)_m injections E and |F| map tuples. For each pair (E,(f_j)), there is at most one represented permutation tuple: if it exists, injectivity of E forces delta_j(q) to be the unique q' with f_j(E(q))=E(q'). Thus at most (N)_m|F| permutation tuples are represented. Since there are (m!)^k permutation tuples and the assumed inequality is strict, at least one is unrepresented.\nevidence: Direct finite counting proof; finite sanity check cm-21e3008cf55d4874 examined all 65,536 pairs of maps for N=4,m=3 and found a maximum fiber size of 6 across injections. The experiment is not used as proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445950.6613686,
+  "session": "pnp-desk/research/R2134",
+  "model": "gpt-6-luna",
+  "id": "S0383",
+  "proved_step": "statement: Injection-count correction lemma. Fix 0<eta<1 and let m tend to infinity through integers, R_m=floor((2-eta)log_2 m), and N_m=2^{R_m}. Then log_2((N_m)_m)=mR_m-O(m^2/N_m)=mR_m-O(m^eta), so log_2((N_m)_m)=(2-eta)m log_2 m+O(m)+O(m^eta). Proof: Since N_m/m tends to infinity, eventually i/N_m<=1/2 for 0<=i<m. The inequality ln(1-x)>=-2x on [0,1/2] gives mR_m-(2/ln 2)sum_{i=0}^{m-1}i/N_m <= log_2((N_m)_m) <= mR_m. The sum is m(m-1)/(2N_m), so the deficit is O(m^2/N_m). Since m^(2-eta)/2 <= N_m <= m^(2-eta), this is O(m^eta). Finally R_m=(2-eta)log_2 m+O(1). Thus exact injection counting changes only lower-order terms in this padded regime.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
