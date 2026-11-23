@@ -368,5 +368,68 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795456239.7239573,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "evidence": "The conclusion claims a single A-oracle circuit, but the proof treats each Sigma3SAT^A query as one oracle gate. A Sigma3SAT^A membership query has an outer quantified computation with access to A; it is not an A-oracle gate. Padding invariance does not collapse that computation to one A gate. The argument supports, at most, a circuit with Sigma3SAT^A oracle gates under the stated padding assumption.",
+  "review_of": "S0044",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795456239.7388399,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "evidence": "Within the stated single-tape model, each microstep updates the state and scanned work cell by a constant-size transition table; one-hot head movement and cell updates use O(S) fan-in-2 gates. Incrementing the input-position counter costs O(log N) gates. Unrolling at most tau steps and padding halted execution with identity steps gives O(tau(S+log N)) gates; if S>=log N this is O(tau*S). The explicit scope excludes RAM.",
+  "review_of": "S0045",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456361.9028878,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "id": "S0048",
+  "proved_step": "LEMMA (length-delimited oracle stage simulation). Let M be a deterministic RAM whose stage starts with a configuration and one input bit, takes at most tau ordinary steps, and makes at most q adaptive queries to a fixed language L, each of length at most ell. Represent a query y by the pair (|y|, y), with an injective length-delimited encoding. Then the stage map is computed by a circuit with ordinary gates simulating the RAM transitions and at most q L-oracle gates; each gate receives the exact encoding of the query actually made. Proof: unroll M's deterministic transition function for at most tau steps. At each query step, route the currently computed query string and its length to one L-oracle gate; feed the returned bit into the subsequent transition logic. Since there are at most q query steps, at most q oracle gates are used. If the computation halts early, use identity transitions thereafter. Query encodings preserve the exact query language input, so no padding-invariance assumption is needed. This is an L-oracle circuit, not an A-oracle circuit. The conclusion is only a per-stage simulation; it asserts no ordinary circuit simulation of L and no update-time consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795456561.5538044,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "id": "S0049",
+  "proved_step": "statement: LEMMA (single-tape update circuit with explicit input-head cost). Fix a deterministic single-tape machine with constant work alphabet and state set, and let its input be x in {0,1}^N, with one input symbol consumed at the start of each update. Suppose an update uses at most tau transitions and at most S work cells. Encode the work-tape head one-hot and the input-head position in binary. Then its update map (configuration,z) -> configuration' has a fan-in-2 Boolean circuit of size O(tau(S + ceil(log2(N+1)))) and is independent of the other input bits. If S >= ceil(log2(N+1)), this is O(tau S). Proof: For one transition, the scanned work symbol is selected by OR over at most S one-hot head indicators, costing O(S); each work-cell output is a constant-size Boolean function of its old symbol and whether its cell is scanned, costing O(S) total; the one-hot head shift and constant-state update cost O(S). The input-head position changes by at most one per transition, so binary increment/decrement/stay on w=ceil(log2(N+1)) bits can be implemented by a ripple circuit with O(w) fan-in-2 gates (compute each output bit by XOR with the propagated carry/borrow, and each next carry/borrow by one AND/OR operation). Thus one transition costs O(S+w), and unrolling at most tau transitions costs O(tau(S+w)); idle transitions after halting make the circuit total. Under S>=w, the bound simplifies to O(tau S). This repairs the omitted input-head update cost in S0021 only under the stated size condition; it does not cover RAM machines or prove a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795456662.544522,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "id": "S0050",
+  "proved_step": "statement: LEMMA (explicit fixed-tape oracle-stage circuit). Fix a deterministic single-tape machine with constant alphabet and state set, at most S work cells, an input-head position in {0,...,N}, and an oracle L. Suppose a stage receives the current configuration and the next input bit, runs at most tau transitions, and issues at most q adaptive queries, each represented as a binary string of length at most ell. Then the stage map is computed by a fan-in-2 L-oracle circuit with O(tau(S + log(N+1) + ell + 1)) ordinary gates and at most q L-oracle gates, using length-delimited encodings of the exact strings queried. Proof: Encode work cells with constant-width symbols and the work head one-hot. One transition\u2019s scanned-symbol selection, local write, head shift, and state update use O(S) gates. The input-head position\u2019s increment/decrement/stay update uses O(log(N+1)) gates. At each oracle-call transition, route its at-most-ell bits and its length to one oracle gate, and route the answer bit into the next transition. Count query construction as part of ordinary transitions; the per-transition cost is O(S+log(N+1)+ell). Unroll tau transitions and pad after halting with identity transitions. Exact length-delimited inputs preserve the oracle answer without a padding-invariance hypothesis. This is only a per-stage L-oracle circuit simulation; it does not give an A-oracle simulation or address the manuscript\u2019s RAM model or update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795456702.426368,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "id": "S0051",
+  "proved_step": "statement: REPAIR (explicit query-tape accounting for S0050). Fix a deterministic single-tape machine with constant alphabet and state set, S work cells, a separate query tape of at most ell cells, input-head position in {0,...,N}, and oracle L. A stage receives the configuration and next input bit, runs at most tau transitions, and issues at most q adaptive queries. Encode both tapes, both head positions one-hot, and the input-head position in binary. Then the stage map is computed by a fan-in-2 L-oracle circuit with O(tau(S+ell+log(N+1))) ordinary gates and at most q L-oracle gates. Proof: in one transition, scanned-symbol selection, local cell updates and head shifts on the work tape cost O(S); the corresponding operations on the query tape cost O(ell); input-head increment/decrement/stay costs O(log(N+1)); state update costs O(1). Unroll tau transitions, feeding each oracle answer into later transition logic. At a query transition, connect the query-tape contents and its exact length to an oracle gate whose input convention is the length-delimited pair (length,string), so the oracle evaluates the original query. Idle transitions after halt make the circuit total. This explicitly counts query construction and routing. It remains only a fixed-tape L-oracle stage simulation and does not establish the RAM claim or an update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795456782.5948448,
+  "session": "pnp-desk/research/R2214",
+  "model": "gpt-6-luna",
+  "id": "S0052",
+  "proved_step": "statement: REPAIR (fixed-width oracle interface for S0051). Fix ell >= 0 and a language L subseteq {0,1}*. Define the fixed-width encoding E_ell(k,y) in {0,1}^{2ell+1} for 0 <= k <= ell and y in {0,1}^k as: the first ell+1 bits are the one-hot vector with its 1 at position k, followed by y padded with ell-k zeroes. This encoding is injective. Define L_{ell}^{enc} = {E_ell(k,y): y in L, |y|=k}; strings not of this form are outside L_{ell}^{enc}. For the fixed-tape machine and stage in S0051, assume query strings have length at most ell, and include a separate query tape of ell cells. Then the stage map is computed by a fan-in-2 circuit with oracle gates for L_{ell}^{enc}, O(tau(S+ell+log(N+1))) ordinary gates, and at most q oracle gates. Proof: Encode the work tape and query tape cellwise, their head positions one-hot, and the input-head position in binary. In one transition, selecting and updating the scanned work symbol, updating the work head, and updating the finite control costs O(S); the corresponding query-tape operations cost O(ell); and input-head movement costs O(log(N+1)). At each query transition, the query-tape contents and exact length k determine E_ell(k,y). The one-hot length header and padded payload can be wired from the configuration with O(ell) gates, and one L_{ell}^{enc} oracle gate returns exactly the answer L(y), by definition of L_{ell}^{enc}. Unrolling tau deterministic transitions therefore uses O(tau(S+ell+log(N+1))) ordinary gates and no more than q oracle gates. Identity transitions after halting make the map total. This repairs the fixed-width oracle-interface gap: the result is for the explicitly defined encoded oracle L_{ell}^{enc}, not a claim that a standard fixed-width L-oracle gate natively accepts variable-length strings. It remains a fixed-tape stage simulation and implies no RAM simulation or update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

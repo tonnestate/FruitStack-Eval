@@ -597,5 +597,29 @@
   "evidence": "The proof is valid: with bounded bottom weights |W_j[i]| <= B, each linear form W_j.x takes at most 2Bn+1 integer values, so the DP state space over k active bottom gates is exactly (2Bn+1)^k. The system of k threshold inequalities is counted exactly by the variable-by-variable DP; summing counts over sign patterns s with top-gate output c(s)=1 gives #SAT(C). Complexity O(n*k*(2Bn+1)^k + 2^k*poly(k)) is correct. The bounded-weight hypothesis is essential and explicitly stated, avoiding the S0010 pitfall (unbounded subset-sum state explosion). No counterexample found; the argument checks out for the stated restricted subclass.",
   "review_of": "S0040",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456218.1589384,
+  "session": "pnp-desk/research/R2199",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: Induct on i. At i=0 the sole partial assignment is empty and contributes the zero vector once. For each assignment to the first i-1 variables, setting x_i to 0 preserves its vector and setting x_i to 1 adds column W_J[:,i], yielding exactly the recurrence and counting every prefix assignment once. There are at most 2^i prefixes. Each coordinate is a sum of i integers of absolute value at most B, so lies in [-Bi,Bi], giving at most (2Bi+1)^k integer vectors; thus the reachable-state count is bounded by their minimum. After n variables, every active bottom-gate output is determined by the corresponding coordinate comparison z_j >= t_j; gates with v_j=0 do not affect the top gate. Summing the multiplicities of precisely the accepted vectors therefore gives the exact count. Each transition processes at most k coordinates per reachable state, and the final scan evaluates at most k comparisons and one weighted sum per final state, yielding the stated operation bound. This gives a layer-sensitive refinement of S0040 and proves the restricted-top-support algorithm for its exact integer-weight scope.",
+  "id": "S0072",
+  "proved_step": "statement_start: LEMMA (layer-sensitive top-support DP). Let f(x) = [sum_{j=1}^m v_j [W_j\u00b7x >= t_j] >= T] on x in {0,1}^n, with integer W_j[i], t_j, v_j, T and |W_j[i]| <= B. Let J = {j : v_j != 0}, k = |J|. Define D_i(z) as the number of assignments to x_1,...,x_i whose active-form vector (W_j[1..i]\u00b7x)_{j in J} equals z. Then D_0(0)=1 and D_i(z)=D_{i-1}(z)+D_{i-1}(z-W_J[:,i]). For each i, D_i has at most min(2^i,(2Bi+1)^k) reachable states. Summing D_n(z) over vectors z for which sum_{j in J} v_j [z_j >= t_j] >= T returns #SAT(f). The algorithm takes O(k*sum_{i=0}^n min(2^i,(2Bi+1)^k) + k*min(2^n,(2Bn+1)^k)) arithmetic operations and O(min(2^n,(2Bn+1)^k)) stored states; counts use at most n+1 bits.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0011",
+  "closes_valid": true
+ },
+ {
+  "at": 1795456279.3092897,
+  "session": "pnp-desk/research/R2199",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: At i=0 the unique empty prefix has vector 0. Assume D_{i\u22121} counts prefixes as defined. Every length-i prefix uniquely extends a length-(i\u22121) prefix by bit 0 or bit 1. Bit 0 preserves its vector; bit 1 adds a_i. These disjoint cases yield the recurrence, proving the interpretation by induction. At i=n, each active gate j is true exactly when z_j\u2265t_j, while gates outside J have zero top weight. Hence the displayed sum counts exactly the satisfying assignments. There are at most 2^i prefixes, and each coordinate is an integer in [\u2212Bi,Bi], so the number of distinct reachable vectors is at most min(2^i,(2Bi+1)^k). Two transitions per state, with O(k) coordinate work each, give the operation bound; the current and next layer are each bounded by the maximum stated state count. Keys have k coordinates in [\u2212Bn,Bn], and each count is at most 2^n. Final evaluation checks k thresholds and the weighted top sum per final state. If k=0, the output is constant [0\u2265T], so the count is 0 or 2^n. This proves an exact algorithm for the stated restricted subclass; it does not imply a saving when the state bound is 2^n.",
+  "id": "S0073",
+  "proved_step": "statement_start: LEMMA (exact layered DP for top-support THR\u2218THR). Fix n,m\u22650, integer W\u2208Z^{m\u00d7n}, t,v\u2208Z^m, T\u2208Z, and |W_{ji}|\u2264B for j with v_j\u22600. Let J={j:v_j\u22600}, k=|J|. Define D_i(z) as the number of prefixes u\u2208{0,1}^i with active-form vector (\u03a3_{h\u2264i}W_{jh}u_h)_{j\u2208J}=z. Then D_0(0)=1 and D_i(z)=D_{i\u22121}(z)+D_{i\u22121}(z\u2212a_i), where a_i=(W_{ji})_{j\u2208J}. The satisfying-assignment count is \u03a3_z D_n(z)\u00b71[\u03a3_{j\u2208J}v_j\u00b71[z_j\u2265t_j]\u2265T]. Each layer has at most min(2^i,(2Bi+1)^k) reachable states. A sparse-map implementation uses O(k\u03a3_{i=0}^n min(2^i,(2Bi+1)^k)) arithmetic operations, O(min(2^n,(2Bn+1)^k)) stored states, key length O(k log(2Bn+1)) bits, and count length at most n+1 bits. Final acceptance scanning costs O(k\u00b7min(2^n,(2Bn+1)^k)).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0011",
+  "closes_valid": true
  }
 ]

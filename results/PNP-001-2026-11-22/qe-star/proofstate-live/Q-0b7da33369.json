@@ -3405,5 +3405,69 @@
   "proved_step": "statement_start: LEMMA: Static-to-Streaming Bridge. Let m, S=ceil(log2 m), Q with |Q|=m. Consider a streaming algorithm that maintains a state in {0,1}^S and on each input bit b in {0,1} updates its state by a fan-in-2 Boolean circuit with at most U gates (the update-time bound). Suppose the algorithm correctly tracks the pair of permutations (delta_0, delta_1) from the hard pair established by S0366: for every initial state encoding E_0: Q -> {0,1}^S, and for every sequence of inputs b_1,...,b_t in {0,1}^t, the internal state after t steps equals E_t(delta_{b_t}(...delta_{b_1}(q_0)...)) for some encoding E_t: Q -> {0,1}^S that may depend on the input prefix. Then U >= (1/8 - o(1)) m. Proof: By S0366, for any fixed encoding E, at least one of the two conjugated maps E delta_b E^{-1} requires > (1/8 - epsilon)m gates to compute. In the streaming model, the transition from E_{t-1} to E_t is exactly the update circuit. If the update circuit has U gates, then the function mapping E_{t-1}(q) to E_t(delta_b(q)) is computable with U gates. But this function is precisely the conjugate E_t delta_b E_{t-1}^{-1} restricted to E_{t-1}(Q). If both b=0 and b=1 transitions used <= U gates, then taking E = E_{t-1} and noting that E_t is an injection (since the algorithm's state space is {0,1}^S and Q maps injectively), we would have a pair of conjugated permutations both computable with <= U gates under encoding E_{t-1}. By S0366, this is impossible when U < (1/8 - epsilon)m for sufficiently large m. Therefore U >= (1/8 - o(1)) m.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795455998.5697694,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counting argument verified: m! bijective encodings E; (m!)^2 permutation pairs; for fixed E, each of \u2264C_G^2 circuit function pairs (F_0,F_1) determines at most one pair (\u03b4_0,\u03b4_1) via \u03b4_b = E^{-1}F_bE. Total represented pairs \u2264 m!\u00b7C_G^2. If C_G^2 < m!, this is < (m!)^2, so some pair unrepresented under all E. No hidden assumptions; basis-independent; 'extending on whole code space' is equality since E is bijective (2^S=m). Argument is sound.",
+  "review_of": "S0372",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456049.662727,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: S shared NOT gates for complemented literals; m indicators I_q each using S-1 AND gates (total m(S-1)); S output bits each an OR of \u2264m indicators using \u2264m-1 OR gates (total S(m-1)). On E(Q), exactly one I_q=1 giving correct output; off E(Q), all I_q=0 giving 0. Gate bound S + m(S-1) + S(m-1) = m(2S-1) is correct. No hidden assumptions; basis is {NOT,AND,OR} fan-in-2. General constructive upper bound, sound.",
+  "review_of": "S0373",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456189.7902696,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: N=2^S code space, F extends E delta E^{-1} on E(Q). For each of S output bits, F^{-1}(1) has at most N elements; write as disjunction of up to N minterms. Each minterm (conjunction of S literals) uses \u2264S NOT + (S-1) AND = 2S-1 gates (no sharing assumed, so upper bound holds). Disjunction uses \u2264N-1 OR gates. Per output bit: N(2S-1)+(N-1). S output bits: S[N(2S-1)+(N-1)]. N<2m, S=O(log m) => O(m log^2 m). Valid general upper bound; basis {NOT,AND,OR} fan-in-2. No hidden assumptions.",
+  "review_of": "S0374",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456190.3333673,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Shannon-expansion construction verified: S output bits, each a Boolean function on {0,1}^S extended from E(Q). Full binary decision tree has 2^S-1 internal nodes. At each node with selector x_i, implement multiplexer (\u00acx_i \u2227 a) \u2228 (x_i \u2227 b) using 2 AND + 1 OR = 3 fan-in-2 AND/OR gates. S input negations (\u00acx_i) shared across all S outputs and all occurrences = S NOT gates total. Per output: 3(2^S-1) AND/OR gates. Total: 3S(2^S-1) + S gates. N=2^S<2m, S=O(log m) => O(m log m). Valid general upper bound; basis {NOT,AND,OR} fan-in-2. Tighter than S0374. No hidden assumptions; construction is explicit and correct.",
+  "review_of": "S0375",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456325.3999207,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counting argument verified: (N)_m injections E; for fixed E, each of C_G^2 circuit function pairs (F_0,F_1) determines at most one ordered permutation pair (\u03b4_0,\u03b4_1) via restriction and conjugation (if restrictions are bijections on E(Q)). Union over E gives |B_G| \u2264 (N)_m C_G^2. Divide by (m!)^2 and cap at 1. Complement bound max(0, (m!)^2 - (N)_m C_G^2). All finite, no asymptotic assumptions, basis-independent. Sound.",
+  "review_of": "S0376",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456325.9084496,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Generalization of S0376 to k tuples verified: (N)_m injections; fix E, each of C^k choices (F_1,...,F_k) in F^k determines at most one ordered permutation k-tuple via \u03b4_i = E^{-1} F_i|_{E(Q)} E (if restrictions are bijections). Union over E gives at most (N)_m C^k representable tuples. Divide by (m!)^k, cap at 1. All finite, arbitrary F, no asymptotic/P-vs-NP claim. Sound.",
+  "review_of": "S0377",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456675.8454282,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: S0377 establishes |B| <= (N)_m * C^k. For any subset A of size H, |A \\ B| = H - |A \u2229 B| >= H - |B| >= H - (N)_m C^k. Global complement: (m!)^k - |B| >= (m!)^k - (N)_m C^k. Both bounds combined with max(0, ...) are correct. Computational test (cm-5e3046c82fac4b3d) verified for m=3, N=4,5; m=4, N=5; m=5, N=6,7 with various k,C - all passed.",
+  "review_of": "S0378",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456677.638807,
+  "session": "pnp-desk/research/R2215",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: For each injection E, a tuple (F_1,...,F_k) in prod D_i determines at most one permutation tuple by restriction and conjugation. Total representable tuples <= (N)_m * prod C_i. If this is < (m!)^k, at least one permutation tuple is unrepresented. Computational test (cm-3c583981efd44fbd) verified for m=3,4; N=m,m+1,m+2; k=2,3 with various C_i - all passed.",
+  "review_of": "S0380",
+  "status": "SURVIVED_REVIEW"
  }
 ]

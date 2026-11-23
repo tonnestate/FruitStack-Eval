@@ -2989,5 +2989,56 @@
   "evidence": "Correct graph-coloring lower bound. H_t has vertices = live prefixes, edges when p,q share an accepting suffix. If adjacent p,q had same state, determinism + shared suffix -> same final state -> decoder outputs same circuit for distinct pu, qu in F, contradiction. So state map is proper coloring of H_t, requiring at least chi(H_t) states and ceil(log2 chi(H_t)) state bits. The argument is sound for all finite N, F subset {0,1}^N, any cut t. Verified.",
   "review_of": "S0339",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795455900.1619658,
+  "session": "pnp-desk/research/R2210",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: F = {p_i u_i, p_i u_{i+1 mod 5} : 0\u2264i<5} with distinct 3-bit p_i and u_i. Each prefix p_i has accepting suffixes {u_i, u_{i+1}}. Intersection graph connects p_i and p_k iff {u_i,u_{i+1}} \u2229 {u_k,u_{k+1}} \u2260 \u2205, which occurs exactly when i,k are consecutive mod 5. This yields C5. Clique number \u03c9(C5)=2, chromatic number \u03c7(C5)=3. The overlap-state argument correctly forces state assignment to be a proper coloring, so chromatic bound gives 3 states vs clique bound 2. No counterexample exists; the step is mathematically correct.",
+  "review_of": "S0340",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795455958.606629,
+  "session": "pnp-desk/research/R2210",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the mathematical statement: For any F subset of {0,1}^N, the residual sets R_t(p) = {u : pu in F} are subsets of {0,1}^{N-t}, so there are at most 2^(2^(N-t)) possible distinct residuals. Since there are 2^t prefixes, |Q_t| <= min(2^t, 2^(2^(N-t))). The transition delta_t(R,b) = {v : bv in R} correctly maps R_t(p) to R_{t+1}(pb) and lies in Q_{t+1}. At t=N, R_N(p) contains epsilon iff p in F. This is a standard Myhill-Nerode style construction for finite automata on fixed-length strings. No counterexample exists; the step is mathematically correct.",
+  "review_of": "S0341",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456060.0396833,
+  "session": "pnp-desk/research/R2210",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: For each a in D, the equality indicator e_a = AND_i l_{a,i} uses k-1 AND gates. With r elements in D, this is r(k-1) AND gates plus k NOT gates for literals. For each output j, OR of e_a over a with h(a)_j=1 uses at most max(r-1,0) OR gates. Total: k NOT + r(k-1) AND + q*max(r-1,0) OR. For any z in D, exactly e_z=1, so output equals h(z). The construction is correct as an upper bound for arbitrary partial functions. No counterexample exists; step is mathematically correct.",
+  "review_of": "S0342",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456060.0627913,
+  "session": "pnp-desk/research/R2210",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: For each output, DNF with r minterms uses at most k NOT (shared), r(k-1) AND for minterms, r-1 OR for combining. Since r <= 2^k, this is <= k + 2^k(k-1) + 2^k-1 = k + 2^k*k - 2^k + 2^k - 1 = k + k*2^k - 1 <= 2^k(k+1)+1. Summing over q outputs gives q(2^k(k+1)+1). This is a standard DNF upper bound with shared literals. No counterexample; step is mathematically correct.",
+  "review_of": "S0344",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456060.0841541,
+  "session": "pnp-desk/research/R2210",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: If adjacent p,q in H_t reach same state, determinism forces same final state after reading common accepting suffix u, so decoder outputs same circuit for pu and qu, contradicting distinctness. Thus state assignment is proper coloring of H_t, requiring >= chi(H_t) states, hence >= ceil(log2 chi(H_t)) state bits. This is a standard Myhill-Nerode / fooling set argument. No counterexample; step is mathematically correct.",
+  "review_of": "S0345",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456184.202924,
+  "session": "pnp-desk/research/R2210",
+  "model": "gpt-6-luna",
+  "gap": "This necessary condition does not decide whether the live-prefix sets of SC_{3,1} admit injective coordinate projections at each cut under a fixed state budget, nor whether compatible projections exist across cuts.",
+  "gap_id": "G0164",
+  "id": "S0370",
+  "proved_step": "statement: Gate-free coordinate-projection lemma. Let a deterministic streaming machine use zero non-constant update gates in the basis {AND, XOR, NOT, constants}, with state q_t in {0,1}^S and input bits x_1,...,x_N read in order. For every cut t, each state coordinate is either a constant or equal to one of x_1,...,x_t. Hence the state map at cut t is a coordinate projection with possible duplicated or constant coordinates. If the machine is correct for full search on a family F, that projection must be injective on the live prefixes P_t={p: exists u, pu in F}.\nproof: At cut 0 the state is fixed, so every coordinate is constant. Assume the assertion holds at cut t. With zero non-constant gates, each coordinate of q_{t+1}=F_t(q_t,x_{t+1}) is either a wire from a coordinate of q_t, a wire from x_{t+1}, or a constant. By the induction hypothesis, each resulting coordinate is therefore constant or one of x_1,...,x_{t+1}. This proves the coordinate description for every cut. For injectivity, suppose distinct live prefixes p and q at cut t had the same state. Choose any suffix u with pu in F. Determinism gives the same final state after reading u from either prefix state. Full-search correctness would require the decoder to return pu on input pu and qu on input qu whenever both are members; more generally, choosing a suffix that completes both when one exists contradicts distinct outputs. In particular, the conclusion as stated requires the full-search model\u2019s live-prefix state-separation condition: under that condition distinct live prefixes must have distinct states. Thus the projection is injective on P_t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
