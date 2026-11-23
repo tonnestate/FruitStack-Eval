@@ -431,5 +431,96 @@
   "proved_step": "statement: REPAIR (fixed-width oracle interface for S0051). Fix ell >= 0 and a language L subseteq {0,1}*. Define the fixed-width encoding E_ell(k,y) in {0,1}^{2ell+1} for 0 <= k <= ell and y in {0,1}^k as: the first ell+1 bits are the one-hot vector with its 1 at position k, followed by y padded with ell-k zeroes. This encoding is injective. Define L_{ell}^{enc} = {E_ell(k,y): y in L, |y|=k}; strings not of this form are outside L_{ell}^{enc}. For the fixed-tape machine and stage in S0051, assume query strings have length at most ell, and include a separate query tape of ell cells. Then the stage map is computed by a fan-in-2 circuit with oracle gates for L_{ell}^{enc}, O(tau(S+ell+log(N+1))) ordinary gates, and at most q oracle gates. Proof: Encode the work tape and query tape cellwise, their head positions one-hot, and the input-head position in binary. In one transition, selecting and updating the scanned work symbol, updating the work head, and updating the finite control costs O(S); the corresponding query-tape operations cost O(ell); and input-head movement costs O(log(N+1)). At each query transition, the query-tape contents and exact length k determine E_ell(k,y). The one-hot length header and padded payload can be wired from the configuration with O(ell) gates, and one L_{ell}^{enc} oracle gate returns exactly the answer L(y), by definition of L_{ell}^{enc}. Unrolling tau deterministic transitions therefore uses O(tau(S+ell+log(N+1))) ordinary gates and no more than q oracle gates. Identity transitions after halting make the map total. This repairs the fixed-width oracle-interface gap: the result is for the explicitly defined encoded oracle L_{ell}^{enc}, not a claim that a standard fixed-width L-oracle gate natively accepts variable-length strings. It remains a fixed-tape stage simulation and implies no RAM simulation or update-time lower bound.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795464480.0261264,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma correctly identifies the padding issue raised in R1805 and resolves it via length-delimited encoding (|y|, y), which is injective and allows the oracle gate to recover the exact query string without padding-invariance assumptions. This is a standard technique for simulating variable-length oracle queries in fixed-width circuits. However, the lemma as stated has gaps: (1) it does not specify the RAM model (indirect addressing? register size?), so the size of the 'ordinary gates simulating the RAM transitions' is unbounded without further assumptions; (2) it gives no quantitative bound on the ordinary-gate complexity, only on the number of oracle gates (q); (3) it is explicitly only a per-stage simulation, not a full streaming-algorithm-to-circuit reduction. The core construction is sound and addresses the refutation, but the lemma needs a precise RAM model and size analysis to be used in a quantitative lower bound. This step survives as a valid qualitative construction; quantitative use requires the missing details.",
+  "review_of": "S0048",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795464779.9271927,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction qualitatively correct: single-tape TM update simulated by fan-in-2 circuit. Work tape (S cells, constant alphabet) costs O(S) per transition via one-hot head selection and per-cell update. Input-head position (w=ceil(log2(N+1)) bits) incremented once per update, costs O(w) via ripple adder. Unrolling tau transitions gives O(tau*S + w) = O(tau(S+w)) gates; simplifies to O(tau S) when S>=w. Gaps: (1) proof sketch says input-head updates per transition but lemma says per update; (2) no RAM model; (3) per-update only, not full streaming reduction. Qualitative lemma survives.",
+  "review_of": "S0049",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795464779.9542851,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Extends S0049 with oracle queries. Work tape O(S), input-head O(log N), query construction/routing O(ell) per transition. Total O(tau(S+log N+ell)) ordinary gates, q L-oracle gates with length-delimited encoding (|y|,y). Correctly avoids padding-invariance assumption. Gaps: (1) only fixed-tape L-oracle, not RAM or A-oracle; (2) per-stage only; (3) no quantitative lower bound. Qualitative construction survives.",
+  "review_of": "S0050",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795464779.9779506,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Adds explicit query tape (ell cells, one-hot head). Work tape O(S), query tape O(ell), input-head O(log N) per transition. Total O(tau(S+ell+log N)) ordinary gates, q L-oracle gates. Length-delimited encoding (length,string) preserves oracle semantics. Gaps: (1) still fixed-tape, not RAM; (2) per-stage only; (3) no lower bound. Qualitative repair survives.",
+  "review_of": "S0051",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795464842.312541,
+  "session": "pnp-desk/research/R2280",
+  "model": "gpt-6-luna",
+  "evidence": "Complete constructive proof given above. The O(log(N+1)) binary input-head update cost is explicitly included per transition; the O(tau*S) specialization uses the explicit hypothesis S>=ceil(log2(N+1)).",
+  "id": "S0057",
+  "proved_step": "statement: LEMMA (repaired single-tape update circuit with explicit input-head cost). Fix a deterministic single-tape machine with constant work alphabet and state set. Suppose its work tape uses at most S cells, its input has length N, and each update reads one input bit and simulates at most tau transitions. Encode the work-tape head one-hot and the input-head position in w=ceil(log2(N+1)) bits. Then the update map has a fan-in-2 Boolean circuit of size O(tau(S+w)), independent of input bits other than the bit supplied to the update; if S>=w, this is O(tau*S). Proof: A single transition's scanned-symbol selection costs O(S) by OR-ing, for each symbol bit, the cell bits gated by the corresponding one-hot head indicators. Each work-cell output is a constant-size function of its old symbol, whether the head is there, and the finite control, so all cell updates cost O(S); head shift and state update cost O(S). The input-head position changes by at most one, and a ripple increment/decrement/stay circuit on w bits costs O(w). Thus each transition costs O(S+w); unrolling tau transitions costs O(tau(S+w)). Identity transitions after halt make the circuit fixed length. Only the supplied bit is used in the update. If S>=w then S+w<=2S. This repairs the missing input-head accounting in S0021 under the stated condition, and makes no claim about RAM machines or lower bounds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795464905.3990526,
+  "session": "pnp-desk/research/R2280",
+  "model": "gpt-6-luna",
+  "evidence": "The proof does not specify a query tape or another representation in the stage configuration from which each query string can be computed. The length bound alone does not supply a circuit for generating those bits. S0051 repairs this omission by adding and charging an explicit query tape.",
+  "review_of": "S0050",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795464944.0343301,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is sound for its stated scope: fixed-tape TM with explicit query tape of ell cells, using encoded oracle L_ell^enc. Encoding E_ell(k,y) = one-hot length (ell+1 bits) || y padded to ell bits is injective and satisfies L_ell^enc(E_ell(k,y)) = L(y). One transition: work tape O(S) gates (one-hot head read/write/move), query tape O(ell) gates, input-head binary counter O(log N) gates. At query steps, E_ell(k,y) constructed from query-tape config in O(ell) gates, fed to L_ell^enc oracle gate. Tau transitions unrolled: O(tau(S+ell+log N)) ordinary gates, q oracle gates. Idle-padding makes map total. Honest about scope: does not claim RAM simulation or update-time lower bound; oracle is explicitly the encoded version. No false line found.",
+  "review_of": "S0052",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795464992.0459213,
+  "session": "pnp-desk/research/R2280",
+  "model": "gpt-6-luna",
+  "id": "S0060",
+  "proved_step": "REPAIR LEMMA (reachable input window). Fix a deterministic single-tape machine with constant work alphabet and state set. Let its input have length N, its work tape use at most S cells, and one stage simulate at most tau transitions from input-head position h. Supply the stage circuit with the input bits in the window [max(0,h-tau), min(N-1,h+tau)] together with boundary markers and the initial configuration. Then a fan-in-2 circuit computes the resulting configuration with O(tau(S+tau+w)) gates, where w=ceil(log2(N+1)). Proof: In each simulated transition the head has moved by at most tau cells from h, so every read position lies in the supplied window. The address relative to h and the input-head offset can be tracked in O(w) gates per step. Selecting the scanned input bit from at most 2tau+1 supplied bits costs O(tau) gates per step by a binary multiplexer tree. Work-tape scanned-symbol selection, cell updates, and head/control updates cost O(S) per step. Summing these costs over at most tau transitions gives O(tau(S+tau+w)); padding after halt with identity transitions makes the stage circuit total. This repairs the one-bit interface by making all potentially read input data explicit. It does not imply a lower bound or a RAM simulation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795465572.6989806,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof states: 'The input-head position changes by at most one, and a ripple increment/decrement/stay circuit on w bits costs O(w).' This describes a model where the input head moves during each of the tau simulated transitions. After tau transitions, the head can be up to tau positions away from its starting position, and the machine would have read up to tau different input bits. However, the lemma claims the circuit only receives 'one input bit' (the bit at the initial head position) and is 'independent of input bits other than the bit supplied to the update.' For tau > 1, the circuit lacks access to the input bits at positions the head moves to during the simulation. Counterexample: a machine that moves the input head right on every transition and reads the symbol there. After tau transitions it has read tau distinct bits; a circuit given only the first bit cannot simulate this. The repair in S0060 (supplying a window of 2tau+1 bits) acknowledges this gap.",
+  "review_of": "S0057",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795465572.719922,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0060 correctly addresses the gap in S0057 by explicitly supplying the input window [max(0,h-tau), min(N-1,h+tau)] of bits that the head can reach during tau transitions. The circuit construction is sound: (1) the reachable window has size at most 2tau+1 bits; (2) a binary multiplexer tree selects the scanned bit in O(tau) gates per step; (3) work-tape operations cost O(S) per step as in S0057; (4) input-head position tracking and boundary markers are handled in O(w) per step. Total O(tau(S+tau+w)) gates. This is a correct repair that makes all potentially read input data explicit. No counterexample found.",
+  "review_of": "S0060",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795466038.8676,
+  "session": "pnp-desk/research/R2263",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "CONFIRM REFUTATION (independent family: nemotron). The proof proposes padding real oracle queries shorter than ell to length ell. For Sigma3SAT^A, a query is a pair (phi, a) where phi is a 3CNF formula and a is an assignment. Appending padding bits to phi or a changes the formula/assignment, so the oracle answer can change. No general padding invariance holds for Sigma3SAT^A. Dummy queries for unused slots do not fix the problem for real queries that are shorter than ell. The construction fails unless the oracle language is padding-invariant, which Sigma3SAT^A is not. This confirms R1805's refutation.",
+  "review_of": "S0017",
+  "status": "REFUTED"
  }
 ]

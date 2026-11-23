@@ -3598,5 +3598,45 @@
   "proved_step": "statement: For any fixed n-input Boolean circuit C with s fan-in-two gates, a state (i,a) tracks whether the first k streamed truth-table bits match C: on next bit b, compute c=C(i), set a'=a AND (b iff c), and increment i modulo 2^n. This transition uses O(s+n) gates. Initially (i,a)=(0,1); induction on k proves that i is the next assignment and a records agreement on every bit read. The circuit C is hardwired. This does not bound the cost of merging candidates in EXT.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795466202.390887,
+  "session": "pnp-desk/research/R2292",
+  "model": "gpt-6-luna",
+  "id": "S0433",
+  "proved_step": "LEMMA. For b>=1, every map T:{0,1}^{b+1}->{0,1}^b has a fan-in-two AND/OR/NOT circuit of size at most b((b+1)2^(b+1)-1)+(b+1), with constants allowed. Proof. For each output coordinate j, let t_j be the number of inputs where it is 1. If t_j=0, use constant 0. Otherwise form its DNF: each of t_j minterms on b+1 literals uses b AND gates, and their OR uses t_j-1 gates, totaling (b+1)t_j-1 <= (b+1)2^(b+1)-1. Sum over b outputs and share at most b+1 NOT gates for input literals. Each minterm matches exactly its defining input, so all outputs are correct. This exponential bound does not imply polynomial update cost for EXT or H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795466253.9483848,
+  "session": "pnp-desk/research/R2292",
+  "model": "gpt-6-luna",
+  "id": "S0434",
+  "proved_step": "LEMMA. Let a deterministic binary automaton have q>=1 states and transition delta:Q x {0,1}->Q. With q-bit one-hot state encoding, its exact next-state map has a fan-in-two AND/OR/NOT circuit of at most 4q+1 gates. Proof. Compute not b once. For each source i compute z_i0=x_i AND not b and z_i1=x_i AND b, costing 2q gates. For each destination j, output the OR of all routed signals z_ia with delta(i,a)=j. Across destinations there are 2q signals, and their OR trees cost at most 2q gates total; empty or singleton lists cost zero. Total at most 4q+1. For a valid one-hot input exactly one routed signal is active and it reaches the unique correct destination. This bounds update cost by automaton width q, but does not bound q for EXT.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795466384.6646597,
+  "session": "pnp-desk/research/R2292",
+  "model": "gpt-6-luna",
+  "id": "S0435",
+  "proved_step": "LEMMA (binary-coded transition upper bound). Let a deterministic automaton have D>=2 states and a binary alphabet. Encode its states by distinct q-bit strings, where q=ceil(log2 D). Its transition function has an exact fan-in-two AND/OR/NOT circuit on the q state bits and one input bit, correct on every valid state code, with at most D(q-1)+q+2D+2Dq gates. Proof: Share the q input-bit negations. For each of the D valid state codes, its equality indicator is a conjunction of q literals and costs q-1 AND gates, so all indicators cost D(q-1). For each state i, form z_{i,0}=eq_i AND NOT b and z_{i,1}=eq_i AND b, costing 2D gates. For each of the q output bits, OR the selector terms whose corresponding successor-code bit is 1. At most 2D terms occur, so this costs at most 2D gates per output bit; an empty disjunction is constant 0. On a valid code for state i, exactly the selector for its actual input symbol is active, yielding the correct successor code. Scope: finite deterministic binary automata; correctness is required only on valid state codes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795466492.1853445,
+  "session": "pnp-desk/research/R2292",
+  "model": "gpt-6-luna",
+  "id": "S0436",
+  "proved_step": "LEMMA (candidate-set residual update for EXT). Fix n,s and a finite explicitly enumerated circuit-description set C containing one description per circuit of size at most s. For a truth-table prefix p, define A_p={C in C: Eval(C) begins with p}. At the next position i and bit b, A_{pb}={C in A_p: Eval(C)(i)=b}. Therefore A_p is an exact residual-state representation: it is nonempty iff p has a completion in Im(Eval), and the update is coordinatewise filtering by the next output bit. Proof: membership in A_{pb} is equivalent to membership in A_p and agreement of Eval(C) with b at position i, which is exactly the displayed set intersection. Scope: finite circuit-description sets and EXT prefix states; no compactness or gate-cost bound is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
  }
 ]

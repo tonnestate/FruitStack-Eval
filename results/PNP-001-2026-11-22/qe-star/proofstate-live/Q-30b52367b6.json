@@ -2144,5 +2144,26 @@
   "evidence": "Step 2 claims subset-sum DP time O(|P_j|\u00b7V_j) without bounding bottom weights or V_j. Binary weights 1,2,4,...,2^(n-1) give 2^n distinct sums for one gate, so the stated runtime is unsupported.",
   "review_of": "S0120",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795467052.6137118,
+  "session": "pnp-desk/research/R2298",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: enumerate each block S_j to compute c_j, using \u03a3_j 2^{|S_j|} assignments. Initialize coefficient map A_0(0)=1. For gate j update A_j(e)=(2^{|S_j|}-c_j)A_{j-1}(e)+c_j A_{j-1}(e-v_j), interpreting absent entries as zero. After j updates, every exponent is a sum of a subset of v_1,...,v_j, hence lies in [-V,V]; thus at most 2V+1 coefficients are stored and each gate update takes O(V+1) arithmetic operations. The desired answer is 2^f \u03a3_{e\u2265T}A_m(e). Under k=O(log n), m=poly(n), V=poly(n), block enumeration and the DP use polynomially many arithmetic operations. Intermediate counts are at most 2^n, so each has O(n) bits; with polynomial-bit input weights/thresholds, comparisons and index handling also take polynomial bit cost. This is a constructive consequence of the signed disjoint-support identity, confined to that subclass; it does not resolve overlapping supports or close G0001.",
+  "id": "S0251",
+  "proved_step": "For any disjoint-support instance with max_j |S_j| \u2264 k, the exact #SAT count can be computed in O(\u03a3_j 2^{|S_j|} + m(V+1)) arithmetic operations and O(V+1) coefficient storage, where V=\u03a3_j |v_j|; if k=O(log n), m and V are polynomially bounded in n, and all integer arithmetic is charged by bit complexity, this is polynomial time when input weights and thresholds have polynomial bit length.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795467422.103463,
+  "session": "pnp-desk/research/R2298",
+  "model": "gpt-6-luna",
+  "id": "S0252",
+  "proved_step": "statement: Component factorization lemma. Let W be an integer m-by-n matrix, with row supports S_j={i:W[j,i] != 0}, integer thresholds t_j, integer top weights v_j, and target T. Form the graph on rows, joining j,k iff S_j intersects S_k. For each connected component C let U_C=union_{j in C} S_j, and let a_C(e) count assignments y in {0,1}^{U_C} for which sum_{j in C} v_j [sum_{i in S_j} W[j,i] y_i >= t_j]=e. Then #SAT of the top threshold equals 2^{n-|union_C U_C|} times sum_{e>=T}[z^e] product_C (sum_e a_C(e) z^e). Proof: different components have disjoint variable unions by the edge definition, so their local assignment choices are independent and multiply; their top scores add, so polynomial multiplication groups assignments by total score. Variables outside all row supports are free, contributing the stated power of two. If every |U_C|<=w, this exact algorithm takes O(sum_C 2^{|U_C|} (|C|+|U_C|) + |C| V) arithmetic operations, where V=sum_j |v_j|, and O(V+1) coefficient storage; exponents lie in [-V,V]. Thus bounded component-union width w=O(log n), polynomial m,V, and polynomial-bit input arithmetic give polynomial bit time. This shrinks the overlap-support gap only for that explicitly bounded-component subclass.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

@@ -76,5 +76,29 @@
   "proved_step": "statement: For t=10 and d=1, the Boolean evaluation map on all 2^10 points hits every monomial support S with |S|<=1 and separates every pair of distinct such supports: for every distinct S,T there exists A with exactly one of S,T contained in A.\nevidence: Independent direct enumeration of all supports and all Boolean points; pending experiment record to be attached when returned.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795464230.5479264,
+  "session": "pnp-desk/research/R2273",
+  "model": "gpt-6-luna",
+  "id": "S0010",
+  "proved_step": "statement: Let t>=d>=1, M=sum_{j=0}^d binom(t,j), and r=ceil(2^(2d)(2 ln M+2)). A hitting set for every nonzero multilinear polynomial over any field with at most two monomials of degree <=d can be deterministically constructed using O(r*2^t*M^2) arithmetic operations and r output points. Proof: define requirements R consisting of each support S (|S|<=d), requiring at least one sampled point A to contain S, and each unordered distinct pair S,T, requiring a sampled point A to contain exactly one of S,T. For a partial sequence h of k points, let Phi(h) be the sum, over unmet requirements R, of the conditional probability that R remains unmet after r-k independent uniformly random points. For each candidate next point A in {0,1}^t, compute Phi(hA). Their average over uniform A is Phi(h), so some candidate has Phi(hA)<=Phi(h); choose one. Initially Phi(empty) <= (M+M^2)*exp(-r*2^(-d-1)) < 1. After r choices Phi<1; any unmet requirement would contribute 1, so all are met. A hit detects a one-term polynomial; separation detects a two-term polynomial over every field. There are O(M^2) requirements, r rounds, 2^t candidates per round, and each score costs O(M^2), giving the stated bound. This is not a polynomial-time PIT bound in general t and closes no P-vs-NP obligation.\nevidence: Complete conditional-expectation argument stated above; finite corroboration for t=10,d=1 is cm-18b7a425100b4944.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795464348.005861,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0009: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: `boolean_evaluation_claim_g0754`\nRELATION: SAME \u2014 the Lean statement proves that every support of size at most one is contained in some Boolean point, and any two distinct such supports are s (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795464348.8035388,
+  "session": "pnp-desk/research/R2273",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement: For t>=d>=1, let M=sum_{j=0}^d binom(t,j), r=ceil(2^(2d)(2 ln M+2)), and let R contain one hit requirement per support |S|<=d and one separation requirement per unordered distinct support pair. The conditional-expectation construction in S0010 can be implemented with at most O(r*2^t*M^2) integer arithmetic operations on integers of O(tr+log M) bits, hence bit complexity O(r*2^t*M^2*(tr+log M)^2) using schoolbook arithmetic, and outputs r Boolean points meeting all requirements. Proof: For each requirement j, let c_j be its exact number of satisfying points in {0,1}^t; c_j is an integer in [0,2^t]. After k selected points, if j is still unmet its conditional failure probability is ((2^t-c_j)/2^t)^(r-k), with numerator and denominator at most 2^(t(r-k)) and 2^(t(r-k)). Their sum Phi has common denominator 2^(t(r-k)), and numerator bit length O(tr+log M), since |R|<=M+M^2. For a candidate next point A, update each unmet requirement using whether A satisfies it, yielding the next potential with the common denominator 2^(t(r-k-1)); its numerator has the same bit bound. The average of these 2^t candidate potentials equals Phi, so choosing a minimizer never increases Phi. Initially Phi<1 by the union bound in S0008; after r choices Phi<1, forcing zero unmet requirements because any unmet requirement contributes 1. Enumerating all candidates and requirements at each of r rounds gives O(r*2^t*M^2) integer operations. The bit bound follows from integer numerator sizes; schoolbook multiplication/addition gives the stated conservative bit complexity. This remains exponential in t and is not a general PIT speed-up.\nevidence: Derivation in the statement; S0008 supplies the probability estimates, and cm-18b7a425100b4944 independently checks only t=10,d=1.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
  }
 ]

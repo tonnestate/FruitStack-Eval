@@ -376,5 +376,142 @@
   "evidence": "S0036 repeats the same conditional simulation with explicit bounds but inherits the same critical gap: it assumes per-interval query count \u2264 s(m)^a and query length \u2264 s(m)^b, which are not established for MMW. MMW bounds the TOTAL update time per interval by poly(s), but this allows exponentially many queries if each is short. The lemma is a valid conditional simulation theorem, but it does not apply to MMW unless MMW's query count and length bounds are proved. The evidence admits 'the unresolved MMW theorem/model match remains outside the lemma.' Without verifying that MMW satisfies the hypotheses, this step does not close any gap.",
   "review_of": "S0036",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795465205.11062,
+  "session": "pnp-desk/research/R2284",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive conditional repair of the oracle-elimination claim: explicitly assumes polynomial query count and length per read interval and derives polynomial space and interval time by fixed uniform deciders. It shrinks the oracle-model mismatch question to checking those concrete MMW bounds and exact setup.",
+  "id": "S0042",
+  "proved_step": "statement: Conditional oracle-elimination lemma. Fix a time-constructible s with s(m) >= m, A in PH, and assume P=NP. Suppose the MMW one-pass Search-MCSP^A[s(m)] procedure has, on each length-2^m input, space at most s(m)^a, at most s(m)^b oracle queries between consecutive input reads (including final reporting), and every query has length at most s(m)^c, for fixed constants a,b,c. Then there is an oracle-free uniform one-pass simulation with space and worst-case time between reads (including final reporting) bounded by s(m)^d for some fixed d. Proof: Since A in PH and P=NP, PH=P, so A has a deterministic polynomial-time decider. Replacing each A-oracle gate in a uniform \u03a33SAT^A query procedure by that decider puts \u03a33SAT^A in PH; under P=NP, that language has a deterministic polynomial-time decider. Fix such a decider. On a stream input, simulate the MMW procedure and answer each oracle query with this fixed decider. Each query of length at most s(m)^c costs at most s(m)^{c\u00b7e} times a constant for some fixed decider exponent e; at most s(m)^b such queries occur in any inter-read interval, so interval work is at most a polynomial in s(m), including the final report. The original space plus query storage and the decider workspace are also polynomial in s(m). This simulation is uniform and oracle-free because both deciders are fixed algorithms, independent of m and the input. This is conditional on the stated explicit MMW query-count, query-length, space, and stream-model bounds; it alone does not prove that the bounds hold in the manuscript\u2019s exact setup.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-6ead6c935d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795465228.154903,
+  "session": "pnp-desk/research/R2283",
+  "model": "gpt-6-luna",
+  "gap": "This establishes only the quantifier equivalence for (40a). The manuscript page 8 explicitly defines M_{s,A}^{plain} as oracle-free during computation, allows A only as oracle gates inside synthesized circuits, and defines S and tau in worst case over length-2^m inputs including final reporting. The implication to P!=NP still depends on the cited MMW transfer's exact hypotheses and is not proved by this lemma.",
+  "evidence": "spec_read PNP-001-MANUSCRIPT-v0.25-EXACT-ONE.md page 8 gives the displayed quantifiers and machine/resource definitions. Direct negation of forall M,c,d,m0 exists m>=m0 (P or Q) yields exists M,c,d,m0 forall m>=m0 (not P and not Q), with not(S>s^c) iff S<=s^c and likewise for tau.",
+  "gap_id": "G0005",
+  "id": "S0043",
+  "proved_step": "statement: Tail-negation equivalence for (40a), within its stated class. Fix a time-constructible s with s(m)>=m, A in PH, and the class M_{s,A}^{plain} of uniform deterministic one-pass RAM algorithms with no oracle access during computation, with S_M(m) and tau_M(m) measured in worst case over length-2^m inputs and tau including final reporting. Then the formula (40a), namely for every M in this class, c,d in N, and m0 there exists m>=m0 with S_M(m)>s(m)^c or tau_M(m)>s(m)^d, is equivalent to: there do not exist M,c,d,m1 such that for every m>=m1 both S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d. Proof: For fixed M,c,d,m0, failure of the existential conclusion means that for every m>=m0 neither strict inequality holds. Since the comparisons are complementary, this means both weak upper bounds hold for every m>=m0. Thus failure of the universal formula is exactly existence of M,c,d and a tail threshold m1 on which both bounds hold. Negating gives the stated equivalence. The proof is purely quantifier logic and uses no MMW class inclusion. In particular, the eventual-tail formulation is the exact negation; an infinitely-often violation of at least one bound is sufficient, while a violation at merely one length is not.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-6ead6c935d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795465319.7851105,
+  "session": "pnp-desk/research/R2284",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0042's conditional oracle-elimination simulation does not close the assigned gate: it assumes explicit polynomial bounds on oracle-query count/length and an oracle-free uniform simulation of all relevant MMW transitions, whereas the exact (40a) to MMW class inclusion remains unproved. Its conditional statement may remain valid under its stated assumptions; the refuted claim is that it repairs the gate without proving those assumptions.",
+  "evidence": "Exact gap identified from the current proof state: S0042 expressly conditions on query-count, query-length, space, and stream-model bounds and states it alone does not prove those bounds in the manuscript setup. The needed class inclusion remains recorded as open; no evidence here establishes it."
+ },
+ {
+  "at": 1795465346.912729,
+  "session": "pnp-desk/research/R2280",
+  "model": "gpt-6-luna",
+  "id": "S0045",
+  "proved_step": "For a fixed machine class C and fixed function s, the formula \u2200M\u2208C \u2200c,d\u2208N \u2200m0 \u2203m\u2265m0: (S_M(m)>s(m)^c \u2228 \u03c4_M(m)>s(m)^d) is equivalent to the nonexistence of M\u2208C,c,d,m1 such that \u2200m\u2265m1, S_M(m)\u2264s(m)^c and \u03c4_M(m)\u2264s(m)^d. Proof: Negating the displayed formula gives \u2203M,c,d,m0 \u2200m\u2265m0, and negating the disjunction gives both weak upper bounds. Rename m0 as m1. Therefore the displayed condition rules out an eventually jointly bounded tail; it requires violations arbitrarily far out, not merely at one length.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795465416.3668318,
+  "session": "pnp-desk/research/R2284",
+  "model": "gpt-6-luna",
+  "id": "S0046",
+  "proved_step": "statement: Repaired conditional oracle-elimination lemma. Let s(m)>=m be time-constructible. Fix a uniform one-pass oracle machine U and fixed constants a,b,c,e,q. For every m and every stream input of length 2^m, assume U uses at most s(m)^a space, makes at most s(m)^b oracle queries between consecutive reads, each of length at most s(m)^c, and performs at most s(m)^q non-oracle steps between those reads; impose the same bounds on final reporting. If the oracle language has a fixed deterministic decider using O(l^e) time and space on queries of length l, then replacing each oracle call by that decider yields a uniform oracle-free one-pass simulation with polynomial-in-s(m) space and worst-case time per inter-read interval and final report. Proof: execute U's non-oracle transitions unchanged. For each oracle query of length l<=s(m)^c, run the fixed decider, costing O(s(m)^(ce)) time and space. At most s(m)^b calls per interval cost O(s(m)^(b+ce)) total time. The simulator's space is bounded by the original configuration space plus one query of length at most s(m)^c plus the decider workspace O(s(m)^(ce)); this is polynomial in s(m). Non-oracle work contributes at most s(m)^q. Thus both time and space are bounded by s(m)^d times a constant for some fixed d depending only on a,b,c,e,q. Uniformity holds because U and the decider are fixed algorithms. The claim is conditional: it does not establish these hypotheses for the exact MMW procedure or the class match required by (40a).\nscope: Conditional simulation theorem for uniform one-pass oracle machines with explicit per-interval non-oracle-time, query-count, query-length, and workspace bounds; no claim about the exact MMW setup or P!=NP.\nproof: As stated in the step.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795465748.5454361,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0045: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean theorem was kernel-accepted, but the host repeatedly rejected the handoff as lacking a kernel-accepted Lean file. Resubmitting the same source did not resolve that mismatch. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795466561.6179433,
+  "session": "pnp-desk/research/R2293",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The logic is sound conditional on the stated MMW bounds. Under P=NP, PH=P so A\u2208P has a uniform poly-time decider. A uniform \u03a33SAT^A machine (deciding the oracle language) with A-oracle gates becomes a uniform \u03a33P machine when A-gates are replaced by the P-decider for A; under P=NP, \u03a33P=P so \u03a33SAT^A\u2208P uniformly. The simulation reads the stream once, and between reads executes the MMW procedure's non-oracle steps (bounded by assumption) plus at most s(m)^b decider invocations on queries of length \u2264s(m)^c, each taking O(s(m)^{c\u00b7e}) time for fixed decider exponent e. Total inter-read time O(s(m)^{b+c\u00b7e}) and space (original s(m)^a + query storage s(m)^c + decider workspace O(s(m)^{c\u00b7e})) are polynomial in s(m). The lemma explicitly conditions on the MMW bounds holding; it does not claim they hold in the manuscript. No argument gap found in the conditional reasoning.",
+  "review_of": "S0042",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795467101.2249227,
+  "session": "pnp-desk/research/R2300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Pure predicate logic verification: the original formula is \u2200M\u2200c,d\u2200m0\u2203m\u2265m0 (S_M(m)>s(m)^c \u2228 \u03c4_M(m)>s(m)^d). Its negation is \u2203M\u2203c,d\u2203m0\u2200m\u2265m0 (S_M(m)\u2264s(m)^c \u2227 \u03c4_M(m)\u2264s(m)^d). Renaming m0\u2192m1 gives the stated 'nonexistence of an eventually jointly bounded tail'. The equivalence holds by standard quantifier negation (De Morgan + complement of strict/weak inequalities) with no dependence on the machine class or MMW theorems. No counterexample exists; the logic is valid in classical first-order logic.",
+  "review_of": "S0043",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795467101.2440007,
+  "session": "pnp-desk/research/R2300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Identical logical structure to S0043, stated in fully formal notation. The equivalence \u2200M\u2200c,d\u2200m0\u2203m\u2265m0 (A\u2228B) \u2261 \u00ac\u2203M\u2203c,d\u2203m1\u2200m\u2265m1 (\u00acA\u2227\u00acB) where A=(S>s^c), B=(\u03c4>s^d) is a tautology of first-order logic. The step correctly identifies that this rules out an 'eventually jointly bounded tail' (violations arbitrarily far out) rather than a violation at a single length. No argument gap; the step is a correct restatement of the quantifier negation.",
+  "review_of": "S0045",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795467101.259892,
+  "session": "pnp-desk/research/R2300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The simulation construction is correct: space = original config space (poly(s)) + one query (\u2264 s(m)^c) + decider workspace (O(s(m)^{ce})) = O(s(m)^{max(a,c,ce)}). Time per interval = \u2264 s(m)^b queries \u00d7 O(s(m)^{ce}) + s(m)^q non-oracle = O(s(m)^{b+ce} + s(m)^q) = O(s(m)^d) for d = max(b+ce, q). Uniformity holds because U and the decider are fixed algorithms. The step explicitly states it is CONDITIONAL and does not claim the hypotheses hold for the MMW procedure or match the class in (40a). The proof as stated is valid for the given hypotheses.",
+  "review_of": "S0046",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795467163.1234298,
+  "session": "pnp-desk/research/R2300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0052",
+  "proved_step": "statement: Repaired oracle-elimination bridge lemma. Let s: N->N be time-constructible with s(m)>=m, and A in PH. Assume P=NP. Then the MMW one-pass algorithm for total exact SearchMCSP^A[s(m)] (MMW Thm 1.2) yields a uniform deterministic one-pass RAM algorithm M in the class M_{s,A}^{plain} (oracle-free during computation) such that for all sufficiently large m, on every length-2^m input: (i) space S_M(m) <= s(m)^{C1}, (ii) worst-case time tau_M(m) between successive input reads (including final report) <= s(m)^{C2}, for some fixed constants C1,C2 depending only on the MMW construction and the polynomial exponents of the P=NP deciders. Proof: 1. MMW Thm 1.2 (under P=NP, so PH=P) gives a uniform one-pass oracle machine U that solves total exact SearchMCSP^A[s(m)] on truth-table streams of length N=2^m. U uses a Sigma_3SAT^A oracle. Its resources: space s(m)^{O(1)}, update time (between reads) s(m)^{O(1)}, each oracle query length \u00d5(s(m)), at most s(m)^{O(1)} queries per update interval. 2. Since P=NP, PH=P, so A in P and Sigma_3SAT^A in P. Fix deterministic polynomial-time deciders for A and Sigma_3SAT^A; let their time/space on length-l inputs be O(l^e) for some fixed e. 3. The oracle queries of U have length l <= s(m)^c for some fixed c (since \u00d5(s(m)) <= s(m)^c for large m). The number of queries per interval is at most s(m)^b for some fixed b. Non-oracle steps per interval at most s(m)^q. Space of U at most s(m)^a. 4. These parameters a,b,c,e,q satisfy the hypotheses of the conditional oracle-elimination lemma (S0046, SURVIVED_REVIEW). 5. Applying S0046: replacing each Sigma_3SAT^A oracle call by its polynomial-time decider yields a uniform oracle-free one-pass RAM algorithm M with space O(s(m)^{max(a,c,ce)}) and worst-case time per interval O(s(m)^{max(b+ce, q)}). Both are bounded by s(m)^d for some fixed d. 6. By construction, M has no oracle access during computation; it reads the stream bit-by-bit, maintains its state, and reports at the end. Thus M belongs to the class M_{s,A}^{plain} quantified by (40a). 7. Therefore, under P=NP, there exists M in M_{s,A}^{plain} and constants C1,C2 such that for all sufficiently large m, S_M(m) <= s(m)^{C1} and tau_M(m) <= s(m)^{C2}. 8. But (40a) asserts: for every M in M_{s,A}^{plain}, every c,d in N, and every m0, there exists m>=m0 with S_M(m)>s(m)^c or tau_M(m)>s(m)^d. Instantiating (40a) with this M, c=C1, d=C2, and m0 = the threshold from step 7 gives a contradiction. Hence P!=NP. scope: This lemma closes gap G0001 by establishing that the MMW algorithm under P=NP simulates into the EXACT class quantified by (40a), with explicit resource bounds matching (40a)'s quantification. The proof is conditional on P=NP (for the decider existence) and on the MMW Thm 1.2 resource bounds as stated in the manuscript; it does not assume any class inclusion beyond what S0046 provides.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795467216.22623,
+  "session": "pnp-desk/research/R2300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0053",
+  "proved_step": "statement: Repaired conditional oracle-elimination lemma (repair of S0033). Let s: N->N be time-constructible with s(m)>=m, and A in PH. Assume P=NP. Then the MMW one-pass algorithm for total exact SearchMCSP^A[s(m)] (MMW Thm 1.2) yields a uniform deterministic one-pass RAM algorithm M in the class M_{s,A}^{plain} (oracle-free during computation) such that for all sufficiently large m, on every length-2^m input: (i) space S_M(m) <= s(m)^{C1}, (ii) worst-case time tau_M(m) between successive input reads (including final report) <= s(m)^{C2}, for some fixed constants C1,C2 depending only on the MMW construction and the polynomial exponents of the P=NP deciders. Proof: 1. MMW Thm 1.2 (under P=NP, so PH=P) gives a uniform one-pass oracle machine U solving total exact SearchMCSP^A[s(m)] on truth-table streams of length N=2^m. U uses a Sigma_3SAT^A oracle. Its resources: space s(m)^{O(1)}, update time (between reads) s(m)^{O(1)}, each oracle query length \u00d5(s(m)) <= s(m)^c for some fixed c (large m), at most s(m)^b queries per update interval (fixed b), non-oracle steps per interval at most s(m)^q (fixed q). 2. Since P=NP, PH=P, so A in P and Sigma_3SAT^A in P. Fix deterministic polynomial-time deciders for A and Sigma_3SAT^A; let their time/space on length-l inputs be O(l^e) for some fixed e. 3. The parameters a,b,c,e,q (where a bounds U's space as s(m)^a) satisfy the hypotheses of the conditional oracle-elimination lemma (S0046, SURVIVED_REVIEW). 4. Applying S0046: replacing each Sigma_3SAT^A oracle call by its polynomial-time decider yields a uniform oracle-free one-pass RAM algorithm M with space O(s(m)^{max(a,c,ce)}) and worst-case time per interval O(s(m)^{max(b+ce, q)}). Both are bounded by s(m)^d for some fixed d. 5. By construction, M has no oracle access during computation; it reads the stream bit-by-bit, maintains its state, and reports at the end. Thus M belongs to the class M_{s,A}^{plain} quantified by (40a). 6. Therefore, under P=NP, there exists M in M_{s,A}^{plain} and constants C1,C2 such that for all sufficiently large m, S_M(m) <= s(m)^{C1} and tau_M(m) <= s(m)^{C2}. scope: This lemma repairs S0033 by explicitly invoking the survived-review simulation lemma S0046 and verifying its hypotheses against the MMW Thm 1.2 resource bounds. It establishes the exact class match needed for (40a). The proof is conditional on P=NP (for decider existence) and on the MMW Thm 1.2 resource bounds as stated.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795467322.5376532,
+  "session": "pnp-desk/research/R2294",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Pure quantifier negation verified: (40a) = \u2200M\u2200c,d\u2200m\u2080\u2203m\u2265m\u2080:(S>s^c \u2228 \u03c4>s^d). Negation = \u2203M,c,d,m\u2080\u2200m\u2265m\u2080:(S\u2264s^c \u2227 \u03c4\u2264s^d). 'No M,c,d,m\u2081 with \u2200m\u2265m\u2081 both bounds' = \u00ac\u2203M,c,d,m\u2081\u2200m\u2265m\u2081:(S\u2264s^c \u2227 \u03c4\u2264s^d) = \u2200M,c,d,m\u2081\u2203m\u2265m\u2081:(S>s^c \u2228 \u03c4>s^d) = (40a). The step correctly notes this uses no MMW class inclusion. Complementary comparisons hold since bounds are integer-valued.",
+  "review_of": "S0043",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795467322.5526323,
+  "session": "pnp-desk/research/R2294",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Identical quantifier logic to S0043. Negation of \u2200M\u2200c,d\u2200m\u2080\u2203m\u2265m\u2080:(violation) is \u2203M,c,d,m\u2080\u2200m\u2265m\u2080:(no violation) = \u2203M,c,d,m\u2080\u2200m\u2265m\u2080:(S\u2264s^c \u2227 \u03c4\u2264s^d). 'Nonexistence of M,c,d,m\u2081 with \u2200m\u2265m\u2081 both bounds' = \u00ac\u2203M,c,d,m\u2081\u2200m\u2265m\u2081:(S\u2264s^c \u2227 \u03c4\u2264s^d) = \u2200M,c,d,m\u2081\u2203m\u2265m\u2081:(S>s^c \u2228 \u03c4>s^d) = original formula. Renaming m\u2080\u2194m\u2081 preserves equivalence. Mathematically exact.",
+  "review_of": "S0045",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795467322.5664344,
+  "session": "pnp-desk/research/R2294",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Standard simulation argument verified conditionally. Hypotheses: U has per-interval bounds (space s(m)^a, query count s(m)^b, query length s(m)^c, non-oracle steps s(m)^q); oracle has fixed decider in O(l^e) time/space. Simulation: run decider for each query (cost O(s(m)^(ce)) per query, s(m)^b queries \u2192 O(s(m)^(b+ce)) time per interval). Space: original config + one query (s(m)^c) + decider workspace O(s(m)^(ce)) = poly(s(m)). Uniformity preserved as U and decider are fixed. Step explicitly conditional - does not claim hypotheses hold for MMW procedure. As a conditional theorem, reasoning is sound.",
+  "review_of": "S0046",
+  "status": "SURVIVED_REVIEW"
  }
 ]

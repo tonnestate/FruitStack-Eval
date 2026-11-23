@@ -3149,5 +3149,97 @@
   "proved_step": "statement: Full-SEARCH prefix-identity transition upper bound. Let F be a nonempty subset of {0,1}^N. At cut t, let P_t be the live prefixes and L_t=|P_t|. If 2^S >= max_t(L_t+1), then assign each live prefix a distinct S-bit code and reserve a distinct code d_t for dead prefixes. For each t<N, there is a time-varying fan-in-two update circuit with at most S[2(L_t+1)S+2(L_t+1)-1] AND/OR gates, plus shared complemented input wires, that maps every live prefix code and input bit b to the code of its live extension when that extension is live, and otherwise to d_{t+1}; it maps d_t to d_{t+1}. Proof: There are at most 2(L_t+1) specified state/input pairs: each live code and the dead code, each with either input bit. For each of the S output coordinates, extend the specified Boolean function by zero on unspecified pairs and express it as a DNF with one conjunction for each specified pair on which the output is 1. Each conjunction over S state literals and the input literal uses at most S two-input AND gates; combining at most 2(L_t+1) terms uses at most 2(L_t+1)-1 OR gates. Thus each output bit uses at most 2(L_t+1)S+2(L_t+1)-1 gates, giving the stated total. Induction on t shows every live prefix reaches its assigned code; live prefixes remain pairwise distinct and the dead code remains separate. This is an upper bound for time-varying transitions, not an optimal Pareto point, and it gives no decoder-cost bound.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795464193.0799446,
+  "session": "pnp-desk/research/R2271",
+  "model": "gpt-6-luna",
+  "id": "S0381",
+  "proved_step": "statement: Residual one-hot update circuit bound. Let F be any subset of {0,1}^N. At cut t<N, let R_t be its D_t distinct suffix residuals, and encode each residual by its one-hot vector in {0,1}^{D_t}; the input prefix state is promised to be one of these vectors. There is a transition circuit over AND, XOR, NOT, and constants, with fan-out free, that maps each valid one-hot residual and next input bit b to the one-hot vector of the resulting residual at cut t+1, using at most 3D_t+5D_{t+1} gates, hence at most 13D_t gates. Proof: For each b and next residual j, let A_{b,j} be the set of old residual indices whose b-successor is j. Form h_{b,j}=OR_{i in A_{b,j}} x_i, taking the empty OR as 0. Compute all complements NOT x_i once (D_t gates). For each pair (b,j) with a nonempty A_{b,j}, compute the OR with De Morgan using at most |A_{b,j}|-1 AND gates on the complemented inputs and one NOT gate for the output; singleton ORs require no gates. Summed over b,j, the AND count is at most 2D_t and the output-NOT count at most 2D_{t+1}. Then for each j compute y_j=h_{0,j} XOR (b AND (h_{0,j} XOR h_{1,j})), at most three gates; this is the Boolean mux selecting the b-successor. Total is at most D_t+2D_t+2D_{t+1}+3D_{t+1}=3D_t+5D_{t+1}. Since every next residual has at least one predecessor pair (i,b), D_{t+1}<=2D_t, giving 13D_t. On valid one-hot inputs exactly one source residual is active and exactly one output successor coordinate is active, so this transition is correct. Scope: membership-language streaming with canonical one-hot residual states; no full-search output decoder, dead-prefix state requirement, fixed-width Pareto optimality, or P vs NP consequence is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795465090.4273856,
+  "session": "pnp-desk/research/R2282",
+  "model": "gpt-6-luna",
+  "id": "S0382",
+  "proved_step": "statement: Residual-count bound with explicit empty residual. For every finite F subseteq {0,1}^N and cut t in {0,...,N}, let R_t(p)={u in {0,1}^{N-t}: pu in F} and D_t=|{R_t(p):p in {0,1}^t}|. Then D_t <= min(2^t, |F|+1). Proof: there are 2^t prefixes, so D_t<=2^t. Every nonempty residual occurs at a live prefix. At a fixed cut, each live prefix is a prefix of at least one member of F, and distinct prefixes of the same length cannot be prefixes of the same full string; choosing one member per live prefix therefore injects the set of live prefixes into F. Thus there are at most |F| nonempty residuals. There is at most one empty residual, so D_t<=|F|+1. Combining the inequalities proves the claim. Scope: this bounds canonical residual-representation width only; it gives no update-circuit gate bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795465340.3910391,
+  "session": "pnp-desk/research/R2282",
+  "model": "gpt-6-luna",
+  "id": "S0383",
+  "proved_step": "statement: Transition-table synthesis bound. Let S>=1, let Q be any set of m distinct S-bit states, and let T:Q\u00d7{0,1}\u2192{0,1}^S be any prescribed transition map. Over the basis AND, XOR, NOT, and constants, there is a circuit agreeing with T on Q\u00d7{0,1} using at most (S+1)+S(4m\u22121) nonconstant gates. Proof: For each q\u2208Q and b\u2208{0,1}, form the indicator I_{q,b}(z,x) of the input pair (q,b), by ANDing the S literals specifying z=q with the literal specifying x=b. The S+1 input negations are shared across all indicators. Each indicator uses S AND gates, so all 2m indicators use at most 2mS gates. For output coordinate j, XOR the indicators I_{q,b} for exactly those pairs where T(q,b)_j=1. The indicators are mutually exclusive on every input, so this XOR equals the desired output on Q\u00d7{0,1}; it uses at most 2m\u22121 XOR gates. Across S coordinates this costs at most S(2m\u22121) gates. Including the S+1 shared negations gives (S+1)+2mS+S(2m\u22121)=(S+1)+S(4m\u22121). The circuit may have arbitrary values outside Q\u00d7{0,1}, which are irrelevant to the stated agreement guarantee. Scope: an upper bound for a prescribed finite transition table; it is not an optimality result and gives no lower bound on G_max.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795465369.7689366,
+  "session": "pnp-desk/research/R2287",
+  "model": "gpt-6-luna",
+  "evidence": "The asserted universal +1 state lower bound for dead prefixes does not follow: there may be no dead prefix at a cut, and dead prefixes may share states with one another. The repair is conditional: live states are disjoint from all dead-prefix states, so the count is at least chi(H_t), plus at least one only when a dead prefix exists. Proper coloring still addresses only per-cut live same-suffix distinguishability.",
+  "review_of": "S0349",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795465621.129779,
+  "session": "pnp-desk/research/R2282",
+  "model": "gpt-6-luna",
+  "id": "S0385",
+  "proved_step": "statement: Reachable-transition-table synthesis bound in the AND/XOR/NOT basis. For a streaming step with S state bits, L reachable states at time t, and S' output state bits, any prescribed transition on those reachable states and the next input bit has an AND/XOR/NOT circuit with at most (S+1)+2LS+S' max(2L-1,0) nonconstant gates; behavior on unreachable inputs may be arbitrary. Proof: Share NOT gates for the S+1 input literals. For each of the 2L reachable (state,input) pairs, form its equality indicator as the conjunction of S+1 literals, using at most S AND gates per indicator. For each output bit, XOR the indicators whose prescribed output bit is 1, using at most max(2L-1,0) XOR gates. The indicators are one-hot on reachable inputs, so each output bit is correct. Summing the costs gives the bound.\nevidence: Constructive explicit one-hot synthesis proof; no empirical optimality claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795466210.9580266,
+  "session": "pnp-desk/research/R2290",
+  "model": "gpt-6-luna",
+  "gap": "Exact minimum G_max for SC_{3,1} at S=4 remains open; the new universal upper bound is 257 gates per transition under the stated basis and fan-out convention.",
+  "gap_id": "G0166",
+  "id": "S0386",
+  "proved_step": "statement: Shared-minterm transition upper bound. Let T be any partial deterministic transition from a reachable subset A of {0,1}^4 \u00d7 {0,1} to {0,1}^4. With fan-out allowed and gates NOT, binary AND, and binary OR, T has an extension to all 32 inputs implemented with at most 257 gates, counting five shared input negations and allowing constants. Proof: For each of the 32 input patterns z, build its equality indicator h_z as the AND of its five input literals; the five negations are shared, and each indicator costs four AND gates, for 128 gates total. For each of the four output bits, OR the indicators h_z for patterns whose extended output bit is 1, using at most 31 OR gates. This costs at most 124 more gates. On every reachable input the selected indicator is exactly its pattern\u2019s indicator, so the output equals T. Total: 5+128+124=257. The bound applies in particular to any S=4 SC_{3,1} transition, but does not determine its minimum G_max.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795466294.9343224,
+  "session": "pnp-desk/research/R2290",
+  "model": "gpt-6-luna",
+  "gap": "The exact minimum per-step update cost G_max for SC_{3,1} at S=4 remains open; the new general construction gives G_max\u2264173 in the stated NOT/AND/OR basis.",
+  "gap_id": "G0167",
+  "id": "S0387",
+  "proved_step": "statement: Shared-factoring transition upper bound at S=4. Let A be any subset of {0,1}^4\u00d7{0,1}, and let T:A\u2192{0,1}^4 be any partial deterministic transition. With fan-out allowed and gates NOT, binary AND, and binary OR, T extends to a total function on {0,1}^5 computable with at most 173 gates, allowing constants. Proof: Extend T arbitrarily outside A. Negate the five input bits once (5 NOT gates), so every input literal is available. For the first two inputs, construct all four two-literal conjunctions (4 AND gates). For the last three inputs, construct all four conjunctions of the first two of those three literals (4 AND gates), then combine each with either polarity of the fifth literal, obtaining all eight three-literal conjunctions (8 AND gates). Combine each of the four two-literal terms with each of the eight three-literal terms to obtain all 32 five-literal minterms (32 AND gates). For each of four output coordinates, OR the minterms on which that coordinate is 1, using at most 31 binary OR gates; if the set is empty, use constant 0. The total is 5+4+4+8+32+4\u00b731=173. Each input activates exactly its own minterm, so the output equals the chosen extension and therefore T on A. This is a universal upper bound and leaves the exact minimum for SC_{3,1} unresolved.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0166",
+  "closes_valid": false
+ },
+ {
+  "at": 1795466356.7387438,
+  "session": "pnp-desk/research/R2290",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0387's stated 173-gate count for its shared-factoring construction.",
+  "evidence": "The construction explicitly counts 5 shared NOT gates, 4 two-literal AND gates, 4 AND gates for two-literal prefixes of the last three inputs, 8 AND gates to complete those prefixes with either polarity of the fifth input, 32 AND gates for all five-literal minterms, and at most 124 output OR gates. These sum to 5+4+4+8+32+124=177, not 173. The construction proves 177, so only the numerical claim 173 is refuted."
+ },
+ {
+  "at": 1795466356.7657633,
+  "session": "pnp-desk/research/R2290",
+  "model": "gpt-6-luna",
+  "gap": "Exact G_max for SC_{3,1} at S=4 remains unresolved; the corrected general construction establishes G_max\u2264177 in the stated gate basis.",
+  "gap_id": "G0168",
+  "id": "S0389",
+  "proved_step": "statement: Corrected shared-factoring transition upper bound at S=4. Let A\u2286{0,1}^4\u00d7{0,1}, and let T:A\u2192{0,1}^4 be any partial deterministic transition. With fan-out allowed and NOT, binary AND, and binary OR gates, T extends to a total function on {0,1}^5 computable with at most 177 gates, allowing constants. Proof: Extend T arbitrarily outside A. Negate the five input bits once (5 NOT gates). Construct all four conjunctions of the first two input literals (4 AND gates). For the last three input literals, construct all four conjunctions of the first two, then combine each with either polarity of the third to obtain all eight three-literal conjunctions (4+8 AND gates). Combine each two-literal conjunction with each three-literal conjunction to obtain all 32 five-literal minterms (32 AND gates). For each of the four output coordinates, OR the minterms where the chosen extension has value 1, costing at most 31 binary OR gates per output, hence at most 124 OR gates. Every input activates exactly its own minterm, so this computes the extension and agrees with T on A. Total: 5+4+4+8+32+124=177 gates. This universal upper bound does not determine the exact minimum for SC_{3,1}.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0166",
+  "closes_valid": false
  }
 ]
