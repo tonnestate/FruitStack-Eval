@@ -2072,5 +2072,89 @@
   "gap": "G_max(SC_{3,1}) and G_max(affine) are not measured. The counting bound S (6 vs 5) is not a per-step update cost. Next: joint SAT for the minimal per-step update cost at n=3, s=1,2, with the perfect-matching control checked.",
   "evidence": "cm-7cb0b57b08844241 (EXPLORATORY_COMPUTATION, agent-authored, not a verified lemma). SC_3_1: size 38, L=[1,2,4,8,16,22,30,38,38], D=[0,0,0,0,0,10,34,90,218], max_needed_codes 39, counting_S 6. AFFINE: size 16, L=[1,2,4,8,8,16,16,16,16], D=[0,0,0,0,8,16,48,112,240], max_needed_codes 17, counting_S 5. Only the counting bound is reported here. It is not a lower bound on G_max, because counting over prefix profiles does not bound per-step update cost (the spec's unbounded-update-time caveat applies). Open: G_max for SC_{3,1} and affine, measured by joint SAT over encodings and exact circuit synthesis; no result yet.",
   "gap_id": "G0150"
+ },
+ {
+  "at": 1795390309.4841254,
+  "session": "pnp-desk/research/R1810",
+  "model": "claude-haiku-5-5",
+  "lemma": "Counting bound for the N=8 family F_8 (38 strings, as in job A1047). Assume a streaming system with S state bits whose live prefixes (prefixes of some f in F_8) have pairwise distinct codes, which is the live-injectivity property of S0079 in the search model. Then 2^S >= L_t, where L_t = #{f[:t] : f in F_8}. Computed values: L_6 = 30, L_7 = 38, L_8 = 38, so S >= 6 for every machine of this form. Scope: F_8 only, n=3, the search model of S0079. It proves no G_max value and does not decide S=6, because 2^6 = 64 >= 38. Both H1 (cm-8fff5163faa54747) and H2 (cm-89ebb528da5b4889, cm-05e4621ab2e04501) predict S >= 6, so this counting bound does not separate them.",
+  "evidence": "cm-336ff9110b2948b6: per-depth live counts [0,1,2,4,8,16,22,30,38,38] for t=0..8, family_size 38, computed in the lab sandbox from the same family definition as A1047. The live-injectivity premise is S0079, which is claimed and not reviewed here: this lemma is conditional on it."
+ },
+ {
+  "at": 1795390554.3573139,
+  "session": "pnp-desk/research/R1842",
+  "model": "claude-haiku-5-5",
+  "gap": "Counting and residual-count profiles (L_t, D_t, R_t) give only state lower bounds S_t >= ceil(log2(L_t+[D_t>0])) for the streaming model, and these do not bound G_max (unbounded update time suffices for O(s log s) bits, per the spec). The G_max measurement needs the joint dead-separation SAT, which timed out at n=3, N=8 (cm-d942f7a4d22d4e83, cm-9fc19ef511224136). Open: a symmetry-broken encoding, or a size-matched affine/decision-tree control with exact G_max, is still needed. The profile at n=3 shows DT2 and SC not ordered by R_t, so the counting level does not separate SC from its controls.",
+  "evidence": "cm-b7ef2cc988a544bc, cm-e27b521a8bb94209, cm-46907d8899064d2a",
+  "gap_id": "G0151"
+ },
+ {
+  "at": 1795390605.2444482,
+  "session": "pnp-desk/research/R1842",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN: a lower bound on the per-step update cost G for streaming systems that keep live and dead prefixes of SC_{n,s} apart. Needs a structural argument about how a single step can change the stored classes, not just how many classes exist. The state-count bound from this lemma does not reach it. Refuted approaches: counting profiles L_t, D_t, R_t (S_min per level) and uniform random controls, which are saturated.",
+  "evidence": "Exact and elementary; checked by hand. It is the Myhill-Nerode bound restated for a streaming system. It does NOT close the G_max gap: a transition cost is not constrained by this argument, and the spec notes that unbounded update time reduces the requirement to O(s log s) bits. Recorded as bookkeeping, not as progress. Open: an update-time lower bound for the dead/live separation (G0151 remains open).",
+  "gap_id": "G0152",
+  "id": "S0257",
+  "proved_step": "LEMMA (state lower bound from prefix classes, exact). Let f: {0,1}^N -> {0,1} and let p ~_t q (p,q in {0,1}^t) iff f(pz) = f(qz) for every z in {0,1}^(N-t). Let C_t be the number of ~_t classes. Then every deterministic streaming automaton that reads x_1..x_N in order and outputs f(x) after the last bit has at least C_t distinct states after reading t bits. PROOF: if p ~_t' q are in different classes, some suffix z has f(pz) != f(qz). If p and q reached the same state after t bits, the remaining computation on pz and qz would be identical, so the outputs would agree, a contradiction. Hence distinct classes occupy distinct states. Scope: states only; no update-time bound follows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795390720.7255454,
+  "session": "pnp-desk/research/R1842",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN: a lower bound on G_max for S < 2^n with at least one gate. The gate-count dependency argument (a gate can combine two state bits whose supports are already unions of input positions) must be bounded. Refuted approaches: counting profiles L_t, D_t, R_t and uniform random controls (saturated); the zero-gate case is now settled by W0.",
+  "evidence": "Hand proof, checked line by line; no computation. Consistent with the lab's wire-only results: AFF2 (N=4) S=3 UNSAT with full dead separation (cm-2d51ec0a45d243a3 family), and the relaxed affine_3 SAT at S=4..6 in 1bec130f297a1a85 is consistent because that test drops dead separation, which this proof uses. Scope: zero-gate updates only, any nonempty F, arbitrary time-dependent wiring, any decoder. Says nothing about update cost G >= 1, nothing about G_max, and no update-time bound. Consequence: any system with S < 2^n must use at least one gate in some update, so G_max >= 1 for S < 2^n. Status: CLAIMED; the author is Haiku, so a different-family reviewer must check it. It is bookkeeping-level and does not close G0151/G0152.",
+  "gap_id": "G0153",
+  "id": "S0258",
+  "proved_step": "LEMMA W0 (zero-gate streaming needs N state bits). Setting: N=2^n, F subset of {0,1}^N nonempty. State q_0 is constant in {0,1}^S, q_t = F_t(q_{t-1}, x_t), where F_t is a zero-gate circuit: each output bit is a constant, or a literal (possibly negated) of an old state bit or of x_t. Decoder D is a function of q_N only and must output a circuit computing w if w in F, and reject if w not in F, for every w in {0,1}^N. Claim: S >= N. PROOF. (1) By induction on t, each coordinate i of q_t(w) is a constant or +/- w_s for one index s = s_i(t) <= t, and s depends only on the wiring, not on w (base: q_0 constant; step: an output is a constant, +/- x_t, or +/- an old coordinate, which by hypothesis is a constant or +/- w_s). (2) Let J = {s_i(N)} over the non-constant coordinates. Then |J| <= S and q_N(w) depends on w only through w restricted to J. (3) Suppose |J| < N. Pick k not in J and some w in F. Let w' be w with bit k flipped. Then q_N(w') = q_N(w). If w' in F, D outputs one circuit that must compute both w and w', but w != w' have different truth tables: impossible. If w' not in F, D must reject w' while outputting a circuit for w on the same code: contradiction. Hence |J| = N, so S >= |J| = N. QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795390834.2571669,
+  "session": "pnp-desk/research/R1842",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN: a lower bound on G (gates per step) in terms of S and |F| for streaming systems satisfying SENS (injective on F, F-codes avoid codes of their N neighbours). The sensitivity condition is necessary but not sufficient for the separation; the gate-count argument still needs a dependency bound on Q through the gates. Refuted approaches (unchanged): counting profiles L_t, D_t, R_t; uniform random controls (saturated); zero-gate case is now settled by W0 and SENS.",
+  "evidence": "Hand proof, checked line by line: the only case split is on membership of w^k in F, and both branches contradict decoder correctness. No computation. Scope: any gate count per step, any time-dependent updates, any decoder that depends on the final state only. Does NOT bound G: a single gate can make Q sensitive to many bits. Example showing the trade-off is real: F={w} needs only S=1 and G=1 (flag: stays 1 while the prefix matches w, else 0), so the bound is not vacuous for singletons. Author model: claude-haiku-5-5 (same family as S0002/S0029/S0059/S0079/S0080/S0086/S0258; a different family must review).",
+  "gap_id": "G0154",
+  "id": "S0259",
+  "proved_step": "LEMMA SENS (sensitivity of final codes, any gate count). Setting: N=2^n, F subset of {0,1}^N. Streaming system: q_0 fixed, q_{t+1}=F_t(q_t,x_{t+1}) with arbitrary (time-dependent, arbitrary-cost) F_t; Q(w)=q_N(w); decoder D depends only on Q(w) and must output a circuit whose truth table is w when w in F, and reject when w not in F, for every w in {0,1}^N. Claim: for every w in F and every k in [N], Q(w^k) != Q(w), where w^k flips bit k. PROOF. Suppose Q(w^k)=Q(w)=c. Then D(c) is one output. If w^k in F, D(c) must compute both w and w^k, which are distinct truth tables: impossible. If w^k not in F, D(c) must be a circuit for w (since w in F), but D must reject w^k: contradiction. QED. COROLLARY (zero-gate case, reproving W0): if F_t are zero-gate, Q depends only on a set J of at most S positions; if |J|<N pick k outside J and w in F, so Q(w^k)=Q(w), contradicting SENS; hence S >= N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795390968.6561215,
+  "session": "pnp-desk/research/R1850",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN: the per-step update cost G_max is not bounded by any state-count argument. The counting/clique bounds only give S >= 6 for SC_{3,1} and S >= 5 for affine, neither a bound on G. Remaining open: exact G_max by joint SAT or a different encoding (the dead-separation encodings time out at N=8), profile-matched controls (linear codes with |P_t| equal to SC_{3,1}'s profile), and a repair of the conflict-graph route that uses adjacency across different suffixes u, not only one suffix class.",
+  "refuted_approach": "Same-suffix clique bound for streaming codes (live prefixes p with pu in F, fixed u, need distinct codes). Measured in cm-1d0e425f7b844b00: the maximum over t includes t=N where the clique equals |F|, so the t=N value is only the counting bound. Restricted to t<N, C_t = max_u #{f in F: f>>t = u} <= L_t = #{f&(2^t-1): f in F}, because f = (f&(2^t-1)) + u*2^t is injective on each suffix class. So the clique bound is dominated by max_t (L_t + D_t) at every t and adds no information. Also, the affine and random controls were not profile-matched (affine size 16 vs SC_{3,1} size 38; random matched in size only), so the family comparison is not the spec's control.",
+  "evidence": "cm-1d0e425f7b844b00: SC_{3,1} |F|=38, L=[1,2,4,8,16,22,30,38,38], clique_need=39=counting_need; affine16 |F|=16, L=[1,2,4,8,8,16,16,16,16], clique_need=17; random_matched_sc1 S_clique mean 6.0, max 6. The dominance C_t <= L_t is checked by the injectivity argument above, not by a separate run.",
+  "gap_id": "G0155"
+ },
+ {
+  "at": 1795391593.1134245,
+  "session": "pnp-desk/research/R1850",
+  "model": "claude-haiku-5-5",
+  "gap": "OPEN: G_max is still unmeasured. Counting bounds S>=ceil(log2(max_t L_t+1)) give 6 for SC_{3,1} and 5 for the affine profile; they do not bound per-step gate cost. Earlier 'min S' values 4 and 8 came from truncated profiles and are withdrawn.",
+  "evidence": "Correction to cm-5369832e7c8942cc and cm-4a3e590c78884a58: they used the first four levels [1,2,4,8] and mislabelled them SC3. cm-bef6523dece84e85 used the full SC_{3,2} profile, giving 8, which is still a counting bound only. No G_max measurement exists yet.",
+  "gap_id": "G0156"
+ },
+ {
+  "at": 1795391732.2899935,
+  "session": "pnp-desk/research/R1850",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "gap": "OPEN: G_max unmeasured",
+  "evidence": "cm-8a9ffd924b6c4838",
+  "gap_id": "G0157"
+ },
+ {
+  "at": 1795391765.2017977,
+  "session": "pnp-desk/research/R1850",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "gap": "OPEN: G_max unmeasured",
+  "evidence": "cm-8a9ffd924b6c4838",
+  "gap_id": "G0158"
  }
 ]

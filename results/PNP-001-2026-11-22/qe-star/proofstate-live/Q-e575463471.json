@@ -261,5 +261,29 @@
   "evidence": "Reviewed the combinatorial argument. The Erdos 1945 Littlewood-Offord theorem states: for nonzero integers a_1..a_k, any open interval of length 2 contains at most C(k, floor(k/2)) subset sums (with multiplicity). The proof partitions the window of W consecutive integers into floor(W/2) pairs {b, b+1} and possibly one singleton. Each pair {b,b+1} is contained in the open interval (b-1/2, b+3/2) of length 2, so at most C(k, floor(k/2)) assignments sum to b or b+1. The singleton {c} is contained in (c-1/2, c+3/2) of length 2, so also at most C(k, floor(k/2)). Total <= floor(W/2)*C(k, floor(k/2)) + (W mod 2)*C(k, floor(k/2)) = ceil(W/2)*C(k, floor(k/2)). The argument is correct. Scope note: the bound is on the number of assignments, not the probability (the probability bound follows by dividing by 2^k). This fixes the window-probability term but does not by itself close the larger gaps G0001/G0004/G0007/G0009 as stated.",
   "review_of": "S0010",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795390031.4380975,
+  "session": "pnp-desk/research/R1840",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer: claude-haiku-5-5 (different family from the claimant nemotron-3.5-super). Counterexample by hand: a=(1,1,1,1), k=4, window {1,2} (W=2). Subset sums: 0 x1, 1 x4, 2 x6, 3 x4, 4 x1. Assignments with sum in {1,2}: 4+6 = 10 > ceil(2/2)*C(4,2) = 6. Lab check cm-8536dc0f643548a8 reproduces it (count 10 vs bound 6) and gives the smallest witness a=(-1), window [-1,0], count 2 > bound 1. Gap in the proof: Erdos (1945) bounds subset sums sum a_i x_i (x_i in {0,1}) only for open intervals of length 1, because x-sums in an interval of length 2 correspond to signed sums in an interval of length 4. The step uses length 2 for each pair {b,b+1}, so the factor ceil(W/2) is unjustified. Repair (not verified here): the bound W*C(k,floor(k/2)) holds, since each integer b gives an open interval (b-1/2,b+1/2) of length 1 that contains one integer, and the map x -> epsilon is a bijection. This is the bound already used in S0017. It loses a factor 2 relative to S0011 and must be re-checked for whether it still closes G0001/G0004/G0007/G0009.",
+  "review_of": "S0011",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795390092.2513096,
+  "session": "pnp-desk/research/R1840",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewer: claude-haiku-5-5 (session R1840, different family from the claimant nemotron-3.5-super). Review of S0011 (window Littlewood-Offord, ceil(W/2)*C(k,floor(k/2))): REFUTED. Counterexample a=(1,1,1,1), window {1,2}: 4+6=10 > 6. Smallest witness a=(-1), window [-1,0]: count 2 > bound 1. Lab reproduction cm-8536dc0f643548a8. Repaired statement R: #{x in {0,1}^k : sum a_i x_i in W} <= W*C(k,floor(k/2)) for nonzero integers a_i and any window W of W integers. Proof: for each integer b in the window, the signed sums 2b - sum(a_i) are the \u03b5-sums of the signed form, and an open interval of length 2 centred there contains at most C(k,floor(k/2)) of them (Erd\u0151s 1945, |a_i|>=1); summing over the W integers gives W*C. Lab verification cm-a4221c13235f4359: 245,528 trials (exhaustive k<=6 multisets over {-4..4}\\{0}, plus random k in 7..40 by exact DP), 0 violations, worst ratio to W*C = 1.0. This verifies R on those instances and is not a general proof beyond the argument above. Not a new proved step: S0017 (claude-haiku, same family as me) relies on the per-value bound and cannot be reviewed by me. Q-e575463471 gaps G0001/G0004/G0007/G0009 are not closed by R alone; the restriction count and polynomial-to-bounded weight reduction remain open."
+ },
+ {
+  "at": 1795390288.749969,
+  "session": "pnp-desk/research/R1840",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-c2db9270a7c947aa (own exhaustive brute force, small weights, k<=5, W<=4; old-bound control fails 7722 times, new bound 0 violations). Proof is own derivation: sign-flip, then Sperner antichain per value, then a sum over the W window values. Independent of the earlier refutation counterexample cm-8536dc0f643548a8. Reviewer: a cross-family model is needed before this counts for anything.",
+  "id": "S0033",
+  "proved_step": "LEMMA (window count, nonzero integer weights; repair of S0011). Let k >= 1, a = (a_1..a_k) with every a_i in Z\\{0}, and let W >= 1 be an integer. For any integer t, #{x in {0,1}^k : sum_i a_i x_i in [t, t+W-1]} <= W * C(k, floor(k/2)). PROOF. (1) Let P = {i : a_i > 0}, N = {i : a_i < 0}. Substitute y_i = x_i for i in P and y_i = 1 - x_i for i in N; this is a bijection of {0,1}^k. Since a_i x_i = a_i + |a_i| y_i for i in N, the sum equals C + sum_i |a_i| y_i for a constant C, so the count equals #{y : sum_i |a_i| y_i in [t', t'+W-1]} with t' = t - C. (2) Fix an integer v and let G_v = {J subset [k] : sum_{i in J} |a_i| = v}. If A is a proper subset of B and all |a_i| > 0, then sum_A < sum_B, so G_v is an antichain. By Sperner's theorem |G_v| <= C(k, floor(k/2)). The assignments y with sum |a_i| y_i = v correspond bijectively to G_v. (3) The window [t', t'+W-1] contains W integers, so the count is at most sum over those W values v of |G_v| <= W * C(k, floor(k/2)). QED. SCOPE: all weights nonzero. A zero weight multiplies the count by 2 and can be removed by factoring out 2^(#zero weights); for k' nonzero weights the bound then reads 2^(k-k') * W * C(k', floor(k'/2)). Verification: exhaustive over all a in {-3..3}\\{0}^k, k<=5, W<=4, all integer t: 488,940 tests, 0 violations (cm-c2db9270a7c947aa); earlier independent random run cm-a4221c13235f4359, 245,528 trials, 0 violations. Control: the old bound ceil(W/2)*C(k,floor(k/2)) fails 7,722 times, as predicted. Status: bookkeeping for the window count. It does not close G0001, G0003 or G0004 and is not P vs NP progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

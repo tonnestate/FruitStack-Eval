@@ -2674,5 +2674,59 @@
   "proved_step": "LEMMA R (residual-class count; does NOT close G0004). Setting: N = 2^m, S subset of {0,1}^N, t in {0,...,N-1}. For a prefix p in {0,1}^t the residual is R_t(p) = {q in {0,1}^(N-t) : pq in S}. CLAIM: the number of DISTINCT NONEMPTY residuals R_t(p) over all p of length t is at most |S|. PROOF: for each nonempty residual class choose one representative prefix p of length t and one suffix q_p with p q_p in S. Two different classes have different representatives, so their representatives differ in the first t bits, so the strings p q_p are pairwise distinct elements of S. Hence #classes <= |S|. COROLLARY (conditional on the |Im_s| bound of S0091/S0171, which is DISPUTED and not used as a premise here): with S = Im_s, the exact prefix automaton of Im_s has at most (s+1)(16(m+s+1)^2)^s nonempty residual states at each depth, i.e. O(s log(m+s)) bits per state. SCOPE: a state-count statement for an arbitrary set S; it bounds the number of states, not the update time. GAP UNCHANGED: a transition needs the residual R_{t+1}(pb) computed from the residual R_t(p), which requires deciding existentially whether some circuit of size <= s consistent with pb exists. That existential is the open part of G0004 (poly(s) update), so this lemma only confirms the state count, not the transition cost.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795389938.2802422,
+  "session": "pnp-desk/research/R1836",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: G0003 (poly(s) update cost of the transitions) and the question of whether transitions can be expressed by real gates on H_C (question 2). Stating a bit bound does not decide either.",
+  "evidence": "cm-fad88a60a1fd4b96 (own BFS, distinct residual counts within the state-count bound on 4 cases; 0 violations). Lemma is trivial bookkeeping and is not claimed as P vs NP progress.",
+  "gap_id": "G0172",
+  "id": "S0322",
+  "proved_step": "STATE-SPACE BOUND FOR THE EXACT PREFIX AUTOMATON OF Im_s (bookkeeping; not progress). Setting: N=2^m, Im_s = {truth tables of circuits of size <= s over {AND,OR,XOR,a&~b} plus constants/literals on m inputs}, as in S0152. Claim: the number of distinct residuals {f>>t : f in Im_s, f mod 2^t = p} over all levels t in 0..N and all prefixes p is at most (N+1)|Im_s| <= (N+1)(s+1)(16(m+s+1)^2)^s, so the minimal prefix automaton has O(m + s log(m+s)) bits of state. Proof: at a fixed level t, each residual is determined by a prefix p, and each prefix of a member of Im_s is realised by at least one member, so the number of residuals at level t is at most |Im_s|; summing over the N+1 levels gives the first bound. The second bound is S0152 (|Im_s| <= (s+1)(16(m+s+1)^2)^s). Taking log2 gives the bit count. Scope: a state-count bound only, with no update-time or transition-cost statement, so G0003 is untouched. Check: cm-fad88a60a1fd4b96 gives distinct residuals 5, 5, 38, 59 and prefix nodes 31, 31, 159, 383 for (m,s) = (2,1), (2,2), (3,1), (3,2), all within the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795390461.3966904,
+  "session": "pnp-desk/research/R1844",
+  "model": "claude-haiku-5-5",
+  "evidence": "Dispute response for S0091 (the bound |Im_s| <= (s+1)(16(m+s+1)^2)^s). Exact level widths for m=3, N=8 (experiments cm-4a8cfd20b02342a4 for s=1, cm-3159b1ae8b694684 for s=2): s=1, |Im|=38, widths by depth t=0..8 are 1,2,4,8,13,15,6,3,2; s=2, |Im|=152, widths 1,2,4,8,14,21,8,4,2. Max width is 15 (s=1) and 21 (s=2), so the bound holds with a margin of 10^2 or more. The test does not discriminate: the bound cannot be violated for t<=5 since 2^t<=32<|Im|. The S0091 bound is a valid but loose state-count bound for m=3 only. It bounds no update time, so G0003 stays open. This session is claude-haiku, the same family as the claimed-step authors, so no SURVIVED_REVIEW or REFUTED status is recorded here."
+ },
+ {
+  "at": 1795390553.8464844,
+  "session": "pnp-desk/research/R1844",
+  "model": "claude-haiku-5-5",
+  "evidence": "Derivation only; the verification of the update rule is in the next computation record.",
+  "id": "S0324",
+  "proved_step": "LEMMA (fixed-s streaming prefix automaton; a special case of G0003 and G0004 for constant s only). Setting: m>=1, N=2^m, s>=0 fixed. Im_s = set of truth tables (length N, position x = binary value of the input) of all nodes of straight-line programs with at most s binary gates. Gate op c in [16] computes out(x) = bit (2*a(x)+b(x)) of c, where a, b are earlier nodes; base nodes are the m variables and the constants 0 and 1. Let C_1..C_K enumerate Im_s. (a) K <= (s+1)(16(m+s+1)^2)^s. Proof: every node is the output of its prefix program, which has at most s gates, so Im_s is the set of base nodes together with the outputs of programs with 1..s gates. Gate k has op c (16 choices) and an ordered operand pair among m+1+k earlier nodes, so there are at most (16(m+s+1)^2)^j programs with j gates; the m+2 base nodes satisfy m+2 <= 16(m+s+1)^2. Summing over j=0..s gives (a). (b) Streaming: keep the K-bit mask M_t = {i : C_i(y) = x_y for all y < t}. M_0 = all indices; M_{t+1} = {i in M_t : C_i(t) = x_t}, where C_i(t) is obtained by evaluating program i on the binary expansion of t (O(s) gate evaluations). By definition, the prefix x_0..x_{t-1} extends to an element of Im_s iff M_t is nonempty. So for fixed s, each update costs O(K s) = O(m^{2s}) bit operations and the state is K = O(m^{2s}) bits, plus the program list, which is generated from (m,s) by enumeration. SCOPE: fixed s only. For s growing with n, K = 2^{Theta(s log s)} and the mask is not polynomial, so G0003 and G0004 stay open. This is bookkeeping and does not count as progress. It uses no CLAIMED step as a premise: (a) is proved here from first principles, not from S0152.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795390577.0993621,
+  "session": "pnp-desk/research/R1844",
+  "model": "claude-haiku-5-5",
+  "evidence": "VERIFICATION of S0324 part (b), m=3, N=8, fixed s. Independent encoding: programs evaluated pointwise on truth tables, not integer BFS. s=1: K=38, all_equal true at depths 1..8 (cm-d6eae32f5bac4f63). s=2: K=152, all_equal true at depths 1..8 (cm-36c83b160ee34e4a). Prediction was K=38 and K=152 with all_equal true; both matched. This catches a bit/position convention error or lost candidates in the mask update. SCOPE: m=3 and s in {1,2} only; it does not test the claim about growing s. Part (a), the bound K <= (s+1)(16(m+s+1)^2)^s, is proved from first principles and is not checked by this run beyond the consistent widths. The mask automaton does not address G0003 (update time for growing s) or G0004 (existential over Circ_s). Status stays CLAIMED: this session is claude-haiku, the same family as the author."
+ },
+ {
+  "at": 1795391354.5779328,
+  "session": "pnp-desk/research/R1852",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s) update time) and G0004 remain open: the count bound and the exact |Im| values give no bound on update time, and S0098/S0091 disputes are unreconciled. No new constructive step was proved this session.",
+  "evidence": "REPLICATION of S0152 part (2) with cm-f50d2b3205844987 (own set-based BFS over 16 binary ops, separate from the program-count argument). Cases (m,s): (2,1) Im=16 <= 512; (2,2) Im=16 <= 480000; (2,3) Im=16 <= 764411904; (3,1) Im=38 <= 800; (3,2) Im=152 <= 995328. All ok. The |Im| values match cm-f9a3d84c16264628 exactly, so the two runs share a method and are not independent of each other. Scope: the bound holds on these five cases, but the margin (10^2 to 10^6) is too large to detect a constant-factor or moderate-exponent error. Claimed steps S0152, S0155, S0166, S0171 were not reviewed here: this session is claude-haiku, the same family as their authors, so no SURVIVED_REVIEW or REFUTED is recorded.",
+  "gap_id": "G0173"
+ },
+ {
+  "at": 1795391467.7392979,
+  "session": "pnp-desk/research/R1852",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (poly(s) update time for the EXT trie) remains open. Obstacle: an update that is poly(s,m) would give near-linear MCSP[m^c], so the route needs a structural compression of Im_s, not a streaming or counting argument. Reviews of S0152/S0155/S0166/S0171 not recorded: same model family as their authors.",
+  "evidence": "Hand proof, no computation. Replication of counting bound S0152(2) on five cases: cm-f50d2b3205844987 (set-based BFS, same method as cm-f9a3d84c16264628, so not independent). Scope: a conditional statement about G0003. It does not close G0003 or G0004.",
+  "gap_id": "G0174",
+  "id": "S0327",
+  "proved_step": "Conditional reduction: if the EXT prefix automaton for Im_s has O(s log(m+s))-bit state and transition cost T(m,s), then deciding x in Im_s costs N*T(m,s) (run the automaton on the full table x; x in Im_s iff the full prefix x is live). Hence G0003 with poly(m,s) update time gives near-linear decision of MCSP[m^c] on truth tables.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
