@@ -2689,5 +2689,63 @@
   "evidence": "Correct count: choosing j positions from 2^m gives exactly binom(2^m,j) functions at Hamming distance j. The construction flips f on D (|D|=j) by building \u03b4_z for each z\u2208D: each negative literal costs \u22641 gate, conjunction of m literals \u2264m-1 gates, total \u22642m-1 per indicator. OR of j indicators uses j-1 gates, XOR with f uses 1 gate. Added cost \u2264(2m-1)j+(j-1)+1=2mj. For j=0, g=f. Distinct D yield distinct g because D is exactly the set where f and g differ. The bound matches S0318.",
   "review_of": "S0320",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795449908.0751293,
+  "session": "pnp-desk/research/R2176",
+  "model": "gpt-6-luna",
+  "id": "S0328",
+  "proved_step": "For every m>=1, every truth table y in {0,1}^{2^m} of Hamming weight w>=1 has a fan-in-two circuit over the 16 binary Boolean operations of size at most m+wm-1: compute all m input negations once; for each of the w accepting rows compute its m-literal minterm using m-1 AND gates; OR the w minterms using w-1 OR gates. Sharing the m negations across terms is valid in a circuit DAG. Therefore every table of weight w with m+wm-1<=s lies in MCSP[s]. The zero table is in MCSP[s] for s>=2 by x_1 AND NOT(x_1). This explicit construction gives a Hamming ball around zero inside the YES set, but does not imply a circuit lower bound for the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795449977.2626321,
+  "session": "pnp-desk/research/R2176",
+  "model": "gpt-6-luna",
+  "id": "S0329",
+  "proved_step": "Let A be the accepting rows of an m-bit Boolean function, w=|A|>=1, and q the number of input variables that occur negated in at least one row of A. In the fan-in-two DAG model with all 16 binary Boolean operations and free input wires, the function has a circuit of at most q+wm-1 gates. Proof: compute the q needed negated input literals once. For each row a in A, form its minterm by ANDing its m literals, using at most m-1 gates (for m=1 this uses zero gates). OR the w minterms using w-1 gates. The total is q+w(m-1)+(w-1)=q+wm-1. The circuit computes exactly the truth table because precisely the minterms indexed by A evaluate to 1. This refines the bound m+wm-1 by tracking the variables actually negated, but only describes a subset of MCSP YES instances and does not imply a lower bound for the MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795450185.9381843,
+  "session": "pnp-desk/research/R2176",
+  "model": "gpt-6-luna",
+  "id": "S0330",
+  "proved_step": "Let m>=1 and let C(f) be the minimum number of fan-in-two gates from the full set of 16 binary Boolean operations in a DAG circuit computing f:{0,1}^m->{0,1}; input wires are free. For any f,g, C(g)<=C(f)+2m*d_H(f,g), and hence |C(f)-C(g)|<=2m*d_H(f,g). Proof: It suffices to toggle one truth-table entry a at a time. The indicator delta_a(x) of x=a is computed by negating each input literal as needed with at most m gates of the form NAND(x_i,x_i) or an equivalent binary operation, then ANDing the m literals using m-1 gates. Given a circuit output f, append one XOR gate with delta_a to obtain f XOR delta_a, which differs from f exactly at a. Thus each toggle costs at most 2m gates. Iterating over the d_H(f,g) differing entries gives C(g)<=C(f)+2m d_H(f,g); exchanging f and g gives the absolute-value bound. Consequently every table within Hamming radius t of any table in MCSP[s] has circuit complexity at most s+2mt. This concerns individual truth-table circuit complexity and does not bound the circuit size of the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795450482.695565,
+  "session": "pnp-desk/research/R2176",
+  "model": "gpt-6-luna",
+  "id": "S0331",
+  "proved_step": "Let m>=1. In fan-in-two DAG circuits over all 16 binary Boolean gates, with free input wires, let C(h) be the minimum gate count for h:{0,1}^m->{0,1}. For f,g define D={a in {0,1}^m:f(a)!=g(a)}. Then |C(f)-C(g)| <= sum_{a in D}(2m-wt(a)), where wt(a) is Hamming weight. Proof: Fix a in D. Its singleton indicator delta_a is computed by negating precisely the m-wt(a) input variables whose target bit is zero, ANDing the m literals using m-1 gates, and XORing delta_a into the current output using one gate. Thus one toggle costs at most (m-wt(a))+(m-1)+1=2m-wt(a). Starting with a minimum circuit for f and applying this construction once for each a in D yields C(g)<=C(f)+sum_{a in D}(2m-wt(a)). Starting with a minimum circuit for g and toggling the same rows yields the reverse inequality, proving the absolute-value bound. This is a local bound on individual truth-table complexity and gives no lower bound for the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795451398.5574574,
+  "session": "pnp-desk/research/R2184",
+  "model": "gpt-6-luna",
+  "id": "S0332",
+  "proved_step": "statement: For every m>=1 and Boolean functions f,g on {0,1}^m, let D={a:f(a)\u2260g(a)}. In the fan-in-two DAG model with all 16 binary Boolean gates and free input wires, C(g)\u2264C(f)+\u03a3_{a\u2208D}(2m\u2212wt(a)). Proof: List D as a1,...,at and set h0=f, hi=hi\u22121\u22951_ai. To compute 1_a, negate the m\u2212wt(a) coordinates where a has value 0, AND its m literals in m\u22121 gates, then XOR with hi\u22121 in one gate. This adds at most 2m\u2212wt(a) gates per row. Since the toggled rows are exactly D, ht=g. Reversing f and g gives the absolute-value bound. This bounds individual truth-table complexity, not MCSP decision-circuit size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795451398.589809,
+  "session": "pnp-desk/research/R2184",
+  "model": "gpt-6-luna",
+  "gap": "The direct MCSP[m^c] general-circuit lower bound N(log N)^k remains open. The Hamming perturbation bound controls individual truth-table complexity but does not bound the size of the circuit deciding whether C(f)\u2264s. A bridge from local individual complexity to decision-circuit complexity is still needed.",
+  "gap_id": "G0176"
+ },
+ {
+  "at": 1795451609.1550808,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0332: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The checker rejected the only Lean attempt because `Finset.filter` could not infer a proposition from the Boolean-valued assignment. That attempt addressed only a point-cost fact; I did not f (not a refutation; a model review is still needed)"
  }
 ]

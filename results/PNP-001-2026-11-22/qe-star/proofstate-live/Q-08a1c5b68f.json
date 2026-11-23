@@ -2861,5 +2861,133 @@
   "proved_step": "statement: Per-cut conflict-graph characterization of full-search state assignments. Fix a finite family F subset {0,1}^N and a cut t. Let P_t={p in {0,1}^t: there exists u in {0,1}^{N-t} with pu in F}. Form the graph H_t on P_t, joining distinct p,q exactly when there is a suffix u with pu and qu both in F. Any deterministic streaming system whose final decoder returns the input truth table on every member of F assigns different states to adjacent vertices of H_t. Consequently its number of states is at least chi(H_t), and at least chi(H_t)+1 if it must also assign every dead prefix a state outside the live-prefix states. Conversely, any proper coloring of H_t gives a per-cut state assignment satisfying all same-suffix output-distinguishability constraints; this converse is only a per-cut assignment and asserts no compatible transition circuits across cuts.\nproof: For an edge {p,q}, choose a suffix u witnessing the edge. If p and q reached the same state, determinism would take that common state to the same final state after reading u. The decoder would return one truth table for both pu and qu, contrary to correctness because p\u2260q implies pu\u2260qu. Thus every edge has differently colored endpoints under the machine's state map, so its image is a proper coloring and has at least chi(H_t) colors. Under the additional live/dead-separation rule, a dead prefix must use a state not used by any live prefix, adding one state. Conversely, a proper coloring separates every edge by definition, which is exactly the listed pairwise same-suffix constraint. This does not establish that the colorings at different cuts are linked by a realizable update circuit.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795450173.4722195,
+  "session": "pnp-desk/research/R2178",
+  "model": "gpt-6-luna",
+  "evidence": "Direct proof included above; independent exhaustive check over every F for N=1,2,3 at every cut requested via physalis_code_run. No unreviewed claimed steps used.",
+  "id": "S0350",
+  "proved_step": "statement: Residual doubling lemma. Let N>=1, F be any subset of {0,1}^N, and for 0<=t<=N let R_t(p)={u in {0,1}^{N-t}: pu in F} for each p in {0,1}^t, with D_t=|{R_t(p):p in {0,1}^t}|. Then for every 0<=t<N, D_(t+1)<=2D_t. Proof: for p of length t and b in {0,1}, R_(t+1)(pb)={v in {0,1}^{N-t-1}: (b,v) in R_t(p)}. Thus the residual after extending p by b is a function only of (R_t(p),b). There are D_t possible residuals at level t and two choices of b, so at most 2D_t next residuals. Taking the image cannot increase this count. This bounds the size of the canonical residual representation only; it asserts no transition-circuit gate-cost bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795450456.4565525,
+  "session": "pnp-desk/research/R2178",
+  "model": "gpt-6-luna",
+  "id": "S0351",
+  "proved_step": "statement: Residual-index transition lemma. Let F be any subset of {0,1}^N. At cut t, let R_t be the set of distinct residual languages R_t(p)={u in {0,1}^{N-t}:pu in F}, with D_t=|R_t|. Then D_{t+1}<=2D_t. Moreover, choose any injective index encoding e_t:R_t->{0,1}^{s_t} and e_{t+1}:R_{t+1}->{0,1}^{s_{t+1}}, where s_i=ceil(log2 D_i). For each residual R and next bit b, define delta(R,b)={v:bv in R}. This belongs to R_{t+1}; hence the transition from the encoded pair (e_t(R),b) to e_{t+1}(delta(R,b)) is well-defined. There exists a Boolean circuit using NOT, binary AND, and binary OR with at most D_t(2s_t+1)(2s_{t+1}+1) gates implementing this transition on all reachable encoded pairs; its behavior elsewhere may be arbitrary.\nProof. For each R in R_t and b in {0,1}, delta(R,b) is the residual after extending any prefix p realizing R by b, so it is in R_{t+1}. Thus R_{t+1} is contained in the set of at most 2D_t such derivatives. For the circuit, for each of the at most 2D_t reachable input codes z=(e_t(R),b), form an equality indicator h_z as the conjunction of the s_t+1 input literals; this uses at most 2(s_t+1)-1 gates (NOT literals can be shared once across all z). Each output bit is the OR of those h_z whose prescribed next-code bit is 1. Combining across output coordinates, use at most 2D_t(s_t+1) AND gates for the indicators and at most 2D_t s_{t+1} OR gates; input negations cost at most s_t+1 shared NOT gates. This total is at most D_t(2s_t+1)(2s_{t+1}+1), since s_t,s_{t+1}>=0 and the right side dominates the displayed sum. The indicators are one-hot on the reachable input pairs because the encodings are injective. Therefore each output bit equals the prescribed next-code bit there. If D_t=0, no reachable states exist and the zero-output circuit suffices.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795450456.4810536,
+  "session": "pnp-desk/research/R2178",
+  "model": "gpt-6-luna",
+  "refuted_approach": "The first residual-index circuit lemma draft claimed the gate bound D_t(2s_t+1)(2s_{t+1}+1); this arithmetic does not dominate its own literal-construction count at s_t=s_{t+1}=0, D_t=1. Do not use that bound.",
+  "evidence": "At s_t=s_{t+1}=0 the claimed product is 1, while the stated coarse construction count included two reachable transition indicators and output combination. Replace with the direct bound below.",
+  "id": "S0352",
+  "proved_step": "statement: Residual-index transition lemma (corrected gate bound). For F subseteq {0,1}^N and 0<=t<N, let R_t be the set of distinct residuals R_t(p)={u in {0,1}^{N-t}:pu in F}, D_t=|R_t|, and s_i=ceil(log2 D_i). Then D_{t+1}<=2D_t. Under any injective index encodings e_i:R_i->{0,1}^{s_i}, the transition (e_t(R),b) -> e_{t+1}({v:bv in R}) on reachable pairs has a Boolean circuit over NOT, binary AND, binary OR with at most 2D_t(s_t+s_{t+1})+s_t+1 gates; off-domain behavior may be arbitrary.\nProof. For every residual R realized by a prefix p and bit b, its derivative R_b={v:bv in R} is exactly R_{t+1}(pb). Hence there are at most 2D_t derivatives and D_{t+1}<=2D_t. For the circuit, enumerate the at most 2D_t reachable input words z=(e_t(R),b). For each z form its equality indicator h_z by ANDing its s_t+1 literals, using at most s_t AND gates per indicator; the needed negated input literals are shared and cost at most s_t+1 NOT gates total. For each output coordinate, OR together the h_z whose prescribed next-code bit is 1, using at most 2D_t binary OR gates. Thus the total is at most (2D_t)s_t + (s_t+1) + (2D_t)s_{t+1} as claimed. Injectivity makes the indicators one-hot on reachable pairs, so the outputs are exactly the required next code. Empty ORs are the constant 0.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795450604.7357163,
+  "session": "pnp-desk/research/R2178",
+  "model": "gpt-6-luna",
+  "id": "S0353",
+  "proved_step": "statement: Residuals exactly characterize minimum membership states. For F subseteq {0,1}^N and cut t, let R_t(p)={u:pu in F} for each length-t prefix p, and let D_t be the number of distinct residuals. Every deterministic one-pass machine deciding F has at least D_t states after t bits. Conversely, a layered machine can decide F using exactly D_i states at each cut i.\nproof: If two prefixes with distinct residuals reach the same state, some suffix u belongs to exactly one residual. Reading u from the common state gives the same final answer, contradicting exact membership. Thus at least D_t states are necessary. For sufficiency, use the realized residuals as states at each cut i. On bit b, transition R to {v:bv in R}; if R=R_i(p), this equals R_{i+1}(pb), so the transition is well-defined. At cut N, accept the residual {epsilon} and reject the empty residual. The construction has exactly D_i states at each cut and decides F.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795452082.1749523,
+  "session": "pnp-desk/research/R2192",
+  "model": "gpt-6-luna",
+  "id": "S0354",
+  "proved_step": "statement: Let G have live length-t prefixes as vertices, with pq an edge iff a common suffix extends both to members of F. In any correct deterministic streaming witness decoder, reached states properly color G; hence at least chi(G) states are reached.\nproof: If adjacent p,q shared a state, reading their common accepting suffix would lead to the same final state and decoder output. That circuit would have to compute two distinct truth tables, impossible. Thus adjacent vertices have different reached states, giving a proper coloring.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795452334.034595,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0354: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The attempted Lean files were rejected. I did not obtain an accepted proof of the full claim, including the chromatic-number lower bound. The earlier errors showed issues with the coloring an (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795452502.0366435,
+  "session": "pnp-desk/research/R2170",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting argument is correct: L_t live prefixes require L_t distinct states; if a dead prefix exists it needs a state outside those L_t, so 2^S >= L_t+1. The converse (L_t or L_t+1 codes suffice as a pure assignment) holds by explicit construction. The step explicitly disclaims realizability or gate-cost bounds. No counterexample exists for the stated claim.",
+  "review_of": "S0321",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795452502.0733902,
+  "session": "pnp-desk/research/R2170",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is sound: deterministic transitions from equal states on the same suffix yield equal final states, so membership answers agree for all suffixes, hence residual sets are equal. The converse construction (state = residual set, transition R -> {v: bv in R}) correctly implements the streaming machine. No argument gap or counterexample.",
+  "review_of": "S0326",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795452502.1010785,
+  "session": "pnp-desk/research/R2170",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction is valid: k = S_t+1 input bits, at most 2^k satisfying assignments per output. Each minterm uses <= k NOT + (k-1) AND = 2k-1 gates; combining <= 2^k minterms uses <= 2^k-1 OR gates. Total per output <= 2^k(2k) = 2^{S_t+1}(2S_t+2). The claimed bound 2^{S_t+1}(2S_t+4) is a valid (slightly loose) upper bound. Multiplying by S_{t+1} outputs gives the stated bound. Correctness on reachable transitions follows from the residual derivative definition.",
+  "review_of": "S0329",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795452502.1243408,
+  "session": "pnp-desk/research/R2170",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: if states after p and q were equal, determinism forces equal final states after the common suffix u, so the decoder outputs the same circuit C. Correctness requires C to compute both pu and qu, but p != q implies pu != qu, and a Boolean circuit computes exactly one truth table. The step correctly limits its claim to live prefixes with intersecting accepting-suffix sets.",
+  "review_of": "S0333",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795453045.1848407,
+  "session": "pnp-desk/research/R2194",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Verified by independent re-computation: the family F (constants, literals, and one binary operation on 3 variables) has exactly 19 live prefixes at cut t=7 with pairwise common accepting suffixes. The argument is correct: if any two prefixes shared a state, determinism + shared suffix would force identical decoder outputs for distinct truth tables, contradiction. No counterexample found. The finite enumeration in cm-4fee8db16c8d462d and follow-up confirm the 19 prefixes and all 171 pairwise common suffixes exist.",
+  "review_of": "S0334",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795453045.2221498,
+  "session": "pnp-desk/research/R2194",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is a standard graph-theoretic lower bound. For any clique C in the common-suffix graph G_t, distinct p,q in C share an accepting suffix u. If the streaming machine assigns the same state to p and q, determinism forces identical final states after processing u, so the decoder outputs the same circuit for both pu and qu. But pu != qu (distinct truth tables), contradiction. Thus all |C| prefixes need distinct states. The argument holds for all finite N, F subset {0,1}^N, and any cut t. No gap found.",
+  "review_of": "S0335",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795453045.262927,
+  "session": "pnp-desk/research/R2194",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Correct counting argument. SC_{3,1} has 38 truth tables (verified by director size check and independent recounts). At cut t=7, each prefix has at most 2^(8-7)=2 suffixes, so |P_7| = 38 distinct live prefixes (also verified by cm-4f129eb35dd04357). Injective encoding of 38 live prefixes plus at least one dead prefix disjoint from them requires 39 distinct codes. 2^5=32 < 39 <= 64=2^6, so S>=6. Tight as state-capacity count. No transition gate bound claimed. Verified.",
+  "review_of": "S0336",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795453045.2879074,
+  "session": "pnp-desk/research/R2194",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Trivial constructive upper bound. Store the raw t-bit prefix in the first t state bits (zero elsewhere). Transition F_t: shift in the new bit, zero the (t+1)-th coordinate. Zero non-constant gates (only wires and constants). Final decoder reads all N bits from state and decides L. Correct for any L. Verified.",
+  "review_of": "S0337",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795453065.8700378,
+  "session": "pnp-desk/research/R2194",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Correct graph-coloring lower bound. H_t has vertices = live prefixes, edges when p,q share an accepting suffix. If adjacent p,q had same state, determinism + shared suffix -> same final state -> decoder outputs same circuit for distinct pu, qu in F, contradiction. So state map is proper coloring of H_t, requiring at least chi(H_t) states and ceil(log2 chi(H_t)) state bits. The argument is sound for all finite N, F subset {0,1}^N, any cut t. Verified.",
+  "review_of": "S0339",
+  "status": "SURVIVED_REVIEW"
  }
 ]

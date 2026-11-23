@@ -157,5 +157,61 @@
   "evidence": "The circuit composition claim is mathematically correct. Given circuits for psi (size A), psi^{-1} on valid codes C (size B), and delta_a (size T), their composition psi \u2218 delta_a \u2218 psi^{-1} on valid codes has a circuit of size at most A+B+T plus constant wiring. This is a standard circuit composition fact. The caveat is also correct: A and B may be large (the encoding/decoding circuits themselves may be complex), so this does not give a recoding-invariant lower bound on the intrinsic complexity of the transition function, and it does not close G0001 which requires a bound independent of the encoding choice.",
   "review_of": "S0014",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795451384.267647,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "id": "S0019",
+  "proved_step": "RESIDUAL QUOTIENT LEMMA (exact statement and proof). Let A and B be sets, let F:A*\u2192B, and define u~v iff for every w\u2208A*, F(uw)=F(vw). Then ~ is an equivalence relation, is stable under appending a letter, and its classes form the coarsest reachable-state deterministic transducer computing F, with output [u]\u21a6F(u) when outputs are read after each complete input. Proof: Reflexivity, symmetry and transitivity follow pointwise from equality in B. If u~v and a\u2208A, then for every w, F(uaw)=F(vaw), since aw\u2208A*; hence ua~va, so \u03b4([u],a)=[ua] is well-defined. Define output \u03bb([u])=F(u), which is well-defined by choosing suffix \u03b5 in the definition. Starting from [\u03b5], induction on input length shows that the state after u is [u], hence the output is F(u). For coarseness, any deterministic transducer computing F that reaches the same state after u and v must produce the same output after every common suffix w, so F(uw)=F(vw) for all w; thus u~v. This is a general mathematical lemma about exact deterministic transducers. It supplies no bound on Boolean update-circuit size, update time, decoder complexity, or simulation of the MMW Sigma3SAT^A oracle, and does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795451454.9379277,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains OPEN. S0019 proves the residual quotient characterization, but supplies no bound on transition-circuit size, charged update time, decoder cost, or simulation of the MMW Sigma3SAT^A oracle. Its proof text explicitly says it does not close G0001; the stored closes=G0001 metadata must not be treated as a confirmed closure. The mandatory MMW oracle stress test remains unanswered.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795451712.7077565,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "id": "S0021",
+  "proved_step": "statement: BOUNDED-QUERY ORACLE COMPILATION LEMMA. Fix an oracle A\u2286{0,1}*. An oracle gate on \u2113-bit inputs can be replaced by a fan-in-2 Boolean circuit of at most (\u2113+1)2^\u2113 gates. Thus an oracle circuit with q such gates, all queries of length at most \u2113, and g ordinary fan-in-2 gates can be replaced by an ordinary circuit of at most g+q(\u2113+1)2^\u2113 gates. Proof: Take the DNF over all y\u2208A\u2229{0,1}^\u2113, with a term specifying each y. Each term takes at most \u2113\u22121 binary AND gates and combining at most 2^\u2113 terms takes at most 2^\u2113\u22121 binary OR gates, within the stated bound (constant and degenerate cases can be implemented with a constant gate). Substitute a copy for each oracle gate. In particular, \u2113=O(log s) makes the per-gate compilation cost polynomial in s. The lemma does not establish MMW query lengths or update-time accounting; it narrows the T0 audit to those checks, and G0001 remains open. Barrier diagnostic: relativizing\u2014yes, uniform for every fixed A; natural\u2014no natural measure or learner is used; algebrizing\u2014not applicable to this Boolean compilation statement; localizing\u2014not applicable, as no proof-complexity argument is used. No circumvention test is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795451772.035891,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains OPEN. S0021 is only a bounded-query compilation upper bound; it does not establish MMW19 query lengths, the number of oracle gates charged per update, or whether compiling those gates preserves the theorem's update-time bound. Its stored closes=G0001 metadata is not evidence that the obligation is discharged. The exact unresolved check is the MMW19 Thm 1.2 transition/query representation and its resource accounting.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795452830.2772918,
+  "session": "pnp-desk/research/R2196",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This is the standard Myhill-Nerode theorem for deterministic transducers (Mealy machines). The equivalence relation definition, stability under letter appending, quotient transducer construction, correctness by induction, and coarseness proof are all mathematically correct. The step explicitly acknowledges it provides no circuit/resource bounds and does not close G0001. No counterexample exists; this is a classical result in automata theory.",
+  "review_of": "S0019",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795452830.305975,
+  "session": "pnp-desk/research/R2196",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The DNF compilation bound is mathematically correct as an upper bound: each of \u22642^\u2113 terms uses \u2264\u2113-1 AND gates, combined with \u22642^\u2113-1 OR gates, total \u2264\u2113\u00b72^\u2113-1 \u2264 (\u2113+1)2^\u2113. The overall bound g+q(\u2113+1)2^\u2113 follows by substitution. However, the step correctly acknowledges the critical gap: MMW19 Thm 1.2 uses \u03a3\u2083SAT^A queries of length \u00d5(s), not O(log s). With \u2113=\u00d5(s), the compilation cost is exponential in s, not polynomial. This does not establish the MMW resource accounting needed for G0001. The lemma is sound but insufficient for the transfer audit.",
+  "review_of": "S0021",
+  "status": "SURVIVED_REVIEW"
  }
 ]

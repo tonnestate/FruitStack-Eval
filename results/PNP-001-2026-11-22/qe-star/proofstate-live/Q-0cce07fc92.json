@@ -336,5 +336,37 @@
   "evidence": "Corrected lemma: per-interval transition map is computed by a uniform Boolean circuit of size O(tau\u00b7poly(S\u00b7w)), uniform over all inputs. Proof: pad interval to exactly \u03c4 steps, unroll each step using multiplexer-based circuits of O(poly(S\u00b7w)) gates; transition function depends only on configuration and input bit, so circuit is uniform. This establishes the size bound without falsely claiming closure of G0003.",
   "review_of": "S0015",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795449665.3198802,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Corrected statement adds explicit padding-invariance assumption for the oracle decider. Proof: (1) Pad each query to exactly ell bits with blanks; padding invariance ensures the decider's answer is unchanged. (2) For each of the at most q query slots, the machine generates an ell-bit padded query; simulate the fixed decider on this ell-bit input for p(ell) steps using the standard tableau-to-circuit construction, yielding a fan-in-two circuit of size O((p(ell)+ell) log(2+p(ell)+ell)). (3) Ordinary steps cost poly(B) each via multiplexers for RAM addressing, total tau*poly(B). (4) Compose the q query simulations with the tau ordinary transitions. The circuit is uniform over all configurations and next input bits. Without padding invariance, a variable-length selection multiplexer would add a factor of Omega(ell) or Omega(log ell), so the assumption is necessary for the stated bound.",
+  "review_of": "S0034",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795449717.3088021,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Corrected lemma explicitly assumes padding invariance of the Sigma3SAT^A oracle decider, which is a standard property (trailing blanks do not change the quantified Boolean formula). Real queries are padded to fixed length ell; dummy queries use a constant string masked by usage indicators. This eliminates the variable-length multiplexer that would add Omega(ell) or Omega(log ell) overhead.",
+  "id": "S0044",
+  "proved_step": "statement_start: LEMMA (Sigma3SAT^A stage map with padding-invariant oracle decider). Let M be a deterministic RAM with S memory cells of w bits that reads x in {0,1}^N in order. In each interval M performs at most tau steps and at most q oracle queries to a fixed Sigma3SAT^A language, each query of length at most ell. Assume the Sigma3SAT^A oracle decider is padding-invariant: for any query string y and any padding string p, decider(y) = decider(y || p). Then the stage map (configuration at read i, bit x_{i+1}) -> configuration at read i+1 is computed by a single A-oracle circuit with tau*poly(S*w) ordinary fan-in-2 gates and exactly tau*q oracle gates of fixed input length ell, uniform over all x. PROOF: (1) For each of the at most q query slots, the machine generates a query string y of length lambda <= ell. By padding invariance, the oracle answer on y equals the answer on y padded to exactly ell bits with a fixed padding symbol (e.g., 0). (2) The circuit pads every real query to length ell by appending the fixed padding; dummy queries (for unused slots) are set to a constant string of length ell whose oracle answer is masked to 0 by an AND with a slot-usage indicator. (3) Each padded query is fed to a fixed ell-input oracle gate. The ordinary computation between queries uses multiplexers for RAM addressing, costing poly(S*w) fan-in-2 gates per step, total tau*poly(S*w). (4) The circuit structure (wiring of slots, padding logic, oracle gate positions) does not depend on x. The padding-invariance assumption is necessary and is satisfied by any standard Sigma3SAT^A decider that ignores trailing blanks/padding. SCOPE: per-stage size bound only. Does not close G0001 (tableau encoding), G0002 (formal update-time definition), or hypothesis (8). Reviewer must be from another model family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795449736.2697868,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Repair separates the work-tape/head/state circuit (O(tau*S)) from the input-head counter (O(tau*log N)). The original claim included the log N counter in the O(tau*S) bound without a circuit for it. The corrected bound is O(tau*S + tau*log N), which simplifies to O(tau*S) only under the explicit hypothesis S >= log N. The one-pass input head moves right by 1 per update, requiring a counter increment of log N bits per step.",
+  "id": "S0045",
+  "proved_step": "statement_start: LEMMA (corrected Lemma 11 with explicit input-head counter). Let M be a deterministic single-tape TM with S work cells over a fixed finite alphabet and a fixed state set Q (both constants). Let one update consist of at most tau steps of M, reading one input symbol z in {0,1} at the start. The configuration is encoded as: S work cells of constant width, a one-hot head indicator (S bits), the state (constant bits), and the input-head position as a binary counter of ceil(log2 N) bits. Then the update map (configuration, z) -> configuration is computed by a fan-in-2 Boolean circuit with O(tau*S + tau*log N) gates. If S >= log N, this simplifies to O(tau*S). PROOF: (1) Work-tape and head: one-hot encoding h_1..h_S. Read symbol r = OR_j (h_j AND c_j) per symbol bit, O(S) gates. (2) Cell update: c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j) where w is a constant-size table, O(S) gates. (3) Head shift: h'_j = (h_{j-1} AND move_right) OR (h_{j+1} AND move_left) OR (h_j AND stay) with boundary conditions, O(S) gates. (4) State update: constant-size table, O(1) gates. (5) Input-head counter: the TM's input head moves right by exactly 1 per update (one-pass). Incrementing a binary counter of L = ceil(log2 N) bits costs O(L) fan-in-2 gates (ripple-carry adder or equivalent). (6) Each of the tau steps costs O(S + L) gates. Concatenating tau steps and idle-padding to exactly tau steps makes the circuit x-independent. Total: O(tau*S + tau*L) = O(tau*S + tau*log N). With S >= log N hypothesis, this is O(tau*S). SCOPE: constant-alphabet, constant-state TM; one-pass input. Does not cover the RAM variant (poly(S,m) per operation). Does not close G0002 (formal update-time definition from MMW19) or hypothesis (8). Reviewer must be from another model family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

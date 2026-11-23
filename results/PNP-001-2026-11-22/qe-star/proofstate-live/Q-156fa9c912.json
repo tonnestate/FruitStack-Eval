@@ -3453,5 +3453,52 @@
   "proved_step": "statement: LEMMA (residual-state bound from candidate subsets). Let C be a finite set, N>=0, and E:C->{0,1}^N. Let L={E(c):c in C}, and for each prefix p define R_p={u in {0,1}^{N-|p|}: pu in L}. At every fixed prefix length t, the number D_t of distinct residual languages R_p is at most 2^{|C|}. Proof: associate to p its candidate subset A_p={c in C:E(c) begins with p}. If A_p=A_q, then R_p=R_q: in either case the residual consists exactly of suffixes E(c)_{t+1..N} for c in that common subset. Thus the map A_p -> R_p is well-defined and surjective onto the residuals at level t. There are at most 2^{|C|} subsets of C, so D_t<=2^{|C|}. Moreover, the candidate-mask update of S0416 computes A_{pb} from A_p by coordinatewise filtering. Consequently this representation gives an exact automaton with at most 2^{|C|} states and |C| state bits, with at most |C| AND gates per fixed-level transition under the stated hardwiring model.\nscope: Finite image languages L of an explicitly given finite description set C; fixed prefix levels; state transitions may hardwire E(c)_{t+1}. This is a bound in |C|, not in compact circuit size. It provides no polynomial(s,n) workspace or transition-cost bound for EXT and makes no claim about arbitrary MCSP decision circuits.\nscope: Finite image languages L={E(c):c in C}, explicit finite C, fixed-level exact prefix automaton; no compactness or MCSP conclusion.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795450753.9924228,
+  "session": "pnp-desk/research/R2180",
+  "model": "gpt-6-luna",
+  "evidence": "The displayed transition formula uses NOT b. In the stated fan-in-two AND/OR/NOT gate model, S0399's count omits the gate computing NOT b. One shared inverter repairs the count, as reflected in S0400.",
+  "review_of": "S0399",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795450974.658632,
+  "session": "pnp-desk/research/R2180",
+  "model": "gpt-6-luna",
+  "id": "S0419",
+  "proved_step": "statement: Candidate-set transition lemma for EXT_{n,s}. Fix an enumeration C_1,...,C_K of all descriptions of Boolean circuits on n input variables of size at most s, including a fixed convention for invalid descriptions (which describe no circuit). For each truth-table position j, let e_{i,j} be the output bit of C_i on input j, and let A(p)={i: C_i is valid and its truth table begins with prefix p}. Encode A(p) by K indicator bits z_i. After reading the next bit b at position j, the exact update is z'_i = z_i AND [e_{i,j}=b] for valid descriptions, and z'_i=0 for invalid descriptions. Thus EXT_{n,s}(p)=1 iff OR_i z_i=1, and one transition is computable by a fan-in-two AND/OR/NOT circuit with at most K+1 gates given the constants [e_{i,j}=b] (one AND per description and a shared OR reduction; the stated bound allows K=1). Proof: By definition, a valid description remains consistent with p concatenated with b exactly when it was consistent with p and its fixed truth-table bit at position j equals b. This is precisely the coordinatewise update. Induction on prefix length establishes that the maintained vector equals A(p) at every step; its OR is therefore 1 exactly when some size-at-most-s circuit extends p. The constants can be precomputed from the circuit descriptions and position j, but this lemma does not bound that preprocessing cost, K, or give an implementation through an arbitrary MCSP decision circuit H_C.\nscope: All n>=0 and s>=0 under an explicitly fixed finite circuit-description enumeration and truth-table input order; state width K, transition circuit fan-in two, with position-dependent truth-table constants supplied. This is an exact representation, not a polynomial-in-s streaming algorithm and not a simulation by bounded real-gate operations on arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795451121.5154495,
+  "session": "pnp-desk/research/R2180",
+  "model": "gpt-6-luna",
+  "id": "S0420",
+  "proved_step": "statement: LEMMA (candidate filtering). Let C_1,...,C_M be an explicitly listed family of Boolean circuits with truth tables of length N in a fixed order. Store z_i=1 exactly when C_i matches the current prefix. On receiving bit b at position t, update z_i to z_i AND [C_i(t)=b]. This uses at most M fan-in-two AND gates when the position-dependent truth-table bits are supplied. The family contains a circuit matching the prefix exactly when OR_i z_i=1, computable with at most M-1 OR gates for M>=1.\nProof. Initially every circuit matches the empty prefix. If z_i records agreement through position t-1, then z_i AND [C_i(t)=b] is 1 exactly when C_i also agrees at position t, proving the invariant by induction. Taking the OR tests whether any listed circuit matches. Each update is one conjunction with a supplied constant, so the stated gate bound holds.\nScope: This is an exact representation for an explicit finite family. Applying it to padded descriptions of size-at-most-s circuits gives an exponential-size family in general; the lemma establishes no polynomial-in-s transition bound and says nothing about arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795451336.977301,
+  "session": "pnp-desk/research/R2180",
+  "model": "gpt-6-luna",
+  "id": "S0421",
+  "proved_step": "LEMMA (explicit candidate-filter automaton for EXT). Fix n>=1 and s>=0, and fix any finite indexed list C_1,...,C_M of Boolean circuits on n inputs that contains a representative of every Boolean function computable by a fan-in-two circuit of size at most s. Let a_0,...,a_{2^n-1} be the fixed truth-table input order. For each prefix p of length t, define z_j(p)=1 iff C_j(a_i)=p_i for every i<t. Then z(p) is an exact streaming state for EXT_{n,s}: EXT_{n,s}(p)=1 iff OR_j z_j(p)=1. On the next bit b at position t, update z'_j=z_j AND [C_j(a_t)=b]. With the position-dependent constants [C_j(a_t)=b] supplied, this transition uses at most M fan-in-two AND gates (each coordinate is either z_j or 0). A padded topological description of a size-s circuit has O(s log(n+s+2)+log(n+s+2)) bits, so taking one list entry per description gives M <= 2^{O(s log(n+s+2))}. Proof: Initially every candidate agrees with the empty prefix. If z_j(p)=1, filtering by the next truth-table value retains C_j exactly when it agrees with the extended prefix; induction gives the invariant. The list covers every function in the size-s class, so the candidate set is nonempty exactly when p is an EXT prefix. For the description bound, topologically order at most s gates and pad to s slots; encode each gate type, its at most two predecessors among inputs/constants/earlier slots, and the output. Each slot requires O(log(n+s+2)) bits, giving the stated length and count. This exact construction is a baseline only: it proves no lower bound against compressed states and gives no connection to arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-a7ef063323",
+  "closes_valid": true
+ },
+ {
+  "at": 1795451532.7155995,
+  "session": "pnp-desk/research/R2180",
+  "model": "gpt-6-luna",
+  "evidence": "The construction explicitly evaluates each candidate circuit at the current address and charges every gate, including the shared address-bit negation and the final AND with z_j. Induction establishes exact prefix agreement. This refines the prior free-position-constant transition bound; it does not establish a compressed-state transition.",
+  "id": "S0422",
+  "proved_step": "statement: LEMMA (uniform candidate-filter transition). Let n>=1, s>=0 and C_1,...,C_M be fan-in-two AND/OR/NOT circuits with constants on n inputs, each of size at most s. For each truth-table prefix p of length t, set z_j(p)=1 iff C_j(a_i)=p_i for all i<t. With current state z, the n-bit address a_t, and next bit b as inputs, the exact next state is computable in at most M(s+5)+1 fan-in-two AND/OR/NOT gates. Proof: Compute y_j=C_j(a_t) with a copy of C_j, costing at most s gates. Compute e_j=(y_j AND b) OR ((NOT y_j) AND (NOT b)); share NOT b across candidates and use four further gates per candidate. Set z'_j=z_j AND e_j, adding one gate per candidate. The total is at most Ms+5M+1. Initially all candidates agree with the empty prefix. The update retains candidate j exactly when it agreed with the preceding prefix and C_j(a_t)=b, so induction proves the invariant at every prefix. If the list contains a representative for every size-at-most-s circuit function, OR_j z_j(p)=1 exactly when p is an EXT prefix. Scope: the explicit candidate-list representation only; M can be exponential, and this gives no compression into H_C or bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
