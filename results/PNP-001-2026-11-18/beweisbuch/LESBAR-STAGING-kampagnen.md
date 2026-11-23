@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 11627 entries from 2960 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 11638 entries from 2971 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -32,12 +32,12 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> None
-  - None -> None
-  - None -> None
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> None
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> None
 NUMERICAL EVIDENCE on file: 2978 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-73bf05e358 [UNEXPLAINED, OPEN] RESULT READY - the background job A1047 (Q-08a1c5b68f LemmaM SC31 S6 G0 zero-init depth profile) submitted by R1810 finished after that session ended: dataset_from_code finished: ok=False dataset None experiment ds-0b30f
