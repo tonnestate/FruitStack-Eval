@@ -2314,5 +2314,95 @@
   "evidence": "Step claims |Q_t| >= L_t + 1 for every t with a dead prefix in any deterministic layered streaming decider of SC_{n,s}, but L_t is not defined in the step excerpt. The scope mentions 'arbitrary state set' and 'time-dependent encodings' without clarifying how L_t relates to the streaming automaton structure. Similar to the withdrawn G0116 claim, the step lacks precise definition of the indexing t, the layer structure, and the connection between dead prefixes and the lower bound. The proof 'in lemma field' is not provided in the step, making verification impossible. Definitional gap: undefined L_t, ambiguous layer indexing, and unclear relationship between dead prefix existence and the state count lower bound.",
   "review_of": "S0166",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795399435.9514732,
+  "session": "pnp-desk/research/R1889",
+  "model": "gemma-4-31b-it",
+  "evidence": "This is a standard application of the Myhill-Nerode theorem adapted for time-indexed automata. The state at time t must distinguish between different residual languages R(p) to ensure correct final acceptance. If R(p) != R(p'), they must reach different states; otherwise, for any suffix v, the machine would either accept both pv and p'v or reject both, contradicting the definition of residual languages. The addition of [D_t > 0] correctly accounts for the single state needed to represent the empty language (dead prefixes). The logic is mathematically sound for the decision-only model.",
+  "review_of": "S0213",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399435.984926,
+  "session": "pnp-desk/research/R1889",
+  "model": "gemma-4-31b-it",
+  "evidence": "The induction is correct: if every state bit is either a constant, a literal of a previous state bit, or the current input bit, then every state bit q_t^i is essentially a function of a single input bit p_j (j <= t) or a constant. This means the state vector q_t is a projection of the input prefix onto a set of at most S indices. For the encoding to be injective on a set P_t, the projection on these S indices must also be injective. The claim S >= kappa(P_t) follows directly from the definition of kappa as the minimum size of an injective coordinate projection. The scope is correctly limited to the 'copy/negate/constant/input' class.",
+  "review_of": "S0214",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399750.9262156,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0068: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795399802.845699,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly establishes that the state map q_t must be injective on live prefixes L_t and that the image of L_t must be disjoint from the image of dead prefixes D_t. The argument uses the search-model semantics (decoder outputs a circuit) precisely: if two live prefixes share a state, their completions would force the decoder to output one circuit for two distinct strings in F, which is impossible. The dead-live separation follows because a shared state would force the decoder to accept a dead prefix. The state count bound 2^S >= |L_t| + [D_t nonempty] is mathematically sound for the search model. The scope note correctly limits this to a space bound only.",
+  "review_of": "S0222",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399802.8759148,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma correctly formalizes the conflict-clique argument for the search model. Part (a) is valid: if two live prefixes share a state at time t, their futures are identical for all suffixes v, so any v that makes both completions valid strings in F would force the decoder to output one circuit for two distinct strings (they differ in the first t bits since p != p'), which is impossible. Part (b) is also valid: a dead and live prefix sharing a state would force the decoder to accept the dead prefix. The consequence that any clique in H_t needs pairwise distinct codes, and these must be disjoint from the code of any dead prefix, gives the lower bound 2^S >= omega(H_t) + [D_t nonempty]. This is a clean restatement of S0086 with the search-model decoder. The scope is correctly limited to space bounds only. The reference to cm-262789be5a0741fb as EXPLORATORY verification is appropriate.",
+  "review_of": "S0226",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399886.0036077,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "The counting argument is mathematically sound: if the state map q_t is injective on live prefixes (established in earlier steps) and dead codes are distinct from live codes, then with D_t > 0 dead prefixes, we need at least L_t + 1 distinct codes. Since there are 2^S possible states, we must have 2^S >= L_t + [D_t > 0]. The scope is correctly limited to the search model with time-dependent encodings. This step correctly restates and consolidates the counting bound without claiming more than it delivers.",
+  "review_of": "S0235",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399886.0392962,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "This is a direct application of the Myhill-Nerode theorem to the streaming decision model. The proof correctly shows that prefixes reaching the same state must have identical residual languages, so the state map partitions prefixes into residual classes. Therefore |Q| >= R_t where R_t is the number of distinct residual classes at level t. The argument is precise and valid for the decision model.",
+  "review_of": "S0244",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399886.0652041,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "The induction argument is correct: under the restricted update options (copy, streamed bit, constant 0/1), each state bit is indeed a function of at most one fixed input position. The conclusion that the state depends only on v|I_t with |I_t| <= S is valid. The construction at t = S+1 with a position p outside I_t creates a live prefix (all zeros) and a dead prefix (has a 1 at position p, so can't extend to the constant-0 function) that share the same state, proving the liveness predicate cannot separate them. This is a clean counterexample construction for the restricted model.",
+  "review_of": "S0248",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399886.0885665,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "This is the standard Myhill-Nerode equivalence relation for the function f. The equivalence classes of ~_t at level t partition the input space according to the residual function behavior. The number of such classes provides a lower bound on the state count needed by any deterministic streaming decision procedure. The statement is precise and the reasoning is mathematically valid for establishing state lower bounds in the decision model.",
+  "review_of": "S0257",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400481.8214133,
+  "session": "pnp-desk/research/R1889",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Proof correct by induction; each state bit depends on at most S input positions; if |J|<N contradiction; hence S>=N.",
+  "review_of": "S0258",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400489.2210166,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0068: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795402183.9821863,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0068: OPEN_UNPROVEN - no counterexample found; formal proof attempt TIME_CAP: no FINAL (not a refutation; a model review is still needed)"
  }
 ]

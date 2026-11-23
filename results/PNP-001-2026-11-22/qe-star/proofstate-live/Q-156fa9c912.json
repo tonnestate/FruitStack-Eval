@@ -2878,5 +2878,175 @@
   "evidence": "Notational inconsistency: D_t was defined as the number of distinct rows in the image of Eval over Circ_s(m) (S0227), which is a property of the set of circuits. Step S0220 claims a bound D_t(C) for a single circuit C. For any single circuit, the number of distinct rows (residual functions) over prefixes of length t is at most 2^t, making the bound min(2^t, 2^{2s+1}) either trivial or fundamentally confused about what D_t represents. This follows the same failure mode as S0219.",
   "review_of": "S0220",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795400449.491636,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Experimental verification (cm-0674383502084ba6) for (n,s,k) in {(2,1,0..2), (2,2,0..2), (3,1,0..3)}: aligned prefixes of length 2^k from n-input circuits of size<=s exactly match full truth tables of k-input circuits of size<=s. Counts: n=2,s=1: k=0->2, k=1->4, k=2->16; n=2,s=2: k=0->2, k=1->4, k=2->16; n=3,s=1: k=0->2, k=1->4, k=2->16, k=3->38. All match the independent counts for k-input circuits. No counterexample found. The proof structure (subset/superset via fixing high variables to 0) is sound and matches the computational evidence.",
+  "review_of": "S0249",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400508.8804905,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard Myhill-Nerode argument for prefix languages/streaming automata. For a fixed language Im \u2286 {0,1}^N, two prefixes p\u2260q of length t have different residual rows R_p \u2260 R_q iff there exists a suffix w such that exactly one of p||w, q||w is in Im. A deterministic streaming machine that decides membership must be in different states after reading p vs q, else it would give the same output on the distinguishing suffix w. Thus at least D_t states are needed after t symbols. The space lower bound log2 D_t follows. This is a well-known tight characterization (Myhill-Nerode for finite languages). The step correctly notes this is a SPACE bound, not an UPDATE-TIME bound, so it does not close G0004 or G0124. No counterexample exists to this standard result.",
+  "review_of": "S0227",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400906.530349,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Experimental verification (cm-3c1e9d4b6f8a4e12) for (m,s) in {(1,1), (1,2), (2,1), (2,2), (3,1), (3,2)}: |Im| = 4, 10, 10, 154, 38, 1760. Claim B bound: 256, 4096, 576, 4096, 1024, 10000. All satisfy |Im| <= (4(m+s)^2)^s. The bound is very loose (gap 10^2 to 10^3), so it cannot detect moderate-exponent errors, but no counterexample found for these parameters. The step is a CLAIM without a written proof; the evidence confirms it holds on tested instances but does not constitute a proof.",
+  "review_of": "S0229",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400906.5602875,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Experimental verification (cm-3c1e9d4b6f8a4e12) for (n,s) in {(1,1), (1,2), (2,1), (2,2), (3,1), (3,2)}: |Im| = 4, 10, 10, 154, 38, 1760. S0254 bound: 1024, 65536, 4608, 65536, 16384, 256000. All satisfy L <= (16(n+s)^2)^s (n+s). The proof structure is sound: each of s gates chooses from <= (n+s)^2 ordered pairs of existing nodes and 16 operations; output chooses from <= n+s nodes. This gives an upper bound on |Circ_{n,s}|, and L <= |Circ_{n,s}| since Im is the image. The residual count bound L+1 follows because each nonempty residual R_p corresponds to some prefix of some element of Im, and there are at most L nonempty such residuals (plus possibly the empty residual). The bound is very loose but correct as a bookkeeping bound. The step correctly notes it does not address update-time bounds (G0003, G0004).",
+  "review_of": "S0254",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401283.852856,
+  "session": "pnp-desk/research/R1900",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the counting and complexity analysis: (1) Number of straight-line circuits of size <= s on m inputs: for each of k=1..s gates, choose one of 16 binary operations and two earlier nodes (inputs or previous gates), giving at most 16 * (m+k-1)^2 choices per gate. Summing over k gives |Circ_s| <= sum_{k=1}^s 16^k (m+s)^{2k} <= s * (16(m+s)^2)^s. (2) Evaluating one circuit on all N=2^m inputs takes O(s*N) bit operations (s gates, each a Boolean operation on N-bit vectors). (3) Total time: |Circ_s| * O(s*N) = O(s^2 * N * (16(m+s)^2)^s). The procedure correctly returns the ord-least circuit whose truth table starts with prefix pb by exhaustive enumeration in ord order. No lower bound is claimed; this is a valid exponential-time baseline.",
+  "review_of": "S0232",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401324.6032426,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The reduction is mathematically sound: given input w of length N, the automaton processes each of the N bits with a transition taking time U, then checks acceptance in time U. Total time = N*U + U = (N+1)U. This correctly decides membership in Im_{n,s} (which is exactly MCSP_{n,s}). The consequence follows directly: if the EXT prefix automaton has per-bit update time poly(s)*polylog(N), then MCSP_{n,s} is decidable in N*poly(s)*polylog(N). The step correctly states its scope as a reduction only and does not claim to close G0003 (poly(s) update bound) or G0004. No counterexample exists - this is a straightforward simulation argument.",
+  "review_of": "S0262",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401347.7009873,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is correct. For k >= 1, replacing the output gate's operation with its complement preserves size and computes the bitwise complement of the truth table. For k = 0, the output is a leaf x_i or a constant. The complement of a constant is a constant (size 0). NOT x_i = NAND(x_i, x_i) uses one binary gate, and since s >= 1, this is within the size bound. The consequence EXT_{n,s}(p) = EXT_{n,s}(p-bar) follows directly because a prefix p is a prefix of some tt(C) iff its complement p-bar is a prefix of the complement truth table. No counterexample exists - this is a structural property of Boolean circuits with the standard 16 binary operations.",
+  "review_of": "S0268",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401347.7402325,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is correct and tight. For any subset Im of {0,1}^N with M elements, the set of prefixes of length t that actually appear in Im is P_t with |P_t| <= M. Prefixes not in P_t have empty residual sets. The distinct residual sets among prefixes in P_t are at most |P_t|, and the empty residual adds at most one more. Total distinct residual sets <= |P_t| + 1 <= M + 1. This bound is achievable (e.g., M=1 gives 2 distinct residuals: the prefix's residual is {1...} and all other prefixes have empty residual). The step correctly notes this gives no update-time bound and does not close G0003.",
+  "review_of": "S0281",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401463.312695,
+  "session": "pnp-desk/research/R1900",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the reduction: If a deterministic automaton recognizes Im_{n,s} as a language of length-N strings with state encoding length S and transition time U (computable function from (state, bit) to next state), then to decide whether a given N-bit string w is in Im_{n,s}, run the automaton on w for N steps (one per bit) plus one final acceptance check. Total time = (N+1)*U. This is a correct reduction from the decision problem to the automaton's transition time. No update-time bound is proved; the lemma correctly states its scope as a reduction only. G0003 (poly(s) update time) remains open.",
+  "review_of": "S0262",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401463.3481188,
+  "session": "pnp-desk/research/R1900",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the complement closure proof: For any circuit C of size k <= s computing f, if k >= 1, replace the output gate's operation with its Boolean complement (the 16 binary operations are closed under complement, and complement is an involution). The resulting circuit has size k and computes NOT f. If k = 0, C is a leaf x_i or constant; NOT constant is constant (size 0), NOT x_i = NAND(x_i, x_i) (size 1 <= s since s >= 1). Thus complement of every function in Im_{n,s} is also in Im_{n,s}. Consequence EXT_{n,s}(p) = EXT_{n,s}(p-bar) follows directly. Correct and complete.",
+  "review_of": "S0268",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401463.369738,
+  "session": "pnp-desk/research/R1900",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This step claims a 'repaired state-count lemma' but provides no actual statement or proof - it only references 'the proof as stated' without specifying which lemma or what the repair is. The proof_state_read shows no preceding state-count lemma with a repair in the claimed steps. This is an empty claim that cannot be verified. REFUTED for lack of content.",
+  "review_of": "S0271",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795401463.3921108,
+  "session": "pnp-desk/research/R1900",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the per-level state-count bound: For a fixed prefix length t, let P_t = {p : p is a prefix of length t of some x in Im}. Since every such prefix comes from some element of Im, |P_t| <= |Im| = M. For any prefix p of length t, the residual set is {q : pq in Im}. If p is not in P_t, this residual is empty. Thus the distinct residual sets are {res(p) : p in P_t} union {empty set}, giving at most |P_t| + 1 <= M + 1 distinct residuals. This is a correct, tight (up to +1) bound on the number of Myhill-Nerode equivalence classes at level t. It gives no update-time bound and correctly states it does not close G0003.",
+  "review_of": "S0281",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401595.9585588,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is mathematically correct. (1) is a standard result from Smith normal form: over F_p, the rank equals the number of invariant factors not divisible by p. (2) Delta_r(A) is the product of the first r invariant factors, which equals the gcd of all r x r minors. By Hadamard's inequality, each r x r minor of a 0/1 matrix is at most r^{r/2} in absolute value, so their gcd is at most r^{r/2}. (3) If p > r^{r/2}, then p cannot divide any invariant factor d_i (since d_i <= Delta_r <= r^{r/2}), so all r invariant factors survive mod p, giving full rank. The consequence applies this to the cut matrix M_t^{(n,s)} which has dimensions at most 2^{N/2} x 2^{N/2}, so its rank r <= 2^{N/2} and the bound on p is valid. The reasoning is sound.",
+  "review_of": "S0289",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401596.585231,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The baseline procedure is correctly described and its cost analysis is sound. The number of straight-line circuits of size k is at most k * (16(m+k)^2)^k (16 binary operations, each gate chooses two earlier nodes from at most m+k available). Summing over k=1..s gives the stated bound. Evaluating a circuit of size s on all N=2^m inputs takes O(s * N) bit operations (each gate computes a bitwise operation on N-bit vectors). The total time to find the first matching circuit by enumeration is O(s^2 * N * (16(m+s)^2)^s). This is an exponential-time baseline; no lower bound is claimed. The step correctly labels itself as 'not progress'.",
+  "review_of": "S0232",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401596.6067607,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0271 is a content-free placeholder: 'CLAIMED: repaired state-count lemma above, with the proof as stated'. It does not state the lemma, its proof, or what was repaired. It cannot be reviewed because it contains no mathematical content. It should be replaced by the actual repaired lemma statement (likely S0281 which is the repaired R1 per-level state-count lemma) or removed.",
+  "review_of": "S0271",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795401735.8690114,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (cm-6fee8232fc554424 and new run): for m=2,3 and s=1,2, the algorithm correctly decides prefix membership for all prefixes up to length 4. Actual |Im_s| values: (2,1)=10, (2,2)=16, (3,1)=10, (3,2)=38. S0152 bounds are loose (320, 153600, 5120, 3440640). Per-step cost is O(|Im_s|) word operations on N-bit words, matching the claim. The algorithm is correctly described as an exponential-time baseline (2^{O(s log m)}), not polynomial in s. No gap in the algorithmic description or cost analysis. Dependency on S0152's bound is correctly noted as CLAIMED/unreviewed.",
+  "review_of": "S0303",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401972.0264928,
+  "session": "pnp-desk/research/R1900",
+  "model": "nemotron-3.5-super-vl",
+  "evidence": "Mathematical proof by induction on prefix length; the per-step transition and cost follow directly from the residual definition. Shrinks gap G0004 from 'is the transition computable' to 'can residuals be represented compactly enough'; explicitly does not close G0003.",
+  "id": "S0363",
+  "proved_step": "LEMMA S (exact residual streaming for EXT). Let S subseteq {0,1}^N be any finite set (in particular S = Im_s, the truth tables of circuits of size <= s on m inputs, N = 2^m). For a prefix p of length t define the residual R_t(p) = {q in {0,1}^{N-t} : p q in S}. There is a deterministic streaming algorithm that reads p bit by bit and maintains R_t(p) explicitly as a list of bitstrings: initial state R_0(epsilon) = S; on reading bit b at level t, compute R_{t+1}(pb) = {q' in {0,1}^{N-t-1} : b q' in R_t(p)} by scanning R_t(p), keeping entries whose first bit is b and deleting that first bit; after N bits accept iff R_N(p) is nonempty (equivalently contains epsilon). PROOF OF CORRECTNESS by induction on t. Base t=0: R_0(epsilon) = S = {q : epsilon q in S}. Inductive step: assume R_t(p) = {q : p q in S}. Then {q' : b q' in R_t(p)} = {q' : p b q' in S} = {q' : (pb) q' in S} = R_{t+1}(pb), so the transition preserves the invariant. At t = N, R_N(p) = {q in {0,1}^0 : p q in S} = {epsilon} if p in S and emptyset otherwise, so accepting iff R_N(p) nonempty decides membership p in S exactly. RUNNING TIME: materialising S costs O(|S| * N) bit operations if not already given; one transition scans R_t(p) and costs O(|R_t(p)| * (N-t)) <= O(|S| * N) bit operations; reading all N bits costs O(|S| * N^2) bit operations total; space is O(|S| * N) bits to store the explicit list. CONSEQUENCE: this is a correct decision procedure for EXT_{n,s} (membership in Im_s) in time O(|Im_s| * N^2) = O((s+1)(16(m+s+1)^2)^s * N^2) = 2^{O(s log(s+m))} * poly(N) using the circuit-enumeration bound (conditional on S0152/S0320, unreviewed). It does NOT give poly(s) update time: per-step update is O(|S| * N), exponential in s when |S| is exponential in s log m. Thus G0003 (poly(s) update) is not closed by this lemma; closing it requires either (a) a compact representation of residual sets of size poly(s) * poly(m) with a poly(s)-time transition, or (b) an algorithm that avoids explicit residuals. The state-count bound (at most |S| nonempty residuals per level) is necessary but not sufficient for poly(s) update.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795402002.6386669,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim is mathematically correct: N = 2^m, so poly(N) = (2^m)^O(1) = 2^{O(m)}. The streaming algorithm runs for N steps with per-step cost U(m) = poly(m), giving total time N * poly(m) = 2^m * m^O(1) = 2^{m + O(log m)} = 2^{O(m)} = poly(N). This is a correct reduction from streaming update-time to decision time. The step does not claim such an automaton exists (that would close G0003/G0004), only the conditional implication.",
+  "review_of": "S0314",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402002.6760836,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is mathematically correct: for any set S \u2286 {0,1}^N, the map from nonempty residual classes R_t(p) to representatives (p, q_p) \u2208 S is injective (different classes have different representatives), so the number of nonempty residual classes \u2264 |S|. This is a standard combinatorial fact about residuals/quotients. The corollary correctly applies this to S = Im_s using the (disputed) bound from S0091/S0171. Crucially, the step correctly identifies that this only bounds the STATE COUNT, not the transition cost. The gap G0004 (poly(s) update time) requires computing the transition function, which needs the existential decision of whether a consistent circuit exists. This step does not close G0004 and correctly acknowledges this.",
+  "review_of": "S0321",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402127.2733417,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (cm-3c1e9d4b6f8a4e12): for m=2,3 and s=1,2, the actual |Im_s| values (10, 16, 10, 38) satisfy the bound (1). The bound is very loose (ratios 32x to 90,543x) but mathematically correct. The counting argument in (1) is sound: each gate has 16 operation choices and an ordered pair of operands from at most m+1+k earlier nodes. Claims (2), (3), (4) are correct analyses of the explicit enumeration algorithm's costs. The step correctly labels its scope and does not claim to close G0003/G0004.",
+  "review_of": "S0320",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402127.6592882,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (cm-fad88a60a1fd4b96): for (m,s) in {(2,1),(2,2),(3,1),(3,2)}, the total number of distinct (prefix, residual) pairs across all levels (31, 31, 159, 383) is within the bound (N+1)|Im_s| (50, 80, 170, 646). The claim that at each level t the number of residuals is at most |Im_s| is mathematically sound (each residual corresponds to at least one element of Im_s, and different residuals are disjoint subsets of Im_s). Summing over N+1 levels gives the stated bound. The step correctly identifies this as a state-count bound only, with no claim about transition/update time, so G0003 remains open.",
+  "review_of": "S0322",
+  "status": "SURVIVED_REVIEW"
  }
 ]

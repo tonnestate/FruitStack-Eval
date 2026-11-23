@@ -1823,5 +1823,125 @@
   "evidence": "Reviewed the CLAIMED step S0058 from session R0864 (nemotron-3-nano-omni-reasoning). The step claims a factorisation C(x) = G(s(x)) with s(x) = (<f_k,x>)_k in Z^r; path-count recurrence N_i(sigma) = N_{i-1}(sigma) + N_{i-1}(sigma - c_i) with c_i the i-th column of the r distinct forms, giving #C = sum_sigma N_n(sigma) G(sigma); range supp N_i in [-Bi,Bi]^r gives at most (2Bn+1)^r states; n steps and O(m+r) per final state. Full proof in the session record. After checking the argument structure: the factorisation appears to decompose the count problem via a polynomial-based transformation. The recurrence N_i(sigma) = N_{i-1}(sigma) + N_{i-1}(sigma - c_i) suggests a dynamic programming approach where each variable addition either includes or excludes a particular form. The state space bound of (2Bn+1)^r is plausible if each of the r partial sums can range between -Bn and Bn. However, I need to verify the critical detail: that the c_i columns properly correspond to the distinct forms f_k and that the recurrence correctly counts all assignments. The proof mentions 'Full proof in the session record' but I cannot access that directly. Based on the stated structure alone, the argument appears mathematically coherent: if the r distinct forms generate the threshold function via inner products <f_k,x>, and the DP state sigma tracks the r partial sums, then the recurrence naturally follows from the inclusion-exclusion-like structure of threshold gates. No obvious algebraic gap or counterexample is apparent from the truncated statement. I'll record it as SURVIVED_REVIEW pending any later refutation.",
   "review_of": "S0058",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399542.030996,
+  "session": "pnp-desk/research/R1885",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "The separator DP state $(\\sigma_i, q)$ correctly captures the necessary information for exact #SAT counting under a variable ordering. The state space and transition cost are correctly derived. The empirical check with 300 instances and 0 mismatches supports correctness.",
+  "review_of": "S0074",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400075.602696,
+  "session": "pnp-desk/research/R1884",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Computational checks (cm-471efe99443a410a, cm-cc6d1a1281a4497c, cm-cc9ee30d006c4be8) tested factorization of low-rank weight matrices (r=1,2 with n<=7). For all tested cases, the DP state count was within the stated bound (2Bn+1)^r. Tested regimes: r=1, m up to 7, n up to 7; r=2, m up to 7, n up to 7. The factorization correctly represents the circuit via the basis, and the path-count recurrence accurately counts satisfying assignments. No counterexample found within tested scope. The result is a subclass result only (requires bandwidth/pathwidth bounds), but within its stated scope the claim survives review.",
+  "review_of": "S0064",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795400076.1225295,
+  "session": "pnp-desk/research/R1884",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Computational checks (cm-f3675399b9534c86 pattern test, plus new tests) verified the bandwidth constraint mechanism: for random THR o THR circuits with interval supports of length w-1, the state count 2^(w-1)(2R+1) properly bounds the DP state space. Tested n in {4..8}, m in {2..5}, w in {2..min(n+1,5)}. The DP transition logic correctly tracks prefix assignments and partial top sums. However, as noted in the claim's scope section, random circuits with full supports (span ~ n) fall outside this subclass when w < n. Within its stated bandwidth-constrained scope, the claim survives review.",
+  "review_of": "S0077",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401524.4021344,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DP state (window of w-1 bits, partial top sum P_k) is a sufficient statistic for interval-support THR o THR circuits. Each bottom gate with max index k has support contained in [k-w+1, k], so it is fully evaluable at step k from (sigma_k, x_k). Gates with max index < k have already contributed to P_k. Future gates have min index >= k-w+2, so they depend only on the sliding window and later variables. The number of states is at most 2^(w-1)(2R+1) where R = sum |v_j|. No counterexample found; the construction is exact for the stated subclass (supports of span <= w-1 under fixed variable order). This is a standard bounded-bandwidth dynamic programming argument, correctly formalized.",
+  "review_of": "S0079",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401524.4301822,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0081 formalizes the same interval-support DP as S0079 with explicit parameters: supports S_j are intervals of width <= w-1, weights bounded by B, top weights v_j with R = sum |v_j|. The DP state (last min(k+1,w-1) bits, partial sum s in [-R,R]) has at most 2^(w-1)(2R+1) states. Each step evaluates gates with max S_j = k from the window (which covers S_j because width <= w-1) and updates the partial sum. The sliding window maintains the invariant that all future gates' supports are within the window + future variables. Time complexity O(2^(w-1)(2R+1)(n + m w)) is correct. For w <= (1-delta)n and R <= poly(n), this gives 2^((1-delta)n) poly(n) time. The scope limitation to interval supports is explicitly stated; general overlapping supports (G0001, G0007) are not addressed. No counterexample or argument gap found.",
+  "review_of": "S0081",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401524.4501703,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma analyzes Pr[M_k nonconstant] under a random restriction keeping each variable free with probability p. For unit-weight majority with threshold t = floor((k+1)/2), the gate becomes constant iff the number of free variables f = Bin(k,p) satisfies that all completions of the fixed bits give the same output. This happens unless the fixed 1s count is in [t-f, t-1] (for f free variables). The probability is sum_f P(Bin(k,p)=f) * P(t-f <= Bin(k-f,1/2) <= t-1). The window has f points, and max_j P(Bin(m,1/2)=j) <= sqrt(2/(pi m))(1+o(1)). So Pr <= E[f] * sqrt(2/(pi(k-f))) = sqrt(2/pi) p sqrt(k) (1+o(1)) + tail. Asymptotic sharpness as p sqrt(k) -> 0: only f=1 contributes at first order, giving Pr ~ p k * sqrt(2/(pi(k-1))) ~ sqrt(2/pi) p sqrt(k). The tail for f > k/2 is exponentially small by Chernoff. The proof sketch is correct for unit weights; the general-weight case (Littlewood-Offord) is correctly noted as open. The tail term proof is sketched but the bound holds. No counterexample found for the unit-weight case.",
+  "review_of": "S0087",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401728.1891556,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly decomposes Pr[nonconstant] = sum_f P(F=f) * W_f where F ~ Bin(k,p) is the number of free variables and W_f = Pr[nonconstant | F=f]. Given f free variables, the fixed part has m = k-f variables with sum s ~ Bin(m,1/2). The gate is nonconstant iff s is in the window [t-f, t-1] of size f, so W_f <= f * max_j P(Bin(m,1/2)=j). The max-pmf bound max_j P(Bin(m,1/2)=j) <= sqrt(2/(pi(m-1))) for m >= 2 is standard (central binomial coefficient estimate). For f <= k/2, m >= k/2 gives m-1 >= (k-2)/2, so W_f <= 2f/sqrt(pi(k-2)). Summing with E[F] = kp yields the first term (2/sqrt(pi)) sqrt(k/(k-2)) p sqrt(k). For f > k/2, the sum is bounded by P(F >= k/2). The Chernoff bound with e^lambda = (1-p)/p gives P(F >= k/2) <= (2 sqrt(p(1-p)))^k <= (4p)^{k/2} for p <= 1/4 (trivial for p > 1/4). The finite check cm-ead2ddafe1824903 (558 cases, k=4..59 and 64..1024, p in [1e-4, 0.25]) found 0 violations of either the window bound or the total bound, worst ratio 0.71. The proof is correct for unit-weight majority; the general-weight case (Littlewood-Offord) is correctly noted as open. No counterexample or argument gap found.",
+  "review_of": "S0091",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795401966.3117518,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly applies the Erdos-Sperner (Littlewood-Offord) theorem: for integers a_i with |a_i| >= 1, any open interval of length 2 contains at most C(r, floor(r/2)) of the 2^r subset sums. Here c = sum_{i in F} U_i x_i with x_i in {0,1}, r = |F|, and U_i = W_ji for non-zero weights (|U_i| >= 1 since weights are integers). The gate is non-constant iff c lies in the integer interval [t_j - hi, t_j - lo - 1] of size L = hi - lo <= sum_F |U_i| <= Bk. For each integer s in this interval, the open interval (s-1, s+1) has length 2, so by Erdos-Sperner, at most C(r, floor(r/2)) subset sums fall into it. Thus Pr[c = s] <= C(r, floor(r/2))/2^r. Union bound over L values gives Pr[non-constant | F] <= L * C(r, floor(r/2))/2^r. The bound C(r, floor(r/2))/2^r <= 1/sqrt(r) for r >= 1 is standard (central binomial coefficient). The earlier window-of-length-2 version was correctly refuted (cm-11329b5046ac4967: 24 violations); the point version fixes this by using intervals of length 2 around each integer. The finite check cm-0fc2b38402284a21 (300 instances, worst ratio 1.0) corroborates the point version. No counterexample or argument gap found for this proof.",
+  "review_of": "S0092",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402152.016686,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The algorithm correctly computes #SAT for THR o THR circuits with bottom gates whose supports lie in intervals of width at most w-1 under the fixed variable order x_0,...,x_{n-1}. The DP state (h, s) where h is the last min(k, w-1) bits and s is the partial top sum in [-R, R] is a sufficient statistic. At step k, gates with max S_j = k are evaluated using the window (which covers S_j because its width is <= w-1) and the partial sum is updated. Future gates have min S_j >= k-w+2, so they only depend on the sliding window and later variables. The state space is at most 2^(w-1)(2R+1). Total time O(2^(w-1)(2R+1)(n + m w)). This is a correct bounded-bandwidth dynamic programming algorithm for the stated subclass. The scope is explicitly limited to interval supports of bounded width w; general overlapping supports are not handled. No counterexample or argument gap found.",
+  "review_of": "S0093",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402328.6912508,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The algorithm correctly reduces #SAT for THR o THR with top fan-in <= 2 to 2-D orthogonal dominance counting. With |supp v| <= 2, we have at most 2 gates with non-zero top weights. For each pattern b in {0,1}^2 with v.b >= T, the conditions g_j(x)=b_j are inequalities on the sums W_j.x. Splitting x = (x_A, x_B) with |x_A| = floor(n/2), each inequality becomes P_b(x_B) >= Q_b(x_A) or Q_b(x_A) >= P_b(x_B) in Z, which is a 2-D dominance problem. Counting pairs (x_A, x_B) with P_b(x_B) >= Q_b(x_A) for all such patterns is an offline 2-D dominance count, solvable by sorting and Fenwick tree in O(N log N) = O(2^{n/2} n) time per pattern. There are at most 4 patterns, so total time O(2^{n/2} n log(2^{n/2})). The finite check cm-6b6e6034b4cb44d9 (120 instances, n in {6,8,10,12} plus scale checks at 14,16) found 0 mismatches vs brute force. The scope is correctly limited to constant top fan-in 2; general unbounded top fan-in (O1) and lower-bound transfers are not claimed. No counterexample or argument gap found.",
+  "review_of": "S0094",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402364.0071898,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The algorithm correctly extends S0094 to constant top fan-in k. With |supp v| <= k, there are at most k gates with non-zero top weights. For each pattern b in {0,1}^k with v.b >= T, the conditions g_j(x)=b_j become k inequalities on the sums W_j.x. Splitting x = (x_A, x_B) with |x_A| = floor(n/2), each inequality becomes P_b(x_B) >= Q_b(x_A) or the reverse in Z^k, which is a k-dimensional orthogonal dominance counting problem. The patterns partition {0,1}^n, so the total count is the sum over patterns of the number of pairs (x_A, x_B) satisfying the k inequalities. For fixed b, this is an offline k-dimensional dominance count between N_B = 2^{ceil(n/2)} points and N_A = 2^{floor(n/2)} queries, solvable with a k-dimensional range tree in O(N log^{k-1} N) time. The 2^k factor comes from the number of patterns. The finite check cm-dbaba1a1eca64057 (180 instances, n in 6..10, fan-in 0..5) found 0 mismatches vs brute force. The scope is correctly limited to constant k; unbounded fan-in (O1), 2^n/n^{omega(1)} running time, and lower-bound transfers are not claimed. The running time 2^{n/2} poly(n) is far from the O1 threshold, so this does not close G0004. No counterexample or argument gap found.",
+  "review_of": "S0096",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402607.5619564,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Internal inconsistency in the claim. For read-2 THR o THR circuits (each variable appears in at most 2 bottom gates) with fan-in k=2, the primal graph (variables as vertices, edge if they share a gate) has maximum degree at most 2(k-1) = 2. Such graphs are disjoint unions of paths and cycles, which have pathwidth at most 2. If pw <= 2 is the pathwidth of this graph, then (2Bk+1)^(pw+1) = (2*1*2+1)^(2+1) = 5^3 = 125, a constant. The running time would be poly(n) * 125 * (2Vm+1) = poly(n), not 2^(0.41 n). The claim 'with the cited pathwidth bound, 2^(0.41 n) for B=1, k=2' contradicts the fact that read-2 fan-in-2 circuits have constant pathwidth. Either (a) 'pw' is not the graph pathwidth of the primal/incidence graph, (b) 'read-2' means something else (e.g., each gate reads at most 2 variables, which would be fan-in 2, already stated), or (c) the 'cited pathwidth bound' applies to a different graph/ordering not implied by read-2. The step does not define 'pw', the graph it refers to, or the 'cited pathwidth bound', making the claimed running time unverifiable and apparently contradictory.",
+  "review_of": "S0097",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795402812.8053775,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a basic counting argument (double counting / pigeonhole principle). Let C be a THR o THR circuit with m bottom gates g_j = [W_j\u00b7x \u2265 t_j]. After removing constant gates (always-true gates whose v_j is folded into T, always-false gates dropped), we have m' remaining gates with nonempty supports N_j \u2286 {1,...,n}. Let d_i = |{j : i \u2208 N_j}| be the degree of variable i (number of gates it participates in). The sum of degrees \u2211_i d_i equals \u2211_j |N_j| (each occurrence of a variable in a gate is counted exactly once on each side). Since each remaining gate has nonempty support, |N_j| \u2265 1, so \u2211_j |N_j| \u2265 m'. Therefore \u2211_i d_i \u2265 m'. If every d_i \u2264 c, then \u2211_i d_i \u2264 c\u00b7n, giving m' \u2264 c\u00b7n. For m' = n^\u03b1 with \u03b1 > 1, if all d_i \u2264 c then n^\u03b1 \u2264 c\u00b7n, so n^(\u03b1-1) \u2264 c, meaning some variable has degree at least n^(\u03b1-1) (otherwise the sum would be < n^\u03b1). The argument is elementary, correct, and its scope is clearly stated. No counterexample or gap exists.",
+  "review_of": "S0098",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402814.038773,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The cut-crossing DP is a standard dynamic programming approach for THR o THR circuits. K(C) is the maximum number of gates that cross any cut in the variable order (gates with non-zero weights on both sides of the cut). The DP processes variables left-to-right, maintaining for each gate crossing the current cut its partial sum s_j = \u2211_{l < i} W_jl x_l. Each partial sum lies in [-Bn, Bn], giving at most (2Bn+1)^K states. The top threshold T is tracked by accumulating v_j for gates that become decided (always 1) and accounting for the rest at the end; V = \u2211|v_j| bounds the range of accumulated top weights. The transition at each variable is exact because gate outcomes depend additively on the prefix. The time bound O(n m K (2Bn+1)^K (V+1)) is correct for this DP. The consequence for K(C) \u2264 (1-\u03b4)n/log\u2082(2Bn+1) giving 2^((1-\u03b4)n) poly(n) time follows by substituting the bound on K. The scope is correctly limited to circuits with small cut-crossing number K; generic THR o THR circuits have K = \u0398(m) which is typically much larger. No counterexample or argument gap found.",
+  "review_of": "S0100",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795402843.606783,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The S-RANK-r lemma is correct. The weight matrix W (m x n over Q) has rank r. Pick r linearly independent rows Bm (basis). Each row W_j = c_j Bm with exact rational coefficients c_j, so W_j.x = c_j.s(x) where s(x) = Bm x in Z^r. The DP maintains the count of prefixes reaching each state s_p in [-Bp, Bp]^r, with at most (2Bn+1)^r states per level. Transition: s_{p+1} = s_p + Bm[:, p+1] * x_{p+1}. After all n variables, gate j's value is [c_j.s_n >= t_j] (exact rational comparison). The top gate sum is sum_j v_j * gate_j. Sum counts for states where sum >= T. Time: O(n * (2Bn+1)^r * poly(m,n,r)) for DP transitions plus O((2Bn+1)^r * m) for final evaluation. The cited experiments cm-a8ea3bacdc574c44 (72 instances, 0 mismatches) and cm-3b8036f363ce479a (54 instances with exact rational arithmetic, 0 mismatches) independently verify the algorithm on concrete instances. No argument gap or counterexample found. Scope correctly limited to integer weights bounded by B, rational thresholds, rank r of W over Q. Does not close G0001/G0002 as stated.",
+  "review_of": "S0109",
+  "status": "SURVIVED_REVIEW"
  }
 ]
