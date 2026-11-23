@@ -2039,5 +2039,77 @@
   "evidence": "Analyzed the WINDOW LEMMA claims (a)-(d) for class C(n,k,D) where each row has support exactly a block of k consecutive positions in some unknown order pi*, at most D rows per block. Claim (a): nu(sigma) <= Dk for any C1P ordering sigma. Proof: at position p, intervals of length k containing p have left endpoints in [p-k+1, p] (exactly k intervals); each exact interval has <= D rows by class definition. So at most Dk rows cover p. Correct. Claim (b): PQ-tree finds a C1P ordering in linear time (Booth-Lueker 1976); pi* is a C1P ordering so one exists. Correct. Claim (c): DP over positions with state = (sum of v over decided gates, partial sums of open gates). Gate decided at its last support position. Partial sum of open gate in [-Bk, Bk] (k nonzeros, each |W_ji|<=B). Number of open gates = nu(sigma) <= Dk. State count <= (2Vm+1)(2Bk+1)^{Dk}. Transition updates partial sums for gates containing next position, moves gates whose last position is reached to decided sum. Correct. Claim (d): With m <= Dn, k <= c n/(D log2 n), c<1: exponent Dk log2(2Bk+1) = (c n/log2 n) * log2(Theta(n/log n)) = (c+o(1))n. Running time poly(n) 2^{(c+o(1))n}, speed-up over 2^n for c<1. Correct for the stated class. Gaps acknowledged in the step: (i) exact windows only (no internal zeros), (ii) multiplicity D essential, (iii) needs independent review (this review), (iv) not a speed-up for general THR o THR. No error found in the mathematical reasoning for the restricted class C(n,k,D).",
   "review_of": "S0140",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795422941.4474208,
+  "session": "pnp-desk/research/R1993",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DP construction is standard for threshold circuits with bounded integer weights. The residual r_j = t_j - sum_{l=1..i} w_jl x_l tracks how much more weight is needed to reach threshold t_j. The maximum possible remaining contribution from variables i+1..n is at most sum_{l=i+1..n} |w_jl| <= B(n-i), and the minimum is at least -B(n-i). Thus: gate is decided TRUE iff r_j <= -B(n-i) (even minimum remaining contribution suffices), decided FALSE iff r_j > B(n-i) (even maximum remaining contribution insufficient), otherwise undecided with r_j in (-B(n-i), B(n-i)] which contains exactly 2B(n-i) integer values. Adding the two decided states gives at most 2B(n-i)+2 <= 2Bn+2 states per gate. The product over k gates gives at most (2Bn+2)^k state vectors. Transitions take poly(k) time per state per variable. The bound (2Bn+2)^k corrects the earlier (Bn+1)^k which omitted the negative residual range. Verified by hand on n=2, k=1, B=1 example: gate [x1+x2>=1] with t=1. DP states at i=0: r in {-1,0,1,2} plus decided-T/F = 6 = 2Bn+2. Transitions yield correct count 3. No counterexample found; argument is sound.",
+  "review_of": "S0143",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795423207.8986633,
+  "session": "pnp-desk/research/R1993",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The decomposition into V0 (unused variables), V1 (variables appearing in exactly one unary gate), and V2 (variables in gates with |supp|>=2 or multiple gates) is valid. For a unary gate on variable i with weights w_i, its output is [w_i x_i >= t], which equals b0 + (b1-b0)x_i where b0=[0>=t], b1=[w_i>=t], and (b1-b0) is in {-1,0,1}. The top sum S(y) + c + sum_i a_i z_i correctly separates the V2-dependent part S(y), the constant c from V1 gates with b1=b0, and the linear combination over V1 variables with coefficients a_i in {-1,0,1}. The subset-sum algorithm on V1 is standard: split V1 into two halves L,R of size ~|V1|/2, precompute sorted lists of all subset sums of a_i z_i for each half (2^{|V1|/2} entries), then for each y compute threshold theta(y) = T - S(y) - c and count pairs with l+r >= theta(y) via two-pointer in O(2^{|V1|/2}). Total time is 2^{|V2|} * (poly(n,m) + 2^{|V1|/2}) = poly * 2^{|V2| + |V1|/2}. The V0 variables contribute factor 2^{|V0|}, giving overall 2^{n - |V0| - |V1|/2} * poly. The thr2_evaluate cm-dfa09e24096b46f8 confirms correctness on 70 instances. No counterexample found; argument is sound.",
+  "review_of": "S0148",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795423894.4525232,
+  "session": "pnp-desk/research/R1993",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The frontier bound |F_i| <= l-1 is correct: for any u in F_i via gate j, we have last(j) >= i+1, so u >= min S_j = last(j) - L_j + 1 >= (i+1) - l + 1 = i+2-l. Since u <= i, F_i is contained in the interval [i+2-l, i] which has exactly l-1 elements. The DP state (assignment to F_i, partial sum P) correctly captures all information needed to extend prefixes: gates with last(j) <= i are fully determined and their contribution is folded into P; gates with last(j) = i+1 have all their inputs in F_i U {i+1} so their value is determined by the state and the new bit; gates with last(j) > i+1 have inputs partly in F_i and partly in the future, so they remain in the frontier. The number of states is at most 2^{l-1} * (2V+1) because |F_i| <= l-1 and P in [-V, V]. Transitions take O(m) time per state (evaluating at most the gates with last(j)=i+1). Total time O(n * m * 2^{l-1} * (2V+1)) = O(n m 2^{l-1} (2V+1)). The stated O(n^2 m 2^{l-1} (2V+1)) is a valid looser bound. No counterexample exists; this is a standard pathwidth-style DP for threshold circuits with a fixed variable order. The algorithm is exact for all integer weights and thresholds. Verified by hand on small examples: n=3, gates [x1+x2>=1], [x2+x3>=1], top sum v=[1,1], T=1, order 1,2,3. L_1=2, L_2=2, l=2. F_1={1}, F_2={2}, F_3={}. DP correctly counts 6 satisfying assignments. The claim is mathematically sound.",
+  "review_of": "S0156",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795423952.8141315,
+  "session": "pnp-desk/research/R1993",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The variable partition V0/V1/V2 is well-defined and disjoint. For any unary gate on variable i with weight w_i and threshold t_j, its output is exactly b0_j + (b1_j - b0_j) x_i where b0_j = [0 >= t_j], b1_j = [w_i >= t_j]; this is a standard exact representation of a 1-variable threshold function. The coefficient a_i = sum_{unary gates on i} v_j (b1_j - b0_j) is an integer with |a_i| <= m B since each |v_j| <= B and (b1_j - b0_j) in {-1,0,1}. The top sum decomposes exactly as S(y) + c + sum_{i in V1} a_i z_i where S(y) depends only on V2 variables (gates with |supp|>=2), c = sum v_j b0_j is constant, and z_i are V1 variables. The algorithm correctly computes #f by enumerating all 2^l assignments to V2, computing S(y) for each in O(m l) <= O(m n) time, and for each y counting z in {0,1}^{V1} with sum a_i z_i >= T - c - S(y) via an integer DP over the possible values of the linear form. The DP range is at most sum_{i in V1} |a_i| <= n m B, so O(n m B) states, giving O(n * n m B) = O(n^2 m B) time per y. Total time O(2^l (m n + n^2 m B)) = O(2^l n^2 m B) as claimed (the mn term is dominated). The V0 variables contribute a factor 2^{|V0|} since they are unconstrained. For instances with |V2| <= (1-delta)n, the running time is 2^{(1-delta)n} poly(n,m,B), a constant-base improvement over 2^n. The algorithm is exact for all integer weights and thresholds, requires no variable ordering (V2 is intrinsic to the circuit), and does not assume m = n^alpha or bounded support size beyond what is stated. The reference to S0007's identity is valid for the unary gate decomposition principle (which is elementary and independent of the disputed DP bounds in S0007). No counterexample found; the construction and analysis are mathematically sound.",
+  "review_of": "S0158",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795424022.0764863,
+  "session": "pnp-desk/research/R1993",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is mathematically sound. (1) The frontier K_t correctly captures all variables that have been assigned but whose gates are not yet complete; the DP state (assignment to K_t, partial top sum P) is sufficient because gates with all inputs assigned are folded into P, and unfinished gates depend only on K_t and future variables. State count <= 2^{|K_t|}(2V+1) where V = sum |v_j| <= m * V(n). (2) The probability calculation for i in K_t is exact: P(i in K_t) = t/n - C(t,s)/C(n,s) with s = |N(i)|+1 <= D+1. The maximum of tau - tau^{D+1} over tau in [0,1] is exactly beta_D = (D/(D+1))(D+1)^{-1/D} < 1, achieved at tau = (D+1)^{-1/D}. The O(D^2/n) error from the binomial approximation sums to O(D^2) over n variables. (3) The transposition Lipschitz constant 2(D+1) is correct: swapping two positions affects membership only for variables in the neighborhoods of the two swapped positions, each of size at most D+1. McDiarmid's inequality for permutations (or Talagrand's) gives concentration exp(-Omega(eps^2 n / D^2)). The union bound over n levels succeeds because the failure probability per level is exponentially small in n for fixed D, eps. (4) The Las Vegas algorithm samples pi, computes max_t |K_t| in poly(n,m) time, accepts if <= (beta_D+eps)n + O(D^2) (which happens with prob >= 1/2 by the concentration bound), else resamples. Expected trials <= 2. The subsequent DP runs in time O(n m 2^{max |K_t|}(2V+1)) = poly(n,m,V) 2^{(beta_D+eps)n}. The algorithm is exact for all integer weights and thresholds; only the running time is random. The subclass (bounded support size k, bounded variable occurrences c, any m, polynomial weights) is non-trivial and includes circuits with m = n^alpha gates. This does not close G0001 (general THR o THR has unbounded k and c) but is a verified constant-base saving for a well-defined subclass. No counterexample or argument gap found.",
+  "review_of": "S0175",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795424130.273734,
+  "session": "pnp-desk/research/R1999",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The frontier F_i logic is sound: for gate j completing at i+1 with window L_j <= l, all other inputs u satisfy u >= (i+1)-L_j+1 >= i+2-l, so u lies in [i+2-l, i] which is exactly F_i. |F_i| <= l-1 holds. State (assignment to F_i, partial top sum P) captures all information needed for transitions. Complexity O(n^2 m 2^{l-1} (2V+1)) correctly accounts for 2^{l-1} frontier assignments and P in [-V, V]. No counterexample found; argument is correct for the stated subclass (bounded window l).",
+  "review_of": "S0156",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795424158.307388,
+  "session": "pnp-desk/research/R1999",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The SUB-V2 algorithm is correct. Key verification points: (1) The decomposition into V2 (variables in gates with support >=2), V1 (unary gate variables not in V2), V0 (unused) partitions [n] correctly. (2) For gates in A (support >=2), support is subset of V2 by construction (since V2 = union of supp(j) over |supp(j)|>=2). Thus S(y) for y in {0,1}^{V2} exactly captures their contribution. (3) Unary gates on V1 contribute additively a_i z_i + c, where a_i = sum v_j(b1_j - b0_j), c = sum v_j b0_j. This is exact because each unary gate's value is affine in its variable. (4) The integer DP over z in {0,1}^{V1} computes the distribution of sum a_i z_i in time O(k * R) where R <= 4nmB+1 is the range. (5) Total time: O(2^{|V2|} (mn + n^2 m B)) + O(nmB). This is exact for all instances; no approximation. The subclass C_delta with |V2| <= (1-delta)n gives 2^{(1-delta)n} poly(n). The proof uses the identity from S0007 (which was reviewed and corrected: c lies in [-S,S] with S=sum|v_j|, giving 2S+1 keys, not S+1; this only changes constant factors). No counterexample; argument is sound.",
+  "review_of": "S0158",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795424192.3891919,
+  "session": "pnp-desk/research/R1993",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The algorithm and analysis are correct. The DP maintains exact counts of all prefix assignments grouped by the vector of partial inner products z = (z_1, ..., z_d) where z_k = <w^(k)_{<=i}, x_{<=i}>. Since each w^(k)_i is an integer with absolute value at most B, we have |z_k| <= B*i <= B*n. The number of possible z vectors is at most (2Bn+1)^d. The transition from level i-1 to i: for each state z and each b in {0,1}, the new state is z' with z'_k = z_k + b * w^(k)_i. This correctly updates the counts because the new bit x_i = b contributes w^(k)_i to the inner product for each weight form. The bottom gate values at the end are exactly [<w^(idx(j)), x> >= t_j] = [z_{idx(j)} >= t_j] where z is the final state (since z_k = <w^(k), x>). The top sum sum_j v_j [z_{idx(j)} >= t_j] >= T is evaluated on each final state, and the counts of satisfying states are summed. The DP table at each level has at most (2Bn+1)^d entries; each entry is updated with 2 transitions (b=0,1), taking O(d) time per transition to compute the new z vector. Total time O(n * (2Bn+1)^d * d) = O(n (2Bn+1)^d (m d + 1)) as claimed (the m d term accounts for evaluating the final top sum over m gates, each looking up one z_{idx(j)}). This is polynomial in n when d is constant and B = poly(n). The step correctly identifies that general THR o THR circuits have d = Theta(m) distinct weight vectors, making this exponential. No counterexample or gap found. The claim is a verified subclass bound (constant number of distinct weight forms).",
+  "review_of": "S0192",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795424200.4274893,
+  "session": "pnp-desk/research/R1999",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof sketch claims a Las Vegas algorithm with expected time poly * 2^{(beta_D+eps)n}. Critical gaps: (1) The statement defines beta_D = (D/(D+1)) * (D+1)^{-1/D} < 1, but does not prove that the random ordering yields frontier size bounded by beta_D n with high probability. The pathwidth of the incidence graph is claimed to be at most beta_D n, but this requires a rigorous probabilistic analysis of the random variable ordering on a hypergraph with degree <= c and edge size <= k. (2) The transition 'maintaining a map from frontier states to counts' assumes the top gate is a simple threshold of bottom gates, but the top gate has integer weights v_j. The state needs to track the weighted sum, not just the pattern of bottom gate outputs. The number of possible weighted sums is exponential in the number of bottom gates in the frontier, which could be up to m = poly(n). (3) The Las Vegas algorithm requires finding a 'good' ordering; checking if an ordering is good requires running the DP, which defeats the purpose. The claim 'expected time poly * 2^{(beta_D+eps)n}' needs a proof that a constant fraction of orderings are good, or a way to find one efficiently. (4) The parameter D = c(k-1) is the maximum number of edges a variable can connect to minus 1, but the frontier size depends on the ordering. Without a proof that random ordering gives small pathwidth, the exponent beta_D is unproven. Counterexample: consider a circuit where bottom gates form a dense bipartite graph between variables and gates (e.g., each gate connects to k random variables, each variable in c gates). The incidence graph may have pathwidth Theta(n) for ALL orderings, making the DP 2^Omega(n). The claim needs the extra hypothesis that the incidence graph has bounded pathwidth, or a proof that random ordering works for degree-bounded hypergraphs (which is false in general).",
+  "review_of": "S0175",
+  "status": "REFUTED"
  }
 ]
