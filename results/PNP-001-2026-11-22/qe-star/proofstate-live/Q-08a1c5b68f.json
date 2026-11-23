@@ -2549,5 +2549,104 @@
   "gap": "S0315 (gate-free pointer lemma, CLAIMED) is checked by cm-58dab0e17de84e07: for SC_{3,1}, max_t d_t = 6, equal to ceil(log2 38) from |P_7| = 38, so it reproduces the counting bound and adds no new constraint. Its conclusion S >= log2|P_t| holds trivially for any injective code into {0,1}^S. Still open: gate counts G >= 1, dead-code separation, decoder size D, and general S beyond this instance. The construction needed is a gate-free bound that uses the live/dead structure, not injectivity alone.",
   "evidence": "cm-58dab0e17de84e07: rows (t,|P_t|,d_t) = (0,1,0),(1,2,1),(2,4,2),(3,8,3),(4,16,4),(5,22,5),(6,30,6),(7,38,6),(8,38,6); max d = 6. Lab-computed, exploration level.",
   "gap_id": "G0159"
+ },
+ {
+  "at": 1795439644.9995115,
+  "session": "pnp-desk/research/R2090",
+  "model": "gpt-6-luna",
+  "evidence": "The induction is sound for the stated gate-free basis: q_0 coordinates are constants; each next coordinate is a constant or a literal of a prior coordinate or the new input bit, so by induction it is a constant or \u00b1p_i for one i. Let I_t be the indices used by the S output coordinates. q_t factors through p|I_t. If two live prefixes agree on I_t, the hypothesized injectivity of live codes forces them equal. Thus restriction to I_t is injective on P_t and d_t\u2264|I_t|\u2264S. The consequence S\u2265log2|P_t| follows from 2^S\u2265|P_t|. Scope is appropriately restricted to gate-free transitions with pairwise distinct live codes; it does not prove the stronger full-search live/dead bound.",
+  "review_of": "S0315",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795439645.0256991,
+  "session": "pnp-desk/research/R2090",
+  "model": "gpt-6-luna",
+  "id": "S0318",
+  "proved_step": "statement: For the full truth-table family F={0,1}^{2^n}, every streaming search system whose state at time t separates distinct live prefixes must have S_t\u2265t bits; moreover the bound is attained with zero update gates by storing the input prefix verbatim. Proof: every length-t string p has a completion to a member of F, so there are exactly 2^t live prefixes. Pairwise distinct live codes require at least 2^t state values, hence S_t\u2265log2(2^t)=t. For attainment, initialize q_0 empty and at each step wire the incoming bit into a fresh state coordinate, retaining all earlier coordinates unchanged; all transitions are wires, so G=0, and q_t=p. The decoder reconstructs the truth table from q_{2^n}. This is exact for the full-family search model and shows that a zero-gate optimum can arise solely from state width equal to the prefix length; it gives no nontrivial bound when S_t<t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795439717.7873847,
+  "session": "pnp-desk/research/R2090",
+  "model": "gpt-6-luna",
+  "id": "S0319",
+  "proved_step": "statement: Residual-set state lower bound. Let F be a subset of {0,1}^N recognized by a deterministic streaming system with state q_t(p) after prefix p of length t, deterministic transitions, and a final decoder that accepts exactly members of F. For each length-t prefix p define R_p={u in {0,1}^{N-t}: pu in F}. Then the number of distinct states at time t is at least the number of distinct sets R_p. Proof: if R_p and R_p' differ, choose u in their symmetric difference. Exactly one of pu and p'u is in F. If q_t(p)=q_t(p'), determinism implies that processing the common suffix u produces the same final state, so the decoder gives the same acceptance answer on both strings, contradiction. Therefore prefixes with distinct residual sets have distinct states; selecting one prefix for each distinct residual set gives the bound. This only forces pairwise separation when residual sets differ, and permits merging prefixes with identical residual sets.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795439925.1647534,
+  "session": "pnp-desk/research/R2090",
+  "model": "gpt-6-luna",
+  "id": "S0320",
+  "proved_step": "statement: Residual-set quotient lemma. Let F be any subset of {0,1}^N and define R_t(p)={u in {0,1}^{N-t}: pu in F}. For every t<N and bit b, R_{t+1}(pb)={v in {0,1}^{N-t-1}: bv in R_t(p)}. Consequently, identifying prefixes with equal residual sets gives a deterministic quotient transition on the reachable classes: [p]_t --b--> [pb]_{t+1}; this is well-defined because equal R_t(p),R_t(p') imply equal restrictions by first bit b, hence equal R_{t+1}(pb),R_{t+1}(p'b). Proof: for each suffix v, v belongs to the left set iff pbv is in F, iff bv is in R_t(p); the well-definedness follows by applying this equivalence to both prefixes. The quotient exactly recognizes F with final acceptance determined by whether the residual set at t=N contains the empty string. It has exactly the number of distinct residual sets at each level, a lower bound on states for any deterministic decision transducer. This is a decision-language construction; it does not satisfy the stronger SEARCH requirement that all distinct live prefixes have distinct states, and gives no gate-cost or decoder-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795439993.073718,
+  "session": "pnp-desk/research/R2090",
+  "model": "gpt-6-luna",
+  "id": "S0321",
+  "proved_step": "statement: Live/dead state-count bound. Let F be a subset of {0,1}^N, let P_t be the set of live length-t prefixes, and let L_t=|P_t|. In a streaming system with S state bits that assigns pairwise distinct states to live prefixes and gives every dead prefix a state outside the set of live-prefix states, if at least one dead prefix exists then 2^S >= L_t+1, hence S >= ceil(log2(L_t+1)); if no dead prefix exists then 2^S >= L_t. Proof: the L_t live prefixes require L_t distinct elements of the state set. A dead prefix, when one exists, requires a further element outside those L_t states. The state set has cardinality exactly 2^S, proving the inequalities. Conversely, as a pure assignment of codes, L_t codes suffice when there are no dead prefixes and L_t+1 codes suffice when there are dead prefixes, by assigning distinct codes to the live prefixes and one remaining code to all dead prefixes. This is only a state-count statement; it asserts no realizability or bound for transition-circuit gate cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795440243.47871,
+  "session": "pnp-desk/research/R2090",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0322",
+  "proved_step": "statement: LEMMA-A-REPAIR (corrected). Setting: N=2^n, F subset {0,1}^N. A streaming search system has initial state q_0, transitions q_{t+1}=F_t(q_t, x_{t+1}) where q_t(p) depends only on the length-t prefix p, and a decoder D on the final state q_N(w) which, for every w in {0,1}^N, outputs a circuit computing w if w in F and rejects otherwise. Call a length-t prefix p LIVE if there exists u in {0,1}^{N-t} with pu in F, DEAD otherwise. For a live prefix p define its residual set R_t(p) = {u in {0,1}^{N-t} : pu in F}. For a dead prefix, R_t(p) = empty set.\n\nClaim: In any such system that correctly decides membership in F, the states at time t must satisfy:\n(1) Live/dead separation: if p is live and p' is dead then q_t(p) != q_t(p').\n(2) Residual distinction: if p, p' are live and R_t(p) != R_t(p') then q_t(p) != q_t(p').\n(3) Merging permitted: if R_t(p) = R_t(p') then q_t(p) may equal q_t(p').\n\nConsequently, the number of distinct states reachable at time t is at least D_t + [exists dead prefix], where D_t is the number of distinct non-empty residual sets among length-t prefixes.\n\nProof: (1) Suppose p live, p' dead, but q_t(p) = q_t(p'). Since p is live, there exists u with pu in F. Since p' is dead, p'u not in F. Processing the common suffix u from the same state q_t(p)=q_t(p') yields the same final state by determinism, so the decoder gives the same answer on pu and p'u, contradicting that pu in F and p'u not in F.\n(2) Suppose p, p' live with R_t(p) != R_t(p'). Then there exists u in the symmetric difference. Exactly one of pu, p'u is in F. If q_t(p)=q_t(p'), determinism gives the same final state on suffix u, so the decoder gives the same answer, contradiction.\n(3) If R_t(p)=R_t(p'), then for every suffix u, pu in F iff p'u in F. Merging q_t(p)=q_t(p') preserves correctness because all future suffixes lead to identical acceptance outcomes. The lower bound on state count follows by picking one representative for each distinct non-empty residual set (giving D_t states) and, if any dead prefix exists, one additional state for all dead prefixes (since they all have R_t=empty and can share a state by (3)).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795441851.7289042,
+  "session": "pnp-desk/research/R2106",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: For F={0,1}^N with N=2^n, every length-t prefix p has a completion (since all strings are in F), so there are exactly 2^t live prefixes. Pairwise distinct states for live prefixes require \u22652^t state values, hence S_t \u2265 log2(2^t) = t bits. Attainment: q_0 = empty (0 bits); transition at step t takes (t-1)-bit state and new input bit, outputs t-bit state via wires (first t-1 bits copied from old state, t-th bit = new input). All transitions are wire maps (G=0), q_t = p. Verified for n=1,2 by explicit enumeration (all 2^t prefixes live, wire construction achieves S_t=t). No argument gap found.",
+  "review_of": "S0318",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795441852.188889,
+  "session": "pnp-desk/research/R2106",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard Myhill-Nerode argument for streaming automata. If R_p \u2260 R_p', \u2203 u in symmetric difference: exactly one of pu, p'u \u2208 F. If q_t(p) = q_t(p'), determinism \u21d2 same final state after reading u \u21d2 decoder gives same answer for both, contradiction. Therefore distinct residual sets \u21d2 distinct states. The bound is tight for decision problems (merging prefixes with identical residual sets yields the minimal DFA). Verified by constructing minimal automata for small F (e.g., F = {00,11} \u2286 {0,1}^2: at t=1, R_0={0}, R_1={1}, two distinct residual sets, minimal DFA has 2 states at t=1). No argument gap.",
+  "review_of": "S0319",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795441928.207424,
+  "session": "pnp-desk/research/R2106",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the Myhill-Nerode construction for streaming automata. The definition R_t(p) = {u: pu in F} and the recurrence R_{t+1}(pb) = {v: bv in R_t(p)} are correct (v in R_{t+1}(pb) <=> pbv in F <=> bv in R_t(p)). The quotient transition [p]_t --b--> [pb]_{t+1} is well-defined because equal residual sets imply equal restrictions by first bit. The quotient automaton exactly recognizes F with acceptance at t=N determined by whether empty string is in R_N(w). The number of distinct residual sets at each level is a lower bound on states for any deterministic decision transducer (standard Myhill-Nerode). The stated limitation (does not satisfy SEARCH requirement, no gate-cost bound) is accurate. No counterexample or argument gap found.",
+  "review_of": "S0320",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795442190.6353467,
+  "session": "pnp-desk/research/R2106",
+  "model": "gpt-6-luna",
+  "lemma": "For any deterministic one-pass membership transducer on a finite family F of N-bit strings, states at cut t induce a partition of the length-t prefixes that refines equality of acceptance residuals: if two prefixes reach the same state, their residual subsets of {0,1}^{N-t} are equal. Proof: fix prefixes p,q reaching the same state. For every suffix u, determinism gives the same final state after processing u from that shared state, so the decoder returns the same membership bit on pu and qu. Thus pu\u2208F iff qu\u2208F for every u, exactly R_t(p)=R_t(q). Conversely, assigning one state per distinct residual (including the empty residual if present) is sufficient for membership provided transitions map each residual R on next bit b to R_b={v: bv\u2208R}, with unreachable/empty states handled by the empty residual. This is a finite-state characterization and says nothing about circuit gate cost.",
+  "gap": "The residual partition characterizes membership state requirements but does not determine the minimum per-step update circuit cost G_max, nor the joint Pareto frontier at fixed S<N and decoder cost D for SC_{3,1}, SC_{3,2}, or affine families.",
+  "gap_id": "G0160",
+  "id": "S0326",
+  "proved_step": "statement: Residual-partition characterization for deterministic membership streaming: at every cut t, equal machine states imply equal residual subsets R_t(p)={u:pu\u2208F}; conversely the residual subsets themselves form a sufficient deterministic state representation, with transition on bit b given by R\u21a6{v:bv\u2208R}.\nproof: Let p and q be length-t prefixes whose machine states agree. For an arbitrary suffix u of length N\u2212t, applying the same deterministic transitions to the same suffix from equal states yields equal final states. The decoder therefore gives the same membership answer for pu and qu. As this holds for every u, their residual subsets are equal. Conversely, define the state associated with prefix p to be R_t(p). On reading b, the next residual is exactly {v : bv\u2208R_t(p)}, which equals R_{t+1}(pb) by definition. At t=N, the residual is {\u03b5} exactly for members and empty exactly for nonmembers, so the decoder accepts precisely members. This proves sufficiency and the claimed transition rule.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -252,5 +252,24 @@
   "evidence": "Reviewer family: kimi-k3.1-pro (different from claimant claude-haiku-5-5). Core one-hot circuit verified: read r = OR_j(h_j AND c_j) per symbol bit, c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j), head shift with h_0/h_{S+1} boundary, constant-size state table; O(S) gates per step, O(tau*S) per update, x-independent by idle-padding. ARGUMENT GAP: the claim includes the configuration's log N-bit input-head position, but the proof gives no circuit for its update. An increment costs O(log N) gates per update, giving O(tau*S + tau*log N), which is O(tau*S) only if S >= log N. The step does not close G0001 as claimed. Repair needed: restate with S >= log N hypothesis or separate the input-head counter from the O(tau*S) bound.",
   "review_of": "S0021",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795442140.959691,
+  "session": "pnp-desk/research/R2108",
+  "model": "gpt-6-luna",
+  "evidence": "Repair of S0021's omitted input-head update cost. The exact boundary computation cm-8a4341e287ab4c69 checks (N,S) pairs and confirms b>S occurs, e.g. N=16,S=1; the proof itself is the explicit per-step circuit construction above. This is a standalone stage-size lemma; it does not claim the manuscript's MMW transfer hypotheses.",
+  "id": "S0033",
+  "proved_step": "statement: LEMMA (input-position-aware stage circuit). Let M be a deterministic single-tape machine with S work cells over a fixed finite alphabet and fixed state set, processing an N-bit input in order. Suppose each inter-input update uses at most tau machine steps. Encode the work-tape head one-hot, the finite control with a constant number of bits, and the input-head position with b=ceil(log2(N+1)) bits. Then each update map (configuration,z)->configuration has a fan-in-two Boolean circuit of O(tau(S+b)) gates, uniform over configurations and incoming bits z. In particular, its size is O(tau*S) when S>=b. Proof: A single machine step can read the work-tape symbol by OR-ing the S one-hot-selected cell symbols, at O(S) gates; update each cell and the one-hot work head in O(S) gates; and update the finite control in O(1) gates. The input-head position is incremented or held according to the transition, which costs O(b) fan-in-two gates using a ripple-carry incrementer and control gates. Thus one step costs O(S+b). Compose at most tau copies of this step circuit; if the update halts early, make the halted configuration an absorbing state and pad the composition to tau copies. This yields O(tau(S+b)) gates and gives one circuit for every incoming bit and admissible configuration. Since b<=S in the stated special case, O(tau(S+b))=O(tau*S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795442383.0407088,
+  "session": "pnp-desk/research/R2108",
+  "model": "gpt-6-luna",
+  "id": "S0034",
+  "proved_step": "statement: LEMMA (length-charged oracle stage simulation). Let M be a deterministic streaming machine with a B-bit configuration. In one input interval it performs at most tau ordinary steps and at most q oracle queries, each of length at most ell. Suppose the fixed oracle language O has a deterministic decider taking at most p(r) steps on every r-bit query, where p is a fixed nondecreasing polynomial. Then the interval transition from (configuration, next input bit) to the next configuration has a uniform fan-in-two Boolean circuit of size O(tau*poly(B) + q*(p(ell)+ell)*log(2+p(ell)+ell)). Proof: Unroll the at-most-tau ordinary machine steps, using an absorbing halted configuration for padding. Each step, including RAM addressing and query generation, has poly(B) gates. For each of the at-most-q query slots, use its generated length r and query bits as input to a circuit simulating the fixed decider on the exact r-bit query. Unrolling a deterministic T-step computation on at most ell input bits gives a fan-in-two circuit of O((T+ell) log(2+T+ell)) gates; select the appropriate exact-length computation using r. Since r<=ell and p is nondecreasing, this costs O((p(ell)+ell) log(2+p(ell)+ell)) per query. Feed each answer into the subsequent machine transition and compose the circuits. This uses no padding-invariance assumption about O. If P=NP and O is in PH, then O is in P, so a fixed polynomial-time decider exists; when B, tau, q, and ell are polynomially bounded in s, the resulting stage circuit is polynomial in s.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -1,0 +1,31 @@
+[
+ {
+  "at": 1795442085.0825984,
+  "session": "pnp-desk/research/R2101",
+  "model": "gpt-6-luna",
+  "id": "S0001",
+  "proved_step": "statement: For every acyclic fan-in-2 De Morgan circuit C with S>=1 gates and r gates of fan-out greater than 1, the function computed by C has a De Morgan formula with O(2^r(r+1)S) leaves. Proof: Let R be the r reused gates. For each assignment b in {0,1}^R, form a term requiring each gate g in R to equal b_g and requiring the output of C with R pinned to b to be 1. The circuit with R pinned has no reused gate: every remaining gate has fan-out at most 1. Thus its output predicate is a formula with O(S) leaves. For each g in R, its consistency predicate is b_g = op_g(u,v), where each predecessor wire is either a pinned constant or the output of a non-R subcircuit. Since all non-R gates have fan-out at most 1, the two predecessor subcircuits together form a formula with O(S) leaves. Conjoin the r consistency predicates and the output predicate using a binary tree; this gives O((r+1)S) leaves per b. OR the 2^r terms, adding at most a constant factor to the total. Exactly one assignment b is consistent with the circuit evaluation on any input, so the resulting formula computes C. This repairs the omitted-cost argument behind Q-28f70474ce:S0001 with the safe bound O(2^r(r+1)S); it does not establish a polynomial-in-r bound or close the MMW19 reuse obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": false
+ },
+ {
+  "at": 1795442247.598378,
+  "session": "pnp-desk/research/R2101",
+  "model": "gpt-6-luna",
+  "id": "S0002",
+  "proved_step": "statement: Let C be an acyclic fan-in-2 De Morgan circuit with S>=1 gates and r gates of fan-out greater than 1, where fan-out counts outgoing wires and input variables are not counted as gates. Then C has an equivalent De Morgan formula with O(2^r(S+r)) leaves. Proof: Let R be the r reused gates. For each assignment b to R, pin the outputs of R to b and form the output predicate P_b asserting that the pinned circuit output is 1. Every gate outside R has fan-out at most one, and pinning R only removes dependencies, so P_b is a formula with O(S) leaves. For each g in R, add the consistency condition b_g = op_g(u_g,v_g), where u_g,v_g are its actual predecessor values. Replace each predecessor value by its formula in the pinned circuit: if its predecessor is in R use the assigned constant; otherwise expand its fan-out-one predecessor subcircuit. Across all 2r predecessor slots, these expanded non-R subcircuits are pairwise gate-disjoint: if a non-R gate occurred in two such predecessor subcircuits, paths from it would branch, so some gate on those paths would have fan-out greater than one and hence lie in R; expansion stops at R gates. Thus the total gate occurrences across all consistency conditions is O(S), and the tests themselves add O(r) leaves. Together with P_b, the conjunction for this b has O(S+r) leaves. OR over all 2^r assignments b, adding O(2^r) leaves. For every input, exactly one b agrees with the actual values at all gates in R; its term equals C's output and every other term fails a consistency condition. The resulting formula computes C and has O(2^r(S+r)) leaves. This repairs the per-assignment consistency-cost argument, but retains exponential dependence on r and does not prove the polynomial-in-r R-MCSP conversion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795442276.6455524,
+  "session": "pnp-desk/research/R2101",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: Let C be an acyclic fan-in-2 De Morgan circuit with S>=1 gates and r gates of fan-out greater than 1, with fan-out counting outgoing wires. Then C has an equivalent De Morgan formula with O(2^r(r+1)S) leaves. Proof: Let R be the set of reused gates. For each assignment b in {0,1}^R, pin gates in R to b. Since each gate outside R has fan-out at most one, the pinned output predicate has a formula with O(S) leaves. For each g in R, its consistency predicate asserts that b_g equals the operation applied to its two predecessor values. After pinning R, each predecessor value is either constant or is computed by a fan-out-one subcircuit; expanding that subcircuit gives a formula with O(S) leaves. Count these predicates separately, since their expansions may overlap. Thus the conjunction of the output predicate and the r consistency predicates has O((r+1)S) leaves for each b. OR the formulas over all 2^r assignments b. On each input, exactly one assignment agrees with the actual values at R, so the resulting formula computes C. Its size is O(2^r(r+1)S). This repairs the omitted-cost issue in Q-28f70474ce:S0001, but does not prove a polynomial-in-r conversion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

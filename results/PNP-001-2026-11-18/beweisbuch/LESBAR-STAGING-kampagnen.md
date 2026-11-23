@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 11761 entries from 3054 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 11822 entries from 3082 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - If P=NP, then each fixed oracle language O in PH has a uniform polynomial-time decider that can be inserted into bounded-query streaming interval circuits using the exact query and its length.
   - For a specified nonlinear streaming machine, define input differences whose induced transformations preserve the decision predicate on every suffix. If these differences contain a subgroup or another structured class of size 2^(N-o(N)), a YES-set counting argu
   - Lemma R (S0023) is correct but the proof has a small gap: it proves sqrt(2/(nz-k)) but claims sqrt(2/nz). Since k <= nz/2, sqrt(2/(nz-k)) <= sqrt(4/nz) = 2*sqrt(1/nz), so the claimed bound is off by a constant factor. This is a minor proof gap, not a refutatio
   - Lemma R (S0023) is correct but the proof has a small gap: it proves sqrt(2/(nz-k)) but claims sqrt(2/nz). Since k <= nz/2, sqrt(2/(nz-k)) <= sqrt(4/nz) = 2*sqrt(1/nz), so the claimed bound is off by at most a factor of sqrt(2). The exact threshold-averaged lem
   - The R1 class (F_2-linear/affine staged realizations) is too restrictive to capture general Search-MCSP streaming algorithms. The SEARCH bound S ≥ 2^m holds because the totality requirement (outputting a circuit for YES instances) forces the kernel to be trivia
   - The DECISION version bound S ≥ N - d_s becomes nontrivial (S ≥ 1) when N > d_s, which occurs for m ≥ 7 with s = m (since d_s ~ s log s while N = 2^m). For SEARCH version, S ≥ 2^m is exponential and holds for all m ≥ 1.
-  - The repaired Lemma 11 (S0022) closes G0001 for the constant-alphabet TM model. The next gap G0002 requires formalizing the worst-case update time definition from MMW19 Thm 1.2 and showing the staged-circuit simulation matches it.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -35,16 +35,16 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 2989 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+  - None -> None
+NUMERICAL EVIDENCE on file: 2995 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-1217982b30 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:f224dfd8f132 by pnp-desk/research/R2085:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL CLAIM: For every n>=0, if Q(x)=sum_{S⊆[n
+  - Q-0f3977992d [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:738909036d36 by pnp-desk/research/R2082:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Mathlib is available, but I did not pr
+  - Q-0d7677de4b [MISSING_PROOF, OPEN] For the exact total Search-MCSP one-pass streaming problem, can the residual quotient be equipped with a circuit-cost measure that is invariant under arbitrary state recodings and that lower-bounds the original machine's
   - Q-2a897ad4f8 [IMPLICATION, PURSUED] RECON-REMAINDER Route G (owner 2026-11-23, target (8)): PIT, GCT, permanent/determinant, algebraic natural proofs, Williams-type transfers, algebraic vs Boolean kept apart: first missing implication. Check per chain: out
-  - Q-35bef00537 [IMPLICATION, OPEN] RECON-REMAINDER Route F (owner 2026-11-23, target (8)): matching, structured circuits, d-SDNNF, lifting, tensors, holographic; prism graphs and easy high-width instances as negative controls: first missing implication. C
-  - Q-0f97572a32 [IMPLICATION, OPEN] RECON-REMAINDER Route E (owner 2026-11-23, target (8)): algebraic proof complexity (Thm 12, Thm 14, Lemma 15, Thm 16, NS/PC degree, overlap theorem, IPS): name the semantic bridge needed for circuit hardness; first missi
-  - Q-6c75eff08f [IMPLICATION, OPEN] RECON-REMAINDER Route D (owner 2026-11-23, target (8)): constructive refuters and range avoidance (efficiency, class, uniformity, all input lengths): first missing implication. Check per chain: output=input, field/repres
-  - Q-92b080505e [IMPLICATION, OPEN] RECON-REMAINDER Route C (owner 2026-11-23, target (8)): formula bounds + reuse simulations + R-MCSP theorem: does a proved chain reach a separation; first missing implication. Check per chain: output=input, field/represe
+  - Q-35bef00537 [IMPLICATION, PURSUED] RECON-REMAINDER Route F (owner 2026-11-23, target (8)): matching, structured circuits, d-SDNNF, lifting, tensors, holographic; prism graphs and easy high-width instances as negative controls: first missing implication. C
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIVERGENT LANE - lane N: THREE-FACTOR / ELIGIBILITY-TRACE ALGORITHMS): abstract the brain's coupling of fast activity a(t), connecti -> reopen if: None
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 

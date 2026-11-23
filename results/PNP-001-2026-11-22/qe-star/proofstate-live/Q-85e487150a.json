@@ -317,5 +317,35 @@
   "evidence": "The kernel argument does not establish the stated exact search bound. For k\u2208ker(M), q_N(k)=q_N(0), so the decoder must return the same circuit C_0 for both. Correctness on k then implies C_0 computes k, while correctness on 0 implies it computes 0. This is impossible for nonzero k. However, this only proves ker(M)={0} if there exists a nonzero k\u2208ker(M); it does not prove no such k? Re-examining the contradiction: assuming any nonzero k in the kernel indeed yields impossibility, so the inference ker(M)={0} is valid. The remaining issue is the hypothesis s\u2265m: the constant-zero circuit is size O(1), but the claim does not fix a circuit-size convention establishing that this is \u2264s for all allowed m,s. Under the conventional basis where constants are gates (or size 0/1), this condition is satisfied for s\u2265m except possibly the smallest parameter. The proof therefore needs an explicit convention or a condition s\u2265size(C_0). As stated with only \u201cfull binary basis\u201d and an unspecified constant-gate convention, the claim\u2019s all-parameters scope is unsupported.",
   "review_of": "S0032",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795439111.386004,
+  "session": "pnp-desk/research/R2088",
+  "model": "gpt-6-luna",
+  "id": "S0037",
+  "proved_step": "Repair of S0032 (linear/affine search realization, explicit threshold). Let N>=1 and x in F_2^N. Suppose fixed affine one-pass updates yield final state q_N(x)=Mx+c in F_2^S, followed by a deterministic decoder D. Assume a circuit C0 of size <=s computes the zero function, and exact SearchMCSP[s] correctness: for every x with a size-at-most-s circuit, D(q_N(x)) outputs a size-at-most-s circuit computing x; for every other x it outputs none. Then S>=N. Proof: For any x with Mx=0, q_N(x)=q_N(0), hence decoder outputs agree. Since 0 has a size-at-most-s circuit, correctness says D(q_N(0)) is a circuit computing the zero function. Therefore D(q_N(x)) is the same circuit, and by correctness it computes x. The same circuit computes both x and 0, so x=0 as truth tables. Thus ker(M)={0}; M has rank N, while rank(M)<=S, proving S>=N. The argument needs no convention for constant-gate cost beyond the explicit assumption that the zero circuit is within threshold.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-85e487150a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795439509.3151321,
+  "session": "pnp-desk/research/R2091",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is logically sound. Given: (1) q_N(x) = Mx + c with M in F_2^{S x N}, c in F_2^S; (2) deterministic decoder D: F_2^S -> {circuits size <= s} U {none}; (3) correctness: for all x, if x has circuit size <= s then D(q_N(x)) is a circuit computing x, else D(q_N(x)) = none; (4) explicit assumption: zero function has a circuit C0 of size <= s. Proof: 0^N has circuit size <= s by (4), so D(q_N(0)) = D(c) = C0 by correctness. For any k in ker(M), k != 0: q_N(k) = Mk + c = c = q_N(0), so D(q_N(k)) = C0 != none. By correctness, k must have circuit size <= s and C0 must compute k. But C0 computes 0, so k = 0^N, contradiction. Hence ker(M) = {0}, rank(M) = N, so S >= rank(M) = N = 2^m. The explicit zero-circuit assumption closes the convention gap noted in the refutation of S0032. No counterexample exists because the argument is a direct proof, not a search claim. The only way to refute it would be to exhibit a correct algorithm with S < N, which the proof shows is impossible.",
+  "review_of": "S0037",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795442298.559901,
+  "session": "pnp-desk/research/R2104",
+  "model": "gpt-6-luna",
+  "id": "S0039",
+  "proved_step": "Repaired S0032 with an explicit size convention. Let N be the number of truth-table input bits and let s be at least the size of a circuit C0 computing the zero function. Consider any affine one-pass realization q(x)=Mx+c over F_2 with S state bits and an exact SEARCH-MCSP[s] decoder D. Since 0^N is a yes-instance, correctness gives D(c)=C0' computing 0^N. If k is in ker(M), then q(k)=c, so D(q(k))=C0'. Exact search correctness requires this same output circuit to compute k. Therefore k=0^N, so ker(M)={0}; hence rank(M)=N and S>=N. The argument allows an arbitrary decoder, including oracle computation, because it uses only equality of final states and exact output correctness. It proves no bound for update models whose final state is not affine in the input. Complete proof: each nonzero k in ker(M) would force one fixed decoded circuit to compute both 0^N and k, which is impossible because their truth tables differ; thus the kernel is trivial, and rank-nullity gives rank(M)=N, while an S-by-N matrix has rank at most S.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]
