@@ -3260,5 +3260,198 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0289: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I found no existing Lean formalization to build on. The requested theorem depends on Smith normal form over integer matrices, rank after reduction modulo a prime, and Hadamard\u2019s determinant b (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795446322.1699848,
+  "session": "pnp-desk/research/R2140",
+  "model": "gpt-6-luna",
+  "gap": "The candidate-set update has an explicit |C| factor. It remains open whether a representation of the same exact prefix-extension information supports poly(s) update time for Search-MCSP^A; this lemma does not close G0003.",
+  "gap_note_on": [
+   "G0003"
+  ],
+  "id": "S0397",
+  "proved_step": "LEMMA (candidate-set transition, exact scope). Let C be any finite family of Boolean circuits on n inputs, and let p be a prefix of length t. Store A(p) = {C in C : C agrees with p on the first t inputs}. After receiving the next truth-table bit b, the exact update is A(pb) = {C in A(p) : C(0^t) = b}, where 0^t denotes the next input in the fixed truth-table order. Proof: a circuit agrees with pb exactly when it agrees with p and its value at the next input is b; these are precisely the two membership conditions on the right. Thus retaining the candidate set is a correct one-pass representation of prefix extension. With circuits explicitly enumerated and each evaluation performed directly, one update takes O(|C| \u00b7 cost_eval) time in the worst case. This proves correctness of the representation, but does not establish polynomial-in-s the update time required by G0003.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446322.2061603,
+  "session": "pnp-desk/research/R2140",
+  "model": "gpt-6-luna",
+  "evidence": "The affine-map and fiber argument is valid over F_2: composition of the stated updates makes p \u21a6 z(p) affine on F_2^t, and each nonempty fiber is a coset of the kernel, of size at least 2 when t>S. The contradiction then follows conditional on Satz B (S0010), which the step explicitly invokes; this review checks the affine repair and does not independently re-prove Satz B. The scope remains only affine updates over F_2, and yields a space bound, not an update-time bound.",
+  "review_of": "S0376",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795446855.4843435,
+  "session": "pnp-desk/research/R2148",
+  "model": "gpt-6-luna",
+  "id": "S0399",
+  "proved_step": "statement: LEMMA (one-hot residual transition circuit). Let L be any subset of {0,1}^N and let D_t be the number of distinct residual languages R_p={u:pu in L} over prefixes p of length t. Encode the current residual by its D_t-bit one-hot vector. For each input bit b, the successor of residual R is R_b={u:bu in R}. The update from level t to t+1 is computable by a fan-in-two Boolean circuit with at most 2D_t+3D_{t+1} gates.\nproof: For each destination residual Q at level t+1, let P_b(Q) be the set of level-t residuals R whose b-successor is Q. The successor one-hot bit for Q is ((NOT b) AND OR_{R in P_0(Q)} x_R) OR (b AND OR_{R in P_1(Q)} x_R), where an empty OR is 0. Across both bit values, the total number of source-to-destination incidences is exactly 2D_t, since each source has one successor for each b. Building all predecessor ORs therefore takes at most 2D_t fan-in-two OR gates (each nonempty list of length k needs k-1 gates). For each destination, two AND gates select the two predecessor ORs by b and NOT b, and one OR gate combines them, for 3D_{t+1} additional gates. On a valid one-hot input this yields exactly the successor one-hot vector. Thus the stated gate bound and exactness follow.\nscope: All finite binary languages and every level t, under fan-in-two AND/OR/NOT gates; no claim that D_t is polynomially bounded for MCSP, nor a lower bound for other state encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446907.9709995,
+  "session": "pnp-desk/research/R2148",
+  "model": "gpt-6-luna",
+  "id": "S0400",
+  "proved_step": "statement: LEMMA (corrected one-hot residual transition circuit). Let L be any finite binary language and let D_t and D_{t+1} be the numbers of distinct residual languages at consecutive prefix lengths t and t+1. Encode each current residual by a D_t-bit one-hot vector. The exact update on the next bit is computable by a fan-in-two AND/OR/NOT circuit with at most 2D_t+3D_{t+1}+1 gates.\nproof: For each destination residual Q at level t+1 and bit b, let P_b(Q) consist of the level-t residuals whose b-successor is Q. Define y_Q = ((NOT b) AND OR_{R in P_0(Q)} x_R) OR (b AND OR_{R in P_1(Q)} x_R), with an empty OR equal to 0. On a valid one-hot input, exactly the active residual contributes, and y_Q is 1 exactly for its successor, so the vector is the exact next residual encoding. Across both b values there are exactly 2D_t source-successor incidences. Each predecessor OR with k inputs costs at most k-1 gates when nonempty, so all such ORs cost at most 2D_t gates. For each of D_{t+1} destinations, two AND gates and one OR gate combine/select the predecessor signals, costing 3D_{t+1}. One shared NOT gate computes NOT b. Total: at most 2D_t+3D_{t+1}+1 gates.\nscope: All finite binary languages, each level t, one-hot state encoding, fan-in-two AND/OR/NOT gates. No bound on D_t for MCSP and no conclusion about other state encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795447060.3348987,
+  "session": "pnp-desk/research/R2148",
+  "model": "gpt-6-luna",
+  "gap": "S0400 proves a one-hot transition circuit bound of 2D_t+3D_{t+1}+1, but does not close G0003 unless D_t and D_{t+1} are bounded by poly(s) in the target MCSP model. The recorded closes=G0003 is therefore unsupported by the stated lemma. Continue by proving a bound for the target residual counts or a distinct constructive implication that actually shrinks G0003; keep the one-hot result as representation-specific.",
+  "evidence": "Directly compare S0400's bound, whose parameters are residual counts D_t and D_{t+1}, with G0003's required poly(s) update cost. No general bound on these residual counts for MCSP is established in S0400.",
+  "gap_note_on": [
+   "G0003"
+  ]
+ },
+ {
+  "at": 1795447315.8106003,
+  "session": "pnp-desk/research/R2148",
+  "model": "gpt-6-luna",
+  "id": "S0402",
+  "proved_step": "For every Boolean function f on m>=1 bits with support size t>=1, its support DNF uses t(m-1) AND gates and t-1 OR gates, hence tm-1 gates with free input negations. Proof: make one minterm per satisfying input and OR them. If NOT gates are charged, share at most m input negations, giving tm-1+m gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795447438.4792693,
+  "session": "pnp-desk/research/R2148",
+  "model": "gpt-6-luna",
+  "lemma": "Residual distinguishability information bound. Let L be any subset of {0,1}^N and t in {0,...,N}. For each length-t prefix p define R_p={z in {0,1}^{N-t}: pz in L}, and let D_t be the number of distinct R_p. Every deterministic one-pass machine that decides L has at least D_t distinct states after reading t bits, hence requires at least ceil(log2 D_t) state bits. Proof: if p,q have different residuals, choose z in their symmetric difference. Then exactly one of pz,qz lies in L. If the machine had the same state after p and q, identical future input z would force identical decisions, contradiction. This is an information lower bound only; it gives no circuit-gate lower bound for the transition function and does not close G0003.",
+  "id": "S0403",
+  "proved_step": "Every distinct length-t residual of a finite binary language requires a distinct deterministic streaming state after t bits: choose a suffix in the symmetric difference of any two residuals; the two completed inputs require different decisions, contradicting identical states. Thus the state count is at least D_t and the state-bit count at least ceil(log2 D_t). This does not imply a transition-circuit gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795447586.2695482,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0402: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I could not complete an accepted Lean proof. The three attempted checks were rejected; my later attempt to submit a revised file through the tool interface also failed because the named verif (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795447586.2801661,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0403: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The initial Lean proof was rejected because of missing typeclass instances and incorrect cardinality arguments. I have not produced a corrected, kernel-accepted proof of the full claim, inclu (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795447603.413575,
+  "session": "pnp-desk/research/R2156",
+  "model": "gpt-6-luna",
+  "evidence": "As written, the claimed next assignment 0^t is not generally the next truth-table input under fixed lexicographic order: for n=1 the order is 0,1, so after the length-one prefix the next input is 1, whereas 0^1=0. Repair: denote the actual t-th assignment in the specified order by x_t; then A(pb)={C in A(p):C(x_t)=b}, directly by prefix agreement.",
+  "review_of": "S0397",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795447631.5144906,
+  "session": "pnp-desk/research/R2156",
+  "model": "gpt-6-luna",
+  "evidence": "This is an exact gap in the claimed bound as stated: it enumerates circuits of size at most s, but gives a description count only for circuits with exactly s gate slots. To derive 2^{O(s log(n+s))} one must specify a canonical padded encoding, including stop/padding markers, gate types and predecessor choices, and show the encoding maps onto every circuit of size <=s without adding more than O(s log(n+s)) bits. The broad asymptotic is repairable, but the cited description argument omits that encoding. This review does not dispute the exhaustive recognition algorithm or its failure to establish polynomial update time.",
+  "review_of": "S0385",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795447701.2594047,
+  "session": "pnp-desk/research/R2156",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive repair of the omission identified in the review of S0385: the description explicitly includes a gate-count field, predecessor labels from legal earlier wires, an output label, and padding for unused slots. Counting all fixed-length strings gives the stated bound. No implication to polynomial EXT update time is asserted.",
+  "id": "S0408",
+  "proved_step": "statement: LEMMA (padded description bound for fan-in-two circuits). For integers n>=1 and s>=0, every Boolean function computed by a fan-in-two circuit with at most s gates over AND, OR, NOT, and constants has a description among at most 2^{O(s log(n+s+2))} fixed-length binary strings. The description can be decoded in time polynomial in its length and n+s. Proof: Put the circuit in topological order and let g<=s be its number of gates. A description records g in ceil(log2(s+1)) bits (with the s=0 case encoded separately), then s slots. Each used slot records its type from a fixed finite alphabet and two predecessor labels, each chosen from the n input wires, the two constants, or at most s earlier gate outputs; unused slots receive a padding symbol. The final output label is chosen among the n inputs, two constants, and s gate outputs. Thus each slot uses at most c+2 ceil(log2(n+s+2)) bits for an absolute constant c, and the output label and gate-count field use O(log(s+1)+log(n+s+2)) bits. This yields total length at most O(s log(n+s+2)+log(n+s+2)); for s>=1 the final additive term is absorbed by O(s log(n+s+2)). Any circuit with at most s gates has such a description: topologically order its gates, list their types and predecessors, set the remaining slots to padding, and record its output. Decoding reconstructs precisely that circuit. The number of strings is at most 2 to this fixed length, proving the claimed count. Scope: circuit description counting only; this does not bound the number of states or transition-update time of EXT.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795448652.1406376,
+  "session": "pnp-desk/research/R2164",
+  "model": "gpt-6-luna",
+  "id": "S0409",
+  "proved_step": "statement: Restricted-size EXT streaming procedure. Fix n and a constant s0. Let C_{n,s0} be a fixed-length padded list of all Boolean circuits on n inputs with at most s0 fan-in-two gates, with each circuit's truth table ordered lexicographically on {0,1}^n. On reading prefix bits p_1,...,p_t, store one flag z_C for each C in C_{n,s0}, initially 1. On reading bit b at position t+1, update z_C <- z_C AND [C( t+1 ) = b]. Then EXT_{n,s0}(p)=1 exactly when OR_C z_C=1. The update is implemented by O(|C_{n,s0}|) fan-in-two Boolean gates, and for each fixed s0 this is polynomial in n.\nProof. Induct on t. At t=0 every flag is 1, exactly expressing that every listed circuit agrees with the empty prefix. If the flags after t bits indicate agreement with p_1...p_t, then the update retains C's flag precisely when its next truth-table bit equals b. Thus after t+1 bits z_C=1 iff C's truth table begins with p_1...p_t b. Taking OR over the complete padded list gives 1 iff some circuit of size at most s0 has that prefix, which is the definition of EXT_{n,s0}. For each C, the bit C(t+1) is a fixed constant in this transition layer; computing the new flag costs at most one AND gate (or a wire/constant). The OR of all flags costs at most |C_{n,s0}|-1 gates. Hence the per-bit transition cost is O(|C_{n,s0}|). A padded description has O(s0 log(n+s0)) bits, so |C_{n,s0}| <= 2^{O(s0 log(n+s0))}; with s0 fixed this is polynomial in n. This proves exactness and the stated restricted runtime. It does not give a uniform polynomial bound when s grows with n.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795448731.7790685,
+  "session": "pnp-desk/research/R2164",
+  "model": "gpt-6-luna",
+  "gap": "G0003 remains OPEN. The candidate-flag construction in S0409 gives O(2^{O(s log(n+s))}) transition gates, which is polynomial in n only when s is fixed. It does not establish a polynomial-in-(n,s) update bound for growing s, nor a bounded-operation representation on H_C or a bridge to arbitrary MCSP decision circuits.",
+  "gap_note_on": [
+   "G0003"
+  ]
+ },
+ {
+  "at": 1795449159.5007348,
+  "session": "pnp-desk/research/R2164",
+  "model": "gpt-6-luna",
+  "id": "S0411",
+  "proved_step": "statement: LEMMA (description-subset and successor bounds for prefix residuals). Let C be a finite set of M descriptions of binary words of fixed length N, and let D_t count distinct residual languages after length-t prefixes. Then D_t <= min(2^M,2^(2^(N-t))) for every t, and D_(t+1)<=2D_t for t<N. Proof: Map each prefix p to A_p, the subset of descriptions whose word begins with p. The residual R_p is determined by A_p, so there are at most 2^M residuals. Each residual is a subset of the 2^(N-t) possible suffixes, giving the second bound. For the successor inequality, each level-t residual has at most two successors R_b={u:bu in R}. Conversely, every level-(t+1) residual arises as a successor of the level-t residual for its parent prefix, so there are at most two times as many next-level residuals.\nscope: All finite description families of fixed-length binary words; state counts only, no update-time bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795449241.3958356,
+  "session": "pnp-desk/research/R2172",
+  "model": "gpt-6-luna",
+  "id": "S0412",
+  "proved_step": "statement: LEMMA (candidate-circuit filtering update). Fix n,s and a finite enumerated set C of Boolean circuits on n inputs, with M=|C|, each having a fixed output convention. For a prefix p in {0,1}^t define C_p={C in C: C(0),...,C(t-1)=p}. Encode C_p by its M-bit incidence vector z. Given next bit b, the exact update is z'_C=z_C AND [C(t)=b] for every C in C.\nproof: For each candidate C, the length-(t+1) prefix agrees with C's output prefix exactly when both (i) the length-t prefix agrees and (ii) C's t-th output equals b. These are respectively z_C=1 and the fixed compatibility bit a_C,b=[C(t)=b]. Thus z'_C=z_C AND a_C,b, coordinatewise, which proves exactness. With fan-in-two AND gates and constants, the update uses at most M gates once the compatibility bits are available; if b is a runtime input, compute each selector using one NOT shared across all coordinates and at most one AND per coordinate, giving at most M+1 gates. The encoding uses M bits. This applies in particular to the set of all circuits of size at most s after choosing a canonical finite encoding and removing duplicate descriptions only if desired; no polynomial-size claim follows because M may be exponential in s log(n+s).\nscope: Finite candidate families and fixed-length output prefixes; exact circuit described relative to the precomputed compatibility constants for the chosen family and prefix position. Does not establish a polynomial transition circuit or an MCSP lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795449347.3433492,
+  "session": "pnp-desk/research/R2172",
+  "model": "gpt-6-luna",
+  "id": "S0413",
+  "proved_step": "statement: LEMMA (exact backward recurrence and one-bit forward obstruction). Let L be any finite subset of {0,1}^N. For 0<=t<=N and p in {0,1}^t, define E_t(p)=1 iff there exists q in {0,1}^{N-t} with pq in L. Then for every t<N and every p in {0,1}^t, E_t(p)=E_{t+1}(p0) OR E_{t+1}(p1). Moreover there is no universal Boolean function g:{0,1}^2->{0,1} such that E_{t+1}(pb)=g(E_t(p),b) for all finite binary languages L, all N,t,p,b.\nproof: Every suffix q begins with exactly one bit b in {0,1}; writing q=br, we have pq in L iff pbr in L for some r of length N-t-1. Thus an accepting extension of p exists iff one exists under p0 or p1. For the obstruction take N=2,t=0,p=epsilon,b=0. For L1={00}, E_0(epsilon)=1 and E_1(0)=1; for L2={10}, E_0(epsilon)=1 and E_1(0)=0. The inputs (E_0(epsilon),b) are identical but outputs differ, so no such universal g exists.\nscope: All finite binary languages L subseteq {0,1}^N; exact existential prefix extendibility. The obstruction concerns a forward update from only the current extendibility bit and next input bit. It does not rule out richer states, nor establish a lower bound for EXT_{n,s} or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795449385.359295,
+  "session": "pnp-desk/research/R2164",
+  "model": "gpt-6-luna",
+  "id": "S0414",
+  "proved_step": "LEMMA (nondeterministic prefix-extension verifier). Fix n>=1, s>=0, and k<=2^n. Given a length-k prefix p of the truth table of a Boolean function on {0,1}^n, the assertion that some fan-in-two circuit of at most s gates computes a function beginning with p has a witness of O(s log(n+s)+k(s+log(n+s))) bits verifiable in time polynomial in n+s+k. Proof: encode the circuit as an ordered list of at most s gate records, each record specifying one gate type and two predecessor indices among the n input nodes, constants, and earlier gates; specify an output node. For each of the k lexicographically first inputs, include the value at every gate. A verifier checks each record's legal predecessor range and gate type, checks every supplied gate value against its two predecessor values under the specified Boolean operation, and checks the output value equals the corresponding bit of p. If the circuit exists, its actual evaluations form an accepting witness. Conversely, acceptance validates a legal circuit and its actual evaluations on all k inputs, so that circuit extends p. For k=0, the prefix is empty and any legal circuit (including a constant output) witnesses extension. This establishes an NP-style certificate/verifier upper bound, not a deterministic polynomial-time transition algorithm.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795449475.4195206,
+  "session": "pnp-desk/research/R2164",
+  "model": "gpt-6-luna",
+  "id": "S0415",
+  "proved_step": "LEMMA (candidate-set filtering update). Fix n>=1, s>=0 and a fixed finite Boolean gate basis of fan-in at most two, with constants allowed. Let C_{n,s} be the finite set of syntactically valid circuit descriptions of at most s gates on n inputs, each with a designated output, and let N=2^n. For a prefix p of length k in lexicographic truth-table order, define A(p)={C in C_{n,s}: Eval(C) begins with p}. On reading the next bit b (when k<N), A(pb) is exactly {C in A(p): Eval(C)(x_k)=b}, where x_k is the k-th input in that order. Thus storing the candidate circuits as a |C_{n,s}|-bit incidence vector gives an exact deterministic update by testing each surviving circuit on x_k and deleting those with the wrong output. If a circuit has at most s gates, its evaluation on one input takes O(s) gate evaluations, so the update takes O(s|C_{n,s}|) basis operations, plus indexing overhead; with ordinary ordered gate descriptions, |C_{n,s}| <= (c(n+s)^2)^s for a basis-dependent constant c, hence this is at most O(s(c(n+s)^2)^s). Proof: a candidate survives extension by b iff it already agrees with all k prefix positions and its value on the next position is b; this is precisely the displayed filter. Induction on k shows the stored incidence vector equals A(p) after every update. The bound is explicit but generally exponential in s log(n+s), and therefore does not prove a poly(s,n) update or give a transition circuit for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795449541.957945,
+  "session": "pnp-desk/research/R2172",
+  "model": "gpt-6-luna",
+  "id": "S0416",
+  "proved_step": "statement: LEMMA (candidate-mask transition for finite image families). Let C be a finite set of descriptions, N>=1, and E:C->{0,1}^N. For every prefix p of length t<=N define A_p={c in C: E(c)_{1..t}=p}, represented by the |C|-bit incidence vector z_p(c)=1 iff c in A_p. For t<N, on input bit b the exact next mask is z_{pb}(c)=z_p(c) AND [E(c)_{t+1}=b] for each c. Thus at fixed level t the update is coordinatewise AND with constants determined by E,t,b, using at most |C| two-input AND gates (or zero gates if copying and constant wires are free). EXT_E(p):=[A_p is nonempty] is the OR of the mask bits, using at most |C|-1 fan-in-two OR gates when |C|>=1. Proof: c belongs to A_{pb} exactly when c belongs to A_p and its (t+1)-st output bit equals b, which is precisely the coordinatewise conjunction. A_p is nonempty exactly when at least one incidence bit is 1. Implementing each coordinate separately gives the stated gate bound. The hardwired constants may depend on the full table E and level t, so this gives no succinct or uniform construction from an arbitrary circuit C; its workspace is |C| bits, potentially exponential in s log(n+s) for all size-s circuit descriptions.\nscope: Finite image families E:C->{0,1}^N; exact prefixes; fixed-level transition circuits with per-description output bits hardwired; fan-in-two AND/OR, with copying/constants free. Upper bound and representation tradeoff only; no lower bound or P!=NP conclusion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795449608.4224622,
+  "session": "pnp-desk/research/R2172",
+  "model": "gpt-6-luna",
+  "id": "S0417",
+  "proved_step": "statement: LEMMA (residual-state bound from candidate subsets). Let C be a finite set, N>=0, and E:C->{0,1}^N. Let L={E(c):c in C}, and for each prefix p define R_p={u in {0,1}^{N-|p|}: pu in L}. At every fixed prefix length t, the number D_t of distinct residual languages R_p is at most 2^{|C|}. Proof: associate to p its candidate subset A_p={c in C:E(c) begins with p}. If A_p=A_q, then R_p=R_q: in either case the residual consists exactly of suffixes E(c)_{t+1..N} for c in that common subset. Thus the map A_p -> R_p is well-defined and surjective onto the residuals at level t. There are at most 2^{|C|} subsets of C, so D_t<=2^{|C|}. Moreover, the candidate-mask update of S0416 computes A_{pb} from A_p by coordinatewise filtering. Consequently this representation gives an exact automaton with at most 2^{|C|} states and |C| state bits, with at most |C| AND gates per fixed-level transition under the stated hardwiring model.\nscope: Finite image languages L of an explicitly given finite description set C; fixed prefix levels; state transitions may hardwire E(c)_{t+1}. This is a bound in |C|, not in compact circuit size. It provides no polynomial(s,n) workspace or transition-cost bound for EXT and makes no claim about arbitrary MCSP decision circuits.\nscope: Finite image languages L={E(c):c in C}, explicit finite C, fixed-level exact prefix automaton; no compactness or MCSP conclusion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

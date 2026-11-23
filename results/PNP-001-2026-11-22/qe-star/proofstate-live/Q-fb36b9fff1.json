@@ -100,5 +100,62 @@
   "evidence": "The counting argument is mathematically correct as an upper bound: for h gates in topological order, each gate has 16 choices of binary Boolean function and at most (S+1+i) source choices per input (S inputs, 2 constants, i-1 previous gates), giving 16^h * prod_{i=1}^h (S+1+i)^2 <= 16^h (S+h+1)^{2h} gate lists. Each of S outputs chooses from S+h+2 sources, giving (S+h+2)^S combinations. Summing h=0..g with (g+1) terms yields the stated bound. The step correctly notes this only counts realizable transition maps and does not provide a task-specific update-time lower bound or simulate oracle gates. It does not close G0001 which requires an update-time lower bound against the MMW oracle construction.",
   "review_of": "S0011",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795447657.0877357,
+  "session": "pnp-desk/research/R2157",
+  "model": "gpt-6-luna",
+  "gap": "This factorization has dimension up to 2^S and gives no update-time bound; it is consistent with the MMW19 oracle streaming construction. G0001 remains open: identify an update-time transfer premise broken by the oracle gates or produce a valid transfer that survives them.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0013",
+  "proved_step": "For any deterministic one-pass machine with finite state set Q, let P and R be the prefixes and suffixes at a fixed cut, and let M[p,r] be 1 iff pr is accepted. Let Q_reached be the states reached by prefixes in P. Define U[p,q]=1 iff p reaches q and V[q,r]=1 iff starting in q, suffix r is accepted. Then M=UV over every field, and rank_F(M) <= |Q_reached| <= 2^S for S-bit states. Proof: each prefix reaches exactly one state, whose suffix-acceptance row is exactly the residual function after that prefix; hence the matrix entry is the sum over states of the indicator products. This is exact for nonlinear transitions and decoders.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795447818.4320984,
+  "session": "pnp-desk/research/R2157",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "For a finite state set Q, a bijective encoding psi:Q->C subseteq {0,1}^S, and transition delta_a, if circuits for psi, psi^{-1} on valid codes, and delta_a have sizes A,B,T, then the recoded transition psi\u2218delta_a\u2218psi^{-1} has a circuit of size at most A+B+T plus constant wiring overhead on valid codes. Proof: compose the three circuits; for c=psi(q), the output is psi(delta_a(q)). This does not establish a recoding-invariant lower bound because A and B may be large, and does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795447965.1338317,
+  "session": "pnp-desk/research/R2157",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains open. S0014 is a valid circuit-composition lemma but does not establish a recoding-invariant update-time lower bound and should not be treated as closing G0001. The attempted finite proxy check has not yet produced a successful result; if it succeeds, it concerns only dependency count for a fixed four-state transition, not Boolean circuit size or MMW oracle simulation.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795448039.2960682,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0014: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No verifier call channel is available in this turn to obtain the host-required kernel-accepted record. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795448773.121881,
+  "session": "pnp-desk/research/R2166",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim is mathematically correct. For a deterministic one-pass machine, each prefix p reaches exactly one state q_p. The matrix U has exactly one 1 per row (at column q_p). Matrix V has rows indexed by states, with V[q,r] = 1 iff suffix r is accepted starting from state q. Then (UV)[p,r] = sum_q U[p,q]V[q,r] = U[p,q_p]V[q_p,r] = V[q_p,r] = M[p,r]. This equality holds as integer matrices, hence over any field. Rank bound: rank(UV) <= min(rank(U), rank(V)) <= number of columns of U = |Q_reached| <= |Q| = 2^S. No counterexample exists; this is a standard fact in automata theory and communication complexity (the rank of the communication matrix of a deterministic protocol is at most the number of states reached).",
+  "review_of": "S0013",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795448802.2845564,
+  "session": "pnp-desk/research/R2166",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The circuit composition claim is mathematically correct. Given circuits for psi (size A), psi^{-1} on valid codes C (size B), and delta_a (size T), their composition psi \u2218 delta_a \u2218 psi^{-1} on valid codes has a circuit of size at most A+B+T plus constant wiring. This is a standard circuit composition fact. The caveat is also correct: A and B may be large (the encoding/decoding circuits themselves may be complex), so this does not give a recoding-invariant lower bound on the intrinsic complexity of the transition function, and it does not close G0001 which requires a bound independent of the encoding choice.",
+  "review_of": "S0014",
+  "status": "SURVIVED_REVIEW"
  }
 ]

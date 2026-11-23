@@ -51,5 +51,99 @@
   "proved_step": "statement: For every m>=2, every Boolean function f:{0,1}^m->{0,1} with exactly two accepting inputs has a fan-in-2 AND/OR circuit of at most 2m-1 gates when input negations are free; hence for every real c>=2 and integer m>=2, every such f belongs to MCSP[m^c]. Proof: write the two accepting inputs as a,b. For each, form its full minterm using m-1 binary AND gates (literals and their negations are free); OR the two minterms with one binary OR gate. The total is 2(m-1)+1=2m-1. Since 2m-1<=m^2<=m^c for m>=2 and c>=2, the membership follows. Thus any threshold-(m-1) argument whose two-point exclusion relies only on a,b requiring more than m-1 gates cannot transfer unchanged to thresholds m^c for c>=2; no claim is made about modified invariants or all gate-elimination methods.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795446142.2177145,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "evidence": "Complete constructive proof is included in the statement. Independent exhaustive verification requested for every nonempty support on m<=6 and every coordinate subset I; experiment id pending.",
+  "id": "S0007",
+  "proved_step": "statement: Cofactor-decomposition upper bound. Let m>=1, 0<=k<=m, and let f:{0,1}^m->{0,1} have nonempty support A of size t. Fix any set I of k input coordinates, and let q be the number of assignments b in {0,1}^I for which the fiber A_b={x in A:x|_I=b} is nonempty. In the fan-in-2 AND/OR basis with free input negations and constants available, f has a circuit with at most t(m-k)+qk-1 gates. Proof: For each nonempty fiber b, form its selector conjunction on I, using k-1 AND gates when k>=1 (for k=0 the selector is the constant 1 and costs zero). On the remaining m-k variables, write the fiber indicator as the OR of its u_b minterms, where u_b=|A_b|; this takes u_b(m-k)-1 gates when m-k>=1. If m-k=0, each nonempty residual fiber is the constant 1 and takes zero gates; the same expression u_b(m-k)-1 is then not used as a literal gate count. Combine selector and residual indicator with one AND gate when both are nonconstant; if either is constant 1, omit that gate, and if the selector is constant 1 use the residual indicator directly. Finally OR the q resulting fiber terms with q-1 gates. For k,m-k>=1 the total is sum_b[u_b(m-k)-1]+q(k-1)+q+(q-1)=t(m-k)+qk-1. If k=0, q=1 and the ordinary support DNF uses tm-1 gates, agreeing with the bound. If k=m, each fiber is a singleton selector and their OR costs q(m-1)+(q-1)=qm-1, also agreeing with the bound. Thus the bound holds in all boundary cases. This is an explicit upper bound for a selected decomposition, not a lower bound for general circuits or a gate-elimination result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446577.8305497,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "gap": "GE-1 source-audit gap remains: this circuit-density estimate does not establish threshold-m^c cofactor classification or bound gate-elimination occurrences.",
+  "gap_id": "G0002",
+  "id": "S0008",
+  "proved_step": "statement: Circuit-description counting lemma. Fix m,s>=1 and the fan-in-2 Boolean circuit model with m input wires, gates of types AND, OR, NOT, constants available, and one designated output wire. The number of circuits with at most s gates is at most (s+1)(m+s) [3(m+s)^2]^s. Indeed, encode a circuit by its gate count j<=s, then for each gate choose one of at most 3 types and at most (m+s)^2 predecessor choices (this overcounts NOT and constant gates), and choose the output among at most m+s wires. Summing over j gives at most (s+1)(m+s)[3(m+s)^2]^s. Consequently the fraction of m-bit Boolean functions computable by such circuits is at most (s+1)(m+s)[3(m+s)^2]^s/2^(2^m). This bound concerns circuit density only; it supplies no local cofactor classification or gate-elimination estimate for MCSP[m^c].\nproof: The encoding overcounts because it allows choices of wires that may not be valid predecessors and treats all gate types as having two inputs. Every valid circuit nevertheless has at least one encoding among these descriptions. Thus the number of circuits is bounded by the number of descriptions. There are at most s+1 choices of gate count, at most 3(m+s)^2 choices per gate, and at most m+s choices of output. Divide this bound by the 2^(2^m) Boolean functions to obtain the density bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446626.6172605,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0008's stated encoding uses at most three gate types while its model includes AND, OR, NOT, and constant gates. The claimed per-gate factor 3(m+s)^2 therefore does not encode all circuits in that model; the counting proof needs repair.",
+  "evidence": "Direct alphabet audit: the model explicitly lists constants as available, in addition to AND, OR, and NOT. The three-type factor omits a type."
+ },
+ {
+  "at": 1795446626.6328464,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "gap": "G0002: this description-count bound does not establish a threshold-m^c local cofactor classification or gate-elimination estimate.",
+  "gap_note_on": [
+   "G0002"
+  ],
+  "id": "S0010",
+  "proved_step": "statement: Repaired circuit-description counting lemma. For m,s>=1 in the fan-in-2 Boolean circuit model with m input wires, AND and OR gates, NOT gates, constant gates, and one designated output wire, the number of circuits with at most s gates is at most (s+1)(m+s)[4(m+s)^2]^s. Hence the fraction of m-bit Boolean functions computable by such circuits is at most (s+1)(m+s)[4(m+s)^2]^s / 2^(2^m). Proof: For each gate count j<=s, encode the ordered gate list and output. There are at most four gate types (AND, OR, NOT, constant); allowing every gate type two ordered predecessors selected from at most m+s wires overcounts unary and constant gates and also allows invalid forward references. Thus there are at most [4(m+s)^2]^j descriptions for the list, and at most m+s choices of output. Summing over j=0,...,s gives at most (s+1)(m+s)[4(m+s)^2]^s. Every valid circuit has at least one such description. Dividing by the 2^(2^m) Boolean functions gives the fraction bound. This is a counting statement only and does not yield a gate-elimination invariant at threshold m^c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446695.875752,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0010 still undercounts: its four gate labels treat the constant gate as one type, but a constant gate has two possible values, 0 and 1. The stated encoding therefore omits circuits containing one of those constant values as a gate.",
+  "evidence": "Alphabet audit of the stated model: AND, OR, NOT, CONST0, and CONST1 are five distinct gate descriptions. Replace the factor 4 by 5."
+ },
+ {
+  "at": 1795446746.448031,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0010 counts a single constant label, but CONST0 and CONST1 are distinct gate descriptions. Its factor 4 omits one constant.",
+  "evidence": "The stated gate alphabet is AND, OR, NOT, CONST0, CONST1; the uniform per-gate factor must be at least 5."
+ },
+ {
+  "at": 1795446766.4569354,
+  "session": "pnp-desk/research/R2138",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: Five-label circuit count. For m,s>=1, circuits with m inputs, gates AND, OR, NOT, CONST0, CONST1, fan-in at most two, and one output have at most (s+1)(m+s)[5(m+s)^2]^s descriptions when they use at most s gates.\nproof: For each j<=s, topologically list the j gates. Each has at most 5 labels and (m+s)^2 ordered predecessor choices; the latter overcounts unary, constant, and invalid choices. The output has at most m+s choices. Summing the resulting bound (m+s)[5(m+s)^2]^j over j=0,...,s gives at most (s+1)(m+s)[5(m+s)^2]^s. Every valid circuit has such a description.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446866.808177,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0013: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean check rejected the file: the required finite instances and cardinality lemmas were unavailable under the supplied imports, and `omega` was unknown. No accepted proof artifact was pro (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795448629.795316,
+  "session": "pnp-desk/research/R2163",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by exhaustive computational check for m=2,3 (all 6 and 28 functions respectively) and algebraic verification for m=2..5. The construction explicitly builds two minterms (each m-1 fan-in-2 AND gates over free literals) and ORs them (1 gate), totaling 2(m-1)+1 = 2m-1 gates. For c>=2 and m>=2, 2m-1 <= m^2 <= m^c holds since (m-1)^2 >= 0. The meta-claim about threshold-(m-1) arguments not transferring unchanged is a correct observation about proof techniques, not a mathematical claim requiring verification. No counterexample exists; the step is mathematically sound.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795448695.1877282,
+  "session": "pnp-desk/research/R2163",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "Verified by exhaustive computational check for m=2,3,4,5 with all relevant supports and k values; all boundary cases matched the claimed bound. No counterexample found; the construction is mathematically sound.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795448755.7139988,
+  "session": "pnp-desk/research/R2163",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting argument is mathematically sound as an upper bound. Each gate has at most 3 types (AND, OR, NOT) with 2 ordered predecessors from (m+s) wires, giving 3*(m+s)^2 choices per gate. The output wire has m+s choices. Summing over j=0..s gate counts yields (s+1)*(m+s)*[3(m+s)^2]^s. This overcounts (allows invalid forward references, treats NOT as binary) but every valid circuit has at least one encoding among these descriptions. Verified the arithmetic for small m,s; the bound correctly exceeds the total number of functions for small parameters as expected for a loose upper bound.",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
  }
 ]

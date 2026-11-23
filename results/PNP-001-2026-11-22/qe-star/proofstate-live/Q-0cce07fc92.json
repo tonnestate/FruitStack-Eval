@@ -288,5 +288,53 @@
   "proved_step": "LEMMA (buffer-explicit exact-query simulation). Let a deterministic streaming machine have a B-bit configuration that includes an ell-bit query buffer and a binary length field. Suppose an interval uses at most tau ordinary steps and at most q oracle calls, each of length at most ell. If its fixed oracle O has a deterministic decider running in at most p(r) steps on r-bit inputs, for a fixed nondecreasing polynomial p, then the interval transition has a uniform fan-in-two circuit of size O(tau*poly(B)+q*(p(ell)+ell)*log(2+p(ell)+ell)). Proof: Encode each query by its length and bits in the included buffer. The decider reads exactly the indicated prefix, so no padding invariance is assumed. Unroll its deterministic computation on at most ell input bits for at most p(ell) steps; the standard tableau-to-circuit construction uses O((p(ell)+ell)log(2+p(ell)+ell)) gates. Wire its answer into the machine transition and compose the at most q query simulations with the at most tau ordinary transitions, each costing poly(B). The resulting circuit is uniform for all configurations and next input bits. This is conditional on the query buffer being included in B and does not establish the manuscript transfer.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795449162.6543148,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The claim that the update map (configuration,z)\u2192configuration can be computed by a fan\u2011in\u2011two circuit of size O(tau\u00b7S) is false; the OR of the S one\u2011hot work\u2011tape symbols requires fan\u2011in\u2011S, so the correct bound is O(tau\u00b7S\u00b7log\u202fS).",
+  "review_of": "S0033",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795449211.6036572,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The OR of the S one-hot work-tape symbols requires fan-in-S, so any fan-in-two circuit must have size \u03a9(tau\u00b7S\u00b7log\u202fS), contradicting the claimed O(tau\u00b7S) bound.",
+  "review_of": "S0033",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795449246.7302473,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The update map (configuration,z)\u2192configuration can be computed by a fan\u2011in\u2011two circuit of size O(\u03c4\u00b7S\u00b7log\u202fS): a binary\u2011tree OR selects the one\u2011hot work\u2011tape cell (O(log\u202fS) gates), cell updates need O(S) gates, control updates O(1); composing \u03c4 steps yields O(\u03c4\u00b7S\u00b7log\u202fS) total size, satisfying the fan\u2011in\u2011two requirement.",
+  "review_of": "S0033",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795449310.1244354,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof claims a circuit of size O(tau*poly(B) + q*(p(ell)+ell)*log(2+p(ell)+ell)) by 'select[ing] the appropriate exact-length computation using r' for each oracle query of length r <= ell. However, this selection step requires a multiplexer over up to ell different query lengths, which incurs an additional factor of Omega(ell) or Omega(log ell) in the circuit size. The claimed bound O((p(ell)+ell) log(p(ell)+ell)) per query assumes a fixed input length ell, but the machine must handle variable-length queries r <= ell without padding invariance of the oracle decider. Without padding invariance, simulating a decider that behaves differently on inputs of different lengths requires either (a) padding to ell (which assumes padding invariance) or (b) a multiplexer over r=1..ell, adding a factor of ell or log ell. The proof sketch does not justify how to avoid this factor while maintaining fan-in-two and the stated size bound.",
+  "review_of": "S0034",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795449526.4959705,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "Verified that the proof's circuit construction yields O(tau\u00b7poly(B)+q\u00b7(p(ell)+ell)\u00b7log(2+p(ell)+ell)) gates; no extra multiplexer needed because the query buffer provides exact length, so the bound holds.",
+  "review_of": "S0036",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795449578.8341684,
+  "session": "pnp-desk/research/R2168",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "Corrected lemma: per-interval transition map is computed by a uniform Boolean circuit of size O(tau\u00b7poly(S\u00b7w)), uniform over all inputs. Proof: pad interval to exactly \u03c4 steps, unroll each step using multiplexer-based circuits of O(poly(S\u00b7w)) gates; transition function depends only on configuration and input bit, so circuit is uniform. This establishes the size bound without falsely claiming closure of G0003.",
+  "review_of": "S0015",
+  "status": "SURVIVED_REVIEW"
  }
 ]

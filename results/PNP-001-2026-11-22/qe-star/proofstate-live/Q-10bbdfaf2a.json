@@ -2632,5 +2632,62 @@
   "proved_step": "statement: For m>=1, let C(f) be minimum fan-in-two gate count for f:{0,1}^m->{0,1}, with free input wires and all 16 Boolean gates. For every f and 0<=j<=2^m, exactly binom(2^m,j) functions g satisfy dist_H(f,g)=j, and each has C(g)<=C(f)+2mj.\nproof: Choose any j-element set D of truth-table inputs and flip f exactly on D. For each z in D, its singleton indicator is an AND of m prescribed literals: each negative literal costs at most one NOT gate (using the binary gate NOT(a,b)=1-a), and the conjunction costs at most m-1 gates, for at most 2m-1 gates total. OR the j indicators using j-1 gates and XOR their result with f using one gate. The added cost is at most (2m-1)j+(j-1)+1=2mj. Distinct D yield distinct g because D is exactly the set where f and g differ. For j=0, g=f.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795446721.0975962,
+  "session": "pnp-desk/research/R2144",
+  "model": "gpt-6-luna",
+  "evidence": "The claim includes n=0,g=0, where there is no input or gate wire to select as output, so the stated circuit model computes no function; the counting proof nevertheless assumes an output wire exists. The corrected statement must require n>=1, as in S0306.",
+  "review_of": "S0303",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795446721.1546357,
+  "session": "pnp-desk/research/R2144",
+  "model": "gpt-6-luna",
+  "evidence": "The finite circuit-count bound is stated for n input bits and g gates, but the consequence substitutes n=N=2^m while comparing with the set of m-input functions and threshold g=m^c. Correct parameter substitution is n=m; this repairs the density consequence but does not prove the assigned lower bound for the MCSP decision function.",
+  "review_of": "S0314",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795446873.8489554,
+  "session": "pnp-desk/research/R2144",
+  "model": "gpt-6-luna",
+  "id": "S0323",
+  "proved_step": "For every fixed real c>=1, put g=floor(m^c). The number of Boolean functions f:{0,1}^m->{0,1} computable by at most g fan-in-two gates from all 16 binary Boolean operations is at most (g+1)(m+g+1)[16(m+g+1)^2]^g. Proof: For exactly j gates, encode each gate in topological order by its operation and its ordered pair of predecessor wires, then encode an output wire. There are at most (m+j) product_{i=1}^j 16(m+i-1)^2 such descriptions. For 0<=j<=g this is at most (m+g+1)[16(m+g+1)^2]^g; summing over j gives the stated upper bound. Colliding descriptions only reduce the number of distinct functions. The total number of m-input Boolean functions is 2^(2^m), so the fraction of functions of complexity at most g is at most (g+1)(m+g+1)[16(m+g+1)^2]^g / 2^(2^m). Its base-2 logarithm is O(m^c log m)-2^m, which tends to -infinity for fixed c. Thus this fraction tends to zero. This density statement does not imply a circuit lower bound for the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795446957.393455,
+  "session": "pnp-desk/research/R2149",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting argument is valid as an upper bound. For exactly j gates (0\u2264j\u2264g): choose output wire from n+j choices; for each gate i=1..j, choose 1 of 16 binary operations and an ordered pair of inputs from n+i-1 available wires. This gives (n+j)\u220f_{i=1}^j 16(n+i-1)^2 descriptions. Since (n+i-1)\u2264(n+g-1)<(n+g+1) and (n+j)\u2264(n+g+1), each term is \u2264(n+g+1)[16(n+g+1)^2]^j \u2264 (n+g+1)[16(n+g+1)^2]^g. Summing over j=0..g gives at most (g+1)(n+g+1)[16(n+g+1)^2]^g distinct functions. The bound is loose but correct. Verified for small cases (n=1,g=1: bound=864, actual\u22644).",
+  "review_of": "S0306",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795446957.4299092,
+  "session": "pnp-desk/research/R2149",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof assumes negations are free ('m-1 gates per point, zero gates when m=1'), but the model provides only 'free input variables and all 16 binary Boolean gates'. With 16 binary gates, a negation \u00acx_i requires one binary gate (e.g., NAND(x_i,x_i)), so each indicator \u03b4_z costs up to m negation gates + (m-1) AND gates = 2m-1 gates, not m-1. The construction yields added cost (2m-1)d+(d-1)+1=2md, matching S0318/S0320. The claimed bound m\u00b7d is incorrect for the stated model; the correct bound is 2m\u00b7d.",
+  "review_of": "S0317",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795446957.4561872,
+  "session": "pnp-desk/research/R2149",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction correctly accounts for negation cost: each negative literal uses one binary gate (e.g., NAND(x_i,x_i)), conjunction of m literals uses m-1 gates, so \u03b4_z costs \u22642m-1 gates. OR-ing d indicators uses d-1 gates, XOR with f uses 1 gate. Total added: (2m-1)d+(d-1)+1=2md. Symmetry gives the reverse bound. The argument is tight for the model; verified for m=1 (d=1: indicator of \u00acx costs 1 gate, XOR costs 1, total 2=2\u00b71\u00b71).",
+  "review_of": "S0318",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795446957.4789038,
+  "session": "pnp-desk/research/R2149",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct count: choosing j positions from 2^m gives exactly binom(2^m,j) functions at Hamming distance j. The construction flips f on D (|D|=j) by building \u03b4_z for each z\u2208D: each negative literal costs \u22641 gate, conjunction of m literals \u2264m-1 gates, total \u22642m-1 per indicator. OR of j indicators uses j-1 gates, XOR with f uses 1 gate. Added cost \u2264(2m-1)j+(j-1)+1=2mj. For j=0, g=f. Distinct D yield distinct g because D is exactly the set where f and g differ. The bound matches S0318.",
+  "review_of": "S0320",
+  "status": "SURVIVED_REVIEW"
  }
 ]

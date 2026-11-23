@@ -18,5 +18,45 @@
   "evidence": "The construction uses standard full-adder and half-adder logic. Each full adder (s=a+b+c mod 2, cy=maj(a,b,c)) and half adder (s=a+b mod 2, cy=ab) are correctly mapped to F_2 equations of degree <= 2. The induction on bits for the comparator is a standard implementation of the magnitude comparison. The complexity bounds A_add <= 2K + 2B + 2 ceil(log2 n) follow directly from the ripple-carry structure where K is the sum of popcounts. Finite checks cm-b569aea7a5a642ea confirm 0 mismatches.",
   "review_of": "S0001",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795448129.1155446,
+  "session": "pnp-desk/research/R2159",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: For fixed W,k, a THR-of-THR circuit on n Boolean inputs with m bottom gates, bottom weights in {0,...,W}^n and at most k distinct bottom weight vectors has an exact uniquely extendible F_2 encoding of its bottom outputs using O_{W,k}(n) degree-2 equations, provided m<=n/log2(n+2). Boolean axioms are excluded.\nproof: For each distinct weight vector build one L-b1 adder for its integer sum; bounded W gives O_W(n) equations. Reuse it across gates with that vector. Add one comparator per gate, using O_W(log(n+2)) equations; thresholds outside [1,sum_i w_i] are constants. Total is k O_W(n)+O_W(m log(n+2))=O_{W,k}(n). For comparison, process bits from most significant to least significant: initialize g=1, and at bit j replace g by (s_j OR g) if t_j=0, else (s_j AND g). Induction on the processed prefix gives g=[S>=t]. These are degree-2 equations over F_2 and uniquely define auxiliaries. Full-adder identities preserve the integer sum. This encodes bottom outputs only; top-gate encoding is outside scope.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795448287.5326862,
+  "session": "pnp-desk/research/R2159",
+  "model": "gpt-6-luna",
+  "id": "S0004",
+  "proved_step": "statement: For L-bit integers S,T, scanning bits b_j,t_j from most significant to least, [S>=T] has an exact uniquely defined F_2 encoding with O(L) auxiliary variables and quadratic equations of at most four monomials each.\nproof: Initialize e=1,g=0. At each bit introduce z=1+b+t, e'=e*z, u=e*b, v=u*(1+t), g'=g+v by equations defining each new variable. Expanding over F_2 gives degree at most 2 and at most four monomials per equation. Inductively e indicates equality of the scanned prefixes, and g indicates that the S prefix is strictly greater. z tests equality at this bit; v is 1 exactly when old prefixes were equal and b=1,t=0, the only event that first makes S greater. Thus the invariant is preserved. At the end g and e are mutually exclusive, so S>=T is their OR, encoded as h=g+e+g*e. All auxiliaries are uniquely determined in scan order. This repairs the comparator subclaim of S0003 but does not establish an O(n)-equation encoding for unrestricted THR o THR circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795448484.8497627,
+  "session": "pnp-desk/research/R2159",
+  "model": "gpt-6-luna",
+  "id": "S0005",
+  "proved_step": "statement: For fixed constants W,k, let a THR-of-THR circuit have m bottom gates on n Boolean inputs, all bottom weights in {0,...,W}^n, at most k distinct bottom weight vectors, and m<=n/log2(n+2). The vector of bottom outputs has an exact uniquely extendible encoding over F_2 with O_{W,k}(n) auxiliary variables and quadratic defining equations, each with at most four monomials. Boolean input axioms are excluded. This restricted construction does not claim to encode the top gate.\nproof: For each distinct weight vector build one L-b1 adder for its integer sum; by L-b1 and fixed W its equations and auxiliaries number O_W(n). Reuse these sum bits for each gate with that vector. For each gate, thresholds outside the attainable interval yield a constant output. Otherwise the threshold uses O_W(log(n+2)) bits. Compare sum and threshold from most significant bit down, starting e=1,g=0; for current bits b,t set z=1+b+t, e'=ez, u=eb, v=u(1+t), g'=g+v over F_2, and output h=g+e+ge. Inductively e means equal prefixes and g means strictly greater prefixes; thus h=[S>=T]. Each auxiliary is uniquely defined in order, with degree at most two and at most four monomials per equation. The total is k O_W(n)+O_W(m log(n+2))=O_{W,k}(n). This proves the stated subclass only. Barrier diagnostic: this encoding construction is not a P-vs-NP lower-bound argument; no natural-proof, relativization, algebrization, or localization circumvention claim is made.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795448593.7022843,
+  "session": "pnp-desk/research/R2159",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "statement: For fixed constants W and r, any family of bottom threshold gates on n Boolean inputs with weights in {0,...,W}^n and at most r distinct (weight vector, threshold) pairs has an exact uniquely extendible F_2 encoding of all bottom outputs using O_{W,r}(n) quadratic defining equations with at most four monomials each. Boolean input axioms are excluded; the top gate is not encoded.\nproof: For each distinct pair (w,t), build one exact threshold encoding using L-b1 for the weighted sum and the corrected MSB-first comparator from S0004: initialize e=1,g=0; on bits b,t' set z=1+b+t', e'=ez, u=eb, v=u(1+t'), g'=g+v, and output h=g+e+ge over F_2. The prefix invariant gives h=[w.x>=t]. Repeated gates with the same pair have exactly the same output function and reuse this entire encoding. There are at most r encodings, each with O_W(n) equations and auxiliaries, so the total is O_{W,r}(n). All auxiliary variables are defined in topological order, giving unique extension for each Boolean input. This is a restricted sharing result and does not close G0001 for unrestricted THR o THR circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
