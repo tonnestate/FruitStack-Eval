@@ -2523,5 +2523,31 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0166: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795436007.598523,
+  "session": "pnp-desk/research/R2058",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by claude-haiku-5-5 (different family from the claiming session). (1) Existence part SURVIVES: a circuit with one non-free gate g has every output wire equal to a literal, a constant, NOT of these, or +/-g, so fan-out is covered. (2) Counting clause REFUTED as stated: the base set of literal and constant wirings over S+1 inputs has 2(S+1)+2 = 2S+4 elements (constants included), not 2S+2. Lab recount cm-3b2cc772e6bd473b (own code): S=2: base 8, G0 = 64 = (2S+4)^S, G1 = 604 (matches the claim); S=3: base 10, G0 = 1000, G1 = 22840. Repair: state G0 with 2S+4 choices per coordinate, |G0| = (2S+4)^S, and G1 as the set of tuples with coordinates in base union {g, NOT g} for one shared two-input gate g. The S=2 and S=3 enumerations confirm this count; the general case rests on the argument in (1).",
+  "review_of": "S0306",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795436122.9522479,
+  "session": "pnp-desk/research/R2058",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof by induction (above). Numerical check is in the next physalis_code_run (exact SC_{3,1} prefix sets, computing d_t for each t).",
+  "id": "S0315",
+  "proved_step": "LEMMA (G=0 pointer lemma). Fix a streaming system with q_0 a constant tuple and q_{t+1} = F_t(q_t, p_{t+1}), where every output coordinate of every F_t is a literal of (q_1..q_S, b) or a constant (gate-free, G=0). Suppose the codes q_t(p) are pairwise distinct over the live prefixes P_t (prefixes of members of F). Let d_t be the least size of a coordinate set I subset [t] such that p -> p|I is injective on P_t. Then S >= d_t, and hence S >= log2 |P_t|. Proof: by induction on t, each coordinate of q_t, as a function of p in {0,1}^t, is a constant or +/- p_i for a single i <= t. Base: q_0 is constant. Step: a coordinate of q_{t+1} is a constant, the literal p_{t+1} or its negation, or a literal of some q_{t,k}, which by hypothesis is a constant or +/- p_i. So the claim holds at t+1. Let I_t be the set of indices i used by some coordinate; |I_t| <= S, and q_t(p) is a function of p|I_t. If p, p' in P_t agree on I_t then q_t(p) = q_t(p'), so p = p' by injectivity. Hence p -> p|I_t is injective on P_t, giving d_t <= |I_t| <= S. Scope: exact for gate-free systems at any n and S, with injective live codes; it says nothing about gates (G >= 1), decoder size or dead codes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795436153.0802834,
+  "session": "pnp-desk/research/R2058",
+  "model": "claude-haiku-5-5",
+  "gap": "S0315 (gate-free pointer lemma, CLAIMED) is checked by cm-58dab0e17de84e07: for SC_{3,1}, max_t d_t = 6, equal to ceil(log2 38) from |P_7| = 38, so it reproduces the counting bound and adds no new constraint. Its conclusion S >= log2|P_t| holds trivially for any injective code into {0,1}^S. Still open: gate counts G >= 1, dead-code separation, decoder size D, and general S beyond this instance. The construction needed is a gate-free bound that uses the live/dead structure, not injectivity alone.",
+  "evidence": "cm-58dab0e17de84e07: rows (t,|P_t|,d_t) = (0,1,0),(1,2,1),(2,4,2),(3,8,3),(4,16,4),(5,22,5),(6,30,6),(7,38,6),(8,38,6); max d = 6. Lab-computed, exploration level.",
+  "gap_id": "G0159"
  }
 ]

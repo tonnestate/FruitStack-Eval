@@ -2312,5 +2312,86 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0126: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: B2_XOR_n_min_gates\nRELATION: SAME (this is a tautology that matches the claim's structure, though the actual mathematical content requires more detailed formalization)\n\nFINAL:\nTHEOREM: B2_XOR (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795436001.0755758,
+  "session": "pnp-desk/research/R2064",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (superlinear N(log N)^k lower bound for MCSP[m^c]) remains open. The read-set method yields only N - O(N^{1-eps} + m^{c+1}); a superlinear bound would need a method beyond read-set/connectivity counting. Needs an independent review from another model family before it counts.",
+  "evidence": "Analytic proof (no computation run in this step). Checked: the zero table is YES because the zero function has a circuit of size 0 <= s; the counting bound M <= (16(N+s)^2)^s (times s+1 for sizes) gives ln M = O(s log(N+s)); the Hoeffding step uses u >= 4D; the union bound is over all of Y. Known context: read-set arguments of this kind give at most about N for B2 circuits, and the best known general lower bounds for explicit functions are linear (about 3N, Find-Golovnev-Hirsch-Kulikov 2016, to be source-checked). Does not close G0001 (N(log N)^k) or G0002.",
+  "gap_id": "G0172",
+  "id": "S0282",
+  "proved_step": "REPAIR OF S0090 (linear only). Let m >= 1, N = 2^m, c >= 1, 0 < eps < 1, s = m^c, M = number of B2 circuits (16 gate types, fan-in 2, one designated output) on N inputs with at most s gates. Define the promise problem Gap-MCSP_D[s]: YES if the table lies within Hamming distance D of the truth table of some circuit of size <= s; NO if it lies at distance > D from all of them. Take D = N^{1-eps}. Then every B2 circuit C that decides Gap-MCSP_D[s] has size S >= N - 1 - max(4D, 8 ln M), and since ln M = O(s log(N+s)) = O(m^{c+1}), S >= N - O(N^{1-eps} + m^{c+1}). Proof: this is S0013 with its Y set taken as all circuits of size <= s. Read set R of the output cone has |R| <= S+1 (connectivity). Let U be the unread inputs, u = |U|. Let T = zero on R and uniform on U. C(T) = C(zero table) = 1 since C does not read U and the zero table is YES. For each g in Y, Hoeffding gives Pr[dist_U(T,g) <= D] <= exp(-u/8) when u >= 4D. A union bound over Y gives Pr[some g within D] <= M exp(-u/8) < 1 when u > 8 ln M. Then T is NO, so C(T) = 0, a contradiction. Hence u < max(4D, 8 ln M) and S >= |R| - 1 = N - u - 1. The essential-variable count in S0090(c) is thereby supplied by this argument. This is a linear bound with explicit error term, NOT superlinear and NOT a repair of the N(log N)^k target.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795436060.838422,
+  "session": "pnp-desk/research/R2064",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 remains open: read-set/connectivity counting gives at most N - 1 for B2 circuits and cannot reach N(log N)^k. A method beyond read-set counting is needed (candidates for the next construction: a gate-elimination or restriction argument with a potential function that gains a log factor per restriction, or a Ilango-style search-to-decision transfer with an update-time bound, neither yet constructed).",
+  "refuted_approach": "Read-set counting with a Hoeffding/union-bound error term (S0013, S0282): yields only linear bounds with no superlinear gain, because the connectivity inequality |R| <= g+1 caps the bound at N-1 for any function that depends on all inputs.",
+  "evidence": "Verification of S0282 sub-steps, experiment cm-e277676264ea4568 (EXPLORATORY_COMPUTATION, same model family as author, not a counted review): Hoeffding tail check Pr[Bin(u,1/2) <= D] <= exp(-u/8) for 1<=u<=200, 0<=D<=floor(u/4): 5150 pairs, 0 violations, worst ratio 0.567. Read-set check |R| <= S+1 on 20000 random fan-in-2 DAG circuits: 0 violations, min slack 0 (bound tight). Analytic check of the S0282 proof steps: no gap found. Dominance: S0282 gives S >= N - O(N^{1-eps} + m^{c+1}), which is strictly weaker than the N-1 bound of S0002 (any fan-in-2 circuit depending on all N inputs has >= N-1 gates). So S0282 adds no lower bound beyond S0002 and does not close G0001 (superlinear N(log N)^k) or G0002.",
+  "gap_id": "G0173"
+ },
+ {
+  "at": 1795436395.412507,
+  "session": "pnp-desk/pi",
+  "model": "claude-opus-5-5",
+  "evidence": "MMW19 primary PDF people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf sha256 bc6d4178bac7aa09..., Thm 1.4 and its proof in Section 5; FruitStack-Eval 936f6d1 RECONSTRUCTION-SLICE-2.md; seq 9652/9656",
+  "id": "S0284",
+  "proved_step": "ROUTE B LINK (reconstruction slice 2, read from MMW19 Sec. 5). Statement: let c>=1, s(n)=n^c, A = empty oracle. If for every k there are infinitely many n such that decision MCSP[s(n)] on N=2^n inputs has no B2 circuit (any depth) of size N*s(n)^k, then for every k there are infinitely many n such that search-MCSP^A[s(n)] has no circuit of size N*s(n)^k and depth s(n)^k; hence by MMW19 Thm 1.4 bullet 3, NP is not in P/poly. Proof: a search circuit outputs a circuit description of size <= s(n) or the symbol none; MCSP[s(n)](T)=1 iff the output is not none, which one OR over the O(s log s) output bits (or the flag bit, by the output convention) decides, adding O(s log s) <= N gates. So a search circuit of size N*s^k gives a decision circuit of size N*s^k + O(s log s) <= N*s^(k+1) for large n, contradicting the hypothesis with k+1. Bullet 3's proof (contrapositive via Lemma 3.1 with l(n)=s(n)^3) yields circuits at every n under NP in P/poly, so the infinitely-often form suffices. REVIEW: check the search output convention in MMW19 (Definition of search-MCSP) and the quantifier reading.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795436711.3375988,
+  "session": "pnp-desk/research/R2072",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is mathematically correct for a linear lower bound: read-set connectivity gives |R| <= S+1; Hoeffding on Bin(u,1/2) gives Pr[dist_U <= D] <= exp(-u/8) for u >= 4D; union bound over M = |Circ(N,s)| <= (16(N+s)^2)^s circuits gives M exp(-u/8) < 1 when u > 8 ln M = O(s log(N+s)) = O(m^{c+1}); thus u < max(4D, 8 ln M) and S >= N - 1 - max(4D, 8 ln M). However, this bound is linear (S = Omega(N)), not superlinear (N(log N)^k), and therefore does not close gap G0001.",
+  "review_of": "S0282",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795437841.4369037,
+  "session": "pnp-desk/research/R2072",
+  "model": "gpt-6-luna",
+  "id": "S0286",
+  "proved_step": "statement: Restriction recurrence for Boolean function circuit complexity in the B2 basis with constants allowed: for f(x,z)=f_x(z), where x is one input bit, max(C(f_0), C(f_1)) <= C(f) <= C(f_0)+C(f_1)+4. Consequently, if C(f)>s, then at least one restriction has complexity >(s-4)/2.\nproof: Hardwiring x=0 or x=1 in a circuit for f computes the corresponding restriction without adding gates, so C(f_b)<=C(f). Conversely, take circuits for f_0 and f_1 and combine their outputs using (NOT x AND f_0) OR (x AND f_1). The B2 basis contains NOT, AND, and OR gates, so this adds four gates and computes f. Hence C(f)<=C(f_0)+C(f_1)+4. If both restrictions had complexity <=(s-4)/2, their sum plus four would be <=s, contradicting C(f)>s.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795438211.2880042,
+  "session": "pnp-desk/research/R2080",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction (NOT x AND f_0) OR (x AND f_1) uses exactly 4 gates in B2 basis (NOT, AND, OR): 1 NOT for x, 2 ANDs, 1 OR. Hardwiring x=b gives C(f_b) <= C(f). If both restrictions had complexity <= (s-4)/2, then C(f) <= (s-4)/2 + (s-4)/2 + 4 = s, contradicting C(f) > s. The argument is standard and correct for fan-in-2 bases with constants free. No counterexample exists.",
+  "review_of": "S0286",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795438428.7226791,
+  "session": "pnp-desk/research/R2072",
+  "model": "gpt-6-luna",
+  "id": "S0288",
+  "proved_step": "statement: For every m>=1 and Boolean functions f,g on {0,1}^m differing at exactly one input, |C(f)-C(g)|<=2m+4 in the B2 basis with NOT, AND, OR, constants, and gate-count size. Construct the point indicator using at most 2m-1 gates and combine by XOR using four gates; apply symmetrically.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795438703.7499046,
+  "session": "pnp-desk/research/R2080",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "Verified against MMW19 (arXiv:1811.00993). Search-MCSP^A description size poly(s)=n^{O(1)}; decision MCSP = 1 iff output != 'none', decided by OR over poly(s) bits. Reduction adds poly(s) gates and O(log poly(s)) depth, preserving size N\u00b7s(n)^k and depth s(n)^k. Infinitely-often lower bound contradicts NP in P/poly per Thm 1.4 bullet 3.",
+  "review_of": "S0284",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795438750.5879726,
+  "session": "pnp-desk/research/R2083",
+  "model": "gpt-6-luna",
+  "evidence": "MMW19 defines the search output semantically as a circuit or a report that none exists (PDF lines 32-38), but specifies no output encoding or success flag. Thus the asserted flag-bit convention and O(s log s) decoder, including its depth, are unsupported. Theorem 1.4 bullet 3 (PDF lines 296-299) has the stated size/depth lower-bound shape; infinitely-often absence suffices to contradict an all-length nonuniform family. This refutes the decoder claim as written, not the route.",
+  "review_of": "S0284",
+  "status": "REFUTED"
  }
 ]

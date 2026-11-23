@@ -58,5 +58,29 @@
   "proved_step": "LEMMA S0005 (field-dependence of the rank bound vs universal information bound): For a deterministic one-pass streaming algorithm with S state bits and fixed split (prefixes P, suffixes Q), let M_t[p,q] be its residual-function matrix over field F. (1) Information bound, linearity-free: D_t = #{distinct rows of M_t} <= 2^S, hence S >= ceil(log2 D_t); each reached state determines exactly one residual function on suffixes. Tight: streaming parity with a 1-bit state has D_t = 2 = 2^S. (2) Rank bound rank_F(M_t) <= S is NOT universal: streaming parity over GF(2) has M_t[p,q] = b_p XOR b_q whose rows are r and r+J, rank_GF2(M_t) = 2 > S = 1 for t >= 2 (verified exactly at n=6,t=3 and n=8,t=4, cm-ccbcfdf887584ec4, cm-5685238434754fa3); over R the same matrix is u_p u_q with rank_R = 1 = S. (3) Consequence for T0: any transfer step using rank_F(M_t) <= S over F_2 is invalid even for linear updates; MMW19 Thm 1.2 updates are minimum-circuit searches with a Sigma3SAT^A oracle, not F-linear maps, so the rank route does not cover the oracle algorithm. The surviving information bound is space-only (MMW19 uses S = O~(s), consistent) and cannot refute it. Gate context: AND/OR violate F_2-additivity 6/16 cases, XOR/CONST0 0/16 (cm-c73b98f5631548d7).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795435920.4990084,
+  "session": "pnp-desk/research/R2066",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent check cm-a909cb9122374170 (own GF(2) and Q Gaussian elimination, t=1..6, parity b_p = popcount(p) mod 2, M_t[p,q] = b_p XOR b_q). Results: rank_GF2 = 2 for all t, distinct rows = 2 = 2^S with S = 1. So part (1) (D_t <= 2^S, each state fixes one residual row) and the GF(2) counterexample in part (2) (rank_GF2 = 2 > S = 1) hold. Wording defect in part (2): the 0/1 matrix over Q has rank 2 (rank_Q_01 = 2 for all t), so 'over R the same matrix has rank_R = 1' is false for that matrix. It holds only for the +-1 encoding (-1)^{b_p} (-1)^{b_q} = u_p u_q, which has rank_Q_pm1 = 1. With the encoding stated, the step survives: rank is encoding- and field-dependent. Scope: streaming parity only, t <= 6. Part (3) is a scope statement about F_2-linearity and is not re-verified here (the AND/XOR additivity counts are from cm-c73b98f5631548d7 and were not rerun). Not a general theorem; does not close G0001 or G0002.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795436040.4816577,
+  "session": "pnp-desk/research/R2066",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001/G0004 remain open. Exact space-side data (cm-745ec3176fe74417): max_t D_t(s) grows with s at fixed n (n=4: 39 at s=1, 165 at s=2) and the profile in t is peaked, not monotone. This gives no uniform lower bound on D_t and no update-time lower bound. The information bound S >= ceil(log2 D_t) remains space-only and does not close G0001. Still needed: an update-time lower bound for exact search-MCSP one-pass streaming, or an explicit oracle-simulation step against MMW19 Thm 1.2.",
+  "evidence": "cm-745ec3176fe74417: exhaustive Im_s and D_t for n=3,4, s=1,2. Discovery run; hypotheses H1 (flat D_t) and H2 (monotone D_t) both falsified on this range. No proved_step is claimed in this session.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795436078.0874655,
+  "session": "pnp-desk/research/R2066",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001/G0004 remain open, no closure this session. Bookkeeping lemma (exact, not progress): for a deterministic one-pass machine with state set of size at most 2^S, the number of distinct residuals D_t over prefixes of length t is at most 2^S, since the state determines the residual. This only restates S >= ceil(log2 D_t) (G0002). Obstacle: an update-time lower bound is still needed. The exact D_t profile (cm-745ec3176fe74417) is peaked in t, so any uniform bound must be taken as max_t D_t(Im_s), whose growth in s is untested (Q-7b509b8c53).",
+  "evidence": "No proved_step claimed. Lemma is the standard state-to-residual counting argument, recorded only as a refinement of G0002. Source of the D_t values: cm-745ec3176fe74417.",
+  "gap_id": "G0007"
  }
 ]
