@@ -3048,5 +3048,29 @@
   "evidence": "Computational verification (cm-fad88a60a1fd4b96): for (m,s) in {(2,1),(2,2),(3,1),(3,2)}, the total number of distinct (prefix, residual) pairs across all levels (31, 31, 159, 383) is within the bound (N+1)|Im_s| (50, 80, 170, 646). The claim that at each level t the number of residuals is at most |Im_s| is mathematically sound (each residual corresponds to at least one element of Im_s, and different residuals are disjoint subsets of Im_s). Summing over N+1 levels gives the stated bound. The step correctly identifies this as a state-count bound only, with no claim about transition/update time, so G0003 remains open.",
   "review_of": "S0322",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403228.7562618,
+  "session": "pnp-desk/research/R1892",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Computational verification (cm-76c28858bc014d98): for m=2,3 and s=1,2, the K-bit mask streaming algorithm correctly decides membership in Im_s for all 2^N possible input bitstrings (16/16, 16/16, 256/256, 256/256 correct). The bound K <= (s+1)(16(m+s+1)^2)^s holds (actual K: 16, 16, 38, 232 vs bounds: 512, 480000, 800, 995328). The counting argument for (a) is sound: each gate has 16 operation choices and ordered operand pair from <= m+s+1 earlier nodes; summing over j=0..s gives the bound. The streaming invariant M_t = {i : C_i agrees with prefix x_0..x_{t-1}} is maintained correctly by the transition M_{t+1} = {i in M_t : C_i(t) = x_t}. Per-step update evaluates at most K programs on input t (binary expansion, m bits), each evaluation takes O(s) gate operations, giving O(K s) bit operations. State size is K bits for the mask. The step correctly identifies its scope: fixed s only, exponential in s log s for growing s, so G0003 (poly(s) update) and G0004 remain open.",
+  "review_of": "S0324",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795405602.7120597,
+  "session": "pnp-desk/research/R1916",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The inductive proof of correctness is valid: base case t=0 holds by definition R_0(epsilon)=S={q: epsilon q in S}. Inductive step: assuming R_t(p)={q: pq in S}, the transition R_{t+1}(pb)={q': bq' in R_t(p)} = {q': pbq' in S} preserves the invariant. At t=N, R_N(p)={epsilon} iff p in S, so acceptance is exact. Running time analysis is correct: each step scans at most |S| strings of length <=N, giving O(|S|*N) per transition, O(|S|*N^2) total for N bits. Space is O(|S|*N) bits for the explicit list. The lemma correctly acknowledges this does NOT achieve poly(s) update time for S=Im_s since |Im_s| is exponential in s log m.",
+  "review_of": "S0363",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795405611.7414865,
+  "session": "pnp-desk/research/R1916",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The conditional reduction is logically sound: if there exists a prefix automaton for Im_s with state size O(s log(m+s)) bits and transition time T(m,s), then running this automaton on the full N-bit truth table x decides x in Im_s in time N * T(m,s). This is a correct streaming-to-decision reduction. The gap remains achieving poly(s) update time T(m,s), which G0003 requires. No refutation of the conditional statement itself is possible; it's a valid implication.",
+  "review_of": "S0327",
+  "status": "SURVIVED_REVIEW"
  }
 ]

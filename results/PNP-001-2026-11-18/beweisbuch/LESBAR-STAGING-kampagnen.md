@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 11597 entries from 2932 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 11612 entries from 2945 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The conjugacy-class counting argument (S0160) fails to prove H_1(m) = Omega(sqrt(m)/log m) because it only fixes one code set. The minimum over encodings can choose any m-subset of {0,1}^S. The correct argument must bound the number of cycle types a single cir
   - Conjecture: For all m >= 1, Per(1_Yes_s) = {0} (dimension 0) for the MCSP characteristic function 1_Yes_s on F_2^{2^m} for all s < 2^m/m. If true, S0024 (L_dec lemma) gives S >= N - 0 = N = 2^m for any affine encoding + decision decoder, matching the trivial u
   - Conjecture: For all m >= 1, Per(1_Yes_s) = {0} (dimension 0) for the MCSP characteristic function on F_2^{2^m}, for all s < 2^m / poly(m). If true, S0024 gives S >= N = 2^m for any affine encoding + decision decoder - an exponential state lower bound for this 
   - The L_dec lemma (S0024) provides a clean decision-version bound S >= N - dim(Per(h)) that does not require decoder strictness. This could be a building block for lower bounds on state complexity of streaming algorithms for MCSP. The key open question is whethe
   - The intrinsic prefix-distinguishing complexity D_t for Search-MCSP[m^c] grows as 2^{Omega(s)} for some cut t, but any one-pass algorithm maintaining exact equivalence classes requires update time that is exponential in s, because the equivalence relation depen
   - Sharper hypothesis suggested by the n=3 table: max over f in B2(3) of L(f) equals C(f)+1 (for C>=1), i.e. formula leaves grow linearly in circuit size at n=3. Test: exhaustive n=4 (65536 functions) with the same exact BFS and DP, with a background job for the 
-  - Repair lemma for Candidate A: under Thm 4.1 hypotheses (R),(L),(E) with parameter d, for any spanning family B of K, tw(H_B) >= d(tw(G)+1)-1. This follows from Thm 4.1 (G[K_d] subgraph of H_B), Lemma 2.2 (tw(G[K_d]) = d(tw(G)+1)-1), and subgraph monotonicity o
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -31,13 +31,13 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
-  - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> None
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> None
 NUMERICAL EVIDENCE on file: 2978 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-73bf05e358 [UNEXPLAINED, OPEN] RESULT READY - the background job A1047 (Q-08a1c5b68f LemmaM SC31 S6 G0 zero-init depth profile) submitted by R1810 finished after that session ended: dataset_from_code finished: ok=False dataset None experiment ds-0b30f

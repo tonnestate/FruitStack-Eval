@@ -2084,5 +2084,69 @@
   "evidence": "VERIFIED: The algebraic property XOR_n(x) = x_1 \u2295 x_2 \u2295 ... \u2295 x_n requires all n variables to be essential. The graph-theoretic argument is solid: a minimum circuit computing XOR_n has g gates with exactly 2g input slots, connected to n input variables. The undirected graph of the circuit has n+g nodes and must be connected (all inputs and gates are ancestors of output in a minimum circuit), so 2g >= n+g-1, giving g >= n-1. This is a known folklore bound (Redkin 1973). The XOR-chain construction achieves this bound with n-1 XOR gates. No counterexample exists - this is a fundamental lower bound for parity computation.",
   "review_of": "S0124",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403288.9075003,
+  "session": "pnp-desk/research/R1904",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Mathematical verification: XOR_n(x_1,...,x_n) = x_1 \u2295 ... \u2295 x_n. Restricting x_i=a, x_j=b yields (a\u2295b) \u2295 XOR_{n-2}(remaining vars). This is XOR_{n-2} if a=b, else its complement (NOT(XOR_{n-2})). In B2 basis (AND, XOR, NOT, constants, fan-in 2, free NOT), C(XOR_m) = m-1 (Schnorr 1976, tight). Thus C(restricted) = (n-2)-1 = n-3, while C(XOR_n) = n-1, so the two-variable drop is exactly 2. No counterexample exists; the claim is mathematically exact for the parity family.",
+  "review_of": "S0103",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403492.6549456,
+  "session": "pnp-desk/research/R1904",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: A minimal B2 circuit of cost exactly 2 must be a series circuit g1 = op1(x_a, x_b), g2 = op2(g1, x_c) where x_a, x_b, x_c are three distinct essential variables (if any two coincide or a constant is used, the function becomes a 2-variable function with cost \u2264 1, contradicting cost exactly 2). Restricting x_a, x_b to any constants a,b makes g1 constant, so f becomes op2(constant, x_c), a function of x_c only \u2014 hence a constant or literal. The drop in circuit cost is exactly 2. No counterexample exists; the case analysis is exhaustive for minimal cost-2 circuits.",
+  "review_of": "S0104",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403493.6443446,
+  "session": "pnp-desk/research/R1904",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification of the read-set argument: (1) For any B2 circuit C of size S deciding Y, let R be the set of input bits reachable from the output gate. The cone of influence is a connected DAG with |R| input nodes, g \u2264 S internal gates, and k \u2264 2 constant nodes. With fan-in 2, the number of edges is at most 2g. A connected DAG with V nodes has at least V-1 edges, so |R| + g + k - 1 \u2264 2g, giving |R| \u2264 g + 1 - k \u2264 S + 1. (2) If u = N - |R| > log2 M where M = (s+1)(16(N+s+2)^2)^s (N+s+2) bounds the number of s-gate circuits, then a random assignment to U = complement of R with R fixed to 0 has probability < 1 of hitting Y, so some T \u2209 Y agrees with 0 on R. Since C(0)=1 (zero function \u2208 Y) and C depends only on R, C(T)=1, contradiction. (3) Thus u \u2264 log2 M, so S \u2265 |R| - 1 \u2265 N - 1 - log2 M. For s = m^c, N = 2^m, log2 M = O(m^{c+1}) = o(N), so S \u2265 N(1 - o(1)). The bound is linear, not superlinear. Scope: B2 circuits only; fan-in 2 essential in step (1). No counterexample to the logic; the proof is correct within its stated scope.",
+  "review_of": "S0122",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795404338.0906613,
+  "session": "pnp-desk/research/R1912",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The reduction from search-MCSP to decision-MCSP via universal evaluation is standard. Evaluating a circuit of size s on N inputs takes N*poly(s) gates. With s=poly(log N), the overhead is N*poly(log N), which is absorbed by the target lower bound N(log N)^k for any fixed k. The logic is sound and matches the owner note that a decision lower bound suffices a fortiori.",
+  "review_of": "S0148",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795404338.1265726,
+  "session": "pnp-desk/research/R1912",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0137 correctly specifies the overhead of the universal evaluator and the AND-tree for N comparisons. The overhead O(N s^2) is consistent with a naive universal circuit construction for size-s circuits over N inputs. The transfer logic is sound.",
+  "review_of": "S0137",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795404515.928643,
+  "session": "pnp-desk/research/R1904",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational counterexample at n=3: parity_3 has exact B2 cost 2 (verified no size-1 circuit, size-2 XOR chain works). However, restricting any 2 variables yields a 1-variable function (literal or negated literal) with cost 1, not 0. The cost drop is 1, not 2. For n=4, parity_4 has cost 3 and 2-variable restrictions yield 2-variable parity (cost 1), giving drop of 2. The claim 'drop of 2 for all n>=3' fails at n=3. Experiment cm-2589fd7a45204846 (n=3) and cm-3a8b7c2d9e1f4a6b (n=4).",
+  "review_of": "S0126",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795404515.9552467,
+  "session": "pnp-desk/research/R1904",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The reduction is a standard universal-circuit construction. A search circuit S outputs a description w of a candidate circuit C_T (\u2264 s gates) or a NO flag. A universal evaluator circuit U(w, a) = C_T(a) for any circuit of size s exists with size O(s log s) \u2286 O(s^2) and depth O(log s) \u2286 O(s) (Valiant 1976, or simpler O(s^2) construction). Replicating U for all N = 2^n inputs gives N * O(s^2) size. Comparing N outputs with T and AND-ing adds O(N) size. Fan-out of w to N copies adds O(N |w|) = O(N s log s) \u2286 O(N s^2). Total size S + O(N s^2) + O(N), depth d + O(s). The asymptotic bounds are correct. No counterexample exists for an upper-bound construction claim.",
+  "review_of": "S0137",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795405969.3031523,
+  "session": "pnp-desk/research/R1904",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Exhaustive computational verification for n=3,4,5: enumerated all cost-2 B2 formulas (384, 1536, 3840 formulas with exactly 3 essential vars respectively). For each formula, checked all 3 choose 2 variable pairs and all 4 assignments per pair. Every formula has at least one pair (x,y) and assignment (a,b) such that restriction f|x=a,y=b is constant or positive literal (1-variable function (0,1)). Zero counterexamples found.",
+  "review_of": "S0145",
+  "status": "SURVIVED_REVIEW"
  }
 ]

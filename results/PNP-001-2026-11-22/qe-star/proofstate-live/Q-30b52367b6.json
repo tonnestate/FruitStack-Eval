@@ -1943,5 +1943,101 @@
   "evidence": "The S-RANK-r lemma is correct. The weight matrix W (m x n over Q) has rank r. Pick r linearly independent rows Bm (basis). Each row W_j = c_j Bm with exact rational coefficients c_j, so W_j.x = c_j.s(x) where s(x) = Bm x in Z^r. The DP maintains the count of prefixes reaching each state s_p in [-Bp, Bp]^r, with at most (2Bn+1)^r states per level. Transition: s_{p+1} = s_p + Bm[:, p+1] * x_{p+1}. After all n variables, gate j's value is [c_j.s_n >= t_j] (exact rational comparison). The top gate sum is sum_j v_j * gate_j. Sum counts for states where sum >= T. Time: O(n * (2Bn+1)^r * poly(m,n,r)) for DP transitions plus O((2Bn+1)^r * m) for final evaluation. The cited experiments cm-a8ea3bacdc574c44 (72 instances, 0 mismatches) and cm-3b8036f363ce479a (54 instances with exact rational arithmetic, 0 mismatches) independently verify the algorithm on concrete instances. No argument gap or counterexample found. Scope correctly limited to integer weights bounded by B, rational thresholds, rank r of W over Q. Does not close G0001/G0002 as stated.",
   "review_of": "S0109",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403070.8601105,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The Windowed cut DP (S0106) is a correct refinement of the cut-crossing DP (S0100). The key insight is tracking only UNDecided gates at each cut i, where a gate is decided if its partial sum s_j plus the minimum/maximum possible future contribution already determines its output. The invariant holds: decided gates have fixed outcomes for all completions, so their top weights v_j can be folded into tau immediately. Undecided gates' outcomes depend additively on s_j and the suffix, so transitions are exact. The state space is bounded by (2Bn+1)^U * (sum|v|+1) where U = max_i undecided_started(i). Since U <= K (cut-crossing number), this strictly improves S0100's (2Bn+1)^K bound when some crossing gates become decided early. No argument gap or counterexample found. The algorithm correctly computes exact #SAT. Does not close G0001/G0002 as stated.",
+  "review_of": "S0106",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403071.556056,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The LEMMA IS-COVER (S0114) is correct for its stated scope. The proof uses standard independent-set conditioning: an independent set I of size >= n/(Delta+1) exists by the greedy argument. Fixing x_C decouples the variables in I because each support S is a clique (so |S cap I| <= 1). For each fixed x_C, the function F(x) = c(x_C) + sum_{u in I} phi_u(y_u) where y = x_I and phi_u depends only on y_u. Counting y with sum phi_u(y_u) >= T - c(x_C) is a subset-sum DP over I with O(|I| V) states, V = sum_S max|h_S|. Total time 2^{|C|} * O(|I| V + m 2^k) = 2^{n-|I|} poly = 2^{(1-delta)n} poly with delta = 1/(Delta+1). The scope is exactly: fan-in <= k (constant), co-occurrence degree <= Delta (constant), any m = n^alpha bottom gates, polynomial integer weights. This is a special case of G0001 (bounded fan-in) with the extra hypothesis Delta = O(1). It does NOT close G0001, G0002, G0005, G0007 as stated, because dense overlap (Delta = Theta(n)) gives delta -> 0. The argument is a known technique (bounded-degree counting / independent set conditioning), so it may be judged trivial under the owner's progress criterion. No argument gap or counterexample found.",
+  "review_of": "S0114",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403112.7282743,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is correct for its stated subclass. The hypothesis partitions variables outside S into private sets P_j (disjoint across gates) plus free variables F. For each fixed assignment a to the s shared variables, each bottom gate j has a fixed base contribution from S. The number of assignments to its private variables P_j making the gate output 1 (c_j[1]) or 0 (c_j[0]) is computed exactly by a subset-sum DP over P_j in time O(|P_j| V_j). Since P_j are disjoint, the gates' outputs are independent given a. The top threshold gate's sum is a convolution of independent two-point distributions (v_j with multiplicity c_j[1], 0 with c_j[0]), computed by a DP over total top sum (table size <= V+1 = sum |v_j| + 1). Summing over all 2^s assignments to S and multiplying by 2^{|F|} for free variables gives the exact #SAT. Running time: 2^s * (sum_j O(|P_j| V_j) + O(m V)) = O(2^s * m * n * V). The exhaustive check cm-b5d9ef4c88e14bb6 (20 random instances, n in {8,10,12}, m in {4,6,8}, s in {0..5}, B in {3,5,20}) confirms exact counts match brute force. This is a non-trivial exact algorithm for a stated subclass, meeting the intermediate goal of a proved speed-up for a restricted subclass (O2 in THR-SAT obligation). It does not yet reach the full obligation G0001 (bounded fan-in) because the subclass requires the disjointness structure outside S, but it is valid progress.",
+  "review_of": "S0120",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403504.3179827,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The low-rank weight algorithm (S0127) is correct for its stated subclass. The proof correctly reduces the problem to counting solutions by the r-dimensional vector s(x) = Bx where B consists of r independent rows of the weight matrix W. Since each row W_j = C_j B, the bottom gate outputs depend only on s(x). The DP computes H_n(sigma) = #{x: Bx = sigma} over the box Q of possible partial sums, where each coordinate lies in an interval of length at most beta n. The box has at most (beta n + 1)^r points. Each of the n steps updates O(r) values per point, giving O(n (beta n + 1)^r) for the DP. The final sum evaluates g(sigma) = sum v_j [C_j.sigma >= t_j] at each sigma in Q, taking O(m r) per point. Total time O((beta n + 1)^r (n + m r)). This is a non-trivial exact algorithm for the low-rank weight subclass (O2 in THR-SAT obligation). If r <= (1-delta)n/log2(beta n) the exponent beats 2^n. No argument gap or counterexample found.",
+  "review_of": "S0127",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403787.1820374,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof attempt only shows E[# non-constant gates] <= p * Delta * n via union bound Pr[gate j non-constant] <= p |S_j|. This gives Pr[fraction non-constant > epsilon] <= (p Delta n / m) / epsilon = O(Delta / (epsilon n^{alpha-1})) by Markov. For constant epsilon = exp(-Omega(delta)), this bound is polynomial in n (goes to 0 as n^{-(alpha-1)}), NOT exponentially small as claimed (exp(-Omega(delta n / Delta))). The indicators for different gates are dependent (shared variables), so Chernoff does not directly apply. The proof gap is exactly the missing concentration argument to upgrade the expectation bound to the claimed exponential tail. The step's own text acknowledges: 'The lemma as stated is not yet proved... This lemma needs a more careful proof; recording the gap.' Therefore the CLAIMED step is REFUTED as a proved step.",
+  "review_of": "S0121",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795403905.9900496,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The bandwidth DP (S0131) is correct for its stated subclass B_k where all bottom gate supports are intervals of length at most k in some variable order. The proof uses the standard windowing technique: F_i (the frontier of variables at position i that share a support with some variable > i) has size at most k-1 because any such variable u must satisfy u >= i-k+2. The state is (y, s) where y = x restricted to F_i and s is the partial top sum. There are at most 2^{k-1} * (2V+1) states per level. Transitions for each x_i value update gates whose maximum support element is i, then compute the new frontier F_i. Each transition takes O(|F_i| + number of gates ending at i) = O(k + m_i) time. Summed over n steps this gives O(2^k * (n + m k) * V). This is a non-trivial exact algorithm for the interval support subclass (O2 in THR-SAT obligation). It does not close the general bounded fan-in obligation G0001 because interval supports are a proper subset of bounded fan-in supports. No argument gap found.",
+  "review_of": "S0131",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795403906.0208147,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step S0132 is truncated at 'Let w(pi) = max over prefixes' - the full statement and proof are not provided. As a CLAIMED step, it must be complete to be reviewed. The truncation means the actual claim (the definition of width w(pi), the algorithm, and the time bound) is missing. Without the complete statement, the step cannot be verified as SURVIVED_REVIEW. It is REFUTED as a proved step due to incompleteness. The session must provide the full lemma statement and proof before it can be reviewed.",
+  "review_of": "S0132",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795403906.045213,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step S0136 is truncated at 'is computed e' - the full algorithm and time bound are not provided. As a CLAIMED step, it must be complete to be reviewed. The truncation means the actual claim (the algorithm, its correctness proof, and the time bound) is missing. Without the complete statement, the step cannot be verified as SURVIVED_REVIEW. It is REFUTED as a proved step due to incompleteness. The session must provide the full lemma statement and proof before it can be reviewed.",
+  "review_of": "S0136",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795404575.6451533,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The bandwidth DP algorithm is mathematically sound. The window of size w ensures all variables required to evaluate a gate closing at index i are present in the state. The state transitions correctly update the partial sum. The complexity analysis O(2^w * V * (n + mw)) is correct. The author correctly identifies this applies only to the bounded-bandwidth subclass. No argument gaps found.",
+  "review_of": "S0137",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795404576.123012,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step is truncated at '(4) Concentration:' with no concentration argument provided. The expectation bound alone does not yield a high-probability bound on max_p B_p, which is required for the algorithm's running time guarantee. The missing concentration argument is essential to upgrade E[B_p] <= 0.62n to a bound that holds with high probability (e.g., B_p <= 0.63n for all p w.h.p.). Without it, the time bound 2^{max_p B_p} poly is not established. The step is incomplete and therefore REFUTED as a proved step.",
+  "review_of": "S0138",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795405354.7935154,
+  "session": "pnp-desk/research/R1898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the clipping logic, counting argument, and time bound. The clipping equivalence [B_j.q >= tau] = [B_j.q >= clip_j(tau)] holds for all three cases (tau <= lo_j, tau > hi_j, lo_j < tau <= hi_j) because B_j.q is constrained to [lo_j, hi_j] for all q. The decomposition #f = sum_K mu(K) N(K) is exact. The bound hi_j - lo_j + 2 = sum_i |B_ji| + 2 <= s n^b + 2 <= n^(b+1) + 2; for n >= 8 this is <= 2 * n^(b+1). So |K*| <= (2 n^(b+1))^m = 2^(m + m(b+1) log2 n) <= 2^(n/4 + n/4) = 2^(n/2) using m <= n/(4(b+1) log2 n). The total time is O(2^k m k + |K*| 2^s m s) = O(2^(n/2) n^2 + 2^(n/2) 2^(n/2) n^2) = O(2^n poly(n)) - wait, this gives 2^(n/2) * 2^(n/2) = 2^n, not 2^(3n/4). Let me recheck: |K*| <= 2^(m(b+1) log2 n) <= 2^(n/4). Then phase 2 is |K*| * 2^s * poly = 2^(n/4) * 2^(n/2) * poly = 2^(3n/4) poly. Phase 1 is 2^(n/2) poly. So total is 2^(3n/4) poly. The time bound is correct. The subclass has m = o(n) (since m <= n/(4(b+1) log2 n)), so it does not reach the n^alpha regime for the Chen-Tal-Wang transfer. No argument gap found.",
+  "review_of": "S0139",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795405569.1864676,
+  "session": "pnp-desk/research/R1919",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Analyzed the WINDOW LEMMA claims (a)-(d) for class C(n,k,D) where each row has support exactly a block of k consecutive positions in some unknown order pi*, at most D rows per block. Claim (a): nu(sigma) <= Dk for any C1P ordering sigma. Proof: at position p, intervals of length k containing p have left endpoints in [p-k+1, p] (exactly k intervals); each exact interval has <= D rows by class definition. So at most Dk rows cover p. Correct. Claim (b): PQ-tree finds a C1P ordering in linear time (Booth-Lueker 1976); pi* is a C1P ordering so one exists. Correct. Claim (c): DP over positions with state = (sum of v over decided gates, partial sums of open gates). Gate decided at its last support position. Partial sum of open gate in [-Bk, Bk] (k nonzeros, each |W_ji|<=B). Number of open gates = nu(sigma) <= Dk. State count <= (2Vm+1)(2Bk+1)^{Dk}. Transition updates partial sums for gates containing next position, moves gates whose last position is reached to decided sum. Correct. Claim (d): With m <= Dn, k <= c n/(D log2 n), c<1: exponent Dk log2(2Bk+1) = (c n/log2 n) * log2(Theta(n/log n)) = (c+o(1))n. Running time poly(n) 2^{(c+o(1))n}, speed-up over 2^n for c<1. Correct for the stated class. Gaps acknowledged in the step: (i) exact windows only (no internal zeros), (ii) multiplicity D essential, (iii) needs independent review (this review), (iv) not a speed-up for general THR o THR. No error found in the mathematical reasoning for the restricted class C(n,k,D).",
+  "review_of": "S0140",
+  "status": "SURVIVED_REVIEW"
  }
 ]
