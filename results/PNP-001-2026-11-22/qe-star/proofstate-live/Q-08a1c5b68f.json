@@ -2156,5 +2156,101 @@
   "gap": "OPEN: G_max unmeasured",
   "evidence": "cm-8a9ffd924b6c4838",
   "gap_id": "G0158"
+ },
+ {
+  "at": 1795392311.780941,
+  "session": "pnp-desk/research/R1850",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computation shows for SC_{3,1} (one-gate circuits, |F|=38) at level 4: R_4 = 40 distinct residuals (not 13), D_4 = 0 dead prefixes. The claim R=13 is incorrect. The bound 2^S >= R_t + [D_t>0] gives S>=6 at t=4, not S>=4. Experiment cm-6468ef6ec5214251 likely measured a different family or different residual definition.",
+  "review_of": "S0029",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795392891.2193263,
+  "session": "pnp-desk/research/R1858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Step S0002 is a meta-classification of Lemma A (formalized in S0079). Lemma A states: for every time t, live prefixes must have pairwise distinct states, and no dead prefix may share a state with a live prefix. Hence 2^S >= L_t + [dead prefix exists]. The proof (S0079) uses the decoder property: if q_t(p)=q_t(p'), then for all suffixes v, q_N(pv)=q_N(p'v), so the decoder outputs the same circuit; if one prefix is live and one dead, or both live but correspond to different strings, this yields a contradiction. This is exactly a pigeonhole/counting bound on the number of states. S0079 explicitly states: 'It proves no G_max value and closes no G0001-G0004.' Therefore S0002's characterization is correct: Lemma A is a counting bound and does not close the G_max gaps. No counterexample exists to this classification.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393052.2386105,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Lemma A (as detailed in S0079 and S0086) states: for a streaming system with S state bits, live prefixes at time t injectively encoded, dead codes disjoint from live codes, the conflict graph H_t on live prefixes (p~p' iff exists u with pu,p'u in F) must be properly coloured by the live codes, so 2^S >= chi(H_t) + [dead prefix exists] >= omega(H_t) + [dead prefix exists]. This is a pure counting/pigeonhole argument on the number of distinct state values needed for the encoding to exist at all, independent of the computational cost (G_max) of the transition functions F_t. It does not close any of the gaps G0001-G0004 which concern the minimum gate complexity of the transitions. The step is a correct bookkeeping observation.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393071.8316314,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0059 describes an enumeration (cm-cdea3afe55384f33) for N=2^n strings, F subset, with streaming states. The claim is about G=1 transition functions: with one non-free gate g, each output coordinate is a literal, constant, or +/-g. The enumeration checked max_nonliteral_coords = 2 for S=2 and 3 for S=3, and confirmed T1 > T0 (604 vs 64; 22840 vs 1000). This matches the structural claim that all outputs are literals/constants or +/-g with arbitrary fan-out. The step is a correct reporting of finite enumeration results and the structural consequence. No counterexample found in the enumeration scope.",
+  "review_of": "S0059",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393247.0983396,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0079 provides a correct proof of the injectivity and dead/live separation for the SEARCH model (where the decoder must output a specific witness circuit). The argument: if q_t(p)=q_t(p') with p live (pu in F) and p' another prefix of length t, then for suffix u, q_N(pu)=q_N(p'u). The decoder outputs the same circuit C on both. Since pu in F, C must compute pu. If p'u in F, C would need to compute both pu and p'u which differ in the first t bits - impossible. If p' is dead (no extension in F), then for any u with pu in F, p'u not in F, but the decoder would accept p'u (output C computing p'u) - contradiction. This correctly proves live codes are injective and disjoint from dead codes in the search model. The step explicitly notes this is NOT the decision-only separation claim (which S0009 had conflated). The proof is sound for the stated model. No counterexample exists for the search model as defined.",
+  "review_of": "S0079",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393247.1348834,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0080 correctly characterizes G=1 transition functions (exactly one non-free gate over {AND, OR, XOR} with NOT free). Since there's only one non-free gate g, its inputs must be literals or constants (no upstream non-free gates). Thus g = op(l1, l2) where op \u2208 {AND, OR, XOR} and l1, l2 are literals/constants. Each output coordinate is either a literal, constant, or \u00b1g (with arbitrary fan-out allowed). The set I = {j: F_j \u2208 {g, \u00acg}} can be any subset of [S]. This is a complete and correct structural characterization of single-gate transition functions. The step notes the mechanical check (enumerating S=2 single-gate circuits) is still open, but the mathematical proof stands. No counterexample exists to this characterization.",
+  "review_of": "S0080",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393247.157623,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0086 provides a correct repair of the conflict-graph form for the DECISION model (not the search model). It defines H_t as the graph on live prefixes where p~p' iff \u2203u: pu\u2208F and p'u\u2208F. The proofs of (a) and (b) are correct: (a) If q_t(p)=q_t(p') and both pu,p'u\u2208F, then decoder outputs same circuit C on both, forcing C to compute both pu and p'u which differ in first t bits - impossible. (b) If p dead, p' live with q_t(p)=q_t(p'), take u with p'u\u2208F; decoder outputs C on both, but D must reject pu\u2209F while accepting p'u\u2208F - contradiction. Thus live codes properly color H_t and avoid dead codes, giving 2^S \u2265 \u03c9(H_t) + [dead prefix exists]. Also each {p: pu\u2208F} is a clique, so 2^S \u2265 max_u |{p: pu\u2208F}| + [dead prefix exists]. This is a correct combinatorial lower bound on state bits for the decision model. It does not address G_max (gate complexity). The proof is sound.",
+  "review_of": "S0086",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393371.076916,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0106 proves per-suffix injectivity: for fixed suffix u, if pu and p'u are both in F and p != p', then c(t,p) != c(t,p'). Proof: if c(t,p)=c(t,p'), deterministic update gives same final state on suffix u, so D outputs both pu and p'u, implying p=p' contradiction. This is a correct combinatorial argument for the exact-decoding streaming model. Consequence: for each t,u, |{p: pu in F}| <= 2^S, so S >= log2 max_{t,u} |F_u^t|. The step correctly notes this bounds state count only, not gate complexity G or G_max. No counterexample exists for this model.",
+  "review_of": "S0106",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393371.0997336,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0110 correctly characterizes copy-only (G=0) update functions. Each output is a constant, x_i xor c, or b xor c, so the function is g(z,b) = A*z + b*v + c where A has at most one 1 per row (each output copies at most one state bit) and v is the column for input bit b. The rank r equals the number of distinct state variables that appear as sources (nonzero columns of A have disjoint supports). The image is c + Im(A) + b*v, an affine subspace of size 2^r. This is a correct linear-algebraic fact over GF(2). No counterexample.",
+  "review_of": "S0110",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393371.1180701,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0115 is a correct structural characterization of G=1 transition functions (one non-free gate over {AND, OR, XOR, const} with NOT free). Since g is the only non-free gate, its inputs must be free nodes (literals or constants from {x_i, NOT x_i, b, NOT b, 0, 1}). Thus g = op(l1, l2) with op in {AND, OR, XOR}. Every output wire is a free node or g (possibly negated). The set I = {j: F_j = +/-g} can be any subset of [S] (unbounded fan-out). The counterexample F_1=F_2=AND(x1,x2) with |I|=2 correctly refutes the old S0014 claim that |I|<=1. This is a complete and correct repair. No counterexample to the characterization exists.",
+  "review_of": "S0115",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393371.1364439,
+  "session": "pnp-desk/research/R1834",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0119 correctly proves (i) injectivity on F: if w!=w' in F have same final state, decoder outputs one circuit computing both - impossible. (ii) Disjointness: if q_t(p)=q_t(p') for p!=p', then for any u, at most one of pu,p'u in F, else same final state would give same circuit for two distinct F-strings. (iii) Correctly notes the pairwise claim (all live prefixes distinct codes) does NOT follow: F={000,111}, t=2, prefixes 00 and 11 have disjoint suffix sets and may share a code. This gives the counting bound 2^S >= |F| only. The proof is sound for the streaming model. No counterexample.",
+  "review_of": "S0119",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795394763.1508515,
+  "session": "pnp-desk/research/R1871",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Induction holds: at t=0 all state bits are constants. At step t+1, each new state bit is constant, +/- w_{t+1}, or +/- (old state bit). By induction each old state bit is constant or +/- w_j (j<=t). So each new state bit is constant or +/- w_j (j<=t+1). With S state bits, at most S distinct input positions influence final state. If N>S, some position j is untracked; flipping w_j leaves c(w) unchanged, violating injectivity (if both in F) or separation (if one in F, one in Dead). Shift register with S=N achieves tightness. No counterexample found; argument is sound for G=0 model.",
+  "review_of": "S0129",
+  "status": "SURVIVED_REVIEW"
  }
 ]

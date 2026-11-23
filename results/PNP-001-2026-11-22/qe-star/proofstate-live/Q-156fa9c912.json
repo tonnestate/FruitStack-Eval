@@ -2728,5 +2728,85 @@
   "proved_step": "Conditional reduction: if the EXT prefix automaton for Im_s has O(s log(m+s))-bit state and transition cost T(m,s), then deciding x in Im_s costs N*T(m,s) (run the automaton on the full table x; x in Im_s iff the full prefix x is live). Hence G0003 with poly(m,s) update time gives near-linear decision of MCSP[m^c] on truth tables.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795392759.9228203,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The combinatorial counting argument is valid: (1) rank_F M <= |S| holds because rank is bounded by number of nonzero rows, and the injective mapping ensures at most |S| ones. (2) |Im_s| <= sum_{j=0}^s (16(m+s+1)^2)^j <= (s+1)(16(m+s+1)^2)^s correctly counts straight-line programs over 16 binary ops with m+2 base nodes. Verified against exact enumeration (cm-f9a3d84c16264628): for (m,s)=(2,1),(2,2),(2,3),(3,1),(3,2) the bound exceeds actual |Im| by factors 10^2-10^6, so it is a valid but loose upper bound. No logical gap found in the counting argument.",
+  "review_of": "S0152",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795392785.2509816,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The incremental Gaussian elimination algorithm over F_2 is correctly described: maintaining reduced row-echelon form of the augmented system (M_s | p_s + c_s) with at most r pivots. Adding a new row requires at most r XORs of (r+1)-bit words. Inconsistency is detected iff a row reduces to (0 | 1). State complexity O(r^2) bits, update time O(r^2) word operations per bit. This is a standard linear-algebraic fact, verified by cm-697a9a9912a04eca (400 random instances, r<=5, L<=9, 0 violations). The scope is correctly limited to F_2 affine images (no circuit size bound s), so it does not address G0004. No logical gap found.",
+  "review_of": "S0155",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795392785.2861562,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is correct: if a 0/1 matrix M has an r x r submatrix that is upper-triangular with 1s on the diagonal (M[p_i,q_j]=0 for i>j, M[p_i,q_i]=1), then its determinant is 1 in any field F, so rank_F(M) >= r for every field F. The corollary that rank_p(M) <= rank_Q(M) for integer M follows because a nonzero minor mod p is nonzero over Z. This is a standard linear algebra fact (determinant of triangular matrix = product of diagonal entries). The scope is correctly noted: it gives a lower bound on cut rank over any field, but no update-time bound, and does not close G0004. No logical gap found.",
+  "review_of": "S0166",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393091.7847097,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The filtering algorithm is correct for s=1: |Im_1| = O(m^2) candidates, maintaining one bit per candidate gives O(m^2) = O(log^2 N) state and per-bit update. Induction proof sound: alive_t = {c : c agrees with x on first t bits}. At t=N, agreement = equality. Exhaustive verification cm-d9ef7690377b4b13 for m=2,3,4 (16, 256, 65536 inputs) shows 0 mismatches against brute-force membership. Scope correctly notes this does not scale to general s (|Circ_s| = 2^{Theta(s log(m+s))}). No logical gap found.",
+  "review_of": "S0171",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393091.8253374,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Fiber argument is correct: F_v = B cap phi^{-1}(v) partition B. Map x -> x-x0 sends F_v injectively into ker A cap {-1,0,1}^t (A(x-x0)=0, coordinates in {-1,0,1}), so |F_v| <= K(A). Summing: 2^t <= |phi(B)| K(A). Part (ii): K(A)=1 => ker A cap {-1,0,1}^t = {0} => injective on B. Evidence cm-bcbbe2ce72204c5e: 21297 instances, 0 violations. No logical gap found.",
+  "review_of": "S0178",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393091.8665297,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Generalization to any field with char != 2 is correct: same fiber argument, x-x0 maps into ker A cap {-1,0,1}^t with -1 in F. Bound 2^t <= |phi(B)| K(A) holds. Weak when K(A) large; no update-time bound; does not close G0004/G0009. No logical gap found.",
+  "review_of": "S0185",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393091.89822,
+  "session": "pnp-desk/research/R1860",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard dimension argument: ker A has dimension d=t-r. Choose d coordinates S where projection pi_S: ker A -> F^S is injective (d linearly independent columns of basis matrix). Each y in ker A cap {-1,0,1}^t is determined by pi_S(y) in {-1,0,1}^S, so K(A) <= 3^d = 3^{t-r}. Correct. No logical gap found.",
+  "review_of": "S0186",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393369.1388392,
+  "session": "pnp-desk/research/R1860",
+  "model": "laguna-xs-2.1",
+  "evidence": "Procedure correctly implements the prefix automaton transition function via exhaustive search over all circuits in size order. The definition w(pb) = ord-least C with Eval(C)[0..t] = prefix is correctly computed. Complexity is O((16(m+s)^2)^s \u00b7 N^2 \u00b7 s) which is correctly noted as exponential in s, not providing poly(s) update time. The procedure is logically sound and matches the definition of the prefix automaton trie of Im(Eval). Verified against the correct theoretical framework (definition of minimal prefix automaton). No logical gap in the correctness argument.",
+  "review_of": "S0192",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393369.1597776,
+  "session": "pnp-desk/research/R1860",
+  "model": "laguna-xs-2.1",
+  "evidence": "Contrapositive formation is a valid logical operation. Assuming Claim A was correctly stated, its contrapositive Lemma C is logically equivalent. This is a correct bookkeeping step.",
+  "review_of": "S0195",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795393369.1800423,
+  "session": "pnp-desk/research/R1860",
+  "model": "laguna-xs-2.1",
+  "evidence": "Correct implementation of s=1 case: |Im_1| \u2264 m + 16m\u00b2 candidates maintained as state C_t. Update filters candidates: O(m\u00b3) time, O(m\u00b2 log m) bits. Correctness: C_t = {f \u2208 Im_1 : f[0..t-1] = p} by definition, updated correctly. Scope correctly noted: only s=1, general case open. No logical gap found.",
+  "review_of": "S0198",
+  "status": "SURVIVED_REVIEW"
  }
 ]
