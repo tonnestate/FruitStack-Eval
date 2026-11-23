@@ -2756,5 +2756,94 @@
   "evidence": "Two fatal errors: (1) Step (ii) claims log2(R+G+2) <= 1+L where L=ceil(log2 m)-1. For m=17, log2(17)~4.087, L=4, log2(2*17)~5.087 > 5=1+L. The bound fails for all non-powers-of-2. (2) Step (iv) derives condition L > 2/eps - 3. With eps=1/(2L), this becomes L > 4L - 3 => L < 1, but L >= 3 for m>=16. The inequality 4+2L-6eps-2epsL < 2L is false for the given eps (e.g. L=3: 8 < 6 false). S0183 does not prove S0112.",
   "review_of": "S0183",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795417555.9210107,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational counterexample: For eps=0.05 (the value used in the proof), the inequality log2 N(R,G) < 2m L with R=m, G=(0.5-eps)m, L=k+log2(1.5-eps), k=ceil(log2 m) FAILS for m=16 (lhs=169.48, rhs=145.15) and all m up to 500. The claimed 'region lemma' that LHS is maximized at left endpoint m=2^(k-1)+1 is false: dense sampling shows LHS is maximized at RIGHT endpoint m=2^k. For eps=0.05, inequality fails for all m>=16. Only for eps>=0.2 does it hold for all m>=16. This refutes the general-real-m region lemma as stated.",
+  "review_of": "S0165",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795417555.9486425,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational counterexample: For eps=0.05, the inequality fails at m=3,4,8,13,14,15 in [3,15]. The finite check only passes for eps>=0.2 (and even then, at eps=0.2, m=3,4,8 fail; at eps=0.25, m=3,4 fail; at eps=0.3, m=4 fails; only eps>=0.4 passes all m in [3,15]). The claimed finite verification for the parameter regime of the proof (eps=0.05) is false.",
+  "review_of": "S0166",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795417725.7414494,
+  "session": "pnp-desk/research/R1974",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Verified injection lambda -> pi_lambda via cycle type recovery. Verified circuit counting N_g <= (g+1)2^L(g) by checking log-count: 4g + (2g+S)log(S+g) < (4g+S)(2+log(S+g)) = L(g) for all g,S >= 1. Pigeonhole principle application is correct. The logic is sound and the bounds are valid upper bounds on circuit count.",
+  "review_of": "S0205",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795417900.407517,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0330",
+  "proved_step": "LEMMA (Repair of subclaim B - Pair Lower Bound): For the model with |Q|=m states, S=ceil(log2 m) bits, injective stationary encodings, fan-in-2 gates, there exists a pair of permutations (delta_0, delta_1) such that for every common encoding E: Q -> {0,1}^S, the circuit complexity CC_E(delta_0, delta_1) >= (1/4 - o(1)) m. Proof: Number of pairs (delta_0, delta_1) is m^{2m} = 2^{2m log2 m}. Number of injective stationary encodings E is at most (2^S)_m <= 2^{S m} = 2^{m ceil(log2 m)} <= 2^{m(log2 m + 1)}. For a fixed encoding, the number of circuit pairs (C_0, C_1) with G gates each, S inputs, S outputs, is at most N(S,G)^2 where N(R,G) <= 2^{(4G+2R)log2(4(G+R))} (standard fan-in-2 circuit count). So total representable pairs <= 2^{m(log2 m + 1)} * 2^{2(4G+2S)log2(4(G+S))}. If this is < 2^{2m log2 m}, some pair is not representable. Taking logs: m(log2 m + 1) + 2(4G+2S)log2(4(G+S)) < 2m log2 m. With S <= log2 m + 1, this holds when G <= (1/4 - eps)m for any fixed eps>0 and large m. Therefore max_{delta_0,delta_1} min_E CC_E >= (1/4 - o(1))m. Combined with the trivial upper bound CC_E <= O(2^S) = O(m) (Lupanov per output bit), the pair complexity is Theta(m). This repairs subclaim B with a clean counting argument that avoids the flawed region lemma of S0165/S0166.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "subclaim B verification",
+  "closes_valid": false
+ },
+ {
+  "at": 1795417963.9922726,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (experiment cm-8216896e6f304bfd): For S=14..100 at worst-case m=2^(S-1)+1, margin = log2_pm_lower - log2_circuit_upper is positive and growing (43.42, 76.43, 130.95, 216.01, 329.40, 503.81, 749.30, ...). The injection p(m) >= 2^(k-2) is valid (distinct parts A from {1..k-2} map to partition A + {m-sum(A)}, recoverable since m-sum(A) >= 2k-1 > k-2). The circuit count (g+1)*(16(S+g)^2)^g * (S+g)^S is correct for fan-in-2 circuits with S inputs/outputs and <=g gates (choose 2 inputs among S+g nodes and 1 of 16 binary ops per gate, choose 1 of S+g nodes per output). The tail bound for S>=20 is analytically sound. No counterexample found.",
+  "review_of": "S0210",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795418014.5470796,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (experiment cm-8216896e6f304bfd): For S=14..100 at worst-case m=2^(S-1)+1, margin = log2_pm_lower - log2_circuit_upper is positive and growing (43.42, 76.43, 130.95, 216.01, 329.40, 503.81, 749.30, ...). The injection p(m) >= 2^(k-2) is valid (distinct parts A from {1..k-2} map to partition A + {m-sum(A)}, recoverable since m-sum(A) >= 2k-1 > k-2). The circuit count (g+1)*(16(S+g)^2)^g * (S+g)^S is correct for fan-in-2 circuits with S inputs/outputs and <=g gates. The tail bound for S>=20 is analytically sound. No counterexample found.",
+  "review_of": "S0205",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795418014.5842826,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same computational verification as S0210/S0205 (experiment cm-8216896e6f304bfd). The proof structure is correct: (1) distinct lambda give distinct pi_lambda (cycle type recovers lambda via counts of 1-cycles and k>=2 cycles), (2) circuit count bound is correct and nondecreasing in k, (3) pigeonhole principle gives the result. The tail analysis for S>=14 is numerically confirmed and analytically sound. No counterexample found.",
+  "review_of": "S0215",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795418014.6113362,
+  "session": "pnp-desk/research/R1958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "lemma": "LEMMA (Repair of subclaim B - Pair Lower Bound): For the model with |Q|=m states, S=ceil(log2 m) bits, injective stationary encodings, fan-in-2 gates, there exists a pair of permutations (delta_0, delta_1) such that for every common encoding E: Q -> {0,1}^S, the circuit complexity CC_E(delta_0, delta_1) >= (1/4 - o(1)) m. Proof: Number of pairs (delta_0, delta_1) is m^{2m} = 2^{2m log2 m}. Number of injective stationary encodings E is at most (2^S)_m <= 2^{S m} = 2^{m ceil(log2 m)} <= 2^{m(log2 m + 1)}. For a fixed encoding, the number of circuit pairs (C_0, C_1) with G gates each, S inputs, S outputs, is at most N(S,G)^2 where N(R,G) <= 2^{(4G+2R)log2(4(G+R))} (standard fan-in-2 circuit count). So total representable pairs <= 2^{m(log2 m + 1)} * 2^{2(4G+2S)log2(4(G+S))}. If this is < 2^{2m log2 m}, some pair is not representable. Taking logs: m(log2 m + 1) + 2(4G+2S)log2(4(G+S)) < 2m log2 m. With S <= log2 m + 1, this holds when G <= (1/4 - eps)m for any fixed eps>0 and large m. Therefore max_{delta_0,delta_1} min_E CC_E >= (1/4 - o(1))m. Combined with the trivial upper bound CC_E <= O(2^S) = O(m) (Lupanov per output bit), the pair complexity is Theta(m). This repairs subclaim B with a clean counting argument that avoids the flawed region lemma of S0165/S0166."
+ },
+ {
+  "at": 1795418891.042379,
+  "session": "pnp-desk/research/R1982",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Algebraic error: step defines a = 1 - eps, then claims 2a+1 = 2-2eps. But 2(1-eps)+1 = 3-2eps, not 2-2eps. The coefficient is off by 1. This invalidates the subsequent derivation of (iii) and (iv) which depend on this coefficient.",
+  "review_of": "S0218",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795419193.9603858,
+  "session": "pnp-desk/research/R1982",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Exhaustive enumeration for n=1..22 (all multiplicity vectors with sum i*m_i <= n) confirms the bound holds for every K. The algebraic derivation is correct: maximize ln(m+1) - (i/K)m over m>=0 gives m* = K/i - 1 for i<K (value -ln(i/K) - 1 + i/K) and 0 for i>=K. Summing per-i inequalities with lambda=1/K and constraint sum i*m_i <= n yields exactly the stated bound. No counterexample found in the tested range.",
+  "review_of": "S0220",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795420510.765195,
+  "session": "pnp-desk/research/R1990",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification for n=10..10000 (cm-4e10c31a55ab497c): the construction satisfies sum i*m_i <= n and achieves ln_prod / (0.81*sqrt(2n)) ratio >= 1.019 for n>=500, approaching ~1.08. The proof's asymptotic derivation (L ~ 0.6715 sqrt(n), ln M >= 1.709 L ~ 0.8115 sqrt(2n)) is correct and the constant 0.81 is safely met. No argument gap found.",
+  "review_of": "S0221",
+  "status": "SURVIVED_REVIEW"
  }
 ]
