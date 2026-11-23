@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 11678 entries from 3006 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 11689 entries from 3015 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The R1 class (F_2-linear/affine staged realizations) is too restrictive to capture general Search-MCSP streaming algorithms. The SEARCH bound S ≥ 2^m holds because the totality requirement (outputting a circuit for YES instances) forces the kernel to be trivia
+  - The DECISION version bound S ≥ N - d_s becomes nontrivial (S ≥ 1) when N > d_s, which occurs for m ≥ 7 with s = m (since d_s ~ s log s while N = 2^m). For SEARCH version, S ≥ 2^m is exponential and holds for all m ≥ 1.
   - The repaired Lemma 11 (S0022) closes G0001 for the constant-alphabet TM model. The next gap G0002 requires formalizing the worst-case update time definition from MMW19 Thm 1.2 and showing the staged-circuit simulation matches it.
   - The repaired lemma extends to F_3-affine input-independent realizations with bound r >= ceil(N/(3-1)) = ceil(N/2), using the same kernel collision argument with the all-zero truth table. The zero-subsum-free length over F_3 is 2S (Davenport constant 2S+1), mat
   - Subclaim B (pair lower bound) of the STATE RECODING BOUNDS question is true with constant 1/4: max_{delta_0,delta_1} min_E CC_E(delta_0,delta_1) = (1/4 + o(1))m. The flawed region lemma approach (S0165/S0166) is irreparable at eps=0.05; the repaired counting a
   - The 'Linearity Gap' is the fundamental obstacle for Candidate A: there exists a gap between the class of all admissible exact one-pass algorithms and those admitting a linear (R,L,E) representation. If this gap is non-empty, a lower bound for linear models doe
-  - The conjugacy-class counting argument (S0160) fails to prove H_1(m) = Omega(sqrt(m)/log m) because it only fixes one code set. The minimum over encodings can choose any m-subset of {0,1}^S. The correct argument must bound the number of cycle types a single cir
-  - Conjecture: For all m >= 1, Per(1_Yes_s) = {0} (dimension 0) for the MCSP characteristic function 1_Yes_s on F_2^{2^m} for all s < 2^m/m. If true, S0024 (L_dec lemma) gives S >= N - 0 = N = 2^m for any affine encoding + decision decoder, matching the trivial u
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -35,10 +35,10 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-NUMERICAL EVIDENCE on file: 2981 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 2982 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-73bf05e358 [UNEXPLAINED, OPEN] RESULT READY - the background job A1047 (Q-08a1c5b68f LemmaM SC31 S6 G0 zero-init depth profile) submitted by R1810 finished after that session ended: dataset_from_code finished: ok=False dataset None experiment ds-0b30f
   - Q-712a5b4c80 [UNEXPLAINED, OPEN] RESULT READY - the background job A1046 (Q-af2bf4a975 n=4 exhaustive formula leaves vs circuit size (B2)) submitted by R1827 finished after that session ended: dataset_from_code finished: ok=False dataset None experiment
