@@ -2148,5 +2148,95 @@
   "evidence": "Exhaustive computational verification for n=3,4,5: enumerated all cost-2 B2 formulas (384, 1536, 3840 formulas with exactly 3 essential vars respectively). For each formula, checked all 3 choose 2 variable pairs and all 4 assignments per pair. Every formula has at least one pair (x,y) and assignment (a,b) such that restriction f|x=a,y=b is constant or positive literal (1-variable function (0,1)). Zero counterexamples found.",
   "review_of": "S0145",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795413765.8687413,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0087: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795414043.3121467,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0087: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795414163.7279837,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The conditional transfer is mathematically valid: given a search circuit of size N*s^d that outputs a valid circuit description y (size s) when one exists, a decision circuit can be constructed by (1) running the search circuit, (2) evaluating y on all N=2^m inputs via a universal evaluator of size O(N*s*log s) = N*s^{1+o(1)}, (3) comparing with the truth table and AND-ing. The total size is N*s^d + N*s^{1+o(1)} + O(N) <= N*(log N)^{c*max(d,1+o(1))+o(1)}. For any fixed d, choosing k = c(d+1) suffices asymptotically. The gap noted in the proof sketch is the handling of the 'no circuit exists' output: the sketch assumes the search output y is always a valid circuit description, but a search circuit must also signal 'no solution'. This gap is explicitly repaired in the subsequent step S0151 (LEMMA T') which uses the flag bit b. As a conditional transfer lemma (bookkeeping, not progress), the statement survives review with this noted gap.",
+  "review_of": "S0141",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414199.6699576,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The conditional transfer is mathematically valid: if a search circuit for MCSP^empty[s] has a dedicated output bit b that is 1 exactly when no circuit of size <= s exists (and 0 otherwise), then NOT b is exactly the decision bit for MCSP[s]. Adding a single NOT gate gives a decision circuit of size S+O(1) and identical depth D. The degree repair is correct: search size N*poly(s) = N*(log N)^{O(c d)} implies decision size <= N*(log N)^{c d + 1} for large N, so k = c d + 1 works. The chain 'H (decision lower bound for all k) => search lower bound for all k' => MMW Thm 1.4 bullet 3 => NP not in P/poly' is a valid conditional argument assuming (a) the search circuit indeed outputs such a flag bit b (the MMW definition 'or report that no such circuit exists' is consistent with this), and (b) MMW Thm 1.4 bullet 3 applies with A empty and s(n) >= n. As a conditional transfer lemma, the statement survives review.",
+  "review_of": "S0151",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414342.685234,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is mathematically correct. A formula of cost 3 (3 binary gates) over the basis B_2 (all binary Boolean functions) can depend on at most 4 variables (each gate has 2 inputs, and there are 3 gates, so at most 3*2 = 6 input wires, but the output of one gate can feed into another, so the number of distinct variables is at most 4 for a formula tree of 3 gates). Restricting any 2 essential variables to constants leaves a function on at most 2 variables. Every 2-variable Boolean function has formula cost at most 1 (it is either a constant, a literal, or a single binary gate). However, this observation does not prove a non-trivial drop property for the complexity measure - it holds vacuously for ALL cost-3 formulas regardless of structure. The statement correctly identifies this as bookkeeping that closes no obligation. The reasoning survives review as a valid negative observation about a proposed repair.",
+  "review_of": "S0166",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414342.7138252,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is mathematically correct for B_2 circuits (all binary Boolean functions as gates) with constant/negation absorption. When x_i = a, the gate g reading x_i becomes a function of its other input y only: either constant 0/1, y, or NOT y. Since B_2 contains all binary functions, the constant or negation can be absorbed into each consumer gate by replacing its truth table (a binary function h(z,y) becomes h(z, const) or h(z, NOT y), which is still a unary or binary function in B_2). If a consumer becomes constant or unary, it can be similarly absorbed into its consumers, etc. The process never adds gates; each original gate is either kept (if it doesn't depend on x_i) or replaced by a gate in B_2 that doesn't depend on x_i. At least gate g is eliminated, so size drops by at least 1. This is the standard drop-1 gate elimination for B_2, which yields only linear bounds. The statement correctly notes this gives only linear bounds and closes no obligation. The reasoning survives review.",
+  "review_of": "S0171",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414342.7361417,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a restatement of the standard gate-elimination drop-1 lemma for B_2 circuits (all binary Boolean functions). For any circuit C of exact size k computing f, picking an essential variable x_i means there is at least one gate g reading x_i. Substituting x_i = b makes g a constant, literal, or negation of its other input. Absorbing this into consumers via B_2 truth-table replacement eliminates g and never adds gates, yielding a circuit of size <= k-1 for f|x_i=b. The bound is tight (parity achieves exactly drop-1). The lemma correctly states it gives only linear bounds and closes no obligation for superlinear lower bounds. The reasoning survives review as a valid, correctly-scoped bookkeeping step.",
+  "review_of": "S0179",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414342.755321,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is mathematically valid. Given a search circuit family Srch that outputs an encoding E of a size-s circuit whenever one exists (and arbitrary output when none exists), the decision circuit D works as: (1) run Srch to get E (size S(N)), (2) check E is a well-formed encoding of a size-s circuit (size O(s)), (3) for each x in {0,1}^m, evaluate E on x using a universal evaluator of size p(s) (size N*p(s)), (4) compare with T_x and AND all results (size O(N)). Total size S(N) + O(s) + N*p(s) + O(N). Soundness: if T has a size-s circuit, Srch outputs a valid E, well-formedness passes, all evaluations match, AND outputs 1. Completeness: if T has no size-s circuit, any E output by Srch either fails well-formedness or has some evaluation mismatch, so AND outputs 0. The corollary (decision lower bound => search lower bound) follows by contrapositive. This is a standard search-to-decision transfer with explicit size accounting. The statement correctly notes it does not close G0001 (the actual decision lower bound). The reasoning survives review.",
+  "review_of": "S0199",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414406.4203203,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. After pruning unreachable gates, every essential input, every used constant, and every gate has a path to the output gate. In the undirected graph with vertices = n essential inputs + c constants + s gates, each gate contributes exactly 2 input wires (fan-in \u2264 2), giving exactly 2s edges. The graph is connected (all vertices connect to the output gate via input-wire paths). A connected graph with V vertices has \u2265 V-1 edges, so 2s \u2265 n + c + s - 1 \u21d2 s \u2265 n + c - 1 \u2265 n - 1. Tightness: XOR_n uses n-1 XOR gates (each XOR \u2208 B2, constants free), has n essential variables, and achieves size n-1. No counterexample exists. The argument holds for all n \u2265 1 and all B2 circuits with free constants.",
+  "review_of": "S0219",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414534.1454673,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. A minimal B2 circuit of exact cost 2 has exactly two gates. Let the output gate be g2. Its two inputs: one must be the output of the other gate g1 (otherwise the circuit is disconnected and one gate is unused, contradicting minimality). The other input l must be a literal (variable, negated variable) or constant \u2014 if l were a third gate, cost \u2265 3; if l were g1 again (fanout), the form is g2(g1, g1) and fixing g1's inputs still makes g1 constant. g1 is a binary gate on two distinct variables x_i, x_j (if i=j, g1 is unary and cost \u2264 1; if one input is constant, g1 is effectively unary). For any a,b \u2208 {0,1}, fixing x_i=a, x_j=b makes g1 output a constant c0. Then f|x_i=a,x_j=b = g2(c0, l') where l' is l restricted. Since l is a literal/constant, l' depends on at most one variable, so g2(c0, l') is a function of at most one variable, hence constant or a literal. This holds for all n \u2265 2. No counterexample exists. The lemma correctly scopes itself to exact cost 2 and makes no superlinear claim.",
+  "review_of": "S0208",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795414933.6132736,
+  "session": "pnp-desk/research/R1960",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is correct. A minimal B2 circuit of size 2 has output gate G2 = phi(G1, l) where G1 = psi(l1, l2) is the other gate. l cannot be a constant (otherwise G2 = phi(G1, const) could be replaced by a unary gate or constant, giving size \u2264 1). So l is a literal of some variable x_r. Case 1: phi is constant when its second input is fixed to c \u2208 {0,1}. Fix x_r to make l = c. Then G2 is constant, giving a cost-0 restriction with pair (r, j) for any j \u2260 r. Case 2: phi(\u00b7, c) is non-constant in its first input. Then fixing x_r to c gives f = phi(psi(l1,l2), c) = psi'(l1', l2') where l1', l2' are literals of variables p, q \u2260 r (since G1 doesn't use x_r, otherwise the circuit would have only 2 variables). psi' is a binary gate on p, q. Fix x_q so that psi' becomes constant or a literal in x_p. Then f is constant or a literal. The pair is (r, q). Restrictions never increase circuit size, so the drop is exactly 2. This holds for all n \u2265 2. The lemma is correctly scoped to exact size 2.",
+  "review_of": "S0211",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795416313.3459759,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0087: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
  }
 ]

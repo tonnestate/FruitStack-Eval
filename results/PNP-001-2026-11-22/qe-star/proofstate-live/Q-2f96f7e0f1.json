@@ -857,5 +857,21 @@
   "proved_step": "LEMMA R3 (repair of S0017 scope: gates with f_j = 0 handled by an indicator). Setting as in S0017: F = set of free variables with f = |F| >= 1, A = restricted variables with |A| = k, w_ji integers with |w_ji| >= 1 on F, real offsets; for gate j let f_j = #{i in F : w_ji != 0}, L_j = sum_A min(0,w_ji), U_j = sum_A max(0,w_ji), S_j(z) = sum_{i in F} w_ji z_i for z uniform on {0,1}^F, and N(A,z) = #{j : gate j non-constant on {0,1}^A}. CLAIM: E_z[N(A,z)] <= D0 + sum_{j: f_j>=1} (U_j - L_j)/sqrt(f_j), where D0 = #{j : f_j = 0 and gate j non-constant on {0,1}^A}, a z-independent integer. PROOF. (1) If f_j = 0 then S_j = 0 for all z, so the indicator of non-constancy is the same for all z; it contributes exactly the z-independent term to N, summing to D0. (2) If f_j >= 1: by the window identity (S0006(a), valid for w in {-1,+1} and for integer |w|>=1 since the A-part value set is all integers in [L_j,U_j] when weights are +-1; for general integer weights the A-part is contained in [L_j,U_j] and the non-constancy event is contained in S_j in a set W_j of at most U_j-L_j integers) gate j non-constant implies S_j(z) in W_j, |W_j| <= U_j - L_j. (3) Erdos 1945: for |w_ji| >= 1 and any open interval I of length 2, #{T subset of F_j : sum_{i in T} w_ji in I} <= C(f_j, floor(f_j/2)). Each integer c lies in the open interval (c-1,c+1), so Pr_z[S_j = c] <= C(f_j,floor(f_j/2))/2^{f_j}. (4) C(f,floor(f/2))/2^f <= 1/sqrt(f) for f >= 1 (central binomial bound binom(2r,r) <= 4^r/sqrt(pi r) for r>=1, and f=1 gives 1/2). (5) Union bound: Pr_z[S_j in W_j] <= |W_j| * max_c Pr[S_j=c] <= (U_j-L_j)/sqrt(f_j). Summing over j and using linearity of expectation gives the claim. SCOPE: an expectation bound over uniform z only; it does not give a deterministic restriction (that is S0021 and S0032 territory), and it does not bound the sum when weights are large (U_j-L_j grows with the weights). It does not close G0001 or G0007(ii). Its status is CLAIMED: the author is claude-haiku-5-5 and an independent reviewer from another model family must check it.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795414341.678476,
+  "session": "pnp-desk/research/R1962",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof uses f = n-k (total free variables) in the Erdos-Littlewood-Offord bound, but the bound depends on f_j = |F \u2229 supp(j)| (free variables actually in gate j's support). Since f_j \u2264 f, we have 1/\u221af_j \u2265 1/\u221af, so the correct bound is E_z[N] \u2264 \u03a3_j k/\u221af_j, which is \u2265 m k/\u221af. The claimed inequality E_z[N] \u2264 m k/\u221af is false without assuming all gates have full support (f_j = f for all j). Counterexample: n=4,k=1,m=2, gate1 supp={1,2,3,4} (f_1=3), gate2 supp={1} (f_2=1). True bound \u22481.577, claimed bound \u22481.155.",
+  "review_of": "S0006",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795414341.7078397,
+  "session": "pnp-desk/research/R1962",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The repaired step correctly uses f_j = |F \u2229 supp(j)| per gate instead of the global f = n-k. The proof structure is sound: (a) window size U_j - L_j = sum_{i\u2208A} |w_ji| for non-constancy, (b) union bound over the window, (c) Erdos-Littlewood-Offord gives max point atom \u2264 C(f_j,\u230af_j/2\u230b)/2^{f_j}, (d) binomial coefficient bound \u2264 1/\u221af_j. The exact check cm-8dbbae68545b4cff reports 0 violations in 300 instances with worst ratio 0.707. The scope limitation (f_j \u2265 1 needed, deterministic gates f_j=0 handled separately) is correctly noted. This step is mathematically correct as stated.",
+  "review_of": "S0017",
+  "status": "SURVIVED_REVIEW"
  }
 ]
