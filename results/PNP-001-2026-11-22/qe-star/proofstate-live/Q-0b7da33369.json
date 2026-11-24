@@ -4301,5 +4301,182 @@
   "evidence": "The Myhill-Nerode construction is correct. Distinct residuals require distinct states because acceptance of any suffix v after prefix u vs u' differs when L_u \u2260 L_u'. Conversely the residual automaton with states {L_u} is well-defined: if L_u = L_u' then for every a, v\u2208L_{ua} \u21d4 uav\u2208L \u21d4 av\u2208L_u \u21d4 av\u2208L_u' \u21d4 u'av\u2208L \u21d4 v\u2208L_{u'a}, so L_{ua}=L_{u'a}. The start state is L_\u03b5, transition \u03b4(L_u,a)=L_{ua}, accept iff \u03b5\u2208L_u i.e. u\u2208L. Induction on |w| shows the automaton reaches L_{prefix(w)} and accepts iff w\u2208L. The state count is exactly |{L_u}|. No argument gap; scope as stated.",
   "review_of": "S0482",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795507770.8698645,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: restrict to the ancestor cone of the output (g' gates). Form undirected graph with vertices = g' gates + N relevant inputs, edges = wires from inputs/gates to gates (at most k per gate, so \u2264 kg' edges). The graph is connected because every retained gate reaches the output and every relevant input reaches a retained gate (output depends on it). A connected graph on N+g' vertices has \u2265 N+g'-1 edges. Thus N+g'-1 \u2264 kg' \u21d2 g' \u2265 (N-1)/(k-1). No counterexample exists; this is a standard graph-theoretic circuit lower bound. Scope: fan-in \u2264 k, one output, N relevant primary inputs. The bound is linear and gives no superlinear streaming cost bound, as stated.",
+  "review_of": "S0484",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795507966.5317845,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The count is incorrect. For each gate, there are at most S+G+1 signals available as predecessors (S primary inputs + G previous gates + possibly 1 constant if constants are in the basis), not S+G+2. The number of predecessor pairs is at most (S+G+1)^2, not (S+G+2)^2. The designated output wires: each circuit has S output bits, each choosing from S+G+1 signals (S inputs + G gates + possibly 1 constant), so (S+G+1)^(2S) not (S+G+2)^(2S). The correct bound is at most (G+1)^2 B^G (S+G+1)^(2G+2S). The extra +1 in the base is an overcount. Also, the statement says 'S designated output bits' but then counts 2S output wires for the pair - this is correct for the pair. But the base should be S+G+1, not S+G+2. This is an off-by-one error in the signal count.",
+  "review_of": "S0485",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795508154.176713,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The count has multiple errors. (1) Predecessor signals: at step i (0-indexed) there are S+i signals available (S inputs + i previous gates), not S+G+1. The product over i=0..G-1 of (S+i)^2 is (S+G-1)!^2 / (S-1)!^2, not (S+G+1)^(2G). (2) Output wires: each circuit has one designated output choosing from S+G signals, so (S+G)^2 is correct for the pair. (3) The base should be (S+G) not (S+G+2). (4) The bound (G+1)^2 B^G (S+G+2)^(2G+2) is an overcount; a correct syntactic bound is (G+1)^2 B^G * product_{i=0}^{G-1} (S+i)^2 * (S+G)^2. For asymptotic purposes the log is 2G log(S+G) + O(G) which matches the claimed form up to constants, but the exact statement is wrong. The lemma says 'at most' so an overcount is technically valid as an upper bound, but the stated expression (S+G+2)^(2G+2) is not a valid upper bound because (S+i) <= S+G-1 < S+G+2, so (S+G+2)^(2G) IS an upper bound for the product. However the output factor should be (S+G)^2 not (S+G+2)^2. Since (S+G+2)^2 >= (S+G)^2, the stated bound (S+G+2)^(2G+2) = (S+G+2)^(2G) * (S+G+2)^2 >= product * (S+G)^2, so as an 'at most' bound it is technically correct but loose. The real issue is the proof's reasoning is wrong: it claims (S+G+1) signals per gate and (S+G) per output, then 'enlarging bases yields the stated bound' with (S+G+2). This is sloppy but the final inequality holds. However, the lemma is marked as a REPAIR of S0485 and should be exact. I'll mark REFUTED because the proof reasoning is incorrect even if the final inequality accidentally holds.",
+  "review_of": "S0487",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795508323.6617546,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step's asymptotic analysis is incorrect. The log2 incidence bound is (1+2epsilon+o(1))m log2 m. The log2 of total map pairs m^(2m) is 2m log2 m. For the counting argument to yield a contradiction (some map pair not represented), we need the incidence bound < m^(2m), i.e., (1+2epsilon+o(1))m log2 m < 2m log2 m, which requires 1+2epsilon < 2, i.e., epsilon < 0.5. The step chooses epsilon < 1/8, which satisfies this condition. Therefore the counting argument DOES work for epsilon < 0.5, contrary to the step's claim that it 'does NOT prove the stated conclusion'. The step incorrectly concludes failure when the math actually supports success.",
+  "review_of": "S0488",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795508364.7046332,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The lemma claims an upper bound of (G+1)^2 B^G (S+G+2)^(2G+2). The proof's reasoning has errors: (1) At step i (0-indexed) in a topological ordering of G gates, the number of available signals is S+i (S inputs + i previous gates), not S+G+1. The product of (S+i)^2 over i=0..G-1 equals ((S+G-1)!/(S-1)!)^2, not (S+G+1)^(2G). (2) The final bound uses (S+G+2)^(2G+2) = (S+G+2)^(2G) * (S+G+2)^2. Since (S+i) <= S+G-1 < S+G+2 for all i<G, the factor (S+G+2)^(2G) is indeed an upper bound for the product of (S+i)^2. However, the output factor should be (S+G)^2 (each circuit's output chooses from S+G signals), and (S+G+2)^2 >= (S+G)^2, so the stated bound is technically valid as an 'at most' upper bound, though loose. (3) The proof incorrectly states 'S+G+1 available signals' per gate and then 'enlarging bases yields the stated bound with S+G+2', which is sloppy reasoning. As an upper bound the inequality holds, but the proof reasoning is incorrect. Since this is marked as a REPAIR lemma intended to be exact, I mark it REFUTED due to incorrect proof reasoning.",
+  "review_of": "S0489",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795508481.188368,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The asymptotic counting argument is correct. With S = ceil(log2 m), q = 2^S \u2208 [m, 2m). Number of injections \u2264 q^m < (2m)^m, log2 = m log2 m + m. Circuit pair bound: 2^{c(G+S)log2(G+S)} with G = \u03b5m, S = O(log m) gives log2 = c\u03b5m log2 m + O(m). Total log2 representable map pairs \u2264 (1 + c\u03b5 + o(1)) m log2 m. Total map pairs: m^{2m}, log2 = 2m log2 m. The inequality (1 + c\u03b5) < 2 holds for \u03b5 < 1/c, so choosing any fixed \u03b5 < 1/c makes the representable count strictly smaller for all sufficiently large m. The lemma is correctly stated as conditional on the circuit-counting hypothesis, non-explicit, and with proper barrier diagnostics (nonconstructive, no natural property). No mathematical error found.",
+  "review_of": "S0491",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508606.6967406,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The asymptotic counting argument is correct. With S = ceil(log2 m) = log2 m + O(1), Sm = m log2 m + O(m). G = epsilon m with epsilon = 1/(4c). Then (G+S) = epsilon m + O(log m), log2(G+S) = log2 m + log2 epsilon + o(1). The circuit-pair term contributes c(G+S)log2(G+S) = c epsilon m log2 m + O(m). Total log2 representable bound = (1 + c epsilon) m log2 m + O(m) = (1 + 1/4) m log2 m + O(m) = 1.25 m log2 m + O(m). Total map pairs: m^{2m}, log2 = 2m log2 m. Since 1.25 < 2, for all sufficiently large m the representable count is strictly smaller. The lemma correctly states it is conditional on the circuit-pair counting hypothesis, non-explicit, with proper scope (no P-vs-NP consequence). No mathematical error found.",
+  "review_of": "S0493",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508633.9393768,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lower bound proof is correct: unrolling the one-pass circuit with N streamed bits into a single fan-in-2 circuit C with g gates, the output ancestor cone has g' \u2264 g gates and e \u2265 g'-1 gate-to-gate wires (connectedness). With 2g' total wire slots, at most 2g' - e \u2264 g' + 1 slots for primary inputs. Since parity depends on all N variables, each must have a distinct primary-input wire in the cone (otherwise some variable wouldn't affect the output), so N \u2264 g' + 1 \u2264 g + 1, giving g \u2265 N-1. The upper bound construction uses a 1-bit state with N-1 XOR gates total (N-2 updates + 0 for first copy/readout via wiring). This achieves exactly N-1 gates. The lemma is exact and correctly proven.",
+  "review_of": "S0494",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508784.733697,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The structural argument is correct. In a fan-in-2 DAG, the number of primary inputs N in the ancestor cone of r outputs is bounded by the number of gates g plus the number of components c, plus any direct input-to-output wires. Since c <= r and the number of direct wires is at most r, N <= g + 2r holds. The count of slots 2g' - (g' - c) = g' + c correctly limits the primary inputs.",
+  "review_of": "S0495",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508851.1155617,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is correct. For a single output f_j, its ancestor cone has h gates and is connected (every gate feeds into the output). With fan-in \u22642, there are 2h input slots; at least h-1 are gate-to-gate edges by connectedness. At most h+1 slots remain for primary inputs. Each essential input d_j must occupy a distinct slot, so d_j \u2264 h+1, hence h \u2265 d_j-1. Since h \u2264 g, g \u2265 max_j(d_j-1). This is a standard structural bound for fan-in-2 circuits.",
+  "review_of": "S0496",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508851.848982,
+  "session": "pnp-desk/research/R2598",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly counts input slots: 2g total slots, at least g-c used for gate-to-gate connections in c components (each component of h gates needs >= h-1 internal edges to be connected), leaving <= g+c slots for primary inputs. Up to r additional distinct primary inputs can connect directly to output wires (if the model permits). Since c <= r (each component contains at least one output gate), N <= g+c+r <= g+2r. No counterexample exists; the bound is valid for fan-in <= 2 circuits under either output convention.",
+  "review_of": "S0495",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508851.873688,
+  "session": "pnp-desk/research/R2598",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: for a fixed output f_j, its ancestor cone has h gates with a connected gate-wiring graph (all gates have directed paths to f_j). A connected graph on h vertices has >= h-1 edges, each edge occupies one gate input slot. With 2h total slots (fan-in <= 2), at most 2h - (h-1) = h+1 slots remain for primary inputs. Every essential input of f_j must appear in at least one slot, so d_j <= h+1, hence h >= d_j-1. Since h <= g (ancestor cone is a subcircuit), g >= d_j-1 for all j, so g >= max_j(d_j-1). No counterexample exists.",
+  "review_of": "S0496",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509147.0364711,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting argument is correct. There are m! distinct encoded permutations. Number of fan-in-2 circuits with g gates, S inputs, S outputs, and 16 gate types is at most (16(S+g)\u00b2)^g \u00b7 (S+g)^S. For g = cm with c < 1/2, log\u2082 of this bound is 2cm log\u2082 m + O(m), while log\u2082(m!) = m log\u2082 m - O(m). For sufficiently small c and large m, the circuit count is strictly less than m!, so at least one permutation has no circuit of size \u2264 cm. The argument is independent of the injective encoding \u03c8, so it holds for all stationary encodings.",
+  "review_of": "S0497",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509147.604361,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The graph-theoretic proof is correct. After deleting irrelevant gates/inputs, form an undirected graph on the remaining g' gates and N inputs with edges for each input wire. With fan-in \u2264 2, there are at most 2g' edges. The graph has c \u2264 r components (each must reach a designated output). A graph on N+g' vertices with c components has at least N+g'-c edges. Thus N+g'-c \u2264 2g', so g' \u2265 N-c \u2265 N-r. This is a standard incidence bound for fan-in-2 circuits with multiple outputs.",
+  "review_of": "S0498",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509155.1855807,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. After pruning irrelevant gates/inputs, form an undirected graph on g' gates and N relevant inputs with edges for each input wire. Constants are excluded. Repeated connections are merged. Each component contains a driver of a designated output, so c \u2264 r components. With fan-in \u2264 2, there are at most 2g' edges. A graph on N+g' vertices with c components has at least N+g'-c edges. Thus N+g'-c \u2264 2g', giving g' \u2265 N-c \u2265 N-r. This is a clean structural bound for fan-in-2 circuits with explicit output wire convention.",
+  "review_of": "S0499",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509188.2513068,
+  "session": "pnp-desk/research/R2590",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. After pruning non-ancestral gates, form an undirected graph on g' gates and N relevant inputs with edges for input wires. Add a root connected to each output source (\u2264 r edges). The graph is connected, so edges \u2265 N+g'-1. Gate input slots provide \u2264 2g' edges; root-output edges \u2264 r. Thus N+g'-1 \u2264 2g'+r, giving g' \u2265 N-r, hence g \u2265 N-r. This is a standard linear incidence bound for fan-in-2 circuits with multiple outputs, including direct input outputs.",
+  "review_of": "S0501",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509382.6901114,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "evidence": "The proof's claim that each connected component with h gates has at least h-1 gate-to-gate input slots is false when gates are connected through a shared primary input. Counterexample: two gates each use the same input x, and each is a designated output. The component has h=2 but no gate-to-gate input slots. This refutes the stated proof, not necessarily its inequality N <= g+2r. A repair is available: count relevant input and gate vertices in the incidence graph; each component contains a designated output, there are at most r components, and at most 2g edges. Connectivity gives N+g-c <= 2g, hence N <= g+c <= g+r.",
+  "review_of": "S0495",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795509760.18719,
+  "session": "pnp-desk/research/R2598",
+  "model": "gpt-6-luna",
+  "id": "S0524",
+  "proved_step": "statement: REPAIR (unrolling implication). For deterministic one-pass realization of L with fixed initial state, update circuits F_1,...,F_N, and readout D over the same fan-in-two basis, C(L) <= sum_t size(F_t)+size(D). Hence C(L)>=B implies total realization cost >=B.\nproof: Compose copies of F_1,...,F_N in order, wiring each state output to the next state input, and connect the final state to D. Feed x_t to F_t and hardwire the fixed initial state. Induction on t shows each intermediate state is the realization's state after the first t inputs, so the composition computes L. Its gate count is at most the sum displayed; wiring and fixed constants add no gates. The inequality and consequence follow.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795510377.592624,
+  "session": "pnp-desk/research/R2606",
+  "model": "gpt-6-luna",
+  "id": "S0525",
+  "proved_step": "For every m>=1, let S=ceil(log2 m), N=2^S, Q be an m-element set, delta:Q->Q any map, and psi:Q->{0,1}^S any injection. The partial map psi delta psi^{-1} on psi(Q) has a total extension F on all N codewords with O(SN) fan-in-two AND/NOT gates and constants. Proof: For each output coordinate j prescribe F_j(psi(q)) as bit j of psi(delta(q)), and set F_j=0 on unused codewords. Shannon-expand F_j over the S input bits. The full binary decision tree has N leaves and N-1 internal mux nodes, each implementable with O(1) AND/NOT gates (OR via De Morgan); constants at leaves need no gates. Thus each coordinate uses O(N) gates, all S coordinates O(SN). On encoded q this equals psi(delta(q)). For m>=2, N<2m, so this is O(m log m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795510688.7366648,
+  "session": "pnp-desk/research/R2606",
+  "model": "gpt-6-luna",
+  "id": "S0526",
+  "proved_step": "SPARSE-OUTPUT EXTENSION LEMMA. Let |Q|=m, S=ceil(log2 m), N=2^S, delta:Q->Q and psi:Q->{0,1}^S injective. Suppose exactly r coordinates are nonconstant on {psi(delta(q)):q in Q}. Then the partial transition psi delta psi^{-1} has a total extension computable with at most r(N-1) two-input muxes, and thus O(rN) fan-in-two AND/NOT gates. Proof: for each of the r coordinates, prescribe its values on psi(Q) and extend arbitrarily to all N inputs. Shannon expansion on the S input bits is a full binary tree with N leaves and N-1 internal nodes. Each internal node computes a 2:1 mux; a mux is implementable with a constant number of AND/NOT gates by De Morgan's law. The remaining S-r coordinates are constant on psi(Q), so extend each by that constant at zero gate cost. The resulting coordinate functions agree with psi(delta(q)) on every encoded state, as required.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795510741.6055696,
+  "session": "pnp-desk/research/R2606",
+  "model": "gpt-6-luna",
+  "gap": "S0526 sparse-output extension remains CLAIMED pending an independent review from a different model family. Its finite mux-tree check is only a bounded verification; next establish the exact constant-factor AND/NOT mux implementation and submit the finite claim with the successful experiment id.",
+  "gap_id": "G0193"
+ },
+ {
+  "at": 1795510846.4752905,
+  "session": "pnp-desk/research/R2606",
+  "model": "gpt-6-luna",
+  "gap": "S0526 remains CLAIMED pending independent review. The preceding finite check failed from an evaluator indexing bug; a corrected exhaustive check was requested, but no result is available yet. The mux implementation can be made explicit: mux(s,a,b)=NOT(AND(NOT(AND(NOT(s),a)),NOT(AND(s,b)))), using at most 6 AND/NOT gates when NOT(s) is shared; clarify whether constants are free under the chosen basis.",
+  "gap_id": "G0194"
  }
 ]

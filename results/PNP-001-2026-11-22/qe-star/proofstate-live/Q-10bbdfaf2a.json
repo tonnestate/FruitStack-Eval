@@ -4257,5 +4257,53 @@
   "evidence": "Same reasoning as S0420 but includes output wire in U. If output is a restricted input, it must also be substituted. For each distinct bit among occurrences in U (including output), add one constant gate (y XOR y or NAND(y,y)) and reuse. Adds at most |{rho(i): i in U}| \u2264 2 gates. Original s gates retained. Valid uniform restriction overhead bound.",
   "review_of": "S0423",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795507295.75656,
+  "session": "pnp-desk/research/R2584",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard ordered-DAG encoding argument. For each j=0..s: 16 choices per gate type, (m+j-1)^2 choices per ordered wire pair (predecessors from earlier inputs/gates), so \u226416(m+s)^2 per gate. Output choice: \u2264m+s. Total for fixed j: [16(m+s)^2]^j (m+s) \u2264 [16(m+s)^2]^s (m+s). Sum over j=0..s gives (s+1)(m+s)[16(m+s)^2]^s. Multiple encodings may compute same function, so this bounds function count. No flaw in counting.",
+  "review_of": "S0426",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795507295.783001,
+  "session": "pnp-desk/research/R2584",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Direct consequence of S0426. Universe size = 2^(2^m). Computable functions \u2264 B = (s+1)(m+s)[16(m+s)^2]^s. Functions requiring >s gates = universe minus computable \u2265 2^(2^m) - B. Also nonnegative by max(0,...). Correct subtraction argument assuming S0426 holds (which it does).",
+  "review_of": "S0427",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795507775.005445,
+  "session": "pnp-desk/research/R2584",
+  "model": "nemotron-3.5-super-vl",
+  "evidence": "Counterexample: m=2, s=0. C is the 0-gate fan-in-two DAG whose output wire is input x_1 directly (free input wire, no gates). Let R={x_1}, rho(x_1)=0; x_2 remains unrestricted. U = restricted inputs occurring in gates of C = empty set (there are no gates), so the claimed bound gives cofactor size <= s + |{rho(i): i in U}| = 0 + 0 = 0 gates. But C|rho is the constant-0 function on the remaining input x_2. With free input x_2 and no free constants, a 0-gate circuit can only output an input wire (x_2, the identity), not constant 0; constant 0 needs one gate, e.g. XOR(x_2,x_2). Hence the claimed 0-gate bound is false. Exact gap: U omits restricted inputs that appear only as the output wire (or on wires feeding no gate); S0423 repairs this by including the output wire in U.",
+  "review_of": "S0420",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795510363.5609047,
+  "session": "pnp-desk/research/R2600",
+  "model": "gpt-6-luna",
+  "id": "S0508",
+  "proved_step": "statement: Let C be a fan-in-two DAG Boolean circuit on m inputs, with gates from the full basis of 16 binary Boolean functions, free input wires, and constants unavailable at zero cost. Fix a nonempty set I of r<m input coordinates to an assignment a. The cofactor has a circuit of at most s+min(r,2) gates if C has s gates.\nproof: Choose any unfixed input z. A gate XOR(z,z) produces constant 0 and a gate NAND(z,z) produces constant 1. If r=1, only the one constant specified by a is needed, so add one gate producing it (XOR(z,z) for 0, NAND(z,z) for 1). If r>=2, add both gates. Replace each occurrence of each fixed input wire in C by the corresponding generated constant wire. Because fan-out is unrestricted, these wires can be shared across all occurrences. Keep all original gates and wires otherwise unchanged. The resulting circuit computes the cofactor and adds at most min(r,2) gates.\nscope: Fan-in-two DAG circuits over the full 16-gate Boolean basis; constants are not free; at least one input remains unfixed; arbitrary fixed coordinate set and assignment.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795510638.0831203,
+  "session": "pnp-desk/research/R2600",
+  "model": "gpt-6-luna",
+  "gap": "Even with the cofactor-size lemma, no argument here gives a lower bound against general Boolean circuits for MCSP[m^c]; the direct MCSP decision-circuit lower bound remains open.",
+  "gap_id": "G0194",
+  "id": "S0509",
+  "proved_step": "statement: Cofactor closure with explicit overhead. Let C be an m-input fan-in-two DAG circuit with gates from all 16 Boolean binary functions, unrestricted fan-out, and input wires free; let its size be s. For any restriction fixing a set I of r coordinates with 1<=r<m to a pattern a, the resulting function on the m-r remaining coordinates has circuit size at most s+min(r,2).\nproof: Choose a remaining input z. If r=1, the fixed pattern uses one Boolean value b; construct its constant wire with one gate: XOR(z,z) for b=0, or NAND(z,z) for b=1. If r>=2, construct both constants 0=XOR(z,z) and 1=NAND(z,z), at cost two gates, which is at most r. In the original circuit replace every occurrence of each fixed input i by the constructed wire for a_i. Keep every original gate and all other wires unchanged. These replacement wires compute the fixed values on every assignment to the remaining inputs. Induction in topological order then shows each retained gate computes its original value under the restriction, so the output is the cofactor. The new gates can be shared because fan-out is unrestricted. The total size is s+1 for r=1 and at most s+2 for r>=2, hence at most s+min(r,2).\nscope: All m>=2 and 1<=r<m, in the circuit model specified in the statement, with constants not free. This is a cofactor-size upper bound, not a lower bound for MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

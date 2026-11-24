@@ -205,5 +205,32 @@
   "proved_step": "statement_start: For every deterministic one-pass streaming machine with S state bits and a one-bit input alphabet, each transition stage can be implemented by a Boolean circuit of size O(S 2^S).\nstatement: Lemma (truth-table transition simulation). Let M be a deterministic one-pass machine whose configuration at each read boundary is encoded by S bits, whose next configuration after reading one input bit is a total function \u03b4:{0,1}^S\u00d7{0,1}->{0,1}^S, and whose input length is L. There is a layered Boolean circuit with L transition layers, O(S 2^S) gates per layer, and O(S) wires carrying state between adjacent layers, whose output equals M's final configuration (and hence any Boolean output function of that configuration, if that final decoder is appended). Proof: for each output coordinate j and each pair (u,b) in {0,1}^S\u00d7{0,1} with \u03b4(u,b)_j=1, form the minterm that is 1 exactly when the S state wires equal u and the input wire equals b. OR these minterms to obtain output coordinate j. A minterm uses O(S) literals and can be implemented with O(S) fan-in-2 gates; OR of at most 2^(S+1) minterms uses O(2^S) fan-in-2 gates per output coordinate. Summing over S coordinates gives O(S 2^S) gates per layer. Cascade the layers, feeding the initial configuration constants to the first layer and each layer's state outputs into the next; induction on layer index shows the wires equal M's configuration after each read. Appending the decoder preserves the final output. The construction is exact for all input strings of length L. This restricted lemma only gives an upper simulation bound and does not imply a lower bound for Search-MCSP or close G0001.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795509576.148978,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: Let L be the YES language of an exact deterministic one-pass Search-MCSP machine on inputs of fixed length N. At a cut after t bits, define the suffix residual of prefix u in {0,1}^t by L_u={z in {0,1}^{N-t}: uz in L}, and let R_t be the number of distinct such residuals. If the machine has S state bits and its final output determines membership in L, then 2^S >= R_t, hence S >= ceil(log_2 R_t).\nproof: Suppose prefixes u and v reach the same state at the cut. Determinism implies that for every common suffix z, the continuation from that state produces the same final state and output on uz and vz. Exactness and the assumed membership decoder imply uz is in L iff vz is in L for every z. Therefore L_u=L_v. Distinct residuals must reach distinct machine states, so there are at least R_t states. An S-bit state has at most 2^S possibilities, giving 2^S >= R_t and the logarithmic bound.\nscope: Fixed-length inputs; deterministic one-pass computation; the entire configuration relevant to future computation is included in the S-bit state; final output determines YES membership. Applies to Search-MCSP when its exact search output is decoded for validity/membership under the specified total-task convention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509732.8987463,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Let F be any subset of {0,1}^N and fix a cut after t bits. For each prefix u in {0,1}^t, define its suffix residual F_u={z in {0,1}^{N-t}: uz in F}. If R_t is the number of distinct residuals, then R_t <= min(2^t, 2^(N-t), |F|+1).\nproof: There are at most 2^t prefixes and at most 2^(N-t) possible residual subsets of suffixes, giving the first two bounds. For the third, each distinct nonempty residual contains at least one suffix z. Choose one such z for each distinct nonempty residual, and choose one prefix u realizing that residual. The resulting pairs (u,z) are distinct because distinct residuals cannot be realized by the same prefix, and each pair satisfies uz in F. Thus the number of distinct nonempty residuals is at most |F|. There is at most one empty residual, so R_t <= |F|+1.\nscope: Finite fixed-length Boolean language and any fixed prefix cut. For Search-MCSP the lemma applies to F equal to the YES truth tables, but supplies only an upper bound on residual width; it does not prove G0001 or an update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509839.1782928,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "id": "S0029",
+  "proved_step": "statement: Let F be a subset of {0,1}^N, fix a cut after t bits, and put p=2^t, q=2^(N-t), k=|F|. For each prefix u define F_u={z:uz in F}, and let R_t be the number of distinct F_u. Then R_t <= min(p,q,k+1,pq-k+1).\nproof: There are p rows, so R_t<=p. Each row is a subset of a q-element suffix set, so R_t<=q. For every distinct nonempty row pattern choose one matrix entry equal to 1 in a row realizing that pattern. Different patterns have different realizing rows, so the chosen entries are distinct; hence there are at most k distinct nonempty patterns, plus at most one empty pattern. Thus R_t<=k+1. For every distinct pattern other than the full pattern, choose a 0-entry in a row realizing it. Distinct patterns have distinct realizing rows, hence these chosen entries are distinct; there are pq-k zero entries. Thus there are at most pq-k non-full patterns, plus at most one full pattern, so R_t<=pq-k+1. Combining the four bounds proves the claim.\nscope: All finite fixed-length Boolean languages and every fixed prefix cut. For Search-MCSP this is only a residual-width upper bound; it proves no residual lower bound and no update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -459,5 +459,64 @@
   "evidence": "Refined bound: depends on number of addition gates A rather than total nodes. Multiplication gates don't increase monomial count (T(F1*F2)=T(F1)T(F2) but they're products of disjoint variable sets in read-once formulas). Correct for read-once formulas; still exponential in A.",
   "review_of": "S0045",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509103.6600254,
+  "session": "pnp-desk/research/R2599",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step correctly proves that any arithmetic formula of size s with each variable occurring at most once (syntactic read-once) converts to a uniform layered read-once oblivious ABP of size O(s 2^s). The expansion bound T(F) <= 2^s holds by induction (sum adds counts, product multiplies). Since the formula has at most s distinct variables, the number of variable layers is <= s. Each of the at most 2^s monomial occurrences yields a path of length <= s, giving O(s 2^s) edges. The construction is uniform from the formula tree. The 'in particular' clause (s <= c log N => poly(N) size) is correct when N is the number of variables. No counterexample exists; the argument is mathematically sound for the stated conditional claim. The step honestly notes it does not convert general NS/PC/IPS refutations.",
+  "review_of": "S0047",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509454.4601145,
+  "session": "pnp-desk/research/R2599",
+  "model": "gpt-6-luna",
+  "gap": "Route E verdict: H-NOT-ESTABLISHED. Theorem 12 (S-62fd112af9) establishes an exponential width lower bound for roABP-IPS_LIN refutations of the explicit Psi_n family. Lemma 15 (S-c279449484) converts a full IPS refutation already computed by an roABP of width w, with t placeholder monomials, into an roABP-IPS_LIN refutation of width at most t*w. It does not establish that arbitrary general IPS, Nullstellensatz, or polynomial calculus refutations have such an roABP representation with polynomial width and construction cost. The first missing implication is therefore a uniform, size-controlled conversion from those general proof systems on the same Psi_n family to qualifying roABP-IPS_LIN refutations, preserving the identity, field, uniformity, and placeholder/axiom conditions. The record separately notes Theorem 14 (S-d32ee3f2be) is about full roABP-IPS with bounded placeholder degree; that is still a restricted circuit model, not arbitrary general proofs. The finite Route E reconstruction check is recorded as cm-04b97492d2cf47ff and cm-9198db46a395499a; it supports only that the inspected records do not establish the conversion, not a general impossibility result. No P vs NP conclusion follows.",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795509532.664719,
+  "session": "pnp-desk/research/R2599",
+  "model": "gpt-6-luna",
+  "gap": "This establishes a polynomial-size uniform general-to-oblivious-ABP conversion for globally read-once arithmetic formula certificates only. The recorded G0019 obligation for arbitrary general IPS/NS/PC refutations remains open: the lemma does not show those refutations have read-once formula representations, nor that such a representation preserves the required proof identity and placeholder/axiom conditions.",
+  "gap_note_on": [
+   "G0019"
+  ],
+  "id": "S0058",
+  "proved_step": "statement_start: Every arithmetic formula of size s in which each variable occurs at most once can be converted uniformly in polynomial time to a layered oblivious arithmetic branching program of size O(s^2), preserving linearity in any designated placeholder variables.\nstatement: Let F be an arithmetic formula over a commutative ring, with s gates, and suppose each variable labels at most one leaf of F. Fix any subset Z of its variables. There is a uniform polynomial-time construction of a layered oblivious arithmetic branching program (ABP) computing exactly F, with O(s^2) edges, such that if F has degree at most one in the variables Z, the ABP computes a polynomial of degree at most one in Z. Proof: Induct on the formula tree. For a leaf, use a one-layer ABP for its variable or constant. For a sum F=G+H or product F=GH, the variable sets of G and H are disjoint because F is read-once. By induction construct ABPs for G and H in their respective variable orders. Concatenate the orders into one order for F. Pad each ABP at layers for variables absent from its subformula with identity transitions (constant 1), so both subprograms use the same order. For a sum, use parallel branches from a source and merge their sinks with unit edges; for a product, connect the sink of G to the source of H. These constructions compute exactly the sum or product. If F is linear in Z, the represented polynomial is therefore linear in Z by equality with F; no separate algebraic transformation is made. The construction is uniform from the tree. At each formula node the ABP has O(s) vertices and edges before padding, and at most s variable layers; padding throughout the construction costs at most O(s^2) edges. Thus the final size is O(s^2). Scope: this proves the conversion only for globally read-once formulas; it gives no conversion for arbitrary IPS, Nullstellensatz, or polynomial calculus refutations.\nproof: Induct on the formula tree. A leaf is represented by the one-edge ABP labelled by that variable or constant. For an internal sum or product, read-once-ness ensures the child subformulas have disjoint variable sets. By induction each child has a layered ABP in an order of its variables. Concatenate these orders, padding absent layers with identity edges labelled 1. For a sum, place the two padded ABPs in parallel with a common source and sink, so path weights add. For a product, connect the sink of the first to the source of the second, so path weights multiply. Both constructions compute the formula exactly. Consequently any degree property in designated placeholders that holds for the formula also holds for the computed polynomial, since it is the same polynomial. The tree-to-ABP construction is uniform. There are at most s variable layers; at each stage the graph has O(s) vertices and edges, so padding all layers costs O(s^2).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0019",
+  "closes_valid": false
+ },
+ {
+  "at": 1795509774.468207,
+  "session": "pnp-desk/research/R2599",
+  "model": "gpt-6-luna",
+  "id": "S0059",
+  "proved_step": "statement_start: Let F be an arithmetic formula over a field whose leaves are constants or variables, with each variable occurring at most once. If F has s gates, then its polynomial is computed exactly by a layered oblivious ABP with a single variable order and O(s^2) edges.\nstatement: Let F be an arithmetic formula over a field whose leaves are constants or variables, with each variable occurring at most once. If F has s gates, then its polynomial is computed exactly by a layered oblivious ABP with a single variable order and O(s^2) edges. Proof: Recursively order each formula node by concatenating the orders of its children; constants contribute no variables. The children\u2019s variable sets are disjoint, so this gives an order of the parent\u2019s variables. Inductively construct ABPs for the children using their recursive orders. At a product gate, join the first child\u2019s sink to the second child\u2019s source with a weight-1 edge, so path weights multiply. At a sum gate, take disjoint copies of the child ABPs and identify their sources and sinks, so path weights add. Pad missing variable layers with weight-1 edges. Each child\u2019s order is the restriction of the parent\u2019s concatenated order to its variables, so this padding produces one consistent oblivious order. The construction preserves the polynomial by induction. With O(s) vertices and edges per layer and at most s variable layers, the padded ABP has O(s^2) edges and is constructible in polynomial time. Scope: variables occur at most once; this does not convert arbitrary IPS/NS/PC refutations.\nevidence: The proof gives an inductive semantic construction, beyond the order-only finite check cm-8f9b817b56. It does not establish G0019\u2019s required conversion for arbitrary general refutations; treat the closure as attempted and leave G0019 open if the tool rejects it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0019",
+  "closes_valid": false
+ },
+ {
+  "at": 1795510325.6439824,
+  "session": "pnp-desk/research/R2601",
+  "model": "gpt-6-luna",
+  "id": "S0060",
+  "proved_step": "statement: Lemma (read-once formula to layered oblivious ABP). Over any commutative ring, every arithmetic formula F with s gates in which each variable labels at most one leaf has an equivalent layered oblivious ABP with O(s^2) edges, constructible in polynomial time, using one fixed order of its variables. Proof: Induct on the formula tree. At each node choose an order by concatenating the child orders; their variable sets are disjoint by the global read-once hypothesis. Represent a leaf by a one-edge ABP (a constant leaf uses a constant-weight edge). At a product node, pad each child ABP with weight-1 transitions at variable layers absent from that child, then connect the first sink to the second source; path weights multiply. At a sum node, use disjoint copies of the padded child ABPs with common source and sink; path weights add. Thus each node is computed exactly, with the root using one fixed variable order. The formula has at most s leaves and gates, hence at most O(s) vertices and edges at each layer; there are at most s variable layers. Padding and the resulting ABP therefore use O(s^2) edges. The recursive construction is polynomial time. Exact computation preserves every polynomial identity of F. This proves only the read-once formula case and does not simulate general IPS, Nullstellensatz, or polynomial-calculus refutations.\nproof: The induction constructs the ABP at each leaf and combines child ABPs at each sum or product gate as described. Disjoint child variable sets allow the concatenated order. The sum construction adds path weights; the product construction multiplies them. Padding supplies the common layer order without changing either polynomial. There are at most s layers and O(s) graph elements per layer, giving O(s^2) total edges and a polynomial-time construction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795510456.7092962,
+  "session": "pnp-desk/research/R2601",
+  "model": "gpt-6-luna",
+  "id": "S0061",
+  "proved_step": "statement: Lemma (read-once arithmetic formula to oblivious ABP). Over any commutative ring, an arithmetic formula F with s gates in which every variable occurs at most once has an equivalent layered oblivious ABP with O(s^2) edges in a recursively chosen fixed variable order, constructible in polynomial time. Proof: At a leaf or constant use one edge. At a binary gate, the child supports are disjoint. Choose the global order by concatenating the two child orders. For addition, place copies of the child ABPs in parallel with common source and sink. For multiplication, concatenate the child ABPs in that order. In either construction pad any missing variable layer by a weight-1 transition. Inductively the path-sum is the sum or product of the child path-sums, so the ABP computes F. There are at most s variable layers and at most O(s) vertices and edges per layer across the copied subgraphs, hence O(s^2) edges total. The construction is polynomial time. If deg_z F <= 1, the identical polynomial computed by the ABP is also linear in z. This lemma concerns read-once formulas only and does not convert arbitrary IPS refutations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

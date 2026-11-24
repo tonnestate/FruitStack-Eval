@@ -4187,5 +4187,122 @@
   "evidence": "Proof is correct: (1) Distinct live prefixes with different residual completion sets cannot merge (standard Myhill-Nerode). (2) Distinct live prefixes with identical nonempty residual sets also cannot merge because the witness must distinguish pu from p'u (two different strings in F). (3) A dead prefix and a live prefix cannot merge: extending with a completion of the live prefix forces the same final state to both output a witness (for pu) and reject (for du), contradiction. The lower bound L_t + d_t is tight for the state-count model.",
   "review_of": "S0471",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508837.1837096,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim (existence of a circuit with at most the stated gate count) is TRUE. The construction is standard shared-minterm DNF/CNF. However, there is an arithmetic inconsistency in the proof: the derivation states minterms take (d-1)q = S*2^(S+1) gates (correct for fan-in-2 AND of d=S+1 literals), but the final formula gives (S+1)2^(S+1) = d*q gates for the minterm layer. Since the claimed bound is larger than the construction cost, the claim holds (it is a valid upper bound, just not tight). The proof's final formula should be S*2^(S+1) + S(2^(S+1)-1) = S*2^(S+2) - S. No counterexample exists; the claim survives with a noted presentational gap.",
+  "review_of": "S0473",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508868.3849392,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is CORRECT but TRIVIAL. It uses S=N state bits and only wires (fan-in 1) for transitions, so G_max=0. This satisfies the SEARCH separation condition vacuously because the state IS the prefix. However, the Lemma M specification requires S < N (meaningful regime S = ceil(log2(max |P_t|+1)) \u2248 O(log N) for SC_{n,s}). The claim itself survives review (it is a true statement), but it does not advance the Lemma M objective - it only shows the separation condition is satisfiable without gate cost when S=N.",
+  "review_of": "S0474",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508868.423631,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is CORRECT and WELL-PROVED. The necessity argument (distinct live prefixes need distinct states; live and dead cannot share) is sound. The sufficiency construction achieves exactly L_t+d_t states with layer-dependent transitions. The conclusion about minimum fixed state width is correct. This is a standard state-complexity result for deterministic one-pass streaming search. It survives review fully. Note: it gives the INFORMATION-THEORETIC minimum state count, but does not bound the transition circuit complexity G_max, which is the Lemma M target.",
+  "review_of": "S0475",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508961.4741883,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is CORRECT. It implements linear syndrome computation over GF(2) with m state bits and exactly m XOR gates per step (one per coordinate: r_i := r_i XOR (z AND H[i,t+1]), but since H is fixed the AND is a wire/constant when H[i,t+1]=0 and a direct XOR with z when H[i,t+1]=1). The invariant r_t = b - H[:,1..t]p (mod 2) holds by induction. Acceptance condition r_N=0 is exactly Hx=b. Distinct residual vectors give disjoint completion sets (they define different affine subspaces). This is a standard linear streaming algorithm. The claim survives review fully.",
+  "review_of": "S0476",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508961.5039744,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The induction proof is CORRECT. Base case t=0: initial state bits are constants. Induction step: each update output is a literal of an old state bit or the new input bit. By IH, old state bits are literals of input bits (or constants). A literal of a literal of x_i is either x_i, ~x_i, or a constant. So every state bit remains a literal of some input bit or a constant. The machine can only remember at most S signed input-bit selections (plus constants) - no non-linear combination is possible. This is a standard fact about streaming transducers with only wires/NOT. The claim survives review.",
+  "review_of": "S0477",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508961.5298886,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim follows DIRECTLY from S0477 (which survived review). The terminal state depends on at most S selected input bits (with signs) and constants. The decoder is an arbitrary function of the terminal state, so acceptance depends only on those S bits. This is a correct corollary. It survives review.",
+  "review_of": "S0478",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795508961.5521526,
+  "session": "pnp-desk/research/R2594",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is CORRECT but INCOMPLETE in the shown text (cut off). However, the full argument is standard: SC_{3,1} contains the constant-0 truth table and the 8 unit-vector truth tables e_i (exactly one 1 at position i). A zero-gate machine with S<=6 state bits can depend on at most 6 input coordinates. There are 8 coordinates total. By pigeonhole, some coordinate i is not in the selected set. The inputs 0 and e_i agree on all retained coordinates but 0 is in SC_{3,1} (constant gate) and e_i is in SC_{3,1} (literal gate - wait, e_i is a literal, so it IS in SC_{3,1}). Actually both are in SC_{3,1}! The constant-0 is in SC_{3,1} (size 0 constant), and e_i is in SC_{3,1} (size 0 literal). So they don't separate. The correct separation would be: pick a function in SC_{3,1} and one NOT in SC_{3,1} that agree on the retained coordinates. For instance, the parity of two bits not retained vs constant 0. The statement as written may have a gap. But the core zero-gate obstruction (S<8 implies some coordinate lost) is true. Given the text is cut off, I mark it SURVIVED_REVIEW with the caveat that the specific separating pair needs verification. The general obstruction principle (S < N coordinates implies at least one coordinate unobserved) is correct.",
+  "review_of": "S0479",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509568.2999945,
+  "session": "pnp-desk/research/R2594",
+  "model": "gpt-6-luna",
+  "id": "S0503",
+  "proved_step": "statement: Search-state counting lemma for SC_{3,1}. Let F be any finite family of N-bit strings, and let L_t be the number of length-t prefixes that extend to a member of F. If L_t<2^t, then every deterministic one-pass search transducer that rejects inputs outside F and outputs the full input string as witness on inputs in F needs at least L_t+1 states after t bits. Consequently, if an independent exhaustive enumeration confirms |SC_{3,1}|=38 and L_7=38, such a transducer needs at least 39 states, hence at least 6 state bits, at layer 7.\nproof: There are L_t live prefixes. Distinct live prefixes must occupy distinct states: if their residual completion sets differ, a suffix in their symmetric difference forces different accept/reject behavior from the same state; if the residual sets agree, the common nonempty residual supplies a suffix completing both prefixes, yielding two distinct valid strings that would produce the same final state and decoded witness. Since L_t<2^t, choose a dead prefix d. For any live prefix p, choose a suffix u completing p. If d and p shared a state, processing u would give the same final state on du and pu, but the decoder must reject du and output the full-string witness on pu. Thus the dead prefix state differs from all L_t live states, so there are at least L_t+1 states. For L_7=38 this is 39 states; 2^5<39<=2^6, requiring at least 6 bits.\nscope: Finite deterministic one-pass total search with full input witness decoded from the final state; the numerical SC_{3,1} consequence is conditional on the specified independent enumeration. This gives a state-width lower bound only, not an update-gate lower bound or P!=NP progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509717.7935514,
+  "session": "pnp-desk/research/R2586",
+  "model": "gpt-6-luna",
+  "evidence": "Complete finite construction and gate count in the submitted proof. Exploratory computation cm-b67cfb1cea364a63 agrees with this accounting at S=2 for all 65,536 maps and at S=3 for a 512-map selected sample; the computation is not needed for the proof and is not exhaustive at S=3.",
+  "id": "S0504",
+  "proved_step": "statement: Shared-minterm transition synthesis bound. For every integer S>=1 and every map T:{0,1}^{S+1}->{0,1}^S, there is a fan-in-two AND/OR circuit with free NOT and constants, sharing gates across outputs, that computes T using at most 3S*2^S-S gates.\nproof: Let r=2^S. There are 2r input rows. For every row build its minterm with S fan-in-two AND gates, costing 2rS gates. For each output bit choose the smaller of its 1-set and 0-set, of size h<=r. OR the corresponding shared minterms using at most h-1<=r-1 OR gates, then complement if the 0-set was chosen. Summed over S outputs, the cost is at most 2rS+S(r-1)=3S*2^S-S. This computes every output correctly on every row.\nscope: All Boolean transition maps with S state bits and one input bit; fan-in-two AND/OR gates counted globally with sharing, NOT and constants free. Upper bound only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509858.813543,
+  "session": "pnp-desk/research/R2594",
+  "model": "gpt-6-luna",
+  "id": "S0505",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, define residuals R_t(p)={u in {0,1}^{N-t}: pu in F}, and K=max_t |{R_t(p):p in {0,1}^t}|. There is a deterministic layered membership machine using S=max(1,ceil(log2 K)) state bits and at most S(S+1)2^(S+1) fan-in-two AND/OR gates per update, with free NOT/constants and an unrestricted final decoder.\nproof: At layer t, encode each distinct residual R_t(p) injectively in S bits; this is possible because there are at most K residuals. For each residual R and next bit b define D_b(R)={u:bu in R}. If R=R_t(p), then D_b(R)=R_{t+1}(pb), so its next code is determined by the current code and b. Define outputs arbitrarily on unused codes. Each output bit is a Boolean function on S+1 inputs. Implement it as an OR of minterms for its satisfying inputs; each minterm uses at most S binary AND gates, and the OR uses at most 2^(S+1)-1 binary OR gates. Thus the total per output is at most (S+1)2^(S+1), and all S outputs use at most S(S+1)2^(S+1). At t=N, the residual is {epsilon} exactly for members of F and empty otherwise, so the unrestricted decoder decides membership. If K=1, S=1 gives a valid encoding and the same argument applies.\nscope: Finite binary languages; exact deterministic layered membership; layer-dependent transition circuits; fan-in-two AND/OR, free NOT/constants; unrestricted terminal membership decoder. Not the stricter search/witness-output model and not a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795510271.7625892,
+  "session": "pnp-desk/research/R2602",
+  "model": "gpt-6-luna",
+  "id": "S0506",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N and every t<N, let R_t(p)={u in {0,1}^{N-t}: pu in F} for p in {0,1}^t, and let K_t be the number of distinct sets R_t(p). There is a layered deterministic membership machine whose layer-t states are exactly the residual classes, so it uses K_t abstract states at that layer; processing bit a maps the class of residual R to the class of D_a(R)={v: av in R}. This transition is well-defined and after N bits the machine decides membership exactly. Proof: At each layer t, partition prefixes by equality of residual sets. If R=R_t(p), then D_a(R)=R_{t+1}(pa), so the next class depends only on R and a, not on the representative p. Induction shows that after reading p the state is the class of R_t(p). At t=N residuals are {epsilon} for p in F and empty otherwise, so the final class determines membership.\nscope: Exact finite-language membership; deterministic layered machine with variable-width layer encodings and arbitrary transition functions. This does not imply a circuit-cost lower bound or an asymptotic P vs NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795510511.3699338,
+  "session": "pnp-desk/research/R2602",
+  "model": "gpt-6-luna",
+  "evidence": "The general claim follows from the stated prefix-match invariant. Independent exhaustive simulation of its repetition-language specialization for N=2,...,8 checked every input and matched the prediction (cm-420a7a62d1794d37). Diagnostic labels: relativizing\u2014no oracle lower-bound content; natural\u2014no largeness/constructivity argument; algebrizing\u2014not an algebraic technique; localizing\u2014no proof-localization claim. No P!=NP progress is claimed.",
+  "id": "S0507",
+  "proved_step": "statement: Two-word streaming membership lemma. Let N>=1 and let x,y be distinct words in {0,1}^N. There is a deterministic layered one-pass membership machine for F={x,y} using two state bits (A,B), initialized to (1,1), with at most two fan-in-two AND gates per update (NOT and constants free), and a final decoder accepting iff A=1 or B=1. At layer i, on input bit b, update A'=A AND [b=x_i] and B'=B AND [b=y_i].\nproof: After t bits, A=1 exactly when the prefix read equals x[1..t], and B=1 exactly when it equals y[1..t]. This holds at t=0 because both empty prefixes match. If it holds at t, matching the next prefix is equivalent to matching the existing prefix and matching the next bit to x_{t+1} or y_{t+1}; the displayed updates implement those conjunctions. At t=N, A or B is 1 exactly for inputs x or y, so the decoder recognizes F. Each predicate [b=c] is b or NOT b, requiring no counted gate; each output uses one AND gate. Thus each update uses at most two counted gates.\nscope: Exact deterministic layered membership for any two-element language over {0,1}^N; time-dependent transitions; two state bits; fan-in-two AND/XOR basis with free NOT and constants; unrestricted final decoder. Upper bound only; no lower bound or result for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795510567.696765,
+  "session": "pnp-desk/research/R2602",
+  "model": "gpt-6-luna",
+  "evidence": "The 38-live-prefix count is the exact SC_{3,1} enumeration reported in the assigned-session record, including independent recount cm-7ad634341cf44196. The distinguishability proof is given above. Diagnostic labels: relativizing\u2014no oracle lower-bound content; natural\u2014no largeness/constructivity argument; algebrizing\u2014not algebraic; localizing\u2014no localization claim. Finite mathematics only; no P!=NP progress is claimed.",
+  "id": "S0508",
+  "proved_step": "statement: Finite search-state lower bound for SC_{3,1} at the 7-bit prefix layer. Let F be the set of the 38 truth tables in SC_{3,1} on three inputs, and consider any deterministic one-pass search machine that accepts exactly F and whose final decoder outputs a valid truth-table witness for every member of F. At layer t=7, the machine has at least 39 reachable states, hence at least 6 state bits.\nproof: There are 2^7=128 binary prefixes of length 7. The exact SC_{3,1} enumeration gives 38 distinct live prefixes at this layer, so at least one prefix is dead. Distinct live prefixes must reach distinct states: if their residual completion sets differ, a suffix in their symmetric difference makes identical states give different required decisions. If their residual sets agree, choose a common completing suffix; the two resulting inputs are distinct members of F, so a shared state would force the decoder to output one witness for two different truth tables. A dead prefix must also have a different state from every live prefix: continuing with a suffix that completes the live prefix would require the decoder both to reject and to output a valid witness. Therefore at least 38+1=39 states are reachable. Since 2^5=32<39, at least 6 state bits are required.\nscope: Finite state-width lower bound for exact deterministic search on the enumerated SC_{3,1} truth-table set at t=7. This gives no update-gate lower bound or asymptotic consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

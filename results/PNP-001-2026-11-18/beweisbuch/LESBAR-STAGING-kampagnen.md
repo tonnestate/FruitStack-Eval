@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 13232 entries from 3614 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 13278 entries from 3632 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,27 +18,27 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For any explicitly given two-word language F={x,y}, the coordinatewise candidate-survival transducer has G_max<=2 for every N under free NOT and constants.
+  - For each fixed sparsity s>=2, degree d, and field F, the minimum Boolean hitting-set size for nonzero multilinear polynomials with at most s monomials may be asymptotically smaller than M(t,d)=sum_{j<=d} binom(t,j); determine whether a bound O_s(t^d) can be im
+  - The read-once formula conversion may extend to formulas with bounded variable repetition if their subformula orders can be reconciled with a global order using bounded layer duplication.
   - For affine subspaces F={x∈{0,1}^N:Hx=b}, the syndrome transition can sometimes be recoded using fewer than rank(H) state bits or fewer update gates than the direct column update; the achievable reduction depends on the sequence of prefix-column spans and the a
   - For a deterministic one-pass streaming computation whose final output depends on all N input bits and whose update/readout circuits have fan-in at most k, total gate cost is at least (N-1)/(k-1), independent of the number of state bits.
   - For exact one-pass search-MCSP over all N-bit truth tables, any fixed affine F_2 state update requires at least N state bits, independently of the circuit model, provided the zero function is representable within the size threshold.
-  - For fixed d and sparsity s, Boolean evaluation hitting sets may have size polynomial in s and logarithmic in M, with exponential dependence on d; the two-monomial argument gives O(2^d log M).
-  - The S0471 cycle-type inequality holds for every 0<=m<=N, not just m>N/2, when Lambda(F,m) ranges over cycle types of invariant m-subsets on which F restricts bijectively; the complement injection uses the same padded partition and does not require a density as
-  - The exact MCSP_m[s] decision function may admit a circuit representation that exploits signed-permutation orbits of truth-table inputs at lower cost than direct evaluation, if orbit representative selection can be computed efficiently in the same circuit model
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-NUMERICAL EVIDENCE on file: 3099 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3103 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-c22e79e5b5 [ASSUMPTION, OPEN] The claim 'For every n≥1 and s≥0, circuits with at most s fan-in-two AND/OR/NOT gates, two constants, and one output wire have at most (s+1)(n+s+2)(3(n+s+2)^2)^s topological descriptions; filtering these descriptions dec
   - Q-d116e199fc [MISSING_PROOF, OPEN] Can the explicit candidate-mask transition for EXT be compressed to a representation with per-bit real-gate cost polynomial in s and log N, uniformly for all circuits of size at most s?
