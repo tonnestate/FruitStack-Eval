@@ -100,5 +100,66 @@
   "proved_step": "statement: For t>=d>=1, let M=sum_{j=0}^d binom(t,j), r=ceil(2^(2d)(2 ln M+2)), and let R contain one hit requirement per support |S|<=d and one separation requirement per unordered distinct support pair. The conditional-expectation construction in S0010 can be implemented with at most O(r*2^t*M^2) integer arithmetic operations on integers of O(tr+log M) bits, hence bit complexity O(r*2^t*M^2*(tr+log M)^2) using schoolbook arithmetic, and outputs r Boolean points meeting all requirements. Proof: For each requirement j, let c_j be its exact number of satisfying points in {0,1}^t; c_j is an integer in [0,2^t]. After k selected points, if j is still unmet its conditional failure probability is ((2^t-c_j)/2^t)^(r-k), with numerator and denominator at most 2^(t(r-k)) and 2^(t(r-k)). Their sum Phi has common denominator 2^(t(r-k)), and numerator bit length O(tr+log M), since |R|<=M+M^2. For a candidate next point A, update each unmet requirement using whether A satisfies it, yielding the next potential with the common denominator 2^(t(r-k-1)); its numerator has the same bit bound. The average of these 2^t candidate potentials equals Phi, so choosing a minimizer never increases Phi. Initially Phi<1 by the union bound in S0008; after r choices Phi<1, forcing zero unmet requirements because any unmet requirement contributes 1. Enumerating all candidates and requirements at each of r rounds gives O(r*2^t*M^2) integer operations. The bit bound follows from integer numerator sizes; schoolbook multiplication/addition gives the stated conservative bit complexity. This remains exponential in t and is not a general PIT speed-up.\nevidence: Derivation in the statement; S0008 supplies the probability estimates, and cm-18b7a425100b4944 independently checks only t=10,d=1.",
   "status": "CLAIMED",
   "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795498784.1453688,
+  "session": "pnp-desk/research/R2519",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: LEMMA (two-monomial Boolean hitting set). Let F be a field, t>=d>=1, and M=sum_{j=0}^d binom(t,j). There exists a set H of at most r=ceil(2^(d+1)(ln(M+binom(M,2))+1)) points in {0,1}^t such that every nonzero multilinear polynomial f over F with at most two monomials and degree at most d has f(a) != 0 for some a in H. Proof: Index monomials by supports S subseteq [t], |S|<=d; there are M supports. For each support S impose requirement A_S: some sampled point contains S. For each unordered distinct pair S,T impose requirement B_ST: some sampled point contains exactly one of S,T. For a uniformly random Boolean point a, A_S holds with probability 2^(-|S|)>=2^-d. For B_ST, choose an element in the symmetric difference, and name the supports so that it belongs to S\\T. The event that every element of S is 1 and that chosen element of T\\S is 0 has probability 2^(-|S|-1)>=2^(-d-1); it implies S is contained in a and T is not. Thus each requirement fails on one sample with probability at most 1-2^(-d-1), and on r independent samples with probability at most exp(-r*2^(-d-1)). There are M+binom(M,2) requirements. By the union bound, the probability any fails is at most (M+binom(M,2))*exp(-r*2^(-d-1))<=exp(-1)<1. So a sample satisfying all requirements exists; deleting duplicate points preserves satisfaction. For f=c*x_S with c!=0, A_S gives f(a)=c. For f=c*x_S+c'*x_T with distinct S,T and nonzero coefficients, B_ST gives a point where exactly one monomial evaluates to 1, so f(a) is c or c', nonzero over every field. Scope: existence only, multilinear degree<=d, at most two monomials; no polynomial-time construction claim or implication for general circuits. The size is O(2^d log M).\nevidence: Complete proof given in statement; it does not use any claimed proof-state step as a premise.\ngap: No previously recorded open-obligation ID is available in the proof-state excerpt, so this bounded lemma is not claimed to close the general-circuit PIT obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795498823.1978579,
+  "session": "pnp-desk/research/R2519",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "statement: LEMMA (two-monomial Boolean hitting set, corrected). Let F be a field, t>=d>=1, and M=sum_{j=0}^d binom(t,j). There exists a set H of at most r=ceil(2^(d+1)(ln(M+binom(M,2))+1)) points in {0,1}^t that detects every nonzero multilinear polynomial over F with at most two monomials and degree at most d. Proof: Index the possible monomials by supports S subseteq [t] of size at most d. For each S require that some sampled point a has S subseteq supp(a). For each unordered pair of distinct supports, name them S,T so T\\S is nonempty, choose i in T\\S, and require a point with S subseteq supp(a) and i notin supp(a). A uniform random Boolean point meets a single-support requirement with probability 2^(-|S|)>=2^-d. It meets the pair requirement with probability 2^(-|S|-1)>=2^(-d-1), since the coordinates of S and i are distinct. There are R=M+binom(M,2) requirements. With r independent samples, each requirement fails with probability at most exp(-r*2^(-d-1)); the union bound gives failure probability at most R exp(-r*2^(-d-1))<=exp(-1)<1. Thus a sample meeting all requirements exists; deleting duplicate points preserves them. For f=c*x_S, c!=0, a hit gives f(a)=c. For f=c*x_S+c'*x_T with distinct supports and both coefficients nonzero, the pair requirement gives x_S(a)=1 and x_T(a)=0, so f(a)=c. If like supports are combined or a coefficient is zero, the polynomial is a one-monomial case. This works over every field. Scope: existence only, multilinear polynomials with at most two monomials and degree at most d; no efficient construction claim and no general-circuit PIT consequence. The size is O(2^d log M).\nevidence: Complete corrected probability and detection proof in statement. The earlier S0013 wording chose a coordinate from the wrong set difference; this statement repairs that direction.\ngap: This bounded sparse-polynomial lemma does not close the general-circuit PIT obligation in Q-e988ea9656.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499043.1527903,
+  "session": "pnp-desk/research/R2527",
+  "model": "gpt-6-luna",
+  "evidence": "The review checks the full stated scope. For each support S with |S|<=d, there exists a d-element P containing S, so the monomial evaluates to 1 there and c*x_S evaluates to c != 0. Conversely, for each d-element S, among Boolean points of weight at most d, S is contained only in P=S. Any hitting set for this monomial must include that point. Thus the minimum is exactly binom(t,d). No claim is made for larger sparsity or points of weight greater than d.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795499213.8520339,
+  "session": "pnp-desk/research/R2527",
+  "model": "gpt-6-luna",
+  "evidence": "The integer-size bounds do not establish the claimed operation and bit-complexity bounds: checking whether an explicit t-bit point contains a support, or separates two supports, requires coordinate/bit-mask work whose cost is omitted. Thus the asserted O(r\u00b72^t\u00b7M\u00b2) integer-operation count and the bit bound derived from it do not follow in the stated model. The existence argument remains valid; an enriched implementation statement should specify the representation and include the predicate-evaluation cost.",
+  "review_of": "S0012",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795499597.0613098,
+  "session": "pnp-desk/research/R2527",
+  "model": "gpt-6-luna",
+  "id": "S0017",
+  "proved_step": "statement_start: LEMMA (affine Boolean hitting set). Let F be any field and t>=1.\nstatement: LEMMA (affine Boolean hitting set). Let F be any field and t>=1. Every nonzero affine polynomial p(x)=a0+sum_{i=1}^t ai*x_i over F is nonzero at some point of H={0,e1,...,et}. Proof: If a0!=0, p(0)=a0!=0. Otherwise, since p is nonzero, some ai!=0, and p(ei)=ai!=0. Thus H hits every nonzero affine polynomial.\nevidence: Complete coefficient proof above. Independent exhaustive GF(3) verification for t=1..8 passed in cm-efac3595689046bd; finite corroboration only. This lemma does not close the general circuit-PIT obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499679.452533,
+  "session": "pnp-desk/research/R2527",
+  "model": "gpt-6-luna",
+  "id": "S0018",
+  "proved_step": "statement_start: LEMMA (degree-two multilinear Boolean hitting set). Let F be any field and t>=1.\nstatement: LEMMA (degree-two multilinear Boolean hitting set). Let F be any field and t>=1. Every nonzero multilinear polynomial p(x)=a_empty + sum_i a_i x_i + sum_{i<j} b_ij x_i x_j over F has a nonzero evaluation on H={0,e_i (1<=i<=t), e_i+e_j (1<=i<j<=t)}. Proof: If p vanishes at every point in H, evaluation at 0 gives a_empty=0. Evaluation at e_i then gives a_i=0 for each i. Evaluation at e_i+e_j gives a_empty+a_i+a_j+b_ij=0, hence b_ij=0 for every pair. Thus all coefficients vanish, contradicting that p is nonzero. Therefore H hits every nonzero polynomial in this class. Its size is 1+t+binom(t,2). The argument works in every characteristic. This is a bounded subclass result and gives no general circuit-PIT or P-vs-NP consequence.\nevidence: Direct coefficient recovery by evaluations at the empty, singleton, and pair supports. No claimed proof-state step is used as a premise; this does not close the general circuit-PIT obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499742.045468,
+  "session": "pnp-desk/research/R2527",
+  "model": "gpt-6-luna",
+  "id": "S0019",
+  "proved_step": "statement_start: LEMMA (bounded-degree multilinear Boolean evaluations determine coefficients). Let F be any field and 0<=d<=t.\nstatement: LEMMA (bounded-degree multilinear Boolean evaluations determine coefficients). Let F be any field and 0<=d<=t. For f(x)=sum_{T subseteq [t], |T|<=d} c_T prod_{i in T} x_i over F, its values on points 1_S for |S|<=d uniquely determine all coefficients c_T. Proof: f(1_S)=sum_{T subseteq S}c_T. Induct on |S|: c_empty=f(1_empty), and for each nonempty S with |S|<=d, c_S=f(1_S)-sum_{T proper-subset S}c_T. Thus vanishing on all these points forces all coefficients to vanish. Consequently H={1_S: |S|<=d} hits every nonzero multilinear polynomial of degree at most d and has size sum_{j=0}^d binom(t,j). This is a bounded polynomial-class result, not a general circuit-PIT result and closes no P-vs-NP obligation.\nevidence: Complete induction by the triangular evaluation identity f(1_S)=sum_{T subseteq S}c_T; valid over every field. No unreviewed proof-state step is used as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

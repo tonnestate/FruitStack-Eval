@@ -3914,5 +3914,86 @@
   "proved_step": "statement: Lemma (support bounds sensitivity). Let F:{0,1}^N->{0,1} be computed by a fan-in-two DAG circuit with g gates, free input wires, unrestricted fan-out, and any set of binary gate types. Define supp(F)={i: there exists x with F(x) != F(x with bit i flipped)}. If the output is a gate wire, then |supp(F)|<=2g, and for every x the sensitivity sens(F,x)=|{i:F(x)!=F(x with bit i flipped)}| is at most 2g. Proof: A variable can affect the output only if it occurs as an input to some gate. There are 2g gate-input slots, so at most 2g distinct variables occur there; every variable outside this set is irrelevant to every gate value and hence to the output. Sensitivity is bounded by support. If the output is instead an input wire, the function is a projection and has support and sensitivity 1; this is the zero-gate exception when g=0. Consequently, for an MCSP decision function on N=2^m truth-table bits, if some input has sensitivity k and the circuit output is a gate wire, every such circuit has at least ceil(k/2) gates. This is a conditional criterion; it does not assert that MCSP has high sensitivity.\nscope: All Boolean functions computed by fan-in-two DAG circuits with output selected from an input or gate wire. The projection exception is explicit. The MCSP consequence is conditional and does not claim a lower bound without a sensitivity estimate.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795496878.751626,
+  "session": "pnp-desk/research/R2504",
+  "model": "gpt-6-luna",
+  "id": "S0468",
+  "proved_step": "Lemma (most polynomial-size thresholds are not met by individual functions). Fix any constant c>=1. In the fan-in-two DAG model with m input wires, all 16 binary Boolean gates, unrestricted fan-out, and output chosen from any wire, let s_m=floor(m^c). Then the fraction of Boolean functions f:{0,1}^m->{0,1} computable with at most s_m gates tends to 0 as m tends to infinity. Proof: For each j<=s_m, topologically order the j gates. Each gate has at most 16(m+s_m)^2 choices of type and ordered input wires, and the output has at most m+s_m choices. Thus the number of functions with at most s_m gates is at most B_m=(s_m+1)(m+s_m)(16(m+s_m)^2)^{s_m}. Hence log_2 B_m=log_2(s_m+1)+log_2(m+s_m)+s_m(4+2log_2(m+s_m))=O_c(m^c log m). Since m^c log m=o(2^m), log_2 B_m-2^m tends to negative infinity. There are exactly 2^{2^m} Boolean functions on m bits, so the fraction in question is at most B_m/2^{2^m}=2^{log_2 B_m-2^m}, which tends to 0. This proves only a statement about the circuit complexity of individual functions; it gives no circuit lower bound for the MCSP decision problem.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795496988.7124236,
+  "session": "pnp-desk/research/R2504",
+  "model": "gpt-6-luna",
+  "id": "S0469",
+  "proved_step": "Lemma (constructive sparse-support circuit bound). Let m>=2 and let A be a nonempty subset of {0,1}^m of size t. In the fan-in-two basis containing all 16 binary Boolean functions, with free input wires and unrestricted fan-out, the indicator of A has a circuit with at most tm-1 gates. Proof: For each a in A, construct its minterm. A binary gate can combine the first two required literals into their conjunction in one gate, since every binary Boolean operation is available. For each remaining coordinate, one gate combines the accumulated conjunction with the required positive or negative literal; its truth table is among the 16 allowed gates. Thus each minterm costs m-1 gates. Combine the t minterms by t-1 binary OR gates. The result is 1 exactly on A, and the total is t(m-1)+(t-1)=tm-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795497414.3285506,
+  "session": "pnp-desk/research/R2504",
+  "model": "gpt-6-luna",
+  "id": "S0470",
+  "proved_step": "Lemma (input-coordinate symmetry of exact MCSP). Fix m\u22651, a gate basis consisting of all 16 Boolean functions of two inputs, free input wires, unrestricted fan-out, and the fan-in-two DAG gate-count measure. For every m-input Boolean function f and every signed permutation \u03c0 of its input coordinates (a permutation followed by independently complementing any coordinates), the minimum gate count of f\u2218\u03c0 equals that of f. Consequently, for every threshold s, MCSP_m[s] is invariant under the induced signed-permutation action on length-2^m truth tables. Proof: Given a circuit C for f, replace each occurrence of the ith input wire by the wire corresponding to the permuted, optionally complemented input coordinate. For complemented coordinates, modify each gate receiving that primary input directly: replace its binary truth table g(u,v) by g(\u00acu,v), g(u,\u00acv), or g(\u00acu,\u00acv), as applicable. Each modified operation remains in the full 16-gate basis. This local replacement applies to every gate port directly receiving a primary input; all other gates and connections remain unchanged. The new circuit computes f\u2218\u03c0 and has the same number of gates. Applying \u03c0\u207b\u00b9 gives the reverse inequality, hence equality of minimum gate counts and invariance of the MCSP indicator.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795497904.195973,
+  "session": "pnp-desk/research/R2512",
+  "model": "gpt-6-luna",
+  "id": "S0471",
+  "proved_step": "Lemma: Let a Boolean property C of m-bit Boolean functions be invariant under a transitive group of permutations of the input domain, and suppose C is nonconstant. Then every one of the N=2^m truth-table coordinates is relevant to its indicator. Any fan-in-two DAG computing that indicator, with free input wires, has at least N-1 gates. Proof: Nonconstancy gives functions f,h with different C-values. Their tables differ at some coordinate i. Replace f(i) by h(i), leaving all other bits fixed; this changes C, so i is relevant. For each coordinate j, transitivity gives a domain permutation mapping i to j. The induced permutation of truth-table coordinates preserves C, so transporting the witnessing pair shows j is relevant. Thus all N inputs are relevant. In a circuit computing the indicator, every relevant input has a path to the output. The subgraph formed by those N inputs, the q gates on paths to the output, and their edges is connected and has at most 2q edges because each gate has fan-in two. A connected graph on N+q vertices has at least N+q-1 edges. Hence 2q >= N+q-1 and q >= N-1. This applies to MCSP[s] only when the chosen basis and threshold give both the required transitive symmetry and nonconstancy; it yields a linear bound, not the target N(log N)^k bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795497950.2159917,
+  "session": "pnp-desk/research/R2512",
+  "model": "gpt-6-luna",
+  "id": "S0472",
+  "proved_step": "Lemma (symmetry relevance bound). Let C be a nonconstant Boolean property of N-bit strings, invariant under a transitive permutation group on the N coordinates. Then every coordinate is relevant to C. Consequently any fan-in-two DAG circuit computing C has at least N-1 gates. Proof: Choose strings u,v with C(u) != C(v), and a coordinate i where they differ. Replacing u_i by v_i changes C, so i is relevant. For any coordinate j, transitivity gives a group element taking i to j; applying it to u and v preserves their C-values and moves the differing coordinate to j. Thus j is relevant. In a circuit, every relevant input has a path to the output. Let q be the number of gates on paths to the output. The graph consisting of the N relevant input vertices and those q gate vertices, with wires as edges, is connected and has at most 2q edges. Therefore 2q >= N+q-1 and q >= N-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795498081.9990797,
+  "session": "pnp-desk/research/R2512",
+  "model": "gpt-6-luna",
+  "id": "S0473",
+  "proved_step": "Lemma (nontriviality and linear decision-circuit lower bound for threshold MCSP). Let m>=2, N=2^m, and let MCSP_m[s] accept exactly the N-bit truth tables of m-input Boolean functions computable with at most s gates in the fan-in-two basis of all 16 binary Boolean operations. If s>=m-1 and (s+1)(m+s)(16(m+s)^2)^s < 2^N, then every fan-in-two DAG computing MCSP_m[s] has at least N-1 gates. Proof: The zero function has an m-1-gate circuit: use a gate to form NOT x_1 AND x_2, then AND successively with x_3,...,x_m. Thus MCSP_m[s] accepts the zero truth table. By the circuit-description count, at most (s+1)(m+s)(16(m+s)^2)^s tables are accepted. The strict inequality implies at least one rejected table, so MCSP_m[s] is nonconstant. Permuting the m input variables preserves circuit size and induces a transitive action on the N truth-table coordinates. For any nonconstant Boolean property invariant under a transitive coordinate-permutation group, every coordinate is relevant: a differing pair of inputs witnesses relevance for some coordinate, and transitivity transports the witness to every coordinate. In a fan-in-two circuit with q gates, the q gates and N relevant input vertices are connected to the output and have at most 2q wire edges. A connected graph on N+q vertices has at least N+q-1 edges; hence q>=N-1. For every fixed c>=1, the displayed inequality holds for s=m^c at sufficiently large m, since the logarithm of its left side is O(m^c log m)=o(2^m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795499870.0322924,
+  "session": "pnp-desk/research/R2528",
+  "model": "gpt-6-luna",
+  "gap": "No new constructive lemma closing G0001/G0002 was proved this turn. The gate-elimination route still lacks a restriction-stable invariant forcing superlinear gate consumption for arbitrary fan-in-two DAG circuits with unrestricted sharing.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ]
+ },
+ {
+  "at": 1795500119.257905,
+  "session": "pnp-desk/research/R2528",
+  "model": "gpt-6-luna",
+  "lemma": "Shannon cofactor reconstruction: For every Boolean function C(x,y), if its two cofactors C0(y)=C(0,y) and C1(y)=C(1,y) have fan-in-two Boolean circuits of sizes a and b, respectively, then C has a fan-in-two circuit of size at most a+b+4. The bound allows unrestricted DAG sharing.",
+  "gap": "This reconstruction upper bound does not establish restriction stability of the MCSP promise or a lower bound on the circuit size of MCSP cofactors. G0001 and G0002 remain open.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ],
+  "id": "S0475",
+  "proved_step": "statement: For every Boolean function C(x,y), if C0(y)=C(0,y) and C1(y)=C(1,y) have fan-in-two Boolean circuits of sizes a and b, respectively, then C has a fan-in-two circuit of size at most a+b+4.\nproof: Take disjoint copies of circuits for C0 and C1. One NAND gate with both inputs x computes \u00acx. One AND gate computes \u00acx\u2227C0, one AND gate computes x\u2227C1, and one OR gate combines them. The resulting output is (\u00acx\u2227C0)\u2228(x\u2227C1), which equals C when x=0 and when x=1. Thus the circuit has at most a+b+4 gates. The construction uses a DAG circuit and remains valid with unrestricted sharing within each copied cofactor circuit.\nscope: All Boolean functions C on one distinguished Boolean input x and any remaining input tuple y; fan-in-two basis containing NAND, AND, and OR; circuit size counts gates; unrestricted DAG sharing.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

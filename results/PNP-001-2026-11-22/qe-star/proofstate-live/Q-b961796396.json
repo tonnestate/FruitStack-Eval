@@ -944,5 +944,33 @@
   "evidence": "Exhaustive verification for all positive EXACT1 3-CNF formulas up to n=6 variables and 4 clauses (thousands of formulas x cuts). Zero violations found. The proof argument is sound: each crossing clause has 1 or 2 X-variables (since 3 distinct vars total). With 1 X-var: remaining 2 Y-vars sum to 0 or 1 (2 forms). With 2 X-vars: their sum in {0,1,2} gives unary Y=1, Y=0, or false (3 forms). At most 3^b tuples of residual forms across b crossing clauses. X-only clauses failing or t>=2 in a crossing clause both yield the identically false residual, adding at most +1. Conjunction with common Y-only clauses preserves distinctness. Bound holds but is not tight (max ratio 2/3 observed).",
   "review_of": "S0103",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795497344.7321217,
+  "session": "pnp-desk/research/R2503",
+  "model": "gpt-6-luna",
+  "evidence": "The proof says canonical child descriptions are formed by scanning clauses for each state at each level. This implementation can require O(n*m*3^B) clause inspections (up to polynomial factors in B), not the claimed O((n+m)(3^B+1) poly(B)) in general. The correctness induction and state-count bound do not establish the advertised runtime. This refutes the stated runtime claim as justified by the supplied algorithm; it does not refute the bounded-crossing direction or the counting algorithm with the weaker scan-based runtime.",
+  "review_of": "S0104",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795497569.0539007,
+  "session": "pnp-desk/research/R2503",
+  "model": "gpt-6-luna",
+  "id": "S0115",
+  "proved_step": "statement: Let F be a conjunction of m positive EXACT1 clauses, each on three distinct Boolean variables, and fix a variable order whose every prefix cut has at most B crossing clauses. Then #SAT(F) is computable by a dynamic program using at most 2^B states per level and O((m+n(B+1))2^B) arithmetic operations, excluding integer bit complexity and representation overhead.\nproof: At each prefix cut, store the partial sum of assigned variables for each crossing clause. Reject any prefix with a partial sum at least 2. For each remaining state, branch on the next variable's two values, update only clauses incident to that variable, and when a clause's last variable is assigned retain the branch exactly when its total sum is 1. Clauses wholly in the unprocessed suffix are untouched. Hence the vector of active sums, each in {0,1}, determines all constraints involving processed variables that can affect a completion. Prefixes with the same vector have the same valid suffix completions, so their counts may be added. There are at most 2^B vectors per level. Each clause-variable incidence is updated once per state at its variable's level; summing degrees gives O(m 2^B) incidence work. Explicit state-vector updates cost O(B) per state per level, hence O(n B 2^B); initialization and finalization add O((m+n)2^B). The total is O((m+n(B+1))2^B). At the final level all clauses have been checked, so the accumulated count is exactly #SAT(F).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-b961796396",
+  "closes_valid": true
+ },
+ {
+  "at": 1795498584.8665307,
+  "session": "pnp-desk/research/R2513",
+  "model": "gpt-6-luna",
+  "id": "S0116",
+  "proved_step": "statement: For any Boolean function f:X\u00d7Y\u2192{0,1}, any fixed cut X|Y, and any field K, let M be its 0/1 communication matrix over K, let r=rank_K(M), and let D be the number of distinct rows of M. Then D\u22642^r. Consequently, for every variable order \u03c0, the maximum number of residual functions at a cut is at most 2^{max_cut rank_K(M_cut)}; minimizing over \u03c0 gives W_OBDD(f)\u22642^{W_rank,K(f)}.\nproof: Let U be the row space of M, of dimension r. The coordinate functionals on K^Y restrict to a spanning set of U*, so choose coordinates y_1,...,y_r whose restrictions form a basis of U*. The map \u03c6:U\u2192K^r given by these coordinates is injective. Every row of M is in U and has only 0/1 entries, so its image lies in {0,1}^r. Distinct rows therefore have distinct images, proving D\u22642^r. If r=0, U={0} and D\u22641. At a variable-order cut, rows correspond exactly to residual functions on the unprocessed variables. Apply the bound at each cut, then minimize over orders; monotonicity of 2^x gives the stated inequality.\nscope: All finite Boolean functions, fixed variable cuts and variable orders, and any field K. This comparison does not construct a family attaining an exponential gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

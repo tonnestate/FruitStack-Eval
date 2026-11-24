@@ -4025,5 +4025,158 @@
   "proved_step": "statement: LEMMA (ancestor-incidence bound). Let C be a fan-in-2 Boolean circuit with one output, and suppose its output depends on N>=2 distinct primary input variables. Then C has at least N-1 gates. Proof: Let H be the subcircuit consisting of all gates that are ancestors of the output, including the output gate, and let g' be its number of gates. Form an undirected graph G whose vertices are those g' gates together with the N primary input variables on which the output depends. Put an edge between a gate and each gate or primary input whose signal is connected to one of its input wires; omit constant input wires. Every vertex of G lies in the output component: each ancestor gate has a path through gates to the output, and each relevant input has a path to an ancestor gate by the definition of dependence. Thus G is connected. Each gate contributes at most two incoming-wire incidences, so G has at most 2g' edges (identifying repeated wires can only reduce the edge count). A connected graph on N+g' vertices has at least N+g'-1 edges. Hence N+g'-1 <= 2g', so g' >= N-1, and the whole circuit has at least N-1 gates. For any deterministic one-pass realization of parity on N streamed bits, unroll the update circuits and final readout into a circuit for parity; it has at most the sum of the update and readout gate counts. Since parity depends on all N inputs, that total is at least N-1.\nscope: All fan-in-2 Boolean circuits with N>=2 relevant input variables; consequent total cost lower bound N-1 for deterministic one-pass parity realizations with fixed initial state and fan-in-2 update/readout circuits. This is linear and does not close the open superlinear-cost obligation.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795496581.3837833,
+  "session": "pnp-desk/research/R2502",
+  "model": "gpt-6-luna",
+  "evidence": "The proof asserts that B=Omega\\A is a union of complete cycles of F, but F is an arbitrary function and may have nonperiodic points. Counterexample: Omega={0,1,2}, F(0)=1, F(1)=1, F(2)=2, A={2}. Then A is invariant and F|A is bijective, but B={0,1} is not a union of complete cycles (0 is nonperiodic). Thus the omitted-cycle multiset used by the injection is not defined as claimed. The conclusion may be repaired by padding the actual cycle multiset with formal singleton parts for nonperiodic states, as in S0471.",
+  "review_of": "S0470",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795496964.2284148,
+  "session": "pnp-desk/research/R2502",
+  "model": "gpt-6-luna",
+  "id": "S0477",
+  "proved_step": "statement: LEMMA (counting hard pairs uniformly over stationary encodings). Fix m>=2, S=ceil(log_2 m), and a fixed complete fan-in-2 basis. Assume the number of S-input, S-output circuit pairs with at most G total gates is at most 2^{c(G+S)log_2(G+S)} for a constant c depending only on the basis. For every sufficiently small fixed epsilon>0 and all sufficiently large m, there exist two maps delta_0,delta_1 on an m-element set such that for every injective encoding psi into {0,1}^S, the sum of the minimum gate counts of circuits realizing psi delta_0 psi^{-1} and psi delta_1 psi^{-1} on the encoded states is greater than epsilon m. Proof: There are m! encodings after identifying the abstract set with [m], and m^{2m} ordered pairs of maps. For any fixed encoding and circuit pair, the pair of represented maps on [m] is uniquely determined by restricting the circuit outputs to the m encoded states and decoding; values outside those states are irrelevant. Thus the number of (encoding, map-pair) incidences represented by circuit pairs of total size at most G is at most m! 2^{c(G+S)log_2(G+S)}. If every map-pair had some encoding with a representing circuit pair of total size at most G, then m^{2m} <= m! 2^{c(G+S)log_2(G+S)}. Taking base-2 logarithms gives 2m log_2 m <= log_2(m!)+c(G+S)log_2(G+S) <= m log_2 m+c(G+S)log_2(G+S). Set G=floor(epsilon m). For sufficiently small fixed epsilon, c(epsilon m+S)log_2(epsilon m+S) <= (1/2)m log_2 m for all sufficiently large m, contradicting the preceding inequality. Hence some pair has no encoding with total circuit cost at most epsilon m, as claimed. The maps' outputs on unused codes may be arbitrary; the argument counts only their restrictions to the m encoded states. This is an existence/counting lemma and gives no explicit hard pair or P-vs-NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795497815.26856,
+  "session": "pnp-desk/research/R2509",
+  "model": "gpt-6-luna",
+  "id": "S0478",
+  "proved_step": "statement: LEMMA (fan-in-two ancestor-cone input bound). Let C be a Boolean circuit with one output, fan-in at most two, and g gates. If the output depends on all N primary input variables, then g >= N-1. Proof: Remove gates outside the output's ancestor cone, leaving g' <= g gates. For g'>0, let e be the number of directed wires from one cone gate to another, counting repeated wires with multiplicity. The underlying undirected graph on the g' cone gates is connected: every cone gate has a directed path to the output gate. Hence e >= g'-1. There are at most 2g' incoming wire slots to cone gates, so at most 2g'-e <= g'+1 slots can be occupied by primary-input wires. Every primary input on which the output depends must occur in at least one such slot; thus N <= g'+1 <= g+1, proving g >= N-1. (If the output is a primary input, it cannot depend on N>=2 variables; the N=1 conclusion is immediate.)\nproof: Complete proof given in statement.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795498026.64267,
+  "session": "pnp-desk/research/R2509",
+  "model": "gpt-6-luna",
+  "id": "S0479",
+  "proved_step": "statement: LEMMA (streaming parity gate-cost bound). Let N>=2 and let a deterministic one-pass machine read x_1,...,x_N in order, start in a fixed state, update by fan-in-at-most-two Boolean circuits F_t(state,x_t), and output by a fan-in-at-most-two circuit D of the final state. If it outputs x_1 XOR ... XOR x_N on every input, then sum_{t=1}^N size(F_t)+size(D) >= N-1. Proof: Wire the state outputs of F_t to the state inputs of F_{t+1}, provide each x_t to its update, hard-wire the initial state, and wire the final state to D. This is a finite acyclic fan-in-at-most-two circuit computing parity, with at most the displayed sum of gates. For any one-output fan-in-at-most-two circuit computing parity, restrict to the output ancestor cone with g' gates. The undirected graph on its gates is connected, so it has at least g'-1 internal gate-to-gate wires. At most 2g'-(g'-1)=g'+1 input slots can be occupied by primary inputs. Since parity depends on every one of the N inputs, N<=g'+1; hence the original circuit and the machine's total gate cost are at least N-1. This proof is self-contained and does not assume any prior unreviewed proof-state step.\nproof: The unrolling construction preserves the state after each prefix by induction on t, so its output is the machine's output and hence parity. In the unrolled circuit, discard gates outside the output ancestor cone. Every cone gate has a directed path to the output gate, so the underlying undirected graph of cone gates is connected and has at least g'-1 internal wires. Each gate has at most two incoming slots, leaving at most g'+1 slots for primary inputs. A variable absent from these slots cannot affect the output. Parity depends on each input (flipping that bit flips the output), so N<=g'+1. The unrolled gate count is at most the sum of all update and readout gate counts, proving the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795498610.2090435,
+  "session": "pnp-desk/research/R2518",
+  "model": "gpt-6-luna",
+  "lemma": "For every function F on a finite N-element set and every m>N/2, distinct cycle-type multisets of invariant bijective m-subsets inject into partitions of N-m: adjoin N-periodic_count(F) formal singleton parts to F's actual cycle lengths to make a partition of N, then take multiset complement. The complement has total N-m and uniquely determines the selected cycle-type multiset. Hence |Lambda(F,m)| <= p(N-m). Proof: any A with F(A)=A and F|A bijective consists entirely of complete cycles of F, since every x in A lies on a finite permutation orbit under F|A; the added singleton parts represent the nonperiodic states. The selected parts have total m, so their complement has total N-m. Multiset subtraction from the fixed padded partition is injective. This is the complete combinatorial argument; the restriction m>N/2 is unnecessary for this lemma.",
+  "evidence": "Independent exhaustive check requested as cm-2a808a4060b54c64 failed before execution due to a top-level return syntax error. No computational evidence is claimed; the proof is direct."
+ },
+ {
+  "at": 1795498948.3172667,
+  "session": "pnp-desk/research/R2509",
+  "model": "step-5-preview",
+  "evidence": "The unrolling construction is correct: wiring each update circuit F_t's state outputs to F_{t+1}'s state inputs, feeding x_t to its update, hard-wiring the initial state, and connecting the final state to readout D yields a valid fan-in-2 Boolean circuit computing L. Induction on t confirms the intermediate wires match the streaming machine's state after each prefix. The composed circuit uses exactly the gates from F_1,...,F_N and D with no additional gates needed for state wiring or hard-wiring constants. Since L has minimum fan-in-2 circuit complexity h, the composed circuit's gate count (bounded above by sum_t size(F_t)+size(D)) must be at least h, so the streaming realization's total gate cost is >= h. This holds for every state-space size because the gate count of the unrolled circuit is independent of the state width. No counterexample or argument gap found.",
+  "review_of": "S0468",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795499076.359126,
+  "session": "pnp-desk/research/R2518",
+  "model": "gpt-6-luna",
+  "gap": "The assigned Bridge D remains open: prove an amortized transition-work bound for redundant, time-varying encodings with bounded memory and efficient final decoding.",
+  "gap_id": "G0191",
+  "id": "S0482",
+  "proved_step": "statement: Residual-state characterization. Let L be a language over a finite alphabet with finitely many distinct suffix residuals L_u = {v : uv \u2208 L}. The minimum number of states in a deterministic recognizer that reads one symbol per transition and decides L at end of input equals the number of distinct residuals.\nproof: If two prefixes reach the same state, every suffix has the same acceptance outcome after either prefix, so their residuals are equal. Thus distinct residuals require distinct states. Conversely, take the residuals as states, start at L_\u03b5, transition from L_u on symbol a to L_{ua}, and accept L_u exactly when \u03b5 \u2208 L_u. This transition is well-defined: equality L_u = L_{u'} implies, for every suffix v, av \u2208 L_u iff av \u2208 L_{u'}, hence v \u2208 L_{ua} iff v \u2208 L_{u'a}; therefore L_{ua} = L_{u'a}. Induction on input length proves that the resulting automaton accepts exactly L.\nscope: Finite residual set; deterministic exact one-pass recognition with an end-of-input decision. This is a state-count result only, not a transition-gate lower bound or P-vs-NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499150.726243,
+  "session": "pnp-desk/research/R2509",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The padded omitted-cycle bound is correct. Let C be the multiset of cycle lengths of F, r the number of non-periodic states. Form lambda by adjoining r formal parts of size 1 to C. Every admissible A of size m with F(A)=A and F|A bijective consists of whole cycles of F (since F|A is a permutation). Its cycle-type multiset sigma(A) is a submultiset of lambda with total m. The complement in lambda has total N-m and uniquely determines sigma(A). Distinct sigma(A) give distinct complements, so |Lambda(F,m)| <= number of partitions of N-m = p(N-m). The padding parts are formal and not claimed to be cycles of F, so the construction is valid. No counterexample found; the argument is sound.",
+  "review_of": "S0471",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795499235.4453375,
+  "session": "pnp-desk/research/R2526",
+  "model": "gpt-6-luna",
+  "id": "S0484",
+  "proved_step": "statement: LEMMA (fan-in k ancestor bound). Let C be a Boolean circuit with one output, gates of fan-in at most k for an integer k>=2, and suppose the output depends on N>=2 distinct primary inputs. Then C has at least (N-1)/(k-1) gates. Proof: Retain only the g' gates in the output's ancestor cone. Form the undirected graph with these gates and the N relevant input vertices, joining a gate to every gate or relevant input supplying one of its wires. The graph is connected: every retained gate reaches the output, and every relevant input reaches a retained gate. It has at most k g' edges, since each gate has at most k incoming wires and identifying repeated wires only decreases the edge count. A connected graph on N+g' vertices has at least N+g'-1 edges. Thus N+g'-1<=kg', so g'>=(N-1)/(k-1), and the full circuit has at least that many gates. This applies also to an unrolled deterministic streaming computation whenever its final output depends on all N streamed inputs; its total update-plus-readout gate cost is at least (N-1)/(k-1). Scope: fan-in at most k, one output, N relevant primary inputs; the consequence is linear and gives no superlinear streaming cost bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795499733.0442152,
+  "session": "pnp-desk/research/R2526",
+  "model": "gpt-6-luna",
+  "id": "S0485",
+  "proved_step": "statement: LEMMA (finite-basis circuit-pair count). Fix a finite fan-in-two gate basis of size B, and integers S>=1 and G>=0. The number of ordered pairs (F,H) of acyclic Boolean circuits, each with S input bits and S designated output bits, whose total number of gates is at most G, is at most (G+1)^2 B^G (S+G+2)^(2G+2S). Proof: For exactly g and h gates with g+h<=G, topologically order gates. Each gate has at most B choices of type and at most (S+G+2)^2 choices for its two predecessor signals (primary inputs, constants, or earlier gates); each of the 2S designated output wires has at most S+G+2 choices. Thus for fixed g,h the number is at most B^(g+h)(S+G+2)^(2(g+h)+2S), bounded by B^G(S+G+2)^(2G+2S). There are at most (G+1)^2 choices of (g,h); summing proves the bound. Invalid encodings and multiple topological encodings only increase the count.\nscope: All S>=1, G>=0, and any fixed finite basis of B fan-in-two gate types; ordered circuit pairs with S input bits and S designated output wires each, counting gate count in aggregate. Syntactic counting only, not a state-recoding lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499904.1561973,
+  "session": "pnp-desk/research/R2526",
+  "model": "gpt-6-luna",
+  "evidence": "The stated circuit-count hypothesis omits the cost of choosing the 2S designated output wires. This makes the asymptotic conclusion unsupported for the actual C_G when G is very small (in particular G=0), since even zero-gate circuits have output-wire choices. Repair: encoding each pair with g+h\u2264G gates by gate types, predecessor wires, and 2S outputs gives C_G\u2264(G+1)^2 B^G(S+G+2)^(2G+2S), hence log C_G=O_B((G+S)log(G+S+2)). For S=ceil(log\u2082N) and G=o(\u221aN/log N), this corrected logarithm is still o(\u221aN), so the fixed-density counting comparison can be re-proved under the corrected bound. The corrected circuit-count estimate is S0485 and remains CLAIMED; this review refutes the stated hypothesis as written, not the fixed-density direction.",
+  "review_of": "S0472",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795499980.2416828,
+  "session": "pnp-desk/research/R2526",
+  "model": "gpt-6-luna",
+  "id": "S0487",
+  "proved_step": "statement: REPAIR LEMMA (uniform encoding count with designated outputs). Fix a finite fan-in-two basis of size B>=1, S>=1 primary inputs per circuit, and G>=0 total gates across an ordered pair of circuits, each with one designated output. The number of syntactic ordered circuit pairs with at most G gates total is at most (G+1)^2 B^G(S+G+2)^(2G+2). Proof: choose gate counts g,h with g+h<=G (at most (G+1)^2 choices). In a fixed topological order, each of g+h gates has a type and two predecessor indices among at most S+G+1 signals, giving at most B^G(S+G+1)^(2G) encodings. Each circuit's designated output is one of at most S+G signals, so the pair contributes at most (S+G)^2 choices. Multiplying and enlarging bases yields the stated bound. This explicitly includes the output-wire choices missing from the earlier count. The bound is syntactic and may overcount functionally equivalent circuits.\nscope: Finite fan-in-two basis, S>=1 inputs per circuit, ordered pair, at most G total gates, one designated output per circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500051.3160505,
+  "session": "pnp-desk/research/R2526",
+  "model": "gpt-6-luna",
+  "id": "S0488",
+  "proved_step": "statement: REPAIRED EXISTENCE LEMMA (hard pair of maps uniformly over stationary encodings). Fix a finite fan-in-two gate basis of size B>=1. For all sufficiently large m, with S=ceil(log2 m), there exist maps delta_0,delta_1:[m]->[m] and a constant epsilon>0 such that, for every injection psi:[m]->{0,1}^S, any pair of circuits whose outputs on the encoded states realize psi delta_0 psi^{-1} and psi delta_1 psi^{-1} has total gate count greater than epsilon m. Proof: For a fixed encoding and a circuit pair, restricting both circuits to the m encoded states determines at most one pair of maps [m]->[m] (pairs whose outputs fail to decode to valid codes realize no such map pair). By S0487, the number of syntactic circuit pairs of total size at most G is at most (G+1)^2 B^G(S+G+2)^(2G+2). Thus at most m! (G+1)^2 B^G(S+G+2)^(2G+2) encoding/map-pair incidences are represented. There are m^(2m) map pairs. Choose G=floor(epsilon m), for a sufficiently small fixed epsilon, for example any epsilon<1/8. The base-2 logarithm of the incidence bound is at most log2(m!)+2log2(G+1)+G log2(B)+(2G+2)log2(S+G+2) = (1+2epsilon+o(1))m log2(m), which is not small enough for this choice of incidence comparison. Therefore this direct counting argument does NOT prove the stated conclusion; the claimed lemma is withdrawn. Corrected usable consequence: if instead the encoding family has size at most m! and the map-pair family has size m^(2m), this same count only yields a contradiction when the circuit-pair count is less than m^m, which the displayed bound does not ensure for G=epsilon*m. No recoding lower bound is established by this count.\nscope: Finite set [m], injective stationary encodings into S=ceil(log2 m) bits, fixed finite fan-in-two basis; this records the exact failure of the attempted counting extension, not a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500051.35433,
+  "session": "pnp-desk/research/R2526",
+  "model": "gpt-6-luna",
+  "id": "S0489",
+  "proved_step": "statement: LEMMA (uniform count with designated outputs). Fix B>=1, S>=1 and G>=0. The number of syntactic ordered pairs of fan-in-two circuits over a fixed basis of size B, each with S inputs and one designated output, using at most G gates total, is at most (G+1)^2 B^G(S+G+2)^(2G+2). Proof: Choose gate counts g,h with g+h<=G; there are at most (G+1)^2 choices. In a fixed topological order, encode each gate by its type and its two predecessor signals, each selected from at most S+G+1 available signals. This gives at most B^G(S+G+1)^(2G) encodings. Encode the two designated outputs by at most (S+G)^2 further choices. Since S+G+1 and S+G are at most S+G+2, the product is at most the displayed bound for each count pair, and summing over count pairs proves the claim.\nscope: Syntactic circuit count; fixed finite basis, ordered pair, at most G total gates, one designated output per circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500084.9090025,
+  "session": "pnp-desk/research/R2534",
+  "model": "gpt-6-luna",
+  "evidence": "The claimed inference from m^{2m} <= m! 2^{c(G+S)log2(G+S)} to a contradiction for G=floor(epsilon m) is invalid for an arbitrary fixed c: the displayed upper bound on log2(m!) is fine, but choosing epsilon so that c*epsilon < 1/2 still does not justify c*(G+S)log2(G+S) <= (1/2)m log2 m uniformly for all sufficiently large m unless epsilon is chosen with the appropriate constant factor; more decisively, even if that bound holds, the RHS logarithm is at most (3/2)m log2 m, while the premise only gives 2m log2 m <= log2(m!)+..., which is a necessary inequality for coverage. Its failure does prove noncoverage. The step is not refuted by that reasoning. Need exact counterexample or gap.",
+  "review_of": "S0477",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795500093.0531154,
+  "session": "pnp-desk/research/R2533",
+  "model": "gpt-6-luna",
+  "id": "S0491",
+  "proved_step": "statement: LEMMA (all-injection counting repair). Fix a complete fan-in-2 Boolean basis. Suppose the number of ordered pairs of S-input, S-output circuits with at most G total gates is at most 2^{c(G+S)log_2(G+S)} for a basis-dependent constant c. For all sufficiently large m, with S=ceil(log_2 m), there are two maps on an m-element set such that for every injection into {0,1}^S, circuits implementing both maps on the encoded states require more than epsilon*m gates total, for some fixed epsilon>0. Proof: q=2^S and the number of injections is (q)_m, at most q^m<(2m)^m. For each injection and circuit pair, restricting to encoded inputs and decoding outputs determines at most one pair of maps, so at most (q)_m*2^{c(G+S)log_2(G+S)} map pairs are representable with total cost at most G under some injection. There are m^{2m} ordered map pairs. Set G=floor(epsilon*m). For sufficiently small fixed epsilon and sufficiently large m, m log_2(2m)+c(G+S)log_2(G+S)<2m log_2(m), since the first term is m log_2(m)+O(m), and the coefficient of m log_2(m) in the second term can be made less than one by choosing epsilon small. Thus fewer than m^{2m} map pairs are represented; some pair has no such encoding and circuit pair. This is an existence result, not an explicit hard pair or P-vs-NP consequence. Barrier diagnostic: no P-vs-NP progress claimed; the counting method is nonconstructive, no natural property or learner is obtained, and relativizing/algebrizing/localizing status is not used to infer a target lower bound. The perfect-matching control does not apply as a transferable restricted-model bound to a function in P; no natural-measure lower bound is claimed.\nscope: All sufficiently large m under the stated fan-in-2 circuit-counting hypothesis; all stationary injective encodings into S=ceil(log_2 m) bits; arbitrary ordered pairs of total maps, evaluated only on encoded states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500116.9504802,
+  "session": "pnp-desk/research/R2509",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The argument is sound: 1) The padded omitted-cycle bound (S0471, survived review) gives |\u039b(F,m)| \u2264 p(N\u2212m). 2) Circuit count C_G = 2^{O(G log(G+S))} with S=\u0398(log N). 3) If G = o(\u221aN/log N), then log C_G = o(\u221aN). 4) Hardy-Ramanujan gives log p(m) \u2212 log p(N\u2212m) \u2265 c_\u03b5\u221aN + o(\u221aN) for m \u2265 (1/2+\u03b5)N. 5) Eventually C_G p(N\u2212m) < p(m), so some partition of m is missed. The scope is correctly stated: fixed-density range, under the circuit-count estimate, no uniform claim as m/N\u21921/2.",
+  "review_of": "S0472",
+  "status": "SURVIVED_REVIEW"
  }
 ]

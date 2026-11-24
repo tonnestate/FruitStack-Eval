@@ -3961,5 +3961,65 @@
   "proved_step": "statement: For every N>=2 and word w in {0,1}^N, the singleton language F={w} has a deterministic layered one-bit streaming membership machine with G_max<=2 when the basis is AND, XOR, NOT, and constants, every nonconstant gate including NOT is counted, wires and fanout are free, the initial state is fixed to 1, and the final decoder accepts state 1. Proof: After reading i bits, let q_i=1 exactly when the read prefix equals w_1...w_i. At layer i (1-indexed), update q_i=q_{i-1} AND b_i if w_i=1; this uses one AND gate. If w_i=0, update q_i=q_{i-1} AND NOT(b_i); this uses one NOT and one AND gate. The induction invariant q_i=1 iff the prefix matches holds from q_0=1, so the final decoder decides membership exactly for every length-N input. Thus each update costs at most two counted gates, and G_max<=2. This is an upper bound only; it makes no optimality claim and does not close the SC_{n,s} Pareto obligation.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795497253.9791582,
+  "session": "pnp-desk/research/R2506",
+  "model": "gpt-6-luna",
+  "id": "S0471",
+  "proved_step": "statement: Exact search-state lower bound with dead-prefix separation. Let F be a nonempty subset of {0,1}^N. A deterministic one-pass transducer reads prefixes and, after N bits, outputs a valid witness computing the entire input if the input lies in F, and rejects otherwise. For each t, let L_t be the number of length-t prefixes having a completion in F. If at least one length-t prefix has no completion in F, then every such machine has at least L_t+1 distinct states after t bits; if every length-t prefix is live, it has at least L_t.\nproof: Fix t. Distinct live prefixes p,p' cannot share a state. If their residual completion sets differ, choose a suffix in their symmetric difference; the same state followed by that suffix would have to both reject and accept. If their residual sets are equal, they are nonempty; choose a common completing suffix u. Then pu and p'u are distinct members of F, yet the same final state would need to output a witness computing both distinct strings. Thus the L_t live prefixes occupy distinct states. Now let d be dead and p live. If they shared a state, choose a suffix u completing p. Processing u from that state ends in one decoder output, which must be a valid witness on pu but rejection on du, since d has no completion. Contradiction. Thus every dead-prefix state is outside the live-state set, yielding one additional state whenever a dead prefix exists.\nscope: Exact deterministic one-pass witness-search transducers on fixed-length binary inputs; the final decoder rejects nonmembers and outputs a witness computing the full input on members. This is a state-count lower bound only; it gives no transition-gate or decoder-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795498276.373669,
+  "session": "pnp-desk/research/R2514",
+  "model": "gpt-6-luna",
+  "evidence": "The available proof-state excerpt truncates S0462 after its transition is shown well-defined on reachable codes. It does not contain the complete construction or a justified shared-gate count, so the O(S\u00b72^S) claim cannot be reviewed from the supplied evidence.",
+  "review_of": "S0462",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795498555.8361132,
+  "session": "pnp-desk/research/R2514",
+  "model": "gpt-6-luna",
+  "evidence": "The proof gives an explicit shared-minterm construction and verifies every output on every input. For S=3, the separate finite construction-cost comparison is recorded in cm-d022bfeabfa447ec (independently repeated as cm-6fd14530622f4e33); it is finite evidence only and is not needed for the general proof.",
+  "id": "S0473",
+  "proved_step": "Lemma (shared-minterm transition upper bound). For every integer S\u22651 and every map T:{0,1}^{S+1}\u2192{0,1}^S, there is a fan-in-two AND/OR circuit computing T with at most (S+1)2^(S+1)+S(2^(S+1)\u22121) gates, when NOT gates and constants are free. Proof: Put d=S+1 and q=2^d. For each input z\u2208{0,1}^d, construct its minterm M_z, the conjunction of the d literals specifying z. This takes at most d\u22121 fan-in-two AND gates per minterm, hence at most (d\u22121)q gates total. These minterms are shared by all output coordinates. For coordinate i, let A_i={z:T(z)_i=1} and B_i={0,1}^d\\A_i. If |A_i|\u2264|B_i|, output the OR of M_z over z\u2208A_i; otherwise output the negation of the OR over z\u2208B_i. The chosen set has size h_i\u2264q/2, so its OR takes at most max(h_i\u22121,0)\u2264q\u22121 gates; an empty OR is the free constant 0. Summed over S coordinates, this uses at most S(q\u22121) further gates. Each input has exactly one true minterm, so the selected OR, or its negation, equals the required coordinate on every input. Substituting q=2^(S+1) proves the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499270.643559,
+  "session": "pnp-desk/research/R2522",
+  "model": "gpt-6-luna",
+  "id": "S0474",
+  "proved_step": "statement: For every N>=1 and every language F subset {0,1}^N, there is a deterministic layered streaming search machine with S=N state bits, zero nonconstant update gates, and a final decoder that accepts exactly F and outputs a valid witness for every member, when the witness is the input string itself. At time t its state is the length-N vector consisting of the t-bit prefix followed by N-t zeroes. Initialize to 0^N; at step t+1 copy the first t coordinates by wires, write the arriving bit into coordinate t+1 by a wire, and set later coordinates to zero by free constants. At t=N the state equals the input, so the decoder tests membership in F and, for members, outputs that state. At every t the map from all length-t prefixes to states is injective, so live prefixes have distinct states and any dead-prefix state is disjoint from them. Thus the machine satisfies the SEARCH separation condition with no nonconstant transition gates. The construction requires S=N, so it establishes no bound in the required meaningful regime S<N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795499892.3275166,
+  "session": "pnp-desk/research/R2530",
+  "model": "gpt-6-luna",
+  "id": "S0475",
+  "proved_step": "statement: Exact layer width for full deterministic search. Let F be a subset of {0,1}^N. At layer t, let L_t be the number of length-t prefixes with a completion in F, and let d_t be 1 iff at least one length-t prefix has no completion in F. In a deterministic layered one-pass machine that rejects inputs outside F and outputs, on each input in F, a witness computing that entire input, the minimum number of reachable states at layer t is exactly L_t+d_t. Consequently the minimum fixed state width is ceil(log2(max_{0<=t<=N}(L_t+d_t))), with width 0 allowed when the maximum is 1. Proof: Any two distinct live prefixes reaching the same state contradict search correctness: if their residual completion sets differ, a suffix in their symmetric difference yields different membership answers from the same final state; if the residual sets agree, their common nonempty residual supplies a suffix for which the same final state would have to output a witness computing two distinct strings. A live and dead prefix cannot share a state: append a suffix completing the live prefix; the resulting identical final state would need both acceptance and rejection. Hence at least L_t+d_t states are necessary. For sufficiency, assign distinct states to live prefixes and one additional state to all dead prefixes when any exist. From each live prefix state, on bit b transition to the state of its extended prefix if live and to the dead state otherwise; the dead state loops to itself. At the final layer, output the witness associated to each member string and reject the dead state. These layer-dependent transitions realize the specification and use exactly L_t+d_t states at layer t. This is a finite-language state-width lemma only; it gives no transition-circuit gate-cost bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-319174b5ea",
+  "closes_valid": true
+ },
+ {
+  "at": 1795500040.071038,
+  "session": "pnp-desk/research/R2530",
+  "model": "gpt-6-luna",
+  "id": "S0476",
+  "proved_step": "statement: Affine syndrome streaming lemma. Let N,m\u22650, let H\u2208GF(2)^{m\u00d7N}, and b\u2208GF(2)^m. For F={x\u2208{0,1}^N:Hx=b}, there is a deterministic one-pass membership machine using m state bits and at most m nonconstant XOR gates per input-bit update. After reading prefix p of length t, its state is r_t=b\u2212H_{[:,1..t]}p over GF(2). On reading bit z at position t+1, it updates r_{t+1}=r_t\u2212zH_{[:,t+1]}; it accepts at the end iff r_N=0. Thus prefixes with different residual vectors have distinct states, and prefixes with the same residual vector have identical completion sets. The bound holds also when F is empty or H has zero rows. Proof: Initially r_0=b. If r_t=b\u2212H_{[:,1..t]}p, then subtracting z times the next column gives r_{t+1}=b\u2212H_{[:,1..t+1]}(pz), proving the invariant by induction. At t=N, r_N=0 iff Hx=b. Each output coordinate either stays unchanged or XORs its state bit with the arriving bit, so at most one XOR gate per coordinate suffices. For a fixed prefix p, a suffix u completes it iff H_{[:,t+1..N]}u=r_t; hence equal residual vectors give equal completion sets, and unequal residual vectors cannot collide in this encoding. This is an exact membership construction, not a minimum-update-cost result and not a witness decoder.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
  }
 ]

@@ -268,5 +268,51 @@
   "evidence": "Verified independently: parity automaton Hankel rank 2, mod-3 counter Hankel rank 3. Both match minimal linear representation dimensions. Row space equals span of reachable residual functions. No counterexample found.",
   "review_of": "S0028",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795496558.140968,
+  "session": "pnp-desk/research/R2493",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0033",
+  "proved_step": "statement_start: Lemma (Linear Candidate A Lower Bound). Let A be an admissible exact deterministic one-pass algorithm for MCSP^A[s] whose state evolution is linear (maintains a linear subspace of F_2^N updated by linear transformations). Suppose there exists a linear space K_{m,s} satisfying (R),(L),(E) with parameter d >= 1, and a spanning family B_A of K_{m,s} representing the states of A. Then tw(H_{B_A}) >= d(tw(G_{m,s})+1)-1. Consequently, if the algorithm's resource bound F(m,s,S_A,U_A) < d(tw(G_{m,s})+1)-1, the algorithm cannot exist.\nderivation: Proof:\n1. By assumption, K_{m,s} satisfies (R),(L),(E) with parameter d >= 1 (Clause 1).\n2. By assumption, B_A spans K_{m,s} (Clause 2).\n3. Theorem 4.1 (Abstract Embedding) applies: since (R),(L),(E) hold, there exists an injection from V x {1,...,d} to the index set of B_A mapping edges of G[K_d] to edges of H_{B_A}. Thus G[K_d] is isomorphic to a subgraph of H_{B_A}.\n4. Treewidth is monotone under subgraphs: tw(H_{B_A}) >= tw(G[K_d]).\n5. By Corollary 6.2 of PNP-001-PAPER-BASIS-BLOWUP-v4.0 (verified for small cases in cm-0df22e2ced824471), tw(G[K_d]) = d(tw(G)+1)-1.\n6. Therefore tw(H_{B_A}) >= d(tw(G_{m,s})+1)-1.\n7. If the algorithm's resource bound implies tw(H_{B_A}) <= F(m,s,S_A,U_A) (Clause 3), then F >= d(tw(G)+1)-1.\n8. Clause 4 asserts d(tw(G)+1)-1 > F for all MMW-admissible parameters and resource bounds.\n9. Hence for linear algorithms, Clauses 3 and 4 cannot both hold; any such algorithm must violate its claimed resource bound.\n\nScope: This lemma applies exactly to the class of linear streaming algorithms for MCSP^A[s] (state evolution = linear subspace updated by linear transformations). It does not apply to nonlinear algorithms (branching, AND gates, polynomial state encodings), for which no linear K with (R),(L),(E) exists modeling their state transitions (refutation of original S0002, cm-9752c6603cd44ae3).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795496880.9038067,
+  "session": "pnp-desk/research/R2493",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Repair of refuted step S0002. The original claim quantified over ALL admissible algorithms, but Thm 4.1 (PNP-001-PAPER-BASIS-BLOWUP-v4.0) only applies to LINEAR spaces K satisfying (R),(L),(E). The explicit nonlinear algorithm with degree-3 polynomial state encoding (cm-9752c6603cd44ae3) has an algebraic variety as state space, not a linear subspace. Therefore the contradiction only holds for the restricted class of linear streaming algorithms. This repair is essentially the content of claimed step S0033, now recorded as an explicit repair of S0002.",
+  "id": "S0034",
+  "proved_step": "statement_start: REPAIR of S0002: Candidate A clauses 1-4 are jointly unsatisfiable for any admissible exact deterministic one-pass algorithm A whose state evolution is LINEAR (maintains a linear subspace of F_2^N updated by linear transformations). Proof: For linear A, the map A -> B_A yields a spanning family of a linear K satisfying (R),(L),(E). Thm 4.1 gives G[K_d] subgraph of H_{B_A}. Treewidth monotonicity gives tw(H_{B_A}) >= d(tw(G)+1)-1. Clause 3 gives tw(H_{B_A}) <= F. Clause 4 asserts d(tw(G)+1)-1 > F. Contradiction. For nonlinear A, no such linear K exists (cm-9752c6603cd44ae3), so Clause 3 does not apply.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0002",
+  "closes_valid": false
+ },
+ {
+  "at": 1795496969.811639,
+  "session": "pnp-desk/research/R2493",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0035",
+  "proved_step": "statement_start: Lemma (Clause 3 Failure for Nonlinear Algorithms). Let A be the nonlinear streaming algorithm for MCSP^A[s] with degree-3 polynomial state encoding over F_2, where state evolution is p <- p * x_new + x_new (mod 2, degree <= 3). There exists no linear space K_{m,s} over F_2 satisfying properties (R), (L), (E) of Theorem 4.1 (PNP-001-PAPER-BASIS-BLOWUP-v4.0) and a spanning family B_A of K_{m,s} that represents the state evolution of A. Consequently, Clause 3 of Candidate A is false as stated, because it quantifies over EVERY admissible exact deterministic one-pass algorithm A, but for this nonlinear A, the required map A -> B_A does not exist. Proof: The reachable state set R_A is an algebraic variety not closed under addition, while any linear space K is closed under addition. No linear K can model nonlinear state evolution. This refutes Clause 3's universal quantification. Open question: whether any alternative definition of A -> B_A (without linear K, (R),(L),(E)) could work for nonlinear algorithms.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795497252.1526775,
+  "session": "pnp-desk/research/R2493",
+  "model": "nemotron-3.5-super-vl",
+  "evidence": "Repair of refuted step S0002: the original claimed joint unsatisfiability of Candidate A clauses 1-4 for ANY admissible exact deterministic one-pass algorithm, but Thm 4.1 only applies when a linear K with (R),(L),(E) exists. The repair restricts to linear state evolution where the embedding argument is valid, and explicitly notes nonlinear algorithms fall outside the scope.",
+  "id": "S0036",
+  "proved_step": "statement_start: REPAIR of S0002: Candidate A clauses 1-4 are jointly unsatisfiable for any admissible exact deterministic one-pass algorithm A whose state evolution is LINEAR\nstatement: REPAIR of S0002: Candidate A clauses 1-4 are jointly unsatisfiable for any admissible exact deterministic one-pass algorithm A whose state evolution is LINEAR (maintains a linear subspace of F_2^N updated by linear transformations), given Thm 4.1 of PNP-001-PAPER-BASIS-BLOWUP-v4.0. Proof: (1) Assume A is linear and clauses 1-4 all hold. (2) Clause 1 gives a linear K_{m,s} over F_2 satisfying (R),(L),(E) with d >= 1. (3) Clause 2 gives a spanning family B_A of K_{m,s} representing A's states. (4) Thm 4.1 applies: injection from V x {1,...,d} to indices of B_A maps edges of G[K_d] to edges of H_{B_A}, so G[K_d] is a subgraph of H_{B_A}. (5) Treewidth monotone: tw(H_{B_A}) >= tw(G[K_d]). (6) Corollary 6.2: tw(G[K_d]) = d(tw(G)+1)-1. (7) Hence tw(H_{B_A}) >= d(tw(G_{m,s})+1)-1. (8) Clause 3 gives tw(H_{B_A}) <= F(m,s,S_A,U_A). (9) Clause 4 asserts d(tw(G)+1)-1 > F for all MMW-admissible parameters. (10) Contradiction: F >= d(tw(G)+1)-1 > F. Scope: applies exactly to linear streaming algorithms; for nonlinear algorithms no linear K with (R),(L),(E) need exist, so Clauses 1-4 need not be unsatisfiable there. The original S0002 erred by claiming unsatisfiability for ANY algorithm without restricting to the linear case where Thm 4.1 applies.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0002",
+  "closes_valid": false
  }
 ]
