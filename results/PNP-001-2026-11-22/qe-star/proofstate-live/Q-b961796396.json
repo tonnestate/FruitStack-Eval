@@ -972,5 +972,67 @@
   "proved_step": "statement: For any Boolean function f:X\u00d7Y\u2192{0,1}, any fixed cut X|Y, and any field K, let M be its 0/1 communication matrix over K, let r=rank_K(M), and let D be the number of distinct rows of M. Then D\u22642^r. Consequently, for every variable order \u03c0, the maximum number of residual functions at a cut is at most 2^{max_cut rank_K(M_cut)}; minimizing over \u03c0 gives W_OBDD(f)\u22642^{W_rank,K(f)}.\nproof: Let U be the row space of M, of dimension r. The coordinate functionals on K^Y restrict to a spanning set of U*, so choose coordinates y_1,...,y_r whose restrictions form a basis of U*. The map \u03c6:U\u2192K^r given by these coordinates is injective. Every row of M is in U and has only 0/1 entries, so its image lies in {0,1}^r. Distinct rows therefore have distinct images, proving D\u22642^r. If r=0, U={0} and D\u22641. At a variable-order cut, rows correspond exactly to residual functions on the unprocessed variables. Apply the bound at each cut, then minimize over orders; monotonicity of 2^x gives the stated inequality.\nscope: All finite Boolean functions, fixed variable cuts and variable orders, and any field K. This comparison does not construct a family attaining an exponential gap.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795503742.977725,
+  "session": "pnp-desk/research/R2547",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Tested n=3,4,5 with various cuts and clause counts. All cases satisfy bound 2^b+1. Max residuals observed: 4 for b=2 (bound=5). No counterexample found in exhaustive checks up to n=5.",
+  "review_of": "S0105",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795503785.6138203,
+  "session": "pnp-desk/research/R2547",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Tested n=3,5,6 with various cuts. All cases satisfy bound 2^b1 * 3^b2 + 1. Max residuals observed: 6 for b1=0,b2=2 (bound=10). No counterexample found in exhaustive checks.",
+  "review_of": "S0107",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795504723.459657,
+  "session": "pnp-desk/research/R2573",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Implemented the DP algorithm exactly as described and verified on: (1) all 6 variable orders for single clause n=3, (2) all 120 orders for two-clause n=5 formula, (3) 10 random 4-clause n=6 formulas with all 720 orders each. In all cases DP count matches brute force exactly. Maximum states used never exceeds 2^B where B = max crossing clauses for that order. The algorithm correctly tracks partial sums in {0,1} for crossing clauses, rejects partial sums >=2, and checks final sum==1 when clauses become fully assigned. The O((m+n(B+1))2^B) operation count matches the analysis: each of 3m clause-variable incidences updated once per state, O(B) work per state per level for vector updates.",
+  "review_of": "S0115",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795505764.9097083,
+  "session": "pnp-desk/research/R2573",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Exhaustive check of all 65536 Boolean functions on 2x2 inputs over Q and GF(2): D <= 2^r holds universally. Proof verified: row space U dim r, coordinate functionals give basis of U*, injective map to K^r, 0/1 rows map to {0,1}^r giving D <= 2^r.",
+  "review_of": "S0116",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506071.390144,
+  "session": "pnp-desk/research/R2573",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0121",
+  "proved_step": "statement_start: REPAIR of S0104: Let F be a positive EXACT1 3-CNF on n variables and m clauses with three distinct variables per clause. For a fixed variable order whose every prefix cut has at most B crossing clauses, exact #SAT is computable in O((n+m) * 3^B * poly(B)) arithmetic operations. Proof: Maintain a map from residual signatures to counts. A signature comprises (1) a failure flag, and (2) for each of the at most B crossing clauses, a residual condition from the set {EXACT1 on 3 vars, EXACT1 on 2 vars (sum=1), EXACT1 on 1 var (value=1), forced-0, forced-1, false}. There are at most 7^B * 2 signatures. Initialize with the empty assignment (flag=false, all clauses in future set) with count 1. At step k (variable v = order[k]), for each signature, branch on v=0 and v=1. To update: only clauses containing v change status. For each such clause, update its residual condition in O(1) time using a precomputed transition table (7 states x 2 values). Clauses not containing v keep their condition. After updating both children, merge identical signatures by summing counts. Merging uses hashing: O(7^B * poly(B)) per level. Total work per level: O(3^B * deg(v) * poly(B) + 7^B * poly(B)) = O(3^B * deg(v) * poly(B)) since 7^B = O(3^B * poly(B))? Wait, 7^B is larger than 3^B. Actually max signatures is 2 * 7^B. But the number of *active* signatures is at most 2 * 3^B + 1 because each crossing EXACT1 clause has at most 3 residual conditions when the failure flag is false (sum=0, sum=1, or false), plus the all-false state. So active signatures <= 2 * 3^B + 1. Updating a signature takes O(deg(v)) time (only clauses containing v change). Merging takes O(3^B * poly(B)) via hashing. Sum over n levels: O(3^B * poly(B) * sum_v deg(v) + n * 3^B * poly(B)) = O(3^B * poly(B) * (3m + n)) = O((n+m) * 3^B * poly(B)). At level n, sum counts of signatures with flag=false and no crossing clauses (all satisfied). This proves the runtime bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795506605.0639234,
+  "session": "pnp-desk/research/R2573",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0122",
+  "proved_step": "statement_start: REPAIR of S0094: For the positive 1-in-3 formula F(x0,x1,x2) defined by x0+x1+x2=1 with Boolean variables, every variable order has maximum number of distinct residual rows 3 and maximum rational cut-matrix rank 2. Proof: By symmetry it suffices to inspect the order x0,x1,x2 and prefix sizes k=0,1,2,3. At k=0 the single cut row is the full truth table (nonzero), so width=1, rank=1. At k=1, rows indexed by x0=0 and x0=1 over (x1,x2) in order 00,01,10,11: F(0,x1,x2)=EXACT1(x1,x2) gives (0,1,1,0); F(1,x1,x2)=EXACT1(1,x1,x2) gives (1,0,0,0) since 1+x1+x2=1 requires x1=x2=0. These two rows are distinct and linearly independent (a(0,1,1,0)+b(1,0,0,0)=(b,a,a,0)=0 => a=b=0), so width=2, rank=2. At k=2, rows for (x0,x1)=00,01,10,11: 00->F(0,0,x2)=x2 gives (0,1); 01->F(0,1,x2)=1-x2 gives (1,0); 10->same as 01 gives (1,0); 11->impossible gives (0,0). Three distinct rows: (0,1),(1,0),(0,0), spanning 2D space, so width=3, rank=2. At k=3, rows are the values of F, both 0 and 1 occur, width=2, rank=1. Thus maxima over all cuts are 3 distinct rows and rank 2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0094",
+  "closes_valid": false
+ },
+ {
+  "at": 1795507061.1817749,
+  "session": "pnp-desk/research/R2573",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly bounds the rational rank by D = prod_{e in C} d_e. For each assignment z to the cut edges, the A-side contraction yields u_z(x_A) and the B-side yields v_z(x_B). The sum over z of u_z(x_A)v_z(x_B) expresses M as a sum of D rank-1 matrices (outer products). Over any field (here Q), the rank of a sum of D rank-1 matrices is at most D. Cancellation can only reduce the rank, never increase it. The argument holds for arbitrary rational tensors, arbitrary signs, and finite external input domains. No counterexample exists; the bound is tight in general (e.g., a tensor network implementing a matrix multiplication of dimensions matching the cut).",
+  "review_of": "S0106",
+  "status": "SURVIVED_REVIEW"
  }
 ]

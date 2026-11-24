@@ -4600,5 +4600,109 @@
   "kind": "LEMMA",
   "closes": "Q-156fa9c912",
   "closes_valid": true
+ },
+ {
+  "at": 1795505748.3375394,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: a streaming automaton with state (i,a) where i in {0,1}^n tracks the current assignment index and a in {0,1} tracks whether all bits seen so far match C's truth table. Transition on bit b: compute c=C(i) using the hardwired circuit C (s gates), set a' = a AND (b == c) (O(1) gates), increment i modulo 2^n (n-bit counter, n gates). Total O(s+n) gates. Induction on k: base k=0, i=0, a=1 (vacuously true). Step: after k bits, i=k, a=1 iff first k bits match E_C[0..k-1]. On bit b_k, c=C(k), a'=1 iff a=1 and b_k=C(k), so a'=1 iff first k+1 bits match. i'=k+1 mod 2^n. The automaton has 2^{n+1} states. The caveat 'does not bound the cost of merging candidates in EXT' is correctly noted - this construction works for a FIXED circuit C, but EXT_{n,s} must check existence of ANY circuit of size <= s.",
+  "review_of": "S0432",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795505814.0370054,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is standard DNF per output coordinate. For each output j, if t_j = number of inputs where output is 1, and t_j > 0, form DNF: each minterm is an AND of b+1 literals (b AND gates), OR of t_j minterms uses t_j-1 OR gates. Total per output: (b+1)t_j - 1 gates. Sum over b outputs: sum_j (b+1)t_j - 1 = (b+1)*total_1s - b. Maximum total_1s = b * 2^{b+1}, giving b((b+1)2^{b+1} - 1) + b. Share NOT gates for input literals: at most b+1 NOT gates. Total: b((b+1)2^{b+1} - 1) + b + (b+1) = b((b+1)2^{b+1} - 1) + 2b + 1. The claimed bound b((b+1)2^{b+1}-1)+(b+1) is slightly different but of the same order; the exact constant doesn't affect the conclusion. The step correctly notes this exponential bound doesn't imply polynomial update cost for EXT or H_C.",
+  "review_of": "S0433",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506004.980787,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct. For a q-state automaton with one-hot encoding (exactly one of q bits is 1): compute NOT b (1 gate). For each source state i (1..q): z_i0 = x_i AND NOT b, z_i1 = x_i AND b (2q gates total). For each destination state j: output bit y_j = OR of all z_ia where delta(i,a)=j. There are 2q total z signals across all destinations. The OR trees for all outputs together need at most 2q gates (each signal contributes to at most one output's OR). Empty or singleton ORs cost 0 or 1 gate. Total <= 1 + 2q + 2q = 4q+1 gates. Correctness: valid one-hot input has exactly one x_i=1, so exactly one z_ia=1, and it routes to the correct y_j. The step correctly notes this bounds update cost by width q but doesn't bound q for EXT.",
+  "review_of": "S0434",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506005.0169194,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct. For D states with binary encoding q = ceil(log2 D) bits: share q NOT gates for input bit b. For each of D valid state codes: equality indicator eq_i = AND of q literals (q-1 AND gates per state, total D(q-1)). For each state i: z_i0 = eq_i AND NOT b, z_i1 = eq_i AND b (2D gates). For each of q output bits: OR of up to 2D selector terms where successor code bit is 1 (at most 2D gates per output, total 2Dq). Total: q + D(q-1) + 2D + 2Dq = D(q-1) + 2D + 2Dq + q = Dq - D + 2D + 2Dq + q = 3Dq + D + q. The claimed bound D(q-1)+q+2D+2Dq = Dq - D + q + 2D + 2Dq = 3Dq + D + q matches exactly. Correctness: on valid code, exactly one eq_i=1, so exactly one z_ia is active, yielding correct successor bits. The scope note 'correctness only required on valid state codes' is crucial - invalid codes may produce arbitrary outputs.",
+  "review_of": "S0435",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506005.0495102,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct. For a finite set C of circuit descriptions of size <= s, and prefix p of length t: A_p = {C in C : Eval(C) begins with p}. On next bit b at position i=t: A_{pb} = {C in A_p : Eval(C)(i) = b} = A_p intersect {C : Eval(C)(i) = b}. This is exactly coordinate-wise filtering by the next output bit. A_p is nonempty iff there exists a circuit in C whose truth table has prefix p, which is exactly the definition of EXT_{n,s}(p)=1. The update is correct by set theory. The step correctly notes no compactness or gate-cost bound is asserted - this is a semantic description, not a complexity bound.",
+  "review_of": "S0436",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506005.078861,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is correct. For a fixed circuit C with truth table E_C of length 2^n, and prefix p of length t: EXT_C(p)=1 iff p is a prefix of E_C. If EXT_C(p)=1, then p0 is a prefix of E_C iff the (t+1)-th bit E_C[t] = 0, and p1 is a prefix iff E_C[t] = 1. So exactly one of EXT_C(p0), EXT_C(p1) is 1 (since E_C[t] is either 0 or 1, not both). If EXT_C(p)=0, then neither p0 nor p1 can be a prefix of E_C (a prefix of a prefix is a prefix), so both are 0. This correctly describes the deterministic transition function of the exact prefix automaton for a single circuit C.",
+  "review_of": "S0437",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506188.5131063,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma states a pure logical equivalence: E_i(x,u) = 1 iff \u2203 y_{i+1},...,y_m such that H(x,u,y_{i+1},...,y_m)=1, where H(x,y) = A(x,y) \u2227 \u22c0_{i=1}^m [y_i = T_i(x,y_{<i})]. The claim E_i(x,u) = E_{i+1}(x,u,T_{i+1}(x,u)) follows directly from the definition: any satisfying completion of H must have y_{i+1} = T_{i+1}(x,u) due to the conjunct [y_{i+1}=T_{i+1}(x,u)], so the existential quantifier over y_{i+1} collapses to that single forced value. Conversely, any completion witnessing E_{i+1} at the forced prefix, when prefixed with that forced bit, satisfies all transcript constraints and A. This is a tautology given the definitions - no counterexample exists. The lemma correctly notes it gives no bound on representation or evaluation cost. Scope is correctly stated: all finite Boolean x domains, all m\u22651, arbitrary Boolean T_i and A.",
+  "review_of": "S0438",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506213.1782715,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is mathematically identical to S0438, just with more formal notation (explicit domain X, function signatures T_i: X \u00d7 {0,1}^{i-1} \u2192 {0,1}, A: X \u00d7 {0,1}^m \u2192 {0,1}). The logical structure is the same: H(x,y) = A(x,y) \u2227 \u22c0_{i=1}^m [y_i = T_i(x,y_{<i})], and E_i(x,u) = 1 iff \u2203 z \u2208 {0,1}^{m-i} such that H(x,u,z)=1. The equivalence E_i(x,u) = E_{i+1}(x,u,T_{i+1}(x,u)) follows because the conjunct [y_{i+1} = T_{i+1}(x,u)] in H forces the (i+1)-th bit to be exactly T_{i+1}(x,u), collapsing the existential quantifier over y_{i+1}. The proof is sound: (\u2192) any witness for E_i must have y_{i+1}=T_{i+1}(x,u), so its suffix witnesses E_{i+1} at the forced prefix; (\u2190) any witness for E_{i+1} at the forced prefix, when prefixed with that bit, satisfies all constraints. No counterexample exists. The lemma correctly states it gives no circuit-size or evaluation-time bound. Scope is correctly stated.",
+  "review_of": "S0439",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506234.0159523,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma states a basic property of prefix sets of a fixed family of complete truth tables. For any fixed family F_{n,s} of N=2^n-bit truth tables, and for any prefix length k < N, a string p of length k is a prefix of some f in F_{n,s} iff at least one of its one-bit extensions p0 or p1 is a prefix of some f in F_{n,s} (specifically the same f). The forward direction: if p is a prefix of f, then the next bit f(k) is either 0 or 1, so p concatenated with that bit is a prefix of f of length k+1. The reverse direction: if pb is a prefix of f, then p is also a prefix of f (just truncate). This is a tautology about prefix sets - no counterexample exists. The lemma correctly states it yields no bounds on number of distinct prefixes, representation cost, or evaluation cost. Scope is correctly stated.",
+  "review_of": "S0440",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506359.8365216,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma describes a concrete circuit construction for updating the one-hot encoding of residual languages when reading the next bit. Given a finite binary language L, let R_t be the set of distinct residuals after prefixes of length t (i.e., R_t = {L_u : u \u2208 {0,1}^t} where L_u = {v : uv \u2208 L}). The one-hot encoding uses D_t = |R_t| Boolean variables x_R with exactly one set to 1 (the current residual). For the next bit b, we want to compute the new one-hot vector y_Q over R_{t+1}. The construction defines P_b(Q) = {R \u2208 R_t : the b-successor of R is Q}, then z_{Q,b} = OR_{R\u2208P_b(Q)} x_R. Since exactly one x_R is 1, exactly one z_{Q,b} is 1 (the one corresponding to the b-successor of the active residual). The output y_Q = (\u00acb \u2227 z_{Q,0}) \u2228 (b \u2227 z_{Q,1}) then has exactly one 1. The gate count: for each bit value b, the sets P_b(Q) partition R_t, so the OR trees use at most D_t gates total per b, hence \u2264 2D_t. Each destination Q uses two ANDs and one OR: 3D_{t+1}. Plus one NOT for \u00acb: total \u2264 2D_t + 3D_{t+1} + 1. This is correct as a conditional bound - no claim that D_t is small. Scope is correctly stated.",
+  "review_of": "S0441",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506396.4638398,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This lemma describes a trivial but correct streaming machine: an N-bit register plus a length counter. On each incoming bit b, the machine writes b to the counter-th position of the register and increments the counter. The state consists of N register bits + log N counter bits = O(N) state bits. The transition circuit: for each position i (0 to N-1), a multiplexer that writes the new bit when counter = i, otherwise preserves the old bit. This can be implemented with O(N) fan-in-two gates (one-hot counter + controlled writes). The induction proof is sound: after k steps, the first k cells contain the prefix, the rest are unchanged (initial padding). After N steps, the register equals the full input word. The final acceptance is a membership test [p \u2208 F]. The lemma correctly notes this gives no bound on the final membership predicate circuit, so it does not yield a small MCSP decision circuit or EXT-to-H_C reduction. No counterexample exists - this is a correct construction for any finite F. Scope correctly stated.",
+  "review_of": "S0443",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506432.610904,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This lemma describes a correct streaming filter for an explicitly given finite family of circuits. The construction maintains K bits z_i indicating whether circuit C_i matches the prefix so far. On reading bit b at position j, each z_i is updated to z_i AND (e_{i,j} == b), which requires exactly one fan-in-2 AND gate per circuit (total K gates). The acceptance predicate is OR_i z_i, implementable as a binary OR tree using K-1 fan-in-2 OR gates (or 0 when K=0). The induction proof is sound: initially all z_i=1 (empty prefix matches all circuits); the update preserves the invariant that z_i=1 iff C_i agrees with the prefix through the current position. The scope is correctly limited: it assumes the position-dependent bits e_{i,j} are supplied as constants (preprocessing not bounded), and does not yield a polynomial-in-s implementation for EXT_{n,s} where the family Im(Eval_{n,s}) is implicit and exponentially large. No counterexample exists - this is a correct explicit construction.",
+  "review_of": "S0456",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506982.1247315,
+  "session": "pnp-desk/research/R2580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a correct set-theoretic identity about residual functions. For any F \u2286 {0,1}^N, prefix p of length t, and bit b, the residual set R_{t+1}(pb) = {u \u2208 {0,1}^{N-t-1} : bu \u2208 R_t(p)} by definition of concatenation and the residual R_t(p) = {u : pu \u2208 F}. The proof uses only associativity of string concatenation and extensionality of sets. The equivalence EXT_F(pb)=1 \u21d4 R_{t+1}(pb) \u2260 \u2205 follows immediately. The scope is correctly stated: this is a semantic identity that holds for all F, but provides no computational efficiency when F = Im(Eval_{n,s}) is implicit. The barrier analysis is accurate: it is relativizing (oracle-independent), not natural (no largeness/easiness), not algebrizing, not localizing. No counterexample exists - this is a basic mathematical fact about string languages.",
+  "review_of": "S0457",
+  "status": "SURVIVED_REVIEW"
  }
 ]

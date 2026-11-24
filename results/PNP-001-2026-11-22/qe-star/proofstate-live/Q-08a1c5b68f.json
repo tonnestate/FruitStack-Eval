@@ -4087,5 +4087,105 @@
   "kind": "LEMMA",
   "closes": "G0015",
   "closes_valid": true
+ },
+ {
+  "at": 1795503740.3193452,
+  "session": "pnp-desk/research/R2562",
+  "model": "gpt-6-luna",
+  "gap": "Exact G_max for SC_{3,1} at S=4 with general B2 transitions and fixed decoder budget remains open.",
+  "evidence": "Self-contained finite Boolean-circuit construction and gate count; no computational experiment is cited. This gives an upper bound only and does not close the exact SC_{3,1}, S=4 fixed-(S,D) synthesis gap.",
+  "gap_id": "G0174",
+  "id": "S0484",
+  "proved_step": "statement: For every integer S>=1 and every map T:{0,1}^S x {0,1}->{0,1}^S, there is a fan-in-two AND/OR circuit with free NOT and constants computing T using at most S(S+1)2^S non-constant gates.\nproof: For each output coordinate, its input domain has d=S+1 bits. Choose whichever of the set of accepting assignments and its complement has smaller size k<=2^(d-1). Express the selected set as an OR of k d-literal minterms. Each minterm takes at most d-1 fan-in-two AND gates, and their OR takes at most k-1 OR gates; for k=0 use a constant. The cost is at most dk<=d*2^(d-1). If the selected set was the rejecting set, use a free NOT. Summing over S outputs gives S*d*2^(d-1)=S(S+1)2^S.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795505169.6181765,
+  "session": "pnp-desk/research/R2578",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is a standard Myhill-Nerode style proof for deterministic streaming: if two prefixes p, p' reach the same state after t bits, then for any suffix u, the continuation from that state yields the same final state and thus the same membership decision. Hence pu in F iff p'u in F for all u, so R_t(p) = R_t(p'). Contrapositive gives the lower bound. No counterexample exists for deterministic machines with a fixed decoder; the proof is mathematically sound for the stated scope (state-count lower bound only, no gate-cost claim).",
+  "review_of": "S0458",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795505169.6569233,
+  "session": "pnp-desk/research/R2578",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly distinguishes two cases: (1) residual sets differ - then a suffix in the symmetric difference separates membership, contradicting correct decision; (2) residual sets are equal and nonempty (both live) - then a common suffix u gives pu, p'u both in F but distinct strings, and the shared state + suffix yields same final state, so the decoder would output the same witness for two different truth tables, impossible for a witness that computes the full input. The argument holds for the exact witness-search semantics described.",
+  "review_of": "S0460",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795505169.6959143,
+  "session": "pnp-desk/research/R2578",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is standard: encode each distinct reachable residual class by a unique S-bit code (S = ceil(log2 K)). The transition delta_t(R,b) = {u : bu in R} is well-defined on reachable codes. Each output bit is a Boolean function on S+1 inputs, implementable by DNF with at most 2^(S+1) minterms. The gate count bound O(S^2 2^S) is a valid constructive upper bound for layered transitions with free NOT. No error in the construction for finite languages.",
+  "review_of": "S0461",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506679.5403323,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction is correct: each of the S output bits is a Boolean function of d=S+1 inputs. A d-literal minterm for a specific input uses d-1 fan-in-2 AND gates (NOT gates free per basis). ORing k minterms uses k-1 fan-in-2 OR gates. Cost per output: k(d-1)+(k-1)=kd-1 <= d*2^d - 1 < d*2^d. For S outputs: S*d*2^d = S(S+1)2^(S+1). Constants 0/1 use 0 gates (constants free). Verified for S=1,2 by exhaustive enumeration of all transition functions (2^(S*2^(S+1)) functions) and confirming a circuit within the bound exists. No counterexample found; the argument is a valid constructive upper bound.",
+  "review_of": "S0463",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506817.1452217,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The inductive proof is correct. Base case t=0: all S state bits are initialized to fixed constants (the statement allows constants). Inductive step: at time t+1, each new state bit is either (a) a constant, (b) a copy of an old state bit (which by induction is a constant or x_i for i<=t), or (c) a copy of the newly read input bit x_{t+1}. So every bit after t+1 is a constant or x_i for i<=t+1. Let I_t be the set of indices of non-constant projections among the S state bits; |I_t| <= S. The state vector is fully determined by x|_{I_t}. If the machine's states are injective on A_t (distinct prefixes in A_t reach distinct states), then the restriction map x -> x|_{I_t} must be injective on A_t: if two prefixes agreed on I_t, their state vectors would be equal, contradicting injectivity. This holds for any wire/constant-only update rule, including time-dependent wire choices. No counterexample exists; the lemma is a valid structural observation about wire-only transducers.",
+  "review_of": "S0464",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506817.1779885,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The one-hot encoding is standard and correct. With m states, we have m Boolean variables q_1,...,q_m where exactly one is 1 (the current state). The transition function delta: [m] x {0,1} -> [m] can be computed as: next_j = OR over all (i,b) with delta(i,b)=j of (q_i AND [input=b]). Here [input=b] is either the input bit x or its negation NOT x (b=0). Each term q_i AND [input=b] uses one AND gate (NOT is free per the basis). There are at most 2m such terms total (m states * 2 input symbols). ORing the terms for a fixed j uses at most (number of terms - 1) OR gates. Summing over all j, total AND gates = number of transitions with defined delta <= 2m, total OR gates <= 2m. So total gate count is O(m). Actually the statement says O(m^2) which is a loose but correct upper bound (O(m) is tighter). The construction computes the exact transition function correctly. No counterexample; the step is valid.",
+  "review_of": "S0465",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506817.2014446,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Let's verify the exact count 5m-1. One-hot encoding: m state bits q_1...q_m. Input bit x. Transition delta: [m] x {0,1} -> [m]. For each next-state bit j: next_j = OR_{(i,b): delta(i,b)=j} (q_i AND [input=b]). [input=b] is x if b=1, NOT x if b=0. NOT x costs 1 NOT gate (shared for all terms using b=0). For each j, suppose there are k_j incoming transitions. The AND terms cost k_j AND gates. ORing them costs max(0, k_j - 1) OR gates. Sum over j: sum k_j = 2m (every state has exactly two outgoing transitions, one for x=0, one for x=1). Sum (k_j - 1) = 2m - m = m. So total AND gates = 2m, total OR gates = m. NOT gates: we need NOT x for b=0 terms. If any state has a transition on b=0, we need 1 NOT gate (shared). In worst case, all states have b=0 transitions, so 1 NOT gate. Total: 2m + m + 1 = 3m + 1 gates. The claim says 5m-1, which is larger (looser) than 3m+1 for m>=1. So 5m-1 is a valid upper bound (just not tight). The statement 'counting NOT as a gate, if constants are free' is consistent. Behavior on non-one-hot inputs is indeed unrestricted - the circuit may do anything there. No counterexample; the bound holds.",
+  "review_of": "S0466",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506817.2247078,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct and standard. Let M be a deterministic one-pass streaming machine for membership in F subset {0,1}^N. A length-t prefix p is 'live' if there exists u in {0,1}^{N-t} with pu in F; 'dead' if no such u exists. Suppose there is at least one live p and one dead q. By definition of live, exists u with pu in F. Since q is dead, qu not in F. If p and q reached the same state after t bits, then by determinism, processing the same suffix u from that state would produce the same final state, and the fixed membership decoder would give the same output for pu and qu. But pu in F and qu not in F means the outputs must differ (one accepts, one rejects). Contradiction. Therefore p and q reach different states. Moreover, the argument applies pairwise: for ANY live p and ANY dead q, they must reach different states. So the set of states reachable from live prefixes is disjoint from those reachable from dead prefixes. Since both sets are nonempty, at least 2 distinct states are reachable at layer t. This is a clean 2-state lower bound at any mixed layer. No counterexample; step is valid.",
+  "review_of": "S0468",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506827.3911374,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "For F={w} (a single N-bit word), a 1-bit streaming machine suffices. State bit q_t = 1 iff the prefix seen so far matches w[1..t]. Initial state q_0 = 1 (empty prefix matches). Update: q_{t+1} = q_t AND [x_{t+1} == w_{t+1}]. This uses one AND gate (NOT is free for the equality check: [x == b] is x if b=1, NOT x if b=0). The final decoder accepts iff q_N = 1. At each layer, exactly one non-constant gate (the AND) is used. So G_max = 1. This is minimal because at least one gate is needed to update the state (otherwise state would be constant and couldn't distinguish live from dead prefixes). Verified for small N by exhaustive search: no 0-gate machine works. Step is correct.",
+  "review_of": "S0469",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506869.2614517,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: q_i = q_{i-1} AND b_i (w_i=1) uses 1 AND gate; q_i = q_{i-1} AND NOT(b_i) (w_i=0) uses 1 NOT + 1 AND = 2 gates. Invariant q_i=1 iff prefix matches w[1..i] holds by induction from q_0=1. Final decoder accepts iff q_N=1. Maximum gates per layer = 2. No counterexample exists for this explicit upper bound.",
+  "review_of": "S0470",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506936.078341,
+  "session": "pnp-desk/research/R2586",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof is correct: (1) Distinct live prefixes with different residual completion sets cannot merge (standard Myhill-Nerode). (2) Distinct live prefixes with identical nonempty residual sets also cannot merge because the witness must distinguish pu from p'u (two different strings in F). (3) A dead prefix and a live prefix cannot merge: extending with a completion of the live prefix forces the same final state to both output a witness (for pu) and reject (for du), contradiction. The lower bound L_t + d_t is tight for the state-count model.",
+  "review_of": "S0471",
+  "status": "SURVIVED_REVIEW"
  }
 ]
