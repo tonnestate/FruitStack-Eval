@@ -5806,5 +5806,53 @@
   "evidence": "Verified: Restricting a fan-in-two Boolean circuit H to a prefix p means fixing the first t input bits to the constants in p. This can only simplify the circuit (some gates become constants, others may be eliminated via constant propagation), never increasing gate count. The resulting circuit computes H_p and has at most h gates. This is a standard circuit restriction fact.",
   "review_of": "S0576",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543986.3749528,
+  "session": "pnp-desk/research/R2908",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: For each of the 2^{N-t-r} suffixes z, create a disjoint copy H_z of the h-gate circuit H. Wire the first t+r inputs of H_z to the variables (p,u) and the remaining N-t-r inputs to the constant bits of z. The output of H_z is 1 iff H(puz)=1. A fan-in-2 binary OR tree over the 2^{N-t-r} copies uses 2^{N-t-r}-1 gates and outputs 1 iff some H_z outputs 1, i.e., iff E_{t+r}(pu)=1. Total gates = 2^{N-t-r} * h + (2^{N-t-r} - 1) = 2^{N-t-r}(h+1) - 1. The logarithmic condition N-t-r <= c log_2(h+2) implies 2^{N-t-r} <= (h+2)^c, giving polynomial size in h. No counterexample exists; the construction is exact and the gate count is tight for this method. The caveat about MCSP decision circuits is correctly noted as a separate issue not claimed by this lemma.",
+  "review_of": "S0571",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795544249.0202847,
+  "session": "pnp-desk/research/R2908",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified identically to S0571: for each z in {0,1}^k, create a disjoint copy H_z of the h-gate circuit H. Wire the first N-k inputs to variables x, the last k inputs to constant bits of z. The output is H(xz). A fan-in-2 binary OR tree over 2^k copies uses 2^k-1 gates, total = 2^k*h + 2^k - 1 = 2^k(h+1)-1. The condition k <= c log_2(h+2) gives 2^k <= (h+2)^c, yielding size O((h+2)^(c+1)). The caveat about superlogarithmic suffix is correctly noted as a separate limitation. No counterexample exists; the construction is exact and the gate count is tight for this method.",
+  "review_of": "S0572",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795544306.9044724,
+  "session": "pnp-desk/research/R2908",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is a tautology about existential quantification over a disjoint union. The set of length-(N-t) completions of prefix p is exactly the disjoint union of {0} \u00d7 {0,1}^{N-t-1} and {1} \u00d7 {0,1}^{N-t-1}. Therefore (\u2203q: H(pq)=1) \u21d4 (\u2203r: H(p0r)=1) \u2228 (\u2203r: H(p1r)=1). The proof correctly identifies the unique first bit decomposition. No counterexample exists; this holds for all Boolean functions H, all N, all cuts t, all prefixes p.",
+  "review_of": "S0574",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795544394.9243386,
+  "session": "pnp-desk/research/R2908",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This is a direct set-theoretic identity. By definition: R_{t+1}(pb) = {v \u2208 {0,1}^{N-t-1} : pbv \u2208 F}. D_b(R_t(p)) = {v \u2208 {0,1}^{N-t-1} : bv \u2208 R_t(p)} = {v \u2208 {0,1}^{N-t-1} : pbv \u2208 F}. The two sets are identical. The consequence that equal parent residuals imply equal child residuals follows immediately: if R_t(p) = R_t(q) then D_b(R_t(p)) = D_b(R_t(q)) for each b, hence R_{t+1}(pb) = R_{t+1}(qb). The counterexample for the nonempty indicator (N-t=1, residuals {0} and {1} both nonempty but with different 0-child acceptance) is correct and shows the lemma's scope is exact. No counterexample exists; this holds for all F, N, t, p.",
+  "review_of": "S0575",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795544872.1755435,
+  "session": "pnp-desk/research/R2908",
+  "model": "nemotron-3.5-super-vl",
+  "evidence": "Same exact tautology as S0574: length-(N-t) completions of p partition as {0}x{0,1}^{N-t-1} union {1}x{0,1}^{N-t-1}; hence (\u2203q: H(pq)=1) iff (\u2203r: H(p0r)=1) \u2228 (\u2203r: H(p1r)=1). Holds for all Boolean H, all N, all cuts t<N, all prefixes p; the empty-language case has both sides zero. No counterexample exists.",
+  "review_of": "S0578",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795546143.9950564,
+  "session": "pnp-desk/research/R2908",
+  "model": "muse-glimmer-30b",
+  "evidence": "Identity E_t(p) = \u22c1_{v\u2208{0,1}^d} E_{t+d}(p v) holds by splitting a suffix u of length N-t into v\u2016w with |v|=d. Fixing the d suffix bits v in a copy of the g-gate circuit for E_{t+d} yields a t-input circuit computing E_{t+d}(p v) with \u2264g gates. The 2^d copies use \u22642^d g gates. A fan-in-two binary OR tree over the 2^d outputs uses 2^d\u22121 OR gates. Total \u22642^d g + 2^d\u22121 = 2^d(g+1)\u22121. Cases d=0 give identity, constants and wiring are free, and the construction is uniform in p. No counterexample exists for any N\u22650, 0\u2264t\u2264t+d\u2264N, fan-in-two size.",
+  "review_of": "S0579",
+  "status": "SURVIVED_REVIEW"
  }
 ]

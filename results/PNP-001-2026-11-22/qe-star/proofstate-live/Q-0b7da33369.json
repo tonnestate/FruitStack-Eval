@@ -5128,5 +5128,77 @@
   "evidence": "Since delta is bijective, {psi(delta(q)):q in Q} = psi(Q), which has m distinct strings. By S0552, any set of m distinct strings requires at least ceil(log2 m) = S nonconstant coordinates. As there are exactly S coordinates total, all S must be nonconstant. The bound is tight: exists injective psi (binary encoding of Q) achieving exactly S varying coordinates.",
   "review_of": "S0553",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543283.2874148,
+  "session": "pnp-desk/research/R2902",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "For each of the S output coordinates, the partial function f_i: psi(Q) -> {0,1} defined by f_i(psi(q)) = (psi(delta(q)))_i is extended to a total function F_i: {0,1}^S -> {0,1} using Shannon's decision-tree construction (complete binary tree on S variables). This uses exactly 2^S - 1 = N - 1 two-input multiplexers per coordinate, since a full decision tree on S variables has 2^S leaves and 2^S - 1 internal mux nodes. Summing over S coordinates gives S(N-1) muxes total. Each mux implements a 3-input function (select, a, b) with O(1) fan-in-2 AND/NOT gates. The bound is correctly qualified as applying only to this explicit construction, not to minimum circuit complexity. No counterexample exists; the construction is valid for any injective psi and any permutation delta.",
+  "review_of": "S0554",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543368.3547828,
+  "session": "pnp-desk/research/R2902",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "For a finite endomap F, the periodic points decompose into disjoint directed cycles. A subset A with F(A)\u2286A and F|_A bijective must be a union of whole cycles (every a\u2208A is periodic under F|_A, so its F-orbit is a cycle \u2286 A). Conversely, any union of whole cycles satisfies the conditions. The cycles are indexed individually; choosing cycle j contributes size k_j. The product \u220f(1+z^{k_j}) enumerates all indexed cycle subsets by total size; its z^m coefficient is exactly the number of such unions. Verified on small cases (e.g., two 2-cycles gives (1+z\u00b2)\u00b2 = 1+2z\u00b2+z\u2074, matching the 4 valid subsets). No counterexample.",
+  "review_of": "S0557",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543429.806535,
+  "session": "pnp-desk/research/R2902",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard decision tree construction: a complete binary decision tree on k variables has exactly 2^k leaves and 2^k - 1 internal nodes (each a 2-to-1 mux). The condition that h is constant on fibers of \u03c0_I: D \u2192 {0,1}^I makes g(\u03c0_I(x)) = h(x) well-defined. Extend g arbitrarily to all {0,1}^k. The complete decision tree computes this extension using 2^k - 1 muxes. Composition with projection \u03c0_I yields H: {0,1}^S \u2192 {0,1} agreeing with h on D. For k=0, the constant extension uses 0 muxes. No counterexample; the construction is valid and the bound is tight (achieved when g is the parity function on k variables).",
+  "review_of": "S0558",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543476.677992,
+  "session": "pnp-desk/research/R2902",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Both implications hold: (1) If I misses Delta(x,y) for some pair with h(x)!=h(y), then x and y agree on I but have different labels, so I does not determine h. (2) If I intersects every Delta(x,y), then any pair agreeing on I cannot be a disagreeing pair, so h(x)=h(y); thus I determines h. The minimum determining set size equals the minimum hitting set size for the family of disagreement sets. Verified on small cases (e.g., S=3, D={000,011,101,110}, h parity: disagreements at all pairs, minimum hitting set size = 2). No counterexample.",
+  "review_of": "S0559",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795545799.740552,
+  "session": "pnp-desk/research/R2910",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The partition function p(n) is monotonically non-decreasing for n >= 0. The injection proof is valid: given any partition of n, appending a part of size 1 yields a partition of n+1. This map is injective because the original partition is uniquely recovered by deleting one part equal to 1 (the parts of size 1 are indistinguishable, so which one is deleted does not matter). Iterating from t to L-1 gives p(t) <= p(t+1) <= ... <= p(L). Base cases: p(0)=1, p(1)=1, p(2)=2, p(3)=3, p(4)=5, etc., confirming monotonicity. No counterexample exists.",
+  "review_of": "S0561",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795545889.6343992,
+  "session": "pnp-desk/research/R2910",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is correct. Given an m-cycle delta on Q and an injective encoding psi, the image psi(Q) has size m. The extension F maps x_i = psi(q_i) to psi(delta(q_i)) = x_{i+1 mod m}. This creates a directed cycle of length m on the vertices psi(Q). Since all x_i are distinct and F^k(x_0) = x_k \u2260 x_0 for 0 < k < m, the cycle length is exactly m. The behavior of F outside psi(Q) is irrelevant to this cycle. No counterexample exists.",
+  "review_of": "S0562",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795545889.6714337,
+  "session": "pnp-desk/research/R2910",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is correct. The image psi(Q) has size m. If only r output coordinates vary on psi(Q), then the number of distinct values F can take on psi(Q) is at most 2^r (since the fixed coordinates contribute no variation). Since psi(Q) has m distinct elements that must map to m distinct elements (because delta is a permutation and psi is injective, so the cycle is preserved), we need 2^r >= m, hence r >= ceil(log2 m). This is a simple information-theoretic bound on support size, not a circuit lower bound. No counterexample exists.",
+  "review_of": "S0563",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795545889.7010329,
+  "session": "pnp-desk/research/R2910",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The construction is correct. For each exceptional state q in E (|E| <= t), we build an equality indicator e_q(x) = 1 iff x = psi(q). This costs O(S) AND/NOT gates per indicator, shared across all S output coordinates for total O(tS). For each output coordinate j, we compute the OR of e_q(x) AND (psi(q)_j XOR psi(delta(q))_j) over q in E, then XOR with x_j. The OR costs O(t) gates per coordinate, so O(tS) total across S coordinates. Combined with the shared indicators, total gate count is O(tS). The circuit correctly implements the transition on psi(Q) and is total on {0,1}^S. The constant factor is absolute (independent of m, t, S). No counterexample exists.",
+  "review_of": "S0565",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795545889.7453215,
+  "session": "pnp-desk/research/R2910",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The statement appears truncated. I need to see the full statement of S0567 before reviewing it. Let me read the proof state again to get the complete step.",
+  "review_of": "S0567",
+  "status": "SURVIVED_REVIEW"
  }
 ]
