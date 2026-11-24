@@ -3587,5 +3587,102 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0428: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I can prove the finite counting step once the ordered-DAG encoding bound is formalized, but I have not formalized the fan-in-two DAG model or proved that its circuits with at most `s` gates h (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795482796.8572102,
+  "session": "pnp-desk/research/R2416",
+  "model": "gpt-6-luna",
+  "id": "S0430",
+  "proved_step": "statement: For every m>=2, every Boolean function f:{0,1}^m->{0,1}, and every restriction rho fixing r coordinates with 0<=r<m, the restricted function f|rho has fan-in-two DAG circuit complexity at most C(f)+r in the basis of all 16 binary Boolean gates, with free input wires and constants not free. Proof: Take a circuit for f with C(f) gates and substitute the fixed bits at all occurrences of the restricted inputs. At least one input z remains free. If r=0, nothing changes. If r>0, generate constant 0 as XOR(z,z) and constant 1 as NAND(z,z), adding at most two gates total. Since r>=1, two gates are not always bounded by r, so use the following sharper construction: if the fixed coordinates all have the same value, generate the needed constant with at most one gate; if both values occur, r>=2, so the two constant gates cost at most r. Reuse each generated constant wire at all substituted occurrences. The resulting circuit computes the cofactor and adds at most r gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795483375.653542,
+  "session": "pnp-desk/research/R2416",
+  "model": "gpt-6-luna",
+  "id": "S0431",
+  "proved_step": "statement: For m>=1 and s>=0, let N=2^m and D=sum_{j=0}^s (m+j)(16(m+j)^2)^j. In the fan-in-two basis of all 16 binary gates, MCSP[s] on N-bit truth tables has a decision circuit of size at most 3ND. Proof: enumerate all topologically ordered circuit descriptions with <=s gates; the standard description count is at most D. For each description, its output truth table is fixed, so equality with the input table is an AND of N matching literals and uses at most 2N fan-in-two gates. OR the at most D equality tests using at most D gates. Since D>=1, the total is at most 3ND. This is an upper bound, not a lower bound.\nscope: All m>=1,s>=0; MCSP decision on truth-table inputs, fan-in-two Boolean basis with all 16 binary gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795483491.3835902,
+  "session": "pnp-desk/research/R2416",
+  "model": "gpt-6-luna",
+  "id": "S0432",
+  "proved_step": "statement: Let m>=1 and let C_m(f) be minimum fan-in-two DAG circuit size over all 16 binary gates with free input wires. For all m-input Boolean functions f,g, |C_m(f)-C_m(g)|<=2m d_H(f,g). Hence C_m(f)+2mr<=s implies every g at distance <=r belongs to MCSP[s], and C_m(f)-2mr>s implies every such g lies outside MCSP[s]. Proof: For each differing row a, build its indicator by negating its zero coordinates (m-wt(a) gates), ANDing its m literals (m-1 gates), and XORing it into the current output (1 gate). This changes only row a and costs 2m-wt(a)<=2m gates. Repeating over D={a:f(a)!=g(a)} gives C_m(g)<=C_m(f)+2m|D|. Reverse f,g for the other inequality. The two ball statements follow from the resulting Lipschitz bound.\nscope: All m>=1 and truth tables f,g in the stated fan-in-two Boolean DAG model; local stability only, not a decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484074.7605627,
+  "session": "pnp-desk/research/R2424",
+  "model": "gpt-6-luna",
+  "evidence": "Direct constructive substitution proof in the fan-in-two DAG model; no computational evidence or asymptotic MCSP consequence is claimed.",
+  "id": "S0433",
+  "proved_step": "statement: For every m>=2, every s>=0, and every fan-in-two DAG circuit C with m Boolean input variables, free input wires, and gates from the full basis of 16 binary Boolean functions, if a nonempty set of fewer than m input variables is fixed to arbitrary Boolean values, then the resulting cofactor has a circuit in the same model with at most s+2 gates, where s is the number of gates of C. Proof: Choose one variable x that is not fixed. Introduce a gate u=x XOR x, which is constantly 0, and a gate v=NAND(x,x), which is constantly 1. In every input position of every gate where C used a fixed variable, substitute u or v according to the fixed value. Leave all other wires and gates unchanged. The resulting circuit computes the cofactor, since u and v have the required constant values on every assignment to the remaining inputs. The two new gates can be shared by unrestricted fan-out, so the gate count is at most s+2. This bound is uniform in the number and pattern of fixed variables; when constants are free the overhead is zero.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484107.7335124,
+  "session": "pnp-desk/research/R2427",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "no immediate counterexample; argument appears logically sound.",
+  "review_of": "S0347",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795484257.972384,
+  "session": "pnp-desk/research/R2424",
+  "model": "gpt-6-luna",
+  "id": "S0435",
+  "proved_step": "statement: Fix m>=r>=0, a set I of r input coordinates, and an assignment a to I. In the fan-in-two DAG model with free input wires and constants at zero gate cost, if a Boolean function f on m inputs has a circuit of at most s gates, then its cofactor f|_{I=a} on the remaining m-r inputs also has a circuit of at most s gates. Consequently the restriction of MCSP_m[s] to the truth-table subcube specified by I=a is contained in MCSP_{m-r}[s]. Proof: take a circuit for f, replace each fixed input wire by its assigned constant, evaluate and delete gates whose outputs become constant, and retain the remaining gates in topological order. Each retained gate computes the same operation on remaining variables, constants, or earlier retained gates, so the resulting DAG computes the cofactor with no more gates than the original circuit. This preserves threshold s; it does not imply containment in MCSP_{m-r}[(m-r)^c] when s=m^c, nor a lower bound on decision-circuit size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484312.706199,
+  "session": "pnp-desk/research/R2432",
+  "model": "gpt-6-luna",
+  "gap": "This quantifies the complexity cost of lifting all restricted cofactors back to the original function. It does not close the open superlinear MCSP circuit lower-bound obligations; restriction-stability and any superlinear gate-drop argument remain open.",
+  "evidence": "Constructive proof in the recorded step; no computational experiment was run.",
+  "gap_id": "G0186",
+  "id": "S0436",
+  "proved_step": "statement: For every m,r>=0 and Boolean function f:{0,1}^{m+r}->{0,1}, let f_a be its cofactor on the first m variables after fixing the last r variables to a in {0,1}^r. In fan-in-two Boolean DAG circuits with free input wires and all binary Boolean gates, max_a C_m(f_a) <= C_{m+r}(f) <= 2^r max_a C_m(f_a)+3(2^r-1)+r.\nproof: For each a, restrict a minimum circuit for f by substituting constants on the last r input wires and simplify; the resulting circuit computes f_a with no more gates. For the other direction, compute all 2^r cofactors independently, each with at most s=max_a C_m(f_a) gates. Combine their outputs with a binary Shannon-selection tree on the r selector variables. Each internal node computes mux(x,u,v)=(not x AND u) OR (x AND v), using at most three fan-in-two gates; compute each selector negation once, at cost at most r. There are 2^r-1 internal nodes, so the total is at most 2^r s+3(2^r-1)+r.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484365.1251514,
+  "session": "pnp-desk/research/R2424",
+  "model": "gpt-6-luna",
+  "id": "S0437",
+  "proved_step": "statement: Padding preserves exact fan-in-two circuit complexity. Let d>=0, r>=0, and f:{0,1}^d->{0,1}. Define F:{0,1}^{d+r}->{0,1} by F(x,y)=f(x), with y unused. In the fan-in-two DAG model with free input wires, the minimum gate counts satisfy C_{d+r}(F)=C_d(f). Proof: A circuit for f computes F by ignoring the r additional input wires, so C_{d+r}(F)<=C_d(f). Conversely, take any circuit computing F and fix every y-coordinate to 0. Substituting these constants yields a circuit on the d remaining inputs computing f; evaluating constant gates and deleting unused gates cannot increase the gate count. Thus C_d(f)<=C_{d+r}(F), proving equality. Consequently, for every threshold s, padding gives an injective map from the 2^d-bit truth tables in MCSP_d[s] into the (2^{d+r})-bit truth tables in MCSP_{d+r}[s], with image exactly the tables independent of the final r variables. This preserves s and does not imply a decision-circuit lower bound or normalize s=d^c to (d+r)^c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484435.6911068,
+  "session": "pnp-desk/research/R2432",
+  "model": "gpt-6-luna",
+  "gap": "Need a restriction-stable statement for MCSP decision circuits that forces more than a linear number of gates after restriction, or a different constructive lemma closing an existing recorded obligation. The individual-function restriction lemma above does not close the superlinear MCSP decision-circuit lower-bound obligation.",
+  "gap_id": "G0187",
+  "id": "S0438",
+  "proved_step": "statement: Restriction monotonicity for Boolean circuit complexity. Let C_d(f) be the minimum number of gates in a fan-in-two Boolean DAG computing f:{0,1}^d->{0,1}, with free input wires and arbitrary binary Boolean gates. For any restriction rho fixing r distinct inputs, the restricted function f|rho satisfies C_{d-r}(f|rho) <= C_d(f). Proof: Take a minimum circuit for f. Replace each fixed input wire by its assigned constant and evaluate every gate whose inputs are now constants; then delete gates that no longer feed the output. The resulting DAG computes f|rho, has fan-in at most two (constant inputs may be supplied freely), and has no more gates than the original. This statement concerns individual function complexity only; it does not imply gate elimination in a circuit deciding MCSP, since the restricted decision problem has a different input encoding and its promise/threshold must be re-established.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484491.5560513,
+  "session": "pnp-desk/research/R2432",
+  "model": "gpt-6-luna",
+  "gap": "This constructive synthesis lemma makes the number of distinct residual functions explicit, but does not imply a lower bound for MCSP decision circuits. Still open: a restriction-stable lower bound for the decision predicate with threshold and truth-table encoding costs stated explicitly.",
+  "gap_id": "G0188",
+  "id": "S0439",
+  "proved_step": "statement: Distinct-cofactor synthesis bound. Let f:{0,1}^{m+r}->{0,1}, and let g_1,...,g_k be the distinct cofactors of f obtained by fixing the last r variables; let A_i subseteq {0,1}^r be the selector strings whose cofactor is g_i. In the fan-in-two DAG basis containing AND, XOR and NOT, with free inputs, f has a circuit of size at most sum_{i=1}^k C_m(g_i)+k(r+2^r)+2^r-1. Proof: For each i synthesize g_i on the first m inputs. For each selector string a, synthesize its equality indicator e_a on the last r inputs using at most r NOT gates shared across all strings and r-1 AND gates per string. OR the indicators in A_i to obtain selector h_i; across all groups this takes at most 2^r-k OR gates. Gate each g_i by h_i using one AND, then XOR these k gated outputs. Since exactly one h_i is 1 on each selector input, the XOR equals f. The gate count is at most sum C_m(g_i)+r+k(r-1)+(2^r-k)+k+(k-1), which is bounded by the stated expression.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

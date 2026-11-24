@@ -3909,5 +3909,171 @@
   "kind": "LEMMA",
   "closes": "G0003",
   "closes_valid": true
+ },
+ {
+  "at": 1795482219.3574917,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0468",
+  "proved_step": "statement: Residual-state lower bound. Let F be any finite family of length-N binary strings, and for each t let R_t(p)={q in {0,1}^{N-t}: pq is in F} for p in {0,1}^t. Every deterministic streaming machine that decides whether the full input lies in F must have at least |{R_t(p):p in {0,1}^t}| distinct states after t input bits. Proof: if R_t(p) and R_t(p') differ, choose q in their symmetric difference. Exactly one of pq,p'q belongs to F. If the machine were in the same state after p and p', determinism gives identical future behavior on common suffix q and hence the same final answer, a contradiction. Thus each distinct residual requires a distinct state; the state-bit lower bound is ceil(log2 of the maximum such count over t).\nscope: All finite F subseteq {0,1}^N and deterministic exact streaming deciders; this is a state-count bound only, not a transition-cost claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795482304.1599343,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0469",
+  "proved_step": "statement: Residual-width upper bound for finite languages. Let F be a nonempty subset of {0,1}^N. For each t, the number of distinct nonempty residual sets R_t(p)={q in {0,1}^{N-t}: pq in F}, over p in {0,1}^t, is at most min(2^t, |F|). If the empty residual is included, the total number of residuals is at most min(2^t, |F|)+1. Proof: There are only 2^t prefixes. Each word in F has a unique length-t prefix, so the nonempty residuals partition F into nonempty parts; their number is therefore at most |F|. There is at most one empty residual. Taking both bounds gives the claim.\nscope: All finite nonempty F subseteq {0,1}^N and each t in 0..N. This bounds canonical automaton state width only; it gives no transition-cost bound for EXT or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795482340.7823365,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0470",
+  "proved_step": "statement: EXT residual-width bound by represented truth tables. Fix n,s and N=2^n, and let F be the set of distinct length-N truth tables computed by Boolean circuits of size at most s. For every prefix length t, the canonical residual automaton for EXT_{n,s} has at most |F|+1 states at depth t, including the empty residual. Proof: for each prefix p, its residual R_t(p) is exactly the set of suffixes q such that pq belongs to F. Thus every nonempty residual is a nonempty subset of F consisting of words with the same length-t prefix. Distinct nonempty residuals are disjoint, because a full word has a unique length-t prefix. Choosing one word from each nonempty residual gives an injection into F, so there are at most |F| nonempty residuals. There is at most one empty residual. This is a state-count bound and gives no transition-cost bound or simulation by arbitrary MCSP decision circuits.\nscope: All n,s and t=0,...,2^n; F is the set of distinct truth tables of size-at-most-s circuits under the fixed input order. State count only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795482456.2654443,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0471",
+  "proved_step": "statement: Continuation-witness characterization of deterministic exact states. Let F be a subset of {0,1}^N, fix a cut t, and let P_t(F) be the prefixes of length t that extend to an element of F. Define p ~_F p' iff for every suffix q in {0,1}^{N-t}, pq belongs to F exactly when p'q belongs to F. Every deterministic one-pass exact streaming machine recognizing F has at least |P_t(F)/~_F| states after t bits; moreover a machine with exactly that many reachable states at depth t exists when each depth is represented by its equivalence classes. Proof: If two prefixes lead to the same machine state, then for every suffix q the deterministic continuation from that state on q is identical, so acceptance of pq and p'q agrees; thus they are equivalent. Hence different equivalence classes require different states. Conversely, use the equivalence class of the consumed prefix as state. On bit b, map [p] at depth t to [pb] at depth t+1. This is well-defined: if p~p', then for every suffix r, membership of pbr in F equals membership of p'br in F, by applying the equivalence to suffix br. At depth N accept exactly classes whose represented prefix is in F. This constructs the layered canonical automaton.\nscope: All finite F subseteq {0,1}^N and all cuts 0<=t<=N; deterministic exact one-pass automata with depth-aware states/transitions. The result characterizes required states but gives no bound on real-gate transition cost for EXT_{n,s} or arbitrary H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795482496.226022,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "gap": "S0471 characterizes the number of exact states at a cut but does not bound the real-gate cost of transitions or express them using an arbitrary MCSP decision circuit H_C. Its closes=G0003 annotation overstates what the lemma proves; the transition-cost bridge remains open.",
+  "evidence": "S0471 proves only the deterministic continuation-equivalence state characterization; it supplies no transition implementation or gate-cost bound.",
+  "gap_note_on": [
+   "G0003"
+  ]
+ },
+ {
+  "at": 1795482547.1865716,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0473",
+  "proved_step": "statement: Residual-state construction for a finite binary language. Let F\u2286{0,1}^N. For each t and each length-t prefix p, set R_t(p)={r\u2208{0,1}^{N\u2212t}:pr\u2208F}. Any deterministic exact one-pass machine recognizing F must reach different states after p and q whenever R_t(p)\u2260R_t(q). Conversely, a layered deterministic exact machine can use the residual sets R_t(p) as its states at depth t, including the empty residual; its transition on b maps R_t(p) to R_{t+1}(pb), and its terminal states accept exactly residual {\u03b5}. Proof: If two prefixes reach the same state, every common continuation produces the same acceptance result, so their residual sets agree. For the construction, the residual after reading b is exactly {r:br\u2208R_t(p)}, which depends only on R_t(p) and b; hence the transition is well-defined. At depth N, the residual is {\u03b5} exactly for prefixes in F and is empty otherwise, giving exact acceptance. This repairs S0471's converse by including nonextendable prefixes through the empty residual state.\nscope: All finite F\u2286{0,1}^N and deterministic exact one-pass automata with depth-aware state sets. This gives an exact state characterization/construction; it does not bound real-gate transition cost or implement transitions using arbitrary MCSP decision circuits H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795482616.2113507,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0474",
+  "proved_step": "statement: Explicit completion expansion for EXT from a decision circuit. Let N=2^n, let L\u2286{0,1}^N be the truth tables accepted by a Boolean circuit H of size h, and define EXT_L(p)=1 iff some q\u2208{0,1}^{N\u2212|p|} has pq\u2208L. For each prefix length t, there is a Boolean circuit E_t with t input bits computing EXT_L on length-t prefixes, of size at most 2^{N\u2212t}(h+1)\u22121 using fan-in-two gates, assuming H has h gates and fixed input order. Proof: For every suffix q of length N\u2212t, make a copy H_q of H whose first t inputs are the variable prefix p and whose remaining inputs are the constants q. OR the 2^{N\u2212t} output bits with a fan-in-two tree. The output is 1 exactly when at least one completion pq is accepted. The construction uses 2^{N\u2212t}h gates for copies and 2^{N\u2212t}\u22121 OR gates. At t=N it is H itself; at t=0 it is the constant indicating whether L is nonempty. Applied to L={truth tables with circuit complexity at most s}, this gives an exact EXT computation from any MCSP decision circuit H_C, but the bound can be exponential in N\u2212t and therefore does not establish poly(s) transition cost.\nscope: All N>=0, all Boolean languages L\u2286{0,1}^N with a size-h decision circuit, and every cut 0<=t<=N. Fan-in-two circuit size counts gates; constants and input wiring are free. This is an explicit upper bound for computing the EXT predicate at one cut, not a lower bound or a streaming update implementation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795482796.858876,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0475",
+  "proved_step": "statement: LOGARITHMIC-TAIL COMPLETION LEMMA. Let H:{0,1}^N->{0,1} be computed by a fan-in-two Boolean circuit of h gates, where constants and wiring are free. For a cut t=N-k, define E_t(p)=1 iff there exists q in {0,1}^k with H(pq)=1. Then E_t is computed by a fan-in-two circuit of at most 2^k(h+1)-1 gates. Consequently, if k<=c log_2(h+2) for a fixed constant c, E_t has size O((h+2)^(c+1)); in particular, for h=poly(s) it has size poly(s) whenever the unprocessed suffix length is O(log s). Proof: For each of the 2^k strings q, take a disjoint copy H_q of H with its first N-k inputs wired to p and its last k inputs fixed to q. OR the 2^k outputs using a binary OR tree, which uses 2^k-1 gates. H_q(p)=H(pq), so the OR computes E_t. The total gate count is 2^k h+(2^k-1)=2^k(h+1)-1. If k<=c log_2(h+2), then 2^k<=(h+2)^c, yielding size <=(h+2)^c(h+1)=O((h+2)^(c+1)). If h is polynomially bounded in s and k=O(log s), this is polynomial in s. This only constructs the completion predicate at cuts with logarithmic remaining suffix; it gives no poly(s) bound for early cuts, no update implementation for the full EXT automaton, and no implication for arbitrary MCSP circuits beyond their decision-circuit size h.\nscope: All N>=0, all Boolean circuits H on N inputs, all cuts t with k=N-t, fan-in-two gate count with constants/wiring free. The polynomial consequence assumes the stated asymptotic bounds; no MCSP lower bound is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795483123.8431919,
+  "session": "pnp-desk/research/R2420",
+  "model": "gpt-6-luna",
+  "id": "S0476",
+  "proved_step": "statement: Let L be any language of fixed-length words {0,1}^N recognized exactly by a deterministic left-to-right streaming machine. For each depth t and prefix p in {0,1}^t define R_L(p)={u in {0,1}^{N-t}: pu is in L}. Any such machine has at least |{R_L(p):p in {0,1}^t}| distinct states after t symbols. Conversely, the layered machine whose depth-t states are the distinct sets R_L(p), with transition R_L(p) --b--> R_L(pb), recognizes L exactly. Therefore the minimum possible number of states at layer t is exactly the number of distinct accepting-continuation residuals at that depth. Proof: If two prefixes p,q reach the same deterministic state, then every continuation u induces the same accept/reject outcome from that state, so R_L(p)=R_L(q); contrapositively distinct residuals require distinct states. For the converse define the transition by appending b to any representative prefix; this is well-defined because equal residuals at depth t imply that for each b the residuals after pb agree, as membership of every remaining v is equivalent to bv belonging to the original residual. At depth N accept exactly when the empty continuation belongs to the residual. Induction on t proves the invariant that the state after p is R_L(p), hence exact recognition. This characterizes the information an exact fixed-length streaming algorithm must preserve; it provides no transition circuit bound in terms of an arbitrary MCSP decision circuit H_C.\nscope: All N>=0 and all Boolean languages L subseteq {0,1}^N; deterministic streaming machines reading one bit per transition, with a fixed known depth. State lower bound is per layer; no uniformity, transition gate complexity, or MCSP simulation claim is included.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795483229.7815554,
+  "session": "pnp-desk/research/R2420",
+  "model": "gpt-6-luna",
+  "evidence": "Direct proof by unpacking the definition of R_t(p); no finite computation is needed. This supplies the exact residual transition operation but does not claim a gate-cost bound or close the arbitrary-H_C transition-simulation obligation.",
+  "id": "S0477",
+  "proved_step": "statement: Residual-section lemma for EXT. Let N>=1, let F be any set of N-bit strings, and for each prefix p of length t<=N define R_t(p)={u in {0,1}^{N-t}: pu in F}. For t<N and b in {0,1}, R_{t+1}(pb)={v in {0,1}^{N-t-1}: bv in R_t(p)}. Consequently R_t(p) is the disjoint union of 0R_{t+1}(p0) and 1R_{t+1}(p1), where bA={bv:v in A}. Proof: For any v of length N-t-1, v belongs to R_{t+1}(pb) iff pbv belongs to F, iff bv belongs to R_t(p). Every length-(N-t) string has a unique first bit b and remaining suffix v, so it belongs to exactly one of the two displayed sections; membership in that section is equivalent to pv with that first bit lying in F by the defining equivalence. Thus the pair of child residuals is exactly the information needed to reconstruct the parent residual, and each child is obtained by a fixed section operation. Scope: exact residual languages for any fixed-length target F, including EXT with F=Im(Eval); this proves the abstract transition identity only and gives no bound on representing or computing the sections in real gates from an arbitrary MCSP decision circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795483435.9813912,
+  "session": "pnp-desk/research/R2420",
+  "model": "gpt-6-luna",
+  "evidence": "Direct distinguishability proof: unequal residual sets have a suffix on which membership differs; identical machine states force identical future behavior on that suffix, contradicting exact recognition. This general proof requires no finite enumeration.",
+  "id": "S0478",
+  "proved_step": "statement: Layerwise residual lower bound for exact streaming recognition. Let N>=0, F subseteq {0,1}^N, and 0<=t<=N. Define R_t(p)={u in {0,1}^{N-t}: pu in F} for each p in {0,1}^t, and let r_t be the number of distinct residual sets. Any deterministic streaming machine that decides membership in F exactly must reach at least r_t distinct states after t bits, hence needs at least ceil(log2 r_t) state bits (zero if r_t=1). Proof: If p and q have different residuals but lead to the same state, choose u in their symmetric difference. Starting from that shared state, the machine's deterministic run on u gives the same answer for pu and qu. Exactly one lies in F, a contradiction. Thus distinct residuals require distinct states; a B-bit state has at most 2^B possibilities, so 2^B>=r_t. This applies to EXT_{n,s} for F equal to the set of size-at-most-s circuit truth tables in the fixed order, but does not bound transition gate cost or give a simulation from arbitrary H_C.\nscope: All finite binary languages F subseteq {0,1}^N and all layers t, for deterministic exact one-pass recognition; applies to EXT prefix membership under its fixed truth-table ordering.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795483525.8840287,
+  "session": "pnp-desk/research/R2420",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and proof: successor residuals are determined solely by the current residual and next bit, because R(pb)={u: bu in R(p)}. Acceptance at the final layer is membership of the empty suffix. No computation is needed for this general finite-language lemma.",
+  "id": "S0479",
+  "proved_step": "statement: Residual quotient automaton for a finite language. Let F be a subset of {0,1}^N. For each prefix p of length at most N, define R(p)={u in {0,1}^{N-|p|}: pu in F}. Make one state for each distinct residual set at each layer, keeping layers distinct even if their sets coincide. From state R(p) at layer t, on bit b transition to R(pb) at layer t+1. This transition is well-defined: if R(p)=R(q) for |p|=|q|=t, then for every suffix u of length N-t-1, u is in R(pb) exactly when bu is in R(p), and likewise for q; hence R(pb)=R(qb). Declare the layer-N state accepting exactly when its residual contains the empty string. The resulting deterministic layered automaton recognizes F exactly and has r_t states at layer t, where r_t is the number of distinct residuals there. Combined with the distinguishability argument in S0478, this proves that r_t is the minimum possible number of states at layer t for any exact deterministic streaming recognizer. The construction does not bound the cost of computing its transitions from H_C or the total description size as a function of n and s.\nscope: Every finite binary language F subseteq {0,1}^N; deterministic one-pass recognition with position known to the machine. State counts are per layer; no transition-complexity assertion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795483846.1597152,
+  "session": "pnp-desk/research/R2420",
+  "model": "gpt-6-luna",
+  "id": "S0480",
+  "proved_step": "statement: Residual-language quotient lemma. Let F be any subset of {0,1}^N. For each t\u2264N and prefix p\u2208{0,1}^t, define R_p={u\u2208{0,1}^{N-t}: pu\u2208F}. In any deterministic layered streaming automaton that accepts exactly F, two length-t prefixes with different residual sets must lead to different states. Conversely, the residual sets at each layer form a deterministic layered automaton with transitions R \u21a6 {v\u2208{0,1}^{N-t-1}: bv\u2208R} on input bit b, initial state R_empty=F, and acceptance at layer N iff the empty string belongs to R. Thus the minimum number of states at layer t is exactly the number of distinct residual sets {R_p:|p|=t}. Proof: If R_p\u2260R_q, choose u in their symmetric difference. Then exactly one of pu,qu is in F. If the automaton had the same state after p and q, its deterministic processing of the same suffix u would have the same acceptance outcome, contradiction. For the converse, after prefix p the stored state R_p updates on bit b to R_pb by the definition of residual and concatenation; induction on prefix length gives exactness, and final acceptance is exactly membership in F.\nscope: All finite binary languages F\u2286{0,1}^N and deterministic layered streaming automata reading exactly N bits. It characterizes minimum state width layer by layer; it gives no bound on transition circuit cost or construction time, and no simulation through arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795484175.2358904,
+  "session": "pnp-desk/research/R2428",
+  "model": "gpt-6-luna",
+  "id": "S0481",
+  "proved_step": "statement: Residual distinguishability lower bound for EXT streaming states. Fix n,s and let L=EXT_{n,s} be the language of prefixes of truth tables of Boolean functions computable by size-at-most-s circuits, with the truth-table order fixed. For a prefix p, define R_p={z: pz is a prefix of a truth table in Im(Eval)}. Any deterministic streaming machine that decides membership in L after every prefix and whose future behavior depends only on its current state must assign different states to p and q whenever R_p != R_q. Consequently it has at least |{R_p : p is a prefix}| states and at least ceil(log2 |{R_p : p is a prefix}|) state bits.\nproof: Suppose R_p != R_q. Choose a suffix z in their symmetric difference; without loss of generality z is in R_p and not R_q. By definition, pz is a prefix of some size-at-most-s circuit truth table, whereas qz is not. If the machine reached the same state after p and q, then feeding the identical suffix z would produce the same future state sequence and the same final membership answer on both inputs, contradicting that one concatenation is in L and the other is not. Thus distinct residual sets require distinct states. The state-count and bit-count bounds follow by counting these pairwise distinguishable residual sets.\nscope: All finite truth-table lengths N=2^n, all s>=0, fixed truth-table order, deterministic machines whose state completely determines future transitions and acceptance. This proves a state-width requirement only; it gives no transition-cost lower bound and no simulation of an arbitrary MCSP decision circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795484205.9832604,
+  "session": "pnp-desk/research/R2428",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0481 as stated uses a distinguishing suffix for arbitrary prefixes p,q, including prefixes of different lengths. A streaming machine's transition and remaining input positions depend on the number of bits already read, so identical suffixes need not cause identical computations from states reached at different levels.",
+  "evidence": "Exact argument gap: the Myhill-Nerode style indistinguishability argument requires comparing prefixes at the same input position (or augmenting the state with the position). The recorded S0481 statement does not impose equal prefix lengths.",
+  "id": "S0482",
+  "proved_step": "statement: Equal-level residual distinguishability for EXT. Fix n,s, N=2^n, a truth-table order, and a level t in {0,...,N}. Let L=EXT_{n,s} be the set of prefixes of truth tables of functions computable by circuits of size at most s. For each length-t prefix p define R_{p,t}={z in {0,1}^{N-t}: pz is a full truth table of a function computable by a size-at-most-s circuit}. Any deterministic streaming machine that, after reading all N bits, decides whether the full string is such a circuit truth table must reach distinct states after any two length-t prefixes p,q with R_{p,t} != R_{q,t}. Hence it has at least |{R_{p,t}:p in {0,1}^t}| states at level t, and at least ceil(log2 |{R_{p,t}:p in {0,1}^t}|) state bits at that level.\nproof: If R_{p,t} and R_{q,t} differ, choose z in their symmetric difference. Both prefixes have length t, so the same suffix z has length N-t and places both computations at the same subsequent input positions. Exactly one of pz and qz is a truth table in the target family. If the machine had the same state after p and q, determinism implies that processing the identical suffix z leads to the same final state and output, contradicting correctness on those two full strings. Thus distinct residual sets force distinct level-t states. Counting these residual sets yields the state and bit lower bounds.\nscope: Every fixed n,s, truth-table order, and level t. The language decision is on complete N-bit truth tables; this statement yields only a state-width lower bound at each level, not transition-cost bounds or a simulation/lower bound for arbitrary MCSP decision circuits H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795484317.0653408,
+  "session": "pnp-desk/research/R2428",
+  "model": "gpt-6-luna",
+  "evidence": "The claimed at-most K+1 fan-in-two gate count includes K coordinate AND updates and a shared OR reduction over K candidates. For K>=2, that OR reduction takes K-1 gates, so the combined count is 2K-1, exceeding K+1 for K>2. The coordinate update identity itself is valid; the gate-count conclusion as stated is not.",
+  "review_of": "S0419",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795484317.1261904,
+  "session": "pnp-desk/research/R2428",
+  "model": "gpt-6-luna",
+  "id": "S0484",
+  "proved_step": "statement: Candidate-vector transition accounting for EXT. Fix a finite indexed list C_1,...,C_K of length-N candidate truth tables and a stream position t. Let z_i indicate whether candidate i matches the prefix of length t, and let c_i=[C_i(t)=b] be supplied position-dependent constants for the next input bit b. Then the exact next state is z'_i=z_i AND c_i for every i. Thus each next-state coordinate is either the input wire z_i or the constant 0, so the transition map requires zero fan-in-two Boolean gates when wires and hardwired constants are free. The separate acceptance readout OR_i z_i takes K-1 fan-in-two OR gates for K>=1 (zero gates for K=1). Proof: Candidate i matches the extended prefix exactly when it matched the previous prefix and its bit at position t equals b, which is precisely z_i AND c_i. Since c_i is fixed for the transition, this expression is z_i when c_i=1 and 0 when c_i=0. A binary OR tree combines K bits in K-1 gates. This is an exact cost decomposition for the explicit candidate-vector representation; it gives no polynomial-in-s bound when K is exponential in the circuit-description length and no simulation through arbitrary MCSP decision circuits H_C.\nscope: All finite candidate lists, fixed truth-table orders, and positions, with position-dependent comparison constants supplied; the transition gate count excludes state storage and readout, which is separately K-1 gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

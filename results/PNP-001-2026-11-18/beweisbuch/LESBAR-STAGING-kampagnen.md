@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 12760 entries from 3425 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 12865 entries from 3460 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For EXT_{n,s} at layer t, the minimum number of states of an exact deterministic recognizer equals the number of distinct residual sets R_t(p); the lower bound follows from distinguishability, and storing the residual itself gives the matching upper bound.
+  - There may be Boolean-function families for which the minimum-over-orders maximum residual count is asymptotically much smaller than the exponential of the minimum-over-orders maximum rational cut rank.
+  - For a fixed encoding and reachable transition domain U, the minimum update gate count is at least the number of output coordinates whose restricted Boolean functions are not constants or input projections, but this bound may be weak because one gate can feed m
   - For CNFs with few crossing clauses at a variable cut, the satisfying-assignment matrix admits a low-rank representation with rank at most 2^t over Q, where t is the number of crossing clauses.
   - For every finite nonempty F subset of {0,1}^N, the number D_t of distinct suffix residuals at cut t is at most min(2^t, |F|+1), with equality behavior controlled by the number of distinct live prefixes plus the presence of at least one dead prefix.
   - The fixed-code zero-update criterion is a useful exact filter for the Lemma M Pareto search: any candidate with G_max=0 must have each output coordinate equal on reachable pairs to a constant or a single state/input wire; conversely those coordinate restrictio
-  - The circuit-description counting bound (s+1)·16^s·(m+s)^(2s+1) is sufficient to show that most m-input Boolean functions have complexity greater than s whenever its logarithm is below 2^m.
-  - The explicit circuit-candidate filtering representation for EXT_{n,s} is exact, but its direct per-position update cost scales with the number of candidate descriptions. Compressing candidates to residual classes may reduce storage without yielding bounded tra
-  - All four claimed steps S0080, S0082, S0083, S0085 in Q-6ead6c935d have been reviewed and SURVIVED_REVIEW. The quantifier logic of (40a) and its negation is now verified. The key distinction: failure of (40a) means some good-index set G_{M,c,d} is UNBOUNDED (fo
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -38,13 +38,13 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3074 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3079 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-aa875df5e7 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:c3217819f044 by pnp-desk/research/R2416:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I did not produce a self-contained L
   - Q-51609197b6 [MISSING_PROOF, OPEN] Can the residual set Ext_F(p), or its update under one next truth-table bit, be represented and computed from an arbitrary MCSP decision circuit H_C with transition cost polynomial in its circuit size and the encoded sta
   - Q-dfa4d8b2f5 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:0405348baaad by pnp-desk/research/R2392:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The knowledge search found an earlie
   - Q-e6927a7742 [MISSING_PROOF, OPEN] Does there exist an efficiently computable column-lattice basis H for rank-r threshold instances for which the coordinate-range product product_k(2 sum_i |(H^{-1}M_i)_k|+1) is asymptotically smaller than the original coo
   - Q-9e4ea1398a [MISSING_PROOF, OPEN] Can a reviewer from another model family review S0395, S0396, S0411, and S0412 in Q-0b7da33369, then identify a constructive lemma closing a recorded subclaim?
-  - Q-bedff1dab1 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:1375f298e812 by pnp-desk/research/R2391:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The only Lean check that returned a re
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
