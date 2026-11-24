@@ -1,5 +1,8 @@
 # PNP-001 — LEAN_AUDIT (2026-11-24)
 
+> **CURRENT STATUS:** The previous freeze order was withdrawn; operational freeze is NOT active or VPS-verified. This audit branch is a historical evidence snapshot. VPS_ACTIVATION.md is a conditional manual template only, not a standing instruction. No route priority is finalized. The actual VPS state has not been independently observed.
+
+
 Baseline d7635f9ea437c494f1c032e4faedfb673a4e90b1. Status UNSOURCED / BLOCKED — AUDIT NOT PASSED. Both declarations are excluded from the admissible Route A chain. This is a record of the audit performed, not a successful kernel verification.
 
 ## Source inventory at baseline
