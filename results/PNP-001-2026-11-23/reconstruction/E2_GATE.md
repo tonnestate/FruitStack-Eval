@@ -1,4 +1,7 @@
 # E2_GATE — Boolean-to-general-IPS transfer (OPEN, E1 parked)
+
+> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. VPS_ACTIVATION.md has been removed.
+
 Baseline d7635f9ea437c494f1c032e4faadfb673a4e90b1. This is a proposed sufficient lemma, not an established result.
 
 ## Exact research target
