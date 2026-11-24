@@ -480,5 +480,56 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795537761.2763543,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard Shannon construction: DNF with one conjunction per satisfying assignment (q literals, q-1 AND gates each), OR of at most 2^q terms (2^q-1 OR gates). Total O(q 2^q) gates. For q = O(log s) and g = poly(s), overhead is poly(s). This is a correct upper bound; it does not establish a lower bound for specific oracle predicates.",
+  "review_of": "S0053",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795537957.1633062,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Repairs S0034 by: (1) not assuming \u03a3\u2083SAT\u1d2c is a random function (Shannon does not apply), (2) not inferring q = \u03a9(s) from q = \u00d5(s) (upper bound \u2260 lower bound), (3) stating the exact condition q = \u03c9(log s) under which truth-table compilation becomes superpolynomial, (4) identifying the precise broken step (truth-table compilation of oracle gates) and the exact hypothesis on which it depends. Proof: If q = \u03c9(log s), then 2^q = s^\u03c9(1). Truth-table compilation of a q-bit function gives size O(q\u00b72^q) = s^\u03c9(1). With poly(s) oracle gates, total size is s^\u03c9(1), not poly(s). Theorem 4.1 requires poly(s) simulation. Conversely, if q = O(log s), compilation gives poly(s) size and this step does not fail. MMW19 proves q = O(s log^k s) but not q = \u03c9(log s).",
+  "id": "S0055",
+  "proved_step": "statement_start: LEMMA (Conditional oracle query barrier for transfer T0). Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT\u1d2c oracle (Thm 1.2). Suppose the oracle queries made by M on inputs of stream length N = 2^m have bit-length q(m,s) satisfying q(m,s) = \u03c9(log s). Then any simulation that replaces each oracle gate by a standard circuit computing the same function on all q-bit inputs yields a circuit of size 2^\u03c9(log s) = s^\u03c9(1), which is superpolynomial in s. Since transfer T0 requires a resource-preserving simulation with poly(s) circuit size to connect streaming bounds to circuit lower bounds via Theorem 4.1, this simulation step fails under the hypothesis q = \u03c9(log s). The MMW19 paper states q = \u00d5(s) (an upper bound), which is consistent with but does not prove q = \u03c9(log s). Therefore, the oracle query length barrier for T0 is CONDITIONAL on the actual query length being \u03c9(log s), not merely \u00d5(s). The exact broken simulation step is the truth-table compilation of oracle gates; it fails iff q = \u03c9(log s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795539159.0867825,
+  "session": "pnp-desk/research/R2876",
+  "model": "gemma-4-31b-it",
+  "id": "S0056",
+  "proved_step": "statement_start: LEMMA (Simulation Cost of Oracle Transitions). Let M be a streaming algorithm for Search-MCSP[s] utilizing an oracle O with query length q. Any simulation that replaces each oracle call with a Boolean circuit computing the oracle's truth table on the given input requires a circuit of size O(g * q * 2^q), where g is the number of oracle calls. This simulation is polynomial in s if and only if q = O(log s). Consequently, the Transfer T0 (which requires poly(s) simulation to apply Thm 4.1) is blocked if and only if q = omega(log s). This repair replaces the refuted Shannon-based claims (S0033, S0034) by stating the simulation bound as a property of the representation (truth-table) rather than a lower bound on the oracle's intrinsic complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795539258.9341433,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b",
+  "id": "S0057",
+  "proved_step": "statement_start: LEMMA (Exact Simulation Overhead for Oracle-Query Compilation). Let M be any one-pass streaming algorithm for Search-MCSP[s] that uses an oracle O. Suppose M makes at most g oracle queries on inputs of stream length N, and each query has bit-length at most q. Consider the standard compilation that replaces each oracle gate by a Boolean circuit computing the exact same function f: {0,1}^q -> {0,1} via its full truth table (i.e., a DNF/CNF of size O(q * 2^q) or a binary decision tree of size O(2^q)). Then the resulting oracle-free circuit has size at most O(g * q * 2^q). This compilation is polynomial in the stream parameter s if and only if q = O(log s). Proof: (1) A Boolean function on q bits has a truth table of 2^q entries. The standard circuit constructions (DNF, CNF, or binary decision tree) yield size O(q * 2^q) = O(2^{q + log q}). (2) With g queries, total overhead is O(g * q * 2^q). (3) For this to be poly(s), we need q * 2^q = poly(s). Taking logs: q + log q = O(log s), which holds iff q = O(log s). (4) Conversely, if q = O(log s), then 2^q = poly(s) and the compilation is poly(s). (5) Therefore, the Transfer T0 --- which requires a poly(s) simulation to apply Theorem 4.1 (the streaming-to-circuit connection) --- succeeds exactly when the oracle query length satisfies q = O(log s), and fails (i.e., the compilation is superpolynomial) exactly when q = omega(log s). This lemma makes no claim about the intrinsic complexity of the oracle function (e.g., Sigma3SAT^A); it is a statement about the cost of *this specific compilation method*.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795539258.954698,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b",
+  "id": "S0058",
+  "proved_step": "statement_start: LEMMA (Exact Simulation Overhead for Oracle-Query Compilation). Let M be any one-pass streaming algorithm for Search-MCSP[s] that uses an oracle O. Suppose M makes at most g oracle queries on inputs of stream length N, and each query has bit-length at most q. Consider the standard compilation that replaces each oracle gate by a Boolean circuit computing the exact same function f: {0,1}^q -> {0,1} via its full truth table (i.e., a DNF/CNF of size O(q * 2^q) or a binary decision tree of size O(2^q)). Then the resulting oracle-free circuit has size at most O(g * q * 2^q). This compilation is polynomial in the stream parameter s if and only if q = O(log s). Proof: (1) A Boolean function on q bits has a truth table of 2^q entries. The standard circuit constructions (DNF, CNF, or binary decision tree) yield size O(q * 2^q) = O(2^{q + log q}). (2) With g queries, total overhead is O(g * q * 2^q). (3) For this to be poly(s), we need q * 2^q = poly(s). Taking logs: q + log q = O(log s), which holds iff q = O(log s). (4) Conversely, if q = O(log s), then 2^q = poly(s) and the compilation is poly(s). (5) Therefore, the Transfer T0 --- which requires a poly(s) simulation to apply Theorem 4.1 (the streaming-to-circuit connection) --- succeeds exactly when the oracle query length satisfies q = O(log s), and fails (i.e., the compilation is superpolynomial) exactly when q = omega(log s). This lemma makes no claim about the intrinsic complexity of the oracle function (e.g., Sigma3SAT^A); it is a statement about the cost of *this specific compilation method*.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

@@ -5722,5 +5722,65 @@
   "proved_step": "statement: RESIDUAL DISTINGUISHABILITY LOWER BOUND. Let F be any subset of {0,1}^N, and fix t. Write R_t(p)={z in {0,1}^{N-t}: pz in F}. For any deterministic exact one-pass left-to-right streaming machine deciding membership in F, distinct residuals R_t(p) correspond to distinct machine states after t bits. Hence if there are d distinct residuals at level t, at least d states and ceil(log2 d) bits of state are necessary. Proof: if R_t(p) and R_t(p') differ, choose z in their symmetric difference. Exactly one of pz,p'z belongs to F. If p and p' led to the same machine state, determinism on the identical remaining suffix z would force the same output, contradicting exact membership. Scope: state information only; no gate-transition-cost or arbitrary-MCSP-circuit simulation claim.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795536574.0446942,
+  "session": "pnp-desk/research/R2860",
+  "model": "gpt-6-luna",
+  "gap": "For EXT, the exact residual set determines the child residuals by sectioning, but the recorded gap remains: whether these transitions can be represented through one fixed H_C with bounded operations and a useful real-gate cost, especially for arbitrary MCSP decision circuits.",
+  "gap_id": "G0186",
+  "id": "S0673",
+  "proved_step": "statement: RESIDUAL SECTION IDENTITY. For every finite F \u2286 {0,1}^N, every 0 \u2264 t < N, prefix p \u2208 {0,1}^t, and bit b \u2208 {0,1}, R_{t+1}(pb) = {u : bu \u2208 R_t(p)}, where R_t(p) = {z : pz \u2208 F}. Moreover R_t(p) is the disjoint union over b of {bu : u \u2208 R_{t+1}(pb)}.\nproof: For any suffix u of length N\u2212t\u22121, u \u2208 R_{t+1}(pb) iff pbu \u2208 F, which by definition holds iff bu \u2208 R_t(p). Every suffix z of length N\u2212t has a unique decomposition z=bu, so the two first-bit sections are disjoint and their union is R_t(p).\nscope: All finite F \u2286 {0,1}^N, N \u2265 1, 0 \u2264 t < N. The statement concerns exact residual information only; it gives no gate-cost bound for computing transitions from an encoded residual or from H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795536936.3512485,
+  "session": "pnp-desk/research/R2868",
+  "model": "gpt-6-luna",
+  "evidence": "Direct coordinatewise construction and proof above; an independent exhaustive check is requested separately. No transition-cost conclusion for implicit or arbitrary MCSP representations is asserted.",
+  "id": "S0674",
+  "proved_step": "statement: EXPLICIT-CANDIDATE MASK UPDATE LEMMA. Let N,M\u22650 and let A=(a_1,\u2026,a_M) be any explicitly given list of words in {0,1}^N, with repetitions allowed. After reading prefix p of length t, define q_j(p)=1 iff the length-t prefix of a_j equals p. On reading bit b at position t+1, update q'_j=q_j AND [a_j(t+1)=b]. Then q'=q(p b). The update is computable using at most M two-input AND gates when the constants [a_j(t+1)=b] are available; the accepting predicate \u201csome candidate extends the prefix\u201d is OR_j q_j and costs at most max(M\u22121,0) two-input OR gates. Proof: For each j, a_j has prefix p b exactly when it has prefix p and its next bit is b, which is precisely the displayed conjunction. Applying this coordinatewise proves equality of the vectors. The OR is 1 exactly when at least one listed candidate has the queried prefix. This is an exact construction for explicit candidate lists; it gives no polynomial-in-s transition bound when M is not polynomially bounded and gives no simulation from an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795537037.3938591,
+  "session": "pnp-desk/research/R2868",
+  "model": "gpt-6-luna",
+  "id": "S0675",
+  "proved_step": "statement: BATCHED EXPLICIT-FAMILY TRANSITION LEMMA. Let F be an explicitly listed set of M distinct words in {0,1}^N, represented by their M\u00d7N bit table. Given a current prefix p of length t and its candidate index set L(p)={i: f_i has prefix p}, the next-bit candidate sets L_b(p)={i in L(p): f_i[t+1]=b}, b\u2208{0,1}, are computed by one scan of the table column t+1 restricted to L(p), using at most M Boolean tests and O(M) workspace. For a block u of r bits, the candidate set is obtained in at most Mr Boolean tests. These candidate sets are exact sufficient statistics: for every suffix z of length N-t-1, p b z belongs to the prefix language of F iff some i\u2208L_b(p) has suffix z after position t+1. Proof: membership in L_b is precisely agreement with p followed by b; each listed word has a unique remaining suffix, so existential membership is equivalent to the stated condition. Thus explicit enumeration gives an exact update bound linear in M per bit, but this bound depends on the explicit table and does not transfer to arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795537151.331868,
+  "session": "pnp-desk/research/R2868",
+  "model": "gpt-6-luna",
+  "gap": "Can the exact EXT residual or candidate set for a succinctly described circuit family be updated at cost polynomial in the circuit description and encoded state, uniformly for arbitrary MCSP decision circuits?",
+  "gap_id": "G0187",
+  "id": "S0676",
+  "proved_step": "statement: EXPLICIT-FAMILY MASK TRANSITION LEMMA. Let F={f_1,...,f_M} be a fixed list of distinct words in {0,1}^N. At cut t, encode the candidates matching prefix p by the mask L(p) in {0,1}^M, where L_i(p)=1 iff f_i[1..t]=p. For each b in {0,1}, define the hardwired mask C_b by (C_b)_i=1 iff f_i[t+1]=b. Then L(pb)=L(p) AND C_b, coordinatewise. The two child masks can be computed with M fan-in-two AND gates total per child, or with zero nonconstant gates if the list-dependent masks are applied as fixed coordinate selection in the representation. The update uses M state bits. For a block u of r bits, define C_u by (C_u)_i=1 iff f_i[t+1..t+r]=u; then L(pu)=L(p) AND C_u, again coordinatewise, for each u. Proof: For each index i, L_i(pb)=1 exactly when f_i has prefix p and its next bit is b. This is equivalent to L_i(p)=1 and (C_b)_i=1, which is the i-th coordinate of the claimed intersection. The block statement follows by the same equivalence for the next r positions. Thus the mask is an exact sufficient state for an explicitly listed family, with O(M) bits and O(M) Boolean update gates per requested child; it gives no polynomial-in-succinct-description bound when M is exponential in that description.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795537755.639728,
+  "session": "pnp-desk/research/R2875",
+  "model": "gpt-6-luna",
+  "gap": "The lemma gives an exact circuit representation of each residual but does not bound canonical identification or transition cost from arbitrary MCSP decision circuits. The compact-state and EXT-to-H_C connection questions remain open.",
+  "gap_id": "G0188",
+  "id": "S0677",
+  "proved_step": "statement: COFACTOR REPRESENTATION LEMMA. Let H:{0,1}^N -> {0,1} be computed by a fan-in-two Boolean circuit with h gates. For every prefix p in {0,1}^t, the cofactor H_p(z)=H(pz) is computed by a circuit with at most h gates, assuming constants and input wiring are free. For b in {0,1}, H_{pb} is obtained from H_p by fixing its first remaining input to b, also with at most h gates. Proof: substitute the fixed constants on the corresponding input wires. Constant propagation deletes gates or leaves them unchanged and adds none. Repeating this along p proves the bound. Thus storing each residual as its restricted circuit is exact and costs at most h gates per state; this does not provide canonical state identifiers, an efficient equivalence test, or a transition algorithm from an arbitrary MCSP decision circuit.\nscope: All N >= 0, 0 <= t <= N, Boolean circuits H on N inputs with h fan-in-two gates; constants and input wiring are free.\nbarriers: Diagnostic only: the restriction identity relativizes; no natural-property lower bound is asserted; no algebrizing or localizing lower-bound method is used. The five circumvention tests are not established because this is a representation lemma, not a P != NP argument.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795538717.048998,
+  "session": "pnp-desk/research/R2875",
+  "model": "muse-glimmer-30b",
+  "evidence": "Finite exhaustive verification for N=0..3 over all 2^{2^N} subsets with cm-1e50336b489f42a0 confirms distinct nonempty residuals \u2264 |F| for every cut t, and the injection p_R r_R is distinct for distinct residuals in all cases. No counterexample found; argument gap none.",
+  "review_of": "S0569",
+  "status": "SURVIVED_REVIEW"
  }
 ]

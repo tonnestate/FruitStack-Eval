@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 13985 entries from 3959 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 14065 entries from 3993 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The CYCLE-DECOMPOSITION ENCODING BOUND (S0534) shows that any single permutation can be updated in O(SN / L_min) gates where L_min is the shortest cycle length. For the lower bound Omega(sqrt(m)/log m) to hold generally, hard permutations must have L_min = O(s
+  - The MMW19 Thm 1.2 streaming algorithm for Search-MCSP[s] makes oracle queries of length q = ω(log s) (not merely Õ(s)). This would make the truth-table compilation step in transfer T0 superpolynomial, breaking the poly(s) simulation premise.
+  - For SC_{3,1}, residual-language counts are strictly below live-prefix counts at each t>=4, and the residual profile may be a useful state-complexity invariant for Lemma M.
+  - For any finite list D of at most 2^m Boolean strings of common length N, a binary prefix trie with subtree counts supports greedy construction of an absent length-(m+1) prefix in O(m) time after preprocessing. Building the trie can cost Theta(|D|N) time and sp
   - For every m-state set Q and every injective S-bit encoding, a transition that differs from identity on t states admits an O(t log m)-gate fan-in-two AND/NOT extension; the bound may be sharp up to constants for some encodings and sparse permutations.
   - For any finite description family D of size at most 2^m whose objects are evaluable coordinatewise in time T, the deterministic smaller-branch prefix procedure constructs a length-(m+1) prefix outside the image using O(2^m T) time per coordinate and O(2^m) bit
-  - For an integer matrix A whose rows are restricted weight vectors a_j, the signature set A{0,1}^h lies in the image lattice Λ=A Z^h intersected with the zonotope Z=A[0,1]^h. Its cardinality may admit bounds sharper than (2Wh+1)^q when the covolume of Λ or the g
-  - For any finite truth-table family F and deterministic layered transducer that rejects nonmembers and outputs a circuit computing each member's truth table, the minimum number of reachable layer-t states is L_t + 1_{L_t < 2^t}, where L_t counts prefixes with a 
-  - For exact-string-output deterministic layered transducers recognizing any finite binary language F of length-N strings, the minimum reachable state count at layer t is L_t + 1_{L_t<2^t}, where L_t is the number of live length-t prefixes.
-  - For affine Boolean predicates H(x)=[Ax=c] with r equations over GF(2), each fixed-cut EXT-style completion predicate and its next-bit transition admit fan-in-two circuits of O(r²) gates after polynomial-time Gaussian-elimination preprocessing, independent of t
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -36,19 +36,19 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3155 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> EXHAUSTED: TURN_LIMIT
+NUMERICAL EVIDENCE on file: 3163 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-5591ad33bf [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:0a2ceae2bdfe by pnp-desk/research/R2856:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean verifier accepted only the el
+  - Q-d1d1ad55a5 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:c8f7d6e56cf8 by pnp-desk/research/R2856:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No Lean verification was obtained, a
   - Q-ed98f7bb61 [MISSING_PROOF, OPEN] Can a lower bound on distinct EXT residuals be converted into a lower bound on real-gate update cost for arbitrary MCSP decision circuits, invariant under state recoding and accounting for deferred decoding?
   - Q-eb7a8c4610 [MISSING_PROOF, OPEN] Can the signature set |A{0,1}^h| for an integer matrix A of rational rank q be bounded more sharply using the Smith normal form or covolume of the image lattice A Z^h together with the zonotope A[0,1]^h, in a way that yi
   - Q-d25720b26b [MISSING_PROOF, OPEN] Can the exact-string residual-state lemma be generalized to Lemma M's arbitrary-witness decoder by defining continuation equivalence through sets of valid witness outputs, and can that equivalence yield any nontrivial lo
-  - Q-b18c63cb83 [MISSING_PROOF, OPEN] Can the Hamming perturbation stability lemma be strengthened to a lower bound on the circuit size of a neighborhood-labeling circuit for MCSP, beyond the existing linear read-set bounds?
-  - Q-b7f02c8c42 [ASSUMPTION, OPEN] The claim 'For every binary arithmetic tree over GF(3) with at most four distinct variable leaves, each variable appearing at most once, constants from GF(3), and internal operations + or *, direct evaluation agrees with
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
-  - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
   - RECON-REMAINDER Case E (owner 2026-11-23, target (8)): recover proofs left unextracted in FINAL outputs (research R*.json, proofbook FINAL entries); list statem -> reopen if: None
+  - RECON-REMAINDER Route E (owner 2026-11-23, target (8)): algebraic proof complexity (Thm 12, Thm 14, Lemma 15, Thm 16, NS/PC degree, overlap theorem, IPS): name  -> reopen if: An independent-model-family reviewer can assess S0058-S0060, and a concrete uniform polynomial-size/time NS/PC-to-roABP-IPS_LIN conversion (
   - RECON-REMAINDER Route G (owner 2026-11-23, target (8)): PIT, GCT, permanent/determinant, algebraic natural proofs, Williams-type transfers, algebraic vs Boolean -> reopen if: A source-checked polynomial-size conversion preserving the Boolean-cube identity predicate, together with a transfer theorem matching its ex
 NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it follows from its premises)

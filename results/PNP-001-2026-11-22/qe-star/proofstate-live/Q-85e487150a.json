@@ -720,5 +720,38 @@
   "proved_step": "statement: LEMMA (staged affine exact-search lower bound over a prime field). Let p be prime, let N,S>=0, and let a one-pass streaming state q_t in F_p^S evolve on input x=(x_1,...,x_N) in {0,1}^N by q_0=c_0 and q_t=M_t q_{t-1}+x_t v_t+c_t for fixed M_t in F_p^{S\u00d7S}, v_t,c_t in F_p^S. Suppose a decoder depending only on q_N exactly solves Search-MCSP[s] on all N-bit truth tables, and the zero truth table has a circuit of size at most s. Then N<=S(p-1). Proof: By induction on t, q_t is affine in (x_1,...,x_t); hence q_N(x)=Mx+c for some M in F_p^{S\u00d7N}, c in F_p^S. Let w_i be the columns of M. In A=F_p[(Z/pZ)^S], write y_j=X_j-1 for the coordinate group generators. Since A is isomorphic to F_p[y_1,...,y_S]/(y_1^p,...,y_S^p), its augmentation ideal I=(y_1,...,y_S) satisfies I^{S(p-1)+1}=0. Each 1-X^{w_i} is in I. If N>S(p-1), then product_i(1-X^{w_i})=0. The coefficient of X^0 in this product is the sum of (-1)^|J| over subsets J of [N] with sum_{i in J} w_i=0. If no nonempty such J existed, this coefficient would be 1 from the empty subset, contradicting that the product is zero. Thus some nonempty J has zero column sum. Its indicator k in {0,1}^N is nonzero and Mk=0, so q_N(k)=q_N(0). Exact search at 0 must return a circuit computing 0^N; the same decoder output at k cannot compute k, contradicting correctness. Therefore N<=S(p-1), equivalently S>=ceil(N/(p-1)). This proves the bound for position-dependent staged affine updates; it makes no claim for nonlinear updates or a decoder with access to more than the final state.\nevidence: Complete derivation is in the statement: induction composes the staged updates into one affine map, the augmentation-ideal product yields a nonempty zero-sum subset when N>S(p-1), and the resulting Boolean kernel vector collides with the zero truth table. The finite check cm-925ab4d686cf4720 is consistent with the arithmetic lemma but is not used as proof.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795536815.7990148,
+  "session": "pnp-desk/research/R2867",
+  "model": "gpt-6-luna",
+  "id": "S0081",
+  "proved_step": "statement: LEMMA (composition of staged affine updates). Let p be prime, let q_0 in F_p^S be fixed, and for t=1,...,N let q_t=A_t q_{t-1}+b_t z_t+d_t, where A_t is an S-by-S matrix over F_p, b_t,d_t are in F_p^S, and z_t is the t-th input bit viewed in F_p. Then q_N(x)=M x+c for some S-by-N matrix M over F_p and c in F_p^S. Specifically, set P_{N+1}=I_S and P_t=P_{t+1}A_t; then c=P_1 q_0+sum_{t=1}^N P_{t+1}d_t and column t of M is P_{t+1}b_t. Proof: Repeated substitution gives q_N=A_N...A_1q_0+sum_{t=1}^N(A_N...A_{t+1})(b_t z_t+d_t), with the empty product for t=N equal to I_S. Separating coefficients of z_t from constants gives c and the stated columns. Hence every staged affine-update realization has an affine final map, though this gives no conclusion for nonlinear updates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795537827.7999995,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the argument: 0^N is a YES input (zero circuit exists by hypothesis), so decoder D(c) outputs a circuit C computing 0^N. For any nonzero k in ker M, q_N(k) = Mk + c = c, so D(q_N(k)) = D(c) = C. But C computes 0^N \u2260 k. If k is a YES instance, the decoder should output a circuit computing k; if k is a NO instance, it should output 'none'. Either way the output is incorrect. Hence ker M = {0}, so rank(M) = N, requiring S \u2265 N. No argument gap found. The proof is valid for the stated hypotheses (deterministic decoder, correctness on all inputs, zero circuit in basis).",
+  "review_of": "S0075",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795539216.647571,
+  "session": "pnp-desk/research/R2881",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Standard fooling-set / information-theoretic argument: if distinct f,g in F reached the same final state, the decoder (which by hypothesis depends only on that state) would output the same circuit on both truth tables; but f != g so no single circuit computes both. Injection is sound. Affine family f_{a,b}(x)=a*x+b over F_2 gives |F|=2^(m+1) distinct functions (values at 0 and m unit vectors recover b and a). S >= m+1. No counterexample possible - basic information-theoretic lower bound.",
+  "review_of": "S0076",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795539266.454896,
+  "session": "pnp-desk/research/R2881",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Standard description-counting argument (Shannon counting). Each gate has at most B choices for gate type and (m+s+2) choices for each of its two inputs (from m inputs + previous s gates + 2 constants). Output choice: m+s+2. Product bound is correct. For s = m^c, log |F_{m,s}| = O(s log s) = O(m^c log m) = o(2^m). The dense family of size p^(2^m) has log = Theta(2^m), so it cannot fit. This is a valid upper bound on circuit descriptions, though it only applies to the dense-subfamily subgoal G0004, not to streaming bounds.",
+  "review_of": "S0077",
+  "status": "SURVIVED_REVIEW"
  }
 ]
