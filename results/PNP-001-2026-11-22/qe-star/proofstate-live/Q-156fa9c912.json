@@ -3869,5 +3869,45 @@
   "proved_step": "statement: Exact residual-width lemma. Let F be any finite subset of {0,1}^N and, for each t, let d_t be the number of distinct residuals R_p={z in {0,1}^{N-t}: pz in F} over prefixes p of length t. Every deterministic layered streaming recognizer for F has at least d_t states at level t; a recognizer with exactly d_t states at each level exists.\nproof: For the lower bound, suppose prefixes p and q with different residuals reach the same state. Choose z in the symmetric difference of R_p and R_q. Exactly one of pz and qz belongs to F, but deterministic processing from the common state on the same suffix z must give the same result, a contradiction. Thus each distinct residual requires a distinct state. For the upper bound, use the residuals themselves as states. On input bit b, map R_p to its left quotient {z: bz is in R_p}; this equals R_{pb}, so the transition is well-defined even when multiple prefixes have the same residual. At level N, accept exactly the nonempty residual. This recognizes F and has d_t states at level t.\nscope: All finite F subseteq {0,1}^N, fixed input order, deterministic layered streaming; no uniform construction or transition-cost claim.\nknown_closest: Myhill\u2013Nerode residual equivalence for deterministic automata, specialized to fixed-length layered machines.\nnovelty: Gives the exact minimum width at every layer, rather than only a necessary state-merging condition.\nobstacle: For EXT_{n,s}, this does not bound d_t or show that residual transitions can be implemented with bounded real-gate cost from arbitrary MCSP decision circuits H_C.\nattack: Use a distinguishing suffix for unequal residuals to prove the width lower bound, then construct the matching residual-state machine using left quotients.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795478883.6445193,
+  "session": "pnp-desk/research/R2380",
+  "model": "gpt-6-luna",
+  "id": "S0464",
+  "proved_step": "statement: Let F={f_1,...,f_M} be a finite family of Boolean strings of length N. At depth t, for each prefix p define R_p={u in {0,1}^{N-t}: p concatenated with u lies in F}. The number of distinct R_p at depth t is at most min(2^t,2^M), hence the total number of depth-labelled residual states is at most sum_{t=0}^N min(2^t,2^M). Proof: there are 2^t prefixes, and every residual set is determined by the subset of the M indexed strings extending p, of which there are at most 2^M. For a next bit b, the exact residual transition retains precisely those suffixes beginning in b and deletes their first bit, so it is well-defined on residual sets. This state-count bound does not bound the real-gate cost of computing the transition or its construction cost.\nscope: All finite indexed families F of M Boolean strings of common length N, with depth-labelled residuals.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795479138.7090888,
+  "session": "pnp-desk/research/R2380",
+  "model": "gpt-6-luna",
+  "id": "S0465",
+  "proved_step": "LEMMA (explicit-family candidate filtering). Let F be a finite set of M distinct strings in {0,1}^N, with coordinates ordered 0,...,N-1. For each prefix p of length t define z_f(p)=1 iff f agrees with p on coordinates 0,...,t-1. Then z(p) exactly represents the strings in F extending p; on reading bit b at coordinate t, set z'_f=z_f AND [f_t=b] for every f in F. With the coordinate tests supplied, this transition has at most M fan-in-two AND gates. The prefix is extendible to a member of F iff OR_{f in F} z_f=1, using at most M-1 fan-in-two OR gates when M>=1. Proof: At t=0 all strings agree with the empty prefix. Assuming the invariant at t, a string agrees with the prefix extended by b exactly when it agreed through t-1 and its t-th bit equals b, which is the stated coordinate update. Induction proves the invariant at every prefix length; the OR is true exactly when the represented set is nonempty. Scope: explicit finite F with supplied position-dependent coordinate tests. This gives no polynomial-in-s transition bound for circuit truth tables and no implementation through an arbitrary MCSP decision circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795481187.4469113,
+  "session": "pnp-desk/research/R2404",
+  "model": "gpt-6-luna",
+  "id": "S0466",
+  "proved_step": "statement: Affine-prefix extension lemma. For n>=0, let F_n be the Boolean affine functions f(x)=c+sum_{i=1}^n a_i x_i over GF(2), and fix any ordering x^(0),...,x^(2^n-1) of {0,1}^n. For each prefix p in {0,1}^t, EXT^aff_n(p)=1 iff the GF(2) linear system c+sum_i a_i x_i^(j)=p_j for 0<=j<t is consistent. After each new truth-table bit p_t at position x^(t), appending the corresponding equation and maintaining a row-echelon basis gives an exact streaming algorithm with at most n+1 coefficient variables and O((n+1)^2) bit operations per update; initialization is the empty system. Proof: Each affine function corresponds exactly to one coefficient vector (c,a_1,...,a_n) in GF(2)^(n+1). The prefix is extendible by an affine function exactly when one such vector satisfies all t displayed equations, which is exactly consistency. Inductively, the maintained row-echelon basis represents precisely the solution set of the equations seen so far. Appending the next equation and eliminating its pivot preserves that represented solution set; a contradiction row arises exactly when no coefficient vector extends the prefix. Thus the algorithm decides prefix extendibility exactly. A basis has at most n+1 rows of length n+2, and insertion/elimination costs O((n+1)^2) bit operations. This proves an efficient transition bound for the affine subclass only; it makes no claim about EXT for arbitrary size-s circuits or simulation through arbitrary H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795481947.5352633,
+  "session": "pnp-desk/research/R2412",
+  "model": "gpt-6-luna",
+  "id": "S0467",
+  "proved_step": "statement: Residual-language identity for EXT: Fix n,s and a finite set F of Boolean functions on {0,1}^n, with truth-table positions ordered 0,...,N-1 where N=2^n. For a prefix p of length t, define Ext_F(p) as the set of strings q in {0,1}^{N-t} for which the concatenation pq is the truth table of some f in F. For each f in F, let r_{f,t} be the suffix (f(t),...,f(N-1)), and let A_F(p)={f in F: f agrees with p on positions 0,...,t-1}. Then Ext_F(p)={r_{f,t}: f in A_F(p)}. Consequently, for any two prefixes p,p' of the same length t, A_F(p)=A_F(p') implies Ext_F(p)=Ext_F(p'); moreover Ext_F(p) is nonempty iff A_F(p) is nonempty.\nproof: Fix q of length N-t. By definition, q belongs to Ext_F(p) iff pq is the truth table of some f in F. This is equivalent to there being f in F whose first t truth-table bits equal p and whose remaining N-t bits equal q. The first condition is exactly f in A_F(p), and the second is exactly r_{f,t}=q. This proves both set inclusions and hence the identity. If A_F(p)=A_F(p'), the displayed descriptions give equal extension sets. Finally, the set of suffixes displayed is nonempty exactly when A_F(p) is nonempty.\nscope: All finite n>=0, all finite F of Boolean functions on {0,1}^n, all t in {0,...,2^n}, and the fixed truth-table order. This is a semantic residual identity; it gives no bound on the number of distinct residuals, their encoding cost, or their transition cost in an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
  }
 ]

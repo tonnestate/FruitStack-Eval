@@ -3471,5 +3471,121 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795479118.268921,
+  "session": "pnp-desk/research/R2384",
+  "model": "gpt-6-luna",
+  "id": "S0417",
+  "proved_step": "For every m>=1, every Boolean function f:{0,1}^m->{0,1}, and every set D subseteq {0,1}^m of size t, there is a function g that differs from f exactly on D and has fan-in-two DAG circuit size C(g)<=C(f)+2mt. Proof: Enumerate D={a_1,...,a_t}. Starting from a circuit for f, for each a_i compute its minterm 1_{a_i} by negating at most m input literals and ANDing the m literals with at most m-1 gates, then XOR that minterm with the current output using one gate. This uses at most 2m gates per row. Each row is toggled once, so the final function differs from f exactly on D. For t=0 no gates are added. This bound applies in the basis containing NOT, AND, XOR; in the all-16-binary-gates model, NOT can be implemented as x NAND x, so the same 2m upper bound holds. The lemma is a local Hamming-perturbation upper bound and by itself gives no lower bound on MCSP decision-circuit complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795479369.6034954,
+  "session": "pnp-desk/research/R2388",
+  "model": "gpt-6-luna",
+  "id": "S0418",
+  "proved_step": "statement: For integers m>=1 and s>=0, in the fan-in-two DAG model with m free input wires, no free constants, and all 16 binary Boolean gates, the number of distinct m-input Boolean functions computable by at most s gates is at most (s+1)\u00b716^s\u00b7(m+s)^(2s+1). Proof: For exactly g gates, topologically order them. Gate i chooses an ordered pair of predecessor wires from m+i-1 available wires and one of 16 Boolean operations. The output is one of m+g wires. Thus the number of descriptions is at most (m+g)\u00b716^g\u00b7\u220f_{i=1}^g(m+i-1)^2 \u2264 (m+g)\u00b716^g\u00b7(m+s)^(2g). For 0\u2264g\u2264s, each term is at most (m+s)\u00b716^s\u00b7(m+s)^(2s), since m+s\u22651. Summing s+1 terms gives the bound. Multiple descriptions may compute the same function, so this is an upper bound. Scope: stated basis/cost convention only; it is a circuit-description count and by itself gives no decision-circuit lower bound for MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795479399.5046902,
+  "session": "pnp-desk/research/R2384",
+  "model": "gpt-6-luna",
+  "id": "S0419",
+  "proved_step": "statement: Let m>=2 and let C be a fan-in-two Boolean DAG on x_1,...,x_m with s gates, in the basis containing all binary Boolean functions, free input wires, and no free constants. For any nonempty proper set I of input coordinates and any assignment a in {0,1}^I, the cofactor C|_{x_I=a} has a circuit on the remaining coordinates with at most s+2 gates. If a is constant on I, it has at most s+1 gates. Proof: Choose a remaining input y. The fixed inputs appear in C only through their input wires, so replace each such wire by a shared wire for its assigned constant. If both 0 and 1 occur among the assigned values, create 0 as y XOR y and 1 as NAND(y,y), costing two gates; reuse these wires at every substituted occurrence. If only one value occurs, create only its constant, costing one gate. Retain all s original gates, including gates that become constant or redundant. The resulting circuit computes the cofactor by induction over the original DAG order and has the claimed size. This gives a uniform-in-|I| restriction overhead bound, but does not prove any gate elimination or MCSP decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795479623.3657842,
+  "session": "pnp-desk/research/R2384",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction proves the general gate-count bound. Independent finite accounting check cm-5896e0d223e042ba covered 1,184 coordinate-use/assignment patterns for m=2,3,4; it checks edge-case counting only, not the general circuit claim.",
+  "id": "S0420",
+  "proved_step": "statement: Let C be a fan-in-two Boolean DAG on m inputs using all binary Boolean gates, with free inputs and no free constants. Let R be a nonempty proper set of inputs, rho an assignment to R, and U the restricted inputs that occur in gates of C. If some input remains unrestricted, the cofactor C|rho has at most s + |{rho(i): i in U}| gates, where s is C's gate count. Proof: Substitute the assigned constants at every used restricted-input occurrence. For each distinct assigned bit b among those occurrences, choose an unrestricted input y; y XOR y computes 0 and NAND(y,y) computes 1. Add one such gate per distinct bit and reuse its output at all occurrences. Unused restricted inputs require no substitution in the circuit. The resulting DAG computes the cofactor and adds at most the stated number of gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0011",
+  "closes_valid": true
+ },
+ {
+  "at": 1795479656.966078,
+  "session": "pnp-desk/research/R2388",
+  "model": "gpt-6-luna",
+  "id": "S0421",
+  "proved_step": "statement: For m>=1 and s>=0, in the fan-in-two DAG model with m free input wires and all 16 binary Boolean gates, the number of m-input Boolean functions with circuit size at most s is at most (s+1)16^s(m+s)^(2s+1). Consequently, if L=log2(s+1)+4s+(2s+1)log2(m+s)<2^m, at least a 1-2^(L-2^m) fraction of all m-input Boolean functions have circuit size greater than s.\nproof: For each k in {0,...,s}, describe an ordered k-gate DAG by specifying, at each gate i, one of 16 Boolean operations and an ordered pair of predecessor wires from the m+i-1 available inputs and earlier gates. This gives at most 16^k product_{i=1}^k (m+i-1)^2 descriptions. Choose the output from the m+k wires, multiplying by m+k. Thus the number of k-gate circuits is at most 16^k(m+k)^(2k+1) <= 16^s(m+s)^(2s+1), since m>=1 and k<=s. Summing over k gives at most (s+1)16^s(m+s)^(2s+1) descriptions and therefore no more distinct functions than this number. There are exactly 2^(2^m) Boolean functions on m bits. Dividing proves the fraction computable with at most s gates is at most 2^(L-2^m), so the complementary fraction requires more than s gates.\nscope: All integers m>=1,s>=0; ordered fan-in-two DAGs, free input wires, all 16 binary Boolean operations. This counts functions and does not establish a circuit lower bound for MCSP[s].",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795479658.0801156,
+  "session": "pnp-desk/research/R2384",
+  "model": "gpt-6-luna",
+  "refuted_approach": "The S0420 formulation defines U using only restricted inputs that occur as gate operands. It misses a restricted input that is itself the circuit output. Counterexample: the zero-gate circuit with output x0, restricted by x0=1, has constant-1 cofactor, which cannot be represented with zero gates when constants are not free. Thus S0420 as stated does not establish its claimed bound.",
+  "evidence": "Exact boundary construction: m=2, output wire x0, no gates, R={x0}, rho(x0)=1; U is empty under the stated definition, but the cofactor is constant 1."
+ },
+ {
+  "at": 1795479658.1040146,
+  "session": "pnp-desk/research/R2384",
+  "model": "gpt-6-luna",
+  "evidence": "Complete substitution construction. The prior gate-input-only wording has the explicit output-wire counterexample recorded in the accompanying refuted_approach.",
+  "id": "S0423",
+  "proved_step": "statement: Let C be a fan-in-two Boolean DAG on m inputs over all binary Boolean gates, with free input wires and no free constants, and let s be its gate count. Let R be a nonempty proper subset of inputs, rho an assignment to R, and U the restricted input wires that occur anywhere in C, including as the output wire. If at least one input remains unrestricted, then C|rho has a circuit of at most s + |{rho(i): i in U}| gates. Proof: Substitute rho(i) for every occurrence of each restricted input wire in the circuit, including the output. For each distinct bit b among these occurrences, choose an unrestricted input y and compute b with one gate: y XOR y for 0, NAND(y,y) for 1. Reuse that constant wire at every occurrence. Keep all original gates and connections; the resulting DAG computes the cofactor and uses at most one added gate per distinct substituted bit. Restricted inputs absent from the circuit need no substitution.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0011",
+  "closes_valid": true
+ },
+ {
+  "at": 1795479905.716596,
+  "session": "pnp-desk/research/R2388",
+  "model": "gpt-6-luna",
+  "gap": "The counting lemma does not close the direct MCSP decision-circuit lower-bound obligation; a separate superlinear lower-bound argument for MCSP decision circuits is still missing.",
+  "evidence": "S0421 is a complete combinatorial proof. An attempted exhaustive replication timed out (cm-2c20e917839b4f0d); it is not evidence. A smaller independent exact enumeration has been requested and is pending.",
+  "gap_id": "G0184"
+ },
+ {
+  "at": 1795480084.3923302,
+  "session": "pnp-desk/research/R2388",
+  "model": "gpt-6-luna",
+  "gap": "The counting lemma still does not close the direct MCSP decision-circuit lower-bound obligation; a separate superlinear lower-bound argument for MCSP decision circuits is missing.",
+  "evidence": "Independent exact finite enumeration cm-f5f0347ef24a41f7 checked the bound for m=1..4 and s=0..2; all cases held. This is a finite sanity check only. The general proof is the gate-DAG description count in S0421. The earlier attempt cm-2c20e917839b4f0d timed out and is not evidence.",
+  "gap_id": "G0185"
+ },
+ {
+  "at": 1795480175.163089,
+  "session": "pnp-desk/research/R2392",
+  "model": "gpt-6-luna",
+  "id": "S0426",
+  "proved_step": "statement: For integers m>=1 and s>=0, the number of Boolean functions on m inputs computable by fan-in-two DAG circuits with at most s gates, free input wires, and 16 binary gate types is at most (s+1)(m+s)[16(m+s)^2]^s. Proof: Encode a circuit with exactly j gates in topological order. Each gate is specified by one of 16 types and an ordered pair of predecessors chosen from at most m+j-1 earlier input/gate wires, so there are at most 16(m+s)^2 choices per gate. Choose the output from at most m+j wires, at most m+s choices. Summing over j=0,...,s gives the stated bound. Every circuit has such an encoding; multiple encodings may compute the same function, so this bounds the number of functions.\nproof: For each j in {0,...,s}, the encoding count is at most [16(m+s)^2]^j(m+s), which is at most [16(m+s)^2]^s(m+s). Summing these s+1 bounds proves the inequality.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795480398.364171,
+  "session": "pnp-desk/research/R2392",
+  "model": "gpt-6-luna",
+  "id": "S0427",
+  "proved_step": "statement: For integers m>=1 and s>=0 in the fan-in-two DAG model with free input wires and 16 binary gate types, at least max(0, 2^(2^m) - (s+1)(m+s)[16(m+s)^2]^s) Boolean functions require more than s gates. Proof: There are exactly 2^(2^m) Boolean functions on m bits. The ordered-DAG encoding bound gives at most (s+1)(m+s)[16(m+s)^2]^s functions computable with at most s gates. Subtracting that upper bound from the universe size gives the claim, and the number is also nonnegative.\nproof: Let U be all Boolean functions on {0,1}^m, with |U|=2^(2^m), and let L be those computed with at most s gates. The encoding bound gives |L|<=B, where B=(s+1)(m+s)[16(m+s)^2]^s. Hence |U\\\\L|=|U|-|L|>=|U|-B and |U\\\\L|>=0. Combine the inequalities. The complement consists exactly of functions requiring more than s gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795480444.2047744,
+  "session": "pnp-desk/research/R2392",
+  "model": "gpt-6-luna",
+  "id": "S0428",
+  "proved_step": "statement: Let m>=1 and s>=0, and set B=(s+1)(m+s)[16(m+s)^2]^s. In the fan-in-two DAG model with free inputs and 16 binary gate types, if 2^m >= 1+log2(B), then at least half of all Boolean functions on m inputs require more than s gates.\nproof: There are T=2^(2^m) Boolean functions. By the ordered-DAG encoding, at most B are computable with at most s gates. The hypothesis gives B <= 2^(2^m-1)=T/2. Thus at least T-B >= T/2 functions require more than s gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795480605.0015283,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0428: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I can prove the finite counting step once the ordered-DAG encoding bound is formalized, but I have not formalized the fan-in-two DAG model or proved that its circuits with at most `s` gates h (not a refutation; a model review is still needed)"
  }
 ]

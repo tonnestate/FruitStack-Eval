@@ -577,5 +577,31 @@
   "evidence": "Construction is valid for the stated oracle-circuit model. Given y of length k (0<=k<=L) padded to L bits, create L+1 A-gates on prefixes y[1..j] for j=0..L. Compute equality [k=j] with O(log L) gates each. OR over j of ([k=j] AND A(y[1..j])) selects exactly the j=k term, outputting A(y). Other A-gate outputs are masked by 0. Uses L+1 A-gates and O(L log L) ordinary gates. Works for ANY language A (no padding invariance required) because only the correct-length query's answer is used. Scope caveat correctly noted: does not assert conformance to MMW19's specific oracle model.",
   "review_of": "S0066",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795478549.1872022,
+  "session": "pnp-desk/research/R2375",
+  "model": "gpt-6-luna",
+  "id": "S0070",
+  "proved_step": "REPAIR LEMMA (fixed-length oracle queries). Let M be a deterministic RAM whose configuration is encoded by b bits. Suppose one input-read interval has at most tau ordinary RAM steps and at most q oracle calls, every real query has exactly ell bits, and each non-oracle transition (including query generation) has a fan-in-two Boolean circuit of at most P(b) gates for a fixed polynomial P. Then the interval transition from configuration and next input bit to next configuration has a circuit with at most tau*P(b)+O(tau*q) ordinary gates and at most tau*q ell-input oracle gates, uniformly over all inputs. Proof: Unroll at most tau steps. Implement each non-oracle transition by its stipulated circuit. Wire each generated ell-bit query directly, unchanged, to an ell-input oracle gate. For an inactive call slot, feed a fixed ell-bit string and mask its answer with the slot-active bit before it affects the simulated state; this costs O(1) gates per slot. The unrolling therefore uses at most tau*P(b)+O(tau*q) ordinary gates and tau*q oracle gates. Adaptive query contents are computed from the simulated state and earlier oracle answers, while the circuit structure is fixed by M and the interval bound. This proves only the exact-query-length restriction; it supplies no construction for variable-length queries and does not establish the MMW update-time hypothesis or an MCSP lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795478615.4243705,
+  "session": "pnp-desk/research/R2375",
+  "model": "gpt-6-luna",
+  "evidence": "The construction pads a real query shorter than ell by appending bits. Under the stated Sigma3SAT^A query convention, the query encodes a formula and assignment; changing that string can change the queried instance and its oracle answer. The proof gives no padding-invariance property for real queries. Dummy queries for unused slots do not repair this, because the defect is in padding real queries. The fixed-length restriction recorded as S0070 avoids padding but does not prove S0017\u2019s variable-length claim.",
+  "review_of": "S0017",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795478705.2875006,
+  "session": "pnp-desk/research/R2375",
+  "model": "gpt-6-luna",
+  "id": "S0072",
+  "proved_step": "CORRECTED REPAIR LEMMA (fixed-length oracle queries, explicit masking cost). Let a deterministic RAM configuration be encoded by b bits. In one input-read interval, suppose the computation has at most tau ordinary transition slots and at most q oracle-call slots total. Each ordinary transition, including query generation, is computable by a fan-in-two circuit of at most P(b) gates. Every real oracle query has exactly ell bits, and each oracle answer is one bit. Then the interval transition has a circuit with at most (tau+q)P(b)+O(qb) ordinary gates and at most q ell-input oracle gates, uniformly over inputs. Proof: Allocate one transition circuit for each ordinary slot and one oracle gate for each call slot. Real queries are wired unchanged to ell-input gates. For an inactive call slot, use any fixed ell-bit query; select between the unchanged configuration and the call\u2019s active successor configuration with a b-bit mux. This costs O(b) gates per slot. Compose the transition circuits in their time order; adaptive queries are generated from the current encoded configuration and prior oracle answers. Thus the ordinary gate count is at most (tau+q)P(b)+O(qb), and the circuit structure is independent of the input. This handles only the exact-query-length restriction; it does not establish the variable-length claim, the MMW update-time hypothesis, or an MCSP lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
