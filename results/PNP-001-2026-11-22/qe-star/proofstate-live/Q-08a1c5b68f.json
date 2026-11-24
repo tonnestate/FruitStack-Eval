@@ -4021,5 +4021,71 @@
   "kind": "LEMMA",
   "closes": "Q-08a1c5b68f",
   "closes_valid": true
+ },
+ {
+  "at": 1795501863.02535,
+  "session": "pnp-desk/research/R2546",
+  "model": "gpt-6-luna",
+  "id": "S0477",
+  "proved_step": "statement: Zero-gate streaming-memory characterization. Consider a deterministic binary streaming transducer with a fixed initial state, time-dependent update circuits, and S state bits. Suppose each update is built only from direct wires, constants, and literals (NOT is free), with no AND/OR gates. After reading any prefix, every state bit is either a constant or a literal of one input bit from that prefix. Consequently the machine's state is a tuple of at most S signed input-bit selections and constants; it cannot compute a non-literal function of the prefix during updates.\nproof: Induct on the number t of bits read. At t=0, every state bit is fixed by the initial state, hence constant. For the induction step, each output of a zero-AND/OR update is a constant or a literal of one of the S old state bits or the arriving input bit. By the induction hypothesis, a literal of an old state bit is either constant or a literal of an earlier input bit (possibly complemented); a literal of the arriving bit is itself a literal of that bit. Therefore every new state bit has the asserted form. This proves the claim for all t. The tuple has S coordinates, so stores at most S selected signed input bits, though selections may repeat.\nscope: Exact deterministic streaming transducers with fixed initial state, arbitrary time-dependent zero-AND/OR transition circuits, direct wires/constants and free NOT; no claim about positive gate cost or about decoder complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795501903.2040093,
+  "session": "pnp-desk/research/R2546",
+  "model": "gpt-6-luna",
+  "id": "S0478",
+  "proved_step": "statement: Zero-gate acceptance factorization. Fix a deterministic binary streaming machine with S state bits, fixed initial state, time-dependent updates using only wires, constants, and free NOT, and a terminal decoder. For every input length N there are at most S selected input coordinates (with signs or constants) such that the machine\u2019s acceptance decision depends only on those selected bits. Thus, if two length-N inputs agree on the selected coordinates, the machine accepts either both or neither.\nproof: By S0477\u2019s induction, each terminal state coordinate is a constant or a signed copy of one input coordinate. The terminal state is therefore determined by the tuple of at most S such values. The decoder is a function of that tuple, so inputs agreeing on the selected coordinates reach the same terminal state and receive the same decision.\nscope: Exact deterministic streaming machines with fixed initial state, time-dependent zero-AND/OR updates, free NOT, and an unrestricted terminal decoder. This is conditional on S0477 and gives no positive gate lower bound unless the selected coordinates can be ruled out for the target language.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795502058.120083,
+  "session": "pnp-desk/research/R2546",
+  "model": "gpt-6-luna",
+  "id": "S0479",
+  "proved_step": "statement: Finite zero-gate obstruction for SC_{3,1}. Let inputs be truth tables of the eight assignments to three Boolean variables, and let SC_{3,1} contain constants, literals, and every truth table computed by one binary Boolean gate on at most two input variables. Any deterministic streaming machine whose state bits are updated using only wires, constants, and free NOT, with S<=6 state bits and an arbitrary terminal decoder, fails to decide membership in SC_{3,1}.\nproof: By induction on the number of stream bits read, each state bit is a constant or a signed copy of one input coordinate: this holds initially, and a wire or negation of such a bit or the arriving bit preserves the property. Thus after all eight bits the terminal state depends on at most S<=6 input coordinates. Choose a coordinate i not retained. The zero truth table and the unit-vector truth table e_i agree on every retained coordinate. The zero table is in SC_{3,1}. The table e_i is not: as a function on the three input variables it is 1 at exactly one assignment, so changing each of the three variables from that assignment changes its value; hence it depends essentially on all three variables, whereas a constant, literal, or one binary gate on at most two variables depends on at most two. The decoder must give the same answer on the two streams, contradicting correct membership decisions.\nscope: Finite decision problem SC_{3,1} on eight-bit truth tables; fixed initial state, time-dependent zero-AND/OR updates, free NOT, unrestricted terminal decoder. This does not bound positive gate costs or prove a Lemma M asymptotic claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795502181.1882787,
+  "session": "pnp-desk/research/R2546",
+  "model": "gpt-6-luna",
+  "refuted_approach": "Do not treat the coordinate-fiber experiment as evidence for a positive gate-cost lower bound or a fixed-budget Pareto point. The 247 subsets are a finite check; the zero-gate obstruction follows from the signed-coordinate update invariant and the zero/unit-vector pair. The broader Lemma M obligation remains open.",
+  "evidence": "cm-81c2e8e74c1b4951 and independent recomputation cm-9d8c097316dd41e8 reproduce |SC_{3,1}|=38 and e_i notin SC_{3,1} for all eight coordinates. The proof of the finite zero-gate obstruction is recorded as S0479, CLAIMED; it must be independently reviewed before use as a premise."
+ },
+ {
+  "at": 1795502756.9602797,
+  "session": "pnp-desk/research/R2555",
+  "model": "gpt-6-luna",
+  "id": "S0481",
+  "proved_step": "statement: Residual-class transition upper bound. Let N\u22650 and F\u2286{0,1}^N. For each t and prefix p\u2208{0,1}^t, let R_t(p)={u\u2208{0,1}^{N\u2212t}: pu\u2208F}, and let K=max_t |{R_t(p):p\u2208{0,1}^t}|. There is an exact deterministic layered membership machine for F with S=ceil(log\u2082 K) state bits (or one bit when K=1) and at most S(S+1)2^(S+1) fan-in-two AND/OR gates per update; NOT and constants are free, and the final decoder is unrestricted.\nproof: At layer t, assign an injective S-bit code to each distinct reachable residual R_t(p); this is possible since there are at most K such residuals. For a reachable residual R and input bit b, define its next residual by D_b(R)={u\u2208{0,1}^{N\u2212t\u22121}: bu\u2208R}. If R=R_t(p), then D_b(R)=R_{t+1}(pb), so this transition depends only on the encoded residual and b, not on the choice of p. Define transitions arbitrarily on unused state codes. For each of the S output bits of a transition map on S+1 input bits, let A be its accepting input assignments. If A is empty, output the constant 0. Otherwise, form one minterm per assignment in A using at most S AND gates per minterm, then OR the |A| minterms using at most |A|\u22121 OR gates. Since |A|\u22642^(S+1), each output uses at most (S+1)2^(S+1) gates; all S outputs use at most S(S+1)2^(S+1). At layer N, the residual is either {\u03b5} or empty, and membership in F is exactly whether it is {\u03b5}; the decoder can therefore return the correct answer. If K=1, use S=1 to avoid a zero-bit encoding; the same construction applies.\nscope: Finite binary languages; deterministic layered membership; layer-dependent transitions; unrestricted decoder; NOT/constants free. This is an upper bound only and does not determine minimal G_max or establish a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795503032.7578259,
+  "session": "pnp-desk/research/R2562",
+  "model": "gpt-6-luna",
+  "evidence": "A direct invariant proof supplies a correct transducer and its per-step gate count; no finite synthesis result or asymptotic lower-bound inference is used.",
+  "id": "S0482",
+  "proved_step": "statement: Repetition-code streaming membership upper bound. For every N>=2, let F={0^N,1^N} subset {0,1}^N. There is an exact deterministic one-pass membership transducer with S=2 state bits, a fixed final decoder, and at most two non-constant fan-in-two AND/XOR gates per update (NOT and constants free; shared fan-out free).\nproof: Use state (a,l), where a stores the first input bit and l is the live flag. Initially use (0,0). On the first bit b, set the next state to (b,1) by wiring, so this update uses no gates. On every later bit b, preserve a and set l' = l AND NOT(a XOR b); this uses one XOR gate to compute a XOR b and one AND gate. By induction after t>=1 bits, l=1 exactly when all t bits equal a, and a equals the first bit. The decoder accepts iff l=1 after N bits. Therefore it accepts exactly 0^N and 1^N. The state has two bits, every update has at most two counted gates, and the construction is valid for every N>=2.\nscope: An explicit upper bound in the fan-in-two AND/XOR/NOT-free basis for the two-word repetition language. It does not bound SC_{n,s}, arbitrary encodings, or a general lower bound on update cost.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795503052.2321074,
+  "session": "pnp-desk/research/R2555",
+  "model": "gpt-6-luna",
+  "id": "S0483",
+  "proved_step": "statement: Dead-prefix strengthening of live-state injectivity. Let F be a subset of {0,1}^N and consider a deterministic one-pass machine that, after reading the full input, rejects every string outside F and outputs a witness computing the entire input string for every string in F. At layer t, let L_t be the number of prefixes p of length t having at least one completion in F. If at least one length-t prefix has no completion in F, then the machine has at least L_t+1 distinct reachable states after t bits. Proof: First, distinct live prefixes p and p' must reach distinct states. If their residual completion sets differ, choose a suffix in their symmetric difference; identical states followed by that suffix would yield identical final states, contradicting correct membership/rejection. If their residual sets are equal, that set is nonempty; choose a common completing suffix u. Then pu and p'u are distinct members of F, but identical states followed by u yield the same final state and hence the same decoded witness, which cannot compute both distinct truth tables. Thus the L_t live prefixes occupy L_t distinct states. Now fix a dead prefix d and any live prefix p. Choose a suffix u completing p. If d and p shared a state, processing u from the common state would yield the same final state on du and pu; the decoder would have to reject du, which is outside F, and output a valid witness for pu, a contradiction. Therefore the state reached by d is distinct from every live-prefix state, giving at least L_t+1 states. Scope: exact deterministic search semantics with a final decoder; no bound on transition circuit complexity is implied.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
  }
 ]

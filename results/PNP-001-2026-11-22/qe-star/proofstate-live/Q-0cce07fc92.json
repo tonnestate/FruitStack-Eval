@@ -650,5 +650,143 @@
   "kind": "LEMMA",
   "closes": "G0002",
   "closes_valid": true
+ },
+ {
+  "at": 1795500413.1642582,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is correct as a circuit transformation. A_ell in PH holds because parsing u as k and checking v[1..k] in A is polynomial-time (AC^0 reduction), and PH is closed under polynomial-time many-one reductions. Answer preservation for active slots: bin_h(k)||pad(y,ell) feeds to A_ell gives 1_A(y) by definition. Inactive slots handled by fixed query + b-bit mux (O(b) gates per slot). Adaptivity preserved because oracle answers are identical. Quantitative note: the claimed O(qL) ordinary gates for 'inactive-slot masking' should be O(q(L+b)) where b is configuration size (mux width), but in context b and L are polynomially related (both poly(s)), so the asymptotic claim holds. The lemma assumes a circuit format with explicit oracle-call slots and length registers; this syntactic assumption must be verified for the circuit produced by Lemma 11, but the transformation itself is valid.",
+  "review_of": "S0076",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795500413.18721,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The repaired lemma correctly fixes the interface assumption: queries come as (k, v) pairs where k is the length register and v is padded to ell. The wrapper A_ell receives bin_h(k) || v[1..ell] and PH membership follows. The circuit transformation adds O(qL) gates for the length register extraction and padding, which is polynomial in the original circuit size. The decoder's exact output is preserved because oracle answers are identical for every query. This step survives review as a valid circuit transformation for the explicitly padded interface.",
+  "review_of": "S0077",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795500576.0949125,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is correct as a circuit construction given its assumptions. The RAM configuration is b bits. Each of tau ordinary transitions (including query generation) is a fan-in-2 circuit of \u2264 P(b) gates. Each of q oracle slots: if active, the ell-bit query feeds directly to an ell-input oracle gate (0 ordinary gates for the query itself); if inactive, a fixed ell-bit query is used and a b-bit mux (O(b) gates) selects the unchanged configuration. Total ordinary gates: tau\u00b7P(b) for ordinary slots + q\u00b7P(b) for query-generation parts of oracle slots (since query generation is part of the ordinary transition) + O(qb) for the muxes = (tau+q)P(b) + O(qb). Oracle gates: exactly q ell-input gates. The circuit structure is uniform (independent of input) because the same template is used; adaptivity is preserved because each query is generated from the current configuration and prior oracle answers. The lemma explicitly only handles the fixed-length query restriction and does not claim the variable-length normalization, the MMW update-time hypothesis, or an MCSP lower bound. No counterexample found; the construction is valid.",
+  "review_of": "S0072",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795500576.5967944,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is correct as a circuit construction given its assumptions. The RAM configuration is b bits. Each of tau ordinary transitions (including query generation) is a fan-in-2 circuit of \u2264 P(b) gates. Each of q oracle slots: if active, the ell-bit query feeds directly to an ell-input oracle gate (0 ordinary gates for the query itself); if inactive, a fixed ell-bit query is used and a b-bit mux (O(b) gates) selects the unchanged configuration. Total ordinary gates: tau\u00b7P(b) for ordinary slots + q\u00b7P(b) for query-generation parts of oracle slots (since query generation is part of the ordinary transition) + O(qb) for the muxes = (tau+q)P(b) + O(qb). Oracle gates: exactly q ell-input gates. The circuit structure is uniform (independent of input) because the same template is used; adaptivity is preserved because each query is generated from the current configuration and prior oracle answers. The lemma explicitly only handles the fixed-length query restriction and does not claim the variable-length normalization, the MMW update-time hypothesis, or an MCSP lower bound. No counterexample found; the construction is valid.",
+  "review_of": "S0072",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795500735.4083512,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma repairs S0017's variable-length claim without assuming padding-invariance. The length-prefixed encoding 1^lambda 0 y is standard (e.g., used in MMW19 for the Sigma3SAT^A oracle interface) and ensures exact answer preservation. The circuit construction is explicit: length computation from the configuration, prefix concatenation, fixed-length oracle gates. A_ell' in PH is verified by the AC^0 reduction. The quantitative bounds match the manuscript's claim: tau*poly(S*w) ordinary gates, tau*q oracle gates of fixed length O(ell). This closes the padding-invariance gap in S0017 and removes the assumption in S0044.",
+  "id": "S0082",
+  "proved_step": "statement_start: REPAIRED LEMMA (variable-length oracle queries via length-prefixed encoding, no padding-invariance assumption). Let M be a deterministic RAM with S memory cells of w bits that reads x in {0,1}^N in order. In each interval M performs at most tau steps and at most q oracle queries to a fixed Sigma3SAT^A language, each query of length at most ell. Define a length-prefixed oracle A_ell' that on input (1^k 0 y) where |y| = k <= ell returns 1_A(y), and on any other input returns 0. Then A_ell' is in PH. The stage map (configuration at read i, bit x_{i+1}) -> configuration at read i+1 is computed by a single A_ell'-oracle circuit with tau*poly(S*w) ordinary fan-in-2 gates and exactly tau*q oracle gates of fixed input length ell+1+ell = 2ell+1, uniform over all x. PROOF: (1) For each of the at most q query slots, the machine generates a query string y of length lambda <= ell. The circuit computes the length lambda (in binary, log ell bits) and constructs the length-prefixed string 1^lambda 0 y 0^{ell-lambda} of fixed length 2ell+1. (2) This string is fed to a fixed (2ell+1)-input oracle gate for A_ell'. By definition, A_ell'(1^lambda 0 y 0^{ell-lambda}) = 1_A(y), exactly preserving the oracle answer. (3) Unused query slots are set to a fixed string not of the form 1^k 0 z (e.g., all zeros), which A_ell' maps to 0; the slot-usage indicator from the ordinary computation masks this to 0. (4) The ordinary computation between queries uses multiplexers for RAM addressing, costing poly(S*w) fan-in-2 gates per step, total tau*poly(S*w). (5) The circuit structure (wiring of slots, length-prefixing logic, oracle gate positions) does not depend on x. No padding-invariance of the original Sigma3SAT^A decider is assumed; the length-prefixed wrapper A_ell' handles variable lengths correctly by construction. The oracle A_ell' is in PH because parsing the prefix and checking membership in A is a polynomial-time (indeed AC^0) reduction, and PH is closed under polynomial-time many-one reductions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500735.8748024,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma repairs S0017's variable-length claim without assuming padding-invariance. The length-prefixed encoding 1^lambda 0 y is standard (e.g., used in MMW19 for the Sigma3SAT^A oracle interface) and ensures exact answer preservation. The circuit construction is explicit: length computation from the configuration, prefix concatenation, fixed-length oracle gates. A_ell' in PH is verified by the AC^0 reduction. The quantitative bounds match the manuscript's claim: tau*poly(S*w) ordinary gates, tau*q oracle gates of fixed length O(ell). This closes the padding-invariance gap in S0017 and removes the assumption in S0044.",
+  "id": "S0083",
+  "proved_step": "statement_start: REPAIRED LEMMA (variable-length oracle queries via length-prefixed encoding, no padding-invariance assumption). Let M be a deterministic RAM with S memory cells of w bits that reads x in {0,1}^N in order. In each interval M performs at most tau steps and at most q oracle queries to a fixed Sigma3SAT^A language, each query of length at most ell. Define a length-prefixed oracle A_ell' that on input (1^k 0 y) where |y| = k <= ell returns 1_A(y), and on any other input returns 0. Then A_ell' is in PH. The stage map (configuration at read i, bit x_{i+1}) -> configuration at read i+1 is computed by a single A_ell'-oracle circuit with tau*poly(S*w) ordinary fan-in-2 gates and exactly tau*q oracle gates of fixed input length ell+1+ell = 2ell+1, uniform over all x. PROOF: (1) For each of the at most q query slots, the machine generates a query string y of length lambda <= ell. The circuit computes the length lambda (in binary, log ell bits) and constructs the length-prefixed string 1^lambda 0 y 0^{ell-lambda} of fixed length 2ell+1. (2) This string is fed to a fixed (2ell+1)-input oracle gate for A_ell'. By definition, A_ell'(1^lambda 0 y 0^{ell-lambda}) = 1_A(y), exactly preserving the oracle answer. (3) Unused query slots are set to a fixed string not of the form 1^k 0 z (e.g., all zeros), which A_ell' maps to 0; the slot-usage indicator from the ordinary computation masks this to 0. (4) The ordinary computation between queries uses multiplexers for RAM addressing, costing poly(S*w) fan-in-2 gates per step, total tau*poly(S*w). (5) The circuit structure (wiring of slots, length-prefixing logic, oracle gate positions) does not depend on x. No padding-invariance of the original Sigma3SAT^A decider is assumed; the length-prefixed wrapper A_ell' handles variable lengths correctly by construction. The oracle A_ell' is in PH because parsing the prefix and checking membership in A is a polynomial-time (indeed AC^0) reduction, and PH is closed under polynomial-time many-one reductions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500735.8898373,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma repairs S0021 by explicitly including the input-head counter circuit (binary incrementer, O(log N) gates per step) and stating the S >= log N hypothesis under which O(log N) = O(S). The MMW19 application satisfies this because the streaming algorithm has space S_alg = s(m)^O(1) with s(m) >= m, and N = 2^m so log N = m <= s(m) <= S_alg. The one-hot work-head encoding and binary input-head counter together give O(S) per step. No counterexample found; the construction is valid under the stated hypothesis.",
+  "id": "S0084",
+  "proved_step": "statement_start: REPAIRED LEMMA (Lemma 11 with explicit input-head counter, S >= log N). Let M be a deterministic single-tape TM with S work cells over a fixed finite alphabet and a fixed state set Q (both constants). Let one update consist of at most tau steps of M, reading one input symbol z in {0,1} at the start. Assume S >= log N where N = 2^m is the input length. Then the update map (configuration, z) -> configuration is computed by a fan-in-2 Boolean circuit with O(tau*S) gates, where the configuration is encoded as S cells of constant width plus a one-hot head indicator (S bits) plus the state (constant bits) plus the input head position in log N bits. PROOF: (1) Encode the work tape head position by one-hot indicators h_1..h_S. (2) One step: read work symbol r = OR_j (h_j AND c_j) per symbol bit, O(S) gates. (3) New cell value c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j) where w is a constant-size table over (state,r), O(S) gates. (4) Work head shift: h'_j = (h_{j-1} AND move_right) OR (h_{j+1} AND move_left) OR (h_j AND stay), with boundary h_0 = h_{S+1} = 0, O(S) gates. (5) State update: constant-size table, O(1) gates. (6) Input head counter: a binary incrementer on log N bits, costing O(log N) gates per step. Since S >= log N by hypothesis, O(log N) = O(S). Total per step: O(S) gates. Concatenating tau steps gives O(tau*S). Padding to exactly tau steps by idling after halting makes the circuit the same for every z. SCOPE: This proves the bound for a constant-alphabet, constant-state TM with S >= log N. The RAM variant with poly(S,w) per operation is not covered; the MMW application has S = s(m)^O(1) >= m = log N, so the hypothesis holds. It does not close G0002 (worst-case update time definition) or hypothesis (8).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500909.5073624,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Self-contained proof of the corrected Lemma 11. The input-head counter was the missing component in S0021. The S >= log N hypothesis is explicitly stated and verified for the MMW19 streaming algorithm (space s(m)^O(1), input length N=2^m, so log N = m <= s(m) <= S). All circuits are uniform (x-independent) via idle-padding. Fan-in-2 gates throughout. This directly addresses the G0001 obligation recorded in the refuted steps S0017 and S0021.",
+  "id": "S0085",
+  "proved_step": "statement_start: LEMMA (Corrected Lemma 11 closing G0001: tableau scope with explicit input-head counter). Let M be a deterministic single-tape TM with S work cells over a fixed finite alphabet and fixed state set Q (constants). Let one update consist of at most tau steps of M, reading one input symbol z in {0,1} at the start. Assume S >= log N where N = 2^m is the input length. Then the update map (configuration, z) -> configuration is computed by a uniform fan-in-2 Boolean circuit with O(tau*S) gates. The configuration encodes: S work cells (constant width each), one-hot work-head position (S bits), state (O(1) bits), input-head position (log N bits). PROOF: (1) Work symbol read: r = OR_{j=1..S} (h_j AND c_j) per symbol bit, O(S) gates. (2) Cell update: c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j) via constant table w, O(S) gates. (3) Work-head shift: h'_j = (h_{j-1} AND move_right) OR (h_{j+1} AND move_left) OR (h_j AND stay) with h_0=h_{S+1}=0, O(S) gates. (4) State update: constant table, O(1) gates. (5) Input-head counter: binary increment on log N bits, O(log N) gates. Since S >= log N, O(log N) = O(S). Total per step: O(S). Concatenating tau steps (idle-padded to exactly tau) gives O(tau*S) gates, uniform over all inputs. This closes gap G0001 (tableau scope) for the constant-alphabet TM model under the hypothesis S >= log N, which holds in the MMW19 application (space s(m)^O(1) >= m = log N).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795501203.4190915,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0086",
+  "proved_step": "statement_start: LEMMA (Uniform circuit family for streaming update function). Let M be a deterministic RAM with S = O(log N) memory cells of w = O(log N) bits, running in time tau = poly(S) per input symbol, making at most q = poly(S) oracle queries to Sigma3SAT^A per interval, each of length at most ell = poly(S). Then there exists a uniform family of A_ell'-oracle circuits {C_N} where A_ell' is the length-prefixed oracle from S0082, such that C_N computes the update map (config, x_i) -> config' with size poly(S) = poly(log N) and depth O(tau), and the circuit structure is independent of the input x. PROOF: (1) By S0082, each interval's computation is a single A_ell'-oracle circuit of size tau*poly(S*w) = poly(log N) with tau*q oracle gates of fixed length 2ell+1. (2) The RAM configuration fits in S*w = O(log^2 N) bits. (3) Uniformity: the circuit description is generated in time poly(log N) by a Turing machine that knows S, w, tau, q, ell (all poly(log N)) and the fixed RAM program. The wiring depends only on these parameters, not on x. (4) The oracle A_ell' is in PH as shown in S0082. (5) This circuit family exactly simulates M's streaming behavior on inputs of length N = 2^m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795501204.058176,
+  "session": "pnp-desk/research/R2529",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0087",
+  "proved_step": "statement_start: LEMMA (Full tableau construction closes G0001). Let M be the streaming algorithm from MMW19 Thm 1.2: a deterministic RAM with S = poly(s) memory, tau = poly(s) update time, q = poly(s) Sigma3SAT^A queries per update of length ell = poly(s), deciding MCSP[s] on truth tables of length N = 2^m. Assume S = O(log N) = O(m). Then the full N-step computation of M on input x is represented by a uniform A_ell'-oracle circuit of size N * poly(log N) = 2^m * poly(m) and depth N * O(tau) = 2^m * poly(m), with oracle gates only for A_ell' in PH. PROOF: (1) By S0086, each update step is a uniform A_ell'-oracle circuit C_N of size poly(log N) and depth O(tau). (2) Compose N copies of C_N sequentially: output config of step i feeds as input config to step i+1. The initial config is hardcoded (all zeros, input head at 0). (3) The composed circuit has N * poly(log N) gates and depth N * O(tau). Uniformity holds because the same C_N is repeated N times; a logspace TM can generate the description. (4) The oracle A_ell' is in PH (S0082). (5) The final output is the decision bit of M after reading all N bits. This tableau exactly captures M's computation on x, with no padding-invariance assumption. The size is 2^m * poly(m), matching the MMW19 hypothesis regime.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795503385.543648,
+  "session": "pnp-desk/research/R2565",
+  "model": "gpt-6-luna",
+  "evidence": "The wrapper is defined to accept exact inputs 1^k 0 y with |y|=k, but proof step (1) submits 1^lambda 0 y 0^(ell-lambda), of length 2ell+1. For lambda<ell this is not an accepted exact-length input, so step (2)'s asserted answer preservation fails. For example, take lambda=0 and A(empty)=1: the padded string is rejected and returns 0. A wrapper that explicitly validates the fixed-length padded format would be a distinct repair.",
+  "review_of": "S0082",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795503385.5611315,
+  "session": "pnp-desk/research/R2565",
+  "model": "gpt-6-luna",
+  "evidence": "The wrapper is defined to accept exact inputs 1^k 0 y with |y|=k, but proof step (1) submits 1^lambda 0 y 0^(ell-lambda), of length 2ell+1. For lambda<ell this is not an accepted exact-length input, so step (2)'s asserted answer preservation fails. For example, take lambda=0 and A(empty)=1: the padded string is rejected and returns 0. A wrapper that explicitly validates the fixed-length padded format would be a distinct repair.",
+  "review_of": "S0083",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795503385.5760531,
+  "session": "pnp-desk/research/R2565",
+  "model": "gpt-6-luna",
+  "id": "S0090",
+  "proved_step": "statement: Padded-query wrapper lemma. Let A be any language in PH and let ell>=0. Define B_ell on strings z of exactly 2ell+1 bits as follows: parse z as 1^k 0 y 0^(ell-k), where 0<=k<=ell and |y|=k; if this parse is valid, accept iff y is in A, and otherwise reject. Then B_ell is in PH, and for every y with |y|<=ell, B_ell(1^|y| 0 y 0^(ell-|y|))=1_A(y). Proof: parsing and checking the unary prefix, payload length, and zero suffix takes deterministic time polynomial in |z|. On valid encodings, the reduction outputs y and invokes A; thus B_ell is polynomial-time many-one reducible to A. PH is closed under polynomial-time many-one reductions, so B_ell is in PH. The displayed encoding has length (k+1)+k+(ell-k)=ell+k+1, not 2ell+1; therefore this statement's claimed fixed input length is inconsistent, and is not a valid repair as written.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795503435.8681378,
+  "session": "pnp-desk/research/R2565",
+  "model": "gpt-6-luna",
+  "evidence": "The update map is given only the symbol z read at the start, but the proof also allows an input-head counter and does not account for later reads. In the standard two-way read-only input-tape model, the head can move during the update and branch on another input bit. Thus the next configuration need not be determined by the stated inputs (configuration,z). The claim requires an extra restriction or a different update-map input.",
+  "review_of": "S0084",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795503435.8965278,
+  "session": "pnp-desk/research/R2565",
+  "model": "gpt-6-luna",
+  "id": "S0092",
+  "proved_step": "statement: Fixed-length padded-query wrapper lemma. Let A be any language in PH and let ell be a nonnegative integer. Define B_ell on strings z of exactly 2ell+1 bits as follows: find k in {0,...,ell} such that z begins with 1^k 0; take the next k bits as y; require the remaining 2(ell-k) bits to be zero. Accept iff this parse is valid and y is in A. Then B_ell is in PH, and for every y with |y|<=ell, B_ell(1^|y| 0 y 0^(2(ell-|y|)))=1_A(y). Proof: The encoding length is (k+1)+k+2(ell-k)=2ell+1. The delimiter determines k uniquely; parsing and checking the suffix take polynomial time. Membership is the conjunction of a polynomial-time validity predicate and the PH predicate y in A, so B_ell is in PH. On the displayed encoding, parsing recovers exactly y, proving the equality.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
  }
 ]

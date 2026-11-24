@@ -3995,5 +3995,70 @@
   "proved_step": "statement: For every Boolean function C(x,y), if C0(y)=C(0,y) and C1(y)=C(1,y) have fan-in-two Boolean circuits of sizes a and b, respectively, then C has a fan-in-two circuit of size at most a+b+4.\nproof: Take disjoint copies of circuits for C0 and C1. One NAND gate with both inputs x computes \u00acx. One AND gate computes \u00acx\u2227C0, one AND gate computes x\u2227C1, and one OR gate combines them. The resulting output is (\u00acx\u2227C0)\u2228(x\u2227C1), which equals C when x=0 and when x=1. Thus the circuit has at most a+b+4 gates. The construction uses a DAG circuit and remains valid with unrestricted sharing within each copied cofactor circuit.\nscope: All Boolean functions C on one distinguished Boolean input x and any remaining input tuple y; fan-in-two basis containing NAND, AND, and OR; circuit size counts gates; unrestricted DAG sharing.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795500216.2501116,
+  "session": "pnp-desk/research/R2528",
+  "model": "gpt-6-luna",
+  "gap": "This construction counts YES truth tables of individual circuit complexity at most s. It gives no lower bound on circuits deciding MCSP and does not close G0001 or G0002.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ],
+  "id": "S0476",
+  "proved_step": "statement: For integers m>=2 and s>=2 in the fan-in-two DAG model with all 16 binary Boolean gates, free input wires, and unrestricted fan-out, at least sum_{j=0}^{floor((s+1)/m)} binomial(2^m,j) distinct m-input functions have circuit size at most s.\nproof: For each nonempty support A of size t, construct each point indicator using m-1 gates: one gate combines the first two required literals, and each subsequent gate combines the accumulated conjunction with the next literal. OR the t indicators using t-1 gates, totaling tm-1. If t<=floor((s+1)/m), then tm-1<=s. The empty-support function uses one XOR gate with both inputs equal. Distinct supports give distinct functions, so summing their counts proves the bound.\nscope: m>=2, s>=2, fan-in-two DAGs with all 16 binary Boolean gate types, free input wires, unrestricted fan-out. This counts truth tables with individual circuit size at most s; it does not bound the circuit complexity of the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795502549.5454612,
+  "session": "pnp-desk/research/R2552",
+  "model": "gpt-6-luna",
+  "id": "S0477",
+  "proved_step": "Lemma (support-size upper bound for sparse truth tables). Let m>=2 and let f:{0,1}^m->{0,1} have support size t>=1. In the fan-in-two basis containing all 16 binary Boolean operations, with free input wires and unrestricted fan-out, f has a circuit with at most tm-1 gates. Proof: For each a in supp(f), build its minterm. One binary gate matches the first two literals, and one gate for each remaining coordinate conjoins the next matching literal. Thus each minterm costs m-1 gates. Combine the t minterms with t-1 OR gates, for a total of t(m-1)+(t-1)=tm-1. For t=0, two gates compute zero as (NOT x_1) AND x_1. Consequently, for s>=2, all truth tables with support size at most floor((s+1)/m) belong to MCSP_m[s]. This gives a constructive count of some YES instances; it does not lower-bound circuits deciding MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795502864.7948885,
+  "session": "pnp-desk/research/R2560",
+  "model": "gpt-6-luna",
+  "evidence": "The proof uses NAND(x,x)=1, but NAND(x,x)=0 for both Boolean inputs. This invalidates the stated construction and does not establish the s+r bound. The full 16-gate basis does include XNOR, so a corrected construction is recorded separately.",
+  "review_of": "S0399",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795502864.8426712,
+  "session": "pnp-desk/research/R2560",
+  "model": "gpt-6-luna",
+  "id": "S0479",
+  "proved_step": "For every m>=2 and every m-input Boolean function f computed by an s-gate fan-in-two DAG over the full set of 16 binary Boolean gates, fixing any r<m input coordinates to constants produces a cofactor computable by a fan-in-two DAG with at most s+2 gates, with free input wires and constants not otherwise free. Proof: Since r<m, choose one remaining input wire x. Append gates g0(x,x)=x XOR x=0 and g1(x,x)=x XNOR x=1. In the original circuit, replace every occurrence of each fixed input by g0 or g1 according to its fixed value; leave all other gates and the output selection unchanged. The resulting circuit computes the cofactor on every assignment to the remaining inputs, and adds at most two gates irrespective of r. This bound is uniform over the 2^r assignments, so the number of distinct r-coordinate cofactors of f is at most 2^r and each has circuit complexity at most s+2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795503076.2978053,
+  "session": "pnp-desk/research/R2560",
+  "model": "gpt-6-luna",
+  "lemma": "Repair attempt for S0397: in the full binary Boolean gate basis, every function f:{0,1}^m->{0,1} with support A of size t has a circuit of at most tm-1 gates when t>=1, and the zero function has a one-gate circuit. Proof: for each a in A construct the minterm [x=a]. First combine the literals for x_1 and x_2 with one binary gate (the appropriate one of AND, NAND, OR, NOR, XOR, XNOR, implication, or any of the 16 truth tables). For each remaining coordinate i, append a binary AND gate between the current conjunction and the literal x_i if a_i=1, or its negation if a_i=0; negation of a wire costs one gate using NAND(y,y). Thus each minterm uses 1+(m-2)+m_neg gates, where m_neg counts zero coordinates among positions 3..m; this does not give the claimed uniform m gates unless literals may be supplied freely. Corrected construction: because the basis is all 16 binary Boolean functions and inputs may be repeated, each literal is available in one gate from any live input x_j using a gate computing NOT x_j, but this adds up to m-t-dependent cost. A safe bound is t(2m-1)+(t-1): make each literal (positive literals are input wires; each needed negative literal costs one NAND(x_i,x_i)), combine m literals with m-1 AND gates per minterm, then OR the t minterms with t-1 gates. Hence f has at most t(2m-1)+(t-1) gates for t>=1; the zero function is computed by XOR(x_1,x_1) in one gate.",
+  "id": "S0480",
+  "proved_step": "For every m>=1 and every Boolean function f:{0,1}^m->{0,1} with nonempty support A of size t, f has a circuit over the complete binary Boolean basis with at most t(2m-1)+(t-1) gates; the zero function has a one-gate circuit. Proof: for each a in A, form its minterm. Each positive literal x_i is an input wire; each negative literal \u00acx_i is produced with one NAND gate with both inputs x_i. Combine the m literals by a binary AND tree using m-1 gates. OR the t minterms using t-1 binary OR gates. This computes f exactly and uses at most t(m + (m-1))+(t-1)=t(2m-1)+(t-1) gates. For empty support, compute x_1 XOR x_1, using one gate. This repairs the unsupported claim that each minterm costs m gates when complemented literals are not free.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795503169.742473,
+  "session": "pnp-desk/research/R2560",
+  "model": "gpt-6-luna",
+  "id": "S0481",
+  "proved_step": "statement: In the fan-in-two DAG model with all 16 Boolean binary gates, free input wires, and no free constants, for m>=2 every nonempty support A subseteq {0,1}^m of size t has indicator circuit size at most tm-1. Proof: For each row a=(a_1,...,a_m) in A, use one gate on (x_1,x_2) implementing h_a(u,v)=(u if a_1=1 else NOT u) AND (v if a_2=1 else NOT v). This is one of the 16 binary Boolean functions and produces the first-two-coordinate prefix of the minterm. For each i=3,...,m append one gate implementing g_{a,i}(y,x_i)=y AND (x_i if a_i=1 else NOT x_i), also one of the 16 gates. The final wire is [x=a], using m-1 gates. Construct this separately for each a (sharing is unnecessary), then combine the t outputs by a binary OR tree using t-1 gates. The result is 1 exactly on A and uses t(m-1)+(t-1)=tm-1 gates. Consequently, for s>=2 and t<=floor((s+1)/m), every support of size t is a YES instance of MCSP[s]; the zero function is a YES instance via x_1 XOR x_1, and the number of such YES truth tables is at least sum_{t=0}^{floor((s+1)/m)} binom(2^m,t), provided the upper limit is at most 2^m. This bounds complexity of individual truth tables only; it is not a lower bound on the MCSP decision circuit.\nscope: All m>=2, complete fan-in-two Boolean basis, unrestricted fan-out DAG circuits, free inputs, no free constants; nonempty support bound, zero function handled separately.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

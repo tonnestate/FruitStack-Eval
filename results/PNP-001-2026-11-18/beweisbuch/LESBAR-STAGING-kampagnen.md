@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 13128 entries from 3568 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 13217 entries from 3603 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -34,17 +34,17 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3095 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3099 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-c22e79e5b5 [ASSUMPTION, OPEN] The claim 'For every n≥1 and s≥0, circuits with at most s fan-in-two AND/OR/NOT gates, two constants, and one output wire have at most (s+1)(n+s+2)(3(n+s+2)^2)^s topological descriptions; filtering these descriptions dec
   - Q-d116e199fc [MISSING_PROOF, OPEN] Can the explicit candidate-mask transition for EXT be compressed to a representation with per-bit real-gate cost polynomial in s and log N, uniformly for all circuits of size at most s?
   - Q-a75ef75dd4 [IMPLICATION, OPEN] Can the sparse-support representation bound for MCSP inputs be converted into a property of the MCSP decision function that forces a superlinear general-circuit lower bound?
   - Q-18ef6fb2f5 [MISSING_PROOF, OPEN] Can exact prefix counts for the candidate refuter set be computed by a deterministic uniform procedure within the precise CJSW resource bounds, or can a weaker count approximation still guarantee avoidance?
   - Q-8015ce954f [MISSING_PROOF, OPEN] For F=Im(Eval_{n,s}), can the residual slice R_p[b] be computed from a compact representation of R_p with real fan-in-two gate cost polynomial in s and n, uniformly over arbitrary MCSP decision circuits H_C for the same 
-  - Q-2b1139e698 [MISSING_PROOF, OPEN] Can boundary-band localization for MCSP_s be strengthened into a quantitative lower bound on boundary edges or a restriction-stable statement that yields superlinear circuit complexity for the MCSP decision function? The
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
