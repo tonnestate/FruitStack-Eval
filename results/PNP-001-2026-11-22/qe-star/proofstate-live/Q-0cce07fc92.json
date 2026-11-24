@@ -788,5 +788,72 @@
   "kind": "LEMMA",
   "closes": "G0002",
   "closes_valid": true
+ },
+ {
+  "at": 1795511463.8177853,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "evidence": "The stated configuration has a log N-bit input-head position, but the proof increments it on every update. Such a counter has only N states (0 through N-1); after reading the final symbol, increment wraps to zero. No terminal/end-marker state or separate final transition is defined, so this is not an exact update map on the claimed configuration. Repair candidate: use an explicit terminal state or a ceil(log2(N+1))-bit counter and define the end transition separately; size remains O(tau*S) under S>=log N.",
+  "review_of": "S0085",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795511624.2642288,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "evidence": "For a fixed RAM program with fixed polynomial resource bounds, unrolling its computation yields polynomial-size circuits whose wiring is uniformly generable from the machine and those bounds. S0092 supplies a fixed-length encoding for queries of length at most ell. This review is conditional on S0082's oracle construction and does not independently verify it.",
+  "review_of": "S0086",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795511679.869455,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "evidence": "The asserted depth bound does not follow from S0086: it establishes polynomial circuit size but does not account for address-based RAM memory access in fan-in-2 circuits. A generic mux selecting among S memory cells has depth O(log S), yielding a generic O(tau log S) unrolling bound. No parallel-access memory model or constant-depth access circuitry is hypothesized. Also, S=poly(s) alone does not imply S=O(m); S0087 states the latter as an assumption, so this point makes the conclusion conditional rather than independently false.",
+  "review_of": "S0087",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795511765.5515203,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "evidence": "The displayed encoding has length (k+1)+k+(ell-k)=ell+k+1, which is not 2ell+1 in general; for k=0, it has length ell+1. Thus the fixed-length domain and claimed encoding are inconsistent.",
+  "review_of": "S0090",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795511850.860697,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "evidence": "The input-head counter is not updated in the original O(tau*S) proof. Repair: for a deterministic single-tape machine with S work cells, fixed alphabet/state, and an N-bit read-only input head, encode the work head one-hot and input head in binary. Each step costs O(S) gates for work-tape transition logic and O(log N) gates for counter increment/decrement; unrolling tau steps costs O(tau(S+log N)). This gives O(tau*S) under the additional hypothesis S>=log N. The repair is limited to this machine model and does not assert the RAM tableau bound. G0001 remains open absent its full definition and any further tableau hypotheses.",
+  "review_of": "S0021",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795511912.3316336,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "id": "S0098",
+  "proved_step": "statement: LEMMA (fixed-length query preservation repairing S0017). Let A be any language, let ell be a nonnegative integer, and define E_ell(y)=1^{|y|}0 y 0^{2(ell-|y|)} for each binary string y with |y|<=ell. Define B_ell on strings z of length exactly 2ell+1 to accept iff z has a valid parse E_ell(y) for some |y|<=ell and y in A; reject malformed strings. Then |E_ell(y)|=2ell+1 and B_ell(E_ell(y))=1_A(y) for every |y|<=ell. Proof: The initial run of ones followed by the first zero uniquely determines k=|y|. The next k bits recover y, and the remaining suffix is checked to be exactly 2(ell-k) zeroes. Hence parsing is unique, E_ell(y) is valid, and the wrapper's membership test is exactly y in A. The length is (k+1)+k+2(ell-k)=2ell+1. Therefore fixed-length oracle queries to B_ell preserve the answer to the original variable-length query to A without padding y itself. This is an encoding lemma only; it does not establish any RAM tableau bound or close G0001/G0002 or hypothesis (8).\ngap: Repairs the variable-length-query padding defect identified in S0017 by replacing query padding with a fixed-length encoding that preserves the original query verbatim. It does not claim to close G0001 or G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795511966.6628633,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "id": "S0099",
+  "proved_step": "statement: LEMMA (circuit cost of fixed-length query encoding). Fix ell>=0. Given k in unary and an ell-bit buffer u whose first k bits are y, the map to E_ell(y)=1^k 0 y 0^{2(ell-k)} has a fan-in-2 Boolean circuit with O(ell) gates and 2ell+1 output wires. Proof: For each i from 1 to ell, use the unary length bits to select whether the i-th buffer bit belongs to y. Output the unary prefix 1^k, then delimiter 0, then the first k buffer bits followed by zeroes, then 2(ell-k) zeroes. Each selection uses O(1) gates, so the total is O(ell). The output length is (k+1)+ell+2(ell-k) only if the payload is emitted at fixed width; instead emit exactly k payload bits and use a fixed-width circuit representation with the remaining positions assigned to the suffix. Equivalently, for each i output u_i in payload position i when i<=k, and route the remaining positions to the suffix; this requires O(ell) gates with the unary threshold indicators. Parsing the resulting string recovers k from the initial unary prefix and then recovers y from the next k bits. For binary-encoded k, parallel threshold comparisons k>=i give an O(ell log(ell+1)) upper bound by independent comparisons. This bounds only encoding circuitry and does not prove the full RAM stage simulation, oracle-class closure for the specific Sigma3SAT^A convention, or close G0001/G0002/hypothesis (8).\ngap: S0017's variable-length query padding defect: bound the cost of replacing altered-query padding with an answer-preserving fixed-length encoding. The RAM stage simulation and exact oracle-wrapper hypotheses remain open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512032.1228147,
+  "session": "pnp-desk/research/R2615",
+  "model": "gpt-6-luna",
+  "id": "S0100",
+  "proved_step": "statement: LEMMA (quadratic circuit for fixed-length query encoding). Fix ell>=0. The input consists of y in {0,1}^ell and one-hot bits H_0,...,H_ell with exactly H_k=1 for some k. There is a fan-in-2 Boolean circuit of O(ell^2) gates with 2ell+1 output wires whose output is E_ell(y[1..k])=1^k 0 y_1...y_k 0^{2(ell-k)}. Proof: For each output position j=1,...,2ell+1, form terms indexed by k=0,...,ell. If H_k=1 and j<=k, the term contributes 1. If H_k=1 and j=k+1, it contributes 0. If H_k=1 and j=k+1+i for some i in 1,...,k, the term contributes y_i. In all other cases it contributes 0. Each term is a conjunction of H_k with a constant or one input bit, using O(1) gates; for each j take the OR of its at most ell+1 terms. Hence there are O(ell^2) gates total. Since exactly one H_k is 1, the output for that k has its first k bits equal to 1, its next bit equal to 0, its next k bits equal to y_1,...,y_k, and all remaining 2(ell-k) bits equal to 0. Therefore it is exactly E_ell(y[1..k]) and has length (k+1)+k+2(ell-k)=2ell+1. This repairs only the encoding-circuit construction; it does not establish the RAM stage simulation or close G0001/G0002/hypothesis (8).\ngap: Repairs the unsupported O(ell) bit-routing argument in S0099 with an explicit O(ell^2) one-hot construction. Does not close G0001 or G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -4305,5 +4305,94 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795510949.8855298,
+  "session": "pnp-desk/research/R2608",
+  "model": "gpt-6-luna",
+  "id": "S0510",
+  "proved_step": "Lemma (one-sided AND slice stability). Let m>=2, let g:{0,1}^{m-1}->{0,1}, and let f(x,y)=x AND g(y). In the fan-in-two DAG model with all 16 binary Boolean gates, free input wires, and constants not free, |C_m(f)-C_{m-1}(g)|<=1. Proof: A circuit for g followed by one AND gate computes f, so C_m(f)<=C_{m-1}(g)+1. Conversely, restrict a minimum circuit for f to x=1. Replace the fixed input by NAND(y_1,y_1), which supplies constant 1 using one gate; this computes g and gives C_{m-1}(g)<=C_m(f)+1. A remaining variable y_1 exists because m>=2. Thus the truth-table slice whose x=0 half is zero and whose x=1 half is g has circuit complexity within one gate of g. In particular, MCSP[s-1] on g is contained in the restriction of MCSP[s] to this slice, which is contained in MCSP[s+1]. This is a local restriction-stability lemma; it does not imply a superlinear decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795511029.4454474,
+  "session": "pnp-desk/research/R2608",
+  "model": "gpt-6-luna",
+  "id": "S0511",
+  "proved_step": "statement: Finite verification: for every Boolean function on two inputs, restricting the first coordinate to either Boolean value yields the same one-variable truth table as substituting that fixed value in the truth-table index.\nproof: For f encoded by its four output bits f(2x+y), the x=c cofactor has outputs f(2c+y), y\u2208{0,1}. The substitution uses the same index 2c+y, so the two lists agree entrywise.\nscope: All 16 Boolean functions on two inputs and both assignments to the first coordinate; finite identity only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795511279.5373085,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0511: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The transcript records a Lean 4.35 kernel-accepted proof, but the host repeatedly reports that it does not recognize any kernel-accepted Lean file. I cannot resolve that host-side mismatch he (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795512166.5013154,
+  "session": "pnp-desk/research/R2616",
+  "model": "gpt-6-luna",
+  "id": "S0513",
+  "proved_step": "statement: Cofactor restriction with free constants: Let f:{0,1}^m->{0,1} have a fan-in-two DAG circuit of g gates, with unrestricted fan-out and constants available at zero gate cost. For any set I of input coordinates and any assignment a in {0,1}^I, the cofactor f|_{I=a} has a circuit in the same model with at most g gates. Proof: Take a topological ordering of the original DAG. Replace each input wire x_i for i in I by the constant a_i; retain all other input wires and every gate with its original type and predecessors. By induction through the topological order, each retained gate computes the original gate function on the restricted input, because its substituted predecessors equal the corresponding original predecessor values under x_I=a. Thus the retained output equals f on every assignment to the unfixed coordinates. No gates are added, so the cofactor circuit has at most g gates.\nproof: The topological induction establishes equality gate by gate after substituting the fixed input values. Since constants cost zero and all gates are retained, the cofactor uses no more than the original g gates.\nscope: All m>=1, all Boolean functions with a fan-in-two DAG circuit, all partial input assignments; constants are explicitly free, fan-out is unrestricted. This does not imply a circuit lower bound for MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512349.1449928,
+  "session": "pnp-desk/research/R2616",
+  "model": "gpt-6-luna",
+  "id": "S0514",
+  "proved_step": "statement: For any m-input Boolean functions f,g and any coordinate i, if f_b and g_b are their cofactors at coordinate i=b, then d_H(f_0,g_0)+d_H(f_1,g_1)=d_H(f,g), and hence max_b d_H(f_b,g_b) >= d_H(f,g)/2.\nproof: Partition {0,1}^m into the two disjoint slices with coordinate i equal to 0 and 1. Each disagreement of f and g lies in exactly one slice, so the total disagreement count is the sum of the two cofactor disagreement counts. At least one of two nonnegative summands is at least half their sum.\nscope: All m>=1, all Boolean functions f,g on {0,1}^m, and every coordinate i. This is an exact Hamming-distance identity; it does not assert preservation of distance to a class when the comparator can vary by cofactor.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512406.8703856,
+  "session": "pnp-desk/research/R2616",
+  "model": "gpt-6-luna",
+  "id": "S0515",
+  "proved_step": "statement: For m>=2, in the fan-in-two Boolean basis containing XOR and AND, let f:{0,1}^m->{0,1}, and let f_0,f_1 be its cofactors on a fixed coordinate. Define delta_t(h)=min_{C(h')<=t} d_H(h,h'), where C is gate complexity on the corresponding number of inputs. Then for every t>=0, delta_{2t+3}(f) <= delta_t(f_0)+delta_t(f_1).\nproof: Choose minimizing functions g_0,g_1 for the two cofactor distances. Define g(x,y)=g_0(y) XOR (x AND (g_0(y) XOR g_1(y))). This uses at most 2t+3 gates: the two cofactor circuits and three additional XOR/AND gates. For x=0 it equals g_0, and for x=1 it equals g_1. The truth-table rows split into disjoint x=0 and x=1 slices, hence d_H(f,g)=d_H(f_0,g_0)+d_H(f_1,g_1). Since C(g)<=2t+3, the definition of delta gives the claimed inequality.\nscope: All m>=2 and t>=0, fan-in-two Boolean DAG circuits with unrestricted fan-out and a basis containing XOR and AND. This is a distance-to-class recombination bound; it does not imply an MCSP circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512527.8923876,
+  "session": "pnp-desk/research/R2616",
+  "model": "gpt-6-luna",
+  "id": "S0516",
+  "proved_step": "statement: Let C_s be any nonempty class of Boolean functions on m+r inputs such that every restriction to a fixed assignment of r selected coordinates of a member of C_s belongs to a class D. For any f, if every one of its 2^r cofactors has Hamming distance at least L from D, then its Hamming distance from C_s is at least 2^r L.\nproof: Fix any g in C_s. The 2^r assignments to the selected coordinates partition the full input cube into disjoint slices. On each slice, the restrictions f_a and g_a satisfy g_a in D by hypothesis, so d_H(f_a,g_a)>=L. Summing over the disjoint slices gives d_H(f,g)=sum_a d_H(f_a,g_a)>=2^r L. This holds for every g in C_s; taking the minimum over g proves the claim.\nscope: All m,r>=0, all finite nonempty Boolean-function classes C_s satisfying the stated closure condition, and any fixed selected r coordinates. The conclusion is a distance transfer conditional on restriction closure; it does not establish that low-size circuit classes meet a useful closure condition or imply a circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795513511.2465067,
+  "session": "pnp-desk/research/R2632",
+  "model": "gpt-6-luna",
+  "id": "S0517",
+  "proved_step": "statement: For all m>=1,s>=0, the number of Boolean functions computed by at most s fan-in-two gates on m inputs, with all 16 binary gates, free inputs, zero-cost constants, and a selectable output wire, is at most D=\u03a3_{j=0}^s (m+j+2)(16(m+j+2)^2)^j. Hence MCSP[s] on N=2^m bits has a fan-in-two decision circuit of size at most 3ND.\nproof: For a circuit with j gates, topologically order them. Each gate has at most 16(m+j+2)^2 choices (type and ordered predecessor wires); the output has at most m+j+2 choices. Thus D bounds the total descriptions and therefore the represented functions. For each description, compare the N input bits with its fixed truth table: negate the mismatching literals as needed and AND the N matches, using at most 2N gates. OR the at most D equality tests using at most D\u22121 gates. Since D\u22651, the total is at most 2ND+D\u22121\u22643ND. The constants in the wire bound include both constant wires, so j=0 is covered.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795513774.4226553,
+  "session": "pnp-desk/research/R2632",
+  "model": "gpt-6-luna",
+  "id": "S0518",
+  "proved_step": "statement: For every N=2^m>=2, in the fan-in-two Boolean circuit model with free constants, MCSP[0] on N-bit truth tables depends on all N input bits; hence every deciding circuit has at least N-1 gates.\nproof: A zero-gate circuit outputs a constant, so the size-zero functions are exactly the two constant truth tables. For each coordinate i, the all-zero table is accepted while the table with only bit i set is rejected, so the decision function depends on coordinate i. In a fan-in-two circuit with g gates, the output's support has size at most g+1: inductively, a gate combines two predecessor functions whose supports have union size at most the sum, and the circuit's underlying output cone with g binary gates has at most g+1 distinct source leaves. Thus g>=N-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795514344.2050061,
+  "session": "pnp-desk/research/R2640",
+  "model": "gpt-6-luna",
+  "gap": "D2 sparse-support upper-bound accounting in PNP-001-MCSP-GATE-ELIMINATION-2026-11-23.md",
+  "gap_id": "G0195",
+  "id": "S0519",
+  "proved_step": "statement: For every m>=1 and every Boolean function f:{0,1}^m->{0,1} with t>=1 satisfying inputs, f has a fan-in-two DAG circuit over the full 16 binary Boolean gates, with free input wires and charged gates, of size at most m+tm-1.\nproof: For each input variable x_i, compute its negation as NAND(x_i,x_i), using m gates total. For each satisfying assignment a, form its indicator term by ANDing the m literals x_i or \u00acx_i selected by a, using m-1 gates per term (for m=1, this costs zero). OR the t indicator terms using t-1 gates (for t=1, this costs zero). The resulting circuit outputs 1 exactly on the satisfying assignments of f. Total gates are m+t(m-1)+(t-1)=m+tm-1.\nscope: All m>=1 and t>=1, full fan-in-two basis B2, free input wires, constants not needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

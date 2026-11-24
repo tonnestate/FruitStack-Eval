@@ -4809,5 +4809,135 @@
   "proved_step": "Let L\u2286{0,1}^N be decided by a Boolean circuit H of size h, and let EXT_L(p) mean that p has an accepted completion in L. For any cut t<N, the transition output EXT_L(pb), for a prefix p of length t and next bit b, is computable by a fan-in-two circuit of size at most 2^(N-t-1)(h+1)-1. Proof: for each suffix q of length N-t-1, make a copy of H with its first t+1 inputs fixed to pb and its remaining inputs fixed to q; OR the 2^(N-t-1) outputs with a binary tree. This accepts exactly when some completion pq is in L. The bound counts h gates per copy and 2^(N-t-1)-1 OR gates. This explicit construction gives no polynomial transition-cost bound from an arbitrary decision circuit H_C.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795511083.4535127,
+  "session": "pnp-desk/research/R2612",
+  "model": "gpt-6-luna",
+  "evidence": "The proof says distinct nonempty residuals are disjoint, which is false: for F={00,10} and t=1, both length-1 prefixes have residual {0}. This refutes the recorded proof as written, not its numerical bound. The bound has the following repair: choose one representative prefix p_R for each distinct nonempty residual R, and choose any suffix r_R in R. Then p_R r_R is in F. Distinct residuals have distinct representative prefixes, since a prefix determines exactly one residual, so these chosen words are distinct. Thus there are at most |F| nonempty residuals; including the empty residual gives at most |F|+1 states.",
+  "review_of": "S0470",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795511083.5056229,
+  "session": "pnp-desk/research/R2612",
+  "model": "gpt-6-luna",
+  "evidence": "Complete combinatorial proof included in the recorded statement. It repairs the false disjointness argument in S0470. No obligation ID was available in the returned proof-state excerpt, so this is not asserted to close a recorded gap.",
+  "id": "S0569",
+  "proved_step": "statement: For every finite F\u2286{0,1}^N and cut 0\u2264t\u2264N, the set of distinct nonempty residuals R_t(p)={r\u2208{0,1}^{N\u2212t}:pr\u2208F}, as p ranges over {0,1}^t, has size at most |F|. Consequently the canonical residual automaton has at most |F|+1 states at depth t when the empty residual is included. Proof: For each distinct nonempty residual R, choose a prefix p_R with R_t(p_R)=R and a suffix r_R\u2208R. Then p_Rr_R\u2208F. If R\u2260R\u2032, then p_R\u2260p_R\u2032, because a fixed prefix has a unique residual. Therefore p_Rr_R and p_R\u2032r_R\u2032 are distinct length-N words. This gives an injection from the distinct nonempty residuals into F, proving the bound; there is at most one empty residual.\nscope: All finite F\u2286{0,1}^N, all integers N\u22650, and all cuts 0\u2264t\u2264N. State count only; no transition-cost or arbitrary-circuit simulation claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795511250.298922,
+  "session": "pnp-desk/research/R2612",
+  "model": "gpt-6-luna",
+  "evidence": "Complete direct combinatorial proof in the recorded statement. No existing transition-cost claim is used as a premise; no recorded gap ID was available to close.",
+  "id": "S0570",
+  "proved_step": "statement: For every finite F\u2286{0,1}^N and cut 0\u2264t\u2264N, the number of distinct nonempty residuals R_t(p)={r:pr\u2208F} is at most min(|F|,2^t,2^(2^(N\u2212t))\u22121). Hence, including the empty residual, the layered residual automaton has at most min(|F|,2^t,2^(2^(N\u2212t))\u22121)+1 states at depth t. Proof: There are 2^t prefixes, so at most 2^t residuals. For each distinct nonempty residual R choose a realizing prefix p_R and a suffix r_R\u2208R. Then p_Rr_R\u2208F; distinct residuals have distinct chosen prefixes, hence the chosen words are distinct, giving at most |F| nonempty residuals. Each residual is a subset of the 2^(N\u2212t)-element suffix set, which has 2^(2^(N\u2212t))\u22121 nonempty subsets. Taking the minimum proves the bound; there is at most one empty residual.\nscope: All finite F\u2286{0,1}^N, integers N\u22650, and cuts 0\u2264t\u2264N. This bounds residual state count only; it does not bound transition circuit cost or establish an MCSP/EXT simulation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795511866.8558757,
+  "session": "pnp-desk/research/R2620",
+  "model": "gpt-6-luna",
+  "evidence": "Explicit construction: one disjoint h-gate copy per suffix z, plus a binary OR tree over their outputs; correctness follows directly from existential quantification over z.",
+  "id": "S0571",
+  "proved_step": "BLOCK-TRANSITION EXPANSION LEMMA. Let H:{0,1}^N->{0,1} be computed by a fan-in-two Boolean circuit with h gates (constants and input wiring are free). Fix integers t,r with 0<=t<=N and 0<=r<=N-t. For each prefix p in {0,1}^t and block u in {0,1}^r, define E_{t+r}(pu)=1 iff there exists z in {0,1}^{N-t-r} such that H(puz)=1. There is a circuit B_{t,r} on (p,u) computing E_{t+r}(pu) with at most 2^{N-t-r}(h+1)-1 fan-in-two gates. Proof: For each suffix z of length N-t-r, make a disjoint copy H_z of H; wire its first t+r input positions to (p,u), and wire its remaining positions to the constant string z. OR all 2^{N-t-r} output bits using a binary tree, which uses 2^{N-t-r}-1 gates. The total is 2^{N-t-r}h+(2^{N-t-r}-1)=2^{N-t-r}(h+1)-1 gates. For every (p,u), this OR is 1 exactly when at least one completion z makes H(puz)=1. Thus if N-t-r<=c log_2(h+2) for fixed c, the size is polynomial in h. This constructs the block-completion predicate only; it does not show that a compact state or transition can be computed from arbitrary MCSP decision circuits at cost poly(s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795511968.7042253,
+  "session": "pnp-desk/research/R2620",
+  "model": "gpt-6-luna",
+  "evidence": "Explicit construction with 2^k copies and a binary OR tree; correctness follows by the definition of existential projection.",
+  "id": "S0572",
+  "proved_step": "FIXED-TAIL PROJECTION WITH POLYNOMIAL COST. Let H:{0,1}^N->{0,1} have a fan-in-two circuit of h gates, and let 0<=k<=N. Define P_k(x)=OR_{z in {0,1}^k} H(xz), for x in {0,1}^{N-k}. Then P_k has a fan-in-two circuit of at most 2^k(h+1)-1 gates. If k<=c log_2(h+2) for fixed c>=0, its size is at most (h+2)^c(h+1)-1, hence O((h+2)^(c+1)). Proof: For each of the 2^k strings z, create a disjoint copy H_z of H, wire its final k inputs to z and its first N-k inputs to x. OR the outputs with a fan-in-two tree using 2^k-1 gates. The total is 2^k h+2^k-1. For every x, this OR is 1 exactly when some z satisfies H(xz)=1, so it computes P_k. The logarithmic-tail condition gives 2^k<=(h+2)^c and the stated bound. This is one fixed projection; it implies no polynomial-cost representation for cuts with superlogarithmic remaining suffix.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512510.951651,
+  "session": "pnp-desk/research/R2628",
+  "model": "gpt-6-luna",
+  "evidence": "The converse is not well-defined for prefixes outside P_t(F): for such a prefix p, [p] is not a state under the stated construction, yet a transition on b may require [pb]. For example, F={00}, N=2, t=1: prefix 1 is not in P_t(F), but the construction purports to use the equivalence class of every consumed prefix. The lower-bound direction is valid; the stated two-sided characterization needs all prefixes, including empty residuals.",
+  "review_of": "S0471",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795512617.919341,
+  "session": "pnp-desk/research/R2628",
+  "model": "gpt-6-luna",
+  "id": "S0574",
+  "proved_step": "statement: For any Boolean circuit H:{0,1}^N->{0,1}, any 0<=t<N, and every prefix p in {0,1}^t, define E_t(p)=1 iff some suffix q of length N-t satisfies H(pq)=1. Then E_t(p)=E_{t+1}(p0) OR E_{t+1}(p1). Proof: Every suffix of length N-t has a unique first bit b in {0,1} and a remaining suffix r of length N-t-1. Thus a completion q with H(pq)=1 exists iff there are b,r with H(pbr)=1, which holds iff E_{t+1}(pb)=1 for at least one b. This identity gives the exact one-bit recurrence for the completion predicate, but does not recover the two child values from E_t(p) or bound the real-gate cost of computing either child from H.\nscope: All Boolean circuits H on N input bits, all cuts 0<=t<N, all prefixes p of length t. E_t is existential completion of H. No transition-cost bound or implication for arbitrary MCSP decision circuits is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512783.338373,
+  "session": "pnp-desk/research/R2628",
+  "model": "gpt-6-luna",
+  "id": "S0575",
+  "proved_step": "statement: Residual cofactor transition lemma. Let N be a nonnegative integer, F be any subset of {0,1}^N, 0 <= t < N, and p be a length-t prefix. Define R_t(p)={u in {0,1}^{N-t}: pu in F}. For b in {0,1}, define the cofactor D_b(R)={v in {0,1}^{N-t-1}: bv in R}. Then R_{t+1}(pb)=D_b(R_t(p)). Consequently, if R_t(p)=R_t(q) for two length-t prefixes p,q, then for each bit b their child residuals are equal; and the pair of child residuals is determined by the full parent residual. Proof: For every v of length N-t-1, v is in R_{t+1}(pb) iff pbv is in F. This is equivalent to bv being in R_t(p), which is equivalent to v being in D_b(R_t(p)). Thus the sets agree. Replacing p by q gives the equal-child consequence when parent residuals coincide. The formula defines each child from the full residual by restriction to strings beginning in b. In contrast, the single bit [R_t(p) is nonempty] need not determine either child bit: for N-t=1, residuals {0} and {1} both have nonempty indicator 1, but their 0-child acceptance indicators differ. This is an exact information-level transition rule; it does not bound the number or real-gate cost of operations needed to compute a cofactor when the representation is an arbitrary MCSP decision circuit H_C.\nscope: All finite binary languages F subset {0,1}^N, all 0 <= t < N, and all prefixes p of length t. Residuals are literal suffix sets; cofactor operation is D_b(R)={v:bv in R}. No circuit-size, transition-cost, or P versus NP consequence is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512867.7164114,
+  "session": "pnp-desk/research/R2628",
+  "model": "gpt-6-luna",
+  "id": "S0576",
+  "proved_step": "statement: Residual-circuit restriction lemma. Let H:{0,1}^N->{0,1} be computed by a fan-in-two Boolean circuit with h gates. For every t in {0,...,N} and prefix p in {0,1}^t, define H_p:{0,1}^{N-t}->{0,1} by H_p(q)=H(pq). Then H_p is computed by a circuit with at most h gates, obtained by fixing the first t input wires of H to the bits of p. If t<N and b is a bit, H_{pb}(r)=H_p(br), so the child residual circuit also uses at most h gates. Proof: Substitute constants p at the corresponding input wires of H; this changes no gate and computes q -> H(pq). For the child, substitute b at the first remaining input wire of this restricted circuit; again no gate changes, and its output on r is H_p(br)=H(pbr)=H_{pb}(r). Thus both restrictions preserve the gate bound. The representation (H,p) may still require N+t-independent prefix storage up to N bits and this lemma does not bound transitions of a circuit whose input is an arbitrary MCSP decision-circuit description.\nscope: All N>=0, all fan-in-two circuits H on N inputs with h gates, and all prefixes p of length t<=N. Constants and input wiring are free; only circuit gate count is bounded. This gives no compact-state or arbitrary-H_C transition-cost theorem.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795512965.451803,
+  "session": "pnp-desk/research/R2628",
+  "model": "gpt-6-luna",
+  "id": "S0577",
+  "proved_step": "statement: One-bit branching-information lemma for EXT. Let F be a finite binary language of words of length N, let t<N, and for every length-t prefix p define e(p)=1 iff R_t(p) is nonempty. Define e_0(p)=1 iff R_{t+1}(p0) is nonempty and e_1(p)=1 iff R_{t+1}(p1) is nonempty. Then e(p)=e_0(p) OR e_1(p). If e(p)=0 the child pair is (0,0); if e(p)=1 the possible child pairs are exactly (1,0),(0,1),(1,1). Proof: Partition the suffixes in R_t(p) by their first bit. The 0-section is nonempty exactly when R_{t+1}(p0) is nonempty, and the 1-section exactly when R_{t+1}(p1) is nonempty. Thus the parent is nonempty iff at least one child is nonempty. An empty parent forces (0,0). Each of the other three pairs is realizable by a language whose words extending p have suffixes respectively {0v}, {1v}, or {0v,1v}, for any v of length N-t-1. Hence the one-bit extension summary loses which child branches survive.\nscope: All finite F subset {0,1}^N and 0<=t<N. This is an information statement about the Boolean extension predicate, not a gate lower bound or a lower bound on richer representations; no P versus NP consequence is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795513806.8316157,
+  "session": "pnp-desk/research/R2636",
+  "model": "gpt-6-luna",
+  "id": "S0578",
+  "proved_step": "statement: Cofactor transition identity for EXT. Let H:{0,1}^N->{0,1}. For each t and p in {0,1}^t define E_t(p)=1 iff there exists q in {0,1}^{N-t} with H(pq)=1. Then for every t<N and p of length t, E_t(p)=E_{t+1}(p0) OR E_{t+1}(p1). Proof: The set of length-(N-t) completions of p is the disjoint union of strings 0q and 1q, with q ranging over {0,1}^{N-t-1}. Thus some completion pq is accepted exactly when either some completion p0q is accepted or some completion p1q is accepted. This also covers an empty accepting language, for which both sides are zero. The identity specifies the exact Boolean information propagated by the EXT automaton, but does not bound the real-gate cost of obtaining E_{t+1} from an arbitrary MCSP circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795514040.1728287,
+  "session": "pnp-desk/research/R2636",
+  "model": "gpt-6-luna",
+  "id": "S0579",
+  "proved_step": "statement: Completion-circuit cofactor recurrence. Let H:{0,1}^N->{0,1}, and for each 0<=t<=N define E_t(p)=1 iff some suffix u in {0,1}^{N-t} satisfies H(pu)=1. If E_{t+d} is computed by a fan-in-two Boolean circuit of g gates, then E_t is computed by a fan-in-two circuit of at most 2^d(g+1)-1 gates. Proof: For each of the 2^d suffixes v of length d, fix v in a copy of the E_{t+d} circuit, leaving the first t bits as inputs. The outputs compute E_{t+d}(pv); their OR is E_t(p), since every completion of p has a unique first d bits. A binary OR tree combines the 2^d outputs using 2^d-1 gates. The total is 2^d g+(2^d-1)=2^d(g+1)-1. In particular, d=1 gives 2g+1 gates. Constants and wiring are free. This bounds one Boolean completion predicate at a cut; it does not bound computation of the next residual-state encoding of EXT.\nscope: All N>=0, cuts t,d with 0<=t<=t+d<=N, and fan-in-two Boolean circuit size with constants and wiring free.\nproof: Fix each length-d suffix v, use one copy of the E_{t+d} circuit with v substituted, and OR the outputs. The copies use 2^d*g gates and the binary OR tree uses 2^d-1. Every completion of p has exactly one such v prefix, so this circuit computes E_t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795514130.2335918,
+  "session": "pnp-desk/research/R2636",
+  "model": "gpt-6-luna",
+  "id": "S0580",
+  "proved_step": "statement: Penultimate-cut completion bound. Let N>=1 and let H:{0,1}^N->{0,1} be computed by a fan-in-two Boolean circuit of h gates, with constants and wiring free. For p in {0,1}^{N-1}, define E(p)=1 iff H(p0)=1 or H(p1)=1. Then E is computed by a fan-in-two circuit of at most 2h+1 gates. Proof: Make two copies of the circuit for H. In the first copy fix its Nth input to 0; in the second fix it to 1. The resulting circuits compute p\u21a6H(p0) and p\u21a6H(p1), each using at most h gates. Feed their outputs to one OR gate. The output is E(p) by its definition, and the total gate count is at most h+h+1. This is the EXT completion predicate at the sole cut with one unprocessed bit; it gives no bound at earlier cuts.\nscope: Every integer N>=1, every Boolean H on N bits with a fan-in-two circuit of h gates; constants and wiring are free.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795514353.6427345,
+  "session": "pnp-desk/research/R2636",
+  "model": "gpt-6-luna",
+  "id": "S0581",
+  "proved_step": "statement: Dense residual streaming cost lemma. Let H:{0,1}^N->{0,1} be given by a fan-in-two circuit of h gates. A deterministic left-to-right streaming representation can initialize an N-stage residual table using at most h\u00b72^N gate evaluations, store at most 2^N bits, and update it over the entire input using exactly 2^N\u22121 bit selections/writes (and no Boolean gates), if a state is represented as an explicit array indexed by suffixes and coordinate selection is the unit-cost update operation. Proof: At depth t store the array A_t[u]=H(pu), for all suffixes u of length N\u2212t, where p is the prefix read so far. Initialize A_0 by evaluating H on each of the 2^N inputs, costing at most h\u00b72^N gates and storing 2^N output bits. Upon reading b, form A_{t+1}[u]=A_t[bu] for each suffix u of length N\u2212t\u22121. The identity follows directly: A_t[bu]=H(pbu)=A_{t+1}[u]. Thus each update copies one half of the old array and costs 2^(N\u2212t\u22121) coordinate selections/writes. Summing over t=0,...,N\u22121 gives \u03a3_{j=0}^{N\u22121}2^j=2^N\u22121. The largest stored array is A_0, of 2^N bits. The update bound is in the stated explicit-array access model; it is not a fan-in-two Boolean circuit bound or a compact/poly(s) representation.\nscope: All N\u22650 and Boolean H with an h-gate fan-in-two circuit. Resource units are specified explicitly: Boolean gate evaluations for initialization, explicit stored bits, and unit-cost array coordinate selections/writes for updates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

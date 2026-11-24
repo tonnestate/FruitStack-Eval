@@ -1,11 +1,12 @@
-PROOF LEDGER of this problem (kept across missions; 13278 entries from 3632 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 13409 entries from 3677 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
+  - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
+derivation: Assume such an m1 exists. Instantiat
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
   - For every n >= 1, every integer weight vector w in Z^n with max_i |w_i| <= B, every integer threshold t, and every l in {0,...,n}: the set of functions y in {0,1}^(n-l) -> [w_rest.y >= t - w_pre.rho], indexed by rho in {0,1}^l, has at most min(2^l, 2lB+1) dist
   - For all rationals beta, eta, c with 0 <= eta <= beta and 0 <= c < 1: (2+beta-eta)/(1+c) > 1. More generally, for rationals beta, eta and c >= 0: (2+beta-eta)/(1+c) > 1 if and only if c < 1+beta-eta.
   - For every positive 1-in-3 formula F (each clause is a 3-set of variables; sat(F)=1 iff exactly one variable of each clause is 1) that is satisfiable, the affine system over GF(3) with x_a+x_b+x_c=1 for each clause is consistent. Equivalently sat=1 implies cons
-  - For every n >= 5 and every choice of distinct vertices u, v, a, b, c in [n], the positive 1-in-3 clause set {uva, uvb, uvc, abc} has no 1-in-3 satisfying assignment.
 CITED from the literature (not machine-checked here):
   - Thm 4.1, Thm 5.4, Cor 6.2 of the owner's paper (as stated there). PAPER SETTING: G=(V,E) finite graph, F field, K subspace of F^I, blocks I_v; pi_X: K -> prod_{v in X} F^{I_v}. (R) rank pi_X >= d|X| for all X subset V; (L) z,z' in K with z|v != 0 != z'|v => su
   - Liu-Pass Thm 1.2: one-way functions exist if and only if boundary-MINrK^poly is not in ioBPP (randomized time-bounded Kolmogorov complexity, boundary promise version). Thm 1.1: assuming E not in ioSIZE[2^{eps n}] for some eps > 0, the same holds for plain boun
@@ -18,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For EXT completion predicates induced by MCSP, structural sharing among suffix-restricted circuit copies may improve the generic 2^d(g+1)-1 bound when d is much larger than log s.
+  - For a fixed finite family F of k distinct N-bit strings, the parallel live-flag construction uses k state bits and at most k fan-in-two AND gates per update, with an unrestricted final decoder, and is exact membership.
+  - For d=S+1 input bits and S output bits, every Boolean map {0,1}^d -> {0,1}^S has a fan-in-two AND/OR circuit with free NOT and constants using at most (2^(d+1)-4)+S(2^d-1) nonconstant gates, by sharing all prefix conjunctions of length at least two across outp
+  - For arbitrary MCSP decision circuits H_C, there may be a uniform representation that computes EXT_{n,s} block transitions with real-gate cost polynomial in s even when the remaining suffix is superlogarithmic in the size of H_C.
   - For any explicitly given two-word language F={x,y}, the coordinatewise candidate-survival transducer has G_max<=2 for every N under free NOT and constants.
   - For each fixed sparsity s>=2, degree d, and field F, the minimum Boolean hitting-set size for nonzero multilinear polynomials with at most s monomials may be asymptotically smaller than M(t,d)=sum_{j<=d} binom(t,j); determine whether a bound O_s(t^d) can be im
-  - The read-once formula conversion may extend to formulas with bounded variable repetition if their subformula orders can be reconciled with a global order using bounded layer duplication.
-  - For affine subspaces F={x∈{0,1}^N:Hx=b}, the syndrome transition can sometimes be recoded using fewer than rank(H) state bits or fewer update gates than the direct column update; the achievable reduction depends on the sequence of prefix-column spans and the a
-  - For a deterministic one-pass streaming computation whose final output depends on all N input bits and whose update/readout circuits have fan-in at most k, total gate cost is at least (N-1)/(k-1), independent of the number of state bits.
-  - For exact one-pass search-MCSP over all N-bit truth tables, any fixed affine F_2 state update requires at least N state bits, independently of the circuit model, provided the zero function is representable within the size threshold.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -38,13 +39,13 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3103 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3119 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-d4e5d504aa [MISSING_PROOF, OPEN] Can one construct an explicit family arising in the stationary state-recoding bridge with more than polynomially-superlinear residual width at a justified circuit cut, beyond the 2^n residual benchmark of DISJ_n?
+  - Q-12f669b24a [MISSING_PROOF, OPEN] For explicit Boolean functions arising in the state-recoding bridge, can one prove a superlinear lower bound on the number of distinct prefix residual functions, thereby forcing online cut-width and total one-pass circui
+  - Q-0294069007 [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'Every Boolean function f:{0,1}^2->{0,1} has a fan-in-two AND/OR circuit with at most two counted gates, when NOT and constants are free and fan-out is unrestricte
+  - Q-6679eaf56b [MISSING_PROOF, OPEN] Can the cofactor Hamming-distance identity be strengthened to a bound on distance from the full class of size-s fan-in-two DAG circuits, despite the best comparator varying independently in each cofactor, in a form that 
   - Q-c22e79e5b5 [ASSUMPTION, OPEN] The claim 'For every n≥1 and s≥0, circuits with at most s fan-in-two AND/OR/NOT gates, two constants, and one output wire have at most (s+1)(n+s+2)(3(n+s+2)^2)^s topological descriptions; filtering these descriptions dec
-  - Q-d116e199fc [MISSING_PROOF, OPEN] Can the explicit candidate-mask transition for EXT be compressed to a representation with per-bit real-gate cost polynomial in s and log N, uniformly for all circuits of size at most s?
-  - Q-a75ef75dd4 [IMPLICATION, OPEN] Can the sparse-support representation bound for MCSP inputs be converted into a property of the MCSP decision function that forces a superlinear general-circuit lower bound?
-  - Q-18ef6fb2f5 [MISSING_PROOF, OPEN] Can exact prefix counts for the candidate refuter set be computed by a deterministic uniform procedure within the precise CJSW resource bounds, or can a weaker count approximation still guarantee avoidance?
-  - Q-8015ce954f [MISSING_PROOF, OPEN] For F=Im(Eval_{n,s}), can the residual slice R_p[b] be computed from a compact representation of R_p with real fan-in-two gate cost polynomial in s and n, uniformly over arbitrary MCSP decision circuits H_C for the same 
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
