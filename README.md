@@ -1,5 +1,8 @@
 # FruitStack-Eval: research results and evaluations
 
+> **CURRENT STATUS:** The previous freeze order was withdrawn; operational freeze is NOT active or VPS-verified. This audit branch is a historical evidence snapshot. VPS_ACTIVATION.md is a conditional manual template only, not a standing instruction. No route priority is finalized. The actual VPS state has not been independently observed.
+
+
 This repository publishes research results and the evaluations of an AI research organisation: proof books,
 manuscripts, proofs, verifiers, evaluation reports and computed data. It contains no software of the organisation.
 
