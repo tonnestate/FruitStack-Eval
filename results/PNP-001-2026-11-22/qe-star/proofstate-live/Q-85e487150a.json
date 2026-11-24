@@ -638,5 +638,87 @@
   "kind": "LEMMA",
   "closes": "Q-85e487150a",
   "closes_valid": true
+ },
+ {
+  "at": 1795532766.591431,
+  "session": "pnp-desk/research/R2839",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. Assumptions: (1) 0^N is a YES instance (constant-zero function has circuit size \u2264 s), so decoder D(q(0)) must output a circuit C computing 0^N. (2) For any nonzero k \u2208 ker(M), q(k) = Mk + c = c = q(0), so D(q(k)) = D(c) = C. But C computes 0^N. If k is a YES instance, correctness requires D(q(k)) to output a circuit computing k \u2260 0^N \u2014 contradiction. If k is a NO instance, correctness requires D(q(k)) = NONE \u2014 but it outputs C, a circuit \u2014 contradiction. Hence ker(M) = {0}, so rank(M) = N, and since M \u2208 F_2^{S\u00d7N}, rank(M) \u2264 S, giving S \u2265 N. No hidden assumptions; the argument holds for any decoder that depends only on the affine final state and correctly solves the search problem on all inputs.",
+  "review_of": "S0069",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795532809.5424795,
+  "session": "pnp-desk/research/R2839",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting bound is standard and correct. For each t \u2264 s: choose output wire (\u2264 m+t options), then for each of t gates in topological order: choose two ordered predecessor wires from \u2264 m+j available (\u2264 (m+j)\u00b2) and gate type/polarity (\u2264 16). Total descriptions \u2264 \u2211_{t=0}^s (m+t)\u00b716^t\u00b7\u220f_{j=0}^{t-1}(m+j)\u00b2. Each description computes exactly one Boolean function, so distinct functions \u2264 descriptions. If s(m) = poly(m), then m+s = poly(m), so log\u2082(sum) = O(s log(m+s)) = poly(m) = o(2^m) = o(N). But log\u2082(p^{N-\u03b5(m)}) = (N-\u03b5(m))log\u2082 p = \u0398(N) since p>1 fixed and \u03b5(m)=o(N). For large m, \u0398(N) > o(N), so p^{N-\u03b5(m)} exceeds the total number of size-s circuits. No such subfamily U can exist. The proof is tight for this counting approach and does not rely on unproven assumptions.",
+  "review_of": "S0070",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795533123.7382755,
+  "session": "pnp-desk/research/R2839",
+  "model": "muse-glimmer-30b",
+  "evidence": "The kernel collision argument is valid under the stated search semantics. Since 0^N \u2208 Y, correctness forces D(c)=D(q(0)) to be a circuit C with C\u22610^N, not NONE. Let k\u22600 be in ker(M). Then q(k)=c, so D(q(k))=C. \u2022 If k\u2208Y, correctness demands C compute k, impossible since k\u22600^N. \u2022 If k\u2209Y, correctness demands D(q(k))=NONE, impossible since C is a circuit. Hence ker(M)={0}, rank(M)=N, and rank(M)\u2264S gives S\u2265N. No extra assumptions are used; the argument works for any Y containing 0^N and any decoder depending only on the affine final state.",
+  "review_of": "S0071",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795533594.7272246,
+  "session": "pnp-desk/research/R2843",
+  "model": "gpt-6-luna",
+  "id": "S0075",
+  "proved_step": "statement: LEMMA (R1, affine F_2 exact search with explicit zero-circuit convention). Let N=2^m with m>=1. Suppose the circuit basis contains a constant-zero output of size at most s. Search-MCSP[s] on every x in F_2^N returns a size-at-most-s circuit computing x when one exists, and none otherwise. If a one-pass streaming realization has final state q_N(x)=Mx+c over F_2, with M an S-by-N matrix, and its decoder depends only on q_N, then S>=N. Proof: 0^N is a YES input, so D(c) is a circuit computing 0^N. If nonzero k is in ker M, then q_N(k)=c and the decoder returns that same zero circuit on k. It is incorrect whether k is a YES input (the circuit computes the wrong function) or a NO input (the required output is none). Hence ker M={0}, rank M=N, and S>=N.\nevidence: The proof uses the zero truth table as a guaranteed YES input under the stated circuit-basis convention. Any nonzero kernel vector collides with it and forces the decoder to return the zero circuit on a different truth table.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795533765.8858688,
+  "session": "pnp-desk/research/R2843",
+  "model": "gpt-6-luna",
+  "id": "S0076",
+  "proved_step": "statement: LEMMA (valid-input counting bound for deterministic exact search). Let F be any finite set of distinct Boolean functions on m inputs, each having a circuit of size at most s in a fixed circuit model. If a deterministic one-pass streaming algorithm correctly solves Search-MCSP[s] on all truth tables in F and its decoder depends only on its final state, then it has at least |F| distinct final states, so S >= ceil(log_2 |F|). Proof: if distinct f,g in F reached the same final state, the decoder would return the same output on both; correctness requires that output to compute f and g respectively, impossible since f != g. In particular, the family f_{a,b}(x)=a\u00b7x+b over F_2, with a in F_2^m and b in F_2, contains exactly 2^(m+1) distinct functions: their values at 0 and the m unit vectors recover b and every coordinate of a. Thus S >= m+1 whenever s includes circuits for this family.\nevidence: The argument proves injectivity of the state map on every valid input family. The affine family cardinality follows by recovering its parameters from m+1 evaluations. This is an explicit attainable family, but it does not meet G0004's near-2^N target.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795533886.6930995,
+  "session": "pnp-desk/research/R2843",
+  "model": "gpt-6-luna",
+  "id": "S0077",
+  "proved_step": "statement: Fix m>=1 and a fan-in-at-most-two Boolean circuit model with a fixed finite gate set of size B>=1, constants allowed, and one designated output. Let F_{m,s} be the functions on m bits computed with at most s gates. Then |F_{m,s}| <= (s+1)(m+s+2)(B(m+s+2)^2)^s. To see this, topologically order j<=s gates: each gate has at most B(m+s+2)^2 choices, and the output has at most m+s+2 choices; sum over j. For s=ceil(m^c), fixed c>0, log2|F_{m,s}|=O(m^c log m)=o(2^m). Thus for every fixed p>1, these functions cannot include a family of size p^(2^m-o(2^m)), whose logarithm is Theta(2^m). This closes only the dense-subfamily subgoal G0004 in the stated circuit model; it gives no streaming lower bound.\nevidence: The description-count logarithm is o(2^m) for polynomial s, whereas the proposed family's logarithm is Theta(2^m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795534904.0270216,
+  "session": "pnp-desk/research/R2853",
+  "model": "gpt-6-luna",
+  "id": "S0078",
+  "proved_step": "statement: LEMMA (affine F_p exact-search collision bound). Let p be prime, N,S\u22650, and q(x)=Mx+c for x\u2208{0,1}^N, with M\u2208F_p^{S\u00d7N}. Suppose a decoder depending only on q(x) solves exact Search-MCSP on every N-bit truth table, and a size-at-most-s circuit for 0^N exists. Then N\u2264S(p\u22121). Proof: Let v_1,\u2026,v_N be the columns of M and G=(F_p)^S. In the group algebra A=F_p[G], write y_j=X_j\u22121 for the coordinate generators. Then A\u2245F_p[y_1,\u2026,y_S]/(y_1^p,\u2026,y_S^p), so the augmentation ideal I=(y_1,\u2026,y_S) satisfies I^{S(p\u22121)+1}=0. Each 1\u2212X^{v_i} lies in I. If N>S(p\u22121), then \u220f_i(1\u2212X^{v_i})=0. In its group-basis expansion, the coefficient of X^0 is the sum of (\u22121)^{|J|} over subsets J\u2286[N] with \u2211_{i\u2208J}v_i=0. The empty subset contributes 1; if no nonempty such J existed, that coefficient would be 1, contradicting the zero product. Hence some nonempty J has zero column sum. Its indicator k\u2208{0,1}^N is nonzero and Mk=0, so q(k)=q(0). Exact decoding at 0^N must return a circuit computing 0^N; the same output at k is incorrect because k\u22600^N. Contradiction. Thus N\u2264S(p\u22121), or S\u2265ceil(N/(p\u22121)).\nevidence: The complete proof is the nilpotent-augmentation-ideal argument in the statement. Independent exhaustive verification cm-925ab4d686cf4720 checked all sequences for p=2,3; S=1,2; N=S(p\u22121)+1,+2, with no counterexample (largest case: 531441 sequences). The computation is a finite check only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795535102.5127747,
+  "session": "pnp-desk/research/R2853",
+  "model": "gpt-6-luna",
+  "id": "S0079",
+  "proved_step": "statement: REPAIR (decision-only affine period bound; not a search lemma). Let N be the truth-table length and let A\u2286{0,1}^N be any set containing 0^N. Suppose a deterministic decoder D reads only q(x)=Mx+c, where M\u2208F_2^{S\u00d7N}, and correctly decides membership in A on every x\u2208{0,1}^N: D(q(x))=1 iff x\u2208A. Define P={k\u2208F_2^N: 1_A(x+k)=1_A(x) for every x\u2208F_2^N}. Then ker(M)\u2286P and S\u2265N\u2212dim(P)\u2265N\u2212log_2|A|. Proof: If Mk=0, then q(x+k)=M(x+k)+c=Mx+c=q(x) for every x. Because D depends only on q, membership is invariant under adding k, so k\u2208P. P is a subgroup: it contains 0 and is closed under addition by composing its invariances. Since 0^N\u2208A, every k\u2208P also lies in A; hence |P|\u2264|A| and dim(P)\u2264log_2|A|. Rank-nullity gives S\u2265rank(M)=N\u2212dim ker(M)\u2265N\u2212dim(P)\u2265N\u2212log_2|A|. This is only a decision lower bound for affine final states and final-state-only decoding; it does not establish the corresponding search statement.\nevidence: The complete proof is included in the statement. It uses the decision premise that equal states imply equal membership bits, and does not infer that a search decoder returns a circuit on every input.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795535153.348719,
+  "session": "pnp-desk/research/R2853",
+  "model": "gpt-6-luna",
+  "id": "S0080",
+  "proved_step": "statement: LEMMA (staged affine exact-search lower bound over a prime field). Let p be prime, let N,S>=0, and let a one-pass streaming state q_t in F_p^S evolve on input x=(x_1,...,x_N) in {0,1}^N by q_0=c_0 and q_t=M_t q_{t-1}+x_t v_t+c_t for fixed M_t in F_p^{S\u00d7S}, v_t,c_t in F_p^S. Suppose a decoder depending only on q_N exactly solves Search-MCSP[s] on all N-bit truth tables, and the zero truth table has a circuit of size at most s. Then N<=S(p-1). Proof: By induction on t, q_t is affine in (x_1,...,x_t); hence q_N(x)=Mx+c for some M in F_p^{S\u00d7N}, c in F_p^S. Let w_i be the columns of M. In A=F_p[(Z/pZ)^S], write y_j=X_j-1 for the coordinate group generators. Since A is isomorphic to F_p[y_1,...,y_S]/(y_1^p,...,y_S^p), its augmentation ideal I=(y_1,...,y_S) satisfies I^{S(p-1)+1}=0. Each 1-X^{w_i} is in I. If N>S(p-1), then product_i(1-X^{w_i})=0. The coefficient of X^0 in this product is the sum of (-1)^|J| over subsets J of [N] with sum_{i in J} w_i=0. If no nonempty such J existed, this coefficient would be 1 from the empty subset, contradicting that the product is zero. Thus some nonempty J has zero column sum. Its indicator k in {0,1}^N is nonzero and Mk=0, so q_N(k)=q_N(0). Exact search at 0 must return a circuit computing 0^N; the same decoder output at k cannot compute k, contradicting correctness. Therefore N<=S(p-1), equivalently S>=ceil(N/(p-1)). This proves the bound for position-dependent staged affine updates; it makes no claim for nonlinear updates or a decoder with access to more than the final state.\nevidence: Complete derivation is in the statement: induction composes the staged updates into one affine map, the augmentation-ideal product yields a nonempty zero-sum subset when N>S(p-1), and the resulting Boolean kernel vector collides with the zero truth table. The finite check cm-925ab4d686cf4720 is consistent with the arithmetic lemma but is not used as proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

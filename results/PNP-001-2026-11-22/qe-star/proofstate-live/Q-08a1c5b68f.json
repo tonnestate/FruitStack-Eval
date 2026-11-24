@@ -4658,5 +4658,95 @@
   "proved_step": "statement: For any F subset of {0,1}^N, let R_t be its distinct residual languages at layer t and K_t=|R_t|. In the one-hot encoding of these states, each symbol transition has a fan-in-two OR circuit with at most K_t gates (constants free).\nproof: For each R in R_t and input bit b, define its child \u03b4_b(R)={v:bv in R}. If R=R_t(p), then \u03b4_b(R)=R_{t+1}(pb), so the child is in R_{t+1}. For every R' in R_{t+1}, output the OR of coordinates z_R for which \u03b4_b(R)=R'. These fibers partition R_t. A fiber of size j takes max(j-1,0) binary OR gates, so the total is at most K_t. On the one-hot state for R, exactly the child coordinate is set, proving the transition is correct.\nscope: Finite fixed-length binary languages, canonical layered residual states, one-hot encoding, fan-in-two OR gates, free constants and unrestricted fan-out. Upper bound only; no claim about arbitrary recodings or the Pareto frontier.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795533452.3887346,
+  "session": "pnp-desk/research/R2842",
+  "model": "gpt-6-luna",
+  "evidence": "Complete argument supplied in the statement. Scope is the exact-string-output special case; it does not apply to arbitrary witness decoders or imply any transition gate bound.",
+  "id": "S0548",
+  "proved_step": "statement: Exact-string-output state-count lemma. Let N>=0 and F be a subset of {0,1}^N. A deterministic layered transducer reads one bit per layer, rejects x outside F, and for x in F must output x itself at the final decoder. For each t, let L_t be the number of length-t prefixes p for which some suffix u of length N-t has pu in F. Then the minimum number of reachable states at layer t is L_t + 1_{L_t<2^t}. Proof: distinct live prefixes p,q cannot share a state. If their residual sets differ, choose u accepted after exactly one; the same continuation from a shared state gives the same final decoder output, contradicting acceptance versus rejection. If their residual sets agree, they are nonempty; choose any common accepted u. Then pu and qu are distinct accepted strings, but a shared state followed by u reaches one final state, which cannot output both strings. A dead prefix cannot share a state with a live prefix, since a suffix accepted after the live prefix would require rejection on the dead one. Thus at least L_t plus one state when any dead prefix exists. Conversely, use one state for each live prefix and one shared dead state if needed; on a bit, extend the represented prefix when it remains live, otherwise enter the dead state. At layer N decode each live state to its represented string and reject the dead state. This attains the bound independently at every layer.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795533522.0957906,
+  "session": "pnp-desk/research/R2842",
+  "model": "gpt-6-luna",
+  "id": "S0549",
+  "proved_step": "statement: Witness-output residual state lower bound (repaired scope). Let F be a subset of {0,1}^N and suppose a deterministic layered machine rejects inputs outside F and outputs on each input in F a witness that uniquely determines that input. At layer t, let L_t be the number of length-t prefixes with a completion in F. The machine has at least L_t + 1_{L_t < 2^t} reachable states at layer t.\nproof: For distinct live prefixes p,q, if their residual completion sets differ, a suffix in their symmetric difference forces opposite accept/reject outcomes from the same state, impossible. If their residual sets agree, they share a completion u; then pu and qu are distinct accepted inputs. From the same state and same suffix the deterministic machine would output the same witness on both, contradicting that the witness uniquely determines its input. Thus live prefixes occupy distinct states. If a dead prefix shared a state with a live prefix, a suffix completing the live prefix would also accept the dead prefix, impossible. Hence, when any dead prefix exists, at least one additional state is needed.\nscope: Finite binary languages and deterministic layered witness-output machines with fixed input length, where each accepted input has an output witness uniquely determining that input; applies to truth-table inputs when the output circuit computes that truth table. State count only; no update-gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795534211.5489855,
+  "session": "pnp-desk/research/R2850",
+  "model": "gpt-6-luna",
+  "id": "S0550",
+  "proved_step": "statement: For every n>=3, the family A_n of truth tables of affine Boolean functions f(x)=a_0 XOR sum_{i=1}^n a_i x_i, in lexicographic input order, has a deterministic one-pass streaming recognizer with a final witness decoder, S=n+2 state bits, and zero charged update gates. Proof: Store the first n+1 input bits of the stream in n+1 state coordinates, leaving the marker coordinate z=0 on live prefixes. While t<=n+1, each update copies prior coordinates and writes the next stream bit into the next sample coordinate; after t=n+1, retain the sample coordinates. Each update coordinate is therefore a wire or the new input bit. The values at inputs 0,e_1,...,e_n uniquely determine the affine coefficients, so at each layer t<=n+1 distinct live prefixes have distinct samples, and for t>n+1 distinct live prefixes correspond to distinct affine functions and thus distinct samples. For t>n+1, assign each dead prefix a state with z=1, disjoint from all live states. At t<=n+1 every prefix is live, since the first t evaluations are independent affine linear forms. At the end, the decoder reconstructs the affine function from the sample, compares its full table with the input, outputs its coefficients on a match, and rejects otherwise. Since n+2<2^n for n>=3, this is below the input length. This proves the affine zero-update-gate control construction only; it says nothing about SC_{n,s} or P versus NP.\nscope: Every n>=3; affine Boolean truth tables of length 2^n in lexicographic order; deterministic layered transducer; S=n+2; fixed unrestricted final decoder; update coordinates restricted to wires/copies of old state or new input; dead-prefix separation where dead prefixes exist.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795534409.4455748,
+  "session": "pnp-desk/research/R2850",
+  "model": "gpt-6-luna",
+  "evidence": "Exact proof by linear algebra; exhaustive check cm-604e7af7460c470e checked all n=1..6 and every t=0..2^n, with rank formula matching. This step is limited to affine-prefix counts and does not prove a circuit update-cost bound.",
+  "id": "S0551",
+  "proved_step": "statement: Affine prefix-count lemma. Let n>=1, let X=(x_1,...,x_t) be any ordered list of points of F_2^n (repetitions allowed), and let A_n={f_a : f_a(x)=a_0+sum_{i=1}^n a_i x_i, a in F_2^(n+1)}. The number of distinct length-t evaluation strings (f(x_1),...,f(x_t)) as f ranges over A_n is exactly 2^r, where r is the rank over F_2 of the t-by-(n+1) matrix whose jth row is (1,x_j). Consequently, for the lexicographic initial segment X_t of the Boolean cube, the number of live length-t prefixes in the truth-table language of A_n is 2^rank(E_t). Proof: Define E:F_2^(n+1)->F_2^t by E(a)=M a. The evaluation string of f_a on X is exactly E(a), so the set of realized strings is im(E). A linear map of rank r has image a vector space of dimension r over F_2, hence exactly 2^r elements. This applies to every t including t=0 and to repeated evaluation points. For lexicographic X_t it counts precisely the live prefixes by definition. In particular, at n=3,t=4, rank(E_t)=3 and there are 8 prefixes, not 16; the prefix count is governed by the evaluation rank, not min(t,n+1).\nproof: The evaluation map is the matrix map a -> M a; its image is exactly the set of realized prefixes and has size 2^rank by rank-nullity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795534536.946737,
+  "session": "pnp-desk/research/R2850",
+  "model": "gpt-6-luna",
+  "lemma": "For a fixed family F of binary strings of length N, let L_t be the number of length-t prefixes extendible to F. Any deterministic one-pass recognizer with a fixed final accept/reject decoder and a distinct dead state must have at least L_t + 1_{L_t<2^t} states at layer t. Proof: distinct live prefixes p,q have distinct residual languages R_t(p)={u:pu in F}: if the residuals differ, a suffix in their symmetric difference forces different acceptance outcomes from the same state, impossible. Thus the L_t live prefixes occupy distinct states. If a dead prefix exists, its full string is rejected; sharing its state with a live prefix p would, using any accepting suffix u of p, force the dead prefix followed by u to be accepted, contradiction. Therefore dead prefixes require one additional state. This is a lower bound on state count only and makes no gate-cost claim."
+ },
+ {
+  "at": 1795534733.8542733,
+  "session": "pnp-desk/research/R2850",
+  "model": "gpt-6-luna",
+  "id": "S0553",
+  "proved_step": "Affine prefix count lemma: Let n>=1 and order the 2^n Boolean inputs arbitrarily as x_1,...,x_N. Let F be the truth tables of all affine Boolean functions f_a(x)=a_0 + sum_j a_j x_j over GF(2). For t=0,...,N let r_t be the GF(2) rank of the t evaluation vectors (1,x_i1,...,x_in), i<=t. Then the number L_t of distinct length-t prefixes extendible to a member of F is exactly 2^r_t. Proof: Define A_t: GF(2)^(n+1) -> GF(2)^t by sending coefficient vector a to (a dot v_i)_{i<=t}. This is linear with matrix rows v_i, so its image has dimension r_t and cardinality 2^r_t by rank-nullity. A prefix is extendible exactly when it is A_t(a) for some affine coefficient vector a, hence the extendible prefixes are precisely this image. Consequently any exact layered recognizer requires at least L_t states for its live prefixes. If r_t<t, there is also a dead prefix, and it cannot share a state with a live prefix: append a suffix completing the live prefix to an accepted truth table, which would then also accept the dead prefix. Thus the live/dead bound at layer t is 2^r_t + 1 when r_t<t, and 2^r_t otherwise. This proves a state-count bound only, not an update-gate bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795535412.6827428,
+  "session": "pnp-desk/research/R2858",
+  "model": "gpt-6-luna",
+  "lemma": "Candidate constructive lemma to record after finite residual-count discovery: At layer t of any deterministic one-pass machine that accepts exactly F, prefixes with distinct suffix residuals R_t(p) must reach distinct states; hence the layer needs at least |{R_t(p): |p|=t}| states. Proof: if p,q with different residuals shared a state, choose suffix u in their symmetric difference; deterministic continuation gives identical final state on pu and qu, contradicting opposite membership. Scope: membership decoder only; this does not establish the stronger witness-output property or any circuit gate lower bound."
+ },
+ {
+  "at": 1795535542.145257,
+  "session": "pnp-desk/research/R2858",
+  "model": "gpt-6-luna",
+  "id": "S0555",
+  "proved_step": "statement: Residual-machine construction and finite consequence. Let F be any subset of {0,1}^N. At layer t define R_t(p)={u in {0,1}^{N-t}: pu is in F}. A deterministic layered membership machine can use exactly the distinct sets R_t(p) as its reachable states: on bit b, map R to {v: bv is in R}; at layer N accept exactly state {epsilon}. This is well-defined because equal residual sets give equal derivatives, and induction shows the state after p is R_t(p). Conversely, prefixes with different residual sets cannot share a state: a suffix in their symmetric difference forces opposite final answers. Therefore the minimum reachable state count at layer t equals the number of distinct residual sets. In the exact enumeration of SC_{3,1}, layer t=4 has 13 residual states versus 16 live prefixes, and layer t=5 has 15 versus 22; for SC_{3,2}, t=7 has 4 versus 126. These finite counts show why live-prefix counts alone do not give the exact layer width. This lemma concerns membership state count, not transition gate cost or witness output.\nscope: General state characterization for deterministic layered membership machines over finite binary languages; accompanying counts only for the explicitly enumerated n=3 circuit families.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795535831.438449,
+  "session": "pnp-desk/research/R2858",
+  "model": "gpt-6-luna",
+  "id": "S0556",
+  "proved_step": "statement: AND/XOR shared-minterm upper bound. For integers d>=2 and q>=1, every map f:{0,1}^d->{0,1}^q has a fan-in-two circuit using AND and XOR gates, free NOTs and constants, and unrestricted fan-out, of size at most 2^(d+1)-4+q(2^d-1). Proof: For each signed input prefix of length k=2,...,d, construct its conjunction by one AND gate from the length-(k-1) prefix conjunction and the next signed literal; length-one literals are free. This uses sum_{k=2}^d 2^k=2^(d+1)-4 gates and yields all full-assignment minterms. For each output, XOR the minterms whose assignments have output 1. At any input exactly one full-assignment minterm is 1, so this XOR equals the output truth-table value. At most 2^d minterms are selected, hence at most 2^d-1 XOR gates per output (zero or one selected term uses a constant or wire). Summing gives the stated bound.\nscope: All finite Boolean maps with d>=2 inputs and q>=1 outputs; fan-in-two AND/XOR, free NOTs/constants, unrestricted fan-out; an upper bound only, not an optimal G_max result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795535879.6463554,
+  "session": "pnp-desk/research/R2858",
+  "model": "gpt-6-luna",
+  "id": "S0557",
+  "proved_step": "statement: Universal update-circuit upper bound. Let S>=1 and consider any deterministic layered streaming transducer with S state bits, one input bit per step, and an arbitrary Boolean update map from (state,input) in {0,1}^{S+1} to the next state in {0,1}^S. In the fan-in-two AND/XOR basis with free NOTs and constants and unrestricted fan-out, every such update map has a circuit of at most 2^(S+2)-4 + S(2^(S+1)-1) gates. Proof: Apply the shared-minterm construction to the update map with d=S+1 inputs and q=S outputs. Construct all full-assignment minterms using 2^(d+1)-4 AND gates. For each output, XOR the minterms whose assignments map to 1. The minterms are pairwise disjoint, so at each input at most one selected minterm is 1 and the XOR equals the output. Each output uses at most 2^d-1 XOR gates. Substituting d=S+1 and q=S gives the stated bound. Implementing each layer's update independently therefore bounds its gate count by this quantity, and bounds G_max likewise.\nscope: All deterministic layered streaming transducers with S>=1 state bits and one input bit per step; fan-in-two AND/XOR gates, free NOTs/constants, unrestricted fan-out. This is a universal upper bound only; it gives no optimal Pareto point or lower bound for SC families.\nproof: For d=S+1, the current state and next input form the d Boolean inputs to the update map. The shared-minterm construction builds all 2^d assignment indicators using sum_{k=2}^d 2^k=2^(d+1)-4 AND gates. For each of the S output coordinates, select the minterms on which that coordinate is 1 and XOR them. Exactly one full-assignment minterm is true on each input, so this XOR equals the output coordinate. At most 2^d minterms are selected per output, requiring at most 2^d-1 XOR gates. Total cost is at most 2^(d+1)-4+S(2^d-1), which after substituting d=S+1 is 2^(S+2)-4+S(2^(S+1)-1).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

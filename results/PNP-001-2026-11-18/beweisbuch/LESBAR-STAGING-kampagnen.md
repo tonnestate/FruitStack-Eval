@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 13865 entries from 3918 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 13985 entries from 3959 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
-  - For the canonical one-hot encoding, shared child-map fibers may permit update circuits smaller than the K_t upper bound.
-  - For any exact-search streaming realization whose final state has at most 2^S values and which must output a valid circuit on every YES truth table in a family F, distinct truth tables in F require distinct final states. Therefore S >= ceil(log2 |F|). For the f
-  - For threshold-of-threshold instances whose variable-gate incidence graph has components of at most b variables, the component histogram algorithm gives exact #SAT in O(2^b(n+m)+cV^2) arithmetic operations, where V=sum_j |v_j| and c is the number of components.
-  - Across different prefixes of the same length, distinct live-function sets can have identical residual suffix sets, even for a duplicate-free function family.
-  - For finite circuit families, candidate-mask states can strictly refine the minimal EXT residual-state partition because distinct live families may have identical sets of remaining truth-table suffixes.
-  - For EXT_{n,s}, any exact deterministic streaming representation needs at least as many states as there are distinct residual suffix sets R_p={z:pz is a size-≤s circuit truth-table prefix}. This is only a state-count lower bound; it does not give a real-gate up
+  - For every m-state set Q and every injective S-bit encoding, a transition that differs from identity on t states admits an O(t log m)-gate fan-in-two AND/NOT extension; the bound may be sharp up to constants for some encodings and sparse permutations.
+  - For any finite description family D of size at most 2^m whose objects are evaluable coordinatewise in time T, the deterministic smaller-branch prefix procedure constructs a length-(m+1) prefix outside the image using O(2^m T) time per coordinate and O(2^m) bit
+  - For an integer matrix A whose rows are restricted weight vectors a_j, the signature set A{0,1}^h lies in the image lattice Λ=A Z^h intersected with the zonotope Z=A[0,1]^h. Its cardinality may admit bounds sharper than (2Wh+1)^q when the covolume of Λ or the g
+  - For any finite truth-table family F and deterministic layered transducer that rejects nonmembers and outputs a circuit computing each member's truth table, the minimum number of reachable layer-t states is L_t + 1_{L_t < 2^t}, where L_t counts prefixes with a 
+  - For exact-string-output deterministic layered transducers recognizing any finite binary language F of length-N strings, the minimum reachable state count at layer t is L_t + 1_{L_t<2^t}, where L_t is the number of live length-t prefixes.
+  - For affine Boolean predicates H(x)=[Ax=c] with r equations over GF(2), each fixed-cut EXT-style completion predicate and its next-bit transition admit fan-in-two circuits of O(r²) gates after polynomial-time Gaussian-elimination preprocessing, independent of t
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -35,17 +35,17 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3150 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3155 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-ed98f7bb61 [MISSING_PROOF, OPEN] Can a lower bound on distinct EXT residuals be converted into a lower bound on real-gate update cost for arbitrary MCSP decision circuits, invariant under state recoding and accounting for deferred decoding?
+  - Q-eb7a8c4610 [MISSING_PROOF, OPEN] Can the signature set |A{0,1}^h| for an integer matrix A of rational rank q be bounded more sharply using the Smith normal form or covolume of the image lattice A Z^h together with the zonotope A[0,1]^h, in a way that yi
+  - Q-d25720b26b [MISSING_PROOF, OPEN] Can the exact-string residual-state lemma be generalized to Lemma M's arbitrary-witness decoder by defining continuation equivalence through sets of valid witness outputs, and can that equivalence yield any nontrivial lo
+  - Q-b18c63cb83 [MISSING_PROOF, OPEN] Can the Hamming perturbation stability lemma be strengthened to a lower bound on the circuit size of a neighborhood-labeling circuit for MCSP, beyond the existing linear read-set bounds?
   - Q-b7f02c8c42 [ASSUMPTION, OPEN] The claim 'For every binary arithmetic tree over GF(3) with at most four distinct variable leaves, each variable appearing at most once, constants from GF(3), and internal operations + or *, direct evaluation agrees with
-  - Q-327be84cc8 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:2aa05695bf18 by pnp-desk/research/R2821:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I submitted a Lean proof of the residu
-  - Q-8aa45ef23e [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'Every Boolean function of two input bits has an AND/OR circuit with at most two counted gates when NOT and constants are free and fan-out is unrestricted.': XOR, 
-  - Q-d92125c3eb [MISSING_PROOF, OPEN] For an explicit finite family A of N-bit words, is the minimal deterministic prefix automaton state count exactly 1 plus the sum over depths k of the number of distinct nonempty suffix sets {u: pu in A} induced by length
-  - Q-e183cc098e [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:a3aaab519023 by pnp-desk/research/R2734:laguna-xs-2.1@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: The number of function pairs (delta_0, delta_1) on a s
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

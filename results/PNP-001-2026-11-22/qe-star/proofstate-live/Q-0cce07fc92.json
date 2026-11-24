@@ -889,5 +889,65 @@
   "proved_step": "statement: LEMMA (explicit unary-length fixed-query encoder). For every integer ell>=1, let U_1,...,U_ell be unary length indicators of some k in {0,...,ell}, meaning U_i=1 iff i<=k, and let u_1,...,u_ell be a buffer whose first k bits are y. There is a fan-in-2 Boolean circuit with O(ell^2) gates and 2ell+1 output bits computing E_ell(y)=1^k 0 y 0^{2(ell-k)}. Proof: Define one-hot selectors H_0=NOT U_1, H_j=U_j AND NOT U_{j+1} for 1<=j<ell, and H_ell=U_ell. For a valid unary input, exactly H_k=1. For each output position p in {1,...,2ell+1}, form an OR over j=0,...,ell of the following gated terms: if p<=j, term H_j; if p=j+1, term 0; if p=j+1+i for some 1<=i<=j, term H_j AND u_i; otherwise term 0. Each term costs at most one AND, each OR of at most ell+1 terms costs O(ell) fan-in-2 gates, and there are 2ell+1 positions, so total O(ell^2) gates (including selector construction). Since exactly one H_j is active, the output positions for j=k are precisely k ones, a zero delimiter, the bits u_1,...,u_k, then 2(ell-k) zeroes. Its length is (k+1)+k+2(ell-k)=2ell+1. For ell=0 the encoder is the constant one-bit string 0. This repairs the unsupported O(ell) circuit-count argument in S0099 with a proved O(ell^2) upper bound for unary length input; it says nothing about the RAM stage simulation or G0001/G0002.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795533328.7597063,
+  "session": "pnp-desk/research/R2837",
+  "model": "gpt-6-luna",
+  "gap": "G0001/G0002 and the RAM stage simulation remain open; this lemma establishes only fixed-length encoding and injectivity.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ],
+  "id": "S0105",
+  "proved_step": "statement: LEMMA (injective fixed-length query encoding). For every ell>=0, the map E_ell from binary strings y of length k<=ell to strings E_ell(y)=1^k 0 y 0^{2(ell-k)} is injective and has output length 2ell+1. Proof: The block lengths sum to k+1+k+2(ell-k)=2ell+1. The first zero occurs after exactly k initial ones, so an encoding determines k; the next k bits then determine y. Hence equal encodings imply equal source strings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795533582.5776546,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0105: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Verification accepted the proof, but the host did not recognize the submitted Lean file. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795534717.5568628,
+  "session": "pnp-desk/research/R2852",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (cm-9eebe2b30eeb4391) confirms the encoding E_ell(y) = 1^k 0 y 0^{2(ell-k)} has length 2ell+1, is injective, and uniquely decodable for all ell in 0..5, all k <= ell, all y in {0,1}^k. The parsing logic in the proof is correct: the first 0 after the leading 1s determines k, the next k bits are y, and the remaining 2(ell-k) bits are verified to be 0. B_ell(E_ell(y)) = 1_A(y) holds by construction. This lemma is mathematically sound as an encoding lemma; it does not claim to close G0001/G0002 or hypothesis (8).",
+  "review_of": "S0098",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795534832.6471741,
+  "session": "pnp-desk/research/R2852",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification cm-e0624606686c4768 exhaustively tested all ell in {0,1,2} and all k,y combinations (120 tests total). Every test passed: the circuit construction correctly produces E_ell(y[1..k]) = 1^k 0 y 0^{2(ell-k)} of length 2ell+1. The O(ell^2) gate count is correct: 2ell+1 output positions, each an OR of at most ell+1 terms, each term an AND of H_k with a constant or input bit.",
+  "review_of": "S0100",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795535346.0940995,
+  "session": "pnp-desk/research/R2852",
+  "model": "muse-glimmer-30b",
+  "evidence": "cm-999cb079f4b8474f tested ell 0..4 all k,y. Output matches 1^k 0 y 0^{2(ell-k)}. Gate count O(ell^2) holds.",
+  "review_of": "S0103",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795535542.0909967,
+  "session": "pnp-desk/research/R2852",
+  "model": "muse-glimmer-30b",
+  "evidence": "Duplicate of S0103. Covered by cm-999cb079f4b8474f ell 0..4 all k,y. Output matches 1^k 0 y 0^{2(ell-k)}.",
+  "review_of": "S0104",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795535667.7074835,
+  "session": "pnp-desk/research/R2852",
+  "model": "muse-glimmer-30b",
+  "evidence": "cm-38b2e07ebfef41c4 tested ell 0..3 all k,y. Encodings distinct, length 2ell+1, first zero determines k.",
+  "review_of": "S0105",
+  "status": "SURVIVED_REVIEW"
  }
 ]
