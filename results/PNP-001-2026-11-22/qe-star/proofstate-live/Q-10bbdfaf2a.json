@@ -5072,5 +5072,45 @@
   "evidence": "Reviewed construction: For each a in supp(f) of size t, build minterm using m-1 gates (one binary gate for first two literals, then m-3 additional gates for remaining literals, using the full 16-gate basis to handle negations without extra cost). Combine t minterms with t-1 OR gates. Total: t(m-1)+(t-1)=tm-1. For t=0, zero function uses x_1 XOR x_1 (1 gate). This matches S0481's more detailed construction. Valid upper bound on circuit size for functions of support t.",
   "review_of": "S0477",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795540014.2337515,
+  "session": "pnp-desk/research/R2888",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Verified: XOR (truth table [0,1,1,0]) and XNOR (truth table [1,0,0,1]) are among the 16 binary Boolean functions. For any unfixed input x, XOR(x,x)=0 and XNOR(x,x)=1 for all x in {0,1}. The construction adds exactly 2 gates (one XOR, one XNOR) and replaces fixed inputs with these constant wires. This gives an upper bound of s+2 on the cofactor circuit size, which holds uniformly for all r<m. The bound is correct though not tight for r=1 (S0508 improves it to s+min(r,2)). No counterexample found.",
+  "review_of": "S0479",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542008.0586305,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the construction: for each a in support A (|A|=t), build minterm using m input wires (positive literals free), m-1 NAND gates for complemented literals (NAND(x,x) = NOT x), m-1 AND gates for binary AND tree combining m literals, then t-1 OR gates for binary OR tree combining t minterms. Total per minterm: (m-1) NOT + (m-1) AND = 2m-2 gates. For t minterms: t(2m-2) gates. OR tree: t-1 gates. Total: t(2m-2)+(t-1) = 2tm - 2t + t - 1 = 2tm - t - 1 = t(2m-1)-1. The claim states t(2m-1)+(t-1) = 2tm - t + t - 1 = 2tm - 1. There's a discrepancy of (t-1) gates. For empty support, x1 XOR x1 uses 1 gate (NAND(x1,NAND(x1,x1)) = x1 AND NOT x1 = 0? Actually NAND(x1,x1)=NOT x1, NAND(x1,NOT x1)=NOT(x1 AND NOT x1)=1. XOR needs more gates. But the claim says 'one-gate circuit' for zero function - this is incorrect for basis with only NAND/AND/OR. However, if the basis includes all 16 binary gates, XOR(x,x)=0 is one gate. The statement says 'complete binary Boolean basis' which typically means all 16 binary functions are available. With all 16 gates, XOR(x,x)=0 is indeed one gate. The minterm construction: each minterm needs m literals. Positive literals are free input wires. Negative literals: NOT x = NAND(x,x) - one gate each. There are up to m negative literals per minterm, so up to m NOT gates. Then AND tree of m literals: m-1 AND gates. Per minterm: up to 2m-1 gates. t minterms: t(2m-1). OR tree: t-1 gates. Total: t(2m-1)+(t-1). This matches the claim. The earlier count of 2m-2 assumed exactly m-1 negative literals, but worst case is m negative literals (all variables negated). The claim is correct as an upper bound. Zero function: with all 16 binary gates, XOR(x1,x1)=0 uses 1 gate. CONFIRMED - the construction is valid and the gate count is correct as an upper bound.",
+  "review_of": "S0480",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542046.7207685,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the construction: For each row a in support A of size t, build a prefix circuit. The first gate uses (x1,x2) implementing h_a(u,v) = (u if a1=1 else NOT u) AND (v if a2=1 else NOT v). This is one of the 16 binary Boolean functions - it computes the AND of two literals. Since we have all 16 binary gates available, this single gate can compute any of the 4 possible AND combinations of two literals (x1 AND x2, x1 AND NOT x2, NOT x1 AND x2, NOT x1 AND NOT x2). Then for i=3..m, append one gate g_{a,i}(y, xi) = y AND (xi if ai=1 else NOT xi), also one of the 16 gates. This builds the full minterm [x=a] using exactly m-1 gates (first gate handles first two variables, then m-2 additional gates). For t rows, this gives t(m-1) gates. Then combine with binary OR tree using t-1 gates. Total: t(m-1)+(t-1) = tm - t + t - 1 = tm - 1 gates. The claim states 'at most tm-1' which matches. This is a clever and correct construction using the full 16-gate basis. The zero function: XOR(x1,x1)=0 uses 1 gate (XOR is one of the 16 binary gates). The support counting bound follows correctly. CONFIRMED - construction is valid and gate count is correct.",
+  "review_of": "S0481",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542201.4070964,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the cofactor circuit construction. Given circuit C of size s, fix r<m input coordinates to pattern a. The construction: pick an unfixed input z. If r=1, generate the needed constant b with one gate: XOR(z,z) for 0, NAND(z,z) for 1. If r>=2, generate both constants 0=XOR(z,z) and 1=NAND(z,z) with 2 gates. Replace each occurrence of fixed input wires with the corresponding constant wire. Since fan-out is unrestricted, these constant wires can be shared. The resulting circuit computes the cofactor and has size at most s+min(r,2). This is correct - the construction explicitly generates constants from available inputs using the full 16-gate basis, and replacement preserves the circuit's computation on remaining inputs. The bound s+min(r,2) is tight for this construction. CONFIRMED - SURVIVED_REVIEW.",
+  "review_of": "S0508",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542201.455487,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the cofactor closure lemma. This is essentially the same construction as S0508 with a more detailed inductive proof. The construction: pick a remaining input z. If r=1, generate the single needed constant with 1 gate (XOR(z,z) for 0, NAND(z,z) for 1). If r>=2, generate both constants 0 and 1 with 2 gates (XOR(z,z) and NAND(z,z)). Replace all occurrences of fixed inputs with the corresponding constant wires. By topological induction, each retained gate computes its original value under the restriction, so the output is the cofactor. The new gates can be shared due to unrestricted fan-out. Total size: s+1 for r=1, s+2 for r>=2, hence at most s+min(r,2). The proof is complete and correct. CONFIRMED - SURVIVED_REVIEW.",
+  "review_of": "S0509",
+  "status": "SURVIVED_REVIEW"
  }
 ]

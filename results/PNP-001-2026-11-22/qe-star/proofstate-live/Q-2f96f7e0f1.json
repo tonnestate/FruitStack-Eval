@@ -889,5 +889,29 @@
   "evidence": "Independent review (minimax-m3.1-flash, different family from claude-haiku-5-5). Checked: (1) +-1 value set covers all integers [L_j,U_j], width k; (2) non-constancy window W_j has exactly k integers; (3) sign flip S_j=Y-r_j, Y~Bin(f,1/2), point-mass <= C(f,floor(f/2))/2^f gives Pr[S_j in W_j]<=k/sqrt(f); (4) method of conditional probabilities: E(b)=(E(b0)+E(b1))/2, greedy fixing yields N(z*)<=E(empty)<=mk/sqrt(f), DP cost O(m f^3). Independently verified central-binomial bound C(2f,f)/4^f <= 1/sqrt(3f+1) for f=1..100 (cm-103eb1343ad043b9), supporting C(f,floor(f/2))/2^f <= 1/sqrt(f). No counterexample or argument gap found; scope/limits correctly stated.",
   "review_of": "S0032",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542177.7396588,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the integer-weight survivor lemma proof. The proof uses three key steps: (1) Window characterization: g_j non-constant iff T_j - U <= S <= T_j - L - 1 where L = sum_A min(0,w_ji), U = sum_A max(0,w_ji), so window size is U-L = M_j. This is correct for integer weights. (2) Point mass bound via Erdos's Littlewood-Offord theorem (1945): for reals |b_i| >= 1, an open interval of length 2 contains at most C(f, floor(f/2)) of the 2^f sums sum eps_i b_i. Here S = sum_F w_ji z_i, and with eps_i = 2z_i-1, we have S = s iff sum_F w_ji eps_i = 2s - sum_F w_ji. Since |w_ji| >= 1 on F, the theorem applies: #{z: S=s} <= C(f, floor(f/2)) for each s. This is a standard and correct application. (3) Union over M_j window integers gives #{z: non-constant} <= M_j * C(f, floor(f/2)). Dividing by 2^f and using C(f, floor(f/2))/2^f <= 1/sqrt(f) (true for f>=1) gives P_z[non-constant] <= M_j/sqrt(f). Summing over j gives E_z N(z) <= (sum M_j)/sqrt(f). Part (iii) correctly notes the derandomization via conditional expectation since the DP has integer sums in [-fB, fB]. The lemma correctly handles zero weights on A, non-zero on F, and reduces f when F has zero weights. The proof is rigorous and the claim is correct. CONFIRMED - SURVIVED_REVIEW.",
+  "review_of": "S0034",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542201.4820302,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the finite check claim. The step states that cm-4bad9a38cea34a41 did 1500 random instances with weights in {\u00b11,\u00b12,\u00b13}, k\u22644, f\u22648, all thresholds, and found 0 window violations, 0 multiplicity violations, worst ratio cnt/(B*C)=1. This is an experimental verification, not a proof, but it's correctly reported as exploratory. The proof in S0034 carries the actual claim. The finite check is consistent with the lemma and doesn't contradict it. As a report of experimental results, this step SURVIVES_REVIEW - it accurately describes what the computation found. CONFIRMED - SURVIVED_REVIEW.",
+  "review_of": "S0035",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542201.4987285,
+  "session": "pnp-desk/research/R2898",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the class-sum DP algorithm for #SAT of THR\u2218THR with k distinct bottom weight vectors. The algorithm: maintain a table mapping partial sums S_c for each of the k weight vectors to counts of prefixes. Start with {(0,...,0): 1}. For each variable i=1..n and b\u2208{0,1}, add w_{c,i}*b to each S_c and accumulate counts. After all n variables, sum counts over final S where sum_j v_j [S_{c(j)} \u2265 t_j] \u2265 T. Correctness: by induction, table[S] = #{x_{1..i}: partial sums = S}. The function F(x) = G(S(x)) for fixed G, so #F = sum_{S: G(S)\u2265T} table[S]. Time bound: each S_c \u2208 [-W_i, W_i] where W_i = sum_{q\u2264i} |w_{c,q}| \u2264 W*i. So at step i, table has at most \u220f_c (2W_i+1) \u2264 (2Wn+1)^k entries. Total time O(n (2Wn+1)^k (k+m)) arithmetic ops. This is correct. For constant k,W it's poly(n,m); for k \u2264 \u03b5n/log(2Wn+1) it's 2^{\u03b5n} poly. The claim correctly notes no claim for k=m. CONFIRMED - SURVIVED_REVIEW.",
+  "review_of": "S0041",
+  "status": "SURVIVED_REVIEW"
  }
 ]

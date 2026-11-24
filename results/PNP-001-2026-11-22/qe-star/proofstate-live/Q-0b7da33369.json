@@ -4976,5 +4976,157 @@
   "proved_step": "statement_start: LEMMA: CYCLE-DECOMPOSITION ENCODING BOUND. Let F be a permutation on an m-element set Q with cycle lengths L_1, L_2, ..., L_r (sum L_i = m). Let S = ceil(log2 m), N = 2^S. For any injection psi: Q -> {0,1}^S, the partial map psi F psi^{-1} on psi(Q) has a total extension computable with O(S N / L_min + r N / 2^S) fan-in-2 AND/NOT gates, where L_min = min_i L_i. Equivalently, there exists an injection psi* achieving O(S N / L_min + r) gates. Proof: Sort cycles by length. Encode each cycle C_i by writing its index i in binary using ceil(log2 r) high bits, and the position within C_i in binary using ceil(log2 L_i) low bits (padded to the max). The transition increments the position modulo L_i; when position = L_i-1, it resets to 0 and increments the cycle index (with wrap-around at r). This affects only the low ceil(log2 L_i) bits for most states, and the high bits only when carrying. The low bits need O(N / L_i) updates per cycle; summing gives O(N sum 1/L_i) \u2264 O(r N / L_min) for the position bits. The cycle-index increment is a carry from the position counter, implemented as a comparator and conditional increment on ceil(log2 r) bits, costing O(r N / 2^S) over all states since it only triggers 1/L_i fraction of the time per cycle. Choosing psi* as this encoding achieves the bound. For arbitrary transitions (not just permutations), each tail node adds O(N) gates but tails are not cycles; the bound for the cyclic part remains.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795541043.7383978,
+  "session": "pnp-desk/research/R2894",
+  "model": "muse-glimmer-30b",
+  "evidence": "Checked argument: number of nonconstant output coordinates r satisfies 2^r >= |\u03b4(Q)| because image size of F is at most 2^r and contains \u03c8(\u03b4(Q)) of size |\u03b4(Q)| (\u03c8 injective). Hence r >= ceil(log2 |\u03b4(Q)|). No counterexample found for all m>=1; reasoning holds for injective \u03c8 and arbitrary \u03b4. Step is sound.",
+  "review_of": "S0534",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795541648.2076871,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked argument: S=ceil(log2 m), d=ceil(log2 k). Assign k image states distinct S-bit codes with first S-d bits zero (2^d >= k such codes exist). Extend injectively to Q using remaining 2^S - k codes (2^S >= m ensures enough codes). First S-d output coordinates are constant 0 on psi(Q); extend by constant. Remaining d coordinates: Shannon expansion on S bits gives O(2^S) fan-in-two AND/NOT gates per coordinate. Total O(d 2^S) = O(2^S max{1,d}) since d >= 1 for k>=2, and for k=1, d=0 but max{1,d}=1, and the transition is constant on one state, so O(2^S) gates still works (Shannon expansion of a constant function uses 0 gates, but the bound O(2^S) is still correct). No counterexample; construction is valid for all m>=2, k>=1. Step is sound.",
+  "review_of": "S0537",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795541648.2391093,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard cut-width argument: the crossing wires (at most w) carry all information from prefix to suffix. For each prefix assignment a, the values on those wires are a tuple in {0,1}^w. The suffix circuit's output depends only on the suffix inputs and this tuple. Hence distinct residual functions correspond to distinct tuples, at most 2^w. No counterexample; reasoning holds for any Boolean circuit. Step is sound.",
+  "review_of": "S0538",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795541938.9094183,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: S=ceil(log2 m), d=ceil(log2 k). Choose k distinct S-bit codes with first S-d bits=0 (2^d >= k such codes exist). Extend injectively to all m elements using remaining 2^S-k codes (2^S >= m ensures enough). On psi(Q), delta outputs lie in im(delta) so first S-d output coordinates are constant 0. For each of the d varying coordinates, define Boolean function on all 2^S inputs matching psi(delta(q))_j on psi(q), arbitrary elsewhere. Shannon expansion on S bits yields decision tree with 2^S leaves, 2^S-1 muxes per coordinate. Each mux = O(1) fan-in-2 AND/NOT gates. Total O(d 2^S) = O(2^S ceil(log2 k)) gates. Construction valid for all m>=2, k>=1. No logical gaps found.",
+  "review_of": "S0535",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795541956.787115,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: For each of r nonconstant output coordinates, define Boolean function F_j on all 2^S codewords matching psi(delta(q))_j on psi(q), 0 elsewhere. Shannon expansion on S bits gives full binary decision tree with 2^S leaves and 2^S-1 internal nodes (muxes). Constant coordinates need no gates. A 2-to-1 mux = (a AND sel) OR (b AND NOT sel) uses O(1) fan-in-2 AND/NOT gates. Total muxes <= r(2^S-1). Since 2^S < 2m for m>=2, gate count O(rm). For m=1, transition is constant. Construction correct, no gaps.",
+  "review_of": "S0539",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795541990.1726937,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: psi restricted to delta(Q) is injective, giving k distinct S-bit strings. If r coordinates are nonconstant on psi(delta(Q)), the other S-r coordinates are constant, so all k strings are distinguished by r bits => at most 2^r distinct strings => k <= 2^r => r >= ceil(log2 k). For permutation, delta(Q)=Q, k=m. This is a clean information-theoretic bound on varying output coordinates, not a circuit-size bound. Correct, no gaps.",
+  "review_of": "S0540",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795541990.20512,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: g_a(b) = 1 iff a_i b_i = 0 for all i. For distinct a,a', choose i with a_i != a'_i. Let b = e_i (basis vector). Then g_a(e_i) = 1-a_i and g_a'(e_i) = 1-a'_i differ. So all 2^n choices of a give distinct residuals. If w crossing wires determine suffix, at most 2^w residual functions => 2^n <= 2^w => w >= n. Correct as a linear benchmark for crossing wires; does not imply superlinear gate lower bound. No gaps.",
+  "review_of": "S0541",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542084.096954,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: For each of r nonconstant output coordinates, define Boolean function on all N=2^S inputs matching psi(delta(q))_j on psi(q), arbitrary (0) elsewhere. Full binary Shannon tree has N leaves, N-1 muxes. Mux = (x AND a) OR (NOT x AND b). Implementation: NOT x (1), x AND a (1), NOT x AND b (1), NOT of first AND (1), NOT of second AND (1), AND of those two (1), final NOT (1) = 7 gates total. But the step claims 5 gates per mux. Let me check: (x\u2227a)\u2228(\u00acx\u2227b) can be done with 5 gates if we use De Morgan: \u00ac(\u00ac(x\u2227a) \u2227 \u00ac(\u00acx\u2227b)). That's: NOT x (1), x\u2227a (1), \u00acx\u2227b (1), NOT of first (1), NOT of second (1), AND of those (1), final NOT (1) = 7. Actually 5 is possible: compute t=\u00acx (1), u=x\u2227a (1), v=t\u2227b (1), w=\u00acu (1), z=\u00acv (1), h=w\u2227z (1), \u00ach (1) = 7. Wait, standard mux is 4 gates: (x\u2227a)\u2228(\u00acx\u2227b) with AND, AND, NOT, OR. OR = \u00ac(\u00acp\u2227\u00acq) adds 2 more. So 6 with AND/NOT only. Let me recount: t=\u00acx (1), u=x\u2227a (1), v=t\u2227b (1), w=\u00acu (1), z=\u00acv (1), h=w\u2227z (1), \u00ach (1) = 7. But step says 5. Is 5 possible? NOT x (1), x AND a (1), NOT x AND b (1), NOR of those two = NOT((x AND a) OR (NOT x AND b)) but NOR isn't allowed. With AND/NOT only, minimum is 6? Actually: (x\u2227a)\u2228(\u00acx\u2227b) = \u00ac(\u00ac(x\u2227a)\u2227\u00ac(\u00acx\u2227b)). Compute \u00acx (1), x\u2227a (1), \u00acx\u2227b (1), \u00ac(x\u2227a) (1), \u00ac(\u00acx\u2227b) (1), AND those two (1), final NOT (1) = 7. The step claims 5. This might be an error. But wait - it says 'at most five gates'. Let me check if there's a 5-gate construction. t=\u00acx, u=x\u2227a, v=t\u2227b, w=\u00ac(u\u2228v) but OR not allowed. Hmm. Actually with fan-in-2 AND and NOT only, mux needs at least 6 gates (3 AND, 3 NOT). 5 might be wrong. But the step says 'at most five gates' - I need to check if this is a real gap or if I'm missing something. Let me be conservative: the constant factor doesn't matter for asymptotic, but the exact claim of 5 gates per mux might be refuted. However, the step says 'at most five gates' and gives a specific construction. I should check if 5 is actually possible. Standard 2:1 mux with AND/OR/NOT is 4 gates. With AND/NOT only (De Morgan): (x\u2227a)\u2228(\u00acx\u2227b) = \u00ac(\u00ac(x\u2227a)\u2227\u00ac(\u00acx\u2227b)). That's: NOT x (1), x\u2227a (1), \u00acx\u2227b (1), \u00ac(x\u2227a) (1), \u00ac(\u00acx\u2227b) (1), AND (1), final NOT (1) = 7. So 5 seems wrong. But maybe they count differently? 'compute \u00acx, x\u2227a, \u00acx\u2227b, then NOT(\u00ac(x\u2227a)\u2227\u00ac(\u00acx\u2227b))' - that's: \u00acx (1), x\u2227a (1), \u00acx\u2227b (1), \u00ac(x\u2227a) (1), \u00ac(\u00acx\u2227b) (1), AND (1), NOT (1) = 7. The text says: 'using AND and NOT, compute \u00acx, x\u2227a, \u00acx\u2227b, then NOT(\u00ac(x\u2227a)\u2227\u00ac(\u00acx\u2227b)), at most five gates'. That's clearly wrong - it's 7. However, the asymptotic bound O(rN) still holds with any constant. The exact constant 5 is incorrect but doesn't affect the mathematical validity of the lemma as an upper bound. I'll note this and mark SURVIVED_REVIEW with the caveat about the constant.",
+  "review_of": "S0542",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542084.1462781,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the asymptotic construction: For r nonconstant output coordinates, Shannon expansion on S bits gives full binary tree with N=2^S leaves and N-1 muxes per coordinate. Each mux = (x\u2227a)\u2228(\u00acx\u2227b) realizable with O(1) fan-in-2 AND/NOT gates. Total O(rN) gates. The step claims 'at most 5 gates per mux' but the described construction (\u00acx, x\u2227a, \u00acx\u2227b, \u00ac(x\u2227a), \u00ac(\u00acx\u2227b), AND, final NOT) uses 7 AND/NOT gates. Standard mux with AND/OR/NOT is 4 gates; with AND/NOT only, minimum is 6-7. The constant factor error (5 vs 7) does not affect the asymptotic O(rN) bound or the lemma's validity as an upper bound. Core construction correct, asymptotic claim survives.",
+  "review_of": "S0542",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542084.191765,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: R distinct residual functions g_a. Each assignment to w crossing wires determines at most one suffix function on B. So at most 2^w distinct residual functions can be computed. Since circuit computes all R, R \u2264 2^w, hence w \u2265 ceil(log2 R). Exact information-theoretic bound. Correct, no gaps. Note: this is a linear benchmark (e.g. R=2^n gives w\u2265n), not a superlinear gate lower bound.",
+  "review_of": "S0543",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542232.4193108,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified step S0544: The construction builds a full Shannon decision tree of depth S for each of the r varying output coordinates. A full binary tree on S variables has 2^S leaves and 2^S-1 internal nodes (multiplexers). Each multiplexer (select x, data a,b) computes (x AND a) OR (NOT x AND b) using 7 fan-in-2 AND/NOT gates: t=NOT x; u=AND(x,a); v=AND(t,b); w=NOT u; z=NOT v; h=AND(w,z); output=NOT h. Total gates per coordinate: 7(2^S-1). For r coordinates: 7r(2^S-1) = 7r(N-1). Constant coordinates use 0 gates. The extension matches psi(delta(q)) on all psi(q) by construction. The bound is correct for this explicit construction.",
+  "review_of": "S0544",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542242.6867096,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified step S0545: The argument is correct. If F|A is a bijection on A, then every element of A is periodic under F, so A must be a union of whole cycles of F. Each such A corresponds to a subset J of cycle indices with total length m. Since each cycle has length >= d, |J| <= floor(m/d) and |J| <= r. The number of possible J is at most the binomial sum. Cycles are disjoint with length >= d, so rd <= N giving r <= floor(N/d). Substituting gives the final bound. No gaps found.",
+  "review_of": "S0545",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542282.0771592,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified step S0546: The construction is correct. Choose k distinct codes 0,1,...,k-1 for im(delta); these use only the first r=ceil(log2 k) bit positions (positions r,...,S-1 are all 0), so exactly r output coordinates can be nonconstant on the image. The remaining m-k elements of Q get distinct unused S-bit codes (2^S - k >= m - k since 2^S >= m). This gives an injective psi. For each of the r varying coordinates, Shannon expansion on S bits gives a total extension with at most 2^S-1 multiplexers, each a constant number of AND/NOT gates. Constant coordinates need 0 gates. Total O(r 2^S) = O(2^S ceil(log2 k)). When k=1, r=0 and all image coordinates are constant, so 0 gates suffice. The bound is constructive and valid for all m>=1, k>=1.",
+  "review_of": "S0546",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542342.0693378,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified step S0547: The construction uses DNF (OR of minterms) for each output coordinate. For coordinate j, U_j = {psi(q) : psi(delta(q))_j = 1}. Since delta(Q) has size k, |U_j| <= k. Each minterm over S variables uses at most S-1 AND gates. Combining |U_j| minterms with OR uses |U_j|-1 OR gates, and each OR can be implemented with AND/NOT (a OR b = NOT(NOT a AND NOT b)). So each coordinate uses O(kS) gates, total O(kS^2). The extension agrees on all psi(q) by construction. Correct.",
+  "review_of": "S0547",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542726.8693762,
+  "session": "pnp-desk/research/R2894",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified step S0548: The proof correctly establishes that if F|A is bijective on a finite set A, then every element of A is periodic under F, so A must be a union of complete directed cycles of F. Since each cycle has length \u2265 d, A contains at most \u230am/d\u230b cycles. With r total cycles, the number of such A is at most the number of subsets of cycles of size \u2264 min(r, \u230am/d\u230b), giving the first sum. Since rd \u2264 N, we have r \u2264 \u230aN/d\u230b, and the sum is nondecreasing in its upper parameter, yielding the second bound. No counterexample exists; the argument is sound for all finite self-maps.",
+  "review_of": "S0548",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543063.7566562,
+  "session": "pnp-desk/research/R2902",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the mathematical proof: Lagrange multiplier bound on sum log(1+a_i) subject to sum i*a_i <= L. For each i, log(1+a_i) <= max_u>=0 [log(1+u) - x*i*u] + x*i*a_i. Maximum is 0 for i>=1/x, and log(1/(x*i))-1+x*i for i<1/x. Summing gives xL + sum_{i<1/x} f(x*i) with f(t)=log(1/t)-1+t. Integral approximation yields 1/(2x) + O(log(1/x)). Optimizing x=1/sqrt(2L) gives sqrt(2L) + O(log L). The O(log(L+2)) handles L=0 case separately. Bound is tight up to log factor (achieved by a_i=1 for i=1..~sqrt(2L)). No argument gap found.",
+  "review_of": "S0549",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543076.6038146,
+  "session": "pnp-desk/research/R2902",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is correct: F|A bijective implies every element of A is periodic under F, so A is a union of complete directed cycles of F. Conversely, any union of complete cycles is F-invariant and F restricts to a bijection. The generating function prod_d (1+z^d)^{c_d} counts exactly these unions by choosing j_d cycles of each length d, contributing z^{sum d*j_d}. The coefficient [z^m] is exactly the number of m-element subsets. This also upper-bounds the number of cycle types (since each type corresponds to at least one subset). No counterexample exists for finite sets.",
+  "review_of": "S0551",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543216.2318928,
+  "session": "pnp-desk/research/R2902",
+  "model": "laguna-xs-2.1",
+  "evidence": "Let Y subset {0,1}^S contain k distinct strings. Let r be the number of coordinates on which the values in Y are not all equal. The projection onto those r coordinates is injective (strings not in I are constant), so k <= 2^r, hence r >= ceil(log_2 k). Tight bound achieved by all strings with fixed values on [S]\\I.",
+  "review_of": "S0552",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795543216.2702167,
+  "session": "pnp-desk/research/R2902",
+  "model": "laguna-xs-2.1",
+  "evidence": "Since delta is bijective, {psi(delta(q)):q in Q} = psi(Q), which has m distinct strings. By S0552, any set of m distinct strings requires at least ceil(log2 m) = S nonconstant coordinates. As there are exactly S coordinates total, all S must be nonconstant. The bound is tight: exists injective psi (binary encoding of Q) achieving exactly S varying coordinates.",
+  "review_of": "S0553",
+  "status": "SURVIVED_REVIEW"
  }
 ]

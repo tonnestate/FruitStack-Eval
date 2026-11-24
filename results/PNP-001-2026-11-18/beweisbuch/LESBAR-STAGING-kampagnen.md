@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 14065 entries from 3993 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 14074 entries from 4001 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,26 +19,26 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The padding-invariance assumption for Sigma3SAT^A is satisfied by the standard decider: a Sigma3SAT^A query encodes a quantified Boolean formula with oracle gates; trailing padding bits (e.g., zeros) do not change the encoded instance because the formula lengt
   - The CYCLE-DECOMPOSITION ENCODING BOUND (S0534) shows that any single permutation can be updated in O(SN / L_min) gates where L_min is the shortest cycle length. For the lower bound Omega(sqrt(m)/log m) to hold generally, hard permutations must have L_min = O(s
   - The MMW19 Thm 1.2 streaming algorithm for Search-MCSP[s] makes oracle queries of length q = ω(log s) (not merely Õ(s)). This would make the truth-table compilation step in transfer T0 superpolynomial, breaking the poly(s) simulation premise.
   - For SC_{3,1}, residual-language counts are strictly below live-prefix counts at each t>=4, and the residual profile may be a useful state-complexity invariant for Lemma M.
   - For any finite list D of at most 2^m Boolean strings of common length N, a binary prefix trie with subtree counts supports greedy construction of an absent length-(m+1) prefix in O(m) time after preprocessing. Building the trie can cost Theta(|D|N) time and sp
   - For every m-state set Q and every injective S-bit encoding, a transition that differs from identity on t states admits an O(t log m)-gate fan-in-two AND/NOT extension; the bound may be sharp up to constants for some encodings and sparse permutations.
-  - For any finite description family D of size at most 2^m whose objects are evaluable coordinatewise in time T, the deterministic smaller-branch prefix procedure constructs a length-(m+1) prefix outside the image using O(2^m T) time per coordinate and O(2^m) bit
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
-  - None -> None
-  - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
 NUMERICAL EVIDENCE on file: 3163 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-5591ad33bf [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:0a2ceae2bdfe by pnp-desk/research/R2856:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean verifier accepted only the el

@@ -4875,5 +4875,45 @@
   "evidence": "Computational verification on N=4 languages (full, empty, parity, singleton, two-element) confirms the lower bound logic: distinct live prefixes p,q must reach distinct states because (a) if R_t(p) \u2260 R_t(q), a distinguishing suffix u gives one acceptance and one rejection from shared state; (b) if R_t(p) = R_t(q) \u2260 \u2205, then pu, qu are distinct F-elements and the witness-output decoder must output different strings, requiring different states. Dead prefix state is distinct from all live states. Bounds L_t + 1_{L_t < 2^t} hold in all test cases. Scope: witness-output transducer model as specified.",
   "review_of": "S0516",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795540318.0415618,
+  "session": "pnp-desk/research/R2890",
+  "model": "laguna-xs-2.1",
+  "evidence": "Counterexample: w='0' (single bit). If b=0: q=1, w_i=0, q'=q AND NOT(b)=1 AND 1=1, accepts both '0' and '1'. If b=1: q=1, w_i=0, q'=q AND NOT(b)=1 AND 0=0, rejects '0' which is wrong. The construction cannot simultaneously accept w='0' and reject all other inputs. The update rule fundamentally fails because it cannot distinguish between matching the target and mismatching when w_i=0. The proof's inductive claim 'q=1 iff prefix matches w' is false.",
+  "review_of": "S0517",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795542273.9283981,
+  "session": "pnp-desk/research/R2895",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: state (a,b) initialized to (1,1). At step i reading bit z, update a := a AND [z=u_i], b := b AND [z=v_i] where [z=u_i] is the literal z (if u_i=1) or NOT z (if u_i=0). NOT is free per the basis. Each output uses exactly one AND gate, so 2 AND gates per update. After t steps, a=1 iff the read prefix matches u_1..u_t, similarly for b. At t=N, accept iff a OR b=1. This correctly decides membership in {u,v}. The step explicitly limits its scope to two-word languages and claims no lower bound for SC_{n,s}, which is accurate.",
+  "review_of": "S0518",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542274.568664,
+  "session": "pnp-desk/research/R2895",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for each accepted row a in f^{-1}(1) (k rows, 1<=k<=r), build its (S+1)-literal minterm using S AND gates (fan-in-2 tree of S+1 literals takes S ANDs). OR the k minterms with k-1 OR gates. By De Morgan, OR(x,y) = NOT(AND(NOT x, NOT y)), so each OR uses 1 AND + 2 free NOTs. Total non-constant gates: k*S (for minterms) + (k-1) (for ORs) = kS + k - 1 <= rS + r - 1 = rS + max(r-1,0) for r>=1. For r=0 (empty D or f identically 0), constant 0 uses 0 gates. The circuit agrees with f on D because it is 1 exactly on the accepted rows (which are in D) and 0 elsewhere; unspecified rows in D are 0 in f and 0 in the circuit. Basis: AND, XOR, NOT, constants; NOT and constants free. The bound is per output bit, no sharing claimed. Scope correctly stated: finite partial Boolean functions, one output, no optimality claim.",
+  "review_of": "S0519",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542274.595566,
+  "session": "pnp-desk/research/R2895",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is correct. Suppose p\u2260q are live prefixes at cut t with a common suffix u such that pu, qu \u2208 F. If they reached the same state, determinism implies identical subsequent evolution on input u, so the final decoded output would be identical for pu and qu. But correctness requires the decoder to output a witness uniquely specifying the input string, so it must output different witnesses for pu\u2260qu. Contradiction. Therefore states after p and q must differ. For a set P of live prefixes that is pairwise intersecting in residual completion sets (i.e., \u2200p\u2260q\u2208P, R_t(p)\u2229R_t(q)\u2260\u2205), every pair has a common suffix, so all |P| states are pairwise distinct. This gives a state lower bound of |P|. The step correctly limits scope: state lower bound for exact witness-search transducers; no transition gate lower bound claimed.",
+  "review_of": "S0520",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795542947.0279422,
+  "session": "pnp-desk/research/R2890",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This is the standard Myhill-Nerode / DFA construction for finite languages. The equivalence u \u2208 R_{t+1}(pb) \u21d4 bu \u2208 R_t(p) holds by definition: both are equivalent to pbu \u2208 F. The layered machine with states = residual sets R_t(p) correctly recognizes F. At t=N, R_N(p) = {\u03b5} iff p \u2208 F, else \u2205. No counterexample exists - this is a mathematically correct construction for any finite F \u2286 {0,1}^N.",
+  "review_of": "S0521",
+  "status": "SURVIVED_REVIEW"
  }
 ]
