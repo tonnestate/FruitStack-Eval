@@ -1,0 +1,14 @@
+# ROUTE_COMPARISON — provisional difficulty profile
+
+> **Operational status:** Prior freeze order withdrawn. Freeze NOT active or VPS-verified. The runbook is a conditional template, not a standing order; no scheduler, queue, writer or production checkout was changed by this audit.
+
+| Criterion | E1 | E2 | A-(40a) |
+|---|---|---|---|
+| Existing results | Thm 12 all-order restricted width LB; Thm14 bounded degree; Lemma15 sparse full roABP | VNP IPS certificate (GP); Cook–Reckhow existence only | MMW conditional transfer; affine lower bounds |
+| Precise obstacle | general DAG to linear-placeholder roABP with polynomial width | P=NP gives decision/search algorithms, not formal ideal certificates | every uniform nonlinear oracle-free exact streaming machine, space/update/final reporting |
+| Technical barriers | E1 pointwise equivalent to eventual general IPS superpoly LB given Thm12; general IPS LB implies VP!=VNP under GP conditions | no known P=NP -> VP=VNP or IPS boundedness implication here; verification not existence | oracle-assisted MMW solver; generic affine normalization false; no justified natural-proofs or algebrization verdict |
+| Next concrete step | identify family-specific certificate structure beyond sparse roABP; audit Thm12 | derive a valid family-specific IPS upper bound under P=NP or establish precise relation to named open question | formulate and falsify MCSP-specific representation normalization; audit exact MMW parameters |
+| Counterexample candidate | small general IPS certificates for Psi_n would contradict E1 asymptotically if family polynomially bounded; small example only tests a concrete conversion | no established counterexample; a model where SAT is easy but IPS remains hard would need a meaningful formalization | AND requires N affine state bits but 1 nonlinear bit, refuting generic normalization, not MCSP-specific target |
+| Effort until reduction to known problem | logical reduction already obtained; actual new proof effort unknown | targeted literature check completed, no equivalence found; remaining effort not estimable | target and failed generic reduction identified; remaining effort not estimable |
+
+No route selected. A has fewer explicitly missing links but no established difficulty advantage. E1 and E2 are logically separate. E1 is not inherently easier because of family restriction: conditional on Thm12, the pointwise conversion claim entails a major lower bound. E2 is not a known renamed equivalence on present evidence. A restricted-state proof does not close (40a) without a simulation of all relevant machines. Natural Proofs, relativization, and algebrization are method-specific; no blanket label inferred. See E2_GATE.md, A40A_GATE.md, SCOPED_GRAPH_REPORT.md. Do not pause research on the basis of this comparison.
