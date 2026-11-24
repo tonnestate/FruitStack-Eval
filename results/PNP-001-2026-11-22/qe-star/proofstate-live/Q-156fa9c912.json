@@ -6305,5 +6305,93 @@
   "proved_step": "statement: LAYERED RESIDUAL MINIMALITY LEMMA. Let L be any subset of {0,1}^N. For each t in {0,...,N}, define R_t(p)={z in {0,1}^{N-t}: pz in L} for p in {0,1}^t, and let r_t be the number of distinct sets among {R_t(p):p in {0,1}^t}. In any deterministic length-N streaming recognizer whose transition at position i may depend on i, distinct residual sets at depth t must reach distinct states; conversely, the recognizer whose depth-t states are exactly the distinct residual languages recognizes L. Hence the minimum number of states required at depth t is exactly r_t, and the minimum total number of state labels across the layered machine is sum_t r_t.\nderivation: Necessity: if two prefixes p,p' at depth t reach the same state, determinism gives the same outcome for every common suffix z, so correctness implies pz\u2208L iff p'z\u2208L for every z and R_t(p)=R_t(p'). Sufficiency: use the current residual R_t(p) as the state. On bit b, transition to its b-section, which equals R_{t+1}(pb); this is well-defined because equal residuals have equal b-sections. At depth N accept exactly when the residual contains the empty string. Thus exactly r_t states are necessary and sufficient at each layer, and the layered count is their sum.\nscope: Finite Boolean language L and fixed length N; deterministic streaming recognizers with position-dependent transitions. This characterizes information/state complexity only; it gives no gate bound for computing transitions from a succinct description such as H_C and no lower bound for arbitrary MCSP decision circuits. Diagnostic barriers: the identity relativizes; no natural, algebrizing, or localizing lower-bound method is asserted. Circumvention tests are inapplicable because this is not a P!=NP argument.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795554540.1683412,
+  "session": "pnp-desk/research/R2972",
+  "model": "gpt-6-luna",
+  "id": "S0742",
+  "proved_step": "statement: EXISTENTIAL PREFIX COFACTOR LEMMA. Let H:{0,1}^N \u00d7 {0,1}^r\u2192{0,1} be any Boolean relation and define L(x)=1 iff there exists w\u2208{0,1}^r with H(x,w)=1. For every prefix p of length t, define R_p(z)=1 iff there exists w H(pz,w)=1, where z has length N\u2212t. Then for each next bit b, R_{pb}(z')=R_p(bz') for every z'\u2208{0,1}^{N\u2212t\u22121}. If H is represented by a fan-in-two circuit of h gates, a circuit for (z',w)\u21a6H(pb z',w) uses at most h gates by input substitution, and the projected residual is still exactly its existential projection over the same r witness bits. Proof: substitute the fixed prefix bits in H; for every z', R_{pb}(z')=1 iff \u2203w H(pb z',w)=1 iff \u2203w H(p(bz'),w)=1 iff R_p(bz')=1. Input substitution adds no gates and does not alter the witness domain. Thus cofactoring the witness relation is cheap and exact; eliminating/projecting the witness while retaining a Boolean circuit for R_p is a separate complexity question.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795554646.9608533,
+  "session": "pnp-desk/research/R2972",
+  "model": "gpt-6-luna",
+  "id": "S0743",
+  "proved_step": "statement: EXPLICIT WITNESS-ELIMINATION LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates, with constants and input wiring free. Define G(x)=1 iff there exists w\u2208{0,1}^r such that H(x,w)=1. Then G has a fan-in-two circuit with at most 2^r(h+1)\u22121 gates. For every prefix p, its cofactor G_p(z)=G(pz) has a circuit within the same bound, and each next cofactor G_{pb} is obtained from G_p by fixing one input, adding no gates. Proof: For each w\u2208{0,1}^r, take a copy of H and substitute the constants w into its witness inputs. Each copy computes x\u21a6H(x,w) with at most h gates. Combine the 2^r output bits by a binary OR tree, using 2^r\u22121 OR gates. The resulting circuit computes G and has at most 2^r h+(2^r\u22121)=2^r(h+1)\u22121 gates. Substituting the prefix constants p in this circuit cannot increase its gate count. Substituting the next input b into that cofactor likewise cannot increase its gate count and computes G_{pb}. This is an explicit witness-elimination construction and exact cost bound; it does not establish a matching lower bound or a polynomial bound in r.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795556419.8818672,
+  "session": "pnp-desk/research/R2988",
+  "model": "gpt-6-luna",
+  "id": "S0744",
+  "proved_step": "statement: WITNESS-RELATION COFACTOR LEMMA. Let H:{0,1}^{N}\u00d7{0,1}^{r}->{0,1} be computed by a fan-in-two Boolean circuit with h gates, and let L={x\u2208{0,1}^N: \u2203w\u2208{0,1}^r H(x,w)=1}. For a prefix p\u2208{0,1}^t define H_p(z,w)=H(pz,w) and L_p={z:\u2203w H_p(z,w)=1}. For b\u2208{0,1}, H_{pb} is obtained from H_p by fixing its first z-input to b, uses at most h gates, and L_{pb}={v:\u2203w H_{pb}(v,w)=1}={v:bv\u2208L_p}. Thus the exact projected residual can be represented by a cofactored h-gate witness relation at every prefix; this is a representation/update lemma, not an algorithm for canonicalizing or evaluating the projection.\nproof: Fix p and b. The circuit H_{pb}(v,w)=H(pbv,w) is obtained from H by substituting constants for the |p|+1 fixed x-coordinates, leaving v and w as the remaining inputs. Substitution changes no gate count: retain each original gate and replace its input wires by constants or the appropriate remaining inputs (constant propagation can only reduce the count). Hence H_{pb} has at most h gates. For every suffix v, membership in L_{pb} means \u2203w H(pbv,w)=1. By the definition of L_p, this is equivalent to bv\u2208L_p. This proves both equalities, with the same witness domain {0,1}^r and without eliminating or modifying witness variables.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "GAP: determine whether EXT transitions can be expressed by bounded real-gate operations on H_C for arbitrary MCSP decision circuits",
+  "closes_valid": false
+ },
+ {
+  "at": 1795556573.7001297,
+  "session": "pnp-desk/research/R2988",
+  "model": "gpt-6-luna",
+  "id": "S0745",
+  "proved_step": "statement: LITERAL-PREFIX RELATION TRANSITION LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be any Boolean circuit with h gates, and let L(x)=1 iff \u2203w\u2208{0,1}^r H(x,w)=1. Represent the residual after prefix p\u2208{0,1}^t by the pair (H,p), with residual L_p(z)=1 iff \u2203w H(pz,w)=1. On reading b\u2208{0,1}, the transition (H,p)\u21a6(H,pb) is exact, uses zero additional Boolean gates in the represented circuit, and stores t+1 prefix bits. The relation circuit remains h gates; this representation is not asserted to be compact or canonical.\nproof: Fix any prefix p of length t and bit b. The residual represented after the transition is L_{pb}(v)=1 iff \u2203w H(pbv,w)=1. By definition, L_p(bv)=1 iff \u2203w H(pbv,w)=1, so L_{pb}(v)=L_p(bv) for every suffix v. Thus the update is exact. The transition changes only the stored binary string p to pb; it neither alters nor extends H, so the circuit gate count remains h and the additional gate cost is zero. The representation stores the prefix itself, requiring t+1 bits after the transition. Hence this proves a real-gate-free transition for the literal-prefix representation while leaving open whether a compact/canonical representation, or one derived from arbitrary MCSP decision circuits, has such transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "GAP: determine whether EXT transitions can be expressed by bounded real-gate operations on H_C for arbitrary MCSP decision circuits",
+  "closes_valid": false
+ },
+ {
+  "at": 1795556756.6384773,
+  "session": "pnp-desk/research/R2990",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The bound M per bit depends on explicit enumeration of M distinct words, which may be exponential in circuit size, so not transferable to arbitrary MCSP decision circuits.",
+  "review_of": "S0675",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795556784.2173522,
+  "session": "pnp-desk/research/R2990",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The claim that child masks can be computed with zero nonconstant gates is inaccurate; constructing C_b requires M AND gates per child, and the update still depends on M, which may be exponential in circuit size, so not transferable to arbitrary MCSP decision circuits.",
+  "review_of": "S0676",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795556836.986264,
+  "session": "pnp-desk/research/R2990",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The lemma follows directly from substituting constants into the circuit; the bound of at most h gates per cofactor is valid for any fan-in-two circuit, and no counterexample exists in the literature.",
+  "review_of": "S0677",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795556837.0233908,
+  "session": "pnp-desk/research/R2990",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The argument that distinct residuals imply distinct states is a standard streaming lower bound; no known violation exists and the proof correctly shows the necessity of different states for differing residual sets.",
+  "review_of": "S0699",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795556861.4054477,
+  "session": "pnp-desk/research/R2990",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The lemma is valid for fan-in-two circuits; the construction of representatives and OR tree yields a circuit of size at most kh+(k-1), and no known counterexample exists.",
+  "review_of": "S0706",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795557084.8479578,
+  "session": "pnp-desk/research/R2990",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The lemma is a standard existential bound for fan-in-two circuits; the construction of representatives and OR tree yields the claimed size, and no known counterexample exists.",
+  "review_of": "S0708",
+  "status": "SURVIVED_REVIEW"
  }
 ]

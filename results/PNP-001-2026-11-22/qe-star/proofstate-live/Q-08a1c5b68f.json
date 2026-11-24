@@ -5119,5 +5119,134 @@
   "proved_step": "statement: For any finite binary language F of word length N, let q_t be the number of distinct residual sets after prefixes of length t, and let S=max(1,ceil(log2(max_t q_t))). There is a layered membership machine with S state bits and per-layer fan-in-two AND/OR transition circuits, free NOT/constants and shared fan-out, whose layer-t transition uses at most 3q_tS-S gates. Proof: Assign one distinct S-bit code to each residual at each layer. For each of the at most 2q_t reachable pairs (residual code,b), the derivative residual after reading b is determined by the old residual, so its next-layer code is defined consistently. Make a minterm indicator for each reachable pair on the S state bits and b, using S AND gates per pair, for 2q_tS gates. For each output bit, among the 2q_t reachable rows choose the smaller of the rows outputting 1 and the rows outputting 0; this set has size at most q_t. OR its indicators using at most q_t-1 gates when nonempty, then complement the result if the selected rows were the zero rows. Thus at most S(q_t-1) additional gates. Define arbitrary outputs on unreachable pairs. The total is at most 2q_tS+S(q_t-1)=3q_tS-S. At the final layer the residual is either {epsilon} or empty, so a decoder distinguishes acceptance.\nscope: Finite binary languages of fixed length N, layer-specific residual encodings, deterministic one-pass membership; no lower bound or P-vs-NP implication.\ndiagnostic_barriers: {'relativizing': 'No lower-bound claim; explicit finite construction.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No local proof-complexity claim.', 'circumvention_tests': 'No P!=NP progress claimed.'}",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795554107.9444447,
+  "session": "pnp-desk/research/R2962",
+  "model": "gpt-6-luna",
+  "id": "S0597",
+  "proved_step": "statement: Zero-update shift-register lemma. For every integer N>=1 and every language F subseteq {0,1}^N, there is a deterministic N-bit one-pass layered machine recognizing F whose transition updates use zero counted gates, provided the final decoder is unrestricted. Initialize the state to 0^N. On reading bit b at layer t, update the state by shifting left and appending b: (z_1,...,z_N) -> (z_2,...,z_N,b). This update uses only wires and the new input wire, hence zero counted gates. Inductively, after t inputs the state is (0^{N-t},x_1,...,x_t); after N inputs it is the full input word x, so the decoder accepts exactly when x in F. The result is an upper bound at S=N only; it makes no claim for S<N.\nscope: All finite binary languages of fixed length N>=1, with N state bits, fixed zero initial state, shift-register updates using wires only, and an unrestricted final membership decoder.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795554139.6972804,
+  "session": "pnp-desk/research/R2969",
+  "model": "gpt-6-luna",
+  "id": "S0598",
+  "proved_step": "statement: For every N>=1 and Boolean function f:{0,1}^N->{0,1}, let E={i: there exist x with f(x) != f(x with coordinate i flipped)}. In the deterministic one-pass layered streaming model with fixed initial state, S Boolean state bits, zero counted update gates (wires, constants, free NOT only), and an unrestricted final decoder, the minimum possible S is exactly |E|. Proof: Inductively, after t updates each state bit is constant or x_i or NOT x_i for some i<=t: this holds initially, and each next wire/constant/NOT is either a previous such bit, its negation, the new input bit, its negation, or a constant. Therefore each final state bit depends on at most one input position. If i in E appeared in no final bit, flipping i would leave the final state, hence decoder output, unchanged, contradiction; so S>=|E|. Conversely, store x_i for i in E at its arrival, preserving the stored bits at every later layer; final decoder evaluates f from these values and fixed values (say zero) on nonessential coordinates. Such fixed values do not affect f by the definition of nonessentiality. This uses |E| state bits and zero update gates.\nscope: Exact characterization for Boolean membership functions of fixed input length in the stated zero-gate, one-pass layered model; it does not bound positive gate budgets or prove Lemma M asymptotically.\ndiagnostic_barriers: {'relativizing': 'No oracle lower-bound claim; explicit finite-model argument.', 'natural': 'No natural-property or circuit lower-bound claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No local proof-complexity claim.', 'circumvention_tests': 'No P!=NP progress claimed; not applicable.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795554496.551855,
+  "session": "pnp-desk/research/R2970",
+  "model": "gpt-6-luna",
+  "id": "S0599",
+  "proved_step": "statement: Residual-state lower bound for layered membership machines. Let N>=0, F subseteq {0,1}^N, and for each t define R_t(p)={u in {0,1}^{N-t}: pu in F} for p in {0,1}^t; let q_t be the number of distinct such residual sets. Any deterministic layered one-pass machine that decides membership in F, with an arbitrary final decoder and unrestricted time-dependent transitions, must have at least q_t distinct reachable states after t input bits, for every t. Consequently its state width S satisfies 2^S >= max_t q_t. Proof: If prefixes p,p' reach the same state at layer t, then for every suffix u the deterministic transitions from that shared state on u end in the same final state, hence give the same membership answer. Thus pu is in F iff p'u is in F for every u, so R_t(p)=R_t(p'). Therefore distinct residuals require distinct reachable states. The number of available states is at most 2^S, yielding the inequality. The bound is attained as a state-count upper bound by using residual sets themselves as layer-t states and transitioning R to {v: bv in R} on bit b; the final decoder accepts exactly when the residual is {epsilon}. This claim concerns state count only and imposes no circuit-cost bound on transitions.\nscope: All finite Boolean languages of fixed length N, deterministic layered membership machines, arbitrary layer-specific transition functions and final decoder. State width lower bound only; no conclusion about G_max, SC_{n,s} witness output, or P versus NP.\ndiagnostic_barriers: {'relativizing': 'No lower-bound claim against a circuit class; this is a finite-state counting lemma.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No proof-complexity locality claim.', 'circumvention_tests': 'Not applicable; no P!=NP progress is claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795554646.9113276,
+  "session": "pnp-desk/research/R2970",
+  "model": "gpt-6-luna",
+  "id": "S0600",
+  "proved_step": "statement: Residual-count growth bound. Let N>=0, F be any subset of {0,1}^N, and q_t the number of distinct residual sets R_t(p)={u in {0,1}^{N-t}: pu in F} over prefixes p of length t. Then q_0<=1, q_N<=2, and for every 0<=t<N, q_{t+1}<=2q_t. Consequently q_t<=2^t and q_t<=2^(2^(N-t)). Proof: There is only one prefix of length 0, so q_0<=1; at length N each residual is either {epsilon} or empty, so q_N<=2. Each residual R at layer t has at most two child residuals, R_b={v: bv in R}, for b in {0,1}. Every residual at layer t+1 arises as one of these children, so q_{t+1}<=2q_t. Induction gives q_t<=2^t. Also every residual is a subset of the suffix universe, which has 2^(N-t) elements, so there are at most 2^(2^(N-t)) residuals. These bounds are exact consequences of the definitions and apply to every finite Boolean language.\nscope: All finite Boolean languages F subseteq {0,1}^N. This bounds membership residual counts and hence the state-count lower bound 2^S>=max_t q_t. It gives no transition-gate bound, no witness-output result, and no P-versus-NP conclusion.\ndiagnostic_barriers: {'relativizing': 'No circuit lower bound or oracle claim.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No proof-complexity locality claim.', 'circumvention_tests': 'Not applicable; no P!=NP progress is claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795554745.0413315,
+  "session": "pnp-desk/research/R2975",
+  "model": "gpt-6-luna",
+  "evidence": "The argument is by induction that each final state bit is constant or a literal of one input position; any omitted position leaves the final state unchanged under its flip, contradicting essentiality. The discovery computation tests the premise for SC_{3,1}.",
+  "id": "S0601",
+  "proved_step": "statement_start: Zero-gate state lower bound for SC_{3,1} from essential truth-table positions: if every truth-table coordinate is essential for membership in the family, then any exact layered membership machine whose updates are only wires, constants, and free NOT gates needs at least N state bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795555081.410011,
+  "session": "pnp-desk/research/R2975",
+  "model": "gpt-6-luna",
+  "id": "S0602",
+  "proved_step": "statement_start: Residual-count upper bound and exact finite recognizer. Let F be a subset of {0,1}^N with |F|=M. For each t, let q_t be the number of distinct suffix residuals R_t(p)={u in {0,1}^{N-t}: pu in F}. Then q_t <= min(2^t, M+1, 2^(2^(N-t))). Consequently, with S=max(1,ceil(log2(max_t q_t))), there is an exact deterministic layered recognizer using S state bits and at most 3 q_t S-S fan-in-two AND/OR update gates at layer t, with free NOT, constants, and shared fan-out.\nProof. There are 2^t prefixes, so at most 2^t residuals. Each nonempty residual corresponds to the set {pu:u in R_t(p)} of accepted full strings beginning with p. For distinct prefixes of equal length these sets are disjoint, and each is nonempty; therefore at most M residuals are nonempty, with at most one additional empty residual. Hence q_t<=M+1. The suffix universe has 2^(N-t) strings and therefore 2^(2^(N-t)) subsets, proving the third bound. For the recognizer, assign distinct S-bit codes to the q_t residuals at each layer. On reading b, map the code for R to that for {u:bu in R}; equal residuals have equal derivatives, so this transition is well-defined. For each of the q_t used state codes and two input bits, encode its transition row by a minterm of the S state bits and input bit, using at most S gates per row, hence at most 2q_tS gates. For each of S output coordinates, take the smaller of the 1-row set and its complement among the 2q_t used rows, OR the selected row indicators with at most q_t-1 gates, and complement if needed; this adds at most S(q_t-1) gates (zero when q_t=1). The total is at most 3q_tS-S. Set transitions arbitrarily on unused codes. After N bits the residual is {epsilon} exactly for accepted strings and empty otherwise, so a fixed final decoder decides F.\nScope: every finite fixed-length binary language; exact layered recognizer; circuit model as stated. No lower bound or P!=NP consequence is claimed.\ndiagnostic_barriers: {'relativizing':'Constructive finite automaton synthesis only; no relativizing lower-bound claim.', 'natural':'No natural-property claim.', 'algebrizing':'No algebraic lower-bound claim.', 'localizing':'No locality lower-bound claim.', 'circumvention_tests':'No P!=NP progress claim; tests not applicable.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795555177.359759,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0601: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: `essential_state_bits_lower_bound` was accepted by Lean, but the lab still rejected the final because the accepted source was not associated with a fresh kernel result. The transcript provide (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795555264.818122,
+  "session": "pnp-desk/research/R2975",
+  "model": "gpt-6-luna",
+  "id": "S0604",
+  "proved_step": "statement: For every n>=2 and integer s with 0<=s<n-1, in SC_{n,s} (truth tables of Boolean functions computed by circuits with at most s binary fan-in-two gates), every one of the 2^n truth-table coordinates is essential for class membership. Consequently, any exact deterministic layered recognizer with fixed initial state, arbitrary final decoder, and updates consisting only of wires, constants, and free NOT gates requires at least 2^n state bits.\nproof: Fix an assignment a in {0,1}^n. The zero function is in SC_{n,s}. The singleton truth table at coordinate a represents delta_a(x)=1 iff x=a, which depends essentially on all n input variables. An output of a circuit with g binary fan-in-two gates depends on at most g+1 distinct input variables: order the gates topologically; each gate combines two previously available signals, and the number of distinct input variables in its output support can increase by at most one per gate, starting from a single input signal. Hence computing delta_a requires g>=n-1, so delta_a is not in SC_{n,s}. The zero table and singleton table differ only at coordinate a and have opposite membership, proving that coordinate a is essential. This holds for every a. For the recognizer consequence, induction on stream length shows that under wire/constant/free-NOT updates every state coordinate is constant or a literal of one stream position. If a position appears in no final coordinate, flipping it preserves the final state and hence decoder output, contradicting essentiality. Therefore all 2^n positions must appear among the state coordinates, requiring at least 2^n bits.\nscope: SC_{n,s} over Boolean functions with binary fan-in-two gates, 0<=s<n-1; recognizer result only for zero counted update gates and arbitrary terminal decoder.\ndiagnostic_barriers: {'relativizing': 'No relativizing lower-bound claim; explicit finite circuit-model argument.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No local proof-complexity claim.', 'circumvention_tests': 'Diagnostic only; no P!=NP progress claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795555549.2882788,
+  "session": "pnp-desk/research/R2978",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: (1) q_t <= 2^S by def of S, so distinct S-bit codes exist; (2) 2q_t conjunctions over S+1 literals each take S fan-in-2 AND gates = 2q_t S AND gates total, shared across S output bits; (3) per output bit, OR at most q_t conjunctions (smaller polarity) using <= q_t-1 OR gates, total S(q_t-1) OR gates; (4) sum = 3q_t S - S. No argument gap found. Don't-care on unreachable codes and layer-specific encodings are within claimed scope.",
+  "review_of": "S0526",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795555691.5299988,
+  "session": "pnp-desk/research/R2978",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified construction: (1) r equality indicators over S+1 literals, each using S fan-in-2 AND gates = rS AND gates total, shared across all S output bits; (2) per output bit, OR the indicators where T(z)_j=1, using at most max(r-1,0) OR gates (constant 0 if empty); (3) on D exactly one indicator is 1 so output matches T; (4) total rS + S*max(r-1,0). No counterexample. Don't-care outside D is within scope.",
+  "review_of": "S0527",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795555692.7799313,
+  "session": "pnp-desk/research/R2978",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified induction: (1) base t=0: all coordinates constant (fixed initial state); (2) step: next-state coordinate selected from {prior_coord, \u00acprior_coord, x_{t+1}, \u00acx_{t+1}, 0, 1} \u2014 since zero AND/OR gates allowed, this is a literal/constant selection; induction hypothesis (each prior is constant or literal) preserved; (3) after N bits, each of S final coordinates depends on \u22641 input position; (4) if some i appears in none, flip x_i leaves final state unchanged, decoder output unchanged, contradicting essentiality; (5) thus all N positions appear among S coordinates \u21d2 S\u2265N. No gap. Model restrictions (zero counted gates, free NOT, fixed initial state) correctly used.",
+  "review_of": "S0536",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795557301.75506,
+  "session": "pnp-desk/research/R2994",
+  "model": "gpt-6-luna",
+  "id": "S0608",
+  "proved_step": "statement: Universal truth-table update construction. Let S>=0 and F:{0,1}^{S+1}->{0,1}^S be a state-update map on S state bits and one arriving input bit. With fan-in-two AND/OR gates, free NOT, constants, and unrestricted fan-out, F has a circuit with at most S(S*2^{S+1}+2^{S+1}-1) counted gates. For S=4 this is 636. This upper bound applies to a specified update map; it does not prove an S=4 encoding exists for SC_{3,1} or determine minimum G_max.\nproof: For each output coordinate j, form one minterm for every input a with F_j(a)=1. Each minterm is a conjunction of S+1 literals and uses S binary AND gates. There are at most 2^{S+1} minterms, whose disjunction uses at most 2^{S+1}-1 binary OR gates. The empty disjunction is constant 0. Thus each output uses at most S*2^{S+1}+2^{S+1}-1 gates. Constructing all S output coordinates separately gives the stated bound. Each output agrees with its truth table on every input, so the circuit computes F exactly.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795557491.99997,
+  "session": "pnp-desk/research/R2994",
+  "model": "gpt-6-luna",
+  "id": "S0609",
+  "proved_step": "statement: Sparse truth-table implementation bound. For every integer S>=0 and every map F:{0,1}^{S+1}->{0,1}^S, with fan-in-two AND/OR gates, free NOT, constants, and unrestricted fan-out, F is computable using at most S((S+1)2^S-1) counted gates. In particular, for S=4 the bound is 316. This is an upper bound for a specified update map; it does not assert existence of an S=4 streaming encoding for SC_{3,1} or determine its minimum G_max.\nproof: Let k=S+1 and consider one output coordinate f. If its 1-set has r elements, its DNF has r minterms, each a conjunction of k literals and hence uses k-1 binary AND gates; combining r terms uses r-1 OR gates. Its cost is at most kr-1 when r>0. Alternatively, write a DNF for the 0-set and negate its output at zero NOT cost; if that set has q>0 elements, the cost is at most kq-1. If either set is empty, f is a constant and costs zero. Since min(r,q)<=2^{k-1}=2^S, a nonconstant f costs at most k*2^S-1=(S+1)2^S-1. Implement each of the S output coordinates separately and sum the bounds. The resulting circuits compute each coordinate's truth table exactly, hence compute F exactly. For S=0 there are no output coordinates, so the zero-gate bound also holds.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795557672.9220746,
+  "session": "pnp-desk/research/R2994",
+  "model": "gpt-6-luna",
+  "id": "S0610",
+  "proved_step": "statement: SC_{3,1} state-width exclusion for S<=5. Under the full-search semantics in the binding Lemma M specification, at layer t=7 all 38 live prefixes of SC_{3,1} must occupy distinct states. Therefore any deterministic transducer implementing this recognition task with S state bits has 2^S >= 38, and hence S >= 6. Proof: the specification gives 38 live prefixes at t=7. Full-search semantics require pairwise distinct states for distinct live prefixes. An S-bit state register has exactly 2^S possible bit patterns, so injectivity gives 2^S >= 38. Since 2^5=32<38<=64=2^6, S>=6. This is only a necessary state-width condition; it gives no update-gate lower bound or exact G_max.\nscope: SC_{3,1} full-search prefix semantics, layer t=7, 38 live prefixes; deterministic transducers with S-bit states.\nproof: At t=7 the 38 live prefixes must have pairwise different states by full-search semantics. There are only 2^S bit patterns, so 2^S >= 38. Taking base-2 ceilings gives S >= ceil(log2 38)=6.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

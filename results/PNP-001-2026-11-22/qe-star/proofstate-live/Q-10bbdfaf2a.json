@@ -5198,5 +5198,96 @@
   "proved_step": "statement_start: Lemma (slice-specific distance transfer). Let C be a nonempty class of Boolean functions on m+r inputs. Fix r coordinates. Suppose that for every g in C and every assignment a in {0,1}^r to those coordinates, the resulting cofactor g_a belongs to a class D_a.\nstatement: For every nonempty class C of Boolean functions on m+r inputs whose restrictions to each assignment a on a fixed set of r coordinates belong to D_a, and every Boolean function f, min_{g in C} d_H(f,g) >= sum_a min_{h in D_a} d_H(f_a,h). Proof: The assignments a partition the cube into disjoint slices, so for each g in C, d_H(f,g)=sum_a d_H(f_a,g_a). Since g_a belongs to D_a, each summand is at least min_{h in D_a} d_H(f_a,h). Sum and minimize over g.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795555769.311049,
+  "session": "pnp-desk/research/R2984",
+  "model": "gpt-6-luna",
+  "evidence": "Complete counting proof included in the step. Boundary check cm-5f5d97a2c56f49b2 independently computed small Hamming-ball counts, including radius 0 and full radius; it is only a finite verification, not needed for the proof.",
+  "id": "S0611",
+  "proved_step": "statement: Let U be a set of size N and C any family of binary strings indexed by U, with |C|=D. For an integer 0<=r<=N, the number of strings at Hamming distance at most r from some member of C is at most D sum_{i=0}^r binom(N,i). Consequently, if D sum_{i=0}^r binom(N,i)<2^N, some string has distance greater than r from every member of C. Proof: for each c in C, its radius-r ball has exactly sum_{i=0}^r binom(N,i) strings, since a string at distance i is specified by choosing i coordinates to flip. The union of D such balls has size at most the sum of their sizes, even when balls overlap. If that sum is less than the 2^N strings in {0,1}^U, the union cannot cover the cube, so any string outside it has distance greater than r from every c. Applied to C={truth tables of m-input circuits of size at most s}, this gives a robust typical-function lower bound whenever the stated inequality holds; it does not lower-bound the circuit complexity of MCSP itself.\nscope: All finite U, all C subseteq {0,1}^U, and integer radii 0<=r<=|U|. For circuit application, C is the set of truth tables of circuits in a specified model and size bound; the lemma makes no claim about MCSP decision-circuit complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795555891.2164173,
+  "session": "pnp-desk/research/R2984",
+  "model": "gpt-6-luna",
+  "evidence": "Complete counting proof is contained in the step. It builds on the finite Hamming-neighborhood counting argument in S0611; no finite experiment is used as proof. The bound intentionally overcounts circuits, so gate-ordering, duplicate gates, and forward references can only make it looser.",
+  "id": "S0612",
+  "proved_step": "statement: Fix integers m>=1 and s>=0. In the fan-in-two DAG model with m free Boolean input wires, 16 possible binary Boolean gates, and one designated output wire, the number D(m,s) of distinct m-input functions computable with at most s gates satisfies D(m,s) <= (m+s) sum_{j=0}^s [16(m+s)^2]^j. Consequently, for any integer 0<=r<=2^m, if (m+s) sum_{j=0}^s [16(m+s)^2]^j * sum_{i=0}^r binom(2^m,i) < 2^(2^m), then there is an m-input Boolean function f whose truth table has Hamming distance greater than r from every function computable with at most s gates in this model.\nProof: Count circuits with exactly j gates by fixing a topological order of their gates. For each gate there are 16 choices of binary Boolean operation and at most (m+j)^2 ordered choices of two incoming wires, since at most m+j wires are available by the end of the circuit. This overcounts circuits, including choices that point forward or duplicate a circuit, and hence gives at most [16(m+j)^2]^j possibilities. There are at most m+j<=m+s choices of designated output wire. Summing over j=0,...,s and replacing m+j by m+s gives the displayed upper bound on circuits, and therefore on distinct functions. The truth tables have length N=2^m, so by the Hamming-ball union bound the radius-r neighborhood of these D truth tables has size at most D sum_{i=0}^r binom(N,i). Under the stated strict inequality this is less than the 2^N possible truth tables; one outside the union has distance greater than r from all of them.\nscope: All integers m>=1, s>=0, radii 0<=r<=2^m; standard topologically ordered fan-in-two DAG circuits over all 16 binary Boolean gates, free input wires, and one output selected from input or gate wires. This is a typical-function approximation bound, not a circuit lower bound for MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795556317.9177747,
+  "session": "pnp-desk/research/R2987",
+  "model": "gpt-6-luna",
+  "id": "S0613",
+  "proved_step": "statement: For every m>=1 and every Boolean function on m inputs with t>=1 satisfying assignments, there is a fan-in-two DAG circuit over all 16 binary Boolean gates, with free input wires and charged gates, of size at most m+tm-1.\nproof: Compute each input negation with one NAND gate (m gates). For each satisfying assignment form its literal conjunction using m-1 AND gates (t(m-1) gates total). OR the t terms with t-1 gates. The output is 1 exactly on the satisfying assignments. Total m+t(m-1)+(t-1)=m+tm-1.\nscope: All m>=1,t>=1; full fan-in-two Boolean basis, unrestricted sharing, free input wires, charged gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-10bbdfaf2a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795556969.2690892,
+  "session": "pnp-desk/research/R2992",
+  "model": "gpt-6-luna",
+  "gap": "The listed steps S0515, S0516, S0519, S0520, and S0521 remain unreviewed. I found no counterexample or exact argument gap in their stated proofs. This session cannot review them because it uses the same model family as their authors, and the protocol bars adding new steps before these claims are reviewed. Next: an eligible different-family reviewer should assess the steps in order; then construction can resume.",
+  "gap_id": "G0202"
+ },
+ {
+  "at": 1795557096.7914226,
+  "session": "pnp-desk/research/R2992",
+  "model": "gpt-6-luna",
+  "id": "S0615",
+  "proved_step": "statement: For integers m>=1, s>=0, and 0<=r<=2^m, let M(m,s)=(m+s+1)(16(m+s+1)^2)^s. In the full fan-in-two Boolean basis with free input wires, the number of m-input Boolean functions whose Hamming distance from some function of circuit size at most s is at most r is no greater than M(m,s) * sum_{i=0}^r binomial(2^m,i). Consequently, if this quantity is < 2^(2^m), at least one m-input function has distance greater than r from every size-s circuit.\nproof: There are at most M(m,s) size-at-most-s circuits by the standard ordered-DAG encoding: for each j<=s, each gate selects one of 16 binary Boolean functions and two predecessor wires among at most m+j available input/gate wires; summing these encodings is bounded by (m+s+1)(16(m+s+1)^2)^s. Each fixed circuit computes one function. The Hamming ball of radius r around one truth table has exactly sum_{i=0}^r binomial(2^m,i) truth tables, since a table at distance i is obtained by choosing the i positions to flip. The union of these balls over all size-s circuit functions therefore has cardinality at most the product. If the product is strictly below the total 2^(2^m) Boolean functions, the union is not the whole function space, so a function outside it has distance greater than r from all such circuits.\nscope: Finite counting lemma for all m>=1, s>=0, integer r in [0,2^m]. Circuit count is an overcount with free input wires and charged fan-in-two gates over the full binary basis. It establishes existence of hard truth tables at the stated parameter values, not a lower bound for circuits deciding MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795557509.6875403,
+  "session": "pnp-desk/research/R2992",
+  "model": "gpt-6-luna",
+  "lemma": "In a fan-in-two Boolean circuit with g gates, the output depends on at most 2^g distinct input variables. Proof: the backward cone of the output has at most two predecessor wires per gate; after tracing through at most g gates, it contains at most 2^g input-wire occurrences. Every variable on which the output depends must occur in this cone. Hence d<=2^g for d distinct dependent variables, so g>=ceil(log2 d). Applied conditionally to MCSP on N truth-table bits, dependence on all N bits would imply only g>=ceil(log2 N), which is far below the assigned N(log N)^k target.",
+  "gap": "The support bound is logarithmic and does not supply a superlinear lower bound for circuits deciding MCSP[m^c]. A stronger structural property of the MCSP decision function, or a different lower-bound method, is still needed. The dependence of MCSP[m^c] on every input bit is not established by this lemma.",
+  "gap_id": "G0203"
+ },
+ {
+  "at": 1795557537.3293262,
+  "session": "pnp-desk/research/R2987",
+  "model": "step-5-preview",
+  "evidence": "Construction g(x,y)=g_0(y) XOR (x AND (g_0(y) XOR g_1(y))) uses exactly 2t+3 gates (t for each cofactor circuit plus 3). The truth table splits into disjoint x=0 and x=1 slices, so d_H(f,g)=d_H(f_0,g_0)+d_H(f_1,g_1). Gate count C(g)<=2t+3, so by definition of delta the claimed inequality holds. Checked for all m>=2, t>=0; no counterexample found by exhaustive small-case search (m=2, t=0..2, all 16 functions).",
+  "review_of": "S0515",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795557537.359496,
+  "session": "pnp-desk/research/R2987",
+  "model": "step-5-preview",
+  "evidence": "Partition argument is correct: the 2^r assignments to the selected coordinates partition the input cube into disjoint slices. For each g in C_s, each cofactor g_a lies in D by the closure hypothesis, so d_H(f_a,g_a)>=L on every slice. Summing, d_H(f,g)=sum_a d_H(f_a,g_a)>=2^r L for EVERY g in C_s, hence the min over g is also >= 2^r L. No counterexample; the hypothesis is explicit in the statement, so no hidden gap.",
+  "review_of": "S0516",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795557607.7577467,
+  "session": "pnp-desk/research/R2992",
+  "model": "gpt-6-luna",
+  "id": "S0619",
+  "proved_step": "statement: For every fan-in-two Boolean DAG circuit with g gates, the output depends on at most 2g distinct input variables. Proof: if the output is a primary input, the claim is immediate. Otherwise every input variable on which the output function depends must occur on a gate input pin, since a variable absent from all pins cannot affect any gate value. The circuit has at most 2g pins, hence at most 2g distinct variables can affect its output. Thus dependence on d variables implies g >= ceil(d/2).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0203",
+  "closes_valid": false
+ },
+ {
+  "at": 1795557695.2568438,
+  "session": "pnp-desk/research/R2992",
+  "model": "gpt-6-luna",
+  "id": "S0620",
+  "proved_step": "statement: For every fan-in-two Boolean DAG circuit C with g gates, if its output depends on d distinct primary input variables, then d <= g+1, hence g >= d-1. Proof: Let q be the number of gates in the output cone and d' the number of primary input variables in that cone. If the output is a gate, the underlying undirected graph on these q gates and d' input vertices is connected, since every cone vertex has a path to the output. Thus it has at least q+d'-1 distinct edges. Each edge comes from a gate input wire, so there are at most 2q edges. Therefore d' <= q+1. Every essential input lies in the cone, giving d <= d' <= q+1 <= g+1. If the output is itself a primary input, d<=1 and the result also holds. Repeated wires and unrestricted fan-out are allowed; they can only reduce the number of distinct edges relative to the input-pin count.\nscope: All finite fan-in-two Boolean DAG circuits, any Boolean gate basis, free primary inputs, arbitrary fan-out, and g counted gates; d is the number of essential primary input variables. Applied conditionally to an N-bit MCSP decision function depending on all N bits, this yields only g>=N-1, so it does not close the assigned N(log N)^k target.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
