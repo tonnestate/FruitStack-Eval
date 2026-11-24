@@ -846,5 +846,37 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0009: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: THEOREM: Kl_threshold_bound\nRELATION: SAME (the claim is exactly as stated with no modifications needed)\nHOST: FINAL not accepted yet - no kernel-accepted Lean file yet. Check your file with physalis_ (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795521267.6358306,
+  "session": "pnp-desk/research/R2708",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Step S0009 claims K_l(g) <= min(2^l, 2lB+1) for a single threshold gate. This is incorrect: the residual g_rho(y) = [w_rest.y >= t - w_pre.rho] depends on s(rho) = t - w_pre.rho. While s(rho) takes at most 2lB+1 distinct integer values, the residual function is not determined solely by the VALUE of s(rho) - it is determined by the CELL of s(rho) among the sorted subset sums of w_rest. The number of distinct residuals equals the number of distinct cells, which is at most (number of distinct subset sums of w_rest) + 1 <= 2^{n-l} + 1, not 2lB+1. For example, with w = (1,1,...,1) (B=1), w_pre.rho = |rho| (Hamming weight), s(rho) takes values t, t-1, ..., t-l (at most l+1 values), but the residuals correspond to thresholds t-|rho| on the remaining n-l variables, giving at most 2^{n-l}+1 distinct residuals. The claim 2lB+1 is a bound on the number of distinct s(rho) VALUES, not the number of distinct residual FUNCTIONS. These are different when the subset sums of w_rest are not all consecutive integers. REFUTED.",
+  "review_of": "S0009",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795521267.6593685,
+  "session": "pnp-desk/research/R2708",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Step S0012 defines kappa_l(rho)_j = clamp(t_j - W_{j,<l}.rho, -B(n-l)-1, B(n-l)+1) and argues the residual is determined by this clamped value. This is correct: for a fixed suffix y, W_{j,>=l}.y ranges in [-B(n-l), B(n-l)], so the threshold's position relative to this range determines the residual function. Clamping to the interval endpoints correctly captures the three cases: always-1, always-0, and threshold-dependent. The recurrence for kappa_{l+1} is also correct. However, the bound min(2^l, (2B(n-l)+3)^M) is indeed trivial for M = Theta(n^1.5) since (2Bn+3)^M >= 2^n for all l. The step correctly identifies this does not shrink the bound - it's bookkeeping, not progress on G0001. SURVIVED_REVIEW as a correct (though not gap-closing) lemma.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795521267.6749942,
+  "session": "pnp-desk/research/R2708",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Step S0031 claims a single threshold function of y in {0,1}^k takes at most 2^k+1 values as its threshold varies over R, because it changes only at the at most 2^k distinct values of W_i2.y. This is INCORRECT. The number of distinct residual functions equals the number of CELLS in the partition of R induced by the sorted subset sums of W_i2. If W_i2 has repeated subset sums, the number of cells is (number of DISTINCT subset sums) + 1, which can be much less than 2^k+1. But more critically, the proof then bounds K_l <= min(2^l, (2^k+1)^q) and claims the sum is maximized at l = q(n+1-l). This optimization assumes the bound (2^k+1)^q is tight for all k, but the actual number of distinct residuals for a tuple of q gates depends on the JOINT structure of their weight vectors, not just the product of individual bounds. The tuple (s_1(a), ..., s_q(a)) can take at most (number of joint cells) values, which is at most the number of cells in the arrangement of all subset sums of all W_i2 combined. This can be much smaller than (2^k+1)^q. The step's bound is valid as an upper bound but the claimed exact maximum 2^{q(n+1)/(q+1)} assumes the product bound is achievable, which is not justified. REFUTED due to the incorrect 'at most 2^k+1 values' claim and the unjustified tightness of the product bound.",
+  "review_of": "S0031",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795521267.6902175,
+  "session": "pnp-desk/research/R2708",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Step S0044 repeats the same error as S0031: 'a single threshold function of y in {0,1}^k, as its threshold varies over R, takes at most 2^k+1 values, since it changes only at the at most 2^k distinct values of W_i2.y'. This is false when W_i2 has repeated subset sums - the number of distinct residuals equals (number of DISTINCT subset sums) + 1, not 2^k+1. The bound K_l <= min(2^l, (2^k+1)^q) is still a valid upper bound (since distinct subset sums <= 2^k), but the proof's reasoning is flawed. The statement 'at most 2^k+1 values' should be 'at most (number of distinct subset sums of W_i2) + 1 <= 2^k+1'. REFUTED due to incorrect justification, though the final inequality as an upper bound holds.",
+  "review_of": "S0044",
+  "status": "REFUTED"
  }
 ]

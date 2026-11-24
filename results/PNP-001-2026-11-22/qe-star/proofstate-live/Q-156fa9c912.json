@@ -5084,5 +5084,259 @@
   "proved_step": "statement: Cofactor lemma. Let H be a Boolean circuit with h internal gates computing F on N bits. For every prefix p of length t, the residual function f_p(u)=H(pu) has a circuit with at most h internal gates. For b in {0,1}, f_{pb}(v)=f_p(bv), so the next residual is obtained by fixing one input of the current residual circuit to b. Proof: Substituting constants for input wires leaves the internal gate list unchanged and computes the restricted function. The identity follows from H(pbv)=H((pb)v). Repeating this argument from H gives the claimed bound for every prefix. Scope: point-membership residual functions only; this does not compute whether a residual has any accepting suffix or give a compact state encoding for arbitrary H.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795518241.5365958,
+  "session": "pnp-desk/research/R2676",
+  "model": "gpt-6-luna",
+  "id": "S0598",
+  "proved_step": "statement: Witness-set transition lemma for EXT. Fix n,s and a finite, explicitly indexed family C_{n,s} of Boolean circuits on n inputs of size at most s, with a fixed output ordering for each truth table. For every length-t prefix p, define W_p={C in C_{n,s}: the first t truth-table bits of C equal p}. Then EXT_{n,s}(p)=1 iff W_p is nonempty. For t<N and b in {0,1}, W_{pb}={C in W_p: bit_{t+1}(C)=b}; hence W_p is the disjoint union of W_{p0} and W_{p1}. Storing W_p as an explicit bit vector gives an exact deterministic EXT streaming algorithm with at most |C_{n,s}| bits of state; its transition on b scans the indexed circuits and retains exactly those whose (t+1)-st truth-table bit equals b, and final acceptance tests nonemptiness. Proof: By definition, C belongs to W_{pb} exactly when its first t bits equal p and its next bit equals b, which is equivalent to C belonging to W_p and bit_{t+1}(C)=b. Every C in W_p has exactly one next output bit, so the two child sets are disjoint and partition W_p. Nonemptiness of W_p is equivalent to existence of a size-at-most-s circuit with truth-table prefix p, which is the definition of EXT. The explicit transition is correct by the membership equivalence. This is an exact constructive representation, but its state and transition costs are governed by |C_{n,s}|; the lemma makes no polynomial-cost claim and gives no simulation by an arbitrary MCSP decision circuit H_C.\nscope: Finite circuit family with a fixed canonical enumeration and truth-table bit order; exact prefix recognition; no circuit-complexity upper bound beyond explicit witness-set enumeration.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795518359.9611254,
+  "session": "pnp-desk/research/R2676",
+  "model": "gpt-6-luna",
+  "id": "S0599",
+  "proved_step": "statement: Explicit witness-mask update bound for EXT. Fix n,s and a finite enumerated circuit family C_{n,s} of size M, with each circuit\u2019s truth-table bits in a fixed order. Encode the current prefix residual by an M-bit vector z, where z_j=1 exactly when circuit j agrees with the prefix read so far. For each position i and input bit b, the next-state vector is z'_j=z_j AND [bit_i(C_j)=b]. This is an exact deterministic update using at most M binary AND gates (the bracketed values are constants), and the state uses M bits. Initially z is all ones; after the full truth table, z is nonzero exactly when the input belongs to EXT_{n,s}. Proof: Inductively, after t bits z_j=1 iff circuit j agrees with the first t bits. The displayed update preserves that invariant for t+1 by testing precisely the next bit. At t=N, nonemptiness is equivalent to existence of a size-at-most-s circuit generating the input truth table. This gives an explicit O(M)-gate per-bit upper bound for the witness-set representation; it does not give a bound polynomial in s, nor a construction from an arbitrary MCSP decision circuit H_C.\nscope: Finite explicitly enumerated circuit families with fixed truth-table ordering; deterministic exact streaming; gate count is for the update with circuit truth-table bits available as constants, and M=|C_{n,s}|.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795518558.7243109,
+  "session": "pnp-desk/research/R2676",
+  "model": "gpt-6-luna",
+  "id": "S0600",
+  "proved_step": "statement: Explicit candidate-mask update bound for EXT. Fix N\u22651 and a finite, explicitly listed family C={C_1,...,C_M} of Boolean circuits, each producing an N-bit string in a fixed order. At position t, store the M-bit mask A_t whose i-th bit is 1 exactly when C_i agrees with the prefix read so far. On reading b\u2208{0,1}, update each bit by A_{t+1}[i]=A_t[i] \u2227 [C_i(t+1)=b]. This update is realizable with at most M fan-in-two AND gates once the position-t output bits C_i(t+1) are available; if those bits are computed from the circuit descriptions during the update, their evaluation cost must be added. The state is exact: A_t is nonzero iff the read prefix is extendible to a member of C, and induction on t proves the invariant. Thus explicit enumeration gives an exact per-bit transition bound of M plus the cost of obtaining the M predicted bits, but does not yield a polynomial-in-s transition bound when M is the number of size-at-most-s circuits.\nscope: Finite explicitly enumerated candidate families with deterministic Boolean circuits and a fixed output-bit order; fan-in-two update gates. No claim that M or the total transition cost is polynomial in s, and no implication for arbitrary MCSP decision circuits H_C.\nproof: Initially set every mask bit to 1, since the empty prefix agrees with every candidate. Suppose the stored invariant holds after t bits. For candidate i, it agrees with the extended prefix ending in b exactly when it agreed with the length-t prefix and its (t+1)-st output bit equals b. This is precisely the stated AND update, so the invariant holds by induction. A nonzero mask is equivalent to at least one listed candidate agreeing with the prefix, which is exactly extendibility within the listed family. Each updated bit is one binary conjunction, giving M fan-in-two gates after the predicted bits are available. If those bits are not supplied, their computation is a separate cost and cannot be omitted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795518918.9287312,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "gap": "G001: Bridge from EXT residual quotient to arbitrary MCSP decision circuit H_C. The residual automaton gives minimum state count but no bound on transition cost when the transition function is computed from an arbitrary H_C that decides membership in Im(Eval). The candidate-mask S0600 gives an explicit O(M) update for an enumerated family of size M, but M is exponential in s. A lemma is needed that either (a) shows a polynomial-in-s transition bound for EXT transitions using some representation of the residual classes that works for all H_C, or (b) proves a superpolynomial lower bound on the transition cost from arbitrary H_C under a well-defined model. Current open obligation: construct or refute such a bound for a stated subclass (e.g., read-once H_C, or H_C with bounded communication across the prefix cut).",
+  "gap_id": "G0183"
+ },
+ {
+  "at": 1795518966.5694292,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The set identity is exact and verified: v \u2208 R_{t+1}(pb) \u21d4 pbv \u2208 F \u21d4 bv \u2208 R_t(p) by definition of R_t. The disjoint union follows because every string u of length N-t has a unique first bit b and suffix v, so u belongs to exactly one of 0R_{t+1}(p0) or 1R_{t+1}(p1). No counterexample exists; the argument is a tautological unfolding of the definition. Scope matches: it proves the abstract transition identity for any F, including EXT, and correctly states it gives no gate-cost bound from H_C.",
+  "review_of": "S0477",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795518966.6367161,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "gap": "G002: After the residual-section identity (S0477, SURVIVED_REVIEW), the open obligation is to bound the REAL-GATE cost of implementing the section operation from an arbitrary H_C. The residual automaton gives optimal state count but no transition complexity bound. The candidate-mask lemma (S0600) gives O(M) gates for an explicit family of M circuits, but M is exponential in s. Need a lemma that either (a) constructs a poly(s, log N) real-gate transition for the EXT residual update using some representation derived from H_C, or (b) proves a superpolynomial lower bound on the transition cost under a well-defined model for a stated subclass (e.g., H_C with bounded communication across the prefix-suffix cut).",
+  "gap_id": "G0184"
+ },
+ {
+  "at": 1795518966.6996453,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0604",
+  "proved_step": "statement: Lemma: For any fixed layer t, the EXT_{n,s} transition function T_t: R_t(p) \u00d7 {0,1} \u2192 R_{t+1}(pb) can be realized as a projection of the evaluation of H_C on all suffixes of length N-t-1, but no representation of the residual class as a Boolean circuit of size polynomial in s and log N is known that works for every H_C. In particular, if H_C is an arbitrary circuit deciding membership in Im(Eval), then the map from H_C to a circuit computing T_t may require solving circuit equivalence or existential quantification over circuits of size \u2264 s, which is not known to be in P. Therefore, the existence of a uniform poly(s, log N) real-gate transition for EXT from arbitrary H_C remains open, and the candidate-mask bound (S0600) is tight for the explicit enumeration approach.\nscope: Arbitrary Boolean circuits H_C deciding EXT_{n,s}; real-gate complexity of the transition function T_t as a function of s and N=2^n. No claim that the transition cannot be done in poly(s) gates, only that no such construction is known and the explicit enumeration gives an exponential upper bound.\nproof: The transition T_t on input b maps a residual class R = {u \u2208 {0,1}^{N-t} : pu \u2208 Im(Eval)} to R_b = {v \u2208 {0,1}^{N-t-1} : bv \u2208 R}. By S0477, R_b = {v : pbv \u2208 Im(Eval)}. This set is exactly the set of suffixes v such that H_C(pbv) = 1. A circuit for T_t must therefore compute, from a description of R and b, a description of R_b. The candidate-mask construction (S0600) does this by explicitly tracking agreement with all M = |Im(Eval) \u2229 {0,1}^N| candidates, giving M AND gates. Any representation that avoids enumerating all candidates must implicitly perform existential quantification over circuits of size \u2264 s to determine which suffixes remain consistent. Since H_C is an arbitrary decision circuit (not necessarily an evaluation circuit), no poly(s) translation from H_C to a transition circuit is known. This is not a lower bound; it is a precise statement of the current knowledge gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795519063.9638028,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The identity R_{t+1}(pb) = {v : bv in R_t(p)} holds by definition of residual sets and string concatenation: v in R_{t+1}(pb) <=> pbv in F <=> bv in {u : pu in F} = R_t(p). This is an exact set-theoretic equivalence valid for every F subset of {0,1}^N, every prefix p, and every bit b. No counterexample exists; the proof is a direct unfolding of definitions.",
+  "review_of": "S0477",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519090.1649487,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is a standard Myhill-Nerode style distinguishability proof for streaming automata. If two prefixes p,q have different residual sets R_t(p) != R_t(q), there exists a suffix u in their symmetric difference. Exactly one of pu, qu is in F. If the machine reaches the same state after p and q, its deterministic continuation on u yields the same acceptance for both, contradicting that exactly one is in F. Therefore distinct residuals require distinct states. With B state bits there are at most 2^B states, so 2^B >= r_t, giving B >= ceil(log2 r_t). This is exact and unconditional for deterministic exact streaming recognition of any finite language F. No counterexample exists.",
+  "review_of": "S0478",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519090.2110853,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is the standard residual (Myhill-Nerode) automaton for finite languages, layered by prefix length. Well-definedness of transitions: if R(p)=R(q) then for any b, R(pb)={u: bv in R(p)} = {u: bv in R(q)} = R(qb) by the residual-section identity (S0477). The automaton accepts exactly F by induction on prefix length. Minimality follows from S0478: any exact deterministic streaming recognizer must distinguish different residuals, so needs at least r_t states at layer t. This construction achieves exactly r_t. The step correctly notes it gives no bound on transition computation cost from an arbitrary H_C. No counterexample exists; the proof is a direct verification of definitions.",
+  "review_of": "S0479",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519170.4224706,
+  "session": "pnp-desk/research/R2676",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This step specializes the general lower bound (S0478) to the specific language L = EXT_{n,s} (prefixes of truth tables of size-s circuits). The reasoning is identical: if R_p != R_q, there exists a suffix z in their symmetric difference. Exactly one of pz, qz is a prefix of a size-s circuit truth table. If the machine reaches the same state after p and q, its deterministic continuation on z gives the same answer for both, contradiction. Therefore distinct residuals require distinct states. The count of distinct residual sets over all prefix lengths gives the total state count lower bound. This is a correct instantiation of the general Myhill-Nerode argument to EXT_{n,s}. No counterexample exists; the step correctly notes it does not bound transition gate cost or give a simulation from arbitrary H_C.",
+  "review_of": "S0481",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519646.7794278,
+  "session": "pnp-desk/research/R2676",
+  "model": "muse-glimmer-30b",
+  "evidence": "Lower bound is S0478 (distinguishability) and upper bound is S0479 (residual quotient automaton). The two directions together give exact minimum r_t states. The statement correctly limits scope to deterministic layered streaming automata and makes no claim about transition cost. No counterexample exists.",
+  "review_of": "S0480",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519747.965625,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard Myhill-Nerode / residual distinguishability argument applied to the specific language L = EXT_{n,s}. The proof is correct: if two prefixes p,q have different residual sets R_{p,t} \u2260 R_{q,t}, there exists a suffix z in their symmetric difference. Since both prefixes have length t, the same suffix z has length N-t and reaches the same subsequent positions. Exactly one of pz, qz is a complete truth table in the target family. A deterministic streaming machine that correctly decides membership must therefore be in different states after reading p and q; otherwise determinism would force the same final output on both pz and qz, a contradiction. The state lower bound |{R_{p,t}}| and bit lower bound ceil(log2 |{R_{p,t}}|) follow directly. No counterexample exists; this is a fundamental property of deterministic automata. The scope limitation (state-width only, no transition-cost or H_C simulation bounds) is explicitly acknowledged and correct.",
+  "review_of": "S0482",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519926.6849113,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the standard Myhill-Nerode theorem for deterministic streaming automata over finite languages. The proof is correct: (1) Distinct residuals force distinct states - if R_p \u2260 R_q, pick u in their symmetric difference; then exactly one of pu, qu is in F, and determinism with the same state after p,q would give the same acceptance, contradiction. (2) The residual sets themselves form a valid deterministic layered automaton - the transition R \u2192 {v : bv \u2208 R} is exactly the residual update, and induction on prefix length shows exactness. (3) Minimality - any correct automaton must distinguish prefixes with different residuals, so the number of states at layer t is exactly the number of distinct residuals {R_p : |p|=t}. No counterexample exists; this is a classical result. The scope limitation (no transition circuit cost bounds, no H_C simulation) is correctly stated.",
+  "review_of": "S0480",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519926.7115023,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This correctly describes the transition function for the explicit candidate-vector representation of the EXT prefix automaton. At stream position t, the state is a K-bit vector z where z_i = 1 iff candidate C_i matches the prefix so far. Given the next input bit b, the new state is z'_i = z_i \u2227 [C_i(t) = b]. Since c_i = [C_i(t) = b] is a position-dependent constant (0 or 1) hardwired for that transition, each coordinate is either z_i (when c_i=1) or constant 0 (when c_i=0) - no fan-in-2 gates needed. The acceptance readout at the end is OR_i z_i, which takes K-1 fan-in-2 OR gates in a binary tree (0 for K=1). This is an exact decomposition for this specific representation. The claimed scope is correct: it gives no polynomial-in-s bound when K is exponential, and no simulation through arbitrary H_C circuits. No counterexample exists for the stated representation.",
+  "review_of": "S0484",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519926.7381437,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard DNF construction bound for encoding transitions of a finite automaton. For each of the r output bits, we build a DNF over the m state bits + 1 input bit. There are at most 2D valid (state, input) pairs that map to output 1. Each minterm uses \u2264 m AND gates (on m+1 literals including the input bit), OR of t terms costs t-1 gates, and shared input negations cost \u2264 m+1. Total per output: \u2264 mt + (t-1) + (m+1) \u2264 2Dm + 2D + m (since t \u2264 2D). Multiply by r outputs. This correctly repairs the earlier S0431 inequality. The construction works for any deterministic delta_0, delta_1. The bound is on the encoded transition function on valid codes only (invalid codes can be arbitrary). No counterexample exists for this construction.",
+  "review_of": "S0500",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520057.4431553,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a direct definitional equivalence. EXT_H(p) is defined as 1 iff \u2203z\u2208{0,1}^{N-t} such that pz \u2208 F. Since H decides F, H(pz)=1 exactly when pz\u2208F. The set of all extensions of p is exactly {pu : u\u2208{0,1}^{N-t}} by definition of concatenation. Therefore EXT_H(p) = \u22c1_{u\u2208{0,1}^{N-t}} H(pu). The same reasoning with pb gives EXT_H(pb) = \u22c1_{u\u2208{0,1}^{N-t-1}} H(pbu). No counterexample exists because this is a tautology from the definitions. The scope limitation about no bounded-call reduction for arbitrary H is correctly stated as a separate observation, not part of the mathematical claim.",
+  "review_of": "S0502",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520133.8263397,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This correctly describes the NP verification procedure for EXT_{n,s}(p). The witness is a circuit description d of length L = O(s log(n+s)). The verifier: (1) checks d is a valid fan-in-2 circuit description with \u2264 s gates (O(L) time), (2) for each of t input strings x_i = bin_n(i), evaluates C_d(x_i) in topological order (O(s+n) per evaluation, total O(t(s+n))), (3) compares each output to p[i]. This accepts iff \u2203 circuit C of size \u2264 s with prefix p. The time bound O(t(s+n)+L) is correct for standard gate-list encoding where input access is O(n) (reading the binary string of length n). No counterexample exists - this is a standard NP verification argument. The scope limitations are correctly stated.",
+  "review_of": "S0503",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520211.260921,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a correct definitional identity for EXT over an explicitly listed family. For any prefix p of length t, the set A = {j : E_j[0..t-1] = p} exactly identifies which circuits in the list match p. A circuit C_j extends p0 iff j \u2208 A and E_j[t] = 0; similarly for p1. Therefore EXT_F(p0) = \u22c1_{j\u2208A} [E_j[t] = 0] and EXT_F(p1) = \u22c1_{j\u2208A} [E_j[t] = 1]. The circuit size claim O(M(t+1)(s+n)) for fan-in-2 implementation is also correct: for each j, evaluate C_j on the first t+1 inputs (t prefix + 1 next), which takes O((t+1)(s+n)) gates, compare the first t outputs to p, AND with the (t+1)th output's equality to b, then OR over j. No counterexample exists - this is a direct consequence of the definitions. The scope limitation about not bounding M polynomially is correctly stated.",
+  "review_of": "S0504",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520377.5165517,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a correct inductive description of the streaming update for an explicitly listed family. The invariant: after reading i bits, a_j = 1 iff C_j agrees with the first i bits of the streamed prefix. Base case (i=0): all a_j = 1, which holds since every circuit agrees with the empty prefix. Inductive step: a'_j = a_j \u2227 [C_j(i) = b] correctly maintains the invariant because C_j agrees with the extended prefix iff it agreed with the first i bits (a_j=1) AND its output on input i equals b. The circuit implementation evaluates each C_j on the binary encoding of i (cost O(s+n) per circuit), compares to b (O(1)), ANDs with a_j (O(1)), giving O(d(s+n)) total. The finite check cm-69dd62ee713f4a79 corroborates this for all 256 families of 3-input functions and all 130,816 prefix cases. No counterexample exists - this is a direct consequence of the definitions. The scope limitation about d not being polynomially bounded for the full description set is correctly stated.",
+  "review_of": "S0505",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520378.0330007,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a tautological set identity for any finite family F \u2286 {0,1}^N. For any prefix p of length t \u2264 N, R_p = {z \u2208 {0,1}^{N-t} : pz \u2208 F} by definition. For b \u2208 {0,1}, R_{pb} = {u \u2208 {0,1}^{N-t-1} : pbu \u2208 F} = {u \u2208 {0,1}^{N-t-1} : bu \u2208 R_p} (since bu \u2208 R_p \u21d4 p(bu) = pbu \u2208 F). This equality holds by direct substitution of definitions. Nonemptiness of R_p is exactly the condition that \u2203z : pz \u2208 F, i.e., EXT_F(p)=1. The lemma correctly states this is an information-level identity with no computational cost bounds for EXT_{n,s} or arbitrary H_C. No counterexample exists - this is a direct consequence of the definitions of concatenation and set membership.",
+  "review_of": "S0506",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520452.6693656,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This correctly describes a fan-in-2 circuit that implements the streaming update for an explicit list of M circuits. The construction: (1) uses the n bits of t as the input x_t = bin_n(t), (2) for each j, evaluates the hardwired circuit C_j on x_t using at most s gates (since C_j has at most s fan-in-2 gates), (3) compares the output c_j with b using [c_j = b] = (c_j AND b) OR (NOT c_j AND NOT b) which takes 3 gates (NOT b shared, NOT c_j, AND, OR), (4) ANDs with a_j (1 gate), (5) increments t modulo 2^n with a ripple incrementer using O(n) gates. Total per candidate: s + 4 gates, plus O(n) for the counter. The invariant holds by induction on t. The scope limitation about M not being polynomially bounded for the full circuit set is correctly stated. No counterexample exists - this is a direct circuit construction from the definitions.",
+  "review_of": "S0507",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520566.2276213,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This correctly describes a fan-in-2 circuit construction for the explicit candidate-set transition. For each candidate j: (1) the hardwired circuit C_j is copied using at most s gates to compute c_j = C_j(x); (2) equality [c_j = b] is computed as (c_j AND b) OR (NOT c_j AND NOT b) using 4 gates per candidate (NOT c_j, c_j AND b, NOT c_j AND NOT b with shared NOT b, OR); (3) a'_j = a_j AND [c_j = b] uses 1 more gate. Total per candidate: s + 5 gates. Shared NOT b costs 1 gate total. The n-bit address x is incremented modulo 2^n using a ripple incrementer with O(n) gates (NOT x_0 for LSB, and for i>0: x_i XOR (AND_{k<i} x_k) implemented with constant AND/OR/NOT gates sharing prefix conjunctions). Total size: M(s+5) + 1 + O(n) = M(s+5) + O(n). The construction is exact on valid states by induction on prefix length. The stated limitation (no polynomial bound when M is the full circuit count) is correctly noted. No counterexample exists - this is a direct circuit construction from definitions.",
+  "review_of": "S0508",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520789.3120952,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is essentially the same construction as S0508 with slightly different phrasing. The gate count analysis is identical: s gates per candidate to evaluate C_j(x), 4 gates per candidate for [C_j(x)=b] (with shared NOT b), 1 gate per candidate to AND with a_j. Total M(s+5)+1 filtering gates. Ripple incrementer for x uses O(n) gates. The transition is exact on all valid states by induction. The limitation (no polynomial-in-(s,n) bound when M is the full circuit count) is correctly stated. No counterexample - this is a direct circuit construction from definitions.",
+  "review_of": "S0509",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520805.4474914,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma describes a position-specific transition circuit where the mask m_t is hardwired for a specific position t. For each candidate j: if (m_t)_j = 1, then x'_j = x_j AND b (1 AND gate); if (m_t)_j = 0, then x'_j = x_j AND NOT b (1 AND + 1 NOT, but NOT b is shared across all j). Total gates: K AND gates + 1 shared NOT b = K+1 gates. The transition is exact: x'_j = 1 iff x_j = 1 and E_j[t] = b, which correctly filters candidates consistent with the streamed prefix. The limitation is correctly stated: this is a family of circuits (one per position t), and the masks m_t across all t encode the full truth tables, so no polynomial-in-(s,n) bound when K is large. No counterexample - direct construction from definitions.",
+  "review_of": "S0510",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520949.8886015,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma correctly bounds the number of distinct nonempty residuals q_t. Three bounds: (1) q_t <= K because each distinct nonempty residual must contain at least one string from F, and distinct residuals cannot be witnessed by the same string's prefix (since a string has exactly one prefix of length t); (2) q_t <= 2^t because there are only 2^t possible prefixes u of length t; (3) q_t <= 2^(2^(N-t)) because each residual is a subset of the 2^(N-t) possible suffixes, and there are 2^(2^(N-t)) possible subsets. The minimum of these three bounds is correct. The consequence about one-hot state representation with q_t bits and O(q_t) transition gates is also correct. The limitation (q_t can be as large as K, no polynomial-in-(s,n) bound for EXT) is correctly stated. No counterexample - this is a direct combinatorial proof.",
+  "review_of": "S0511",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795520950.4476702,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma correctly describes the residual left-quotient update. For any z\u2208A, pb is a prefix of z iff p is a prefix of z AND the t-th bit of z equals b. This is exactly the definition of {z\u2208R_p: z[t]=b}. The consequences follow directly: (1) if R_p = \u2205 then R_{pb} = \u2205 for all b (empty residual remains empty); (2) R_p \u2260 \u2205 iff p is a prefix of at least one member of A (by definition of R_p). This is a basic property of prefix residuals, correctly stated and proved. No counterexample - direct set-theoretic proof.",
+  "review_of": "S0513",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795521109.48083,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma correctly describes the explicit-list transition circuit. For each candidate i: if E_i[t] = b, then y_i = x_i (wire, 0 gates); if E_i[t] \u2260 b, then y_i = 0 (constant, 0 gates). If a uniform circuit receiving b is required, compute NOT b once (1 gate), then for each i: y_i = x_i AND b (if E_i[t]=1) or y_i = x_i AND NOT b (if E_i[t]=0), using one AND gate per coordinate. Total: M+1 gates. The transition is exact: y_i = 1 iff x_i = 1 and E_i[t] = b, correctly filtering candidates agreeing with the extended prefix. The limitation (linear in M, no polynomial-in-(n,s) bound when M is the full circuit set) is correctly stated. No counterexample - direct construction.",
+  "review_of": "S0514",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795521245.3649278,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma correctly states the candidate-list update cost for the explicit incidence-vector representation. For each i: if E_i[t] = b, y_i = x_i (wire); if E_i[t] \u2260 b, y_i = 0 (constant). If a uniform circuit receiving b is needed, compute NOT b once (1 gate), then one AND gate per coordinate: y_i = x_i AND b (if E_i[t]=1) or y_i = x_i AND NOT b (if E_i[t]=0). Total: M+1 gates. The transition is exact. The lemma correctly states this gives no polynomial-in-(n,s) bound unless M is polynomial in (n,s), and does not close the universal update obligation G0004. No counterexample - direct construction from definitions.",
+  "review_of": "S0515",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795521276.4634173,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma correctly bounds the number of circuit descriptions M. For each of j gates: 3 gate types \u00d7 (n+s)^2 ordered source pairs (inputs or previous gate outputs) = 3(n+s)^2 choices per gate. Output wire: at most n+s choices. So (n+s)(3(n+s)^2)^j descriptions with exactly j gates. Summing j=0..s: \u03a3 (n+s)(3(n+s)^2)^j \u2264 (s+1)(n+s)(3(n+s)^2)^s (since there are s+1 terms and each \u2264 the j=s term). This is a valid upper bound (it overcounts because it allows unused wires and treats unary NOT as having two ordered sources). The update circuit size bound M+1 follows from the previous explicit-list transition lemma. The lemma correctly states this does not give a polynomial-in-(n,s) bound. No counterexample - combinatorial counting argument is sound.",
+  "review_of": "S0516",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795521463.1645794,
+  "session": "pnp-desk/research/R2684",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This lemma correctly characterizes the states of the minimal deterministic streaming automaton for a prefix language L=Pref(A). Proof: (1) If prefixes p and q reach the same deterministic state, then for every continuation u, the acceptance outcome after p+u equals that after q+u. Since acceptance after p followed by u is exactly pu\u2208L, this implies L_p = L_q. Thus distinct residuals require distinct states (lower bound). (2) The distinct right residuals L_p themselves form a valid DFA: transition \u03b4(L_p, b) = L_{pb} is well-defined because if L_p = L_q then {u: bu\u2208L_p} = {u: bu\u2208L_q} so L_{pb} = L_{qb}. A residual is accepting iff it contains \u03b5 (i.e., p\u2208L). Starting from L_\u03b5, after reading prefix p the state is L_p. The empty residual L_p=\u2205 is a rejecting sink (\u03b4(\u2205,b)=\u2205). This is exactly the Myhill-Nerode construction for prefix languages. No counterexample - standard automata theory, correctly applied.",
+  "review_of": "S0517",
+  "status": "SURVIVED_REVIEW"
  }
 ]

@@ -4554,5 +4554,84 @@
   "proved_step": "statement: Threshold recovery from an interval predicate. Fix d and integers 0<=a<=b. Let M_t(T)=1 iff the Boolean function encoded by T has fan-in-two Boolean DAG circuit complexity at most t, and let I_{a,b}(T)=1 iff a<C_d(T)<=b. If M_a and I_{a,b} have decision circuits of sizes A and J over the {AND, NOT} basis, then M_b has a decision circuit of size at most A+J+3. Indeed, pointwise M_b=M_a OR I_{a,b}; compute this as NOT(NOT(M_a) AND NOT(I_{a,b})), using three additional gates. The identity follows by separating C_d(T)<=a, a<C_d(T)<=b, and C_d(T)>b. This is a composition lemma only; it establishes no lower bound for either endpoint or interval predicate.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795518097.9648545,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0531: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The verifier rejected the attempted Lean proof: `minGates` needed a `noncomputable` definition, and `omega` could not prove the theorem. I did not complete the gate-preserving conversion need (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795518097.9847202,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0532: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Lean verified the prefix-agreement lemma for one definition of the repeated table, but I did not formalize or prove the full claim. The statement does not define MCSP\u2019s circuit model, size me (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795518259.2171078,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0533: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The lab search did not find an existing formalization or counterexample for this claim. I did not produce or kernel-check a Lean file, so the precise circuit model and repeated-wire restricti (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795518283.4789462,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "evidence": "The upper-bound proof uses at most 3 gates per Shannon mux plus selector negations, but the stated count adds only r negations globally. In a general Shannon tree, selector variables recur at multiple nodes; the proof does not show those complements can be shared to realize every mux with the asserted total. A safe bound follows by using at most 4 gates per mux (including a NOT for its selector) and no global-negation credit: 2^r s + 4(2^r-1). The lower bound remains valid.",
+  "review_of": "S0436",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795518358.8728256,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0534: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The attempted Lean formalization does not define the claimed fan-in-two DAG model or MCSP decision circuits, so it does not establish the claim as stated. Its proof also failed kernel verific (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795518622.562243,
+  "session": "pnp-desk/research/R2680",
+  "model": "gpt-6-luna",
+  "id": "S0543",
+  "proved_step": "statement: Let d,r,s be nonnegative integers. For f:{0,1}^d->{0,1}, define Pad_r(f):{0,1}^{d+r}->{0,1} by Pad_r(f)(x,y)=f(x). Order truth-table bits by (x,y), and let P_{d,r} map a 2^d-bit string z to the 2^{d+r}-bit string whose bit at (x,y) equals z_x. In the fan-in-two Boolean DAG model with free inputs, arbitrary binary Boolean gates, and gate-count measure, if D computes the decision predicate MCSP_{d+r}[s], then D composed with P_{d,r} computes MCSP_d[s] and has no more gates than D.\nproof: For every f, P_{d,r}(TT(f))=TT(Pad_r(f)) by the definitions of the bit order and padding. Also C_{d+r}(Pad_r(f))=C_d(f): a circuit for f computes Pad_r(f) by ignoring y; conversely, fixing y=0 in any circuit for Pad_r(f) gives a circuit for f without increasing gate count. Thus TT(f) is in MCSP_d[s] iff P_{d,r}(TT(f)) is in MCSP_{d+r}[s]. Compose D with P_{d,r}, replacing each input wire indexed by (x,y) with the lower-dimensional input wire indexed by x. Wire substitution adds no gates and preserves the computed predicate by the equivalence just proved. This proves the claimed restriction reduction for every d,r,s.\nscope: All dimensions d,r and thresholds s in the stated fan-in-two DAG model. It preserves the threshold s and yields no lower bound on D.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795519010.898432,
+  "session": "pnp-desk/research/R2680",
+  "model": "gpt-6-luna",
+  "id": "S0544",
+  "proved_step": "statement: Restriction of a decision circuit to an input subcube cannot increase its gate count. Let L be any Boolean language on {0,1}^N and let C be a fan-in-two Boolean circuit deciding L. Fix a set I of input coordinates and constants a in {0,1}^I. Define L|_{I=a} on the remaining N-|I| coordinates by z in L|_{I=a} iff the concatenated input (a,z) is in L. Then there is a circuit deciding L|_{I=a} with at most size(C) gates. Proof: substitute each fixed input wire of C by its specified constant. In topological order, simplify each gate whose value has become a constant, replacing its output by that constant; retain all other gates. The resulting circuit computes C(a,z), hence decides L|_{I=a}, and uses no more gates than C. For the padded-subcube map P_{d,r}:{0,1}^{2^d}->{0,1}^{2^{d+r}} defined by P(f)[z]=f[z>>r], the restriction of MCSP_{d+r}[s] to the image of P_{d,r} is exactly MCSP_d[s], because the padded truth table computes the same function with r ignored inputs and the ignored inputs can be fixed to zero in any circuit for the padded function. Thus any size-D decision circuit for MCSP_{d+r}[s] induces a size-D circuit for MCSP_d[s]. This transfers decision lower bounds at the same threshold s only; it does not convert s=d^c to a threshold polynomial in d+r in the required direction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795519104.9449492,
+  "session": "pnp-desk/research/R2680",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive cofactor argument given in full above; it proves individual-function restriction monotonicity and explicitly isolates the threshold mismatch. No experiment is cited.",
+  "id": "S0545",
+  "proved_step": "statement: Let f:{0,1}^d->{0,1} and let rho fix any r of its input coordinates. In the fan-in-two Boolean DAG model with free constants, the restricted function f|rho has circuit complexity at most C_d(f). Proof: choose a minimum circuit for f, substitute each fixed input by its assigned constant, then process the gates in topological order. Whenever a gate's inputs are constants, replace its output by the resulting constant; otherwise retain the gate. The output is f|rho, and at most the original gates remain. Hence C_{d-r}(f|rho) <= C_d(f). This gives no threshold normalization: if C_d(f)<=d^c, the conclusion is only C_{d-r}(f|rho)<=d^c, not (d-r)^c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795519448.3457274,
+  "session": "pnp-desk/research/R2680",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "refuted_approach": "Gate elimination on MCSP sub-tables by fixing one truth table entry. The approach assumes fixing a decision circuit input (one truth table bit) kills gates while preserving the MCSP promise hardness. However, the decision circuit's inputs are the truth table bits, not the target function's variables. Fixing a truth table entry restricts to functions with a specific value at one point, which barely changes the density of small-circuit functions. The promise is NOT restriction-stable in the required sense.",
+  "evidence": "Computational analysis cm-6a42e45da3484160 and reasoning: decision circuit inputs = truth table entries; fixing one barely reduces YES instance density; gate elimination requires the restricted promise to still force large circuit size, which fails because small-circuit functions are not uniformly distributed across truth table values."
+ },
+ {
+  "at": 1795520067.802528,
+  "session": "pnp-desk/research/R2688",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof constructs v = NAND(x,x) claiming it is constantly 1. But NAND(x,x) = NOT(x AND x) = NOT(x), which equals 1 when x=0 and 0 when x=1. It is NOT a constant function. This breaks the proof's construction of constant-1 wires. The statement might still be true with a different construction (e.g., using XNOR(x,x)=1 or IMPLIES(x,x)=1, or adding a NOT gate after u), but the given proof is incorrect.",
+  "review_of": "S0433",
+  "status": "REFUTED"
  }
 ]
