@@ -1,6 +1,6 @@
 # PNP-001 — LEAN_AUDIT (2026-11-24)
 
-Baseline d7635f9ea437c494f1c032e4faedfb673a4e90b1. Status BLOCKED / not statement-audited. This is a record of the audit performed, not a successful kernel verification.
+Baseline d7635f9ea437c494f1c032e4faedfb673a4e90b1. Status UNSOURCED / BLOCKED — AUDIT NOT PASSED. Both declarations are excluded from the admissible Route A chain. This is a record of the audit performed, not a successful kernel verification.
 
 ## Source inventory at baseline
 The recursive repository tree is not truncated. The three tracked .lean files in this research branch were read:
@@ -12,8 +12,8 @@ Neither requested declaration (no_tail_bounds, restriction_independent_gates_sur
 
 | Declaration | Source / exact statement | Kernel | Axioms/imports | Quarantine dependencies | Verdict |
 |---|---|---|---|---|---|
-| no_tail_bounds | missing | historical report only; not rerun | unknown | unknown | BLOCKED |
-| restriction_independent_gates_survive | missing | historical report only; not rerun | unknown | unknown | BLOCKED |
+| no_tail_bounds | missing | historical report only; not rerun | unknown | unknown | UNSOURCED / NOT PASSED |
+| restriction_independent_gates_survive | missing | historical report only; not rerun | unknown | unknown | UNSOURCED / NOT PASSED |
 
 ## Required reproducible audit, separately for each declaration
 1. Recover the original lab source, transcript, exact commit, lean-toolchain, lake manifest and imported project sources. Record hashes of source and statement. Do not reconstruct a weaker theorem under the same name.
@@ -23,3 +23,6 @@ Neither requested declaration (no_tail_bounds, restriction_independent_gates_sur
 5. Obtain two independent blinded critical-node reviews (at least separate proof and statement evaluation). Record the proof artifact, exact statement, axiom list, transcript hashes, evidence and adjudication. No automatic promotion to verified while freeze is in force.
 
 The runtime operator must supply the missing lab source and reproducible Lean environment; repository documentation alone does not close this gate.
+
+## Follow-up search and disposition
+GitHub code search for both exact declaration names returned zero hits in FruitStack-Eval (index coverage is not exhaustive). Inspected research-branch history (30 commits) and recursive trees at 7ca60770, 957992ea, d49a05c1: only the same three tracked Lean files; no tracked .olean, lean-toolchain or lake manifest in the inspected trees. VPS reflog, untracked lab builds and agent transcripts are inaccessible in this audit; no assertion they do not exist. Both declarations are now UNSOURCED, audit FAILED TO PASS due to missing provenance (not a mathematical refutation). Removed from the admissible A chain in SCOPED_GRAPH_E_A.json; restoration requires recovered exact source and the full audit above. Do not report a new Lean success.
