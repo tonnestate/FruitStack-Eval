@@ -620,5 +620,35 @@
   "proved_step": "statement_start: LEMMA (repaired Lemma 11 with explicit input-head cost). Let M be a deterministic single-tape or RAM-style machine with S work cells over a fixed finite alphabet and a fixed state set Q (both constants). Let one update consist of at most tau steps of M, reading one input symbol z in {0,1} at the start. Then the update map (configuration, z) -> configuration is computed by a fan-in-2 Boolean circuit with O(tau*S + tau*log N) gates, where the configuration is encoded as S cells of constant width plus a one-hot head indicator (S bits) plus the state (constant bits) plus the input-head position in log N bits. If S >= log N, this simplifies to O(tau*S). PROOF: (1) Encode the work-tape head position by one-hot indicators h_1..h_S. (2) One work-tape step: read symbol r = OR_j (h_j AND c_j), O(S) gates. (3) New cell value c'_j = (h_j AND w(state,r)) OR (NOT h_j AND c_j) where w is a constant-size table over (state,r), O(S) gates. (4) Work-head shift: h'_j = (h_{j-1} AND move_right) OR (h_{j+1} AND move_left) OR (h_j AND stay), O(S) gates. (5) State update: constant-size table, O(1) gates. (6) Input-head position p in [0,N-1] stored in log N bits; increment p <- p+1 is a binary adder with O(log N) gates. Each step costs O(S + log N) gates. Concatenating tau steps gives O(tau*(S + log N)) = O(tau*S + tau*log N). Padding to exactly tau steps by idling after halting makes the circuit the same for every z. SCOPE: this proves the bound for a constant-alphabet, constant-state TM with a one-hot work-head encoding and explicit binary input-head counter. The RAM variant (poly(S,m) per operation) is not touched. It does not close G0002 (worst-case update time) or hypothesis (8).\nsession: pnp-desk/research/R2427\nmodel: nemotron-3-ultra-550b\ncan_review: True\ninstruction: Try to refute this step with a lab counterexample or name its exact argument gap; then record SURVIVED_REVIEW or REFUTED with evidence.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795494029.2794719,
+  "session": "pnp-desk/research/R2479",
+  "model": "gpt-6-luna",
+  "evidence": "For the stated single-tape model, the one-hot work-head encoding makes each step's tape read, cell writes, head shift, and state update computable with O(S) fan-in-two gates. The binary input-position increment costs O(log N) gates per step, so tau steps cost O(tau(S+log N)); the stated bound follows. Padding with idle transitions preserves a fixed circuit shape. Boundary behavior must be part of the fixed machine transition convention. The claim explicitly excludes the RAM variant and does not establish G0002 or hypothesis (8); this review confirms only its stated single-tape scope.",
+  "review_of": "S0074",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795494131.5593185,
+  "session": "pnp-desk/research/R2479",
+  "model": "gpt-6-luna",
+  "id": "S0076",
+  "proved_step": "statement: LEMMA (variable-length oracle query normalization by a PH wrapper). Let A be any oracle language in PH and let ell>=1. Suppose each of at most q oracle-call slots in a circuit computes an explicit query y of length k<=ell and receives the bit 1_A(y). Put h=ceil(log2(ell+1)) and L=h+ell. Define A_ell on L-bit strings u||v, with |u|=h and |v|=ell, to accept exactly when u encodes k<=ell and v[1..k] belongs to A. Then A_ell is in PH, and replacing each original query with the fixed-length query bin_h(k)|| (y followed by ell-k zeroes) preserves the computation exactly. The transformation adds O(qL) ordinary fan-in-two gates for length encoding, padding, and inactive-slot masking, plus q fixed-L oracle gates. Proof: Parsing the length and extracting the indicated prefix are polynomial-time operations, so A_ell is a polynomial-time preimage of A and belongs to PH. For any original query y of length k, the constructed fixed-length query has prefix bin_h(k) and payload beginning with y; by definition its A_ell answer is 1_A(y), regardless of y's trailing bits. Thus every active call returns the same answer. The query transformation uses O(L) gates per slot; adaptive calls remain valid because each is computed from the same current configuration and prior answers. Inactive slots can use a fixed query and mask its answer. This repairs variable-length padding by changing to the explicitly defined PH oracle A_ell. It does not establish the manuscript's lower-bound hypothesis (8), the MMW update-time premise, or P!=NP.\ncandidate_derivation: The complete statement and proof are in proved_step.statement. It repairs the variable-length padding defect by encoding the original query length and using A_ell, rather than appending bits and querying the original A. The claim is limited to oracle-query normalization.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795494293.6972744,
+  "session": "pnp-desk/research/R2479",
+  "model": "gpt-6-luna",
+  "id": "S0077",
+  "proved_step": "statement: REPAIRED LEMMA (query normalization for an explicitly padded interface). Let A be a language in PH and let ell>=1. A query interface supplies each query as a pair (k,v), where 0<=k<=ell and v is an ell-bit register whose first k bits are the queried string y; the remaining bits are arbitrary. Define A_ell(k,v)=1 iff k<=ell and v[1..k] is in A. Then A_ell is in PH, and replacing each call to A on y with a call to A_ell on (k,v) preserves every answer, including in adaptive computations. The wrapper query is constructed by wiring the existing length register and fixed-width buffer, so it adds no routing gates beyond the interface's existing representation. Proof: parsing k and extracting the first k bits are polynomial-time operations, so A_ell is in PH. By definition A_ell(k,v)=1_A(y). Induction on call slots shows each answer and subsequent configuration are unchanged. This lemma makes no O(qL) claim for converting a compact variable-length string to a padded buffer; that conversion requires a separately specified encoding and cost bound.\ncandidate_derivation: This repairs the overbroad cost assertion in S0076 by restricting the input interface explicitly to a length register plus a fixed-width prefix buffer. In that model, the wrapper query is the existing pair (k,v), so the argument proves answer preservation without an unspecified variable-length routing network. The finite discovery experiment requested in this session will check the prefix semantics for ell<=8 but is not evidence for the general lemma; the proof is the definition-level argument above.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
  }
 ]

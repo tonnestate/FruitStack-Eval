@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 12890 entries from 3483 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 13005 entries from 3521 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For any finite language F over a fixed input length, a deterministic left-to-right membership machine must assign different states after prefixes with different residual suffix languages; conversely, the residual-language classes support a deterministic transi
+  - For exact Search-MCSP stream computations, fixed-oracle access in the decoder does not weaken the affine F_2 state lower bound S>=N, provided the oracle is input-independent and the decoder's input-dependent information is only the final state. This does not a
+  - The G=1 transition structure lemma implies that for any streaming system with per-step gate budget G=1, the transition function at each step is extremely restricted: all non-linear behavior comes from a single shared two-literal gate. This severely limits the 
   - The bounded-residual layered circuit lemma (S0424) provides an exact non-uniform circuit upper bound for any language with polynomially bounded residual counts. The critical question for Q-156fa9c912 is whether EXT_{n,s} has such a polynomial residual bound (D
   - For EXT_{n,s} at layer t, the minimum number of states of an exact deterministic recognizer equals the number of distinct residual sets R_t(p); the lower bound follows from distinguishability, and storing the residual itself gives the matching upper bound.
   - There may be Boolean-function families for which the minimum-over-orders maximum residual count is asymptotically much smaller than the exponential of the minimum-over-orders maximum rational cut rank.
-  - For a fixed encoding and reachable transition domain U, the minimum update gate count is at least the number of output coordinates whose restricted Boolean functions are not constants or input projections, but this bound may be weak because one gate can feed m
-  - For CNFs with few crossing clauses at a variable cut, the satisfying-assignment matrix admits a low-rank representation with rank at most 2^t over Q, where t is the number of crossing clauses.
-  - For every finite nonempty F subset of {0,1}^N, the number D_t of distinct suffix residuals at cut t is at most min(2^t, |F|+1), with equality behavior controlled by the number of distinct live prefixes plus the presence of at least one dead prefix.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -31,20 +31,20 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3079 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3088 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-18ef6fb2f5 [MISSING_PROOF, OPEN] Can exact prefix counts for the candidate refuter set be computed by a deterministic uniform procedure within the precise CJSW resource bounds, or can a weaker count approximation still guarantee avoidance?
+  - Q-8015ce954f [MISSING_PROOF, OPEN] For F=Im(Eval_{n,s}), can the residual slice R_p[b] be computed from a compact representation of R_p with real fan-in-two gate cost polynomial in s and n, uniformly over arbitrary MCSP decision circuits H_C for the same 
+  - Q-2b1139e698 [MISSING_PROOF, OPEN] Can boundary-band localization for MCSP_s be strengthened into a quantitative lower bound on boundary edges or a restriction-stable statement that yields superlinear circuit complexity for the MCSP decision function? The
+  - Q-55329051ea [MISSING_PROOF, OPEN] For which structurally specified classes of MCSP decision circuits H can every prefix projection OR_{u} H(pu) be computed by a uniform circuit using polynomially many real gates, with an explicit bound in N and circuit s
   - Q-cf2024fe04 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:fcd7f2c23e93 by pnp-desk/research/R2432:nemotron-3-nano-omni-reasoning@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: The distinct-cofactor synthesis bound
-  - Q-aa875df5e7 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:c3217819f044 by pnp-desk/research/R2416:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I did not produce a self-contained L
-  - Q-51609197b6 [MISSING_PROOF, OPEN] Can the residual set Ext_F(p), or its update under one next truth-table bit, be represented and computed from an arbitrary MCSP decision circuit H_C with transition cost polynomial in its circuit size and the encoded sta
-  - Q-dfa4d8b2f5 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:0405348baaad by pnp-desk/research/R2392:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The knowledge search found an earlie
-  - Q-e6927a7742 [MISSING_PROOF, OPEN] Does there exist an efficiently computable column-lattice basis H for rank-r threshold instances for which the coordinate-range product product_k(2 sum_i |(H^{-1}M_i)_k|+1) is asymptotically smaller than the original coo
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

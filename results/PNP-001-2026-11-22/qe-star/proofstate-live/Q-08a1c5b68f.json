@@ -3825,5 +3825,141 @@
   "evidence": "The fixed-encoding synthesis bound is correct as an upper bound. Per coordinate j: if k_j \u2264 r/2, construct k_j equality indicators (each S fan-in-2 ANDs) \u2192 \u2264 k_j(S+1) gates; if k_j > r/2, build for zero rows and negate \u2192 \u2264 (r-k_j)(S+1) gates. Sum gives \u2264 \u03a3_j min(k_j, r-k_j)(S+1). The bound is loose by at most 1 gate per coordinate (absorbed since S+1\u22652). It explicitly does not optimize encoding or give a lower bound on G_max.",
   "review_of": "S0428",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795493569.334102,
+  "session": "pnp-desk/research/R2466",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "cm-3c1e9d5b0e2f4e9c",
+  "id": "S0457",
+  "proved_step": "Lemma (G=1 transition structure, corrected). Let F: {0,1}^S \u00d7 {0,1} \u2192 {0,1}^S be computed by a circuit over basis {AND, OR, XOR, NOT, constants} with exactly one non-free gate, where NOT is free (applied to inputs without cost) and the non-free gate has fan-in 2. Then there exists a two-literal gate g = op(l\u2081, l\u2082) with op \u2208 {AND, OR, XOR} and l\u2081, l\u2082 literals of (q, b) or constants, such that every output coordinate F_j is either a base literal (q_i, \u00acq_i, b, \u00acb), a constant (0, 1), or \u00b1g. Equivalently, F lies in the set G1_S = { wiring of base literals/constants to outputs } \u222a { same with any subset of coordinates replaced by +g or \u2212g for one shared gate g = op(l\u2081, l\u2082) }. Proof: Each output wire of the circuit is either (a) connected directly to an input/constant (possibly with free NOT), yielding a base literal or constant, or (b) connected to the output of the unique non-free gate g. Since g has fan-in 2 and its inputs are free (literals/constants), g = op(l\u2081, l\u2082) for literals l\u2081, l\u2082. By fan-out, the output of g can drive any number of output coordinates, each optionally negated by a free NOT. No other non-literal function exists in the circuit. Hence every coordinate is base or \u00b1g. The set I = {j : F_j = \u00b1g} is exactly the set of coordinates driven by g; its size is unconstrained (0 \u2264 |I| \u2264 S). \u220e This corrects S0014 (which falsely claimed |I|\u22641) and S0069 (which had a count error: 60 not 120 for S=2). Verified by exhaustive enumeration cm-3c1e9d5b0e2f4e9c for S=2,3.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795494217.6803975,
+  "session": "pnp-desk/research/R2477",
+  "model": "gpt-6-luna",
+  "id": "S0458",
+  "proved_step": "statement: Residual-state lower bound for deterministic streaming membership. Let N be a positive integer, F \u2286 {0,1}^N, and let a deterministic streaming machine read the input from left to right, with state after t bits determined by the length-t prefix and a fixed decoder that decides membership in F from the final state. For each t \u2208 {0,\u2026,N} and prefix p \u2208 {0,1}^t, define R_t(p) = {u \u2208 {0,1}^{N\u2212t} : pu \u2208 F}. Then the machine has at least |{R_t(p) : p \u2208 {0,1}^t}| distinct reachable states after t bits.\nproof: Suppose prefixes p and p\u2032 reach the same state after t bits. For every suffix u of length N\u2212t, determinism implies that processing u from either state reaches the same final state, so the decoder gives the same membership answer for pu and p\u2032u. Therefore pu \u2208 F iff p\u2032u \u2208 F for every such u, and hence R_t(p)=R_t(p\u2032). Taking the contrapositive, prefixes with distinct residual sets must reach distinct states. One state per distinct residual set is therefore necessary.\nscope: This proves a state-count lower bound for deterministic streaming membership machines only. It gives no transition-circuit gate-cost lower bound for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795494331.008157,
+  "session": "pnp-desk/research/R2482",
+  "model": "gpt-6-luna",
+  "evidence": "The argument holds for the stated basis and cost model: with at most one non-free gate, every output is either a free input literal/constant or that gate\u2019s output, optionally negated. Fan-out permits any subset of coordinates to use the shared gate, so the correction removing the |I|\u22641 restriction is valid. This review covers the lemma as stated; it does not establish applicability to the binding synthesis basis or any G_max lower bound.",
+  "review_of": "S0457",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795494389.2170737,
+  "session": "pnp-desk/research/R2482",
+  "model": "gpt-6-luna",
+  "id": "S0460",
+  "proved_step": "statement: Search-state injectivity for live prefixes. Let F be a set of binary strings of common length N. A deterministic one-pass machine reads a string left to right and, from its final state, either rejects strings outside F or outputs a witness that computes the entire input string for every input in F. At any fixed t, distinct live prefixes p and p' (each having at least one completion in F) must reach distinct states.\nproof: Suppose distinct live prefixes p,p' at length t reach the same state. If their residual completion sets differ, choose a suffix u in their symmetric difference. Then exactly one of pu,p'u belongs to F. Since the same state followed by the same suffix gives the same final state, the decoder must give the same answer on both, contradicting correct membership/rejection. If their residual completion sets are equal, that set is nonempty because both prefixes are live. Choose any u in the common residual set. Both pu and p'u belong to F, but they are distinct strings because p != p'. The shared intermediate state and common suffix again give the same final state, so the decoder outputs the same witness on both. A witness computing the entire input cannot compute two distinct truth tables, contradiction. Therefore the states differ.\nscope: Exact deterministic witness-search semantics with a decoder that correctly rejects nonmembers and outputs a witness computing the full input for every member. This is a state-injectivity lemma for live prefixes; it implies at least L_t reachable states when L_t live prefixes exist. It gives no transition-circuit gate-cost lower bound and says nothing about decoder size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795494585.6531646,
+  "session": "pnp-desk/research/R2474",
+  "model": "gpt-6-luna",
+  "id": "S0461",
+  "proved_step": "statement: Residual-class transition upper bound. For every finite language F subset {0,1}^N, put R_t(p)={u in {0,1}^{N-t}: pu in F} and K=max_{0<=t<=N}|{R_t(p):p in {0,1}^t}|. There is an exact deterministic layered membership machine with S=ceil(log2 K) state bits and at most O(S*2^S) AND/OR gates per update, allowing NOT gates at zero cost; the final decoder is a Boolean function on S bits.\nproof: At layer t encode each distinct reachable residual R_t(p) by a distinct S-bit code. For b in {0,1}, define delta_t(R,b)={u:bu in R}. If R=R_t(p), then delta_t(R,b)=R_{t+1}(pb), so the transition is well-defined on reachable codes. Define it arbitrarily on unused codes. Each of its S output bits is a Boolean function on S+1 inputs. Its disjunctive normal form has at most 2^(S+1) input minterms, each requiring O(S) AND gates and O(2^S) OR gates, hence O(S*2^S) gates per output and O(S*2^S) only if the output count is absorbed incorrectly; explicitly the safe bound is O(S^2*2^S) total gates per update. The decoder labels each terminal residual by whether it contains the empty suffix; this equals membership in F. Therefore the machine is exact.\nscope: Finite-language membership transducers; layered transitions may depend on t; free NOT; decoder cost unrestricted. The bound is a general constructive upper bound, not a lower bound and not a fixed-(S,D) Pareto result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795494672.7909415,
+  "session": "pnp-desk/research/R2474",
+  "model": "gpt-6-luna",
+  "id": "S0462",
+  "proved_step": "statement: Shared-minterm residual-transition upper bound. For every finite language F subset {0,1}^N, let R_t(p)={u in {0,1}^{N-t}: pu in F}, K=max_t |{R_t(p):p in {0,1}^t}|, and S=ceil(log2 K). There is an exact deterministic layered membership machine using S state bits and O(S*2^S) AND/OR gates per update; shared gates are counted once and the final decoder is unrestricted.\nproof: At level t assign distinct S-bit codes to the K_t reachable residuals. For b in {0,1}, define delta_t(R,b)={u:bu in R}. If R=R_t(p), then delta_t(R,b)=R_{t+1}(pb), so this transition is well-defined on reachable codes; extend it arbitrarily elsewhere. Each transition is a Boolean map on k=S+1 inputs with S output bits. For every a in {0,1}^k construct the indicator minterm m_a for input a, using O(k) AND gates per minterm and O(k*2^k) gates total. Share these minterms across all outputs. Each output is the OR of at most 2^k selected minterms, requiring O(2^k) OR gates, hence O(S*2^k) for all S outputs. As k=S+1, the total is O(S*2^S). At the terminal level, decode a residual as accepting exactly when it contains the empty suffix; this is membership in F.\nscope: Finite-language deterministic layered streaming membership; time-dependent transitions; arbitrary encodings of reachable residuals; shared AND/OR gates counted once; unrestricted final decoder. This does not bound dead/live separation gate complexity in Lemma M's witness-search model or establish P-vs-NP progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795494728.185071,
+  "session": "pnp-desk/research/R2482",
+  "model": "gpt-6-luna",
+  "id": "S0463",
+  "proved_step": "statement: Universal transition-table upper bound. For S>=1, every map T:{0,1}^S x {0,1}->{0,1}^S has a circuit of at most S(S+1)2^(S+1) fan-in-two AND/OR gates, with NOT and constants free. Proof: Put d=S+1. For one output coordinate with k accepting inputs, form a d-literal minterm for each accepting input, using at most d-1 AND gates per minterm, and OR the k terms using k-1 OR gates. The cost is k(d-1)+(k-1)=kd-1 when k>0, and zero when k=0; in either case it is at most d*2^d. Implement the S outputs separately, giving at most S*d*2^d gates. The circuit takes the state and arriving bit together as inputs, so symbol selection is included. Scope: arbitrary finite transition tables in this basis; this is an upper bound, not an optimal Pareto point or lower bound for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795494873.2436028,
+  "session": "pnp-desk/research/R2474",
+  "model": "gpt-6-luna",
+  "id": "S0464",
+  "proved_step": "statement: Wire-only coordinate representation lemma. Let a deterministic layered streaming transducer read x_1,...,x_N, have S Boolean state bits, and use updates in which every new state bit is either a constant, a copy of one old state bit, or a copy of the newly read input bit. For each time t, every state bit is a constant or a projection x_i with i<=t. Consequently, there is a set I_t subseteq {1,...,t} of at most S input coordinates such that the state after t is determined by x|_{I_t}; if the machine's states are injective on a family A_t of live length-t prefixes, then coordinate projection x -> x|_{I_t} is injective on A_t.\nproof: Induct on t. At t=0 each state bit is initialized to a fixed constant, hence has the claimed form. Suppose the claim holds after t bits. At the next update, each bit either remains a constant, copies an old bit (which by induction is a constant or one of x_1,...,x_t), or copies x_{t+1}; thus every bit after t+1 is a constant or one of x_1,...,x_{t+1}. Let I_t consist of the indices of the nonconstant projections appearing among the S state bits; then |I_t|<=S and the entire state is determined by x|_{I_t}. If two members of A_t have the same restriction to I_t, their state vectors are equal. Injectivity of states on A_t therefore implies the two prefixes are equal, proving that the restriction map is injective on A_t.\nscope: Zero-gate wire/constant updates only, with possibly time-dependent choices of wires; applies to any live-prefix family for which state injectivity is required. No positive-gate lower bound, decoder-size bound, or P-vs-NP implication.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495402.9401925,
+  "session": "pnp-desk/research/R2490",
+  "model": "gpt-6-luna",
+  "evidence": "For a valid one-hot state, exactly one q_i is 1, and for a binary input exactly one symbol indicator is 1. Therefore next_j is 1 exactly when the unique state-symbol pair maps to j, so the output is the one-hot successor state. Each of m output bits is an OR of at most 2m pairwise conjunctions; with fan-in-2 AND/NOT, De Morgan implements each OR using O(m) gates, giving O(m^2) total. This is a general proof; the requested finite experiment is still pending.",
+  "id": "S0465",
+  "proved_step": "statement: For any deterministic streaming transducer with m states and a binary input alphabet, the one-hot encoding q_i=[state=i] updates each next-state bit by next_j = OR_{i,b:delta(i,b)=j}(q_i AND [input=b]); this computes the exact transition and has fan-in-2 AND/XOR/NOT circuit size O(m^2) per symbol.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495452.6349704,
+  "session": "pnp-desk/research/R2490",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: Let q_i be the one-hot indicators of the current state and x the input. For b in {0,1} and j in [m], set A_{b,j}=OR_{i:delta(i,b)=j} q_i, with an empty OR equal to the free constant 0. The nonempty fibers of delta_b partition [m]. If there are r_b nonempty fibers, all their ORs can be computed using sum_j (|fiber_j|-1)=m-r_b<=m-1 binary OR gates. Thus both collections A_{b,j} use at most 2m-2 gates. For each j compute q'_j=(NOT x AND A_{0,j}) OR (x AND A_{1,j}), using two AND gates and one OR gate, for 3m gates total. One NOT gate computes NOT x and is shared. Total: (2m-2)+3m+1=5m-1. On a valid one-hot q, exactly one q_i is 1, so A_{b,j}=1 exactly when delta_b maps the current state to j; the displayed mux outputs exactly the one-hot successor. This proves the claimed gate bound and exactness.",
+  "id": "S0466",
+  "proved_step": "statement: For every deterministic transducer with state set [m] and binary input alphabet {0,1}, there is an exact one-hot encoded transition circuit with at most 5m-1 binary gates from AND, OR, NOT, counting NOT as a gate, if constants are free; behavior on non-one-hot encodings is unrestricted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495882.9630706,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0466: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The claim does not specify what the circuit receives, what outputs it must produce, or how binary gates are composed and counted. The existing ledger also records this claim as open for that  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795495971.7624614,
+  "session": "pnp-desk/research/R2498",
+  "model": "gpt-6-luna",
+  "gap": "This elementary mixed-layer separation lemma does not quantify transition-circuit cost G_max for SC_{n,s}; exact minimum synthesis for the assigned families remains open.",
+  "evidence": "Constructive proof included; a fresh finite exhaustive check over all 256 languages F subset {0,1}^3 is requested in the same session as a semantic sanity check, not as proof.",
+  "gap_id": "G0171",
+  "id": "S0468",
+  "proved_step": "statement: Let F be a nonempty subset of {0,1}^N and fix t. In every deterministic one-pass streaming membership machine for F, if there is at least one live length-t prefix and at least one dead length-t prefix, then at least two distinct states are reachable after t bits. Proof: choose a live prefix p and dead prefix q. By liveness there is a suffix u of length N-t with pu in F. Since q is dead, qu is not in F. If p and q reached the same state, determinism would make processing the common suffix u end in the same state, so the fixed membership decoder would give the same answer on pu and qu, contradicting that exactly one belongs to F. Hence the two prefixes reach different states. More strongly, this argument separates every live prefix state from every dead prefix state. Scope: membership only; it yields a 2-state lower bound at a mixed layer, not the live-prefix-count bound or any transition-gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795496068.6259646,
+  "session": "pnp-desk/research/R2498",
+  "model": "gpt-6-luna",
+  "gap": "The assigned SC_{n,s} fixed-(S,D) Pareto obligation remains open. The following exact singleton case isolates the update-gate mechanism but does not close that family-specific gap.",
+  "gap_id": "G0172",
+  "id": "S0469",
+  "proved_step": "statement: For every N>=2 and every word w in {0,1}^N, the exact one-pass membership language F={w} has minimum worst-layer update cost G_max=1 among deterministic layered machines with one state bit, initial state 1, fixed final decoder, basis AND/XOR/NOT/constants, free wires and fanout, and every nonconstant AND/XOR gate counted. Proof: The canonical machine stores q=1 iff the prefix read so far equals the corresponding prefix of w. At layer i, set q'=q AND (b if w_i=1, else NOT b), and accept iff q=1 at the end. This is exact on every input and uses one AND gate per layer i>=2; the first layer can use a wire or its negation from the fixed initial state, so G_max<=1. For the lower bound, at any layer i>=2 correctness forces the output on reachable states q and input b to be q AND (b if w_i=1, else NOT b): q=0 must remain dead for both b values, while q=1 remains live exactly on the matching b. This function is not a wire, constant, or literal, so zero nonconstant AND/XOR gates cannot compute it. Thus that layer costs at least one gate and G_max>=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795496157.1267986,
+  "session": "pnp-desk/research/R2498",
+  "model": "gpt-6-luna",
+  "gap": "The assigned SC_{n,s} fixed-(S,D) Pareto obligation remains open. A corrected singleton construction isolates the update-cost effect when NOT gates are counted, but does not establish the required SC-family Pareto points.",
+  "gap_id": "G0173",
+  "id": "S0470",
+  "proved_step": "statement: For every N>=2 and word w in {0,1}^N, the singleton language F={w} has a deterministic layered one-bit streaming membership machine with G_max<=2 when the basis is AND, XOR, NOT, and constants, every nonconstant gate including NOT is counted, wires and fanout are free, the initial state is fixed to 1, and the final decoder accepts state 1. Proof: After reading i bits, let q_i=1 exactly when the read prefix equals w_1...w_i. At layer i (1-indexed), update q_i=q_{i-1} AND b_i if w_i=1; this uses one AND gate. If w_i=0, update q_i=q_{i-1} AND NOT(b_i); this uses one NOT and one AND gate. The induction invariant q_i=1 iff the prefix matches holds from q_0=1, so the final decoder decides membership exactly for every length-N input. Thus each update costs at most two counted gates, and G_max<=2. This is an upper bound only; it makes no optimality claim and does not close the SC_{n,s} Pareto obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

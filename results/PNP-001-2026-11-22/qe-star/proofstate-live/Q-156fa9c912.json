@@ -4187,5 +4187,140 @@
   "evidence": "Triangular system y_i = T_i(x,y_{<i}) has unique forward solution by induction on gate topological order; construction yields a satisfying y, and any satisfying y must coincide on each i because predecessors are fixed by induction, so exactly one y per x. On that y, T_out = C(x). Hence sum_y H_C(x,y)=C(x) with Boolean values 0/1. No counterexample found; scope matches deterministic acyclic circuit with stated encoding.",
   "review_of": "S0430",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795493700.7903585,
+  "session": "pnp-desk/research/R2476",
+  "model": "gpt-6-luna",
+  "evidence": "The proof allows up to 2D terms for each output bit, so its derived bound is 2Dm+(2D-1)+(m+1)=2Dm+2D+m when there is at least one term. The stated inequality against (2^m+1)(m+1) is false: at D=2^m its left side is 2^(m+1)(m+1)+m, larger than the claimed bound. The DNF construction itself remains valid with the corrected bound.",
+  "review_of": "S0431",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795493700.8365657,
+  "session": "pnp-desk/research/R2476",
+  "model": "gpt-6-luna",
+  "id": "S0500",
+  "proved_step": "For D>=1, E>=1, m=ceil(log2 D), r=ceil(log2 E), and deterministic maps delta_0,delta_1 from a D-element state set X to an E-element set Y, the encoded transition function on valid state codes and one input bit has a fan-in-two AND/OR/NOT circuit of size at most r(2Dm+2D+m). Proof: For each output coordinate enumerate the t<=2D valid pairs (x,b) yielding output 1. Each minterm uses at most m AND gates on m+1 literals; if t>0 the OR costs t-1 gates; shared input negations cost at most m+1. The total is at most mt+(t-1)+(m+1)<=2Dm+2D+m. An empty disjunction is constant 0. Repeating over r coordinates proves the claim. This bound repairs the incorrect inequality in S0431.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795493774.9270878,
+  "session": "pnp-desk/research/R2476",
+  "model": "gpt-6-luna",
+  "gap": "S0432's attempted review was rejected for same-model-family authorship. The visible pending steps S0431-S0435 are all authored by gpt-6-luna, so I cannot independently review them. Need the fresh proof-state result to locate the next eligible step.",
+  "gap_id": "G0176"
+ },
+ {
+  "at": 1795494321.0377812,
+  "session": "pnp-desk/research/R2484",
+  "model": "gpt-6-luna",
+  "id": "S0502",
+  "proved_step": "statement: LEMMA (EXT as existential projection of a decision circuit). Let H:{0,1}^N->{0,1} decide membership in a family F of N-bit strings, and let EXT_H(p)=1 iff some member of F extends prefix p. For every prefix p of length t, EXT_H(p)=OR_{u in {0,1}^{N-t}} H(pu). For b in {0,1} and t<N, EXT_H(pb)=OR_{u in {0,1}^{N-t-1}} H(pbu). Proof: By the definition of concatenation, the strings extending p are exactly the pu with |u|=N-t; membership in F is exactly H(pu)=1. The same argument applies after fixing next bit b. Thus the exact next-state values are existential projections of H, with the explicit disjunction using 2^(N-t) and 2^(N-t-1) evaluations respectively. This gives no bounded-call or gate-cost-preserving reduction for arbitrary H.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795494419.7270205,
+  "session": "pnp-desk/research/R2484",
+  "model": "gpt-6-luna",
+  "id": "S0503",
+  "proved_step": "statement: LEMMA (EXT prefix has a short verifiable circuit witness). Fix n,s and an explicit binary encoding of fan-in-two Boolean circuits with at most s gates, where each gate record uses O(log(n+s)) bits and the output wire is specified in the description. Let N=2^n. For each t in {0,...,N}, define EXT_{n,s}(p)=1 for p in {0,1}^t iff there exists a valid description d of at most L=O(s log(n+s)) bits whose circuit C_d agrees with p on the first t inputs in the fixed truth-table order. Then EXT_{n,s}(p) is in NP with witness length at most L+O(1) and deterministic verification time O(t(s+n)+L), in a standard gate-list encoding. Proof: Guess d, reject if it is not a valid circuit description of the stated size, then for each of the t input strings evaluate the s-gate circuit in topological order and compare its output with the corresponding bit of p. One circuit evaluation costs O(s+n) including input access under the stated encoding, so all comparisons cost O(t(s+n)); description validation and parsing cost O(L). The verifier accepts exactly when a size-at-most-s circuit has the required prefix, which is exactly the defining existential condition. Scope: this proves a nondeterministic upper bound and an explicit certificate/checking cost only; it gives no deterministic transition algorithm, no compression of the candidate set, and no hardness lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795494537.9907935,
+  "session": "pnp-desk/research/R2484",
+  "model": "gpt-6-luna",
+  "id": "S0504",
+  "proved_step": "statement: LEMMA (listed-family EXT update). Let F={C_1,...,C_M} be an explicitly listed family of Boolean circuits on n inputs, and let E_j be their truth tables in a fixed order. For a prefix p of length t<2^n, define A={j: E_j[0..t-1]=p}. Then EXT_F(p0)=OR_{j in A}[E_j[t]=0] and EXT_F(p1)=OR_{j in A}[E_j[t]=1]. Proof: A candidate extends p followed by b exactly when it agrees with p and its next output is b; existential quantification over F is therefore the displayed OR. Given circuit descriptions, both bits have real fan-in-two circuits of size O(M(t+1)(s+n)): evaluate each candidate on the first t inputs and input t, test the t prefix bits, combine each test with the next output, then OR over candidates. This construction is exact and explicit. Scope: it gives an enumeration upper bound only; it does not bound M polynomially or implement the update from an arbitrary fixed H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795494865.3329587,
+  "session": "pnp-desk/research/R2484",
+  "model": "gpt-6-luna",
+  "id": "S0505",
+  "proved_step": "statement: LEMMA (explicit-family streaming update). Let F=(C_1,...,C_d) be an explicitly listed family of Boolean circuits on n input bits, each with at most s fan-in-two gates. At stream position i, represent the live candidates by a vector a in {0,1}^d, where a_j=1 iff C_j agrees with all previously read truth-table bits. On reading b, set a'_j=a_j AND (b iff C_j(i)=1), and increment i. This is exact: by induction on the number of read bits, a'_j=1 exactly when C_j agrees with the entire extended prefix. A transition can be implemented by evaluating each C_j on the binary encoding of i and ANDing its equality-to-b test with a_j; with straightforward fan-in-two circuitry this costs O(d(s+n)) gates, including the index increment. Thus explicit candidate tracking is polynomial when d,s,n are polynomially bounded, but the lemma gives no polynomial bound when d is the full circuit-description count.\nevidence: Independent proof by induction over stream positions. Finite DISCOVERY check cm-69dd62ee713f4a79 tested all 256 families of three-input Boolean functions and all prefixes (130,816 cases); it matched the predicted identity. This computation is corroboration only, not the general proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495249.444646,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "id": "S0506",
+  "proved_step": "LEMMA (finite residual update). Let N=2^n and let F be any subset of {0,1}^N. For a prefix p of length t\u2264N, define R_p={z\u2208{0,1}^{N-t}: pz\u2208F}. For t<N and b\u2208{0,1}, R_{pb}={u\u2208{0,1}^{N-t-1}: bu\u2208R_p}. Consequently, R_p is nonempty iff p has an extension in F, and updating the residual after reading b is exactly taking the b-slice of R_p. Proof: For each u of length N\u2212t\u22121, u\u2208R_{pb} iff pbu\u2208F by definition of R_{pb}; this holds iff bu\u2208R_p by definition of R_p; hence the sets are equal. Nonemptiness follows directly from the definition. This is an exact information-level update identity for every finite family F; it gives no bound on the cost of representing or computing the slice for EXT_{n,s} or from an arbitrary MCSP decision circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795495321.2592578,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "id": "S0507",
+  "proved_step": "LEMMA (explicit candidate-list update circuit). Fix n\u22651, a finite list C_1,\u2026,C_M of n-input Boolean circuits, each with at most s fan-in-two gates, and enumerate inputs as x_t=bin_n(t) for 0\u2264t<2^n. A state is (t,a_1,\u2026,a_M), where a_j=1 iff C_j agrees with the streamed prefix of length t. There is a fan-in-two AND/OR/NOT transition circuit taking (t,a_1,\u2026,a_M,b) to (t+1,a'_1,\u2026,a'_M), with wraparound at t=2^n\u22121, of size O(n+M(s+1)). It satisfies a'_j=a_j\u2227[C_j(x_t)=b] for every valid state. Proof: wire the n bits of t as x_t; evaluate each hardwired C_j using at most s gates; compare its output with b using O(1) gates and AND with a_j. Increment t modulo 2^n using O(n) gates. Each a'_j is 1 exactly when C_j agreed on the prior t positions and agrees at position t. Induction from (0,1,\u2026,1) proves the invariant. This upper bound concerns only the explicit-list representation; it does not bound M polynomially in n,s or give a lower bound for arbitrary encodings or H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495570.4393694,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "id": "S0508",
+  "proved_step": "statement: LEMMA (explicit candidate-set transition circuit). Let F={C_1,...,C_M} be an explicitly listed family of Boolean circuits on n input bits, each with at most s fan-in-two gates. Represent a prefix state by M agreement bits a_j and the n-bit address x of the next truth-table input. For each streamed bit b, there is a fan-in-two AND/OR/NOT transition circuit, correct on valid states, that outputs a'_j=a_j AND [C_j(x)=b] and increments x modulo 2^n. With descriptions hardwired, its size is at most M(s+5)+O(n).\nproof: For each j, copy C_j to compute c_j=C_j(x), using at most s gates. Share NOT b once. Compute [c_j=b] as (c_j AND b) OR (NOT c_j AND NOT b), using one NOT per c_j, two AND gates, and one OR gate; then compute a'_j=a_j AND [c_j=b] with one more AND gate. This costs at most s+5 gates per candidate, plus the shared NOT b. Increment x with a ripple incrementer: bit 0 is NOT x_0, and bit i>0 is x_i XOR (AND of the lower bits being 1), with XOR implemented by a constant number of AND/OR/NOT gates and the prefix conjunctions shared. This costs O(n). By circuit evaluation, c_j is the jth candidate's next truth-table bit; the equality test retains exactly candidates agreeing with b, and the incrementer supplies the next address. Thus the stated transition is exact.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795495646.0187514,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "id": "S0509",
+  "proved_step": "statement: LEMMA (explicit candidate-family transition). Let F=(C_1,...,C_M) be a fixed, explicitly listed family of Boolean circuits on n-bit inputs, each with at most s fan-in-two gates. Store one live flag a_j per candidate and the next truth-table address x. On incoming bit b, the update a'_j=a_j AND [C_j(x)=b] is implementable by a fan-in-two AND/OR/NOT circuit of size at most M(s+5)+1, plus O(n) gates for incrementing x. For every state and address, a'_j=1 exactly when a_j=1 and C_j(x)=b. Proof: Evaluate each hardwired C_j at x in at most s gates. Compute [C_j(x)=b] as (C_j(x) AND b) OR (NOT C_j(x) AND NOT b), using four gates per candidate and one shared NOT b. AND the result with a_j using one further gate per candidate. This gives M(s+5)+1 gates for filtering. A ripple incrementer updates x in O(n) gates. This is an exact transition for the explicitly listed family; it gives no polynomial-in-s,n bound when M is the full circuit-description count.\nproof: For each j, evaluate the hardwired circuit C_j at x to obtain c_j. The Boolean expression (c_j AND b) OR (NOT c_j AND NOT b) equals 1 exactly when c_j=b and uses four gates per j, with NOT b shared across all candidates. AND this equality indicator with a_j using one gate per candidate. Thus filtering costs at most M(s+5)+1 gates. Increment x with a ripple incrementer using O(n) gates. The resulting bit is 1 exactly for candidates that were previously live and whose next truth-table bit equals b. No assumption about the live set is needed.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795495840.5410001,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "gap": "Q-156fa9c912 remains open: this explicit candidate-mask construction costs O(K) gates per position and stores position-specific masks. It does not bound update cost for EXT_{n,s} or arbitrary MCSP decision circuits in terms polynomial in s,n, nor resolve the H_C connection.",
+  "gap_id": "G0177",
+  "id": "S0510",
+  "proved_step": "LEMMA (position-specific candidate-mask update). Let C_1,...,C_K be an explicitly listed family of Boolean circuits with truth tables E_j in a fixed order. For each position t, define the hardwired mask m_t in {0,1}^K by (m_t)_j=E_j[t]. Given the candidate bitset x in {0,1}^K and next streamed bit b, define x'_j=x_j AND (b iff (m_t)_j). This transition is correct for filtering the candidates consistent with the prefix extended by b, and has a fan-in-two AND/NOT circuit of at most K+1 gates for each fixed t. Proof: If (m_t)_j=1, set x'_j=x_j AND b; otherwise set x'_j=x_j AND NOT b. Share NOT b across coordinates, so the gate count is at most K+1. Coordinate j survives exactly when it was previously present and its truth-table bit at t equals b. Hence the output bitset is precisely the previous candidate set intersected with the candidates agreeing at t; induction on prefix length proves exactness. This is a position-specific circuit family; the masks across all t encode the candidate truth tables, so the result gives no polynomial-in-(s,n) update bound when K is large.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795496047.8118906,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "gap": "The assigned G0004 / EXT-to-H_C transition-cost gap remains open. The residual-width inequality only bounds update cost by q_t<=K; it does not show q_t is polynomial in s,n, nor express the transition through a bounded number of real gates on arbitrary MCSP decision circuits H_C. The exhaustive N=4 discovery check is pending and is not a proof.",
+  "gap_note_on": [
+   "G0004"
+  ],
+  "id": "S0511",
+  "proved_step": "LEMMA (residual-width bound for a finite candidate family). Let F be a nonempty family of K distinct binary strings of length N. For 0<=t<=N, for each length-t prefix u define R_u={v in {0,1}^{N-t}: uv in F}; let q_t be the number of distinct nonempty sets R_u. Then q_t <= min(K, 2^t, 2^(2^(N-t))). Proof: There are at most 2^t prefixes u, hence at most 2^t residuals. Every nonempty residual contains at least one suffix v from a member uv of F; choosing one such member for each distinct residual gives distinct members of F, since distinct residual sets cannot be witnessed by the same member's prefix group. Thus q_t<=K. Finally each residual is a subset of the 2^(N-t) possible suffixes, so there are at most 2^(2^(N-t)) possible residual sets. Taking all three bounds proves the claim. Consequence: the exact level-t residual automaton can store its active state in one-hot form using q_t bits (plus a rejecting sink if desired); its binary transition at that level can be implemented by routing each source state/input pair to the unique next residual or sink, with O(q_t) fan-in-two gates. This sharpens the candidate-list representation to a bound controlled by distinct residuals, but q_t can still be as large as K and the result does not give a polynomial-in-(s,n) update for EXT_{n,s} or arbitrary MCSP circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795496093.5605454,
+  "session": "pnp-desk/research/R2492",
+  "model": "gpt-6-luna",
+  "gap": "The EXT-to-H_C transition-cost question remains open. S0511 bounds distinct residuals only by min(K,2^t,2^(2^(N-t))); for EXT_{n,s}, K may be exponential in s log(n+s). No polynomial-in-(s,n) bound, bounded real-gate simulation through arbitrary MCSP decision circuits H_C, or transfer to arbitrary MCSP circuits follows. The N=4 enumeration is finite and also shows the upper bound is not always tight.",
+  "gap_id": "G0178"
  }
 ]

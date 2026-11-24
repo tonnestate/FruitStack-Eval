@@ -3935,5 +3935,95 @@
   "evidence": "The proof correctly upper-bounds circuit descriptions C. Representable permutation pairs \u2264 2^{mR} C^2. Log bound = mR + O(m log m) < log\u2082((m!)^2) \u2248 2m log\u2082 m - O(m) for large m. No gap found under the stated model.",
   "review_of": "S0415",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795494569.4822366,
+  "session": "pnp-desk/research/R2477",
+  "model": "gpt-6-luna",
+  "evidence": "For at most G gates, encode each gate by its truth table and two prior signals, then choose R outputs. This gives at most 16^G(R+G)^(2G+R), bounded by the claimed looser expression.",
+  "review_of": "S0430",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795494569.5218794,
+  "session": "pnp-desk/research/R2477",
+  "model": "gpt-6-luna",
+  "evidence": "There are (m!)^2 permutation pairs. Across encodings and circuit pairs, the count is at most 2^(Rm) C_G^2. Its leading log2 coefficient is at most 2-8epsilon, below the coefficient 2 for (m!)^2. Thus for sufficiently large m, some pair is missed for every encoding and circuit pair.",
+  "review_of": "S0431",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795494605.1149964,
+  "session": "pnp-desk/research/R2477",
+  "model": "gpt-6-luna",
+  "evidence": "Repairs S0028's reversed consequence: the valid implication is from a general circuit lower bound for L to a total-cost lower bound for any realization. It does not derive a general circuit lower bound from an expensive realization.",
+  "id": "S0468",
+  "proved_step": "statement_start: LEMMA (Correct unrolling transfer). Let L:{0,1}^N->{0,1} have circuit complexity at least h. Any one-pass realization of L with update circuits F_1,...,F_N and readout D has total gate cost at least h.\nstatement: LEMMA (Correct unrolling transfer). Let L:{0,1}^N->{0,1} have circuit complexity at least h in a fixed fan-in-2 basis. Any deterministic one-pass realization with fixed initial state, update circuits F_t(state,x_t), and final readout D computes L by composing F_1,...,F_N,D. The composed circuit has at most sum_t size(F_t)+size(D) gates. Therefore sum_t size(F_t)+size(D) >= h, for every state-space size.\nproof: Construct a circuit by wiring the state outputs of F_t into F_{t+1}, and feed each input bit x_t into its corresponding update. Hard-wire the initial state and wire the final state into D. Induction on t shows that after update t the wires equal the realization's state after reading x_1,...,x_t; hence the output equals L(x). The composed circuit uses only gates from the update circuits and D, so its gate count is at most their sum. Since L requires at least h gates, that sum is at least h.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795494824.464643,
+  "session": "pnp-desk/research/R2486",
+  "model": "gpt-6-luna",
+  "id": "S0469",
+  "proved_step": "statement: LEMMA (support bound for fan-in-2 circuits). Let C be a Boolean circuit with g fan-in-2 gates, constants allowed, and one output. The output depends on at most g+1 input variables. Therefore every circuit computing parity on N input bits has at least N-1 gates. Consequently, any deterministic one-pass realization of parity with update circuits F_1,...,F_N and readout D has total cost sum_t size(F_t)+size(D) >= N-1.\nproof: Let A be the set of input variables on which the output depends. Consider the subgraph consisting of the output gate and all its ancestors; let g' be its number of gates and let l be the number of distinct source wires entering this subgraph, where sources are primary inputs or constants. In the underlying directed acyclic graph, each of the g' gates has at most two incoming edges, so the number of edges is at most 2g'. Every gate other than the output gate has at least one outgoing edge in this ancestor subgraph. Thus the number of edges is at least g'-1 plus the number of source-to-gate edges, and more directly the usual unfolded binary tree has at most g'+1 leaves: unfold fan-out by duplicating subcomputations; this yields a binary formula with at most g' gate occurrences only if there is no fan-out duplication, so instead use dependency sets inductively over gates. Initially each input wire has support size at most 1 and each constant has support 0. For each gate, its output support is contained in the union of the supports of its two input wires. Restrict to the ancestor gates in a topological order. The union of supports at the output can grow by at most one new distinct variable per gate: when a gate combines two signals, any newly introduced variables in its output must already occur among its inputs; counting distinct input variables globally in the ancestor cone, each gate can connect at most two previously disconnected dependency components. Hence |A| <= g'+1 <= g+1. Parity depends on every input, so N <= g+1 and g >= N-1. For a one-pass realization, compose the update circuits in sequence and then D. The resulting circuit computes parity and has at most the sum of their gate counts, so that sum is at least N-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495599.9551969,
+  "session": "pnp-desk/research/R2494",
+  "model": "gpt-6-luna",
+  "id": "S0470",
+  "proved_step": "statement: LEMMA (complement bound for cycle types, fixed function). Let F be a function on an N-element set and let m>N/2. Let Lambda(F,m) be the set of partitions of m that occur as the cycle type of F|A for some A with |A|=m, F(A)=A, and F|A bijective. Then |Lambda(F,m)| <= p(N-m), where p(k) is the number of integer partitions of k and p(0)=1. Proof: For any admissible A, because F|A is a permutation, every point of A lies on a cycle of F wholly contained in A; conversely A is exactly a union of complete cycles. Let B be the complement, a union of the remaining complete cycles, with total size N-m. The multiset of cycle lengths in A is determined uniquely by the full cycle multiset of F minus the multiset in B. Thus the map from admissible A to its omitted cycle multiset is injective at the level of cycle types: if two admissible sets have the same omitted cycle multiset, their selected cycle-type multisets agree. There are at most p(N-m) multisets of positive integers totaling N-m. Hence the bound.\nscope: Finite combinatorial lemma for one fixed function F on N states and m>N/2. Does not establish a circuit-counting lower bound or subclaim A.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495651.1488452,
+  "session": "pnp-desk/research/R2494",
+  "model": "gpt-6-luna",
+  "id": "S0471",
+  "proved_step": "statement: CORRECTED LEMMA (padded omitted-cycle bound). Let F be a function on an N-element set and m>N/2. Let Lambda(F,m) be the cycle types of F restricted to sets A of size m with F(A)=A and F|A bijective. Then |Lambda(F,m)| <= p(N-m), where p(k) counts partitions of k and p(0)=1. Proof: Let C be the multiset of directed cycle lengths of F, and let r be the number of nonperiodic states. Each admissible A consists of whole cycles: every point of A is periodic because F|A is a permutation. Form a partition lambda of N by adjoining r formal parts of size 1 to C. These padding parts are not asserted to be cycles of F. The selected cycle-type multiset sigma(A) is a submultiset of lambda of total m. Its complement in lambda has total N-m and is uniquely determined by sigma(A). Therefore distinct selected cycle types give distinct complementary partitions of N-m, of which there are p(N-m). This proves the bound. Scope: a finite combinatorial lemma only; it does not establish the circuit-counting lower bound or subclaim A.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495701.8294203,
+  "session": "pnp-desk/research/R2494",
+  "model": "gpt-6-luna",
+  "id": "S0472",
+  "proved_step": "statement: LEMMA (cycle-type counting gap away from half density). Fix \u03b5\u2208(0,1/2). Let N\u2192\u221e, let (1/2+\u03b5)N\u2264m\u2264N, S=\u2308log\u2082N\u2309, and let C_G count fan-in-two Boolean circuits on S inputs with S outputs and at most G gates. Assume log C_G=O(G log(G+S)). For each such circuit F, let \u039b(F,m) be the cycle types of F|A over sets A of size m with F(A)=A and F|A bijective. If G=o(\u221aN/log N), then for all sufficiently large N some partition \u03bc of m is absent from \u22c3_{F:size(F)\u2264G}\u039b(F,m). Proof: The corrected omitted-cycle bound gives |\u039b(F,m)|\u2264p(N\u2212m), so the union has size at most C_Gp(N\u2212m). Write a=\u03c0\u221a(2/3). The Hardy\u2013Ramanujan asymptotic log p(k)=a\u221ak+o(\u221ak), and monotonicity of p imply uniformly for m\u2265(1/2+\u03b5)N that log p(m)\u2212log p(N\u2212m)\u2265c_\u03b5\u221aN+o(\u221aN), for some c_\u03b5>0 (when m=N, use p(0)=1 directly). Also log C_G=O(G log(G+S))=o(\u221aN), since S=\u0398(log N). Thus eventually C_Gp(N\u2212m)<p(m), proving that some partition is missed. Scope: this proves the counting conclusion only in the fixed-density range and under the stated circuit-count estimate; it does not yield the claimed bound uniformly as m/N\u21921/2 or a P-vs-NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495972.0254729,
+  "session": "pnp-desk/research/R2494",
+  "model": "gpt-6-luna",
+  "id": "S0473",
+  "proved_step": "statement: LEMMA (input-occurrence lower bound). Let C be a fan-in-2 Boolean circuit with g gates and one output, and suppose its output depends on all N primary input variables, where N >= 2. Then g >= ceil(N/2). Consequently any deterministic one-pass realization of parity on N streamed bits, with update circuits F_1,...,F_N and readout D, has total gate cost sum_t size(F_t)+size(D) >= ceil(N/2). Proof: Delete gates and wires outside the output's ancestor cone; this cannot increase its gate count and preserves dependence on all N variables. Every variable on which the output depends must occur as a source on at least one incoming wire to a gate in that cone: a primary input has no other way to influence a gate-produced output, and the output is not a primary input because it depends on at least two variables. The cone has at most 2g' incoming wire slots, where g' <= g is its number of gates. Assign each of the N distinct relevant variables to one slot where it occurs. Distinct variables require distinct slots, so N <= 2g' <= 2g, hence g >= ceil(N/2). For the streaming consequence, unroll the updates and readout by wiring each state output into the next update and hard-wiring the initial state. This produces a fan-in-2 circuit for parity with at most the sum of the update and readout gate counts. Apply the bound.\nscope: All N>=2; deterministic one-pass realizations with fixed initial state and fan-in-2 Boolean update/readout circuits. This is a linear lower bound only; it does not establish a superlinear cost lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795495987.2746391,
+  "session": "pnp-desk/research/R2494",
+  "model": "gpt-6-luna",
+  "evidence": "The proof's key inference that output support grows by at most one per gate is false: a gate can combine two signals with disjoint supports. The unfolded-tree argument does not account for shared gates, which can duplicate occurrences when unfolded. The computation cm-847d64f3ddd04c6c emitted no rows and did not enumerate circuits; this review is based on the explicit gap in the submitted proof.",
+  "review_of": "S0469",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795496075.3319907,
+  "session": "pnp-desk/research/R2494",
+  "model": "gpt-6-luna",
+  "id": "S0475",
+  "proved_step": "statement: LEMMA (ancestor-incidence bound). Let C be a fan-in-2 Boolean circuit with one output, and suppose its output depends on N>=2 distinct primary input variables. Then C has at least N-1 gates. Proof: Let H be the subcircuit consisting of all gates that are ancestors of the output, including the output gate, and let g' be its number of gates. Form an undirected graph G whose vertices are those g' gates together with the N primary input variables on which the output depends. Put an edge between a gate and each gate or primary input whose signal is connected to one of its input wires; omit constant input wires. Every vertex of G lies in the output component: each ancestor gate has a path through gates to the output, and each relevant input has a path to an ancestor gate by the definition of dependence. Thus G is connected. Each gate contributes at most two incoming-wire incidences, so G has at most 2g' edges (identifying repeated wires can only reduce the edge count). A connected graph on N+g' vertices has at least N+g'-1 edges. Hence N+g'-1 <= 2g', so g' >= N-1, and the whole circuit has at least N-1 gates. For any deterministic one-pass realization of parity on N streamed bits, unroll the update circuits and final readout into a circuit for parity; it has at most the sum of the update and readout gate counts. Since parity depends on all N inputs, that total is at least N-1.\nscope: All fan-in-2 Boolean circuits with N>=2 relevant input variables; consequent total cost lower bound N-1 for deterministic one-pass parity realizations with fixed initial state and fan-in-2 update/readout circuits. This is linear and does not close the open superlinear-cost obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

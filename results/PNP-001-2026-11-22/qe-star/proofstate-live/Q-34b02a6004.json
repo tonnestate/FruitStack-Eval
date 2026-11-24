@@ -1018,5 +1018,22 @@
   "evidence": "Computationally verified for beta in {0.01,0.05,0.1,0.2,0.5} and c in {1,2,3,5,10}: the inequality holds for all sufficiently large N. The proof is mathematically sound: substituting x=log2(N) reduces to c log2(x) <= beta x, which holds for large x since log(x)/x -> 0. The conclusion about MCSP threshold dominance is correct but explicitly noted as not transferring circuit lower bounds.",
   "review_of": "S0127",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795493147.733873,
+  "session": "pnp-desk/research/R2467",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: A' runs A in parallel with a finite trie of all 2^B - 1 strings of length < B plus a dead state. Trie stores 1_L(x) at each leaf. For |x| < B, the trie identifies x and outputs the pre-stored bit; for |x| >= B, A' outputs A's answer. Trie has <= 2^B+1 states, so O_B(1) space for state + O_B(1) bits for the answer table. Each update does one trie transition (O_B(1) time) plus A's update. Correctness holds by cases. No argument gap found; this is a standard finite-exception absorption technique.",
+  "review_of": "S0126",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795493758.6280122,
+  "session": "pnp-desk/research/R2467",
+  "model": "gpt-6-luna",
+  "id": "S0130",
+  "proved_step": "Lemma (finite-input repair). Fix a finite set of binary input strings F and a one-pass streaming decision procedure A for inputs outside F, with space S(N) and update time U(N). There is a one-pass procedure A' that decides any prescribed Boolean labeling of F and agrees with A outside F, using S(N)+O(1) space and U(N)+O(1) update time. Proof: Run A on every input while maintaining a finite-state tracker for membership in F. Such a tracker exists: use a trie of F, with a sink state once the observed prefix cannot be a prefix of any member of F. At end of input, if the tracker identifies a member x of F, output its prescribed label; otherwise output A's answer. The product state stores A's state and one of finitely many tracker states, adding only a constant number of bits and a constant-time tracker update. The constants may depend on F. For Gap-MCSP at a fixed cutoff n0, take F to be all input strings of lengths 2^n for n<n0 and label each promised instance by its exact Gap-MCSP answer (labels on non-promise inputs may be arbitrary). This repairs S0030's erroneous \u201cone fixed bit per length\u201d assertion: the finite table stores a label per input string. It only handles finitely many exceptional lengths and does not verify the magnification theorem's source hypotheses or close row A.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
