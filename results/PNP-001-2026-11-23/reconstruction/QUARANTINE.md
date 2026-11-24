@@ -1,0 +1,29 @@
+# PNP-001 — QUARANTINE (2026-11-24)
+
+## Freeze and authority
+Baseline: d7635f9ea437c494f1c032e4faadfb673a4e90b1 (22:01 CET).
+This is an append-only audit overlay: original events, proofs, reviews and hashes are retained. No historical review status is accepted as a proof merely by inheritance. After baseline, new research events may enter as candidate or disputed only; audit decisions are recorded separately. No automatic promotion to verified during the freeze. E is the sole mathematical research route; A is formalization-only; B/C/D/F/G are paused for 4–6 weeks, with owner review at day 30. This repository policy does not by itself stop a remote worker or scheduler.
+
+## Quarantine register
+| Canonical ID or resolution task | Failure / evidence | Route impact | Dependents / repair status |
+|---|---|---|---|
+| S0028/S0029 (residual-upper-bound statement; question namespace not yet resolved) | R_t <= 2^(N-t) is not a general bound for sets of suffixes. Correct bound R_t <= min(2^t, 2^(2^(N-t))) for distinct residuals among all prefixes; if counting live residuals only, subtract one from the second bound. | A, any consumer of the bound | Block claims using the false inequality, including positively reviewed ones. Resolve exact Q-ID from source before issuing identity-specific retractions. |
+| Q-08a1c5b68f:S0028 and :S0029 | Same short IDs but these actual statements concern a *lower* bound on state count from distinguishable residuals; not the alleged upper bound. | A | Held for requested audit, not declared false on identity alone. Check finite enumeration and search/decision scope. S0152 explicitly says it repairs S0029; hold for re-audit, not automatically refuted. |
+| Q-10bbdfaf2a:S0148 | Fixed exponent k' cannot rule out all polynomial exponents in MMW bullet 3. | B; any MMW transfer relying on it | Quarantined. Replace only after separate audit; S0217 is a candidate repair. |
+| Q-10bbdfaf2a:S0217 | Candidate replacement: for all fixed k, appropriate infinitely-often decision lower bound, then search-to-decision construction with exponent depending on the search bound. | B | Separate audit; no promotion. Require all multiplicative constants/length quantifiers, total search output convention, actual MMW hypotheses. |
+| Q-10bbdfaf2a:S0508 and :S0509 | NAND(z,z)=NOT z, not constant 1. Both proofs explicitly use the false identity. | B; restriction/cofactor transfer consumers | Quarantined. In the full B2 basis use XNOR(z,z)=1 and XOR(z,z)=0, one gate each, with r<m and repeated inputs allowed. For narrower bases recompute overhead. Replacement proof remains candidate. |
+| Q-e575463471:S0010 and :S0011 | Already documented false window bound, reconstruction slice 1 §3. | Any consumer of threshold-window bound | Quarantined; S0033 is a candidate repair requiring scope audit. |
+| Q-156fa9c912:S0037 | Review misattribution documented in slice 1 §4; not a mathematical refutation. | A | Hold as candidate; one matching review is not a completed statement audit. |
+
+### Concrete regression tests
+Residual: N=4, t=3, assign the eight prefixes residual sets cyclically among empty, {0}, {1}, {0,1}. This defines a language with 4 distinct residuals (3 nonempty), exceeding 2^(4-3)=2. NAND test: at z=1 NAND(z,z)=0, whereas XNOR(z,z)=1 for both values. Quantifier test: an abstract minimum-size sequence N(log N)^3 violates an eventual N(log N)^2 bound but is still N polylog N. This is a logical countermodel, not a claim about actual MCSP complexity.
+
+## Transitive propagation and graph limitation
+The reconstruction snapshot out/register-nodes.json contains 742 nodes and out/register-edges.json contains 571 edges: 331 VERIFIED_BY, 137 CLAIMS_TO_CLOSE, 51 REFUTED_BY, 52 REPLACES. It contains **zero DEPENDS_ON edges**. Review/closure/replacement edges are not mathematical dependency edges. No complete dependent list can be established from this graph. Bare S-IDs are nonunique across Q namespaces; use Q-ID:S-ID and immutable statement hashes.
+
+Until dependency reconstruction: any route-critical claim without complete audited dependencies is blocked (yellow/unknown); any known transitive dependent of a quarantined mathematical premise is red. A candidate replacement is not automatically a dependent, and must be audited independently. Traverse validated DEPENDS_ON edges in reverse direction from each red seed to a fixed point; record each path with its premise citation. Distinguish references, repairs and refutations from uses as premises. Never treat an empty result on an incomplete graph as clearance. Retain original transcripts and review evidence; missing transcripts are provenance gaps.
+
+## Release gate
+During freeze audit verdicts are separate from ingestion status. Two independent blind reviewers for each critical node, statement hash and exact quantifiers, proof or kernel artifact, axiom/import audit where applicable, audited dependencies, no known counterexample, and owner approval of freeze exit. Review disagreements remain disputed. No LLM vote establishes truth. Strata for calibration: route, entry type, review polarity; sample with recorded seed, two blind reviewers, adjudication and uncertainty intervals; report both false-positive and false-negative rates only against adjudicated labels.
+
+Sources: baseline proofstate-live/Q-08a1c5b68f.json, Q-10bbdfaf2a.json, reconstruction/RECONSTRUCTION-SLICE-1.md, out/register-nodes.json, out/register-edges.json. Source statements inspected on the later 23:01 snapshot efdbaaa74718b6875a723b1d8280bb6f166463a2 as well; baseline IDs to be reconciled against exact hashes before release. Runtime enforcement and full transitive closure are outstanding.
