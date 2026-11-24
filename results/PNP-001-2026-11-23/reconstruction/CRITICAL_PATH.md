@@ -1,6 +1,9 @@
 # PNP-001 — CRITICAL_PATH (owner decision, 2026-11-24)
 
-> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. VPS_ACTIVATION.md has been removed.
+> **CURRENT STATUS:** The previous freeze order was withdrawn; operational freeze is NOT active or VPS-verified. This audit branch is a historical evidence snapshot. VPS_ACTIVATION.md is a conditional manual template only, not a standing instruction. No route priority is finalized. The actual VPS state has not been independently observed.
+
+
+> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. The original activation order was removed; the new VPS_ACTIVATION.md is a conditional template only.
 
 
 Baseline d7635f9ea437c494f1c032e4faadfb673a4e90b1. E only active mathematical route. A only formalization of existing statements. B/C/D/F/G frozen 4–6 weeks; day-30 owner decision, no automatic restart. Each route sheet below is an audit worklist, not a declaration of proof. Dependencies not reconstructed are blockers under QUARANTINE.md. Source files are relative to results/ unless otherwise indicated.
@@ -75,3 +78,6 @@ Day 30: owner decision from audited evidence, not review counts; no automatic sw
 
 ## Owner follow-up — supersedes sequence above
 Operational activation is not complete; see VPS_ACTIVATION.md. E2_GATE.md is now the only active mathematical audit in E; E1 is parked pending E2 go/no-go. A remains existing-statement formalization only; both reported new Lean declarations are UNSOURCED and excluded until audit passes. SCOPED_GRAPH_E_A.json contains the first source-grounded E/A critical slice and computed dependency-only closures, not a complete corpus graph. No new agent promotion; no VPS activation evidence yet. B/C/D/F/G remain frozen by policy. Reassess E/A when E2 audit is decided, without automatically starting a second offensive.
+
+## Current comparison (supersedes historical routing instructions)
+See ROUTE_COMPARISON.md, E2_GATE.md and A40A_GATE.md. No final E/A selection or operational research restriction. The earlier count of open obligations is not a difficulty estimate.
