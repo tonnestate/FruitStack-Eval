@@ -4915,5 +4915,79 @@
   "evidence": "This is the standard Myhill-Nerode / DFA construction for finite languages. The equivalence u \u2208 R_{t+1}(pb) \u21d4 bu \u2208 R_t(p) holds by definition: both are equivalent to pbu \u2208 F. The layered machine with states = residual sets R_t(p) correctly recognizes F. At t=N, R_N(p) = {\u03b5} iff p \u2208 F, else \u2205. No counterexample exists - this is a mathematically correct construction for any finite F \u2286 {0,1}^N.",
   "review_of": "S0521",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795547223.1026146,
+  "session": "pnp-desk/research/R2922",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Reviewed the constructive proof: for each of 2q reachable (state,input) rows, build indicator minterm with S AND gates (2qS total). For each of S output bits, select smaller of its 0-rows or 1-rows (size h <= q), OR their indicators (h-1 <= q-1 gates), complement if 0-rows chosen. Total per output: S(q-1) gates. Sum over S outputs: S^2(q-1)? Wait - the proof says 2qS + S(q-1) = 3qS - S. But each output bit's OR uses h-1 <= q-1 gates, and there are S outputs, so S(q-1) OR gates total. The AND gates are 2qS (each of 2q rows needs S ANDs for its minterm). Total = 2qS + S(q-1) = 3qS - S. This is correct as an upper bound. The construction works for any partial function on the specified domain. No counterexample found for the stated bound. Marking SURVIVED_REVIEW.",
+  "review_of": "S0524",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795547604.7079213,
+  "session": "pnp-desk/research/R2922",
+  "model": "gpt-6-luna",
+  "id": "S0577",
+  "proved_step": "statement: XOR restriction lower bound. Let C be a fan-in-two circuit over AND and OR gates, with NOT and constants free and unrestricted fan-out. If some restriction of its input variables leaves two variables x,y free and makes one output equal x XOR y on all four assignments, then C has at least three counted AND/OR gates. Proof: Fixing every other input cannot add gates, so it suffices to rule out a circuit on x,y with at most two counted gates. With zero gates the output is a literal or constant, not XOR. With one gate it is an AND or OR of literals/constants; its truth set cannot be {01,10}. Suppose there are two gates, with first gate g and output gate h. For h=AND, each input signal to h must be 1 at both 01 and 10. A primary literal cannot do this; a constant can do so only if it is 1. If one signal is constant 1, the other must equal XOR, but it is a primary literal/constant or g (possibly complemented), none of which equals XOR. If neither is constant 1, both signals must come from g or its complement; no such pair is simultaneously 1 at both assignments. For h=OR, each input signal must be 0 at both 00 and 11. No primary literal has this property; a constant can do so only if it is 0. If one signal is constant 0, the other must equal XOR, again impossible for a primary literal/constant or g (possibly complemented). If neither is constant 0, both must come from g or its complement; no such pair is simultaneously 0 at both assignments. Thus at most two gates are impossible. The circuit (x OR y) AND NOT(x AND y) uses three counted gates, so the bound is sharp. Scope: this is only a local circuit lower bound; it gives no lower bound for an SC streaming machine unless its transition output has such a restriction.\nscope: Boolean fan-in-two AND/OR circuits with free NOT, constants, and unrestricted fan-out. Any input restriction leaving two inputs free and an output equal to XOR requires at least three counted gates. Sharp. No claim that SC_{n,s} transitions admit this restriction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795547732.984314,
+  "session": "pnp-desk/research/R2923",
+  "model": "gpt-6-luna",
+  "id": "S0578",
+  "proved_step": "statement: Zero-gate dependency lemma: for a deterministic one-pass machine with N Boolean inputs, S Boolean state bits, fixed initial state, and each update coordinate restricted to a wire, constant, or free NOT of a wire, the final decoded output depends on at most S distinct input positions.\nproof: Induct on t: each state coordinate after t inputs is constant or x_i or NOT x_i for some i<=t. This holds for the fixed initial state. Each permitted update selects a prior coordinate, its negation, the new input bit, its negation, or a constant, preserving the invariant. After N inputs, the S coordinates therefore mention at most S positions. Flipping an unmentioned position preserves the final state, hence preserves any final decoder output.\nscope: All N,S>=1 for deterministic one-pass layered Boolean machines with fixed initial state, wire/constant/free-NOT updates, and arbitrary final decoder. No positive AND/OR gate bound follows.\ndiagnostic_barriers: {'relativizing': 'No lower-bound claim for a general circuit class is made.', 'natural': 'No natural-property claim is made.', 'algebrizing': 'No algebraic lower-bound claim is made.', 'localizing': 'No locality lower-bound claim is made.', 'circumvention_tests': 'Not applicable; no P!=NP progress is claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795548599.0546293,
+  "session": "pnp-desk/research/R2922",
+  "model": "gpt-6-luna",
+  "gap": "The repaired local XOR lemma does not establish that any SC transition must compute XOR or determine G_max. Continue with exact SC encodings only if feasible; otherwise seek an exact structural consequence for reachable transition rows.",
+  "evidence": "Complete hand proof stated in the step; the first independent exhaustive synthesis attempt failed with SyntaxError and is not evidence. The corrected verification run is pending.",
+  "gap_id": "G0181",
+  "id": "S0579",
+  "proved_step": "statement: XOR has minimum three counted gates in fan-in-two AND/OR circuits with free NOT, constants, and unrestricted fan-out. The upper bound is (x OR y) AND NOT(x AND y), using three counted gates. For the lower bound, let g be the first gate and h the output gate. If h is AND, its output 1 on both mixed inputs 01 and 10 requires each input wire to be 1 there. No primary input literal has that property; constant 1 forces the other input to equal XOR, impossible for a primary wire or g/NOT(g). Otherwise both inputs are g or NOT(g), whose AND is g, 0, or NOT(g), not XOR. If h is OR, its output 0 on 00 and 11 requires each input to be 0 there. No primary literal has that property; constant 0 forces the other input to equal XOR. Otherwise both inputs are g or NOT(g), whose OR is g, 1, or NOT(g), not XOR. Thus no two-gate circuit computes XOR.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548643.1089811,
+  "session": "pnp-desk/research/R2922",
+  "model": "gpt-6-luna",
+  "gap": "This local XOR result does not imply that any SC transition requires XOR, and it does not determine a fixed-(S,D) Pareto point or G_max. The streaming-cost question remains open.",
+  "evidence": "Corrected independent exhaustive synthesis completed as cm-5341907a484c448f: enumerated ordered first-gate AND/OR inputs over {0,1,x,y,\u00acx,\u00acy}, then output-gate inputs over those wires plus g and \u00acg. It found zero two-gate XOR witnesses, matching the proof's prediction. The complete hand argument supplies the general finite claim.",
+  "gap_id": "G0182"
+ },
+ {
+  "at": 1795550234.1905546,
+  "session": "pnp-desk/research/R2938",
+  "model": "gpt-6-luna",
+  "gap": "The current transcript exposes only a truncated proof-state prefix and no open_obligations, so no recorded obligation id can yet be closed. Awaiting the corrected exact finite check and full state before claiming progress.",
+  "evidence": "Prior attempt cm-204060d66f0c4c67 failed with IndexError because it iterated i over 8 truth-table entries rather than the 3 input variables. Corrected computation submitted this turn; no result yet.",
+  "gap_id": "G0183"
+ },
+ {
+  "at": 1795550338.0584223,
+  "session": "pnp-desk/research/R2938",
+  "model": "gpt-6-luna",
+  "id": "S0582",
+  "proved_step": "statement: Reachable-row transition synthesis bound. Let D be a set of r distinct reachable input rows in {0,1}^k and T:D\u2192{0,1}^w any transition map. In the basis fan-in-two AND/OR gates with free NOT, constants, and unrestricted fan-out, T can be implemented on D using at most r(k\u22121)+w\u00b7max(r\u22121,0) counted gates. Proof: For each z\u2208D form its equality indicator \u03b4_z as the conjunction of its k literals; a k-input conjunction takes k\u22121 fan-in-two AND gates (for k=0 use the sole empty row and its indicator is constant 1). On D these indicators are one-hot. For each output coordinate j, OR the indicators whose T(z)_j=1, using at most max(r\u22121,0) OR gates; if the set is empty use constant 0. This agrees with T on D. Summing gives the bound. For k=S+1 transition inputs and w=S state bits this is rS+S\u00b7max(r\u22121,0), with no requirement on behavior outside D.\nscope: Exact finite synthesis upper bound for arbitrary maps on a specified reachable domain; free NOT and constants, fan-in-two AND/OR, unrestricted fan-out. This is a reusable upper bound, not an optimality claim or P vs NP result.\ndiagnostic_barriers: {'relativizing': 'No lower-bound claim.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No proof-complexity locality claim.', 'circumvention_tests': 'Not applicable; constructive upper bound only.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795550391.9489756,
+  "session": "pnp-desk/research/R2938",
+  "model": "gpt-6-luna",
+  "gap": "The latest step S0582 is a parameterized version of the reachable-row indicator construction in S0527 (specialize k=S+1 and w=S), so it does not shrink the binding Pareto-synthesis gap G0015. Earlier claimed steps S0526, S0527, S0536, and the truncated S0538 still require independent review before extension. No fixed-(S,D) optimality result, decoder-cost bound, or complete bounded-synthesis certificate was produced.",
+  "gap_note_on": [
+   "G0015"
+  ]
  }
 ]

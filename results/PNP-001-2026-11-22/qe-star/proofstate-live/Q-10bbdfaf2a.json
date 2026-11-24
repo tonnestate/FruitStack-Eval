@@ -5112,5 +5112,91 @@
   "evidence": "Reviewed the cofactor closure lemma. This is essentially the same construction as S0508 with a more detailed inductive proof. The construction: pick a remaining input z. If r=1, generate the single needed constant with 1 gate (XOR(z,z) for 0, NAND(z,z) for 1). If r>=2, generate both constants 0 and 1 with 2 gates (XOR(z,z) and NAND(z,z)). Replace all occurrences of fixed inputs with the corresponding constant wires. By topological induction, each retained gate computes its original value under the restriction, so the output is the cofactor. The new gates can be shared due to unrestricted fan-out. Total size: s+1 for r=1, s+2 for r>=2, hence at most s+min(r,2). The proof is complete and correct. CONFIRMED - SURVIVED_REVIEW.",
   "review_of": "S0509",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795549178.774226,
+  "session": "pnp-desk/research/R2928",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Proof error: 'Replace the fixed input by NAND(y_1,y_1), which supplies constant 1 using one gate' is false. NAND(y_1,y_1) = NOT(y_1), not constant 1. A correct single-gate constant-1 construction in the 16-gate basis is XNOR(y_1,y_1) = 1. The statement may be salvageable with this fix, but the proof as written is incorrect.",
+  "review_of": "S0510",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795549192.1157136,
+  "session": "pnp-desk/research/R2928",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Verified by direct inspection: for any 2-input Boolean function encoded as f(2x+y) with x,y in {0,1}, the x=c cofactor has outputs f(2c+y) for y in {0,1}. The substitution uses the exact same index 2c+y. This holds for all 16 functions and both c=0,1. No counterexample exists.",
+  "review_of": "S0511",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795549226.931918,
+  "session": "pnp-desk/research/R2928",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof is correct: take a topological ordering of the DAG. Replace each input wire x_i (i in I) by the constant a_i; all other input wires and all gates are retained with their original types and predecessors. By induction through the topological order, each gate computes the original gate function on the restricted input because its predecessors equal the corresponding original values under x_I=a. Constants cost zero, no gates are added, so the cofactor circuit has at most g gates. This holds for all m>=1, all partial assignments, with unrestricted fan-out. No counterexample exists.",
+  "review_of": "S0513",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795549489.3648703,
+  "session": "pnp-desk/research/R2928",
+  "model": "laguna-xs-2.1",
+  "evidence": "Exact algebraic identity: the input space partitions into two disjoint slices based on coordinate i. Each disagreement between f and g lies in exactly one slice, so the total Hamming distance equals the sum of slice distances. This is a finite verification on all function pairs for m<=3.",
+  "review_of": "S0514",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795549499.4519982,
+  "session": "pnp-desk/research/R2936",
+  "model": "gpt-6-luna",
+  "id": "S0605",
+  "proved_step": "statement: For every m>=3 and integer s with 0<=s<=m-2, the Boolean decision function MCSP[s] on N=2^m truth-table bits depends on every coordinate. Consequently every fan-in-two Boolean circuit deciding MCSP[s], with arbitrary fan-out and sharing, has at least N-1 gates.\nproof: Fix any truth-table coordinate z, corresponding to an input a in {0,1}^m. Let T0 be the all-zero truth table and Tz the table whose only 1 is at coordinate z. T0 is computed by a constant circuit of zero gates, so MCSP[s](T0)=1. The function represented by Tz is the singleton indicator of a, the conjunction of the m literals specifying x=a. With free input negations, this has a circuit with m-1 AND gates. Conversely, any circuit computing this singleton depends on all m input variables, since flipping any one variable at a changes the output from 1 to 0. A fan-in-two circuit with g gates has at most g+1 distinct source leaves in its output cone, so g>=m-1. Thus Tz has circuit complexity exactly m-1, which exceeds s, and MCSP[s](Tz)=0. T0 and Tz differ only at coordinate z, so z is relevant. As z was arbitrary, all N coordinates are relevant. A fan-in-two decision circuit with g gates has at most g+1 distinct source leaves in its output cone; dependence on N distinct input bits therefore implies g>=N-1.\nscope: Fan-in-two Boolean circuits with free input negations and constants, arbitrary depth, fan-out, and sharing. Parameters m>=3, 0<=s<=m-2, and N=2^m. This proves only a linear bound and does not cover s=m^c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795549694.7768412,
+  "session": "pnp-desk/research/R2936",
+  "model": "gpt-6-luna",
+  "id": "S0606",
+  "proved_step": "statement: For every m>=1 and every Boolean function f:{0,1}^m->{0,1} with t ones, its fan-in-two circuit complexity with free input negations and constants is at most tm-1 when t>=1; if t=0, its complexity is 0. Consequently, every truth table with at most floor((s+1)/m) ones belongs to MCSP[s].\nproof: For each of the t inputs where f=1, form the conjunction of its m literals. A binary AND tree uses m-1 gates per conjunction, for t(m-1) gates total. OR the t conjunctions using a binary OR tree with t-1 gates. The resulting circuit computes f and uses t(m-1)+(t-1)=tm-1 gates. If t*m<=s+1, then tm-1<=s, proving the consequence. For t=0, f is the constant-zero function.\nscope: All integers m>=1 and s>=0; fan-in-two AND/OR circuits with free input negations and constants. This is an upper bound for sparse truth tables, not a lower bound for MCSP[s] decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795549792.1469588,
+  "session": "pnp-desk/research/R2928",
+  "model": "gemma-4-31b-it",
+  "evidence": "Counting $D$ is a valid upper bound on the number of circuits of size $s$. The decision circuit as an OR of $D$ equality tests (each $O(N)$) yields the $O(ND)$ bound. The construction is sound.",
+  "review_of": "S0517",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795549792.1857388,
+  "session": "pnp-desk/research/R2928",
+  "model": "gemma-4-31b-it",
+  "evidence": "The function IsConstant depends on all $N$ bits of the truth table. A fan-in-two circuit whose output depends on $N$ variables must have at least $N-1$ gates to connect those variables to the output.",
+  "review_of": "S0518",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795549802.4771395,
+  "session": "pnp-desk/research/R2936",
+  "model": "gpt-6-luna",
+  "id": "S0609",
+  "proved_step": "statement: In the fan-in-two Boolean circuit model with all 16 binary Boolean gates, free constants, and arbitrary fan-out, restricting any subset of input variables to constants yields a circuit for the restricted function using no more gates than the original circuit.\nproof: Let C be a finite acyclic circuit with g binary gates, and fix any subset of its input variables to constants. Process the gates in topological order. For each original gate, apply the same binary Boolean gate to the wires already representing the restricted functions of its two predecessors. Induction over that order shows each replacement wire computes exactly the original gate function after the fixed input substitution. The output wire therefore computes the restricted output. There is at most one resulting gate per original gate, so the restricted circuit has at most g gates. Arbitrary fan-out adds no cost because one replacement wire can feed every later use.\nscope: Finite acyclic fan-in-two Boolean circuits over all 16 binary Boolean gates, free constant wires, arbitrary fan-out, and charged binary gates; any subset of input variables may be fixed. Restriction monotonicity alone gives no superlinear lower bound for MCSP[m^c].",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795550317.832888,
+  "session": "pnp-desk/research/R2937",
+  "model": "gpt-6-luna",
+  "id": "S0610",
+  "proved_step": "statement_start: Lemma (slice-specific distance transfer). Let C be a nonempty class of Boolean functions on m+r inputs. Fix r coordinates. Suppose that for every g in C and every assignment a in {0,1}^r to those coordinates, the resulting cofactor g_a belongs to a class D_a.\nstatement: For every nonempty class C of Boolean functions on m+r inputs whose restrictions to each assignment a on a fixed set of r coordinates belong to D_a, and every Boolean function f, min_{g in C} d_H(f,g) >= sum_a min_{h in D_a} d_H(f_a,h). Proof: The assignments a partition the cube into disjoint slices, so for each g in C, d_H(f,g)=sum_a d_H(f_a,g_a). Since g_a belongs to D_a, each summand is at least min_{h in D_a} d_H(f_a,h). Sum and minimize over g.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

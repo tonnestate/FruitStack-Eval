@@ -94,5 +94,68 @@
   "proved_step": "Finite residual-row characterization (constructive). Let A be any subset of {0,1}^N and 0<=k<=N. For each prefix p in {0,1}^k define its residual row r_p in {0,1}^{2^(N-k)} by r_p(z)=1 iff pz is in A. Then a deterministic one-pass machine deciding membership in A has at least |{r_p}| states after k input bits, and a machine with exactly |{r_p}| states at that cut suffices for the remaining suffix decision if its state stores the row index. Proof: For the lower bound, if p,p' have different rows, some suffix z has r_p(z) != r_p'(z); a deterministic machine in the same state after p and p' would behave identically on z, contradiction. For sufficiency, map each prefix to its row class; on the next bit b, update row r_p to the class of r_{pb}, which is well-defined because equal rows imply for every b and suffix z that r_p(bz)=r_p'(bz), hence r_{pb}=r_{p'b}. At k=N the row is the single membership bit, so these transitions decide A exactly. This proves the residual-state characterization directly and does not use any earlier claimed step or give a K1-specific asymptotic bound.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795547780.2033932,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0010",
+  "proved_step": "For each N>=1, let L_N={0^N} over {0,1}^N. At a cut k, the number r_k of distinct residual suffix languages is r_0=1 and r_k=2 for every 1<=k<=N. Proof: At k=0 there is only the empty prefix, whose residual is {0^N}. Fix k>=1. The prefix 0^k has residual {0^(N-k)} (the singleton containing the empty string when k=N). Every other length-k prefix has empty residual, since it already disagrees with 0^N. Both residuals occur, so there are exactly two. Consequently every exact deterministic one-pass decider for L_N has at least one state bit after every nonempty prefix cut: distinct residuals must reach distinct states, since a suffix distinguishing the residuals would otherwise receive the same deterministic continuation from the shared state. This is an exact residual-state result for the singleton language only; it supplies no growing lower bound and does not establish a resource match to CJSW for general MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548011.4022617,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "Explicit-candidate residual tracker. Let F be any fixed, explicitly listed subset of {0,1}^N with M=|F|, and let the stream be x_1,...,x_N in order. There is a deterministic one-pass machine with M state bits whose state after t bits is exactly the indicator vector v_t indexed by F, where v_t(f)=1 iff f[1..t]=x_1...x_t. Initialize v_0 to the all-ones vector. On bit b at position t+1, update each coordinate by v_{t+1}(f)=v_t(f) AND [f[t+1]=b]. By induction on t, this is precisely the set of listed strings extending the observed prefix. At the end, the stream belongs to F iff the state has at least one 1. The update takes O(M) Boolean operations and the description stores F in O(MN) bits (or read-only program constants); the machine uses M mutable state bits. Moreover, two prefixes induce the same state iff they have the same intersection of F with their extension cylinder, so this construction explicitly represents the residual candidate set for F. It gives a finite-list construction only: if F is the set of size-at-most-s circuit truth tables, its explicit listing can be exponentially larger than an MCSP decision circuit, and this lemma does not provide a polynomial-in-|H_C| update rule.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548100.2594552,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "Residual-count bound for a fixed-length candidate family. Let N>=0 and F be any finite subset of {0,1}^N. For 0<=k<=N and each prefix p in {0,1}^k, define R_p={z in {0,1}^{N-k}: pz in F}, and let r_k be the number of distinct sets R_p (including the empty set). Then r_k<=min(2^k, 2^{|F|}). Proof: there are exactly 2^k possible prefixes, so there are at most 2^k residual sets. Each residual is a subset of F under the bijection z -> pz, hence there are at most 2^{|F|} possible residuals. Taking the smaller bound proves the claim. Moreover, the candidate-subset tracker is exact: after prefix p it stores V=F intersect {pz:z in {0,1}^{N-k}}, identified with its suffixes; on next bit b it replaces V by {z: bz in V}. Induction on k proves the invariant, and at k=N, V is nonempty iff the input belongs to F. This is only a state-count upper bound and an explicit-list procedure; it gives no succinct update bound for circuit-defined F or CJSW resource match.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548159.6538544,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "Residual-count bound by family size, with a trie consequence. Let N>=0 and F be a fixed subset of {0,1}^N of size M. For 0<=k<=N define R_p={z in {0,1}^{N-k}: pz in F} for each p in {0,1}^k, and let r_k count distinct such sets, including the empty set. Then r_k<=min(2^k,M+1). Proof: There are 2^k prefixes. For the second bound, each distinct nonempty residual R has at least one witness word x=pz in F whose prefix p induces R. Choose one such witness for each distinct nonempty residual. Witnesses chosen for different residuals are distinct, because a word x has a unique length-k prefix and hence belongs to only that prefix's residual; if the same x witnessed two residuals, those residuals would both equal R_p. Thus there are at most M distinct nonempty residuals, plus at most one empty residual. For the constructive consequence, build the prefix trie of F, with a rejecting sink for prefixes outside the trie. It has at most 1+NM nodes, recognizes F exactly, and each input-bit transition follows one child pointer or enters the sink, so after construction transitions take O(1) pointer operations. This does not bound construction, storage, or transition cost polynomially in a succinct circuit description of F, so it does not close the CJSW/MCSP bridge.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548177.6996331,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "Corrected explicit-trie bound. Let N>=0 and F be an explicitly listed subset of {0,1}^N with |F|=M. Its prefix trie has at most 1+NM nodes: the root contributes one, and each of the M words adds at most N nodes. Add one rejecting sink, if needed, for every missing child transition. The resulting deterministic automaton has at most NM+2 nodes, recognizes F exactly, and each transition takes O(1) pointer operations after construction. Proof: a word reaches its terminal trie node exactly when all its bits follow trie edges; any missing edge enters the rejecting sink, which loops on both symbols. The node bound follows by charging each non-root trie node to a word having that prefix, with at most N charged nodes per word, then adding the root and at most one sink. This is an explicit-list construction and gives no polynomial resource bound from a succinct circuit description of F.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548269.4220676,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "Disjoint-residual bound. Let N>=0, F be a finite subset of {0,1}^N, and 0<=k<=N. For each length-k prefix p define R_p={z in {0,1}^{N-k}: pz in F}, and let r_k be the number of distinct R_p, including the empty set if it occurs. Then r_k<=min(2^k, |F|+1). Proof: There are 2^k prefixes, so r_k<=2^k. For distinct prefixes p,p' of equal length, R_p and R_p' are disjoint: a suffix z in both would make the same string have two different length-k prefixes. Thus the nonempty distinct residuals are pairwise disjoint subsets of F. Each contains at least one element of F, so there are at most |F| nonempty residuals. There is at most one additional empty residual, proving r_k<=|F|+1. This sharpens the generic 2^{|F|} subset bound. It is a structural state-count bound only; for succinctly specified MCSP candidate families it gives no polynomial bound unless |F| itself is polynomial.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548384.9443405,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0016",
+  "proved_step": "Layered one-hot residual transition circuit. Let N>=0 and L be any subset of {0,1}^N. For 0<=k<=N, let R_k be the set of distinct residual languages R_p={z in {0,1}^{N-k}: pz in L} over prefixes p of length k, and put r_k=|R_k|. There is a deterministic layered one-pass automaton with one-hot state at each level k, recognizing L exactly, whose transition circuit for input position k has fan-in-2 Boolean circuit size O(r_k+r_{k+1}). Proof: At level k use one bit x_R for each R in R_k, with exactly the current residual bit set. For b in {0,1}, define R_b={z:bz in R}; this is a member of R_{k+1}. For each R' in R_{k+1}, set its next-state bit y_{R'} = OR over all (R,b) with R_b=R' of (x_R AND [input=b]). There are exactly 2r_k source/input pairs; forming the gated terms costs O(r_k), and ORing the terms by destination costs O(r_k+r_{k+1}) total including empty destinations. The initial state is the unique residual at k=0. At level N accept iff the active residual contains the empty string. Induction on k proves that the active state is the residual of the read prefix, hence the automaton accepts exactly L. The circuits may depend on k and L; the claim makes no uniform construction-cost assertion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
