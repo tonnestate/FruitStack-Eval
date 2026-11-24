@@ -486,5 +486,63 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0052: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No kernel-accepted proof of the requested claim or a counterexample to it was obtained. The claim leaves the circuit model, size measure, EXT automaton, and algorithmic terms undefined, so I  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795560068.0194814,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "evidence": "The stated implication does not follow. A satisfying-set indicator requiring large circuit size says nothing by itself about whether EXT_{n,s} accepts the encoded formula or whether Candidate A's map from a SAT algorithm A yields a correct witness search procedure. S0049 supplies neither an admissible exact one-pass algorithm A nor a counterexample to the required map. The claimed failure of Clause 3 is therefore unsupported.",
+  "review_of": "S0049",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795560097.78027,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "evidence": "The proof itself exposes the fatal gap in Step 4: counting all Boolean functions cannot establish that any hard function is represented by a CNF of the required size, and the proposed comparison of formula count to hard-function count has the inequality in the wrong direction for large n. The fallback invokes an explicit hard function in NP without constructing or proving one. Also item (4) does not follow from (1)\u2013(3): it defines A via acceptance of EXT, but provides no proof that EXT accepts this formula encoding or that this yields the stipulated exact one-sided SAT algorithm. Thus the claimed universal lemma is not proved.",
+  "review_of": "S0050",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795560122.2978237,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "evidence": "The argument\u2019s decisive inference is false: an injective encoding phi:V\u2192K into a vector space does not make phi(V) a subspace. A spanning family B_A for K likewise does not imply the represented states themselves span or are closed under addition. The step also explicitly retracts its claim that an orbit of zero under arbitrary linear maps is addition-closed. Thus nonclosure of V in its original polynomial representation cannot rule out a linear-space encoding, and no counterexample to Clause 3 is established.",
+  "review_of": "S0051",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795560176.3287451,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "evidence": "Even if a nonzero Boolean function with circuit complexity greater than s exists, the conclusion about Candidate A does not follow: the step gives no admissible exact one-pass SAT algorithm A based on EXT, no proof that EXT accepts the formula encoding, and no derivation that the A\u2192B_A construction must compute the satisfying-set indicator f_phi. Separately, the asserted circuit-count estimate has an unspecified O(s log(n+s)) constant, so the numerical cutoff 2^n/(10n) is not justified for every n and s as stated. Thus the universal failure of Clause 3 is unsupported.",
+  "review_of": "S0052",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795560201.5394115,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "evidence": "The argument assumes that an intertwining injection \u03c6:V\u2192K forces \u03c6(V) to be a linear subspace. That is false: transition maps being linear only ensures that \u03c6(V) is invariant under those maps, not closed under addition. Moreover, the stated transitions are input-symbol dependent and are not shown to be linear in the polynomial-state representation. Thus nonclosure of V in its original coordinates does not prove that no linear-state representation exists; the claimed refutation of Clause 3 remains unsupported.",
+  "review_of": "S0053",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795560406.4118295,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "id": "S0061",
+  "proved_step": "statement_start: Every deterministic finite-state machine A=(Q,\u03a3,\u03b4,q0,F) with q states has an exact linear transition representation over F_2 of dimension q.\nproof: For each q\u2208Q let e_q be the corresponding standard basis vector of F_2^Q, and encode q by \u03c6(q)=e_q. This encoding is injective. For each input symbol a\u2208\u03a3 define T_a on basis vectors by T_a(e_q)=e_{\u03b4(q,a)} and extend linearly; this defines a linear map F_2^Q\u2192F_2^Q. Define \u2113:F_2^Q\u2192F_2 by \u2113(e_q)=1 iff q\u2208F and extend linearly, and set v0=e_{q0}. By induction on the input length, after reading a_1\u2026a_t the vector T_{a_t}\u2026T_{a_1}v0 is e_{\u03b4*(q0,a_1\u2026a_t)}. Applying \u2113 therefore returns 1 exactly when the machine accepts. Thus nonlinear closure of the reachable-state set is not an obstruction to a linear transition representation. The representation uses q coordinates, so this lemma alone gives no bound in terms of the original algorithm's state bits or Candidate A's resources.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795560453.5184984,
+  "session": "pnp-desk/research/R3021",
+  "model": "gpt-6-luna",
+  "id": "S0062",
+  "proved_step": "statement_start: For any language L over a finite alphabet with q distinct residual languages, every exact deterministic finite-state recognizer has at least q states; its minimal residual automaton has an exact one-hot linear transition representation of dimension q over F_2, and every injective encoding of those q states into F_2^d has d >= ceil(log_2 q).\nproof: For each prefix u define its residual language L_u={v: uv is in L}. If L_u and L_w differ, choose v in their symmetric difference. Then exactly one of uv and wv belongs to L, so any deterministic recognizer reaching the same state after u and w would give the same acceptance result on continuation v, a contradiction. Thus prefixes with distinct residual languages must reach distinct states, proving the lower bound q on every recognizer. Conversely, when q is finite, use the residual languages as states, initial state L_epsilon, transition on symbol a sending L_u to L_{ua}, and accepting states those residuals containing epsilon. This is well-defined because L_u=L_w implies L_{ua}=L_{wa} for every a, and it recognizes L by the definition of residual. Hence it is a q-state recognizer. Index its states by the standard basis of F_2^q; map each transition on basis vectors to the basis vector of the successor state and extend linearly. The resulting one-hot representation is exact by induction on input length. Finally, an injective map from q states into F_2^d requires q <= |F_2^d|=2^d, hence d >= ceil(log_2 q). This lower bound assumes injective state encoding; it does not lower-bound representations that permit collisions while preserving only outputs/transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

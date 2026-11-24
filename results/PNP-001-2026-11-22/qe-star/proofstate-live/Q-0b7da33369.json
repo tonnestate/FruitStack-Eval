@@ -5439,5 +5439,25 @@
   "proved_step": "statement: For every m>=2, with S=ceil(log2 m), an m-cycle has an injective encoding into {0,1}^S whose transition extends to a total S-bit map computed by at most 9S fan-in-two AND/NOT gates; constants and input wires are free.\nproof: Number the cycle states 0,...,m-1 and encode each by its S-bit binary expansion, least significant bit first. For any input x, compute increment bits y_0=NOT x_0 and y_j=x_j XOR c_j for j>=1, where c_1=x_0 and c_{j+1}=c_j AND x_j. The carries use at most S-1 gates, y_0 uses one NOT, and each XOR uses at most five AND/NOT gates via XOR=(a OR b) AND NOT(a AND b), with OR implemented by De Morgan. Let e(x) test whether x encodes m-1: its literal negations cost at most S gates and its conjunction at most S-1 AND gates. Compute NOT e once, then output F_j=y_j AND NOT e using S gates. The total is at most (S-1)+1+5(S-1)+S+(S-1)+1+S=9S-5<=9S. On codes below m-1, F increments; on m-1, F outputs zero, so it implements the cycle. The same circuit defines F on unused encodings.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795557895.5460274,
+  "session": "pnp-desk/research/R2998",
+  "model": "gpt-6-luna",
+  "id": "S0633",
+  "proved_step": "statement: Involution encoding lemma. Let m>=2, Q be an m-element set, and delta:Q->Q satisfy delta(delta(q))=q for every q. Put S=ceil(log2 m). There is an injection psi:Q->{0,1}^S such that psi\u2218delta\u2218psi^{-1} on psi(Q) extends to a total Boolean map on {0,1}^S computable by O(S) fan-in-two AND/NOT gates, with constants and input wires free. Proof: The orbits of delta are t two-element orbits and f fixed points, where 2t+f=m. Enumerate the pairs and encode their elements by 2r and 2r+1 for r=0,...,t-1; encode the fixed points by 2t,...,m-1. These are distinct integers below m and therefore fit in S bits. On every S-bit string x define F(x) to toggle its least significant bit if x<2t, and otherwise fix x. For each encoded pair, F interchanges its two codes; for each encoded fixed point, F fixes its code. Thus F agrees with the encoded transition on psi(Q). The comparison x<2t has an O(S)-gate fan-in-two AND/NOT circuit: lexicographically compare the S-bit strings from most significant to least significant, maintaining equality and less-than flags with O(1) gates per bit. The conditional toggle also uses O(S) gates (compute the comparison once and XOR its result into the low bit). Hence F has O(S) gates. This proves the claim.\nevidence: Independent finite verification cm-456b8f9663494506 enumerated all 1,115 involutions for 1<=m<=8 and checked 8,845 bit strings, with no failures. This is a finite implementation check; the proof above is general. This session cannot assign a closure because the current proof-state read must identify a pre-existing open-obligation id first.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795560615.185916,
+  "session": "pnp-desk/research/R3022",
+  "model": "gpt-6-luna",
+  "lemma": "For m>=2, S=ceil(log2 m), any injection psi:Q->{0,1}^S and any map delta:Q->Q, the encoded transition psi delta psi^{-1} extends to a total S-bit Boolean map with O(mS) fan-in-two AND/NOT gates. Proof: for each q form the minterm e_q for psi(q), using O(S) gates; for each output coordinate j OR the e_q whose image psi(delta(q)) has bit j equal to 1. The outputs agree on all encoded states, and values on unused codes are unrestricted. Total cost O(mS).",
+  "evidence": "Direct minterm synthesis and coordinatewise disjunction; complete proof included. This is a general fallback upper bound, not a lower bound or P-vs-NP result.",
+  "id": "S0634",
+  "proved_step": "statement: For every m>=2, S=ceil(log2 m), finite m-element Q, injection psi:Q->{0,1}^S, and transition delta:Q->Q, the partial encoded map psi\u2218delta\u2218psi^{-1} extends to a total Boolean map on S bits computed by O(mS) fan-in-two AND/NOT gates.\nproof: For each q in Q let e_q(x) be the conjunction of the S literals specifying psi(q). This costs O(S) gates per q, hence O(mS) total. For coordinate j define F_j(x)=OR_{q: bit_j(psi(delta(q)))=1} e_q(x), with empty OR equal to 0. Each OR is implementable using fan-in-two AND/NOT gates with linear cost in its number of terms, so all output ORs cost O(mS). At x=psi(q0), injectivity implies e_q(x)=1 exactly when q=q0; hence F_j(psi(q0))=bit_j(psi(delta(q0))) for every j. The formulas define values on unused codes, which are unrestricted. Thus F extends the encoded transition with O(mS) gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

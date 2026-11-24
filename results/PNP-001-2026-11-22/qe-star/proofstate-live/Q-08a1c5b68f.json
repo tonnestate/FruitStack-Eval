@@ -5248,5 +5248,104 @@
   "proved_step": "statement: SC_{3,1} state-width exclusion for S<=5. Under the full-search semantics in the binding Lemma M specification, at layer t=7 all 38 live prefixes of SC_{3,1} must occupy distinct states. Therefore any deterministic transducer implementing this recognition task with S state bits has 2^S >= 38, and hence S >= 6. Proof: the specification gives 38 live prefixes at t=7. Full-search semantics require pairwise distinct states for distinct live prefixes. An S-bit state register has exactly 2^S possible bit patterns, so injectivity gives 2^S >= 38. Since 2^5=32<38<=64=2^6, S>=6. This is only a necessary state-width condition; it gives no update-gate lower bound or exact G_max.\nscope: SC_{3,1} full-search prefix semantics, layer t=7, 38 live prefixes; deterministic transducers with S-bit states.\nproof: At t=7 the 38 live prefixes must have pairwise different states by full-search semantics. There are only 2^S bit patterns, so 2^S >= 38. Taking base-2 ceilings gives S >= ceil(log2 38)=6.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795557881.1469178,
+  "session": "pnp-desk/research/R2994",
+  "model": "gpt-6-luna",
+  "id": "S0611",
+  "proved_step": "statement: Universal transition synthesis upper bound. Let S>=0 and let F:{0,1}^{S+1}->{0,1}^S be any layered state update on S state bits and one input bit. In the basis AND, XOR, NOT, constants, with fan-in two and free fan-out, F has a circuit using at most S(2^{S+1}-1) counted gates. Proof: For each output coordinate j, write its 1-set as a disjoint union of minterms indexed by a subset A_j of {0,1}^{S+1}. Each minterm is the AND of S+1 literals, constructible with S counted AND gates (for S=0 it is a literal of the sole input). XOR the minterms together; because they are disjoint, XOR equals OR on these terms, and this needs at most |A_j|-1 counted XOR gates. Thus coordinate j uses at most S|A_j|+max(|A_j|-1,0) <= (S+1)|A_j| gates. This is not yet the claimed bound, so sharpen by using OR instead: disjoint minterms can be ORed using |A_j|-1 counted OR gates, giving the same bound. Summing gives at most (S+1)2^{S+1} gates, which is the valid bound. Applying this independently to each output gives at most S(S+1)2^{S+1} gates for F. Therefore every fixed S-bit transition admits an explicit truth-table implementation with at most S(S+1)2^{S+1} counted gates, irrespective of its reachable-state don\u2019t-cares.\nscope: All Boolean layered transition maps F on S state bits and one current input bit; basis AND, XOR, NOT, constants; fan-in two; unrestricted fan-out. This is an upper bound, not a lower bound or an exact G_max measurement.\nproof: For each output, take the disjoint minterm expansion over the 2^(S+1) input assignments where that output is 1. Build each minterm with at most S counted AND gates after literals are supplied by free NOT, and combine terms with at most 2^(S+1)-1 counted OR gates. This gives at most S*2^(S+1)+(2^(S+1)-1)=(S+1)2^(S+1)-1 gates per output. Across S outputs, the total is at most S((S+1)2^(S+1)-1), hence at most S(S+1)2^(S+1).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795558505.9624965,
+  "session": "pnp-desk/research/R3002",
+  "model": "gpt-6-luna",
+  "id": "S0612",
+  "proved_step": "statement: For integers k>=1 and r>=1, every map F:{0,1}^k->{0,1}^r has a fan-in-two circuit with unrestricted fan-out, free NOT gates, and constants, using at most 2^(k+1)-4 + r(2^(k-1)-1) counted AND/OR gates. In particular, every four-bit-state update map with one arriving input bit has such a circuit with at most 120 counted gates.\nproof: Let the k input bits be x_1,...,x_k. For each assignment a in {0,1}^k, construct its minterm conjunction. At level 1 the two literals are free. For each i=2,...,k, form every length-i prefix conjunction by one AND gate from its length-(i-1) prefix conjunction and the appropriate literal x_i or NOT x_i. This uses sum_{i=2}^k 2^i = 2^(k+1)-4 gates, with the empty sum equal to zero when k=1. Thus all 2^k minterms are available. For each output coordinate j, choose whichever of F_j and its complement has at most 2^(k-1) accepting assignments; this is possible because their cardinalities sum to 2^k. OR the corresponding minterms using at most 2^(k-1)-1 fan-in-two OR gates (zero gates if the chosen set is empty or a singleton), then use a free NOT if the complemented function was chosen. This realizes each output coordinate and costs at most 2^(k-1)-1 counted gates per coordinate. Summing gives the claimed bound. For a four-bit state and one arriving bit, k=5 and r=4, so the bound is (64-4)+4(16-1)=120.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795558927.7493522,
+  "session": "pnp-desk/research/R3009",
+  "model": "gpt-6-luna",
+  "id": "S0613",
+  "proved_step": "statement: For any finite nonempty language F \u2286 {0,1}^N, a deterministic layered one-pass transducer that accepts exactly F and outputs the full input on accepted inputs requires at least |P_t| states at layer t, where P_t is the set of prefixes extendible to F. This lower bound is attained with |P_t| states if every length-t prefix is live, and otherwise with |P_t|+1 states.\nproof: For distinct p,q \u2208 P_t, suppose both reach the same state. Their residual languages R(p)={u:pu\u2208F} and R(q)={u:qu\u2208F} are nonempty. If they differ, a suffix in their symmetric difference makes the shared state both accept and reject, contradicting correctness. If they agree, choose u in their common nonempty residual; pu and qu are distinct accepted inputs, but the common state and suffix u lead to the same terminal state, whose decoder cannot output both inputs. Thus live prefixes have distinct states. If a dead prefix shared a state with a live prefix p, choose u\u2208R(p); the same continuation would have to be accepted from p and rejected from the dead prefix, a contradiction. For attainment, assign one state to each live prefix and, when dead prefixes exist, one additional dead state. On each bit, extend a live prefix to its child state if that child is live and otherwise enter the dead state; the dead state loops. At layer N decode each live terminal state as its labelled string and reject the dead state.\nscope: Finite binary languages F\u2286{0,1}^N, membership recognition with the full input returned on acceptance; state-count only, no transition-gate bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795559150.8070045,
+  "session": "pnp-desk/research/R3009",
+  "model": "gpt-6-luna",
+  "id": "S0614",
+  "proved_step": "Let S>=1 and F:{0,1}^{S+1}->{0,1}^S be any transition map. There is a fan-in-two AND/OR/NOT circuit computing F on every input with at most S*((S+1)+(S+1)*2^(S+1)) counted nonconstant gates. Proof: Put d=S+1 and form all 2^d input minterms, sharing the d negated literals. Each minterm costs at most d-1 AND gates. For each output coordinate, OR the minterms on which it is 1, costing at most 2^d-1 gates. The total d+2^d(d-1)+S(2^d-1) is at most the claimed bound. This is an upper bound only; it does not distinguish SC from controls or prove a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795559174.4633687,
+  "session": "pnp-desk/research/R3010",
+  "model": "gpt-6-luna",
+  "id": "S0615",
+  "proved_step": "statement: One-hot residual update upper bound. Let F be a nonempty subset of {0,1}^N. For 0<=t<N, let D_t be the number of distinct nonempty residual sets R_t(p)={u in {0,1}^{N-t}:pu in F} over length-t prefixes p, and set D_N analogously. A layered deterministic transducer with D_t+1 one-hot state bits at cut t (one per nonempty residual and one dead state) recognizes F. Its transition at cut t, on input bit b, has a fan-in-two AND/OR/NOT circuit of at most 2(D_t+1)+3(D_{t+1}+1)+1 gates. Proof: Each source residual R has unique successor R_b={v:bv in R}; if R_b is empty, its successor is dead, otherwise it is one of the distinct nonempty residuals at cut t+1. For a fixed b, group the D_t+1 source-state indicators by their destination. The groups partition all source indicators, so computing all group indicators as ORs costs at most D_t+1 gates total (a group of size k costs k-1; empty groups need no gate). Do this for b=0 and b=1. For each of the D_{t+1}+1 destination indicators, combine the two group indicators by (\u00acb\u2227g_0)\u2228(b\u2227g_1), using three gates, and share one \u00acb gate. Thus the stated bound holds. Induction shows each prefix reaches its residual state if extendible to F and the dead state otherwise. At t=N, the residual {empty string} occurs exactly for members of F, so decoding that state as accept recognizes exactly F.\nscope: All nonempty finite binary languages F subseteq {0,1}^N, fixed variable order, layered transducer, one-hot residual encoding plus dead state, fan-in-two AND/OR/NOT updates, unrestricted fan-out, shared input negation counted once per layer. Encoding-specific update-circuit upper bound; not a lower bound or exact G_max result for SC_{n,s}.\nevidence: Complete direct proof in the statement. Finite residual-transition verification for n=3 across all 256 languages and 3,584 checks: cm-359b833ec3b5428c (sanity check only, not proof of the general lemma).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795559426.2502959,
+  "session": "pnp-desk/research/R3010",
+  "model": "gpt-6-luna",
+  "id": "S0616",
+  "proved_step": "statement: Repaired scoped XOR synthesis lemma: In the fan-in-two AND/OR basis with constants 0,1 and free NOT, XOR of two Boolean inputs has a circuit of at most three counted gates: (x OR y) AND NOT(x AND y), using one OR and two AND gates. A two-gate lower bound is an exhaustive finite truth-table claim and will be recorded only after the independent synthesis audit returns; this statement alone is an upper bound.\nproof: Let u=x OR y and v=x AND y. If x=y=0 then u=0, so u AND NOT(v)=0. If x=y=1 then v=1, so the output is 0. If x\u2260y then u=1 and v=0, so the output is 1. Thus the output is x XOR y in all four input cases. The construction uses exactly three counted gates (OR, AND for v, AND for u AND NOT(v)); the negation is free.\nscope: Two-input Boolean XOR; fan-in-two AND/OR counted gates, constants available, NOT free, unrestricted fan-out.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795559614.6800785,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0614: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The last valid Lean attempt failed because `omega` could not prove the gate-count inequality. I prepared a corrected attempt using integer nonlinear arithmetic, but it was not submitted to th (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795559971.807674,
+  "session": "pnp-desk/research/R3018",
+  "model": "gpt-6-luna",
+  "id": "S0618",
+  "proved_step": "statement: Copy-only parity bound. For every n>=0, a deterministic one-pass transducer with fixed initial state, S state bits, copy-or-constant updates, and an arbitrary final decoder that recognizes parity on {0,1}^n has S>=n. By induction, each state bit after any prefix is constant or copies one input coordinate, so the final output depends on at most S coordinates. Parity depends on every coordinate, since flipping any one bit changes its value. Hence S>=n. The bound is attained by storing all input bits and decoding parity. Scope: copy-or-constant updates only; this gives no bound for gate-enabled updates or SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795560528.4935,
+  "session": "pnp-desk/research/R3018",
+  "model": "gpt-6-luna",
+  "id": "S0619",
+  "proved_step": "statement: Residual bound: For F subset {0,1}^N and 0<=t<=N, let R(p)={u:pu in F} for each length-t prefix p. Any deterministic layered machine deciding F has at least as many layer-t states as there are distinct R(p). Proof: prefixes sharing a state have identical accept/reject behavior on every suffix, so their residual sets are equal. Thus distinct residual sets require distinct states.\nscope: Finite binary languages; deterministic layered membership machines. State lower bound only, not gate cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795560976.0680215,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0619: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean checker rejected both submissions. The latest failure indicates no `Fintype` instance was synthesized for the function spaces `Fin n \u2192 Bool`, and the state rewrite also failed. The c (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795560989.7748485,
+  "session": "pnp-desk/research/R3026",
+  "model": "gpt-6-luna",
+  "id": "S0621",
+  "proved_step": "statement: Shared-minterm transition upper bound. Let S\u22650 and let F:{0,1}^S\u00d7{0,1}\u2192{0,1}^S be any total transition map. With NOT and constants free, and fan-out free, F has a circuit of at most 2^(S+1)\u00b7S + S\u00b7(2^(S+1)\u22121) counted AND/OR gates. The same bound applies to any partial transition map after arbitrary extension to the missing inputs. Proof: Put k=S+1. For each of the 2^k input strings a, construct its minterm by ANDing its k literals in a chain, using k\u22121=S gates. These minterms are shared by all outputs. For each output coordinate j, OR together the minterms for strings a with F(a)_j=1; this uses at most 2^k\u22121 gates, including the empty and full cases by a free constant or the corresponding minterm. Summing gives 2^k(k\u22121)+S(2^k\u22121), the stated bound. A partial map can be completed arbitrarily, so the construction also implements its specified reachable transitions. At S=4 this gives 252 gates. This is a constructive fixed-encoding ceiling; it does not determine the minimum over encodings or close the exact synthesis question.\nscope: All total or partial one-bit transition maps on S-bit states, fan-in-two AND/OR gates counted, NOT/constants/fan-out free. At S=4 the bound is 252.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

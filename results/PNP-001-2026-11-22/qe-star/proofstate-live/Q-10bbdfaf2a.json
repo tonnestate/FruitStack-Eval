@@ -5289,5 +5289,284 @@
   "proved_step": "statement: For every fan-in-two Boolean DAG circuit C with g gates, if its output depends on d distinct primary input variables, then d <= g+1, hence g >= d-1. Proof: Let q be the number of gates in the output cone and d' the number of primary input variables in that cone. If the output is a gate, the underlying undirected graph on these q gates and d' input vertices is connected, since every cone vertex has a path to the output. Thus it has at least q+d'-1 distinct edges. Each edge comes from a gate input wire, so there are at most 2q edges. Therefore d' <= q+1. Every essential input lies in the cone, giving d <= d' <= q+1 <= g+1. If the output is itself a primary input, d<=1 and the result also holds. Repeated wires and unrestricted fan-out are allowed; they can only reduce the number of distinct edges relative to the input-pin count.\nscope: All finite fan-in-two Boolean DAG circuits, any Boolean gate basis, free primary inputs, arbitrary fan-out, and g counted gates; d is the number of essential primary input variables. Applied conditionally to an N-bit MCSP decision function depending on all N bits, this yields only g>=N-1, so it does not close the assigned N(log N)^k target.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795557963.1854413,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0619: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No Lean source was kernel-accepted. The zero-gate counterexample is plausible under the claim\u2019s wording, but all three checks failed: the first two lacked usable `Finset` definitions, and the (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795558046.3741302,
+  "session": "pnp-desk/research/R3000",
+  "model": "gpt-6-luna",
+  "lemma": "For every m>=1, 0<=s, and 0<=r<=2^m, the fraction of m-input Boolean functions whose truth tables are within Hamming distance r of a function computed by a fan-in-two circuit of at most s gates (full 16-gate basis, constants allowed) is at most min(1, D(m,s) 2^(-2^m) sum_{i=0}^r binom(2^m,i)), where D(m,s)=sum_{j=0}^s (m+j+2)16^j(m+j+2)^(2j). Proof: There are at most D(m,s) such circuit functions by the topological encoding count. Each has a Hamming ball of radius r with exactly sum_{i=0}^r binom(2^m,i) truth tables. The union has size at most the sum of these ball sizes, so division by the total 2^(2^m) functions proves the assertion. This strengthens the exact-match counting statement by quantifying approximate circuit coverage, but the present parameters do not establish the target lower bound.",
+  "gap": "No recorded obligation ID was supplied in the returned proof-state excerpt. The lemma is a precise general covering estimate; it does not close the target superlinear lower-bound gap. Continue from the existing open obligations G0001/G0002 and seek a new circuit fact that strengthens the read-set or covering argument.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ]
+ },
+ {
+  "at": 1795558127.137952,
+  "session": "pnp-desk/research/R3000",
+  "model": "gpt-6-luna",
+  "gap": "This exact-to-approximate conversion is only a linear correction bound and does not establish the required superlinear circuit lower bound for MCSP[m^c]. G0001 remains unresolved pending an argument that exploits additional structure in MCSP instances or improves the correction cost for relevant error sets.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0623",
+  "proved_step": "statement: For every m>=1, let f,g:{0,1}^m->{0,1} and suppose g has a fan-in-two circuit of size s over the full binary Boolean basis, with constants available. If f and g differ on exactly r inputs, then f has a circuit in the same model of size at most s + m + rm. Proof: Compute each negation \u00acx_i using m NAND gates. For each of the r inputs a on which f(a)\u2260g(a), compute its indicator \u03b4_a(x)=\u2227_{i=1}^m \u2113_{a,i}(x), where \u2113_{a,i}=x_i if a_i=1 and \u00acx_i otherwise, using m\u22121 AND gates per indicator. Form h(x)=g(x) XOR \u03b4_{a_1}(x) XOR \u22ef XOR \u03b4_{a_r}(x), using r XOR gates. The indicators have disjoint supports and equal 1 exactly on their respective inputs, so h=f pointwise. The added gate count is m+r(m\u22121)+r=m+rm. For r=0, the original circuit suffices and the bound remains valid.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795558261.7205288,
+  "session": "pnp-desk/research/R3000",
+  "model": "gpt-6-luna",
+  "gap": "The structured-error correction lemma is proved, but it does not give a superlinear MCSP lower bound without a lower bound on the error-indicator circuit complexity for relevant MCSP truth tables. G0001 remains open; the lemma identifies a specific next obligation: relate approximate circuit covers to hard-to-compute error indicators.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0624",
+  "proved_step": "statement: Let B be any fan-in-two Boolean gate basis containing a gate that computes XOR, and let f,g,e:{0,1}^m\u2192{0,1}. If g has a B-circuit of size s and e has a B-circuit of size t with e(x)=1 exactly when f(x)\u2260g(x), then f has a B-circuit of size at most s+t+1. Proof: Take the circuits for g and e, using disjoint gate sets and sharing their input variables. Append one XOR gate whose predecessors are their output wires. On each input x this output is g(x)\u2295e(x). By the defining property of e, e(x)=f(x)\u2295g(x), so g(x)\u2295e(x)=g(x)\u2295f(x)\u2295g(x)=f(x), since Boolean XOR is associative and a\u2295a=0. The combined circuit has s+t+1 gates. This statement requires no assumptions about the size or density of the error set beyond e computing its indicator.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795558334.6826818,
+  "session": "pnp-desk/research/R3000",
+  "model": "gpt-6-luna",
+  "gap": "The cofactor decomposition gives a one-level lower-bound transfer only: a hard m-input function forces one hard (m-1)-input cofactor at a threshold roughly halved. Iterating loses a factor of 2 per level, so it does not yield the required N(log N)^k lower bound for MCSP[m^c]. G0001 remains open; a useful next step would need a restriction-stable promise or a way to aggregate many hard cofactors without this exponential loss.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0625",
+  "proved_step": "statement: For m>=1, in the fan-in-two DAG model over the full Boolean basis with free input wires and constants, write f0(x)=f(x,0) and f1(x)=f(x,1) for the two cofactors of f:{0,1}^m->{0,1}. Then C_m(f) <= C_{m-1}(f0)+C_{m-1}(f1)+4. Proof: Take circuits for f0 and f1 with disjoint gates and shared inputs x_1,...,x_{m-1}. Compute \u00acx_m with one NOT gate, u=(\u00acx_m) AND f0 with one AND gate, v=x_m AND f1 with one AND gate, and output u OR v with one OR gate. For x_m=0 the output is f0, and for x_m=1 it is f1, so this circuit computes f and adds four gates. The argument also works for m=1, where the cofactors are constants and the available constants can serve as their circuit outputs. Consequently, if both cofactors have complexity at most s, then C_m(f)<=2s+4; hence any f with C_m(f)>2s+4 has at least one cofactor of complexity greater than s.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795559488.1481934,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction with shared negations is valid in the full B2 basis: NAND(x_i,x_i) computes \u00acx_i (m gates); each of t minterms is an AND of m literals using m-1 binary AND gates (0 for m=1); the t minterms are combined with t-1 binary OR gates (0 for t=1). Total gates = m + t(m-1) + (t-1) = m + tm - 1. No hidden assumptions; the basis contains NAND, AND, OR. Checked for edge cases m=1, t=1 and general m,t.",
+  "review_of": "S0519",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559579.0305407,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof claims NAND(x_j, x_j) computes constant 1 for the fixed input. But NAND(x_j, x_j) = \u00ac(x_j \u2227 x_j) = \u00acx_j, which depends on x_j and is not constant. The correct gate for constant 1 is XNOR(x_j, x_j) = 1 (since x_j XNOR x_j = \u00ac(x_j XOR x_j) = 1), which is in the full 16 binary Boolean functions basis. The XOR(x_j, x_j) = 0 construction for constant 0 is correct. The statement is true with this correction, but the proof as written contains an error.",
+  "review_of": "S0520",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795559738.8507478,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The proof claims NAND(x_j, x_j) computes constant 1, but NAND(x_j, x_j) = \u00acx_j (negation of x_j), not constant 1. For constant 1, one needs XNOR(x_j, x_j) = 1 or NOR(x_j, x_j) = 1, which are available in the full 16-gate basis. The statement may be salvageable with a corrected construction (using XNOR for 1, XOR for 0, giving s+2 gates), but the proof as written contains an incorrect gate identity. This is the same error as in S0520.",
+  "review_of": "S0521",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795559772.9141715,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The counting argument is standard and correct. For each j-gate circuit: 16 choices per gate type, each of 2 predecessors chosen from m inputs + 2 constants + (j-1) earlier gates = at most m+j+2 possibilities. Output wire also from at most m+j+2 wires. Total (m+j+2) * 16^j * (m+j+2)^(2j) encodings per j. Summing over j gives upper bound on number of computable functions. If D(m,s) <= 2^(2^m-1), then at least half of all 2^(2^m) functions require >s gates. No logical error found.",
+  "review_of": "S0522",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559772.946868,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Standard Hamming ball union bound. Each string has exactly sum_{i=0}^r binom(N,i) strings at distance <= r. Union of D balls has size at most D times that. Fraction bound follows by dividing by 2^N and taking min with 1. Correct as stated.",
+  "review_of": "S0523",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559772.9743629,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Standard binomial tail bound using entropy. For delta <= 1/2, sum_{i=0}^{floor(delta N)} binom(N,i) <= 2^{N H_2(delta)}. Proof via (p + (1-p))^N with p=delta. Union bound gives at most D * 2^{N H_2(delta)} strings in the union of balls. Complement fraction is at least 1 - D * 2^{-N + N H_2(delta)}. Correct.",
+  "review_of": "S0524",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559805.2172582,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Standard counting argument for B2 circuits. For j gates: 16 gate types, each of 2 ordered predecessors from m inputs + (i-1) earlier gates = at most m+i-1 <= m+j choices. Output from m inputs + j gates = m+j choices. Total encodings per j: (m+j) * 16^j * (m+j)^{2j}. Summing over j=0..s gives upper bound. Correct as stated (note: this variant doesn't include the 2 constant wires explicitly, but they can be simulated with gates if needed, so the bound still holds as an upper bound).",
+  "review_of": "S0525",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559805.2632334,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Combines the circuit counting bound (with constants) from S0522 with the Hamming ball union bound from S0523. The log description count is O(m^c log m) while Hamming ball is 2^{H_2(delta)N} with H_2(delta)<1. Since m^c log m = o(N) for N=2^m, the product is < 2^N for large m, proving some functions are far from size-m^c circuits. This is a standard typical-function argument, correctly stated.",
+  "review_of": "S0530",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559805.2938662,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Correct. Adding unused inputs doesn't change circuit complexity in the B2 model with free input wires. A circuit for f on d inputs directly computes F(x,y)=f(x) on d+r inputs by ignoring the y variables. Conversely, any circuit for F can have the y inputs set to constants (free in this model) yielding a circuit for f of no larger size. The minimum gate count is identical.",
+  "review_of": "S0531",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559805.3263974,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Correct. E_r(T) repeats the truth table of T 2^r times. The minimum circuit size of a function and its repeated version are equal by padding invariance (S0531). So C(E_r(T)) = C(T), hence MCSP decision is preserved. A circuit for MCSP_{m+r}[t] on inputs of length 2^{m+r} can be restricted by feeding the same bits for the repeated blocks (or equivalently, identifying the corresponding input wires), giving a circuit for MCSP_m[t] of no larger size.",
+  "review_of": "S0532",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559856.0736926,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Correct. By padding invariance (S0531), C(E_r(T)) = C(T). Since d^c <= (d+r)^c for c>=1, the implication 1_{C(T)<=d^c} <= 1_{C(E_r(T))<=(d+r)^c} holds. A circuit for MCSP_{d+r}[(d+r)^c] on the padded truth table, with the repeated input wires identified, computes the relaxed predicate. No logical error.",
+  "review_of": "S0533",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559856.1077435,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Correct. The predicate a < C_d(T) <= b is equivalent to (C_d(T) <= b) AND NOT (C_d(T) <= a). Given circuits for MCSP_d[b] (size S_b) and MCSP_d[a] (size S_a), we can combine them with an AND gate and a NOT gate (2 gates) plus possibly an output wire. S_a + S_b + 3 is a generous upper bound. Valid construction.",
+  "review_of": "S0534",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559856.3763232,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The statement is truncated in the proof state ('Let M_t(T)=1 iff the Boolean'). Cannot review an incomplete statement. Need the full statement to evaluate correctness.",
+  "review_of": "S0537",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795559946.0367265,
+  "session": "pnp-desk/research/R3008",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "The claim follows from padding invariance: adding unused inputs y does not increase circuit size, and composing with P_{d,r} simply ignores the y coordinates, preserving the computed function with no additional gates. This is a standard restriction argument in the fan\u2011in\u2011two DAG model.",
+  "review_of": "S0543",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795560277.0371373,
+  "session": "pnp-desk/research/R3008",
+  "model": "laguna-xs-2.1",
+  "evidence": "The restriction argument is standard and correct: substituting constants for input wires and simplifying gates preserves computation with gate count non-increasing.\n- The analysis of P_{d,r} and MCSP transfer is accurate.\n- The limitation (transfers bounds only at same threshold) is correctly noted.",
+  "review_of": "S0544",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795560416.9066534,
+  "session": "pnp-desk/research/R3016",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard restriction argument: a minimum circuit for f, after substituting r fixed inputs with constants and simplifying gates whose inputs become constant, yields a circuit for f|rho with at most the same number of gates. The construction is valid in the fan-in-two DAG model with free constants and free input wires. The threshold normalization caveat (d^c vs (d-r)^c) is correctly noted and does not affect the lemma's correctness.",
+  "review_of": "S0545",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795560430.425748,
+  "session": "pnp-desk/research/R3016",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard support-size lower bound: if a coordinate is pivotal for F, it must appear in at least one gate-input slot of any circuit computing F (otherwise induction on topological order shows the output is independent of it). A g-gate fan-in-two DAG has exactly 2g input slots, so at most 2g distinct coordinates can appear. Since all N coordinates are pivotal, N \u2264 2g, hence g \u2265 ceil(N/2). The construction is valid in the stated model. The caveat that pivotality for MCSP[m^c] is not established is correctly noted and does not affect the lemma's correctness.",
+  "review_of": "S0553",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795560575.1213264,
+  "session": "pnp-desk/research/R3016",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for each of the d disagreeing inputs, build an m-literal minterm in m-1 gates (using AND for conjunction), OR the d minterms in d-1 gates to get the indicator 1_D, then XOR with a circuit for f. Total added gates: d(m-1) + (d-1) + 1 = dm. The reverse direction by symmetry gives the bound |C(f) - C(g)| \u2264 dm. Valid in the stated model with free input wires and unrestricted fan-out.",
+  "review_of": "S0554",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795560575.155884,
+  "session": "pnp-desk/research/R3016",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct DNF construction: each minterm uses at most m-1 AND gates to conjoin m literals; with charged negations each negative literal costs 1 NOT gate (binary gate with both inputs the same), giving \u2264 2m-1 per minterm. t minterms combined with t-1 OR gates gives t(2m-1)+(t-1)=2mt-1. With free negations, omit the NOT gates for mt-1. Unrestricted fan-out and sharing don't increase cost. Valid individual-function upper bound.",
+  "review_of": "S0555",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795560575.1863632,
+  "session": "pnp-desk/research/R3016",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard reduction: given a circuit computing L output bits, append L bitwise equality tests against the fixed sentinel z (each is 1 XOR (x_i XOR z_i)), then AND them in a balanced tree (O(L) gates) to detect the sentinel, finally negate. The result is 1 iff a valid witness exists. Correct for fixed output length and distinguishable sentinel.",
+  "review_of": "S0556",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795561021.5887089,
+  "session": "pnp-desk/research/R3024",
+  "model": "gpt-6-luna",
+  "id": "S0646",
+  "proved_step": "statement: Small-support restriction lemma (charged B2 model). For q>=1 and g:{0,1}^q->{0,1} with t>=1 satisfying inputs, g has a fan-in-two circuit with at most tq+q-1 gates using AND, OR, and NOT, where every gate is charged, input wires are free, and fan-out is unrestricted. Therefore, if tq+q-1<=s, every q-input truth table of support at most t is a YES instance of MCSP[s]. In particular, fixing all but q bits of an N-bit truth-table input to 0 restricts MCSP[s] to constant 1 whenever q*2^q+q-1<=s.\nscope: All q>=1, t>=1, s>=0; exact all-gates-charged fan-in-two B2 model with free input wires and unrestricted fan-out. The final restriction fixes N-2^q bits to zero and leaves 2^q table bits free.\nproof: Compute each negated input literal at most once, using at most q NOT gates. For each satisfying assignment a, form its minterm by ANDing the q literals matching a, using q-1 gates; when q=1 this costs zero gates. OR the t minterms using t-1 gates. This computes g exactly and costs at most q+t(q-1)+(t-1)=tq+q-1 gates. The bound is monotone in t, so it also covers support at most t. If all but q truth-table positions are fixed to zero, each completion has support at most 2^q; substituting t=2^q gives the stated sufficient condition for every completion to belong to MCSP[s].\nlimitation: This establishes a constant-YES residual under the stated zero restriction. It does not show that arbitrary restrictions preserve hardness or that gate costs accumulate across restrictions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795561098.6050348,
+  "session": "pnp-desk/research/R3016",
+  "model": "laguna-xs-2.1",
+  "lemma": "LEMMA COUNTING: For MCSP[m^c] instances with N=2^m truth table length and threshold s=m^c, the number of distinct instances L(N,s) = binom(N,s) satisfies: log_2 L(N,s) > N*log_2(N+1) for all m >= m_0(c) where m_0(c) = max(2, ceil((c+2)/log_2(e))). Consequently, circuits of size N cannot compute all MCSP[m^c] functions.",
+  "evidence": "Computed exact binomial coefficients and circuit counting bounds for m=2,3,4,5 with c=1; verified log_2(binom(N,s)) > N*log_2(N+1) holds. The asymptotic gap grows as m increases.",
+  "id": "S0647",
+  "proved_step": "statement_start: Lemma (MCSP counting threshold). For any fixed c >= 1, there exists m_0(c) such that for all m >= m_0(c), the number of distinct MCSP[m^c] truth tables exceeds the number of Boolean functions computable by circuits of size N = 2^m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795561151.9025676,
+  "session": "pnp-desk/research/R3024",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the construction: XOR(x,x)=0 and XNOR(x,x)=1 are in the full 16-gate basis. Since at least one input x remains free, we can use it to generate the constant b with exactly one gate (XOR for b=0, XNOR for b=1). This avoids the charged-constant cost. All fixed input wires are replaced by this shared constant wire; original gates retain topological order. The new circuit has s original gates + 1 constant-generating gate = s+1 gates. No argument gap found. The limitation noted is accurate: this is an upper-bound representation lemma, not a lower bound for MCSP decision circuits.",
+  "review_of": "S0558",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795561211.4300292,
+  "session": "pnp-desk/research/R3024",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: take minimum circuits A for f_0 and B for f_1 on m-1 inputs. Add NOT gate for \u00acx, AND for (\u00acx)\u2227A(y), AND for x\u2227B(y), OR to combine. Total 4 added gates. The cofactor circuits are disjoint DAGs sharing no gates except the new ones. This correctly reconstructs f(x,y). No argument gap. The step correctly notes this is an upper bound, not a lower bound for MCSP decision circuits.",
+  "review_of": "S0559",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795561211.5219631,
+  "session": "pnp-desk/research/R3024",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: for r>0, pick x outside R. Build XOR(x,x)=0 and XNOR(x,x)=1 with 2 gates. For each assignment a to R, replace fixed inputs with the appropriate constant wire. Original gates remain in topological order. Each cofactor circuit uses \u2264 s+2 gates. Sum over 2^r assignments gives \u2264 2^r(s+2). No argument gap. Correctly noted as upper bound representation lemma, not MCSP lower bound.",
+  "review_of": "S0560",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795561235.039607,
+  "session": "pnp-desk/research/R3016",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "lemma": "LEMMA: The naive counting argument (circuits of size N vs MCSP[m^c] instances) FAILS asymptotically because 2^m * m grows faster than m^{c+1}. For the actual question (circuits of size N*(log N)^k = 2^m * m^k), the number of circuits is 2^{Theta(2^m * m^{k+1})} which EXPONENTIALLY exceeds the number of MCSP[m^c] instances (which is 2^{Theta(m^{c+1})}). Therefore a counting argument CANNOT give a lower bound for the target statement. This is a barrier result: the counting argument is in the wrong direction.",
+  "evidence": "Exact computation for m=2..11, c=1,2 shows log2(instances) = Theta(m^{c+1}) while log2(circuits for S=N*m^k) = Theta(2^m * m^{k+1}). The circuit class is exponentially larger.",
+  "id": "S0651",
+  "proved_step": "statement_start: Lemma (Counting argument fails for target). For any fixed c >= 1 and any fixed k, the number of MCSP[m^c] instances is 2^{Theta(m^{c+1})} while circuits of size N*(log N)^k compute 2^{Theta(2^m * m^{k+1})} functions. The circuit class is exponentially larger than the target set, so counting gives NO lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

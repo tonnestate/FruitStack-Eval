@@ -816,5 +816,111 @@
   "kind": "LEMMA",
   "closes": "Q-85e487150a",
   "closes_valid": true
+ },
+ {
+  "at": 1795557886.251765,
+  "session": "pnp-desk/research/R3001",
+  "model": "gpt-6-luna",
+  "id": "S0092",
+  "proved_step": "statement: Affine decision rank bound. Let N,S be nonnegative integers, let M be an S\u00d7N matrix over F_2, let c\u2208F_2^S, and define L(x)=Mx+c for x\u2208F_2^N. Let Y\u2286F_2^N be nonempty. Suppose a decoder D:F_2^S\u2192{0,1} exactly decides membership in Y from L(x), meaning D(L(x))=1 iff x\u2208Y for every x. Then rank(M)\u2265N\u2212log_2|Y|. Proof: Choose y\u2208Y. For every k\u2208ker(M), L(y+k)=M(y+k)+c=My+c=L(y), so D(L(y+k))=D(L(y))=1; exactness implies y+k\u2208Y. The map k\u21a6y+k is injective, so |Y|\u2265|ker(M)|. Rank-nullity gives |ker(M)|=2^{N\u2212rank(M)}. Thus 2^{N\u2212rank(M)}\u2264|Y|; taking base-2 logarithms and rearranging yields rank(M)\u2265N\u2212log_2|Y|. The argument also covers Y=F_2^N, where the lower bound is zero.\nevidence: Complete proof from the fiber structure of an affine map and rank-nullity; no computational evidence is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-85e487150a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795559684.8783457,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the algebraic proof in detail. The lemma states: if a one-pass affine streaming algorithm over F_p^S with final state q_N(x)=Mx+c has a decoder exactly solving Search-MCSP[s] (with 0^N a yes-instance), then N <= S(p-1). The proof uses the group algebra A=F_p[(Z/pZ)^S] and its augmentation ideal I. Key steps verified: (1) q_N(x) is indeed affine in x because the recurrence q_t = M_t q_{t-1} + x_t v_t + c_t unrolls to an affine function. (2) A \u2245 F_p[y_1,...,y_S]/(y_1^p,...,y_S^p) via y_j = X_j - 1, so I^{S(p-1)+1}=0 (any monomial of degree S(p-1)+1 has some exponent >= p by pigeonhole). (3) Each 1-X^{w_i} lies in I because X^g - 1 \u2208 I for all g in the group. (4) If N > S(p-1), the product of N such factors lies in I^N = 0. (5) The coefficient of X^0 in this product is sum_{J: sum w_i = 0} (-1)^{|J|}. If only J=empty set satisfied this, the coefficient would be 1, contradicting the zero product. Hence a nonempty J exists with sum_{i in J} w_i = 0, giving nonzero k in {0,1}^N with Mk=0. (6) Then q_N(k)=q_N(0), so decoder outputs same value. Since 0^N is a yes-instance (by hypothesis), decoder outputs a circuit for 0^N. But k != 0^N, so this output is incorrect for input k regardless of whether k is a yes- or no-instance (if yes, should output circuit for k; if no, should output 'none'). Contradiction. The argument is a standard proof of the Davenport constant D((Z/pZ)^S) = S(p-1)+1, correctly applied. No gap found. The lemma survives review.",
+  "review_of": "S0089",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559724.6654167,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Reviewed the proof. The lemma assumes: (1) zero truth table has circuit size \u2264 s, (2) one-pass affine realization over F_2 with final state q(x)=Mx+c, (3) decoder exactly solves Search-MCSP[s] (outputs circuit for x if size \u2264 s, else 'none'). Proof: Suppose nonzero k \u2208 ker(M). Then q(k)=Mk+c=c=q(0). Decoder is a function of final state, so D(q(k))=D(q(0)). Since 0^N is a yes-instance, D(q(0)) is a circuit C computing 0^N. Then D(q(k))=C. If k is a yes-instance, exactness requires C to compute k \u2260 0^N - impossible. If k is a no-instance, exactness requires D(q(k))='none' but it equals C - contradiction. Thus ker(M)={0}, so rank(M)=N \u2264 S. The argument is sound and the zero-circuit hypothesis is used correctly (it's a premise, not a gap). No counterexample exists for this exact statement. SURVIVED_REVIEW.",
+  "review_of": "S0090",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559754.2182312,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Reviewed the proof. The lemma states: if final state q(x)=Mx+c over F_2 with M an S\u00d7N matrix, and a decoder exactly solves a search problem on every input, and 0^N is a yes-instance, then S \u2265 N. Proof: Exactness on 0^N means decoder output at c=q(0^N) computes 0^N. If nonzero k \u2208 ker(M), then q(k)=Mk+c=c=q(0^N), so decoder returns same output on k and 0^N. Exact search correctness requires that output to compute both k and 0^N, impossible as they are distinct truth tables. Thus ker(M) is trivial. Rank-nullity gives rank(M)=N, and rank(M)\u2264S, so S\u2265N. The argument is essentially the same as S0090 but without the explicit zero-circuit hypothesis (it's absorbed into '0^N is a yes-instance'). This is a valid special case of the exact-search collision argument. No gap found. SURVIVED_REVIEW.",
+  "review_of": "S0091",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559754.2419386,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Reviewed the proof. The lemma: for affine map L(x)=Mx+c over F_2, if decoder D exactly decides membership in Y\u2286F_2^N from L(x), then rank(M) \u2265 N - log\u2082|Y|. Proof: Pick y\u2208Y. For any k\u2208ker(M), L(y+k)=My+c=L(y), so D(L(y+k))=D(L(y))=1, hence y+k\u2208Y. The map k\u21a6y+k is injective, so |Y|\u2265|ker(M)|. Rank-nullity: |ker(M)|=2^{N-rank(M)}. Thus 2^{N-rank(M)}\u2264|Y|, so rank(M)\u2265N-log\u2082|Y|. The argument is correct and uses only basic linear algebra and the definition of exact decision. The bound is tight (e.g., if M has rank N, the bound is N\u2265N). No gap found. SURVIVED_REVIEW.",
+  "review_of": "S0092",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795559994.3389063,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0097",
+  "proved_step": "statement_start: REPAIRED LEMMA (S0080; affine exact-search lower bound over prime field, complete proof). Let p be prime, N=2^m, S>=0. Consider a one-pass streaming algorithm with state q_t in F_p^S evolving on input x=(x_1,...,x_N) in {0,1}^N by q_0=c_0, q_t=M_t q_{t-1}+x_t v_t+c_t for fixed M_t in F_p^{SxS}, v_t,c_t in F_p^S. Final state q_N(x)=Mx+c with M in F_p^{SxN}, c in F_p^S. Decoder D: F_p^S -> {0,1}^* U {'none'} such that for every x in {0,1}^N: if x has a fan-in-2 Boolean circuit over basis {AND, OR, NOT, 0, 1} of size <= s computing x, then D(q_N(x)) outputs (an encoding of) such a circuit; otherwise D(q_N(x)) = 'none'. The constant-zero function 0^N has a circuit of size 1 (gate 0) so is a YES instance for all s>=1. Claim: N <= S(p-1), i.e., S >= ceil(N/(p-1)). Proof: (1) By induction, q_t is affine in (x_1,...,x_t), so q_N(x)=Mx+c with columns w_1,...,w_N in F_p^S. (2) In group algebra A=F_p[(Z/pZ)^S] with generators X_1,...,X_S, let y_j=X_j-1. Then A=F_p[y_1,...,y_S]/(y_1^p,...,y_S^p), augmentation ideal I=(y_1,...,y_S) satisfies I^{S(p-1)+1}=0. Each 1-X^{w_i} in I. If N>S(p-1), prod_{i=1}^N (1-X^{w_i})=0 in A. (3) Coefficient of X^0 is sum_{J subseteq [N]: sum_{i in J} w_i=0} (-1)^{|J|}. Empty set gives +1. If no nonempty J had zero column sum, coefficient=1, contradiction. So exists nonempty J with sum_{i in J} w_i=0. (4) Let k in {0,1}^N be indicator of J. Then k!=0 and Mk=0, so q_N(k)=c=q_N(0). (5) D(q_N(0))=C_0 (circuit computing 0^N) since 0^N is YES. (6) D(q_N(k))=D(c)=C_0. Now two cases: (a) If k has circuit size<=s, D(q_N(k)) must compute k, but C_0 computes 0, impossible since k!=0. (b) If k has circuit size>s, D(q_N(k)) must be 'none', but it is C_0 (a circuit), contradiction. Either way contradiction, so N<=S(p-1).\nevidence: Complete proof with explicit basis, case analysis on k's circuit size, and no gaps. The group-algebra argument guarantees existence of nonzero k with Mk=0 when N>S(p-1); the decoder collision forces a contradiction regardless of whether k is a YES or NO instance.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795560120.372578,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0098",
+  "proved_step": "statement_start: REPAIRED LEMMA (S0014; F_2-linear streaming decision-version lower bound). Let N=2^m. State q_t = M_t q_{t-1} + L_t x_t + c_t over F_2, final q_N(x)=Mx+c. Decoder D: F_2^S -> {0,1} computes DECISION MCSP[s]. Constant-zero 0^N has circuit size <= s (s>=1). P_s = {k: forall x, D(q_N(x xor k))=D(q_N(x))}. Then ker M subseteq P_s, so rank M >= N - dim P_s, so S >= N - dim P_s. |P_s| <= |D^{-1}(1)| <= (m+s)(16(m+s)^2)^s. Thus dim P_s <= log2(m+s) + s log2(16(m+s)^2) = d_s. Therefore S >= N - d_s. Proof: (1) k in ker M => q_N(x xor k)=q_N(x) => D same => k in P_s. (2) rank M = N - dim ker M >= N - dim P_s, S >= rank M. (3) P_s subgroup, D^{-1}(1) union of cosets => |P_s| <= |D^{-1}(1)|. (4) Circuit counting bound. (5) dim P_s <= log2 |P_s| <= d_s.\nevidence: Repairs S0014 by switching to DECISION version where decoder is total (always 0/1), avoiding 'none' issue. Kernel collision works because D is total. Circuit counting bound standard.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795560120.3909645,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0099",
+  "proved_step": "statement_start: REPAIRED LEMMA (S0032; F_2-linear/affine staged SEARCH lower bound, explicit basis). N=2^m, s>=1. One-pass streaming: q_0=c_0, q_t=M_t q_{t-1}+L_t x_t+c_t over F_2, final q_N(x)=Mx+c with M in F_2^{SxN}. Decoder D: F_2^S -> {circuits} U {'none'} solves Search-MCSP[s] over basis {AND, OR, NOT, 0, 1} where constant gates 0,1 have size 1. Constant-zero 0^N has circuit size 1 <= s, so D(c)=C_0 (circuit computing 0). Claim: S >= N. Proof: Suppose S < N. Then rank M <= S < N, so exists nonzero k in ker M. Then q_N(k)=Mk+c=c=q_N(0). So D(q_N(k))=D(c)=C_0. But C_0 computes constant 0. For this to be correct on input k, k must equal 0^N, contradicting k!=0. Therefore no such k exists, so ker M={0}, rank M=N, and S >= N.\nevidence: Repairs S0032 by fixing circuit basis with explicit constant gates of size 1, so constant-zero 0^N has circuit size 1 <= s for all s>=1. The kernel collision argument then works cleanly: any nonzero k in ker M forces D to output C_0 on k, but C_0 computes 0, impossible since k!=0.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795560120.4072063,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0100",
+  "proved_step": "statement_start: REPAIRED LEMMA (S0066; F_2-linear input-independent streaming DECISION, symmetry group bound). N=2^m. State q_t = M_t q_{t-1} + L_t x_t + c_t over F_2, final q_N(x)=Mx+c. Decoder D: F_2^S -> {0,1} computes DECISION MCSP[s]. P_s = {k in F_2^N: forall x, D(q_N(x xor k)) = D(q_N(x))}. Then S >= N - dim P_s. Furthermore, for any k in P_s, the mapping x -> x xor k preserves the YES set. The number of circuits of size <= s over basis {AND, OR, NOT, 0, 1} is at most (m+s)(16(m+s)^2)^s. Since D^{-1}(1) is a union of cosets of P_s, |P_s| <= |D^{-1}(1)| <= (m+s)(16(m+s)^2)^s. So dim P_s <= log2(m+s) + s log2(16(m+s)^2). Therefore S >= N - d_s where d_s = log2(m+s) + s log2(16(m+s)^2). Proof: (1) ker M subseteq P_s (as in S0094). (2) rank M >= N - dim P_s, S >= rank M. (3) P_s subgroup, D^{-1}(1) union of cosets => |P_s| <= |D^{-1}(1)|. (4) Circuit counting bound. (5) dim P_s <= log2 |P_s| <= d_s.\nevidence: Repairs S0066 by defining all terms precisely: P_s is the symmetry group of the decision function, d_s is explicitly given, and the 'affine approximation regime' estimate is replaced with the exact bound S >= N - d_s. The proof follows S0094 exactly.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795560998.7108722,
+  "session": "pnp-desk/research/R3014",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0101",
+  "proved_step": "statement_start: LEMMA (Candidate A affine staged realization lower bound over F_2). Let N = 2^m. An affine staged realization over F_2 for Search-MCSP[s] is a one-pass streaming algorithm with state q_t in F_2^S evolving by q_0 = c_0, q_t = M_t q_{t-1} + L_t x_t + c_t for fixed M_t in F_2^{S x S}, L_t in F_2^{S x 1}, c_t in F_2^S. Final state q_N(x) = M x + c with M in F_2^{S x N}, c in F_2^S. A decoder D: F_2^S -> {circuits} U {'none'} satisfies: for every x in {0,1}^N, if x has a fan-in-2 Boolean circuit over basis {AND, OR, NOT, 0, 1} of size <= s computing x, then D(q_N(x)) outputs an encoding of such a circuit; otherwise D(q_N(x)) = 'none'. Constant gates 0,1 have size 1, so 0^N has circuit size 1 <= s for all s >= 1. Claim: S >= N. Proof: Suppose S < N. Then rank M <= S < N, so there exists nonzero k in ker M (over F_2). Since k in {0,1}^N and k != 0, we have q_N(k) = M k + c = c = q_N(0). Thus D(q_N(k)) = D(c). But D(q_N(0)) must output a circuit C_0 computing 0^N (since 0^N is a YES instance). So D(c) = C_0. Now C_0 computes the constant-zero function. For D(q_N(k)) = C_0 to be correct on input k, the circuit C_0 must compute k. But C_0 computes 0, and k != 0, contradiction. Therefore no such k exists, so ker M = {0}, rank M = N, and S >= N. This lower bound holds for all s >= 1 and all affine staged realizations over F_2.\nevidence: Complete proof. The kernel collision is unconditional (linear algebra over F_2). The decoder collision forces a contradiction because the constant-zero function is a YES instance with a unique trivial circuit, and any nonzero k in the kernel collides with 0^N in state but differs in truth table. Computational verification for m=1,2,3 (N=2,4,8) in cm-8bdc3a8faf7d4fd3 confirms the structural kernel collision for all S < N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795561000.7002404,
+  "session": "pnp-desk/research/R3025",
+  "model": "gpt-6-luna",
+  "evidence": "Independent algebraic check: F_p[(Z/pZ)^S] is F_p[y_1,...,y_S]/(y_1^p,...,y_S^p), so its augmentation ideal has nilpotence index S(p-1)+1. For N>S(p-1), the product of the N augmentation elements is zero. Its identity coefficient is 1 if no nonempty subset of columns sums to zero, hence a nonempty zero-sum subset exists. Its indicator k is nonzero with Mk=0. The exact decoder receives the same state on k and 0; outputting a circuit for 0 fails if k is YES, and outputting none fails if k is NO. Thus the claimed contradiction holds under the stated affine-update and total exact-decoder assumptions.",
+  "review_of": "S0097",
+  "status": "SURVIVED_REVIEW"
  }
 ]

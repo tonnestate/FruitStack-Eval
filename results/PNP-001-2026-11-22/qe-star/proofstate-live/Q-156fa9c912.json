@@ -6393,5 +6393,61 @@
   "evidence": "The lemma is a standard existential bound for fan-in-two circuits; the construction of representatives and OR tree yields the claimed size, and no known counterexample exists.",
   "review_of": "S0708",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795558200.3468883,
+  "session": "pnp-desk/research/R3004",
+  "model": "gpt-6-luna",
+  "id": "S0752",
+  "proved_step": "statement: ONE-HOT RESIDUAL TRANSITION LEMMA. Let F be any subset of {0,1}^N. At level t let the distinct residuals be R_1,...,R_d and at level t+1 let them be U_1,...,U_e. Encode a valid current residual R_i by the one-hot vector q in {0,1}^d. There is a fan-in-two Boolean circuit that, given q and next bit b, outputs the one-hot encoding of the residual after appending b, using at most O(d+e) gates. Proof: For each i and b, the child R_i^b={u:bu in R_i} is one of the e level-(t+1) residuals; let j(i,b) denote its index. Compute a_i0=q_i AND NOT b and a_i1=q_i AND b for each i. For each j output q'_j as the OR of all a_ib with j(i,b)=j (empty OR is constant 0). The children of each parent are defined by residual sections, so for any valid one-hot q selecting i, exactly a_i,b is 1, at j(i,b), and every other output is 0. There are 2d conjunction terms and 2d total incidences across the output ORs; implementing each OR by a binary tree costs at most 2d gates, hence O(d+e) including input negation/constants. This establishes a real fan-in-two gate bound for canonical one-hot states, not for arbitrary compressed encodings or H_C transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "GAP_ID_REQUIRED",
+  "closes_valid": false
+ },
+ {
+  "at": 1795558361.3550534,
+  "session": "pnp-desk/research/R3004",
+  "model": "gpt-6-luna",
+  "id": "S0753",
+  "proved_step": "statement: FINITE-IMAGE RESIDUAL COUNT LEMMA. Let F be a finite subset of {0,1}^N with |F|=M, and for 0<=t<=N let R_t(p)={z in {0,1}^{N-t}: pz in F} for p in {0,1}^t. The number d_t of distinct sets R_t(p) is at most M+1, and the number of distinct pairs (t,R_t(p)) over all levels is at most (N+1)(M+1). Proof: At fixed t, every nonempty residual R_t(p) is witnessed by an element y in F extending p. Distinct prefixes of length t have disjoint extension sets. Distinct residuals cannot arise from the same prefix, so choosing one prefix and one witness for each distinct nonempty residual yields distinct witnesses in F. Thus there are at most M nonempty residuals. The empty residual contributes at most one more. Summing over N+1 levels gives (N+1)(M+1) level-tagged states. Hence the layered exact residual automaton for F has an encoding using ceil(log2((N+1)(M+1))) bits. This is a state-count bound only; it gives no bound on Boolean circuit cost of computing transitions from an arbitrary representation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795558464.2332377,
+  "session": "pnp-desk/research/R3004",
+  "model": "gpt-6-luna",
+  "id": "S0754",
+  "proved_step": "statement: EXPLICIT-LIST RESIDUAL LOOKUP BOUND. Let F={f_1,...,f_M} be an explicitly listed family of Boolean functions on an ordered N-point domain, each with a representation allowing evaluation cost at most s_j gates per point. For each prefix p of length t, let R_t(p) be its exact residual set of completions, and assign a distinct binary code to each residual at each level. The transition (code(R_t(p)),b) -> code(R_{t+1}(pb)) can be implemented by a nonuniform fan-in-two Boolean circuit of O(M log(M+1)) gates per level, after the family\u2019s evaluations and transition table have been computed. Proof: For each listed f_j, store a bit a_j indicating whether f_j agrees with p on the first t points. The next agreement vector has coordinates a'_j=a_j AND [f_j(t)=b]. Each predicate [f_j(t)=b] is a constant in the level-specific transition circuit because the family and t are fixed. Thus the agreement-vector update uses O(M) gates. Encode the residual by its agreement vector (or map each distinct vector to a residual code); translating between a packed binary residual code and the M-bit agreement vector by arbitrary lookup tables costs O(M log(M+1)) gates using one-hot equality tests and OR trees. The transition table can be constructed from the explicit list in O(sum_j N s_j + MN) evaluation and bookkeeping time. This result concerns explicit lists and nonuniform level-specific circuits only; it gives no bound for arbitrary MCSP decision circuits or implicit circuit families.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795558541.2267778,
+  "session": "pnp-desk/research/R3004",
+  "model": "gpt-6-luna",
+  "id": "S0755",
+  "proved_step": "statement: EXPLICIT-LIST SURVIVOR-STATE UPDATE. Let f_1,...,f_M be explicitly represented Boolean strings of length N. At level t encode prefix p by a in {0,1}^M, where a_j=1 exactly when f_j agrees with p on its first t coordinates. For next bit b, set a'_j=a_j AND [f_j(t)=b]. Then a' encodes exactly the strings agreeing with pb. The level-t transition uses at most 2M fan-in-two gates because each bracket is a hardwired constant. Initially a=1^M; induction on t proves the invariant. The circuit is constructible in O(MN) time by scanning the explicit strings. This applies only to the explicit survivor-vector representation, not packed residual codes, implicit families, or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795558624.7358701,
+  "session": "pnp-desk/research/R3004",
+  "model": "gpt-6-luna",
+  "gap": "The explicit-list survivor-vector update has a direct induction proof and finite boundary confirmation, but its representation and O(M) transition cost do not extend to the implicit family EXT_{n,s}. The unresolved obligation is to relate EXT transitions to bounded real-gate computation on H_C uniformly enough to constrain arbitrary MCSP decision circuits, while preserving the known efficient oracle construction.",
+  "gap_id": "G0190"
+ },
+ {
+  "at": 1795558938.304283,
+  "session": "pnp-desk/research/R3004",
+  "model": "gpt-6-luna",
+  "id": "S0757",
+  "proved_step": "statement: WITNESS-VERIFICATION FORM OF EXT TRANSITIONS. Let C be a fan-in-two Boolean circuit of size s on N-bit strings, let p be a prefix of length t<N, and let b in {0,1}. Define EXT_C(pb)=1 iff some completion x=p||b||q is accepted by C. There is a nondeterministic verifier with witness (q,y), where q has N-t-1 bits and y has one bit per gate of C, that accepts exactly when C(p||b||q)=1 and y is the consistent gate-value tableau. The verifier uses O(s+N) fan-in-two Boolean gates and O(s+N) witness/input bits. Proof: On input p,b and guessed q,y, check each gate equation in topological order, check that the output bit is 1, and check the fixed prefix and b are the designated input bits. Each gate equation has constant-size Boolean circuitry; conjunction over the s equations and output check costs O(s), while input/witness wiring and prefix handling costs O(N). If EXT_C(pb)=1, choose an accepting q and its uniquely induced tableau y; conversely an accepting verifier assignment supplies a completion on which C outputs 1. Thus the transition has a polynomial-size nondeterministic representation, while this argument gives no deterministic circuit bound after existentially eliminating q,y.\nderivation: A suffix q plus the deterministic gate tableau y is an accepting witness iff the transition predicate is true; local gate consistency is checked independently per gate and conjoined.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0190",
+  "closes_valid": false
  }
 ]

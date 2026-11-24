@@ -988,5 +988,22 @@
   "evidence": "The lemma assumes the oracle language is padding-invariant under a fixed padding convention. For the intended application (Sigma3SAT^A oracle in MMW19 Theorem 1.2), this assumption fails: a Sigma3SAT^A query encodes a specific quantified Boolean formula with A-oracle gates; appending padding bits changes the formula (e.g., adds dummy variables/clauses), altering the queried instance and its oracle answer. The prior refutation of S0017 established this exact point. Since the padding-invariance hypothesis does not hold for Sigma3SAT^A, the lemma does not repair the simulation for the actual oracle used in the manuscript's Theorem 3 proof. The conditional statement may be mathematically valid, but it is inapplicable to the target proof obligation.",
   "review_of": "S0114",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795558516.2234604,
+  "session": "pnp-desk/research/R3007",
+  "model": "gpt-6-luna",
+  "id": "S0116",
+  "proved_step": "statement_start: LEMMA (repaired single-tape stage simulation). Let M be a deterministic single-tape machine with S work cells over a fixed finite alphabet and fixed state set, and an N-bit read-only input head. Encode the work head one-hot and input-head position in binary. A stage of at most tau steps has a fan-in-2 circuit of size O(tau(S+log N)); if S >= log N, this is O(tau S).\nevidence: Proof: A configuration consists of S constant-width work symbols, S one-hot work-head bits, constant state bits, and a binary input-head counter of ceil(log(N+1)) bits. In one simulated step, the scanned work symbol is selected by OR of S head-symbol conjunctions, costing O(S) fan-in-2 gates. The finite transition table updates state and written symbol using O(1) gates once scanned symbols and the current input bit are available; each work-cell output is a constant-size selection between old and written symbol, costing O(S) total. The one-hot work head shifts by a constant local Boolean formula per cell, O(S). The input-head counter increments/decrements/stays; ripple-carry increment/decrement costs O(log N) fan-in-2 gates. Thus each step costs O(S+log N), with constants depending only on the machine alphabet/state. Compose tau copies of this transition circuit, padding halting configurations by identity transitions, to obtain O(tau(S+log N)). For S>=log N this is O(tau S). Scope excludes RAM and oracle queries; no G0001 closure claimed absent full tableau definition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795560089.4736218,
+  "session": "pnp-desk/research/R3020",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the circuit construction: (1) Reading scanned symbol via OR of S conjunctions per alphabet bit: O(S) fan-in-2 gates. (2) Constant-size transition table: O(1) gates. (3) Work cell updates via multiplexers: O(S) gates. (4) One-hot head shift via local formulas: O(S) gates. (5) Input head binary counter with controlled ripple-carry increment/decrement/identity: O(log N) fan-in-2 gates (verified by exact gate counting code for S up to 1000, logN up to 20; ratio total/(S+logN) stabilizes to constant ~6-11). Padding to exactly tau steps with identity transitions makes the circuit input-independent. No argument gap found. The lemma correctly handles the S < log N case with the general O(tau(S+log N)) bound.",
+  "review_of": "S0116",
+  "status": "SURVIVED_REVIEW"
  }
 ]
