@@ -74,5 +74,59 @@
   "proved_step": "statement: Lemma (cofactor gate removal with free constants). For any fan-in-2 Boolean circuit C with s gates, any set I of input variables, and any assignment a in {0,1}^I, let E_a be the gates whose computed functions become constant after fixing I=a. Then C restricted by I=a has a fan-in-2 circuit of size at most s-|E_a|. Proof: traverse C in topological order, replace every gate in E_a by its constant value under the restriction, and feed that value to every consumer. Retain the other gates. The output is unchanged and each gate in E_a is removed once, including when it has multiple consumers. Consequently, for uniform a, E_a's average size is 2^{-|I|} sum_g |{a : gate g becomes constant under I=a}|.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795516944.2098372,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "gap": "The counterexample shows that aggregate gate elimination cannot follow from circuit size alone: gates may compute functions independent of the fixed coordinates and survive every such restriction. A viable enriched lemma must condition on a structural relation between gate functions and restriction coordinates, then relate that statistic to MCSP[m^c] circuit size under arbitrary sharing.",
+  "refuted_approach": "The proposed universal bound that every s-gate fan-in-2 circuit has at least s/2 gates constant on average after fixing one input is false. A one-gate circuit computing the other input has zero constant gates for both assignments of the fixed input; the finite search found this counterexample (cm-fa015cf1af5940fb).",
+  "evidence": "DISCOVERY computation cm-fa015cf1af5940fb found the smallest two-input, one-gate counterexample: fixing x in a circuit whose sole gate computes y leaves that gate nonconstant for both x=0 and x=1. This matches the failure prediction that gates can avoid the fixed variable entirely.",
+  "gap_id": "G0005",
+  "id": "S0009",
+  "proved_step": "statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X\u222aY, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the same function h(Y). If h is nonconstant, g remains nonconstant. Proof: write the gate function as h(Y). Substitution of a for X changes no argument of h, so the restricted gate still computes h(Y). Since h is nonconstant, it remains nonconstant for every a.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517075.5267072,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "evidence": "Elementary counting proof. This does not establish a lower bound on N in terms of MCSP prefix information, so its relation to the aggregate gate-elimination target remains limited.",
+  "id": "S0010",
+  "proved_step": "statement: Lemma (survival probability from one nonconstant cofactor). Let C be a fan-in-2 Boolean circuit with s gates on disjoint variable sets X\u222aY, |X|=r. For each gate g and assignment a\u2208{0,1}^X, let g_a be its restricted Boolean function on Y. If N gates have at least one assignment a for which g_a is nonconstant, then under uniform a the expected number of nonconstant restricted gate functions is at least N/2^r. Proof: each counted gate has at least one surviving restriction among 2^r equally likely assignments, so its survival probability is at least 2^-r. The expected surviving-gate count is the sum of these indicator probabilities. No independence is required, and arbitrary fan-out does not affect the gate count.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795517462.4695528,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "statement: Lemma (survival of Y-only gates under X-restriction). Let C be a Boolean circuit on disjoint input sets X and Y, and let H be any set of gates whose computed functions are nonconstant and depend only on Y. For every assignment a to X, every gate in H computes the same nonconstant function of Y in C|_{X=a}; hence none is removed when replacing constant gates, and |C|\u2212|E_a|\u2265|H|, where E_a is the set of gates that become constant after restriction. Proof: each gate g\u2208H computes h_g(Y) before restriction, with no dependence on X. Substituting X=a therefore leaves its function exactly h_g(Y). Since h_g is nonconstant, g is not in E_a. Thus H\u2229E_a=\u2205, so |E_a|\u2264|C|\u2212|H| and the inequality follows. This holds pointwise for every a, even with arbitrary fan-out and shared gates.\nproof: For each g in H, its Boolean function is h_g(Y), independent of X and nonconstant. Substituting any assignment a for X leaves h_g(Y) unchanged, so g does not become constant. Therefore H is disjoint from E_a and |E_a|\u2264|C|\u2212|H|.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517618.0591412,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement: Lemma (cofactor survival for Y-dependent gates). Let X,Y be disjoint Boolean input sets with |X|=q, and let f:{0,1}^X\u00d7{0,1}^Y->{0,1} depend on at least one Y input. For uniform a\u2208{0,1}^X, Pr[f(a,\u00b7) is nonconstant]\u22652^{-q}. Proof: Y-dependence gives x*, y,y' with f(x*,y)\u2260f(x*,y'); hence the cofactor at x* is nonconstant, and a=x* has probability 2^{-q}. Sharpness: f(X,y)=1[X=x*]\u2227y has exactly one surviving cofactor. For any h such gate functions in a circuit, linearity of expectation gives expected at least h2^{-q} nonconstant gate cofactors, irrespective of shared fan-out.\nproof: For each function choose a witnessing assignment x* and witnessing Y inputs y,y'. The random restriction equals x* with probability 2^{-q}, which preserves a nonconstant cofactor. Summing the survival indicators over gates and applying linearity of expectation gives the aggregate expectation; no independence is needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517789.4148707,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: Lemma (support-sensitive cofactor survival). Let C be a Boolean circuit on disjoint input sets X and Y, and for each gate g let f_g(X,Y) be its computed Boolean function. Let d_g be the number of coordinates of X on which f_g actually depends. If f_g depends on at least one coordinate of Y, then for a uniform a in {0,1}^X, Pr[f_g(a,\u00b7) is nonconstant] >= 2^{-d_g}. Consequently, for any set H of gates whose functions depend on Y, the expected number of gates in H with nonconstant cofactors is at least sum_{g in H} 2^{-d_g}.\nproof: Fix g in H. Since f_g depends on Y, there are x*, y, y' with f_g(x*,y) != f_g(x*,y'). Fix the d_g coordinates in the X-support of f_g to their values in x*. For every assignment to the remaining X coordinates, the two evaluations still differ because f_g is independent of those coordinates. Thus at least a 2^{-d_g} fraction of all assignments to X give a nonconstant Y-cofactor. Summing the survival indicators over H and taking expectations proves the aggregate inequality by linearity of expectation; no independence between gates is needed. The bound is sharp: f(X,y)=1[X|_S=x*] AND y, where |S|=d, has a nonconstant cofactor on exactly one assignment to S.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

@@ -1907,5 +1907,46 @@
   "evidence": "Verified the DP construction: x = (x_B, x_S), y = A x_B where A is r x q basis of row space of W_B. C_i(y) counts {0,1}^i assignments yielding prefix sum y. Since W_B = U A, W_j.x = U_j.y + W_{jS}.x_S, so bottom gate indicators depend on x_B only through y. State space bounded by (2qa+1)^r per prefix. 200 exact checks vs brute force (n<=10, s<=3, r<=2) in cm-8d5065fab59f4e01: 0 mismatches. 150 checks of rational U version in cm-08114e1941b648c9: 0 mismatches. The speedup condition s + r log2(2qa+1) <= (1-eps)n is correctly stated and tight for this method. No logical gaps found.",
   "review_of": "S0004",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795515760.7486513,
+  "session": "pnp-desk/research/R2653",
+  "model": "gpt-6-luna",
+  "evidence": "The submitted derivation bounds possible states but specifies no transition or terminal invariant proving that merged assignments preserve the circuit value. A complete DP invariant could repair it.",
+  "review_of": "S0007",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795515760.784139,
+  "session": "pnp-desk/research/R2653",
+  "model": "gpt-6-luna",
+  "evidence": "The transition adds the next variable's weight, clips a gate only when remaining minimum or maximum forces its output, and merges only identical clipped states. Induction over prefix length proves multiplicity preservation and identical completion values. This repairs the correctness-invariant omission, but the claimed runtime saving still requires an active-gate bound.",
+  "id": "S0226",
+  "proved_step": "statement_start: For a prefix assignment, store each active gate's exact partial sum and the fixed gates' top-sum contribution;",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515876.304906,
+  "session": "pnp-desk/research/R2653",
+  "model": "gpt-6-luna",
+  "id": "S0227",
+  "proved_step": "statement_start: For integer-weight threshold-of-threshold circuits, merging prefixes with identical clipped signatures preserves the exact satisfying-assignment count.\nstatement: For C(x)=1[sum_j a_j y_j(x) >= T], with y_j(x)=1[sum_i w_ji x_i >= theta_j] and integer weights and thresholds, define a prefix signature at depth k by each bottom gate's status (forced 1, forced 0, or active), the exact partial sum for each active gate, and the top-level weighted sum of forced-1 gates. A gate is forced 1 when its partial sum plus the minimum possible remaining contribution is at least its threshold, and forced 0 when its partial sum plus the maximum possible remaining contribution is below its threshold. The dynamic program that extends prefixes by each next bit, recomputes statuses, merges equal signatures, and adds multiplicities returns the exact number of satisfying inputs.\nproof: Induct on prefix length. The empty prefix is represented once. For an extension by bit b, add w_j,k+1*b to each active gate's partial sum and classify against the remaining suffix contributions. A previously forced gate remains forced to the same value because its new suffixes are a subset of the suffixes for which its value was already forced. If two prefixes have equal signatures, active gates have equal partial sums and hence equal outputs on every common suffix; forced gates have equal outputs by signature. Thus both prefixes induce the same circuit value for every common suffix. Merging them and summing multiplicities preserves the count of prefixes and all satisfying completions. At depth n all gate outputs are fixed, and accepting precisely when the resulting top-level weighted sum is at least T yields the exact count.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795516002.921124,
+  "session": "pnp-desk/research/R2653",
+  "model": "gpt-6-luna",
+  "evidence": "The recorded entry gives only this summary. It omits criterion (a), the objects and quantifiers involved, and definitions needed to check inclusion (b). The submitted proof step is therefore unverifiable; the underlying necessary-condition question remains open.",
+  "review_of": "S0009",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795516247.0588403,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0226: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: the verifier\u2019s accepted artifact was not retained by the host, and I cannot submit a fresh verification call in this turn. (not a refutation; a model review is still needed)"
  }
 ]

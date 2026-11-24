@@ -1,12 +1,12 @@
-PROOF LEDGER of this problem (kept across missions; 13409 entries from 3677 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 13533 entries from 3725 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
+  - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
 derivation: Assume such an m1 exists. Instantiat
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
   - For every n >= 1, every integer weight vector w in Z^n with max_i |w_i| <= B, every integer threshold t, and every l in {0,...,n}: the set of functions y in {0,1}^(n-l) -> [w_rest.y >= t - w_pre.rho], indexed by rho in {0,1}^l, has at most min(2^l, 2lB+1) dist
   - For all rationals beta, eta, c with 0 <= eta <= beta and 0 <= c < 1: (2+beta-eta)/(1+c) > 1. More generally, for rationals beta, eta and c >= 0: (2+beta-eta)/(1+c) > 1 if and only if c < 1+beta-eta.
-  - For every positive 1-in-3 formula F (each clause is a 3-set of variables; sat(F)=1 iff exactly one variable of each clause is 1) that is satisfiable, the affine system over GF(3) with x_a+x_b+x_c=1 for each clause is consistent. Equivalently sat=1 implies cons
 CITED from the literature (not machine-checked here):
   - Thm 4.1, Thm 5.4, Cor 6.2 of the owner's paper (as stated there). PAPER SETTING: G=(V,E) finite graph, F field, K subspace of F^I, blocks I_v; pi_X: K -> prod_{v in X} F^{I_v}. (R) rank pi_X >= d|X| for all X subset V; (L) z,z' in K with z|v != 0 != z'|v => su
   - Liu-Pass Thm 1.2: one-way functions exist if and only if boundary-MINrK^poly is not in ioBPP (randomized time-bounded Kolmogorov complexity, boundary promise version). Thm 1.1: assuming E not in ioSIZE[2^{eps n}] for some eps > 0, the same holds for plain boun
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
-  - For EXT completion predicates induced by MCSP, structural sharing among suffix-restricted circuit copies may improve the generic 2^d(g+1)-1 bound when d is much larger than log s.
-  - For a fixed finite family F of k distinct N-bit strings, the parallel live-flag construction uses k state bits and at most k fan-in-two AND gates per update, with an unrestricted final decoder, and is exact membership.
-  - For d=S+1 input bits and S output bits, every Boolean map {0,1}^d -> {0,1}^S has a fan-in-two AND/OR circuit with free NOT and constants using at most (2^(d+1)-4)+S(2^d-1) nonconstant gates, by sharing all prefix conjunctions of length at least two across outp
-  - For arbitrary MCSP decision circuits H_C, there may be a uniform representation that computes EXT_{n,s} block transitions with real-gate cost polynomial in s even when the remaining suffix is superlogarithmic in the size of H_C.
-  - For any explicitly given two-word language F={x,y}, the coordinatewise candidate-survival transducer has G_max<=2 for every N under free NOT and constants.
-  - For each fixed sparsity s>=2, degree d, and field F, the minimum Boolean hitting-set size for nonzero multilinear polynomials with at most s monomials may be asymptotically smaller than M(t,d)=sum_{j<=d} binom(t,j); determine whether a bound O_s(t^d) can be im
+  - For N=2^ceil(log2 m)<2m, the number of cycle types of m-element invariant subsets induced by one N-state circuit is at most exp((2+o(1))*sqrt(m)); the multiplicity bound in S0549 supplies the needed control on the number of sub-multisets of the ambient cycle-l
+  - For fixed c>=1 and r=o(d), the decision-circuit complexity of MCSP_d[(d+r)^c] may admit a reduction to MCSP_d[d^c] with overhead sub-N polylogarithmic, uniformly over truth-table inputs.
+  - For a family of circuits and restriction sets X, useful GE-3 bounds may follow when each gate depending on Y has at least rho fraction of X-cofactors nonconstant, with rho substantially larger than 2^{-|X|}; the pointwise universal guarantee alone is only 2^{-
+  - A useful aggregate gate-elimination inequality may require the number of gates whose functions genuinely depend on the restricted coordinates, together with a separate accounting of gates depending only on the surviving coordinates.
+  - The circuit-family candidate set V_t(p) is an exact sufficient representation for EXT transitions, but for some n,s and prefixes its explicit representation or next-bit filtering may require superpolynomial cost in s; no bound follows from the set identity.
+  - For the Q-10bbdfaf2a circuit model, the ordered-DAG description count combined with the entropy neighborhood bound yields a nontrivial robust typical-function separation for gate thresholds s satisfying log2 D(m,s) < 2^m*(1-H_2(delta)).
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -32,20 +32,20 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
   - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3119 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3129 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-d4e5d504aa [MISSING_PROOF, OPEN] Can one construct an explicit family arising in the stationary state-recoding bridge with more than polynomially-superlinear residual width at a justified circuit cut, beyond the 2^n residual benchmark of DISJ_n?
-  - Q-12f669b24a [MISSING_PROOF, OPEN] For explicit Boolean functions arising in the state-recoding bridge, can one prove a superlinear lower bound on the number of distinct prefix residual functions, thereby forcing online cut-width and total one-pass circui
-  - Q-0294069007 [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'Every Boolean function f:{0,1}^2->{0,1} has a fan-in-two AND/OR circuit with at most two counted gates, when NOT and constants are free and fan-out is unrestricte
-  - Q-6679eaf56b [MISSING_PROOF, OPEN] Can the cofactor Hamming-distance identity be strengthened to a bound on distance from the full class of size-s fan-in-two DAG circuits, despite the best comparator varying independently in each cofactor, in a form that 
-  - Q-c22e79e5b5 [ASSUMPTION, OPEN] The claim 'For every n≥1 and s≥0, circuits with at most s fan-in-two AND/OR/NOT gates, two constants, and one output wire have at most (s+1)(n+s+2)(3(n+s+2)^2)^s topological descriptions; filtering these descriptions dec
+  - Q-bc623e1399 [MISSING_PROOF, OPEN] Can the GE-3 restriction sequence be partitioned into charged gates that become constant and a surviving Y-only core so that, for every unrestricted fan-in-2 circuit C computing MCSP[m^c], the total restriction cost is b
+  - Q-548cbf0e00 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:48e014c00788 by pnp-desk/research/R2650:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I could not produce an accepted Lean
+  - Q-449918bc91 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:308d456a4507 by pnp-desk/research/R2650:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The ledger confirms this claim is st
+  - Q-635beec433 [MISSING_PROOF, OPEN] For EXT_{n,s}, can canonical descriptions of prefix-restricted circuits be chosen so that the next-prefix transition from the description and next bit is computable in poly(s,n) real gates without solving circuit equival
+  - Q-4da1bfc1d5 [MISSING_PROOF, OPEN] Can real-gate circuits compute the two EXT child predicates from an arbitrary MCSP decision circuit H_C at polynomial cost in its description size, uniformly at every prefix length?
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

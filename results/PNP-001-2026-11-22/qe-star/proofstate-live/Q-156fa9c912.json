@@ -4939,5 +4939,150 @@
   "proved_step": "statement: Dense residual streaming cost lemma. Let H:{0,1}^N->{0,1} be given by a fan-in-two circuit of h gates. A deterministic left-to-right streaming representation can initialize an N-stage residual table using at most h\u00b72^N gate evaluations, store at most 2^N bits, and update it over the entire input using exactly 2^N\u22121 bit selections/writes (and no Boolean gates), if a state is represented as an explicit array indexed by suffixes and coordinate selection is the unit-cost update operation. Proof: At depth t store the array A_t[u]=H(pu), for all suffixes u of length N\u2212t, where p is the prefix read so far. Initialize A_0 by evaluating H on each of the 2^N inputs, costing at most h\u00b72^N gates and storing 2^N output bits. Upon reading b, form A_{t+1}[u]=A_t[bu] for each suffix u of length N\u2212t\u22121. The identity follows directly: A_t[bu]=H(pbu)=A_{t+1}[u]. Thus each update copies one half of the old array and costs 2^(N\u2212t\u22121) coordinate selections/writes. Summing over t=0,...,N\u22121 gives \u03a3_{j=0}^{N\u22121}2^j=2^N\u22121. The largest stored array is A_0, of 2^N bits. The update bound is in the stated explicit-array access model; it is not a fan-in-two Boolean circuit bound or a compact/poly(s) representation.\nscope: All N\u22650 and Boolean H with an h-gate fan-in-two circuit. Resource units are specified explicitly: Boolean gate evaluations for initialization, explicit stored bits, and unit-cost array coordinate selections/writes for updates.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795514826.0795774,
+  "session": "pnp-desk/research/R2644",
+  "model": "gpt-6-luna",
+  "id": "S0582",
+  "proved_step": "statement: SIMULTANEOUS BLOCK-COFACTOR CIRCUIT LEMMA. Let H:{0,1}^N->{0,1} have a fan-in-two Boolean circuit of h gates, with constants and input wiring free. For integers 0<=t<=N and 0<=b<=N-t, set k=N-t-b. There is a fan-in-two circuit with t input bits p and 2^b outputs indexed by u in {0,1}^b, whose u-output is 1 iff some v in {0,1}^k satisfies H(puv)=1. Its gate count is at most 2^{N-t}h+2^{N-t}-2^b. Proof: for every pair (u,v), make a disjoint copy of H with first t inputs wired to p and remaining inputs fixed to uv, giving 2^{b+k}h=2^{N-t}h gates. For each u, OR its 2^k outputs using a fan-in-two tree of 2^k-1 gates (zero gates if k=0), giving 2^b(2^k-1)=2^{N-t}-2^b further gates. The output for u computes the required existential cofactor; summing gives the bound. Direct enumeration makes the construction uniform. This is a per-cut construction only, not a polynomial early-cut bound or an MCSP lower bound.\nscope: All N-bit Boolean circuits H and cuts/blocks 0<=t, 0<=b<=N-t; fan-in-two gate size, constants and wiring free.\nevidence: Complete copy-and-OR derivation; no finite computation is used.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795515131.9988246,
+  "session": "pnp-desk/research/R2644",
+  "model": "gpt-6-luna",
+  "id": "S0583",
+  "proved_step": "BINARY RESIDUAL PARTITION LEMMA. Let N>=1, L be a subset of {0,1}^N, 0<=t<N, and p in {0,1}^t. Define E_t(p)=1 iff there exists u in {0,1}^{N-t} with pu in L. Then E_t(p)=E_{t+1}(p0) OR E_{t+1}(p1). Proof: Every completion u has a unique decomposition u=bv, where b is a bit and v is a suffix of length N-t-1. There exists u with pu in L iff there exists b and v with pbv in L. This is equivalent to E_{t+1}(p0)=1 or E_{t+1}(p1)=1, by definition. When t=N-1, v is the empty string, so the boundary case is included. This is only a semantic recurrence and gives no real-gate cost bound from an arbitrary circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515350.1003423,
+  "session": "pnp-desk/research/R2644",
+  "model": "gpt-6-luna",
+  "id": "S0584",
+  "proved_step": "statement: Residual membership update lemma. Let L be a language of words of length N, let p have length t<N, and define R_t(p)={u in {0,1}^{N-t}: pu in L}. For b in {0,1} and u in {0,1}^{N-t-1}, the next residual membership bit satisfies 1[u in R_{t+1}(pb)] = 1[bu in R_t(p)]. Thus membership in the next residual is computable with one membership query to the current residual, by prefixing the queried suffix with b. Proof: u belongs to R_{t+1}(pb) iff pbu belongs to L; this holds iff bu belongs to R_t(p), by the definition of R_t(p). This is an oracle-query identity only; it gives no bound on the real-gate cost of representing or querying R_t(p) from an arbitrary MCSP decision circuit H_C.\nscope: All fixed-length binary languages L subseteq {0,1}^N, all 0<=t<N, all length-t prefixes p, incoming bits b, and suffixes u of length N-t-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515788.8843923,
+  "session": "pnp-desk/research/R2652",
+  "model": "gpt-6-luna",
+  "id": "S0585",
+  "proved_step": "statement: Restricted-circuit residual bound. Fix N,h\u22650 and a fan-in-two Boolean circuit H:{0,1}^N\u2192{0,1} with h gates; constants and wiring are free. For every t\u2208{0,\u2026,N} and p\u2208{0,1}^t, let R_t(p)={q\u2208{0,1}^{N\u2212t}:H(pq)=1}. Then R_t(p) is computed by a circuit H_p on N\u2212t inputs with at most h gates, obtained by substituting p into H. Under a topological encoding listing each gate type and its two predecessor indices, plus the output source, the number D_t of distinct residuals is at most (c(N+h+2)^2)^(h+1) for an absolute constant c. Each residual has a description of O((h+1)log(N+h+2)) bits. Proof: Substituting p for the first t input wires leaves all h gate operations unchanged, so H_p computes q\u21a6H(pq). For the count, each gate chooses one of finitely many types and two sources among at most N+h+2 possibilities; the output chooses one source from that set. Thus the number of descriptions is at most (c(N+h+2)^2)^(h+1). Each description computes at most one residual, which proves the bound. A description can be stored using O((h+1)log(N+h+2)) bits. This is an information bound only: it gives no polynomial-in-(h,n) bound when N=2^n and no real-gate transition circuit for canonical encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795516078.0403626,
+  "session": "pnp-desk/research/R2652",
+  "model": "gpt-6-luna",
+  "gap": "The exact candidate-set representation does not bound its size or per-bit update cost by poly(s,n), and does not express the update using bounded real-gate operations on an arbitrary MCSP decision circuit H_C. The transcript's proof_state_read truncates S0476, so that claimed step remains unavailable for review.",
+  "gap_id": "G0181",
+  "id": "S0586",
+  "proved_step": "statement: Candidate-set transition lemma for EXT. Fix n,s and a finite enumeration C_{n,s} of all Boolean circuits on n inputs of size at most s, with a fixed ordering of their 2^n truth-table positions. For a prefix p of length t define V_t(p)={C in C_{n,s}: the first t outputs of C equal p}. Then V_{t+1}(pb)={C in V_t(p): C's output at position t+1 equals b}. Consequently V_t(p) is nonempty iff p is an extendible prefix of a size-at-most-s circuit truth table, and the transition rule recognizes EXT exactly. Proof: By definition, C belongs to V_{t+1}(pb) exactly when its first t outputs equal p and its (t+1)st output equals b. The first condition is C in V_t(p), and the second is the stated filter predicate, proving equality. Nonemptiness is equivalent to existence of a circuit completion, which is the definition of EXT. This is an exact information representation and transition identity; it makes no polynomial bound on representing V_t(p), testing the filter, or implementing transitions from an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795516717.6590106,
+  "session": "pnp-desk/research/R2652",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step correctly states the Myhill-Nerode theorem for fixed-length languages. The forward direction (distinct residuals require distinct states) holds by definition of exact acceptance. The converse construction (residual sets as states with transition R_t(p) --b--> R_{t+1}(pb)) is well-defined because R_{t+1}(pb) = {r : pbr \u2208 F} = {r : br \u2208 R_t(p)}. At depth N, residuals are {\u03b5} for accepted words and \u2205 otherwise. The scope note correctly identifies that this abstract characterization does not bound gate-level transition costs for implementations using MCSP decision circuits. No counterexample exists for the mathematical claim as stated.",
+  "review_of": "S0473",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795516717.69819,
+  "session": "pnp-desk/research/R2652",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for each of the 2^{N-t} suffixes q, a copy H_q of H with suffix inputs hardwired to q computes H(pq). OR-ing all outputs with a binary tree yields EXT_L(p). Gate count is exactly 2^{N-t}h + (2^{N-t}-1) = 2^{N-t}(h+1)-1. The scope note correctly acknowledges this is exponential in the remaining suffix length and does not yield a streaming update or poly(s) bound for early cuts. No mathematical error in the claim as stated.",
+  "review_of": "S0474",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795516717.727438,
+  "session": "pnp-desk/research/R2652",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The arithmetic is correct: 2^k copies of H (size h each) plus a binary OR tree (2^k-1 gates) gives 2^k(h+1)-1 total. For k \u2264 c log\u2082(h+2), we have 2^k \u2264 (h+2)^c, so total size \u2264 (h+2)^c(h+1) = O((h+2)^{c+1}). If h = poly(s) and k = O(log s), this is poly(s). The scope note correctly limits the claim to cuts with logarithmic remaining suffix and acknowledges it does not bound early-cut complexity, streaming updates, or arbitrary MCSP circuits. No counterexample to the mathematical statement.",
+  "review_of": "S0475",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795516717.7566297,
+  "session": "pnp-desk/research/R2652",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the standard Myhill-Nerode theorem for fixed-length languages (the truncation in the transcript doesn't affect the verifiable core). The lower bound holds because any exact deterministic machine must distinguish prefixes with different continuation sets. The upper bound construction uses residuals as states with transition R_L(p) --b--> R_L(pb), which is well-defined since R_L(pb) = {u : pbu \u2208 L} = {u : bu \u2208 R_L(p)}. The minimum state count at layer t is exactly the number of distinct residuals. The statement is mathematically correct as far as given.",
+  "review_of": "S0476",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795517206.2533612,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "gap": "Whether an EXT transition can be implemented with bounded real-gate cost from an arbitrary MCSP decision circuit H_C remains open; the lemma narrows the question by showing complete-input membership queries alone can require 2^(N-|p|) queries in the black-box model.",
+  "gap_id": "G0182",
+  "id": "S0591",
+  "proved_step": "statement: Black-box completion-query lower bound. For every k>=0, any deterministic exact algorithm that decides whether an unknown set F subseteq {0,1}^k is nonempty, with access only to membership queries x -> 1[x in F], requires 2^k queries in the worst case. Proof: Run the algorithm against the all-zero oracle (F=empty). If it makes fewer than 2^k queries, choose an unqueried u. The same transcript occurs for F={u}, although the correct outputs differ, contradiction. Querying all strings suffices. Hence for a prefix with k remaining bits, black-box membership access on completed strings alone gives no worst-case exact prefix-extension procedure using fewer than 2^k queries. This is an oracle-model bound only and makes no assertion about real-gate cost when the circuit or structure of F is available.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517274.5802488,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "id": "S0592",
+  "proved_step": "statement: Explicit circuit construction for prefix extension. Let N>=0, F subseteq {0,1}^N, and let H be a fan-in-2 Boolean circuit of size h and depth d deciding membership in F. For a prefix p of length t and k=N-t remaining bits, an exact circuit deciding whether p has an accepted completion is obtained by instantiating H on each of the 2^k strings pu and ORing the outputs in a binary tree. Its size is at most 2^k h+(2^k-1) and its depth is at most d+k. Proof: for each u in {0,1}^k, the corresponding copy outputs 1 exactly when pu is in F. Their disjunction is 1 exactly when some completion belongs to F. There are 2^k copies, costing 2^k h gates, and a binary OR tree on 2^k outputs uses 2^k-1 gates and depth k (with the k=0 case using one copy and no OR gates). This supplies a real-gate upper-bound baseline from an arbitrary complete-input decider; it gives no matching lower bound for structured EXT_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795517369.4582362,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "id": "S0593",
+  "proved_step": "statement: Nondeterministic verifier for prefix extension. Let N>=0, F subseteq {0,1}^N, and let H be a Boolean circuit of size h deciding membership in F. For a prefix p of length t and k=N-t remaining bits, there is a nondeterministic circuit verifier of size h+O(N) that accepts exactly when p has an extension in F: guess u in {0,1}^k, fix the first t inputs of H to p, and evaluate H on pu. Proof: an accepting guess u exists iff H(pu)=1 for some u of length k, which by the correctness of H is equivalent to existence of an accepted completion. Fixing the prefix inputs requires at most linear wiring/input-gate overhead; the circuit H is evaluated once. Thus extension has a compact existential representation from any complete-input decider, while this gives no comparable deterministic circuit bound.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795517462.488916,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "id": "S0594",
+  "proved_step": "statement: DNF restriction lemma. Let H(x)=OR_{j=1}^h T_j(x) be a DNF on N Boolean variables with L total literal occurrences. For any prefix p of length t, the extension predicate E_p(u)=H(pu) has a DNF with at most h terms and at most L literal occurrences. Construct it by deleting every term falsified by a fixed prefix literal, then deleting the remaining fixed prefix literals. Proof: each term on input pu is false if one of its fixed literals is false; otherwise it equals the conjunction of its unfixed literals. Disjoining these term identities gives H(pu)=E_p(u). The construction scans the literals once, so takes O(L+h) inspections and has circuit size O(L+h) with binary fan-in gates. Empty terms and an empty disjunction represent true and false, respectively. This proves a linear-cost prefix transition for explicit DNF membership circuits; it gives no such bound for arbitrary MCSP decision circuits H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517515.173515,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "id": "S0595",
+  "proved_step": "statement: Existential projection lemma for explicit DNF. Let H(x)=OR_{j=1}^h T_j(x) be a DNF on N Boolean variables, with L total literal occurrences, and split variables into a prefix a and suffix u. Define E(a)=1 iff there exists u with H(a,u)=1. Construct E by deleting each term whose prefix literals conflict with a, and then deleting every suffix literal from each remaining term. The resulting DNF has at most h terms and at most L literal occurrences. Proof: For fixed a and each term T_j, if a falsifies one of its prefix literals then T_j(a,u)=0 for every u. Otherwise its prefix literals are true, and there exists a suffix u satisfying the remaining suffix literals: each variable occurs with a single polarity within a term, so set those variables accordingly and assign all other suffix variables arbitrarily. Thus this term contributes to E(a) exactly when its prefix literals are all true, which is precisely the projected term after suffix literals are removed. Taking the disjunction proves equality. The construction scans the explicit literals in O(L+h) time and yields a binary fan-in circuit of O(L+h) gates. Scope is existential projection of explicit DNF; no implication for arbitrary circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517620.0176227,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "id": "S0596",
+  "proved_step": "statement: Repaired existential-projection lemma for explicit DNF. Let H(x)=OR_{j=1}^h T_j(x) be a DNF over N Boolean variables with L literal occurrences; literals may repeat or include both polarities of a variable. Split variables into prefix a and suffix u. The predicate E(a)=1 iff there exists u with H(a,u)=1 has a DNF with at most h terms and at most L literal occurrences: in each term, delete the term if it contains opposite-polarity literals of any variable or if its prefix literals contradict the fixed a; otherwise remove all suffix literals and retain its prefix literals. Proof: A term with contradictory literals is unsatisfiable. A term whose prefix literals conflict with a is false for every suffix. In every other term, all prefix literals are true under a, and the suffix literals are jointly satisfiable because there is at most one required polarity per suffix variable; choose those required bits and assign remaining bits arbitrarily. Thus the existential projection of each term is exactly its retained prefix conjunction, and existential quantification distributes over finite disjunction. No new terms or literal occurrences are introduced. Scanning the explicit DNF takes O(L+h) time, and the resulting binary-fan-in circuit has O(L+h) gates. Scope: explicit DNF only; this gives no transition-cost bound for arbitrary MCSP decision circuits H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517874.6043165,
+  "session": "pnp-desk/research/R2668",
+  "model": "gpt-6-luna",
+  "evidence": "Directly substitute the prefix bits into H. Each substitution changes only input wires, not internal gates; extending a prefix is one more such substitution.",
+  "id": "S0597",
+  "proved_step": "statement: Cofactor lemma. Let H be a Boolean circuit with h internal gates computing F on N bits. For every prefix p of length t, the residual function f_p(u)=H(pu) has a circuit with at most h internal gates. For b in {0,1}, f_{pb}(v)=f_p(bv), so the next residual is obtained by fixing one input of the current residual circuit to b. Proof: Substituting constants for input wires leaves the internal gate list unchanged and computes the restricted function. The identity follows from H(pbv)=H((pb)v). Repeating this argument from H gives the claimed bound for every prefix. Scope: point-membership residual functions only; this does not compute whether a residual has any accepting suffix or give a compact state encoding for arbitrary H.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

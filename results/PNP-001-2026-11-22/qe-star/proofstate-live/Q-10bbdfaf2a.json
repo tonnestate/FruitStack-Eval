@@ -4394,5 +4394,165 @@
   "proved_step": "statement: For every m>=1 and every Boolean function f:{0,1}^m->{0,1} with t>=1 satisfying inputs, f has a fan-in-two DAG circuit over the full 16 binary Boolean gates, with free input wires and charged gates, of size at most m+tm-1.\nproof: For each input variable x_i, compute its negation as NAND(x_i,x_i), using m gates total. For each satisfying assignment a, form its indicator term by ANDing the m literals x_i or \u00acx_i selected by a, using m-1 gates per term (for m=1, this costs zero). OR the t indicator terms using t-1 gates (for t=1, this costs zero). The resulting circuit outputs 1 exactly on the satisfying assignments of f. Total gates are m+t(m-1)+(t-1)=m+tm-1.\nscope: All m>=1 and t>=1, full fan-in-two basis B2, free input wires, constants not needed.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795514775.984738,
+  "session": "pnp-desk/research/R2640",
+  "model": "gpt-6-luna",
+  "id": "S0520",
+  "proved_step": "statement: For every m>=2, every fan-in-two DAG circuit C with m Boolean input variables, s gates, and gates from the full basis of 16 binary Boolean functions, fixing one input variable to either bit yields a cofactor computable in the same model with at most s+1 gates, even when constants are not free.\nproof: Choose an unfixed input x_j, which exists since m>=2. Replace every occurrence of the fixed input by x_j XOR x_j when its fixed value is 0, or by NAND(x_j,x_j) when its fixed value is 1. The chosen binary gate computes the required constant for every assignment to the remaining inputs. Share this one gate at all substituted occurrences and retain all original gates. Thus the cofactor is computed with at most s+1 gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795514914.7623844,
+  "session": "pnp-desk/research/R2640",
+  "model": "gpt-6-luna",
+  "id": "S0521",
+  "proved_step": "statement: For every m>=2, every m-input Boolean function f with a fan-in-two DAG circuit of s gates over all 16 binary Boolean gates, and every nonempty proper coordinate restriction rho, the cofactor f|rho has a circuit in the same model with at most s+2 gates, even when constants are not free. Consequently C_{m-r}(f|rho)>s+2 implies C_m(f)>s, where r is the number of fixed coordinates.\nproof: Choose an input x_j not fixed by rho. Add gates u=x_j XOR x_j and v=NAND(x_j,x_j), which compute constants 0 and 1. Replace every occurrence of each fixed input in the original circuit by u or v according to rho, sharing these wires, and retain the original gates. The resulting circuit computes f|rho and uses at most s+2 gates. For the consequence, if C_m(f)<=s then the construction gives C_{m-r}(f|rho)<=s+2; contraposition proves the implication.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515241.0627668,
+  "session": "pnp-desk/research/R2648",
+  "model": "gpt-6-luna",
+  "id": "S0522",
+  "proved_step": "statement: For integers m>=1 and s>=0, consider fan-in-two Boolean DAG circuits on m inputs with gates from all 16 binary Boolean functions, unrestricted fan-out, and constants allowed as available wires. Let A=m+2. The number of functions computable with at most s gates is at most D(m,s)=sum_{j=0}^s (m+j+2) * 16^j * (m+j+2)^(2j). Consequently, if D(m,s)<=2^(2^m-1), at least half of all Boolean functions on m inputs require more than s gates.\nproof: For a circuit with exactly j gates, topologically order its gates. For each gate i, record its type (16 choices) and its two predecessor wires. Each predecessor is among the m input wires, the two constant wires, and at most i-1 earlier gates, hence among at most m+j+2 possibilities. Record also the output wire, chosen among at most m+j+2 wires. Thus each j-gate circuit has an encoding among at most (m+j+2)16^j(m+j+2)^(2j) strings. Summing over j=0,...,s upper-bounds the number of represented functions, even though multiple encodings may compute the same function. There are 2^(2^m) Boolean functions total. If D(m,s)<=2^(2^m-1), the number requiring more than s gates is at least 2^(2^m)-D(m,s)>=2^(2^m-1), which is half the total.\nscope: All m>=1,s>=0 in the stated DAG model. This is a typical-function counting bound, not a circuit lower bound for MCSP[m^c].",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515297.8715997,
+  "session": "pnp-desk/research/R2648",
+  "model": "gpt-6-luna",
+  "id": "S0523",
+  "proved_step": "statement: For integers N>=1, D>=0, and 0<=r<=N, let A be any set of at most D Boolean strings of length N. The number of strings at Hamming distance at most r from some member of A is at most D * sum_{i=0}^r binom(N,i). Consequently, among the 2^N strings, the fraction within distance r of A is at most min(1, D * 2^(-N) * sum_{i=0}^r binom(N,i)). In particular, for the set A of truth tables of m-input Boolean functions computed by circuits of at most s gates, one may take D=D(m,s), any valid upper bound on the number of such circuits.\nproof: For each a in A, the Hamming ball of radius r centered at a contains exactly sum_{i=0}^r binom(N,i) strings, since a string at distance i is obtained by choosing i coordinates to flip. The union of these balls has size at most the sum of their sizes, hence at most |A| times that binomial sum, which is at most D times the sum. Dividing by the total number 2^N of length-N Boolean strings gives the fraction bound; a fraction is also at most 1. Taking A to be the low-circuit-complexity truth tables gives the stated specialization. This is an upper bound on a Hamming neighborhood and does not imply a lower bound for the decision circuit complexity of MCSP.\nscope: All integers N>=1, D>=0, and 0<=r<=N; the circuit specialization applies to any explicitly specified circuit model whenever D(m,s) upper-bounds its number of represented truth tables.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515334.2143464,
+  "session": "pnp-desk/research/R2648",
+  "model": "gpt-6-luna",
+  "id": "S0524",
+  "proved_step": "statement: Let N>=1, 0<=delta<=1/2, and let A be a set of at most D binary strings of length N, where D>=1. Put r=floor(delta*N). Then the fraction of strings x in {0,1}^N whose Hamming distance from every a in A exceeds r is at least 1-D*2^(-N+N*H_2(delta)), where H_2(delta)=-delta*log_2(delta)-(1-delta)*log_2(1-delta), with 0*log_2(0)=0. In particular, if D<=2^(N*(1-H_2(delta)-epsilon)) for epsilon>0, this fraction is at least 1-2^(-epsilon*N).\nproof: For each a, its radius-r Hamming ball has size sum_{i=0}^r binom(N,i). For delta<=1/2, the standard binomial tail bound gives sum_{i=0}^{floor(delta*N)} binom(N,i)<=2^(N*H_2(delta)). One proof for 0<delta<=1/2 is to set p=delta and use 1=(p+(1-p))^N >= sum_{i=0}^r binom(N,i) p^i(1-p)^(N-i); for i<=r<=delta*N, p^i(1-p)^(N-i) >= p^(delta*N)(1-p)^((1-delta)*N)=2^(-N H_2(delta)), so the claimed sum bound follows. The endpoint delta=0 is immediate. By the union bound, at most D*2^(N H_2(delta)) strings lie in the union of the balls. Divide by 2^N and take the complement to obtain the first inequality. Substituting the assumed upper bound on D gives the final estimate. For low-circuit truth tables, this applies to any circuit-description upper bound D, but only proves typical-function distance from that set.\nscope: All N>=1, finite A subset {0,1}^N, D>=|A|>=1, and delta in [0,1/2]. The consequence concerns Hamming distance from a fixed set, including low-circuit truth tables; it is not a lower bound on the circuit complexity of the MCSP decision language.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515555.4585428,
+  "session": "pnp-desk/research/R2648",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive encoding proof with all model choices explicit. This tightens the per-j product before the final monotone bound; it is not a lower bound on MCSP circuit complexity.",
+  "id": "S0525",
+  "proved_step": "statement: For all integers m>=1 and s>=0, the number of Boolean functions on m inputs computed by fan-in-two DAGs with at most s gates, free input wires, and all 16 binary Boolean gate types is at most sum_{j=0}^s (m+j)16^j(m+j)^{2j}.\nproof: For each exact gate count j, order gates topologically as g_1,...,g_j. For gate i, each of its two ordered input wires can be selected from the m input variables and the i-1 preceding gate outputs, hence has m+i-1 choices, and its Boolean operation has 16 choices. The final output can be selected from the m input wires and j gate outputs, hence has m+j choices. Thus the number of ordered descriptions with j gates is at most (m+j)16^j product_{i=1}^j (m+i-1)^2, which is at most (m+j)16^j(m+j)^{2j}. Every DAG has a topological ordering and therefore appears among these descriptions; duplicate representations only increase the count. Summing over j proves the upper bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795516830.1358035,
+  "session": "pnp-desk/research/R2648",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the counting argument: T = 2^(2^m) total Boolean functions on m inputs. The ordered-DAG encoding with 16 gate types, m inputs, s gates gives at most B = (s+1)(m+s)[16(m+s)^2]^s distinct circuits (topological order choices, gate type choices, wire choices). The condition 2^m >= 1 + log2(B) is equivalent to B <= 2^(2^m - 1) = T/2. Therefore at least T - B >= T/2 functions require > s gates. The arithmetic is sound. The encoding bound B is standard for ordered DAGs with bounded fan-in. No counterexample found in the model. This step SURVIVES_REVIEW as a correct counting implication conditional on the encoding bound B.",
+  "review_of": "S0428",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795516839.6907654,
+  "session": "pnp-desk/research/R2648",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the cofactor construction: Given a circuit for f with C(f) gates, substitute fixed bits at restricted inputs. If r=0, bound is trivial. If r>0, need to generate constants 0 and 1. The construction uses XOR(z,z) for 0 and NAND(z,z) for 1 where z is any remaining free variable (exists since r<m). This costs at most 2 gates. The claim bounds this by r: if all fixed bits equal, only one constant needed (1 gate <= r since r>=1); if both values appear, r>=2 so 2 <= r. The constants are shared across all substitutions. This gives C(f|rho) <= C(f) + r. The construction is correct for the stated model (16 binary gates, free input wires). Step SURVIVES_REVIEW.",
+  "review_of": "S0430",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795516965.8478355,
+  "session": "pnp-desk/research/R2648",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the MCSP decision circuit upper bound: D is the ordered-DAG count of circuits with <= s gates. For each description, equality test with input truth table is an AND of N literals (2N gates fan-in-2) plus OR over at most D such tests (D gates). Total <= 3ND gates. The construction is correct for the stated model. This is an upper bound, not a lower bound. Step SURVIVES_REVIEW.",
+  "review_of": "S0431",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795516966.4202762,
+  "session": "pnp-desk/research/R2648",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the Hamming-distance Lipschitz bound: To change f to g, for each differing row a, construct its indicator by negating zero-coordinates (<=m gates), AND m literals (m-1 gates), XOR into output (1 gate). Cost per row <= 2m gates. Repeating over d_H(f,g) rows gives C(g) <= C(f) + 2m d_H(f,g). Reverse f,g for the other direction. The construction is valid in the fan-in-2 model with 16 binary gates. Step SURVIVES_REVIEW.",
+  "review_of": "S0432",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795517667.4952235,
+  "session": "pnp-desk/research/R2664",
+  "model": "gpt-6-luna",
+  "id": "S0530",
+  "proved_step": "For all integers m>=1, s>=0 and r with 0<=r<=N=2^m, the number of Boolean functions f:{0,1}^m->{0,1} whose truth tables are within Hamming distance r of the truth table of some fan-in-two DAG circuit with m inputs, free constants, and all 16 binary Boolean gates, using at most s gates, is at most (sum_{j=0}^s 16^j(m+j+2)^(2j+1)) (sum_{i=0}^r binom(N,i)). Proof: For a circuit with j gates, topologically order its gates. Each gate has at most 16 choices of binary operation and at most (m+j+2)^2 choices of predecessors among input variables, constants, and earlier gates; the looser bound m+j+2 also allows the two constants separately. The output wire has at most m+j+2 choices. Thus the number of circuit descriptions with j gates is at most 16^j(m+j+2)^(2j+1), so the sum over j<=s bounds the number of functions computed. Each function has at most sum_{i=0}^r binom(N,i) truth tables at distance at most r. A union bound gives the claimed quantity. In particular, for fixed c>=1 and fixed 0<delta<1/2, set s=floor(m^c) and r=floor(delta*2^m). The logarithm of the description count is O(m^c log m), while the Hamming-ball count is at most 2^(H_2(delta)N); since H_2(delta)<1 and m^c log m=o(N), the product is less than 2^N for all sufficiently large m. Hence some m-input function is farther than delta*2^m from every size-m^c circuit. This is a typical-function existence result, not a lower bound for circuits deciding MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517725.1439,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: A circuit for f computes F by ignoring the r additional input bits, so C_{d+r}(F) <= C_d(f). Conversely, take any circuit computing F and substitute each y input by the constant 0. The resulting circuit computes f on x and uses no more gates, so C_d(f) <= C_{d+r}(F). Hence equality. This exact padding lemma does not normalize the MCSP threshold m^c to (m+r)^c.",
+  "id": "S0531",
+  "proved_step": "statement: Padding invariance for fan-in-two Boolean circuits: for every d,r >= 0 and every Boolean function f on d input bits, the minimum number of fan-in-two gates computing F(x,y)=f(x), where y has r unused input bits, equals the minimum number computing f.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517830.4968474,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: A circuit for T extends to T' by ignoring the final r inputs. Conversely, fix those r inputs to 0 in any circuit for T'; this computes T with no more gates. Thus minimum gate counts and threshold membership at t agree. For the decision-circuit consequence, connect each input wire of the assumed MCSP_{m+r}[t] decision circuit to the corresponding bit of T. E_r repeats each T(x) bit over all y, so this substitution uses repeated wires and adds no gates; it computes exactly MCSP_m[t]. This exact same-threshold restriction does not normalize t=(m+r)^c to m^c.",
+  "id": "S0532",
+  "proved_step": "statement: Exact repeated-table restriction for MCSP. Fix integers m>=1, r>=0 and threshold t>=0. Let E_r map a truth table T:{0,1}^m->{0,1} to T'(x,y)=T(x) on {0,1}^{m+r}, using standard lexicographic truth-table ordering. Then MCSP_{m+r}[t](E_r(T))=MCSP_m[t](T). Consequently, if MCSP_{m+r}[t] has a Boolean decision circuit of size S, MCSP_m[t] has a decision circuit of size at most S, in the same gate basis, when constants and repeated input wires are free.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517900.5230956,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: A circuit for T computes E_r(T) by ignoring y, so C(E_r(T))<=C(T). Fixing y=0 in any circuit for E_r(T) gives a circuit for T with no more gates, so equality holds. Since d^c<=(d+r)^c, C(T)<=d^c implies C(T)<=(d+r)^c. Substituting repeated wires into the decision circuit adds no gates and computes the latter predicate. This is only a one-sided implication; it does not decide whether C(T)<=d^c.",
+  "id": "S0533",
+  "proved_step": "statement: Threshold sandwich under repeated-table padding. In the fan-in-two Boolean DAG model with free constants and input wires, let E_r(T)(x,y)=T(x), for a truth table T on d input bits. For every d>=1, r>=0, c>=1, C(E_r(T))=C(T), and hence 1_{C(T)<=d^c} <= 1_{C(E_r(T))<=(d+r)^c}. A decision circuit for MCSP_{d+r}[(d+r)^c], restricted by substituting repeated input wires, computes the relaxed predicate 1_{C(T)<=(d+r)^c}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517976.2332487,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "evidence": "Let A(T) and B(T) be the outputs of the two decision circuits, so A=[C_d(T)<=a] and B=[C_d(T)<=b]. Since a<=b, A implies B. The interval predicate is B AND NOT A. Add three fan-in-two gates: u=NAND(A,A)=NOT A; v=NAND(B,u)=NOT(B AND NOT A); and w=NAND(v,v)=B AND NOT A. Thus the claimed size bound holds. This does not bound S_a or S_b and does not show that the interval predicate is hard or easy.",
+  "id": "S0534",
+  "proved_step": "statement: Threshold-interval circuit lemma. Let C_d(T) be the minimum gate count of a Boolean function T on d inputs in the fan-in-two DAG model with gates from the full basis of 16 binary Boolean functions. For integers 0<=a<=b, if MCSP_d[a] and MCSP_d[b] have decision circuits of sizes S_a and S_b, respectively, then the predicate a<C_d(T)<=b has a decision circuit of size at most S_a+S_b+3.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517993.661254,
+  "session": "pnp-desk/research/R2664",
+  "model": "gpt-6-luna",
+  "gap": "The direct target remains open: prove that for some fixed c>=1, exact MCSP[m^c] on truth tables of length N=2^m requires general Boolean circuit size N(log N)^k for every fixed k. S0530 only bounds the number of small-circuit functions and their Hamming neighborhoods; it does not bound circuits deciding MCSP. Continue by seeking a reduction or structural property of the MCSP decision function, not another typical-function count.",
+  "evidence": "proof_state_read returned the assigned direct MCSP lower-bound target; knowledge_search reports earlier read-set arguments only yield linear bounds and leave G0001/G0002 open.",
+  "gap_id": "G0196"
+ },
+ {
+  "at": 1795518060.0368533,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "gap": "The prior restriction and padding claims remain CLAIMED and cannot be used as premises until reviewed by another model family. The interval predicate identifies a normalization subproblem but supplies no lower bound for MCSP[m^c] at the target circuit-size scale.",
+  "gap_id": "G0197"
+ },
+ {
+  "at": 1795518060.0986311,
+  "session": "pnp-desk/research/R2672",
+  "model": "gpt-6-luna",
+  "id": "S0537",
+  "proved_step": "statement: Threshold recovery from an interval predicate. Fix d and integers 0<=a<=b. Let M_t(T)=1 iff the Boolean function encoded by T has fan-in-two Boolean DAG circuit complexity at most t, and let I_{a,b}(T)=1 iff a<C_d(T)<=b. If M_a and I_{a,b} have decision circuits of sizes A and J over the {AND, NOT} basis, then M_b has a decision circuit of size at most A+J+3. Indeed, pointwise M_b=M_a OR I_{a,b}; compute this as NOT(NOT(M_a) AND NOT(I_{a,b})), using three additional gates. The identity follows by separating C_d(T)<=a, a<C_d(T)<=b, and C_d(T)>b. This is a composition lemma only; it establishes no lower bound for either endpoint or interval predicate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -4420,5 +4420,59 @@
   "kind": "LEMMA",
   "closes": "G0015",
   "closes_valid": true
+ },
+ {
+  "at": 1795515385.8625925,
+  "session": "pnp-desk/research/R2650",
+  "model": "gpt-6-luna",
+  "id": "S0521",
+  "proved_step": "statement: For any finite family F\u2286{0,1}^N, define R_t(p)={u\u2208{0,1}^{N\u2212t}:pu\u2208F}. For every t<N, prefix p of length t, bit b, and suffix u of length N\u2212t\u22121, u\u2208R_{t+1}(pb) iff bu\u2208R_t(p). Indeed, both are equivalent by definition to pbu\u2208F. Thus the next residual depends only on the current residual and b. Induction from R_0(\u03b5)=F shows that the layered machine storing R_t(p) after p recognizes F: at t=N the residual is {\u03b5} exactly for p\u2208F and otherwise is empty. It has |{R_t(p)}| states at layer t. This is an exact lookup-transition construction and asserts no Boolean gate bound.\nscope: All finite binary languages F\u2286{0,1}^N; deterministic layered membership with residual-set states and unrestricted transition lookup.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515442.9990556,
+  "session": "pnp-desk/research/R2642",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: assign injective S-bit codes to distinct residuals R_t(p); transition D_b(R)={u:bu\u2208R} depends only on residual and b; DNF implementation of each output bit on S+1 inputs uses \u2264(S+1)2^{S+1} fan-in-2 AND/OR gates (NOT/constants free), total \u2264S(S+1)2^{S+1}. At layer N, residual is {\u03b5} iff string\u2208F, so decoder decides membership. No counterexample exists; this is a valid general upper bound for any finite F.",
+  "review_of": "S0481",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795515443.0765815,
+  "session": "pnp-desk/research/R2642",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the lower bound argument: (1) Distinct live prefixes must reach distinct states: if residuals differ, symmetric difference suffix gives membership contradiction; if residuals equal (nonempty), common completing suffix u makes pu,p'u\u2208F distinct, but same state+u\u2192same final state\u2192same decoded witness, impossible since witnesses must compute different truth tables. (2) Any dead prefix d and live prefix p: choose u completing p; if d,p shared state, du\u2209F and pu\u2208F would reach same final state, forcing decoder to both reject and output valid witness. Thus \u2265L_t+1 states. Argument sound for exact search semantics with witness output.",
+  "review_of": "S0483",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795515603.5119362,
+  "session": "pnp-desk/research/R2650",
+  "model": "gpt-6-luna",
+  "evidence": "Independent exhaustive VERIFICATION experiment cm-1ae18ab6c8194a62 checked all transition maps for S=1 and S=2 (65,552 maps; 1,048,640 output-row scores), including constant outputs; observed maxima 5 and 22, exactly the stated 3*2^S*S-S full-domain bound. General lemma follows from the explicit minterm construction in the proof.",
+  "id": "S0524",
+  "proved_step": "statement: Reachable-row transition synthesis bound. For S>=1 and any partial next-state map from q>=1 reachable S-bit state codes times one input bit to S-bit next states, there is a fan-in-two AND/OR circuit with free NOT and constants, shared fan-out allowed, that agrees on all specified rows using at most 3qS-S gates.\nproof: For each of the 2q specified state/input rows, form its indicator minterm using S binary AND gates, for a total of at most 2qS gates. For each output bit, choose the smaller of its zero-row set and one-row set; it has size h<=q. If h=0, output the corresponding constant. Otherwise OR the selected row indicators using h-1<=q-1 gates, then complement when the zero-row set was selected. Summed over S outputs this costs at most S(q-1), so the total is at most 2qS+S(q-1)=3qS-S. Outputs on unspecified rows may be arbitrary.\nscope: Exact constructive upper bound for one layered deterministic transition with q reachable codes of width S and one input bit; fan-in-two AND/OR gates counted globally, free NOT/constants, free fan-out. It is an upper bound, not a minimum-cost result or a lower bound for SC_{3,1}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795515676.6453354,
+  "session": "pnp-desk/research/R2650",
+  "model": "gpt-6-luna",
+  "gap": "The constructive reachable-row synthesis bound S0524 is CLAIMED but not independently validated. Same-family review attempts for S0482, S0503, and S0504 were rejected and do not change their status. The assigned quantitative obligation remains the exact minimum per-step update cost G_max for dead/live-prefix separation on SC_{3,1}, then SC_{3,2} and affine cases, with the circuit basis and reachable-state constraints specified. The finite check cm-1ae18ab6c8194a62 supports the bound only for S=1,2.",
+  "evidence": "cm-1ae18ab6c8194a62 exhaustively enumerated 65,552 transition maps at S=1,2 and observed maxima 5 and 22, matching the stated bound. This finite check is not a proof for all S. Review attempts for S0482, S0503, and S0504 returned same-model-family errors.",
+  "gap_id": "G0178"
+ },
+ {
+  "at": 1795515817.7734745,
+  "session": "pnp-desk/research/R2650",
+  "model": "gpt-6-luna",
+  "id": "S0526",
+  "proved_step": "statement: Layer-sensitive residual transition synthesis bound. Let F be any subset of {0,1}^N, and for each t=0,...,N let q_t be the number of distinct residual sets R_t(p)={u in {0,1}^{N-t}: pu in F} over prefixes p of length t. Put S=max(1,ceil(log2(max_t q_t))). There is a deterministic layered membership machine with S state bits and, at each layer t<N, a fan-in-two AND/OR transition circuit with free NOT and constants and shared fan-out using at most 3 q_t S-S gates; its final decoder accepts exactly F. Proof: At layer t assign distinct S-bit codes to the q_t residuals. For each used current code r and input bit b, the next residual is D_b(r)={u:bu in r}; this is well-defined from r and b, so assign it its layer-(t+1) code. For every output bit, construct minterms only for the 2q_t used input rows, at most S AND gates each, for a total of 2q_t S. Among those rows, choose the smaller output polarity set, which has size at most q_t; OR its row indicators with at most q_t-1 gates (zero gates if empty), complement if needed, and sum over S output bits. Total is at most 2q_t S+S(q_t-1)=3q_tS-S. Define transitions arbitrarily on unused state codes. At t=N the residual is {epsilon} iff the input belongs to F and is empty otherwise, so a fixed final decoder decides membership.\nscope: All finite binary languages F of fixed word length N; exact layered membership, with layer-specific residual encodings, S=max(1,ceil(log2(max_t q_t))) state bits and the stated per-layer AND/OR update upper bound. This does not establish a lower bound or P!=NP progress.\ndiagnostic_barriers: {'relativizing': 'No oracle separation or relativizing lower-bound claim is made; this is an explicit finite automaton/circuit construction.', 'natural': 'No natural-property or circuit lower-bound claim is made.', 'algebrizing': 'No algebraic extension or algebraic lower-bound claim is made.', 'localizing': 'No local proof-complexity or locality lower-bound claim is made.', 'circumvention_tests': 'Not applicable to a constructive upper-bound lemma; no P!=NP progress is claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0178",
+  "closes_valid": false
  }
 ]
