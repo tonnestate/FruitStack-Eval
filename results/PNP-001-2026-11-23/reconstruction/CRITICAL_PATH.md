@@ -1,5 +1,8 @@
 # PNP-001 — CRITICAL_PATH (owner decision, 2026-11-24)
 
+> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. VPS_ACTIVATION.md has been removed.
+
+
 Baseline d7635f9ea437c494f1c032e4faadfb673a4e90b1. E only active mathematical route. A only formalization of existing statements. B/C/D/F/G frozen 4–6 weeks; day-30 owner decision, no automatic restart. Each route sheet below is an audit worklist, not a declaration of proof. Dependencies not reconstructed are blockers under QUARANTINE.md. Source files are relative to results/ unless otherwise indicated.
 
 ## E — PRIMARY — algebraic proof complexity
