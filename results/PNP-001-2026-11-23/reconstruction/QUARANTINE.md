@@ -1,5 +1,8 @@
 # PNP-001 — QUARANTINE (2026-11-24)
 
+> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. VPS_ACTIVATION.md has been removed.
+
+
 ## Freeze and authority
 Baseline: d7635f9ea437c494f1c032e4faadfb673a4e90b1 (22:01 CET).
 This is an append-only audit overlay: original events, proofs, reviews and hashes are retained. No historical review status is accepted as a proof merely by inheritance. After baseline, new research events may enter as candidate or disputed only; audit decisions are recorded separately. No automatic promotion to verified during the freeze. E is the sole mathematical research route; A is formalization-only; B/C/D/F/G are paused for 4–6 weeks, with owner review at day 30. This repository policy does not by itself stop a remote worker or scheduler.
