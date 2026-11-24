@@ -1,6 +1,9 @@
 # PNP-001 — QUARANTINE (2026-11-24)
 
-> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. VPS_ACTIVATION.md has been removed.
+> **CURRENT STATUS:** The previous freeze order was withdrawn; operational freeze is NOT active or VPS-verified. This audit branch is a historical evidence snapshot. VPS_ACTIVATION.md is a conditional manual template only, not a standing instruction. No route priority is finalized. The actual VPS state has not been independently observed.
+
+
+> OWNER DECISION: The operational freeze order is withdrawn. Do not pause the scheduler, block research routes, switch production branches, or enforce candidate-only staging on the basis of this historical audit. Preserve mathematical findings and provenance warnings; the former operational restrictions below are historical and non-binding. The original activation order was removed; the new VPS_ACTIVATION.md is a conditional template only.
 
 
 ## Freeze and authority
