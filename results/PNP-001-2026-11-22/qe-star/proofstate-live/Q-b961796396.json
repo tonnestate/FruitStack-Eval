@@ -1117,5 +1117,44 @@
   "evidence": "The proof correctly analyzes cuts between triples and inside triples. At a cut between triples: if any completed triple has sum != 1, the residual is zero; otherwise all satisfied triples contribute factor 1, giving one nonzero suffix. At a cut inside a triple with t in {1,2} assigned variables summing to a: if a > 1 the residual is zero; if a <= 1 the residual is the indicator that remaining variables sum to 1-a. The two nonzero residuals (target sums 1 and 0) have disjoint nonempty supports, so they are linearly independent over Q. Together with the zero row, maximum distinct rows is 3 and maximum rank is 2. Both are attained at a cut after two variables of a triple. No gap found; the argument is exact and general for this family.",
   "review_of": "S0128",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530571.2998967,
+  "session": "pnp-desk/research/R2817",
+  "model": "gpt-6-luna",
+  "id": "S0133",
+  "proved_step": "statement: Let M be a matrix over any field whose entries all lie in {0,1}. If rank(M)=r, then M has at most 2^r distinct rows. Proof: let U be the row space of M, of dimension r. Choose r coordinate positions J such that the coordinate projection pi_J: U -> F^r is injective; such positions exist by taking pivot columns of a matrix whose rows are a basis of U. Every row of M lies in U and has entries in {0,1}. If two rows have the same projection, injectivity implies they are the same row. The image of the set of distinct rows is contained in {0,1}^r, a set of cardinality 2^r, proving the bound. This is a per-cut statement for Boolean communication matrices and makes no claim about a minimum-over-orders separation.\nproof: Let U be the row space of M, of dimension r. Choose r coordinate positions J such that coordinate projection pi_J: U -> F^r is injective; such J exist by taking pivot columns of a matrix whose rows are a basis of U. Every row of M belongs to U and has entries in {0,1}. If two rows have the same projection, injectivity implies that they are the same row. Thus distinct rows inject into {0,1}^r, which has size 2^r.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795530835.0773394,
+  "session": "pnp-desk/research/R2817",
+  "model": "gpt-6-luna",
+  "id": "S0134",
+  "proved_step": "statement: Let k>=1, let f_i:{0,1}^{b_i}->{0,1} be nonzero Boolean functions on pairwise disjoint blocks, and let F=product_{i=1}^k f_i. Fix ANY variable order on all variables and any cut. For each i, let A_i|B_i be the split of block i induced by the cut, and let M_i be the matrix with rows indexed by assignments to A_i, columns by assignments to B_i, and entries f_i(a_i,b_i). Then, up to row and column permutations, the cut matrix M_F equals the Kronecker product tensor_i M_i. Consequently rank_F(M_F)=product_i rank_F(M_i) over every field F. Moreover the distinct residual functions of F at this cut are exactly the products tensor_i r_i over tuples of distinct residuals r_i of f_i, and their number is the product of the per-block distinct residual counts. Proof: under the canonical product indexing of assignments to the union of the A_i and B_i, F(a_1,...,a_k,b_1,...,b_k)=product_i f_i(a_i,b_i), which is exactly the entrywise definition of the Kronecker product; changing from concatenated block indices to the chosen global variable order only permutes rows and columns. Rank multiplicativity of Kronecker products over a field gives the rank identity. For residuals, the row indexed by tuple (a_i) is the pointwise product of the residual functions r_i(b_i)=f_i(a_i,b_i). Every tuple is represented. Injectivity follows because each f_i is nonzero, so each residual tuple can be distinguished by fixing all other blocks to satisfying assignments of their f_j; if two tuples differ in block i, choose b_i witnessing differing residual values and satisfying suffix assignments in every other block. Thus distinct tuple count is the product. This exact factorization holds for every cut and every interleaving order; it does not by itself establish an unbounded min-over-orders separation for general Boolean functions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795530873.3984525,
+  "session": "pnp-desk/research/R2817",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0134's claim that the global distinct residual count equals the product of per-block residual counts is false when zero residuals occur. Tuples with a zero component all give the same global zero residual. Repair: at a fixed cut, let q_i count distinct nonzero residuals of block i, and z_i indicate whether block i has a zero residual. The global count is product_i q_i + 1[sum_i z_i>0]. The nonzero products are distinct because for a differing coordinate j, choose an assignment distinguishing the two nonzero residuals there and satisfying assignments for all other nonzero residuals. The zero residual exists exactly if some z_i=1. The Kronecker rank identity is unaffected."
+ },
+ {
+  "at": 1795530873.4234524,
+  "session": "pnp-desk/research/R2817",
+  "model": "gpt-6-luna",
+  "id": "S0136",
+  "proved_step": "statement: Corrected block-product cut lemma. Let k>=1 and let f_i:{0,1}^{b_i}->{0,1} be nonzero Boolean functions on disjoint variable blocks, and F=product_i f_i. Fix any global variable order and cut. Let A_i|B_i be the induced split of block i; let M_i(a_i,b_i)=f_i(a_i,b_i). Up to row and column permutations the cut matrix M_F is the Kronecker product of the M_i, so rank_F(M_F)=product_i rank_F(M_i) over every field F. For each i let q_i be the number of distinct nonzero functions among residuals r_i(a_i)(b_i)=f_i(a_i,b_i), and let z_i=1 iff the zero residual occurs, else 0. Then the number of distinct global residuals is product_i q_i + 1[sum_i z_i>0]. Proof: product structure gives each global residual as pointwise product of one residual from each block. Any tuple with a zero coordinate gives the zero function, and such a tuple exists iff some z_i=1. For tuples of nonzero residuals, the product map is injective: for two different tuples choose coordinate j where r_j differs and an assignment b_j on which they differ; since each other residual is nonzero, choose for each other coordinate an assignment where it equals 1. The resulting combined suffix assignment distinguishes the two products. Thus the nonzero global residuals are in bijection with tuples of nonzero block residuals. For the matrix identity, entries under product indexing are product_i f_i(a_i,b_i), exactly the Kronecker entry; the global order only permutes row and column indices. Rank multiplicativity of Kronecker products proves the rank formula. This exact all-orders identity for disjoint block products does not alone prove an unbounded minimum-over-orders separation for general functions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

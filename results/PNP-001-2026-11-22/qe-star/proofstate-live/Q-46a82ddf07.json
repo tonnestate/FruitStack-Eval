@@ -228,5 +228,49 @@
   "proved_step": "statement: For every finite forest G=(V,E) with n vertices and c connected components, and every integer q>=1, the number of proper q-colorings of G is q^c(q-1)^(n-c), with the empty forest count interpreted as 1.\nderivation: Proof: In each component choose a root and orient edges away from it. Each root has q choices. For each non-root vertex, after its parent is colored, exactly q-1 colors remain available. Since a forest has a unique root-to-vertex path and no additional edges between already assigned vertices that impose new constraints at this stage, these choices are independent in a root-first ordering. A component with t vertices therefore has q(q-1)^(t-1) colorings. Multiplying over components gives q^c(q-1)^(sum_i(t_i-1))=q^c(q-1)^(n-c). For the empty forest the unique empty coloring gives 1.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795529381.5170882,
+  "session": "pnp-desk/research/R2807",
+  "model": "gpt-6-luna",
+  "evidence": "The cited counterexample E={012,013,023,123} fails the stated affine-solvability hypothesis: summing its four equations gives 0=1 in F_3. Under the hypotheses, suppose a nonzero row dependence has coefficient lambda_j != 0. Pairing the dependence with a solution of A_E z=1 gives sum_i lambda_i=0. For a Boolean assignment satisfying every clause except j, the dependence then forces r_j\u00b7x=1 in F_3. Since r_j\u00b7x is an integer in {0,1,2,3}, congruence to 1 modulo 3 forces r_j\u00b7x=1, so this assignment satisfies clause j too, contradicting unsatisfiability. Thus the rows are independent. The all-ones vector is in the kernel because each row has three ones, so rank |E|<=n'-1. This verifies the conditional statement; the counterexample does not refute it.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795529566.0837972,
+  "session": "pnp-desk/research/R2807",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Cactus coloring product lemma. Let G be a finite cactus graph (each edge belongs to at most one simple cycle), with connected components G_1,...,G_c. For any integer q>=2, the number of proper q-colorings is the product over components of q times the product over their blocks B of P_B(q)/q, where P_B(q)=q(q-1) for a bridge block and P_B(q)=(q-1)^ell+(-1)^ell(q-1) for a cycle block of length ell. The empty graph has one coloring.\nevidence: Proof: In a connected cactus, the incidence graph of blocks and articulation vertices is a tree. Root it at any block and choose a coloring of the root, with P_root(q) choices. Each later block meets the exposed subgraph at one articulation vertex. Color symmetry implies exactly P_B(q)/q extensions for each fixed color at that vertex. The block tree ensures new blocks add disjoint vertices and impose no other constraints. Multiplying gives q times the product of P_B(q)/q over blocks. A bridge has q(q-1) colorings. A cycle of length ell has tr((J-I)^ell)=(q-1)^ell+(-1)^ell(q-1), since J-I has eigenvalues q-1 once and -1 with multiplicity q-1. Components color independently; the empty graph has one coloring. The proof-state response showed no matching open obligation id, so this lemma does not claim to close a pre-recorded obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529656.4539077,
+  "session": "pnp-desk/research/R2807",
+  "model": "gpt-6-luna",
+  "id": "S0029",
+  "proved_step": "statement: Polynomial cactus chromatic formula. Let G be a finite cactus graph with connected components G_1,...,G_c, and let B range over all its blocks; write ell(B) for the cycle length of a cycle block. As a polynomial identity in Z[q], its chromatic polynomial is chi_G(q)= product_{i=1}^c [ q * product_{B in blocks(G_i)} (P_B(q)/q) ], where P_B(q)=q(q-1) for a bridge block and P_B(q)=(q-1)^ell(B)+(-1)^ell(B)(q-1) for a cycle block. The empty graph has chromatic polynomial 1.\nevidence: Proof: For every integer q>=2, the block-cut incidence graph of each connected cactus is a tree. Root it at a block. Starting with a coloring of the root block, expose blocks in tree order; each new block meets the already exposed graph at exactly its parent articulation vertex and has no other previously exposed vertices. For any fixed color at this vertex, the number of proper extensions to the new block is P_B(q)/q: color permutations act transitively on the q possible fixed colors, and summing the extension counts over all q colors gives P_B(q), the total number of colorings of B. The bridge and cycle formulas for P_B(q) follow respectively from q(q-1) and tr((J-I)^ell)=(q-1)^ell+(-1)^ell(q-1). Thus the displayed identity holds for every integer q>=2. Each cycle quotient P_B(q)/q is an integer polynomial, as follows from P_B(q)/q=sum_{j=0}^{ell-1}(-1)^j(q-1)^(ell-1-j). Both sides are therefore polynomials and, since they agree at infinitely many integers, are identical. Components color independently; the empty graph has polynomial 1. This closes no pre-recorded PNP-001 obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529731.095929,
+  "session": "pnp-desk/research/R2807",
+  "model": "gpt-6-luna",
+  "id": "S0030",
+  "proved_step": "statement: Corrected polynomial cactus chromatic formula. Let G be a finite cactus graph, with connected components G_i and blocks B. For each cycle block B of length ell>=3 set C_B(q)=sum_{j=0}^{ell-2}(-1)^j(q-1)^(ell-1-j); for each bridge block set C_B(q)=q-1. Then in Z[q], chi_G(q)=product_i [q * product_{B in blocks(G_i)} C_B(q)]. The empty graph has chromatic polynomial 1.\nevidence: Proof: For each integer q>=2, root the block-cut tree of a connected cactus at a block and expose blocks in tree order. Each added block meets the exposed graph only at its parent articulation vertex. Color permutations act transitively on the q choices for that vertex, so the number of extensions for any fixed color is the block's chromatic polynomial divided by q. A bridge contributes q(q-1), hence quotient q-1. A cycle of length ell contributes (q-1)^ell+(-1)^ell(q-1). Writing x=q-1, this is x(x^(ell-1)+(-1)^ell); division by q=x+1 gives sum_{j=0}^{ell-2}(-1)^j x^(ell-1-j), as is verified by multiplying the finite alternating sum by x+1. Thus the product formula holds for every integer q>=2. Each factor is in Z[q], and the two sides are polynomials agreeing at infinitely many integers, so they are identical. Components color independently; the empty graph has polynomial 1. Repair note: the expansion recorded in S0029 used upper index ell-1, adding an erroneous final constant term; the corrected upper index is ell-2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532081.2459216,
+  "session": "pnp-desk/research/R2825",
+  "model": "gpt-6-luna",
+  "id": "S0031",
+  "proved_step": "statement: Cactus coloring product lemma. For every finite cactus graph G with connected components G_i and every integer q>=2, the number of proper q-colorings is the product over components of q times the product over blocks B of P_B(q)/q, where P_B(q)=q(q-1) for a bridge block and P_B(q)=(q-1)^ell+(-1)^ell(q-1) for a cycle block of length ell; the empty graph has one coloring.\nderivation: For a cycle block of length ell, proper colorings are closed walks in the loopless complete graph on q colors, hence their count is tr((J-I)^ell). The eigenvalues of J-I are q-1 with multiplicity one and -1 with multiplicity q-1, giving P_B(q)=(q-1)^ell+(-1)^ell(q-1). A bridge has q(q-1) colorings. In a connected cactus, the block-articulation incidence graph is a tree. Root it at a block. The root has P_B(q) colorings. Each child block meets the exposed subgraph at exactly its parent articulation vertex, and its remaining vertices are new. Color-permutation symmetry implies that for each fixed color at that vertex the block has exactly P_B(q)/q extensions. The block tree ensures there are no other constraints from the exposed subgraph. Multiplying the root count and all extension factors proves the connected formula. Different components color independently; the empty graph has one coloring.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

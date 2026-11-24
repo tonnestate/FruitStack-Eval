@@ -5382,5 +5382,142 @@
   "proved_step": "statement: LEMMA (residual languages are necessary streaming state information). Let L be any language of finite binary strings, and let a deterministic one-pass streaming machine decide, after each prefix p, whether p is a prefix of some word in L. Define R_p={z : pz is in L}. If two prefixes p,q lead the machine to the same internal state, then R_p=R_q. Consequently the machine has at least as many reachable states as there are distinct residual languages R_p. Proof: for every suffix z, deterministic processing from the same state on z has the same final outcome. The machine accepts pz exactly when z\u2208R_p, and accepts qz exactly when z\u2208R_q. Equality of states therefore implies, for every z, z\u2208R_p iff z\u2208R_q, hence R_p=R_q. Contrapositively, distinct residuals require distinct states. This is a necessary-information bound; it makes no gate-cost claim and does not imply that an arbitrary MCSP decision circuit exposes or updates the residuals efficiently.\nderivation: The state-equality implication follows by applying the same continuation z to equal deterministic states and using exact correctness on both completed streams.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795528938.740203,
+  "session": "pnp-desk/research/R2788",
+  "model": "gpt-6-luna",
+  "evidence": "The claimed counter j ranges over {0,...,N}, which has N+1=2^n+1 values and requires n+1 bits. The stated M+ceil(log2 N)=M+n bits do not provide the claimed index representation. Repair: allocate ceil(log2(N+1))=n+1 index bits; the candidate-mask invariant and update argument then apply.",
+  "review_of": "S0521",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795529031.7556152,
+  "session": "pnp-desk/research/R2788",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0633's residual set R_p={z:pz\u2208L} is not justified by a machine that only reports whether each current prefix is extendible to a word in L. Such a machine reports membership in Pref(L), not membership in L for arbitrary completions. The correct residual is R_p^P={z:pz\u2208Pref(L)}.",
+  "id": "S0635",
+  "proved_step": "statement: LEMMA (residual information for prefix extendibility). Let L\u2286{0,1}* and P=Pref(L)={p: there exists w with pw\u2208L}. Suppose a deterministic streaming machine, after reading each string p, outputs 1 exactly when p\u2208P. For each p define R_p^P={z\u2208{0,1}*: pz\u2208P}. If p and q lead to the same machine state, then R_p^P=R_q^P. Proof: fix any z. Starting from the equal states after p and q, deterministic processing of the same continuation z ends in the same state and hence gives the same output. By correctness, that output is 1 exactly when pz\u2208P, and also exactly when qz\u2208P. Thus pz\u2208P iff qz\u2208P for every z, so the residual sets are equal. Consequently distinct residuals of Pref(L) require distinct reachable states. This is an information requirement only; it gives no gate-cost bound for transitions.\nderivation: Corrected the observable language from L to its prefix closure Pref(L), because EXT outputs whether a prefix has some completion rather than whether a specified continuation completes it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529685.0112765,
+  "session": "pnp-desk/research/R2812",
+  "model": "gpt-6-luna",
+  "id": "S0636",
+  "proved_step": "statement: LEMMA (candidate-set to EXT-residual map). Fix a finite indexed family F of Boolean functions on {0,1}^n, and stream each function's truth table in the same fixed input order. For a prefix p of length k, let L_p be the functions agreeing with p on the first k inputs, and let R_p be the set of their remaining truth-table suffixes. Then R_p is exactly the EXT continuation residual after p. For the next truth-table position i_k and bit b, L_{pb}={f in L_p:f(i_k)=b}, and R_{pb}={z:bz in R_p}. Thus candidate sets are exact sufficient states, while the minimal residual states identify candidate sets precisely when they induce the same suffix set. Proof: A suffix z completes p to a prefix of a family truth table exactly when some function in L_p has remaining suffix z, which is the definition of R_p. A function remains live after reading b exactly when it was live before and its value at i_k equals b. A suffix z completes pb exactly when bz completes p, giving the residual identity. Therefore continuation behavior depends only on R_p; distinct candidate sets need not be distinct states if their suffix sets agree.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529766.774902,
+  "session": "pnp-desk/research/R2812",
+  "model": "gpt-6-luna",
+  "id": "S0637",
+  "proved_step": "statement: LEMMA (reachable candidate sets are exactly EXT residuals for duplicate-free functions). Let F be a finite set of pairwise distinct Boolean functions on {0,1}^n, with truth tables read in a fixed order. For every prefix p of length k, let L_p={f\u2208F: f agrees with p on the first k inputs}, and let R_p={z\u2208{0,1}^{2^n-k}: pz is a prefix of the truth table of some f\u2208F}. Then the map f\u21a6the remaining truth-table suffix of f is a bijection from L_p to R_p. In particular |L_p|=|R_p|, and two reachable prefixes p,q have the same live-function set if and only if their residual suffix sets (viewed at their respective stream positions) agree after identifying the remaining coordinates. Proof: If f\u2208L_p, its remaining suffix z satisfies that pz is the full truth table of f, so z\u2208R_p. Conversely, if z\u2208R_p, by definition some f\u2208F has truth table beginning pz, and so f\u2208L_p maps to z. For injectivity, if f,g\u2208L_p map to the same z, then both truth tables consist of the same length-k prefix p followed by z; hence their truth tables agree at all 2^n inputs, so f=g, using extensional equality of Boolean functions. This gives a canonical identification of reachable candidate sets with residual sets; it does not bound the gate cost of computing the update for the implicit family of all size-s circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529767.5533907,
+  "session": "pnp-desk/research/R2812",
+  "model": "gpt-6-luna",
+  "id": "S0638",
+  "proved_step": "statement: CORRECTED LEMMA (candidate/residual bijection at a fixed stream position). Let F be a finite set of pairwise distinct Boolean functions on {0,1}^n, with truth tables read in a fixed order. Fix a prefix p of length k. Define L_p={f\u2208F: f agrees with p on the first k inputs} and R_p={z\u2208{0,1}^{2^n-k}: pz is a prefix of the truth table of some f\u2208F}. The map f\u21a6the remaining truth-table suffix of f is a bijection L_p\u2192R_p; hence |L_p|=|R_p|. Proof: Every f\u2208L_p has a remaining suffix z and pz is its full truth table, so z\u2208R_p. Conversely, every z\u2208R_p has a witness f\u2208F whose truth table begins pz, so f\u2208L_p and maps to z. If f,g\u2208L_p map to the same z, both truth tables equal pz, hence f=g as Boolean functions. This is only a fixed-position cardinality and state-correspondence statement; it makes no assertion equating residual sets from different stream positions and gives no update-circuit bound for an implicit circuit family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529806.6591992,
+  "session": "pnp-desk/research/R2812",
+  "model": "gpt-6-luna",
+  "id": "S0639",
+  "proved_step": "statement: LEMMA (exact fixed-position residual count). Let F be a finite set of pairwise distinct Boolean functions on a finite domain of size N, with truth-table entries streamed in a fixed order. Fix k with 0\u2264k\u2264N. For each length-k binary prefix p, let L_p be the functions in F matching p on their first k entries, and let R_p be the set of length-(N\u2212k) suffixes of functions in L_p. Then the number of distinct residuals R_p among length-k prefixes equals the number of distinct live-function sets L_p among those prefixes. Proof: Define \u03c6_k(f) to be the suffix of f after its first k entries. On F, \u03c6_k is injective: if \u03c6_k(f)=\u03c6_k(g) and both match the same prefix p, then f and g agree on the first k entries (both equal p) and on the remaining entries (their suffixes agree), hence f=g. For every p, R_p=\u03c6_k(L_p). Thus if L_p=L_q, then R_p=R_q. Conversely, if R_p=R_q, injectivity of \u03c6_k implies L_p=L_q: for any f\u2208L_p, its suffix belongs to R_q, so some g\u2208L_q has that suffix; both f and g have the same first k entries q and the same suffix, hence f=g, so f\u2208L_q; reverse inclusion follows symmetrically. Therefore the two collections of sets have the same number of distinct members. This is an exact state-count identity at one fixed stream position; it gives no transition-circuit bound for an implicit circuit family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529856.5800664,
+  "session": "pnp-desk/research/R2812",
+  "model": "gpt-6-luna",
+  "id": "S0640",
+  "proved_step": "statement: LEMMA (fixed-prefix candidate/residual bijection, corrected scope). Let F be a finite set of pairwise distinct Boolean functions on a finite domain of size N, with entries streamed in one fixed order. Fix one prefix p of length k. Let L_p={f\u2208F: f's first k entries equal p}, and let R_p={z\u2208{0,1}^{N\u2212k}: pz is the length-N table of some f\u2208F}. The suffix map f\u21a6f[k..N\u22121] is a bijection L_p\u2192R_p, so |L_p|=|R_p|. Proof: If f\u2208L_p, its suffix z completes p to f's full table, hence z\u2208R_p. Conversely, for z\u2208R_p, by definition some f\u2208F has table pz, so f\u2208L_p and maps to z. If f,g\u2208L_p have the same suffix, their first k entries both equal p and their remaining entries agree, so their full tables agree; since F consists of functions, f=g. This assertion fixes p throughout; it makes no claim that equal residual sets for different prefixes imply equal live-function sets.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530617.5704463,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "evidence": "The update wraps the n-bit index modulo 2^n and has no state distinguishing completion of the length-2^n truth table. For example, with F containing the constant-zero circuit, the all-zero truth table leaves that candidate live; one additional zero bit also leaves it live, although a string longer than 2^n is not a prefix of any truth table in F.",
+  "review_of": "S0523",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795530617.6164775,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "evidence": "The modulo-2^n index wraps after the final truth-table bit, and the stated state has no done flag or other length information. With a listed constant-zero circuit and an all-zero truth table, a further zero bit preserves the candidate mask, falsely accepting a string longer than the truth-table length.",
+  "review_of": "S0524",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795530737.0240133,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "id": "S0643",
+  "proved_step": "LEMMA (done-bit repair for an explicitly listed finite truth-table family). Let C_1,...,C_M be explicitly listed Boolean circuits on n input bits with fan-in-two gate counts s_1,...,s_M, M>=1, and let N=2^n. A deterministic streaming recognizer for Pref({TT(C_j):1<=j<=M}) has state (i,a_1,...,a_M,d), where i is an n-bit address, a_j records agreement with candidate j, and d is a done bit. It uses O(n+M+sum_j s_j) fan-in-two gates per input-bit update. Initially i=0, every a_j=1, d=0. While d=0, on bit b set a_j to a_j AND [C_j(i)=b]. If i=N-1, set d=1 and hold i; otherwise increment i. When d=1, any further input clears every a_j and leaves d=1. Accept iff some a_j=1. Proof: Before each of the first N updates, induction gives that i is the next truth-table address and a_j=1 exactly when C_j agrees with the prefix already read. The update checks the next bit and preserves this invariant; at the final address it sets d, and otherwise advances i. Hence a prefix of length at most N is accepted exactly when some listed truth table extends it. Once d=1, any extra bit clears the mask permanently, so all longer strings reject. Evaluating the listed circuits costs sum_j s_j gates; comparisons and mask updates cost O(M), and address increment plus terminal detection cost O(n). This applies only to an explicitly listed family and gives no compact transition bound for minimized EXT or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530808.0738716,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "evidence": "The address is modulo 2^n. After N=2^n input bits it wraps to zero, while the agreement mask can stay live; a stream longer than N may therefore be accepted. This violates recognition of the finite prefix language. The done-bit repair is recorded separately as S0643.",
+  "review_of": "S0526",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795530859.457808,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "id": "S0645",
+  "proved_step": "LEMMA (explicit-list state-bit bound for prefix extension). Let C_1,...,C_M be explicitly listed Boolean circuits on n input bits, each of fan-in-two size s_j, and let N=2^n. The prefix language of their truth tables is recognized by a deterministic streaming machine using n+M+1 state bits and an update circuit of O(n+M+sum_j s_j) fan-in-two gates. Proof: Store an n-bit address i, M agreement bits a_j, and a done bit d. Initially i=0, all a_j=1, and d=0. While d=0, for input b replace a_j by a_j AND [C_j(i)=b]. If i=N-1 set d=1 and hold i; otherwise increment i. When d=1, clear all agreement bits on any further input and keep d=1. Inductively, before each of the first N updates, i is the next truth-table address and a_j is 1 exactly when C_j agrees with the prefix already read. Thus a prefix of length at most N is accepted iff some listed table extends it, and every longer string rejects. The address, terminal test, and increment use O(n) gates; evaluating the listed circuits costs sum_j s_j; comparisons, agreement updates, and clearing cost O(M). This is an explicit-list encoding result only; it gives no transition-cost bound for the minimized EXT automaton or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795531001.7238843,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "id": "S0646",
+  "proved_step": "LEMMA (exact suffix-expansion circuit for EXT transitions). Let N>=1, let C be a Boolean circuit of size L on N inputs, and let 0<=t<N and b in {0,1}. Define T_{t,b}(p)=1 iff there exists z in {0,1}^{N-t-1} such that C(p||b||z)=1, for p in {0,1}^t. Then T_{t,b} has a fan-in-two circuit of size at most 2^{N-t-1}(L+1)-1, assuming input fixing and wiring are free. Proof: For each suffix z, make one copy of C, wire p||b to its first t+1 inputs, and fix the remaining inputs to z. OR the 2^{N-t-1} outputs with a binary tree, requiring 2^{N-t-1}-1 gates. The result is 1 exactly when some completion is accepted by C. When C recognizes the size-at-most-s truth tables, this computes the EXT next-bit predicate. This is an exact, generally exponential upper bound; it provides neither a compact encoding of all residual states nor a lower bound for arbitrary MCSP circuits. Barrier diagnostic: the construction relativizes (copies and OR only); it is not a natural-proofs lower-bound argument; Boolean wiring raises no algebrization issue; locality is not asserted. It passes none of the circumvention tests as a compression: it retains suffix enumeration and supplies no re-coding bound, adaptive rule, new resource, or transfer to arbitrary MCSP circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795531209.169501,
+  "session": "pnp-desk/research/R2820",
+  "model": "gpt-6-luna",
+  "gap": "This finite upper bound still does not connect an arbitrary MCSP decision circuit to an efficient EXT transition circuit: the bound may be exponential in the remaining truth-table length. The next open step is to derive either a subexponential transition implementation from additional structure in C or a lower bound against all such implementations.",
+  "evidence": "Direct construction and exact gate count; every suffix assignment appears once in exactly one of the two branch OR trees. No computation or experiment was used; this is a general finite construction.",
+  "gap_id": "G0185",
+  "id": "S0647",
+  "proved_step": "LEMMA (two-output suffix-expansion bound). Let C:{0,1}^N->{0,1} be a fan-in-two Boolean circuit of size L, and let p be a fixed prefix of length t<N. For b in {0,1}, define T_b(p)=1 iff there exists z in {0,1}^{N-t-1} with C(p||b||z)=1. The pair (T_0(p),T_1(p)) is computable by a fan-in-two circuit with at most 2^{N-t}(L+1)-2 gates, using independent copies of C and fixed-input wiring. Proof: Let k=2^{N-t-1}. For each b and each suffix z, use a copy of C with p||b wired to its fixed inputs; this uses at most 2kL gates total. For each b, OR its k outputs with a binary tree using k-1 gates; total OR cost is 2(k-1). Thus the total is 2k(L+1)-2=2^{N-t}(L+1)-2. Each output equals the existential disjunction over precisely the suffixes in its branch, so it computes T_b(p).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532280.3443413,
+  "session": "pnp-desk/research/R2828",
+  "model": "gpt-6-luna",
+  "id": "S0648",
+  "proved_step": "statement: LEMMA (block transition composition for an explicitly represented candidate family). Let D={C_1,...,C_M} be an explicitly listed family of Boolean functions on a finite domain X, and let a_0,...,a_{N-1} be a fixed ordering of X. Suppose u\u2208{0,1}^M marks the candidates consistent with the truth-table prefix before position t. For a block w=(w_0,...,w_{d-1}), define F_{t,w}(j)=1 iff C_j(a_{t+r})=w_r for every 0\u2264r<d. The updated mask is u'=u\u2227F_{t,w}, coordinatewise. For consecutive blocks w,v, F_{t,wv}=F_{t,w}\u2227F_{t+d,v}; thus block updates compose associatively. If each C_j is given by a fan-in-two circuit of at most s gates, a direct implementation uses O(Md(s+1)) gates, plus input-address handling.\nderivation: Candidate j survives the extended prefix exactly when it survived the old prefix and agrees at every new block position. This is the stated coordinatewise conjunction. Splitting the conjunction for wv at the boundary between w and v proves the composition identity; associativity of conjunction makes the result independent of parenthesization. For the gate bound, evaluate each C_j at each of the d fixed points, compare with the corresponding fixed bit, AND the d comparisons, then AND with u_j. This uses O(d(s+1)) gates per candidate, hence O(Md(s+1)) total, plus address handling. This result is limited to explicitly represented families; it gives no compact update for the full size-s circuit family, no transition bound through H_C, and no implication for arbitrary MCSP deciders.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
  }
 ]

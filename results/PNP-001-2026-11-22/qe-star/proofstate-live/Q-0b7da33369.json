@@ -4731,5 +4731,86 @@
   "proved_step": "statement: For any Y subset {0,1}^S containing k>=1 distinct strings, the number r of coordinates nonconstant on Y satisfies r >= ceil(log_2 k). Proof: project Y onto its r nonconstant coordinates. This projection is injective, since every omitted coordinate is constant on Y. Therefore k <= 2^r.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795528858.7784042,
+  "session": "pnp-desk/research/R2798",
+  "model": "gpt-6-luna",
+  "evidence": "Follows from the injective projection argument recorded in S0552 and bijectivity of delta. This is a precise consequence for permutation transitions; it gives no circuit lower bound and closes no recorded obligation.",
+  "id": "S0553",
+  "proved_step": "statement: Permutation-image coordinate lemma. Let |Q|=m>=2, S=ceil(log2 m), psi:Q->{0,1}^S be injective, and delta:Q->Q be a permutation. Then every one of the S output coordinates of psi(delta(q)) is nonconstant as q ranges over Q. Proof: since delta is bijective, {psi(delta(q)):q in Q}=psi(Q), which has m distinct strings. If r coordinates varied, projection onto those coordinates would inject psi(Q) into {0,1}^r, so m<=2^r and r>=ceil(log2 m)=S. Since r<=S, r=S.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795528912.7893717,
+  "session": "pnp-desk/research/R2798",
+  "model": "gpt-6-luna",
+  "evidence": "Specialization of the reviewed sparse-output Shannon-extension lemma S0526 to permutation transitions, together with the injective projection argument in S0552.",
+  "id": "S0554",
+  "proved_step": "statement: Shannon construction bound for permutation transitions. Let |Q|=m>=2, S=ceil(log2 m), N=2^S, and psi:Q->{0,1}^S be injective. For every permutation delta:Q->Q, the coordinatewise Shannon-extension construction extends psi delta psi^{-1} to all N codewords using at most S(N-1) two-input muxes, hence O(SN) fan-in-two AND/NOT gates. Proof: delta(Q)=Q, so the output set psi(delta(Q))=psi(Q) has m distinct strings. By the injective-projection argument, all S coordinates vary. Apply S0526's construction independently to those S coordinates; each uses N-1 muxes. Summing gives S(N-1). This bounds this explicit construction only, not minimum circuit complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529252.2636602,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0552: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The attempted Lean files were not accepted. The finite-coordinate version does not cover arbitrary \\(S\\), and the cardinal-valued attempt failed on the subtype and injectivity proof. I have n (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795529252.2898903,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0553: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Two kernel checks rejected the proof. The remaining failures are in the injectivity/cardinality steps; I don\u2019t have an accepted Lean 4.35 proof to report. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795530686.4038627,
+  "session": "pnp-desk/research/R2814",
+  "model": "gpt-6-luna",
+  "id": "S0557",
+  "proved_step": "statement: Exact invariant-subset counting lemma. Let F be an endomap of a finite set X, and let its directed cycles have lengths k_1,...,k_r, indexed individually. For each m>=0, the number of subsets A\u2286X with |A|=m such that F(A)\u2286A and F|_A:A\u2192A is bijective equals [z^m]\u220f_{j=1}^r(1+z^{k_j}). Proof: If F|_A is bijective, each a\u2208A is periodic under F: its orbit under the finite bijection F|_A returns to a. Thus A is a union of whole directed cycles of F. Conversely, any union of whole directed cycles is invariant and F restricts to a bijection on it. Choosing cycle j contributes size k_j, so the product enumerates these unions by size; its coefficient is exactly the number of such subsets, including when cycle lengths repeat because the cycles are indexed individually.\nderivation: Both implications follow from periodicity under a finite permutation and from the disjoint-cycle decomposition of periodic points of a finite endomap. Expanding the product selects an indexed subset of cycles; its z-degree is the union's cardinality. Distinct indexed selections yield distinct subsets even when their cycle lengths agree.\nscope: Finite endomaps only; no circuit-size or state-recoding lower bound follows without an additional argument connecting cycle data to circuit complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530723.51416,
+  "session": "pnp-desk/research/R2819",
+  "model": "gpt-6-luna",
+  "gap": "The result gives a per-coordinate upper bound when the prescribed transition output factors through a selected coordinate projection. It does not bound the smallest such k under an encoding, nor imply a representation-independent lower bound on transition cost.",
+  "refuted_approach": "None in this step; the two-bit exhaustive computation cm-065828b13630495e was a DISCOVERY check for a projection-consistent partial function requiring more than the mux-tree bound and found no counterexample among 81 partial functions.",
+  "evidence": "General proof by defining the induced function on projection fibers and extending its truth table by a complete mux decision tree. Independent exhaustive check: cm-065828b13630495e checked all 3^4=81 partial Boolean functions on two input bits; no violation. This finite check is corroborating evidence only.",
+  "gap_id": "G0199",
+  "id": "S0558",
+  "proved_step": "statement: PROJECTION-FIBER EXTENSION LEMMA. Let D be any subset of {0,1}^S, let h:D->{0,1}, and let I be a set of k input coordinates. If h(x)=h(y) for all x,y in D agreeing on I, then h has a total extension H:{0,1}^S->{0,1} computable by a decision tree with at most 2^k-1 two-input muxes. Proof: Define g on pi_I(D) by g(pi_I(x))=h(x); the hypothesis makes this well-defined. Extend g arbitrarily to all {0,1}^k. A complete decision tree on the k coordinates has 2^k leaves and 2^k-1 internal mux nodes and computes this extension; composing with projection pi_I gives H. It agrees with h on D. For k=0 the extension is constant and uses zero muxes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530767.726911,
+  "session": "pnp-desk/research/R2819",
+  "model": "gpt-6-luna",
+  "id": "S0559",
+  "proved_step": "statement: DISAGREEMENT-HITTING CHARACTERIZATION. Let D be a subset of {0,1}^S and h:D->{0,1}. For each pair x,y in D with h(x) != h(y), define Delta(x,y)={i in [S]: x_i != y_i}. A set I subset of [S] determines h on D (h(x)=h(y) whenever x,y agree on I) iff I intersects every Delta(x,y). Hence the minimum number of coordinates determining h is exactly the hitting-set number of this family. Proof: If I misses Delta(x,y) for a differently labeled pair, then x,y agree on I and I fails to determine h. Conversely, if I intersects every disagreement set, then any pair agreeing on I cannot be differently labeled, so I determines h. Taking minima gives the equality. Together with S0558, a minimum hitting set of size k yields a total extension computable by at most 2^k-1 muxes for this fixed D,h.\nevidence: Direct finite-set equivalence proved by both implications. The characterization isolates the fixed-encoding support parameter, but gives no bound on its value over stationary encodings and no representation-independent lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0199",
+  "closes_valid": false
+ },
+ {
+  "at": 1795531797.8946297,
+  "session": "pnp-desk/research/R2830",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0529's proof that p(t)<=p(L) by adding L-t to the largest part is invalid: the map is not injective. For L=4, the partition (2) of 2 and the partition (1) of 1 both map to (4).",
+  "evidence": "Explicit collision under the stated map: (2) with L-t=2 becomes (4), and (1) with L-t=3 also becomes (4)."
+ },
+ {
+  "at": 1795531797.9302883,
+  "session": "pnp-desk/research/R2830",
+  "model": "gpt-6-luna",
+  "id": "S0561",
+  "proved_step": "statement: REPAIR OF THE PARTITION MONOTONICITY STEP. For every integer L>=0 and 0<=t<=L, p(t)<=p(L), where p(n) is the number of integer partitions of n and p(0)=1. Proof: For each n>=0, map a partition of n to the partition of n+1 obtained by adjoining one additional part equal to 1. This is injective: deleting one part equal to 1 from the image recovers the original multiset, independently of which indistinguishable 1 is deleted. Hence p(n)<=p(n+1). Iterating from n=t to L-1 gives p(t)<=p(L); if t=L, equality holds. This repairs only the monotonicity subclaim used in S0529, not its separate injection from sub-multisets into partitions or its full bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

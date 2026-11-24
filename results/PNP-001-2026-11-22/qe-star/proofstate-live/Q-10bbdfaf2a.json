@@ -4683,5 +4683,204 @@
   "proved_step": "Lemma (pivotal-coordinate support lower bound). Let F:{0,1}^N->{0,1} be computed by a fan-in-two Boolean DAG with g gates, unrestricted fan-out, and arbitrary binary gate types. If for every coordinate i in {1,...,N} there exists x^(i) such that F(x^(i)) != F(x^(i) with bit i flipped), then g >= ceil(N/2). Proof: For each pivotal coordinate i, choose a witnessing pair differing only at i. Hence F depends on i. Any input coordinate on which a circuit's output depends must occur in at least one gate-input slot: if it occurs nowhere, induction in topological order shows every gate value and the output are independent of it. A g-gate fan-in-two DAG has exactly 2g input slots, so at most 2g distinct input coordinates can occur in those slots. Since all N coordinates affect F, N <= 2g, proving g >= ceil(N/2). The conclusion is also valid if the model permits a free input-wire output only when N<=1; for N>=2, dependence on every coordinate rules that case out. Applied to MCSP[m^c], this gives a size lower bound only if every truth-table coordinate is pivotal for that threshold predicate; this pivotality condition is not established here.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795529234.8985107,
+  "session": "pnp-desk/research/R2800",
+  "model": "gpt-6-luna",
+  "id": "S0554",
+  "proved_step": "statement: For every m>=2, if f and g are m-input Boolean functions differing on d truth-table entries, their minimum fan-in-two DAG circuit sizes over the full 16 binary-gate basis (free input wires, unrestricted fan-out) differ by at most dm. Construct one m-1 gate minterm for each disagreement; OR the d minterms in d-1 gates and XOR with a circuit for f in one gate. Thus C_m(g)<=C_m(f)+dm; swapping f,g gives the reverse inequality. For d=0 the sizes agree.\nscope: All integers m>=2 and all Boolean functions f,g on m bits; minimum gate count in the stated complete binary basis. This individual-function continuity bound is not a decision-circuit lower bound.\nproof: Let D={a in {0,1}^m:f(a)!=g(a)}, |D|=d. For each a, conjoin the m literals specifying a in m-1 gates: combine the first two literals with their conjunction truth table, then add each remaining literal with AND. If d>=1, OR the d minterms using d-1 gates to obtain 1_D. XOR that indicator with a circuit for f to compute g. Added cost is d(m-1)+(d-1)+1=dm, so C_m(g)<=C_m(f)+dm. Applying the construction from g to f gives C_m(f)<=C_m(g)+dm. If d=0, f=g.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529517.691096,
+  "session": "pnp-desk/research/R2808",
+  "model": "gpt-6-luna",
+  "id": "S0555",
+  "proved_step": "statement: For every m>=2 and every m-input Boolean function with t>=1 satisfying assignments, its minimum fan-in-two DAG gate count over the full binary Boolean basis is at most 2mt-1 when negations are charged, and at most mt-1 when input negations are free. For charged negations, form each satisfying-assignment minterm using at most m NOT gates and m-1 AND gates, then combine the t minterms by t-1 OR gates, totaling t(2m-1)+(t-1)=2mt-1. With free negations, each minterm takes m-1 gates and the total is t(m-1)+(t-1)=mt-1. Fan-out and sharing are unrestricted and cannot increase the cost.\nscope: All m>=2 and t>=1; fan-in-two DAG circuits over the full 16 binary Boolean gates, free input wires, unrestricted fan-out. Two explicit cost conventions: charged NOT gates versus free input negations. This is an individual-function upper bound and does not imply an MCSP decision-circuit lower bound.\nproof: For each satisfying assignment a, construct the conjunction of its m literals. In the charged convention create each negative literal with one binary gate implementing NOT via (x,x), then combine the m literals with m-1 binary AND gates. This costs at most 2m-1 gates per minterm. Combine the t minterms with t-1 OR gates, for t(2m-1)+(t-1)=2mt-1. In the free-negation convention omit the at most m NOT gates per minterm, obtaining t(m-1)+(t-1)=mt-1. The resulting DNF agrees with the function on every input by the definition of its satisfying assignments.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529798.9931083,
+  "session": "pnp-desk/research/R2811",
+  "model": "gpt-6-luna",
+  "id": "S0556",
+  "proved_step": "statement: Lemma (fixed-sentinel search-to-decision decoding). Let R be a search relation whose algorithm has an L-bit output convention: on each input x it outputs a valid witness if one exists, and outputs a fixed sentinel z in {0,1}^L otherwise. If a Boolean circuit with C gates computes the L output bits, then the associated decision function has a Boolean circuit with at most C+O(L) gates. Proof: Append L bitwise equality tests against z and a balanced AND of their outputs to recognize the sentinel, then negate. This costs O(L) gates and outputs 1 exactly when a witness exists. Scope: fixed output length and fixed distinguishable sentinel; this lemma does not establish the encoding or parameter bounds for S0284.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-10bbdfaf2a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795529808.0673199,
+  "session": "pnp-desk/research/R2808",
+  "model": "gpt-6-luna",
+  "lemma": "Cofactor substitution with free constants: For every fan-in-two circuit C with s gates over the full binary basis, free input wires, and unrestricted fan-out, fixing any subset of its inputs yields a circuit for the cofactor with at most s gates, when constants are free. Proof: replace each fixed input wire by its assigned constant and retain all gates in topological order; the resulting circuit computes the cofactor and uses no additional gates. This is a model-specific representation lemma and does not establish a lower bound for MCSP decision circuits or close the assigned target."
+ },
+ {
+  "at": 1795529926.7557738,
+  "session": "pnp-desk/research/R2808",
+  "model": "gpt-6-luna",
+  "id": "S0558",
+  "proved_step": "statement: Lemma (uniform-value cofactor restriction). Let m>=2 and let C be an s-gate fan-in-two DAG over all 16 binary Boolean gates, with free input wires, unrestricted fan-out, and charged constants. If a restriction fixes a nonempty set of inputs all to the same bit b and leaves at least one input x free, the restricted function has a circuit of at most s+1 gates. Proof: use one gate on (x,x) to generate the constant b: XOR gives 0 and XNOR gives 1. Replace every fixed input by that shared constant wire and retain the original gates in topological order. The resulting circuit computes the cofactor and uses at most one added gate. This is a representation lemma for uniform-value restrictions; it does not give a lower bound for MCSP decision circuits.\nscope: All m>=2, s>=0, restrictions fixing r inputs where 1<=r<m to a common bit b; fan-in-two DAGs over the full binary Boolean basis, free input wires, unrestricted fan-out, constants charged.\nproof: If b=0, the full binary basis contains XOR, and x XOR x=0. If b=1, it contains XNOR, and x XNOR x=1. Since at least one input x remains free, this produces the required constant using one gate. Substitute that gate's output for all fixed inputs assigned b. The original gates, in topological order, then evaluate exactly as C would on inputs satisfying the restriction. At most one gate was added.\nlimitation: No recorded open-obligation identifier was available in the visible proof-state output, so this step is not claimed to close a named obligation. It does not imply a direct MCSP circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530005.9690468,
+  "session": "pnp-desk/research/R2808",
+  "model": "gpt-6-luna",
+  "id": "S0559",
+  "proved_step": "statement: Shannon reconstruction lemma for charged-constant fan-in-two circuits. Let m>=2 and let f:{0,1}^m->{0,1}. Write f_0,f_1 for its cofactors at the first input, and let C_{m-1}(f_b) be their minimum gate counts in the full 16-gate fan-in-two DAG basis with charged constants, free input wires, and unrestricted fan-out. Then C_m(f) <= C_{m-1}(f_0)+C_{m-1}(f_1)+4.\nscope: Every m>=2 and Boolean function f; the stated full binary basis, fan-in two, DAG circuits, charged constants, free input wires, unrestricted fan-out. Cofactor circuits use the remaining m-1 inputs.\nproof: Take minimum circuits A and B for f_0 and f_1, relabeling their free inputs as the last m-1 inputs. On inputs (x,y), add a NOT gate producing \u00acx, an AND gate producing (\u00acx)\u2227A(y), an AND gate producing x\u2227B(y), and an OR gate combining those two outputs. The result equals f(x,y) for x=0 and x=1, respectively, and uses exactly four added gates. The two cofactor circuits can be placed disjointly in one DAG, so the total gate count is at most the stated sum.\nlimitation: This is a constructive upper bound for individual function complexity. It gives no lower bound on circuits deciding MCSP and does not claim to close a recorded target obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530075.9732096,
+  "session": "pnp-desk/research/R2808",
+  "model": "gpt-6-luna",
+  "id": "S0560",
+  "proved_step": "statement: Lemma (aggregate cofactor circuit bound). Let C be an s-gate fan-in-two DAG on m>=2 inputs over the full binary Boolean gate basis, with charged constants, free input wires, and unrestricted fan-out. Fix a set R of r<m input positions. For each assignment a in {0,1}^R, let C_a be the cofactor obtained by fixing those positions to a. Then every C_a has a circuit of at most s+2 gates in the same model. Consequently, the sum over all 2^r assignments a of the minimum circuit complexities of the cofactors is at most 2^r(s+2).\nscope: All m>=2, s>=0, 0<=r<m, every fixed set R of r input positions, and every fan-in-two DAG C over all 16 binary gates in the stated model.\nproof: If r=0, the sole cofactor is C and its complexity is at most s, so the claims follow. Suppose r>0. Since r<m, choose an input x outside R. Construct two gates on (x,x), one XOR gate producing 0 and one XNOR gate producing 1. For any assignment a to R, replace each fixed input wire by the corresponding one of these two shared constant wires; retain all original gates in their topological order. This computes C_a exactly and uses at most s+2 gates. This holds separately for every one of the 2^r assignments, so summing their minimum complexities gives at most 2^r(s+2).\nlimitation: The bound counts separate cofactor circuits and gives no lower bound on circuits deciding MCSP; no named open obligation is claimed closed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530450.6791928,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is sound: given an s-gate circuit over the full 16-gate binary basis (which includes constant-0 and constant-1 gates), choose any remaining input x (exists since r < m). Add two gates: const-0(x,x) and const-1(x,x). Replace each fixed input's wire with the appropriate constant wire. This yields a circuit of exactly s+2 gates computing the cofactor. The constant gates are part of the 16 binary gates. No counterexample exists; the argument holds for all m>=2, s>=0, 0<=r<m. The prior computational check (cm-f253743d6dbf4678) is consistent.",
+  "review_of": "S0463",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530450.7082067,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: each minterm for a point in D costs m-1 gates (first two literals combined by 1 gate, each of remaining m-2 literals adds 1 gate). d minterms cost d(m-1). OR them with d-1 gates to get indicator 1_D. XOR with f's circuit (1 gate). Total additional: d(m-1) + (d-1) + 1 = dm. For d=0, retain f's circuit (s gates). Bound holds for all m>=2, s>=0, d<=2^m. No counterexample; the minterm synthesis uses only gates from the full 16-gate binary basis.",
+  "review_of": "S0464",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530450.7371924,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the symmetric form of S0464. The same minterm construction gives C_m(g) <= C_m(f) + dm for d>=1 (d=0 trivial). Swapping f and g gives C_m(f) <= C_m(g) + dm. Together |C_m(f)-C_m(g)| <= dm. The argument is identical to S0464 and correct. The scope notes this is an individual-function synthesis bound, not a decision-circuit lower bound.",
+  "review_of": "S0465",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530450.770403,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument correctly applies the Hamming perturbation bound from S0465 (which was verified as SURVIVED_REVIEW). If C_m(f) <= s-m, any neighbor g has C_m(g) <= C_m(f)+m <= s, so M_{m,s}(g)=1 and sensitivity is 0. If C_m(f) > s+m, any neighbor g has C_m(g) >= C_m(f)-m > s, so M_{m,s}(g)=0 and sensitivity is 0. Thus sensitivity > 0 only when s-m < C_m(f) <= s+m. This is logically sound given S0465. The step correctly notes this locates the edge boundary but gives no decision-circuit lower bound.",
+  "review_of": "S0466",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530638.9426227,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard circuit complexity fact: a fan-in-two circuit with g gates has 2g gate-input slots. Each variable that can affect the output must appear in at least one slot, so |supp(F)| \u2264 2g. Sensitivity at any input x is bounded by support size. The projection case (output = input wire) correctly handled as support/sensitivity 1 with g=0. The MCSP application is conditional (requires a sensitivity estimate) and correctly does not assert an unconditional lower bound. No counterexample exists; argument is sound.",
+  "review_of": "S0467",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530638.9821625,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counting argument is correct: number of circuits of size \u2264 s_m is bounded by B_m = (s_m+1)(m+s_m)(16(m+s_m)^2)^{s_m}. log\u2082 B_m = O(m^c log m) = o(2^m). Total functions = 2^{2^m}. Fraction \u2264 B_m / 2^{2^m} = 2^{log\u2082 B_m - 2^m} \u2192 0. This is a standard Shannon-style counting bound. The step correctly notes this is about individual function complexity, not MCSP decision circuit lower bounds. No error.",
+  "review_of": "S0468",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530639.0092502,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: each minterm for a \u2208 A costs m-1 gates (first two literals by 1 gate from 16 binary basis, each remaining literal by 1 gate). t minterms cost t(m-1). OR them with t-1 gates. Total = t(m-1) + (t-1) = tm - 1. Works for all t \u2265 1, m \u2265 2. Uses only gates from the 16 binary basis. No counterexample.",
+  "review_of": "S0469",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530639.0434744,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Symmetry argument is sound: given circuit C for f, replace each input wire i with \u03c0(i) (permuted and possibly complemented). For complemented inputs, modify gates receiving that input directly by flipping the corresponding argument in their truth table - the full 16-gate basis is closed under input negation. The transformed circuit has same size and computes f\u2218\u03c0. Reverse direction by \u03c0\u207b\u00b9 gives equality of minimum gate counts. MCSP_m[s] is invariant under the induced action on truth tables. Correct for the stated model.",
+  "review_of": "S0470",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530813.7391274,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: nonconstancy gives f,h with C(f)\u2260C(h), differing at some coordinate i. Replacing f(i) by h(i) changes C, so i is relevant. Transitivity of the group action on the N coordinates transports this witness to every coordinate j, making all N inputs relevant. In a fan-in-two circuit, the subgraph of N relevant inputs and q gates on paths to output has \u22642q edges. Connectedness requires \u2265N+q-1 edges, so 2q \u2265 N+q-1 \u21d2 q \u2265 N-1. The step correctly notes this applies to MCSP[s] only when the basis/threshold yield both transitive symmetry and nonconstancy, and gives a linear (N-1) not N(log N)^k bound. No counterexample; argument is sound.",
+  "review_of": "S0471",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530813.7890468,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a restatement of S0471's core lemma. Same reasoning: pick u,v with C(u)\u2260C(v), differing at i. i is relevant. Transitivity maps i to any j, preserving C-values of the pair, so j is relevant. All N coordinates relevant. Circuit graph: N inputs + q gates, \u22642q edges, connected \u21d2 2q \u2265 N+q-1 \u21d2 q \u2265 N-1. Correct. No counterexample.",
+  "review_of": "S0472",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530813.8217797,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "CRITICAL GAP: The permutation of m input variables induces an action on the N=2^m truth-table coordinates (indexed by x\u2208{0,1}^m) given by \u03c0\u00b7x = \u03c0(x). This action is NOT transitive on {0,1}^m. It preserves Hamming weight: strings with different numbers of 1s are in different orbits. For example, 0^m and 1^m are fixed points. The orbits are the Hamming weight layers (m+1 orbits). The lemma S0471/S0472 requires a TRANSITIVE group action on the N coordinates. The stated symmetry (permuting input variables) does not satisfy this hypothesis. Therefore the conclusion that every coordinate is relevant does not follow from the cited symmetry. The step is refuted.",
+  "review_of": "S0473",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795530813.8480117,
+  "session": "pnp-desk/research/R2803",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard cofactor expansion: C(x,y) = (\u00acx \u2227 C0(y)) \u2228 (x \u2227 C1(y)). Circuit: \u00acx via NAND(x,x) [1 gate], \u00acx\u2227C0 [1 AND], x\u2227C1 [1 AND], OR [1 gate]. Total a+b+4. Uses NAND, AND, OR from the 16-gate basis. DAG sharing within cofactor circuits preserved. Correct for all Boolean C. No counterexample.",
+  "review_of": "S0475",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795530872.9976623,
+  "session": "pnp-desk/research/R2816",
+  "model": "gpt-6-luna",
+  "id": "S0573",
+  "proved_step": "statement: Lemma (transitive invariance forces relevance). Let C:{0,1}^N->{0,1} be nonconstant and invariant under a transitive group G of coordinate permutations. Then every coordinate is relevant. Proof: Choose u,v with C(u)!=C(v). Flip the coordinates on which u and v differ one at a time to obtain a path from u to v. Since endpoint values differ, some adjacent pair has different C-values; its sole changed coordinate i is relevant. For any coordinate j, transitivity gives g in G with g(i)=j. Invariance carries the witness pair to a pair differing only at j with different C-values, so j is relevant. Scope: all nonconstant Boolean properties invariant under a transitive coordinate-permutation group.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-10bbdfaf2a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795531854.6906,
+  "session": "pnp-desk/research/R2832",
+  "model": "gpt-6-luna",
+  "gap": "The direct general Boolean-circuit lower bound for MCSP[m^c] remains open. Complement symmetry controls individual-function complexity only and does not yield a superlinear lower bound for the MCSP decision circuit.",
+  "evidence": "Complete argument above; the small exhaustive DISCOVERY computation was requested separately as a finite sanity check and is not used as proof.",
+  "gap_id": "G0198",
+  "id": "S0574",
+  "proved_step": "statement: Let m>=1 and let C(f) be the minimum number of gates in a fan-in-two DAG computing f:{0,1}^m->{0,1}, with free input wires, unrestricted fan-out, and all 16 binary Boolean gates available. Then |C(f)-C(1-f)|<=1. Proof: Take a minimum circuit for f and discard gates not contributing to its output. If its output is a gate g(u,v), replace that final gate by the binary Boolean gate h(a,b)=1-g(a,b), which is among the 16 allowed gates; this computes 1-f with the same number of gates. If the output is an input wire x_i, use one gate h(x_i,x_i)=1-x_i, so C(1-f)<=C(f)+1. Thus C(1-f)<=C(f)+1 in all cases. Applying the same argument to 1-f gives C(f)<=C(1-f)+1, proving the absolute difference bound. Consequence: for each threshold s, any f with C(f)<=s-1 has its complement in MCSP_m[s] as well; the only possible membership asymmetry between a function and its complement occurs at the size boundary or when a zero-gate input-output case is involved. This is a structural fact about individual truth-table complexity, not a lower bound on circuits deciding MCSP.\nscope: All m>=1; fan-in-two DAGs, free input wires, unrestricted fan-out, complete set of 16 binary Boolean gate types; no free constants. No claim about the size of circuits deciding MCSP_m[s].",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532100.6930306,
+  "session": "pnp-desk/research/R2832",
+  "model": "gpt-6-luna",
+  "id": "S0575",
+  "proved_step": "statement: For every m>=2 and Boolean functions f,g:{0,1}^m->{0,1} differing at exactly one input, if f has a fan-in-two DAG circuit of size s over the complete binary Boolean basis, with free input wires and no free constants, then g has such a circuit of size at most s+m+1. Proof: let a be the unique input where they differ. Build the point indicator p_a using m-1 binary gates: the first gate computes the conjunction of the two required signed literals as one of the 16 binary Boolean functions, and each later gate conjoins the accumulated prefix with the next appropriately signed variable, again using one of the 16 gates. If f(a)=0 and g(a)=1, append one OR gate combining the original output with p_a, for total added cost m. If f(a)=1 and g(a)=0, append a NAND gate p_a NAND p_a to obtain NOT p_a, then an AND gate combining the original output with NOT p_a, for total added cost m+1. At x=a this clears the sole 1; at every x!=a, p_a=0 so the output is unchanged. Thus either direction costs at most m+1. No claim about the complexity of MCSP itself follows.\nscope: All m>=2; complete 16-gate binary Boolean basis, fan-in-two DAGs, free input wires, unrestricted fan-out, constants not free. One truth-table entry changes.\nproof: Constructive point-indicator edit argument; swapping f,g gives the reverse inequality.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532305.759154,
+  "session": "pnp-desk/research/R2832",
+  "model": "gpt-6-luna",
+  "id": "S0576",
+  "proved_step": "statement: For every m>=2, any two m-input Boolean functions differing on exactly one input have circuit complexities differing by at most m in fan-in-two DAGs over the complete set of 16 binary Boolean gates, with free input wires, unrestricted fan-out, and no free constants. Proof: Let a be their differing input and construct its indicator p_a using m-1 gates: one gate matches the first two signed literals, then one gate appends each remaining signed literal. If f(a)=0 and g(a)=1, append one gate computing f OR p_a. If f(a)=1 and g(a)=0, append one gate computing f AND NOT p_a. These are binary Boolean gates in the basis. The resulting function differs from f only at a and uses m additional gates. Swapping f and g gives the reverse complexity inequality.\nscope: All m>=2; complete 16-gate binary basis; fan-in-two DAGs; free input wires; unrestricted fan-out; constants not free; functions differ on one input.\nproof: The point indicator uses m-1 gates and one final binary gate edits precisely that point.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

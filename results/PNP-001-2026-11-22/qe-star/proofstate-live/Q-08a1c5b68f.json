@@ -4547,5 +4547,116 @@
   "evidence": "The DNF construction is correct: for each of the S output coordinates, form minterms for each accepting input (at most 2^(S+1) of them). Each minterm on d=S+1 bits uses S AND gates (free literals via NOT). ORing |A| minterms uses |A|-1 OR gates. Total per output \u2264 |A|(S+1)-1 \u2264 2^(S+1)(S+1). Summing over S outputs gives S(S+1)2^(S+1). This is a valid existential upper bound (not a lower bound). No counterexample exists for an upper bound claim; the counting is exact.",
   "review_of": "S0510",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795529231.8953006,
+  "session": "pnp-desk/research/R2802",
+  "model": "gpt-6-luna",
+  "gap": "Check whether the assigned SC_{n,s} languages satisfy essential dependence on every truth-table position; then extend the structural invariant to positive G or seek a fixed-(S,D) trade-off.",
+  "gap_id": "G0179",
+  "id": "S0536",
+  "proved_step": "Zero-gate essential-position bound. Let N,S>=1 and F be a subset of {0,1}^N. Consider a deterministic one-pass layered machine with S Boolean state bits, fixed initial state, an unrestricted final decoder, and per-bit updates using only wires, constants, and free NOTs (so the update uses zero counted AND/OR gates). If every input position i is essential for membership in F\u2014meaning there are two strings differing only at i, exactly one of which lies in F\u2014then S>=N.\nProof. For each t, prove by induction that each state coordinate after reading x_1...x_t is either constant or equal to x_i or NOT x_i for some i<=t. At t=0 every coordinate is fixed by the initial state, hence constant. For the induction step, each next-state coordinate is selected from a prior state coordinate, its negation, the newly read bit x_{t+1}, its negation, or a constant; substituting the induction hypothesis preserves the stated form. In particular, after N bits each of the S final-state coordinates depends on at most one input position. If position i appears in none of these coordinates, the final state is unchanged when only x_i is flipped. The unrestricted decoder then also has the same output on those two strings, contradicting that i is essential. Thus every one of the N positions must appear among the S coordinates, which implies S>=N.\nScope: deterministic layered machines, fixed initial state, wire/constant/free-NOT updates, and a final membership decoder of arbitrary complexity. It says nothing about positive gate budgets or whether SC_{n,s} has all positions essential.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795529881.3210106,
+  "session": "pnp-desk/research/R2802",
+  "model": "gpt-6-luna",
+  "evidence": "Exact-cost enumeration cm-0171f72ce94d4b6e found XOR mask 0110 absent from all circuits with at most two counted AND/OR gates. It enumerates a first gate over the six free wires {0,1,x,y,\u00acx,\u00acy}, then a final gate over those wires and the first gate output or its free complement. Earlier closure checks incorrectly combined two separate one-gate outputs while charging only one additional gate.",
+  "review_of": "S0514",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795529881.3528123,
+  "session": "pnp-desk/research/R2802",
+  "model": "gpt-6-luna",
+  "id": "S0538",
+  "proved_step": "Finite repair of S0514: XOR on two Boolean inputs has minimum 3 counted gates in fan-in-two AND/OR circuits with free NOT, constants, and unrestricted fan-out. The upper bound is (x OR y) AND NOT(x AND y), using three counted gates. For the lower bound, enumerate every two-gate DAG: the first gate takes two of the six zero-gate wires {0,1,x,y,NOT x,NOT y}; the final gate takes two wires from those six and the first gate output or its free complement. The exact enumeration cm-0171f72ce94d4b6e omits XOR mask 0110. This is a finite synthesis result only and does not establish a streaming trade-off for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795530109.1272252,
+  "session": "pnp-desk/research/R2810",
+  "model": "gpt-6-luna",
+  "id": "S0539",
+  "proved_step": "Exact layer width for identity-output recognition. Let F be a nonempty subset of {0,1}^N. Consider deterministic one-pass layered transducers that reject inputs outside F and, on each x in F, output x itself; transitions may depend on the layer and input bit, and a final decoder produces the output from the terminal state. At layer t, let L_t be the number of length-t prefixes p with at least one accepted completion pu. Then the minimum number of reachable states at layer t is L_t plus one if any dead prefix exists, and L_t otherwise. Proof: Distinct live prefixes p and q cannot share a state. Choose an accepted completion pu of p. If qu is rejected, determinism conflicts with the required accept/reject outputs. If qu is accepted, pu and qu are distinct accepted inputs, but the common suffix u from a shared state leads to the same terminal state, whose decoder cannot output both. A dead prefix cannot share a state with a live prefix either: applying an accepted completion of the live prefix would require the same resulting state to both reject and accept. Thus the stated number is a lower bound. For the matching construction, use one state per live prefix and, if needed, one shared dead state. From a live prefix p on bit b, move to pb if it has an accepted completion, and otherwise to the dead state; the dead state loops to itself. At layer N, accept and output exactly the states labelled by strings in F. This achieves the bound. The result characterizes layer state width only; it gives no per-step fan-in-two gate-cost bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795531028.1106853,
+  "session": "pnp-desk/research/R2813",
+  "model": "gpt-6-luna",
+  "id": "S0540",
+  "proved_step": "statement_start: Witness-output injectivity bound. Let F be a nonempty subset of {0,1}^N.\nstatement: Witness-output injectivity bound. Let F be a nonempty subset of {0,1}^N. A deterministic layered one-pass transducer accepts exactly F and, on every accepted input, outputs that input. For each t, let P_t be the length-t prefixes extendible to a member of F. Then at layer t the prefixes in P_t reach pairwise distinct states. Proof: Suppose distinct p,q in P_t reach the same state. Define R_t(p)={u:pu in F}, and likewise R_t(q). If these residual sets differ, a suffix in their symmetric difference makes the same state accept one continuation and reject the other, contradicting membership correctness. If they are equal, their common set is nonempty; choose u in it. Then pu and qu are distinct accepted inputs. From the shared state, the same suffix u gives the same final output, but the required outputs pu and qu differ, a contradiction. Thus all prefixes in P_t reach distinct states.\nscope: Finite binary languages F subseteq {0,1}^N; deterministic layered one-pass transducers deciding membership and outputting the full input on acceptance. The transducer has at least |P_t| states at each layer t, hence at least max_t |P_t| states overall. This is a state-count bound; it does not bound transition update cost or establish a lower bound for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795531141.2422066,
+  "session": "pnp-desk/research/R2822",
+  "model": "gpt-6-luna",
+  "evidence": "Exact exhaustive check at n=2 enumerated all copy-source assignments and all decoders for S=0,1,2; observed respectively 2, 6, 16 distinct functions with maximum essential-variable counts 0, 1, 2 and no counterexample (physalis_code_run experiment cm-b98953e5e3084922). The theorem itself follows from the induction in the proof, not from finite enumeration.",
+  "id": "S0541",
+  "proved_step": "statement: Copy-only transducer essential-variable bound. Let n,S\u22650. A deterministic one-pass transducer has S state bits, fixed initial state, and updates in which each next state bit is a copy of an old state bit, a copy of the current input bit, or a constant. Its final output is any function of the final state. Then the recognized Boolean function on {0,1}^n depends on at most S input positions, so it has at most S essential variables.\nproof: After reading any prefix, each state bit is either constant or equal to one input bit from that prefix. This holds initially because the initial state is fixed. It is preserved by every allowed update, since copying a state bit preserves its source and copying the current input bit adds only that input position. Therefore, after all n bits, the final state is determined by a set I of at most S input positions. The decoded output is a function only of the coordinates in I. If coordinate j is outside I, changing only x_j leaves the final state, and hence the output, unchanged. Thus every essential coordinate belongs to I and there are at most S.\nscope: All n,S\u22650; copy-only state updates with constants, fixed initial state, arbitrary final decoder. This is restricted to zero-gate updates and gives no lower bound for updates with AND/OR/NOT gates or for general streaming circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795531423.56606,
+  "session": "pnp-desk/research/R2822",
+  "model": "gpt-6-luna",
+  "id": "S0542",
+  "proved_step": "Let F be a nonempty subset of {0,1}^N, and let M be a deterministic layered transducer whose final decoder rejects inputs outside F and outputs x on each x in F. For layer t, put L_t=|{p in {0,1}^t: there exists u in {0,1}^{N-t} with pu in F}|. Then M has at least L_t distinct states reached by live length-t prefixes. If L_t<2^t, M has at least L_t+1 states reached at layer t. Proof: For two distinct live prefixes p,q with unequal residual sets R_t(p)={u:pu\u2208F}, R_t(q), choose u in their symmetric difference. If both prefixes reached the same state, deterministic processing of u would give the same final decoder result, though exactly one of pu,qu belongs to F, contradiction. If their residual sets agree, choose u in their common nonempty residual. Then pu and qu are distinct accepted strings, but a shared state and common suffix produce the same final state, whose decoder cannot output both strings; contradiction. Thus live prefixes occupy pairwise distinct states. If a dead prefix r exists, choose any live p and u\u2208R_t(p); processing u from r must reject while from p it accepts, so r and p cannot share a state. This proves the claimed count. The result is a state-count bound only; it places no lower bound on transition/update circuit size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795531549.9954476,
+  "session": "pnp-desk/research/R2826",
+  "model": "gpt-6-luna",
+  "gap": "Need the complete current open-obligation text and the remainder of S0516 to identify a pre-existing gap this session can close. The recorded excerpt truncates S0516, and same-family claimed steps are not independently reviewable here.",
+  "evidence": "The available proof_state_read excerpt lists claimed steps S0512, S0513, S0515, S0516; S0516 is truncated after its proof begins. No complete open_obligations field was included in the returned excerpt. No proof claim is being made.",
+  "gap_id": "G0180"
+ },
+ {
+  "at": 1795531636.1278038,
+  "session": "pnp-desk/research/R2826",
+  "model": "gpt-6-luna",
+  "id": "S0544",
+  "proved_step": "statement: Final-layer identity-output state bound. Let F be a nonempty subset of {0,1}^N. A deterministic one-pass transducer with fixed initial state, layer-dependent transitions, and final decoder that rejects inputs outside F and outputs x itself on every x in F must reach at least |F| + 1_{F != {0,1}^N} distinct states after N input bits. Proof: For distinct x,y in F, if their final states were equal, the fixed decoder applied to that state would have to output both x and y, impossible. Hence the |F| accepted inputs reach pairwise distinct final states. If z is outside F, its final state must differ from every accepted final state because the decoder rejects z but outputs each accepted input on the corresponding accepted state. Thus there is one additional state whenever F is a proper subset. If F is all of {0,1}^N, the first argument alone gives the bound. This uses only deterministic decoding and exact identity output; it imposes no circuit-size bound on transitions.\nscope: All integers N>=0 and all nonempty F subseteq {0,1}^N; deterministic one-pass transducers with fixed initial state, layer-dependent transitions, and final decoder that rejects outside F and outputs the complete input x for x in F. This is a final-layer state-count bound only; it gives no per-step update-circuit complexity bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532005.3994536,
+  "session": "pnp-desk/research/R2826",
+  "model": "gpt-6-luna",
+  "id": "S0545",
+  "proved_step": "statement: Residual transition lemma (finite languages, exact identity). Let F be any subset of {0,1}^N, let 0<=t<N, let p be a binary word of length t, and define R_t(p)={u in {0,1}^{N-t}: pu in F}. For b in {0,1}, define the suffix derivative D_b(R)={v in {0,1}^{N-t-1}: bv in R}. Then D_b(R_t(p))=R_{t+1}(pb). In particular, equality of two layer-t residuals is preserved by applying the same next input bit: R_t(p)=R_t(q) implies R_{t+1}(pb)=R_{t+1}(qb). Proof: For any v of length N-t-1, v belongs to D_b(R_t(p)) iff bv belongs to R_t(p), iff p(bv) belongs to F, iff (pb)v belongs to F, iff v belongs to R_{t+1}(pb). The final implication follows by substituting p and q into the identity.\nscope: All finite binary languages and all valid t,p,b; this is the exact residual derivative identity and does not assert any bound on Boolean circuit size, state encoding width, or update cost.\nevidence: Claimed step S0515 was not extended or used as a premise; this identity is proved directly by elementwise equivalence. It is a foundational lemma for the residual-state construction, but does not close the synthesis gap or establish P!=NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532110.4200923,
+  "session": "pnp-desk/research/R2826",
+  "model": "gpt-6-luna",
+  "id": "S0546",
+  "proved_step": "statement: Universal transition-circuit upper bound. For every integer S>=1, any deterministic layered streaming transition from an S-bit state and one input bit to an S-bit next state, with arbitrary behavior permitted on unreachable state/input pairs, has an AND/OR circuit of at most 2^(S+2)-4 + S(2^(S+1)-1) counted gates; NOTs and constants are free and fan-out is unrestricted. Proof: Extend the transition arbitrarily to a total Boolean map f:{0,1}^{S+1}->{0,1}^S. The shared-prefix minterm construction in reviewed step S0513 uses at most 2^(d+1)-4+q(2^d-1) gates for any map {0,1}^d->{0,1}^q. Substituting d=S+1 and q=S yields the claimed bound. The extension agrees with the required transition on every reachable pair, so it is a valid implementation.\nscope: All S>=1, deterministic layered one-bit streaming transitions, with AND/OR fan-in two, NOT/constants free, and unrestricted shared fan-out. This is an upper bound only; it gives no exact minimum and no lower bound for SC or affine families.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795532283.018207,
+  "session": "pnp-desk/research/R2826",
+  "model": "gpt-6-luna",
+  "id": "S0547",
+  "proved_step": "statement: For any F subset of {0,1}^N, let R_t be its distinct residual languages at layer t and K_t=|R_t|. In the one-hot encoding of these states, each symbol transition has a fan-in-two OR circuit with at most K_t gates (constants free).\nproof: For each R in R_t and input bit b, define its child \u03b4_b(R)={v:bv in R}. If R=R_t(p), then \u03b4_b(R)=R_{t+1}(pb), so the child is in R_{t+1}. For every R' in R_{t+1}, output the OR of coordinates z_R for which \u03b4_b(R)=R'. These fibers partition R_t. A fiber of size j takes max(j-1,0) binary OR gates, so the total is at most K_t. On the one-hot state for R, exactly the child coordinate is set, proving the transition is correct.\nscope: Finite fixed-length binary languages, canonical layered residual states, one-hot encoding, fan-in-two OR gates, free constants and unrestricted fan-out. Upper bound only; no claim about arbitrary recodings or the Pareto frontier.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
