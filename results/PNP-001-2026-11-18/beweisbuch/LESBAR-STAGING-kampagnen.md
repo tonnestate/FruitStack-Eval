@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 12882 entries from 3475 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 12890 entries from 3483 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,25 +18,25 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The bounded-residual layered circuit lemma (S0424) provides an exact non-uniform circuit upper bound for any language with polynomially bounded residual counts. The critical question for Q-156fa9c912 is whether EXT_{n,s} has such a polynomial residual bound (D
   - For EXT_{n,s} at layer t, the minimum number of states of an exact deterministic recognizer equals the number of distinct residual sets R_t(p); the lower bound follows from distinguishability, and storing the residual itself gives the matching upper bound.
   - There may be Boolean-function families for which the minimum-over-orders maximum residual count is asymptotically much smaller than the exponential of the minimum-over-orders maximum rational cut rank.
   - For a fixed encoding and reachable transition domain U, the minimum update gate count is at least the number of output coordinates whose restricted Boolean functions are not constants or input projections, but this bound may be weak because one gate can feed m
   - For CNFs with few crossing clauses at a variable cut, the satisfying-assignment matrix admits a low-rank representation with rank at most 2^t over Q, where t is the number of crossing clauses.
   - For every finite nonempty F subset of {0,1}^N, the number D_t of distinct suffix residuals at cut t is at most min(2^t, |F|+1), with equality behavior controlled by the number of distinct live prefixes plus the presence of at least one dead prefix.
-  - The fixed-code zero-update criterion is a useful exact filter for the Lemma M Pareto search: any candidate with G_max=0 must have each output coordinate equal on reachable pairs to a constant or a single state/input wire; conversely those coordinate restrictio
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
   - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> None
   - None -> None
 NUMERICAL EVIDENCE on file: 3079 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):

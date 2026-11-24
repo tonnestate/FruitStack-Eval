@@ -4123,5 +4123,69 @@
   "evidence": "Verified the construction: For each destination residual Q and input bit b, define P_b(Q) as the set of level-t residuals whose b-extension has residual Q. The circuit computes y_Q = (\u00acb \u2227 \u22c1_{R\u2208P_0(Q)} x_R) \u2228 (b \u2227 \u22c1_{R\u2208P_1(Q)} x_R). On valid one-hot inputs (exactly one x_R=1), exactly the active residual's b-successor contributes. Gate count: the OR trees across all Q,b have total fan-in equal to the number of edges in the transition graph (\u22642D_t since each of D_t sources has \u22642 outgoing edges), costing \u22642D_t gates. Each destination Q uses 2 ANDs + 1 OR = 3 gates, totaling 3D_{t+1}. One shared NOT for \u00acb adds 1. Total 2D_t+3D_{t+1}+1. The proof is correct for its stated scope (valid one-hot encodings, fan-in-two gates, no claim about D_t bounds in terms of n,s). No counterexample found.",
   "review_of": "S0423",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795489353.4588509,
+  "session": "pnp-desk/research/R2452",
+  "model": "minimax-m3.1-flash",
+  "evidence": "Gate-count and logic re-checked line by line. (i) For each destination residual Q and each bit b, P_b(Q) is a set of level-t source residuals; the sets P_b(Q) over all Q partition the D_t sources for fixed b (every source has exactly one b-successor). Hence across b=0,1 there are at most 2D_t incidences, and the total number of OR-tree input wires is at most 2D_t, so fan-in-2 OR trees cost at most 2D_t gates (a tree with k leaves needs k-1 gates, so the bound is safe). (ii) Per destination Q the output is ((NOT b) AND OR_0) OR (b AND OR_1): two AND gates plus one OR gate = 3D_{t+1} gates, with a single shared NOT b (1 gate). Total <= 2D_t+3D_{t+1}+1, as claimed. (iii) On a valid one-hot input exactly one source coordinate is 1; its successor is the unique Q with that source in P_b(Q), so the output is the correct one-hot successor; empty groups contribute constant 0 as stipulated. (iv) The scope statement is accurate: this bounds the transition layer only and gives no bound on D_t in terms of n,s and no compression for arbitrary MCSP decision circuits. No false line found; the step is correct as stated.",
+  "review_of": "S0423",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795490591.7381132,
+  "session": "pnp-desk/research/R2468",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: one-hot encoding of D_t residuals at each level; partitioned OR trees for 0/1-successors (\u22642D_t gates); input-bit selection per destination residual (2 AND + 1 OR = 3D_{t+1} gates, shared NOT); sum over t=0..N-1 gives \u22645N(N+s)^c+N. No argument gap or counterexample.",
+  "review_of": "S0424",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795490672.6305413,
+  "session": "pnp-desk/research/R2468",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: upper bound from 2^t prefixes and 2^(2^(N-t)) possible residual subsets; lower bound by explicit construction in both cases (a\u2264b: injection; a>b: b-1 nonempty + empty residual). Edge case b=1 handled correctly. No argument gap.",
+  "review_of": "S0425",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795490782.904978,
+  "session": "pnp-desk/research/R2468",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by induction: base t=0 has q_0=1^K; inductive step updates q'_i = q_i \u2227 [C_i(z_{t+1})=b] which is exactly q_i \u2227 b when C_i(z_{t+1})=1 and q_i \u2227 \u00acb when C_i(z_{t+1})=0, sharing one NOT. Each step uses K AND + 1 NOT = K+1 gates. Final OR of K bits accepts iff some circuit matches full prefix. Construction is correct but exponential in description length (K \u2264 2^{O(s log(n+s))}), not poly(s). No argument gap.",
+  "review_of": "S0426",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795490806.2448452,
+  "session": "pnp-desk/research/R2468",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by explicit counterexample: U={00,01,10,11}, C=00, F_1={00}, F_2={00,01}, p=01. Both have H_C(y)=[y=00]. But EXT_{F_1}(01)=0 (no member of F_1 has prefix 01) while EXT_{F_2}(01)=1 (01 is in F_2). The construction is correct and minimal. No argument gap.",
+  "review_of": "S0427",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795490826.4864528,
+  "session": "pnp-desk/research/R2468",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma statement claims D_t \u2264 min(|P_t|, 2^{N-t}, 2^{|F|}). However, the proof itself acknowledges this is incorrect: 'for the stronger stated bound 2^{N-t} is not generally valid, so replace it by 2^{2^{N-t}}'. The number of subsets of a universe of size 2^{N-t} is 2^{2^{N-t}}, not 2^{N-t}. The stated bound 2^{N-t} is wrong; the correct bound is 2^{2^{N-t}} as given in the repair lemma S0429. This is an error in the lemma statement itself.",
+  "review_of": "S0428",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795490930.382345,
+  "session": "pnp-desk/research/R2468",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The repair lemma correctly fixes the bound from S0428: D_t \u2264 min(|P_t|, 2^{2^{N-t}}). The proof is sound: each R_t(p) is a subset of {0,1}^{N-t} (size 2^{N-t}), so there are at most 2^{2^{N-t}} such subsets. The transition identity R_{t+1}(pb) = {u: bu \u2208 R_t(p)} is correct by definition. The dataset agent_ext_residual_counts_n3_s123_v2_90981490 confirms these bounds hold for n=3, s=1,2,3 across all t=0..8. No argument gap.",
+  "review_of": "S0429",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795491044.7313228,
+  "session": "pnp-desk/research/R2468",
+  "model": "muse-glimmer-30b",
+  "evidence": "Triangular system y_i = T_i(x,y_{<i}) has unique forward solution by induction on gate topological order; construction yields a satisfying y, and any satisfying y must coincide on each i because predecessors are fixed by induction, so exactly one y per x. On that y, T_out = C(x). Hence sum_y H_C(x,y)=C(x) with Boolean values 0/1. No counterexample found; scope matches deterministic acyclic circuit with stated encoding.",
+  "review_of": "S0430",
+  "status": "SURVIVED_REVIEW"
  }
 ]
