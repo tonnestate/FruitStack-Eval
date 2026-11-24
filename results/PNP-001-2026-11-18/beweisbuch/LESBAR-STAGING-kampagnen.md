@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 12865 entries from 3460 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 12882 entries from 3475 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -30,21 +30,21 @@ REFUTED:
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
 NUMERICAL EVIDENCE on file: 3079 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-cf2024fe04 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:fcd7f2c23e93 by pnp-desk/research/R2432:nemotron-3-nano-omni-reasoning@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: The distinct-cofactor synthesis bound
   - Q-aa875df5e7 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:c3217819f044 by pnp-desk/research/R2416:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I did not produce a self-contained L
   - Q-51609197b6 [MISSING_PROOF, OPEN] Can the residual set Ext_F(p), or its update under one next truth-table bit, be represented and computed from an arbitrary MCSP decision circuit H_C with transition cost polynomial in its circuit size and the encoded sta
   - Q-dfa4d8b2f5 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:0405348baaad by pnp-desk/research/R2392:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The knowledge search found an earlie
   - Q-e6927a7742 [MISSING_PROOF, OPEN] Does there exist an efficiently computable column-lattice basis H for rank-r threshold instances for which the coordinate-range product product_k(2 sum_i |(H^{-1}M_i)_k|+1) is asymptotically smaller than the original coo
-  - Q-9e4ea1398a [MISSING_PROOF, OPEN] Can a reviewer from another model family review S0395, S0396, S0411, and S0412 in Q-0b7da33369, then identify a constructive lemma closing a recorded subclaim?
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

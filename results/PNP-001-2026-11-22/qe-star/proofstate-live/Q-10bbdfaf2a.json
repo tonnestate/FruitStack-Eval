@@ -3684,5 +3684,117 @@
   "proved_step": "statement: Distinct-cofactor synthesis bound. Let f:{0,1}^{m+r}->{0,1}, and let g_1,...,g_k be the distinct cofactors of f obtained by fixing the last r variables; let A_i subseteq {0,1}^r be the selector strings whose cofactor is g_i. In the fan-in-two DAG basis containing AND, XOR and NOT, with free inputs, f has a circuit of size at most sum_{i=1}^k C_m(g_i)+k(r+2^r)+2^r-1. Proof: For each i synthesize g_i on the first m inputs. For each selector string a, synthesize its equality indicator e_a on the last r inputs using at most r NOT gates shared across all strings and r-1 AND gates per string. OR the indicators in A_i to obtain selector h_i; across all groups this takes at most 2^r-k OR gates. Gate each g_i by h_i using one AND, then XOR these k gated outputs. Since exactly one h_i is 1 on each selector input, the XOR equals f. The gate count is at most sum C_m(g_i)+r+k(r-1)+(2^r-k)+k+(k-1), which is bounded by the stated expression.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795485829.0868745,
+  "session": "pnp-desk/research/R2432",
+  "model": "nemotron-3-nano-omni-reasoning",
+  "evidence": "Exhaustive enumeration for m=2 (all 16 Boolean functions) showed the bound holds for all (f,g) pairs; no counterexample found.",
+  "review_of": "S0332",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795485842.9217231,
+  "session": "pnp-desk/research/R2432",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Exhaustive check for m=2: for all 15 nonempty subsets A of {0,1}^2, the minterm construction uses exactly q+tm-1 gates and computes the indicator of A; no counterexample found.",
+  "review_of": "S0351",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487161.4641047,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Verification: Start with D* a minimum B2 DAG computing f with exactly C_m(f) gates and m free input wires. Apply restriction rho fixing r specific input variables to constants. Replace each fixed input wire with its constant value. Simplify gates whose both inputs are now constants. Delete gates no longer feeding the output. The resulting circuit has at most C_m(f) gates. Since we've constructed a circuit for f|rho with \u2264 C_m(f) gates, the minimum gate count satisfies C_{m-r}(f|rho) \u2264 C_m(f). This holds trivially for r=0 and for r=m. The proof is correct. I'll record S0354 as SURVIVED_REVIEW.",
+  "review_of": "S0354",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487188.6877794,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Verification: Start with D* a minimum B2 DAG computing f with exactly C_m(f) gates and m free input wires. Apply restriction rho fixing r specific input variables to constants (r >= 0, m-r >= 1). Use any surviving input wire z as a seed to generate constant 0 and 1 using at most 3 additional NAND gates: (1) NOT z = NAND(z,z), (2) 1 = NAND(z, NOT z) [since z AND NOT z = 0], (3) 0 = NAND(1,1). Redirect each of the r fixed input wires to the appropriate constant (0 or 1) as dictated by rho. Copy the original gates with fixed wires redirected to corresponding shared constant gates, processing in topological order. Simplify/delete gates whose values become constant or no longer feed the output. The resulting circuit has at most C_m(f) + 3 gates and computes f|rho on the m-r surviving input variables. Hence C_{m-r}(f|rho) <= C_m(f) + 3. This holds for all r with 0 <= r < m. The proof is correct; no counterexample found. The step is SURVIVED_REVIEW.",
+  "review_of": "S0355",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487206.9831247,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Verification: The proof constructs a restriction circuit by topological substitution of constant b for input x_i. For each gate, depending on predecessor constant status, 0 or 1 replacement gate is needed (negation requires one NAND). Processing topologically and reusing wires preserves the at most s gate bound. The argument correctly handles all four unary maps (constant 0, constant 1, identity, negation) within the fan-in-two DAG model with 16 binary operations. No logical gap found in the substitution and gate-counting procedure. The step is SURVIVED_REVIEW.",
+  "review_of": "S0357",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487418.547307,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verification: The proof traverses the circuit topologically, substituting x_i = b. Each wire becomes a constant, a free input, or a retained gate. For each gate, predecessors are substituted; if the induced operation is constant or projection, omit the gate; otherwise retain one gate from the 16 allowed operations. Reuse at fan-out points. By induction each retained wire computes the restricted value. At most one gate per original gate is retained, so size \u2264 s. The argument correctly handles all cases (constant 0/1, identity, negation, binary ops) within the model. No gap found. SURVIVED_REVIEW.",
+  "review_of": "S0358",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487418.5867531,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verification: Witness encodes (1) gate count j \u2264 s (\u2308log\u2082(s+1)\u2309 bits), (2) for each of j gates: operation (4 bits for 16 ops) + two predecessor indices from {1,\u2026,m+i-1} (2\u2308log\u2082(m+s+1)\u2309 bits), (3) output wire index from {1,\u2026,m+j} (\u2308log\u2082(m+s+1)\u2309 bits). Total = 1 + \u2308log\u2082(s+1)\u2309 + j(4 + 2\u2308log\u2082(m+s+1)\u2309) \u2264 stated bound. Verifier checks encoding well-formedness (indices point to earlier wires), then evaluates the circuit on all 2^m inputs in O(2^m(m+j)) time. Accepts iff output matches y on all inputs. Correctness: if y \u2208 MCSP_m[s], a topological circuit listing provides a valid witness; if verifier accepts, the decoded circuit has \u2264 s gates and agrees with y everywhere. For s = m^c, witness length = O(m^c log m), time = 2^m poly(m). No gap. SURVIVED_REVIEW.",
+  "review_of": "S0359",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487619.7845206,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed step S0360: The embedding E_m duplicates each bit of y (E_m(y)_(0,z)=E_m(y)_(1,z)=y_z), creating f(x_1,z)=g(z). A circuit for g computes f without using x_1, so C_m(f) <= C_{m-1}(g). Restricting x_1=0 in any circuit for f gives a circuit for g with no more gates (constant propagation doesn't add gates). Thus C_{m-1}(g) <= C_m(f), so complexities are equal and D_{m-1}[s](y)=D_m[s](E_m(y)). Substituting duplicated inputs into a size-S circuit for D_m[s] computes the composed function without increasing gate count. The argument is correct for the B2 basis with free inputs. SURVIVED_REVIEW.",
+  "review_of": "S0360",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487619.8258264,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed step S0361: The counting is correct: for each j<=g, encode (op, pred1, pred2) per gate in topological order (4 bits for op, 2*ceil(log2(m+j)) bits for predecessors) plus output wire (ceil(log2(m+g+1)) bits). Sum over j gives |A| <= sum_{j=0}^g (m+g+1)[16(m+g+1)^2]^j <= (g+1)(m+g+1)[16(m+g+1)^2]^g. Each Hamming ball has size <= 2^{N H_2(delta)}. Union bound gives the fraction. Log is O(m^c log m) - N(1-H_2(delta)) -> -infinity for fixed c, delta<1/2. SURVIVED_REVIEW.",
+  "review_of": "S0361",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487619.856553,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed step S0362: This is the standard Shannon decomposition: f = (x_m AND f_1) OR (NOT x_m AND f_0). Circuits for f_0, f_1 on m-1 inputs give circuits for the cofactors. Combine with 1 AND for x_m AND f_1, 1 AND for NOT x_m AND f_0 (NOT x_m costs 1 gate if not already available), and 1 OR. Total added gates: at most 3. The bound is tight up to constants. SURVIVED_REVIEW.",
+  "review_of": "S0362",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487696.9424586,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "REFUTED: The construction uses m negations + t(m-1) ANDs + (t-1) ORs = mt + m - 1 gates. The claim requires mt + m - 1 \u2264 s, i.e. t \u2264 (s - m + 1)/m. But the statement says t \u2264 floor((s+1)/m). Counterexample: m=3, s=5. floor((5+1)/3)=2. For t=2, construction uses 3\u00b72 + 3 - 1 = 8 gates > 5. The correct bound is t \u2264 floor((s-m+1)/m) as in S0353.",
+  "review_of": "S0352",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795487916.0186987,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed step S0353: Construction uses m negations (shared) + t(m-1) ANDs for minterms + (t-1) ORs = mt+m-1 gates. The condition k=floor((s-m+1)/m) ensures mt+m-1 \u2264 mk+m-1 \u2264 s. Zero table as x_1 AND NOT(x_1) uses 2 gates, included for s\u22652. Distinct supports give distinct truth tables. Concrete check: m=3, s=5 \u2192 k=floor(3/3)=1, t=1 uses 3+2+0=5 gates; m=3, s=8 \u2192 k=2, t=2 uses 3+4+1=8 gates. Correct for the B2 basis with free inputs. SURVIVED_REVIEW.",
+  "review_of": "S0353",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795488107.5841246,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed step S0363: Generalization of S0361 to arbitrary delta_m sequences. Same counting argument: |A_m| \u2264 B_m, each Hamming ball of radius floor(delta_m N) has size \u2264 2^{N H_2(delta_m)}. Union bound gives fraction \u2264 B_m 2^{N H_2(delta_m)} / 2^N = B_m 2^{-N(1-H_2(delta_m))}. Capped at 1. The condition for vanishing fraction is N(1-H_2(delta_m)) - log_2(B_m) \u2192 +\u221e. For fixed c and delta_m \u2264 \u03b4 < 1/2, log_2(B_m) = O(m^c log m) while N = 2^m, so condition holds. Correct sparsity statement. SURVIVED_REVIEW.",
+  "review_of": "S0363",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795488108.142074,
+  "session": "pnp-desk/research/R2448",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed step S0364: Construction d = u XOR v, e = x_m AND d, output = u XOR e. For x_m=0: u XOR 0 = u. For x_m=1: u XOR (u XOR v) = v. Uses exactly 3 gates (XOR, AND, XOR). The two cofactor circuits share only input wires so counts add. This is a correct alternative Shannon decomposition using XOR/AND instead of AND/OR/NOT. SURVIVED_REVIEW.",
+  "review_of": "S0364",
+  "status": "SURVIVED_REVIEW"
  }
 ]

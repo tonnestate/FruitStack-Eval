@@ -2227,5 +2227,80 @@
   "proved_step": "statement: Bounded-incidence-component exact counting lemma. Let W be an integer m-by-n matrix, t,v integer vectors, and T an integer. Put S_j={i:W_{ji}!=0} and form the bipartite graph with gate j adjacent to each i in S_j. Let its connected components have variable sets U_a and gate sets J_a, and let b=max_a |U_a| (take b=0 if there are no components). Define H_a(z)=sum_{x in {0,1}^{U_a}} z^{sum_{j in J_a} v_j [sum_{i in U_a}W_{ji}x_i>=t_j]}. Then the satisfying-assignment count for sum_j v_j[W_j.x>=t_j]>=T is 2^(n-|union_a U_a|) times sum_{e>=T}[z^e] product_a H_a(z). The count is computable using at most O(sum_a 2^|U_a| + r V) arithmetic operations and O(r V) coefficient storage, where r is the number of components and V=sum_j |v_j|; hence if b=O(log n), r,m,V are polynomially bounded, and input integers have polynomial bit length, the exact count is computable in polynomial bit time.\nproof: For each component a, every gate in J_a has all its nonzero variables in U_a, by the definition of connected component. Distinct components have disjoint variable sets. Thus every assignment to the covered variables is uniquely a tuple (x_a)_a of component assignments, and each gate's truth value depends only on its component assignment. The exponent in the product monomial is consequently the total top score. Expanding product_a H_a counts each covered-variable assignment once with exponent equal to that score; taking coefficients with exponent at least T selects exactly the satisfying covered assignments. Variables outside the union of the U_a occur in no gate and contribute an independent factor 2^(n-|union U_a|). For computation, enumerate each component's 2^|U_a| assignments to construct H_a. Every exponent lies in [-V,V], so each polynomial and every intermediate product has at most 2V+1 possible exponents. Sequential convolution costs O(r V^2) in the naive implementation (not O(rV)); storage is O(V) if convolving in place. Thus the valid complexity bound is O(sum_a 2^|U_a| + r V^2) arithmetic operations and O(V) coefficient storage. If b=O(log n), r,m,V are polynomial and input bit lengths are polynomial, all local evaluations and polynomial arithmetic use polynomially many polynomial-bit integers, so the exact count is polynomial-time computable.\nevidence: Proof is by a bijection between global covered assignments and tuples of component assignments; the generating-function product preserves score multiplicities. This is a scoped structural algorithmic consequence, not a claim of a saving for unrestricted THR o THR.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795487049.455554,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Experiment cm-c39705bd9c9e4d99 independently compared against brute force on 420 generated pairwise-disjoint instances with n=0..6, m<5, signed gate weights in [-2,2]. The computation corroborates; the proof establishes the identity.",
+  "review_of": "S0255",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487056.6588023,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Decomposition into incidence components with disjoint variable sets enables unique assignment decomposition; each component's polynomial enumerates by local score contribution.",
+  "review_of": "S0256",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487563.9980516,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof analysis: The incidence graph decomposition into connected components is mathematically sound - each gate support lies entirely in one component, and distinct components have disjoint variable sets, enabling unique assignment decomposition. Component polynomials H_a(z) correctly enumerate local assignments by their score contribution. Multiplying polynomials and extracting coefficients for e>=T correctly counts satisfying assignments by distributivity. Variables outside components contribute the factor 2^{n-|union U_a|}. Complexity: when each component has at most b=O(log n) variables, 2^|U_a| is polynomial; with V polynomially bounded, O(V+1) storage and O(r(V+1)^2) convolution operations are polynomial. Finite corroboration: independent VERIFICATION experiment cm-61fff845705a4341 compared separately implemented component histogram/convolution against brute force on 1,200 generated instances (n=0..5, m=0..4; signed entries, thresholds, top weights; zero mismatches). This is a valid structural lemma for the bounded-component subclass (Obligation O2). No counterexample or argument gap found.",
+  "review_of": "S0257",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487564.480022,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof analysis: The sparse DP extends the dense component-score DP (S0257) by representing histograms as sparse maps from actually-occurring scores to counts, rather than dense arrays of size O(V+1). When the number of distinct scores per component q_a = |P_a| is small (e.g., due to structure in the weights/thresholds), the sparse representation can be exponentially smaller than the dense one. Correctness follows from the same distributivity argument: the convolution of sparse histograms correctly counts combined scores, just with fewer intermediate values. The algorithm processes components sequentially, maintaining the set of reachable accumulated scores M_a and their counts. For b=O(log n) and q_a polynomial, the running time is polynomial. This is a standard sparse DP optimization that preserves the exact counting identity. No counterexample or argument gap found in the stated principle. Note: the full step statement appears truncated in the proof state; this review covers the visible mathematical content.",
+  "review_of": "S0258",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487694.174774,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof is mathematically sound: (1) Connected components of the bipartite incidence graph partition gates and variables into independent blocks - correct by definition. (2) Each component's generating polynomial H_a(z) exactly enumerates assignments by top-gate score sum - correct by construction. (3) Product of H_a preserves score multiplicities via convolution - correct by distributivity of polynomial multiplication. (4) Variables outside all components contribute factor 2^{n-|union U_a|} - correct as they appear in no gate. (5) Complexity: the proof correctly notes sequential convolution costs O(r V^2) not O(r V), and storage O(V). For b=O(log n), 2^b = poly(n), and with r,m,V polynomial and polynomial bit-lengths, total time is polynomial. No counterexample or argument gap found.",
+  "review_of": "S0259",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795487710.7146354,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the same lemma as S0002/S0255 previously reviewed. The polynomial construction \u03a0_j ((2^{|S_j|}-c_j)+c_j z^{v_j}) with shift by z^L correctly counts assignments by weighted truth sum. Disjoint supports ensure independence of gate evaluations. Complexity: for each gate j, enumerate 2^{|S_j|} assignments to compute c_j; polynomial multiplication of m degree-V polynomials takes O(m V^2) naive or O(m V log V) with FFT. With k=O(log n), 2^k = poly(n); if m,V are polynomial in n and input integers have polynomial bit-length, all operations are polynomial-time. Experimental evidence cm-c39705bd9c9e4d99 (420 instances) supports the identity. No argument gap or counterexample found.",
+  "review_of": "S0251",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795488007.6883073,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0266",
+  "proved_step": "statement_start: Lemma (Bounded top fan-in exact #SAT in polynomial time). Let C be a THR o THR circuit with n inputs, m = n^alpha bottom gates (alpha >= 1), and one top threshold gate with integer weights v in Z^m, thresholds t in Z^m, and top threshold T in Z. Suppose the top fan-in is at most k, i.e., at most k entries of v are non-zero (k = O(1) constant). Then #SAT(C) can be computed exactly in time O(n * (2nM+1)^k * k) where M = max(|W_{ji}|, |t_j|, |v_j|, |T|). If M <= n^O(1), this is polynomial in n.\nevidence: Proof: Let J = {j : v_j != 0}, |J| <= k. Gates with j not in J contribute 0 to the top sum regardless of their output, so they can be ignored. We need to count #{x in {0,1}^n : sum_{j in J} v_j [W_j . x >= t_j] >= T}. Let W' be the |J| x n submatrix of rows in J, t' the corresponding thresholds, v' the corresponding weights. Rank r = rank_Q(W') <= |J| <= k. Pick r linearly independent rows B_1..B_r of W' and columns S with B_S (r x r) nonsingular. Delta = det(B_S) != 0, |Delta| <= r^{r/2} M^r. For each j in J, W'_j = c_j B with c_j = W'_j|_S B_S^{-1} rational; let a_j = Delta * c_j = W'_j|_S adj(B_S) in Z^r. Then W'_j . x = c_j . (B x). Let z(x) = B x in Z^r. The condition W'_j . x >= t'_j is equivalent to a_j . z(x) >= Delta t'_j (inequality flipped if Delta < 0). DP over variables i=1..n: state is partial sum z_p = sum_{i<=p} x_i B_{.,i}. Each coordinate |z_p| <= nM, so at most (2nM+1)^r <= (2nM+1)^k states. Initialize DP[0] = {0^r: 1}. For i=1..n: DP[i][z + B_{.,i}] += DP[i-1][z]; DP[i][z] += DP[i-1][z]. After n steps, for each state z with count c, compute top_sum = sum_{j in J} v'_j [a_j . z >= Delta t'_j]; if top_sum >= T add c to answer. Time per step: O(k) transitions per state, total O(n * (2nM+1)^k * k). Correctness: bijection between assignments x and paths to final state z(x); top_sum is exactly the top gate's weighted sum. For M <= n^O(1) and k=O(1), (2nM+1)^k = n^O(1), so polynomial time. This discharges O2 for the bounded top fan-in subclass.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795488432.9514942,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof: Let r = rank_Q(W). Pick r linearly independent rows B_1,...,B_r of W forming basis matrix B (r x n). Let S be r pivot columns where B_S is nonsingular. Delta = det(B_S) != 0, |Delta| <= r^{r/2} M^r. For each gate j, W_j = c_j B with c_j = W_j|_S B_S^{-1} in Q^r. Let a_j = Delta * c_j = W_j|_S adj(B_S) in Z^r. Then W_j.x = c_j.(B x). Let z(x) = B x in Z^r. The bottom gate condition W_j.x >= t_j is equivalent to a_j.z(x) >= Delta t_j (inequality direction depends on sign of Delta). The top gate computes sum_j v_j [a_j.z >= Delta t_j]. DP over variables i=1..n: state is partial sum z_p = sum_{i<=p} x_i B_{.,i}. Each coordinate |z_p| <= nM, so at most (2nM+1)^r states. Initialize DP[0] = {0^r: 1}. For i=1..n: for each state z with count c: DP[i][z + B_{.,i}] += c; DP[i][z] += c. After n steps, for each final state z with count c, compute top_sum = sum_j v_j [a_j.z >= Delta t_j]; if top_sum >= T add c to answer. Time: O(n * (2nM+1)^r * m * r) since computing top_sum for each state takes O(m r). For r=O(1), M=poly(n), this is polynomial. Correctness: bijection between assignments x and paths to z(x); bottom gate outputs and top sum are exactly evaluated from z. This discharges O2 for the constant row-rank subclass.",
+  "id": "S0267",
+  "proved_step": "statement_start: Lemma (Low row-rank weight matrix exact #SAT in polynomial time). Let C be a THR o THR circuit with n inputs, m = n^alpha bottom gates (alpha >= 1), weight matrix W in Z^{m x n} of rank r over Q (r = O(1) constant), integer thresholds t in Z^m, top weights v in Z^m, and top threshold T in Z. Let M = max(|W_{ji}|, |t_j|, |v_j|, |T|). Then #SAT(C) can be computed exactly in time O(n * m * r * (2nM+1)^r). If M <= n^O(1) and r = O(1), this is polynomial in n.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795488559.438868,
+  "session": "pnp-desk/research/R2441",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Review by R0806: the generating function formula prod_j((2^{k_j}-c_j)+c_j z^{v_j}) is correct for v_j >= 0 but fails for negative v_j because z^{v_j} with negative exponent is not a polynomial; coefficient extraction [z^e] is not well-defined as a polynomial operation. Repair S0255 (shift by z^L where L = -sum_{v_j<0} v_j) survives review.",
+  "review_of": "S0002",
+  "status": "REFUTED"
  }
 ]

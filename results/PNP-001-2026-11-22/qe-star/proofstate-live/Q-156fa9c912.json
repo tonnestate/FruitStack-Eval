@@ -4075,5 +4075,53 @@
   "proved_step": "statement: Candidate-vector transition accounting for EXT. Fix a finite indexed list C_1,...,C_K of length-N candidate truth tables and a stream position t. Let z_i indicate whether candidate i matches the prefix of length t, and let c_i=[C_i(t)=b] be supplied position-dependent constants for the next input bit b. Then the exact next state is z'_i=z_i AND c_i for every i. Thus each next-state coordinate is either the input wire z_i or the constant 0, so the transition map requires zero fan-in-two Boolean gates when wires and hardwired constants are free. The separate acceptance readout OR_i z_i takes K-1 fan-in-two OR gates for K>=1 (zero gates for K=1). Proof: Candidate i matches the extended prefix exactly when it matched the previous prefix and its bit at position t equals b, which is precisely z_i AND c_i. Since c_i is fixed for the transition, this expression is z_i when c_i=1 and 0 when c_i=0. A binary OR tree combines K bits in K-1 gates. This is an exact cost decomposition for the explicit candidate-vector representation; it gives no polynomial-in-s bound when K is exponential in the circuit-description length and no simulation through arbitrary MCSP decision circuits H_C.\nscope: All finite candidate lists, fixed truth-table orders, and positions, with position-dependent comparison constants supplied; the transition gate count excludes state storage and readout, which is separately K-1 gates.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795487403.9803488,
+  "session": "pnp-desk/research/R2444",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Code errored R1444; hand-checked algebra only; linearity premise unproven",
+  "review_of": "S0098",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795487414.592087,
+  "session": "pnp-desk/research/R2444",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "Bound exceeds |Im| by 10^2-10^6 on all cases; too weak to detect errors; does not bound update time - dispute valid",
+  "review_of": "S0091",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795488432.7123775,
+  "session": "pnp-desk/research/R2452",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma describes a correct explicit candidate-filtering construction: maintain a bit z_i per candidate circuit C_i indicating whether C_i matches the current prefix. Initial state: all z_i=1 (empty prefix matches all). Update on next bit b at position t: z_i <- z_i AND [C_i(t)=b]. This uses exactly M fan-in-2 AND gates (each z_i conjoined with a supplied constant). The OR of all z_i tests whether any candidate matches the prefix, using M-1 OR gates. The inductive proof is valid: z_i(p)=1 iff C_i agrees with p on all positions <|p|. No logical gap; the scope note honestly states this gives no polynomial-in-s bound and no connection to arbitrary MCSP circuits.",
+  "review_of": "S0420",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795489084.242413,
+  "session": "pnp-desk/research/R2452",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The construction correctly builds an exact streaming automaton for EXT_{n,s} from an explicit list of all size-at-most-s circuits. State z_j(p) tracks whether candidate C_j matches prefix p. Update z'_j = z_j AND [C_j(a_t)=b] uses one AND gate per candidate with supplied constant (1 if C_j's truth table has bit b at position t, else 0). The invariant holds by induction: z_j(p)=1 iff C_j agrees with p on all positions <|p|. OR_j z_j(p)=1 exactly when some size-s circuit matches p, i.e., p is an EXT prefix. The description bound M <= 2^{O(s log(n+s))} is standard (each of s gates described by type + two predecessors among n+s+2 objects). Scope note correctly states this is an exponential-size baseline giving no compression or lower bound against arbitrary MCSP circuits. No logical gap.",
+  "review_of": "S0421",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795489118.0216665,
+  "session": "pnp-desk/research/R2452",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Gate count verified: For each of M candidates, copying C_j costs \u2264s gates (total Ms). Shared NOT b: 1 gate. Per candidate: NOT y_j (1), y_j AND b (1), (NOT y_j) AND (NOT b) (1), OR combining them (1) = 4 gates for e_j (equality check y_j == b). Per candidate: z_j AND e_j (1) for z'_j. Total = Ms + 1 + 4M + M = M(s+5)+1. The invariant holds by induction on prefix length. No logical gap found; the construction correctly computes the exact next state for the explicit candidate-list representation. The scope note correctly acknowledges M can be exponential and this gives no compression.",
+  "review_of": "S0422",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795489206.6756532,
+  "session": "pnp-desk/research/R2460",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: For each destination residual Q and input bit b, define P_b(Q) as the set of level-t residuals whose b-extension has residual Q. The circuit computes y_Q = (\u00acb \u2227 \u22c1_{R\u2208P_0(Q)} x_R) \u2228 (b \u2227 \u22c1_{R\u2208P_1(Q)} x_R). On valid one-hot inputs (exactly one x_R=1), exactly the active residual's b-successor contributes. Gate count: the OR trees across all Q,b have total fan-in equal to the number of edges in the transition graph (\u22642D_t since each of D_t sources has \u22642 outgoing edges), costing \u22642D_t gates. Each destination Q uses 2 ANDs + 1 OR = 3 gates, totaling 3D_{t+1}. One shared NOT for \u00acb adds 1. Total 2D_t+3D_{t+1}+1. The proof is correct for its stated scope (valid one-hot encodings, fan-in-two gates, no claim about D_t bounds in terms of n,s). No counterexample found.",
+  "review_of": "S0423",
+  "status": "SURVIVED_REVIEW"
  }
 ]
