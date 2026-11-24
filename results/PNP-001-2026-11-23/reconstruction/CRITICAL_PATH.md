@@ -1,6 +1,6 @@
 # PNP-001 — CRITICAL_PATH (owner decision, 2026-11-24)
 
-Baseline d7635f9ea437c494f1c032e4faebdff0bedcd1c276. E only active mathematical route. A only formalization of existing statements. B/C/D/F/G frozen 4–6 weeks; day-30 owner decision, no automatic restart. Each route sheet below is an audit worklist, not a declaration of proof. Dependencies not reconstructed are blockers under QUARANTINE.md. Source files are relative to results/ unless otherwise indicated.
+Baseline d7635f9ea437c494f1c032e4faadfb673a4e90b1. E only active mathematical route. A only formalization of existing statements. B/C/D/F/G frozen 4–6 weeks; day-30 owner decision, no automatic restart. Each route sheet below is an audit worklist, not a declaration of proof. Dependencies not reconstructed are blockers under QUARANTINE.md. Source files are relative to results/ unless otherwise indicated.
 
 ## E — PRIMARY — algebraic proof complexity
 
@@ -69,3 +69,6 @@ Day 1–7: quarantine and critical-path reconciliation; recover missing transcri
 Day 8–14: E1 formal statement and 3–5 sublemmas; negative controls first.
 Day 15–28: E sublemmas only; A formalization only.
 Day 30: owner decision from audited evidence, not review counts; no automatic switch or unfreeze.
+
+## Owner follow-up — supersedes sequence above
+Operational activation is not complete; see VPS_ACTIVATION.md. E2_GATE.md is now the only active mathematical audit in E; E1 is parked pending E2 go/no-go. A remains existing-statement formalization only; both reported new Lean declarations are UNSOURCED and excluded until audit passes. SCOPED_GRAPH_E_A.json contains the first source-grounded E/A critical slice and computed dependency-only closures, not a complete corpus graph. No new agent promotion; no VPS activation evidence yet. B/C/D/F/G remain frozen by policy. Reassess E/A when E2 audit is decided, without automatically starting a second offensive.
