@@ -157,5 +157,37 @@
   "proved_step": "Layered one-hot residual transition circuit. Let N>=0 and L be any subset of {0,1}^N. For 0<=k<=N, let R_k be the set of distinct residual languages R_p={z in {0,1}^{N-k}: pz in L} over prefixes p of length k, and put r_k=|R_k|. There is a deterministic layered one-pass automaton with one-hot state at each level k, recognizing L exactly, whose transition circuit for input position k has fan-in-2 Boolean circuit size O(r_k+r_{k+1}). Proof: At level k use one bit x_R for each R in R_k, with exactly the current residual bit set. For b in {0,1}, define R_b={z:bz in R}; this is a member of R_{k+1}. For each R' in R_{k+1}, set its next-state bit y_{R'} = OR over all (R,b) with R_b=R' of (x_R AND [input=b]). There are exactly 2r_k source/input pairs; forming the gated terms costs O(r_k), and ORing the terms by destination costs O(r_k+r_{k+1}) total including empty destinations. The initial state is the unique residual at k=0. At level N accept iff the active residual contains the empty string. Induction on k proves that the active state is the residual of the read prefix, hence the automaton accepts exactly L. The circuits may depend on k and L; the claim makes no uniform construction-cost assertion.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795550542.1906796,
+  "session": "pnp-desk/research/R2941",
+  "model": "gpt-6-luna",
+  "evidence": "The PH-collapse induction removes the Sigma_3SAT oracle from polynomially bounded updates under P=NP. Sequential simulation reuses query storage and decider workspace. This only narrows the oracle-cost component; the CJSW refuter and exact K1 parameter match remain open.",
+  "id": "S0017",
+  "proved_step": "statement: Lemma (oracle elimination under P=NP). Let O be any language in PH and suppose P=NP. Then O is decidable by a deterministic polynomial-time machine. Consequently, a deterministic one-pass streaming machine with polynomial per-symbol work apart from at most polynomially many adaptive O-queries of polynomial length can be simulated by a deterministic one-pass machine with polynomial per-symbol update time and polynomial space, provided its own non-oracle update and query-generation work and space are polynomially bounded. Proof: P=NP implies coNP=NP=P. Inductively, if Sigma_i^P=Pi_i^P=P, then Sigma_{i+1}^P=NP^{Sigma_i^P}=NP^P=NP=P, and likewise Pi_{i+1}^P=P; thus PH=P and O has a deterministic polynomial-time decider. For an input stream of total length N, process each query sequentially using that decider, erase and reuse its query buffer and workspace, and return its answer before continuing the adaptive update. If the decider uses time polynomial in query length L and space polynomial in L, then each update takes T(N)+q(N)\u00b7poly(L(N)) time and S(N)+poly(L(N))+O(log(q(N)+1)) space, which remain polynomial. This preserves one-pass input access and determinism. The statement is conditional on P=NP; it supplies no constructive refuter and does not by itself imply K1 lies in a CJSW class.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795550742.3589933,
+  "session": "pnp-desk/research/R2941",
+  "model": "gpt-6-luna",
+  "evidence": "This is conditional oracle-cost elimination only. It gives no K1 resource embedding or CJSW refuter; G0001 remains open.",
+  "id": "S0018",
+  "proved_step": "statement: Conditional oracle elimination under P=NP. For each fixed language O in PH, O has a deterministic polynomial-time decider. A deterministic one-pass machine with polynomial per-symbol non-oracle work and space, making polynomially many adaptive polynomial-length queries to O per update, can replace those queries with that decider and retain polynomial update time and space. Proof: P=NP implies PH=P by induction on hierarchy level. Simulate each update, answering queries sequentially and reusing query storage and decider workspace. The update time and maximum live workspace remain polynomial; input order is unchanged. This conditional simulation supplies neither the K1/CJSW parameter match nor a constructive refuter, so it does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795550810.4086003,
+  "session": "pnp-desk/research/R2941",
+  "model": "gpt-6-luna",
+  "evidence": "Direct sequential simulation argument; the bound accounts for each actual query length and reuses scratch space. No claim that this closes G0001.",
+  "id": "S0019",
+  "proved_step": "statement: Length-sensitive sequential oracle simulation. Let M be a deterministic one-pass machine with S(N) working bits and at most T(N) non-oracle update steps per input symbol. If an update adaptively issues queries y_1,...,y_r to a fixed oracle language O, and O has a deterministic decider using time U(ell) and space V(ell) on inputs of length ell, then the update can be simulated with time T(N)+sum_i(O(|y_i|)+U(|y_i|)) and space S(N)+max_i(O(|y_i|)+V(|y_i|))+O(log(r+1)). Proof: simulate M until it issues a query; copy that query to a buffer, run the decider, return its answer, and reuse the buffer and decider workspace for the next query. Adaptivity is preserved because each answer is returned before the next query is generated. Summing per-query running times proves the time bound. Sequential reuse means only the largest query buffer and decider workspace are simultaneously live, proving the space bound. M consumes the input in its original one-pass order. This resource lemma supplies neither the K1/CJSW parameter embedding nor a constructive refuter; G0001 remains open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -4989,5 +4989,135 @@
   "gap_note_on": [
    "G0015"
   ]
+ },
+ {
+  "at": 1795550557.80047,
+  "session": "pnp-desk/research/R2938",
+  "model": "gpt-6-luna",
+  "id": "S0584",
+  "proved_step": "statement: Single-output support bound for fan-in-two circuits. In a finite acyclic Boolean circuit whose counted gates each have fan-in at most two, with arbitrary free unary NOT operations and constants, if one designated output depends essentially on k distinct input variables, then its dependency cone contains at least k-1 counted gates. Proof: Retain only the ancestors of the designated output, treating wires and free NOTs as edges and suppressing unary NOT vertices. Let g be the number of counted gates in this cone and let L be the number of distinct input-variable source vertices in it. The underlying undirected dependency graph on these gates and sources is connected because every retained vertex lies on a path to the output cone; adjoining the output wire as a terminal if needed preserves connectedness. Each counted gate contributes at most two incoming edges, so the graph has at most 2g edges after parallel edges are discarded. A connected graph on g+L vertices has at least g+L-1 edges. Thus g+L-1<=2g, so L<=g+1. Since each essential variable must occur among the source vertices, k<=L and g>=k-1.\nscope: A single output in a finite fan-in-at-most-two Boolean circuit, with counted binary gates, free NOTs/constants, and unrestricted fan-out. This is a local support lower bound only; it gives no aggregate lower bound for multi-output circuits with shared gates and no Lemma M Pareto conclusion.\ndiagnostic_barriers: {'relativizing': 'No complexity lower-bound claim.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No proof-complexity locality claim.', 'circumvention_tests': 'Not applicable; local circuit lemma only.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795550679.4920504,
+  "session": "pnp-desk/research/R2938",
+  "model": "gpt-6-luna",
+  "id": "S0585",
+  "proved_step": "statement: Single-output support bound, repaired graph proof. In a finite acyclic Boolean circuit with counted gates of fan-in at most two, free NOT operations and constants, if a designated output depends essentially on k distinct input variables, its ancestor cone contains at least k\u22121 counted gates. Proof: Suppress free NOT operations and discard constants and wires that do not carry an input variable or a counted-gate output. Let g be the counted gates in the ancestor cone and L its distinct input-variable sources. The undirected graph on those g gates and L sources is connected after retaining only vertices and edges that lie on a path to the designated output; if the output itself is a source, then g=0 and L=1. Each counted gate contributes at most two incoming edges, so the graph has at most 2g edges. For g>0, connectedness on g+L vertices gives at least g+L\u22121 edges. Therefore L\u2264g+1. Each essential input must occur among the L sources, so k\u2264L\u2264g+1. The case g=0 also satisfies k\u22641 and the stated bound.\nscope: One designated output in a finite acyclic circuit; counted gates have fan-in at most two; NOTs, constants, and wires are free. No aggregate multi-output lower bound or fixed-(S,D) Pareto conclusion.\ndiagnostic_barriers: {'relativizing': 'No complexity lower-bound claim.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No proof-complexity locality lower-bound claim.', 'circumvention_tests': 'Not applicable; this is a local circuit lemma.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551015.1070192,
+  "session": "pnp-desk/research/R2945",
+  "model": "gpt-6-luna",
+  "id": "S0586",
+  "proved_step": "statement: Exact state-width theorem for layered membership. Let N be a nonnegative integer and F subseteq {0,1}^N. For t=0,...,N define R_t(p)={u in {0,1}^{N-t}: pu in F}, and let q_t count the distinct residuals for prefixes p of length t. The minimum number S of state bits for a deterministic one-pass machine with time-dependent transitions, fixed initial state, and an arbitrary final membership decoder is ceil(log2(max_t q_t)). Proof: For the lower bound, if two prefixes at layer t reach the same state, then every suffix produces the same continuation and acceptance result from that state. Hence the prefixes have equal residuals. Thus q_t distinct residuals require at least q_t states, so 2^S >= max_t q_t. For the upper bound, let Q_t be the set of residuals at layer t and assign its members distinct S-bit codes. Initialize with the code of R_0(empty). On input bit b at layer t, map the code of residual r to the code of r_b={u: bu in r}. This is well-defined: if r=R_t(p), then r_b=R_{t+1}(pb), so r_b belongs to Q_{t+1}; it depends only on r and b. Define transitions arbitrarily on unused codes. At layer N the residual is {empty} exactly for accepted words and empty otherwise, so a final decoder recognizes F. The upper and lower bounds agree.\nscope: All finite binary languages of fixed length N; layered deterministic machines with arbitrary time-dependent transitions and an arbitrary final decoder. This is a state-width result only and gives no Boolean update gate-cost bound.\ndiagnostic_barriers: {'relativizing': 'No complexity lower-bound claim; explicit finite-state construction.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No proof-complexity lower-bound claim.', 'circumvention_tests': 'Not applicable; no P-vs-NP progress claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795551232.8720424,
+  "session": "pnp-desk/research/R2946",
+  "model": "gpt-6-luna",
+  "lemma": "For any finite binary language F subseteq {0,1}^N, define R_t(p)={u in {0,1}^{N-t}: pu in F} and q_t=|{R_t(p):p in {0,1}^t}|. Among deterministic layered exact membership machines whose transition functions may be arbitrary, the minimum number of states required at layer t is exactly q_t; hence the minimum uniform state width is max_t q_t. Proof: (Lower bound) If p,p' of length t have different residuals, choose a suffix u in their symmetric difference. Then exactly one of pu,p'u belongs to F. If the machine reached the same state after p and p', determinism gives identical future state trajectories on the common suffix u and therefore identical final decoder outputs, a contradiction. Thus the q_t distinct residuals require distinct layer-t states. (Upper bound) Use the residual itself as the layer-t state. On input bit b, map R_t(p) to R_{t+1}(pb)={u:bu in R_t(p)}; this is well-defined as a function of the residual and b. At layer N, the residual is {epsilon} exactly for accepted words and empty otherwise, so decode by whether the residual is nonempty. This realizes F using exactly q_t states at each layer. This is a state-count theorem only: it does not bound Boolean update gates, and it leaves the fixed (S,D) update-cost Pareto problem open.",
+  "id": "S0587",
+  "proved_step": "statement: Residuals exactly characterize the minimum layer-by-layer state count of deterministic layered exact membership machines: at layer t it is q_t, the number of distinct suffix residual languages; therefore the minimum uniform width is max_t q_t.\nproof: As given in the accompanying lemma: unequal residuals have a distinguishing suffix, forcing different states; conversely, storing the residual and updating it by R -> {u:bu in R} realizes the language, with final nonempty-residual decoding.\nscope: Every finite binary language F subseteq {0,1}^N; arbitrary deterministic layered transition functions; exact membership semantics. No gate-cost or decoder-cost claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551490.2865233,
+  "session": "pnp-desk/research/R2946",
+  "model": "gpt-6-luna",
+  "id": "S0588",
+  "proved_step": "statement: Zero-gate essential-position bound in the AND/XOR/NOT model. Let N,S>=1 and F subseteq {0,1}^N. Consider a deterministic one-pass layered transducer with a fixed initial state of S bits. Suppose every state-bit update uses only wires, constants, and NOT gates, so the update uses zero counted AND/XOR gates. If every input position i is essential for membership in F (there exist two strings differing only at i, exactly one in F), then S>=N. Proof: At time 0 each state bit is constant. Inductively assume that after t inputs each state bit is constant or x_i or NOT x_i for some i<=t. A zero-gate update can only select a prior state bit, its negation, the new input bit or its negation, or a constant; substituting the induction hypothesis preserves the form. Thus after N inputs each state bit depends on at most one input position. If some position i appears in no final state bit, flipping x_i leaves the final state unchanged. Any final decoder, regardless of complexity, must then return the same result on both strings, contradicting essentiality of i. Every one of the N positions must therefore occur among the S final state bits, so S>=N. Scope: deterministic layered transducers, fixed initial state, zero counted AND/XOR gates, unrestricted final decoder, and languages with all N positions essential.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551605.1370254,
+  "session": "pnp-desk/research/R2946",
+  "model": "gpt-6-luna",
+  "id": "S0589",
+  "proved_step": "statement: Exact residual-width theorem for deterministic layered membership transducers. Let F be any subset of {0,1}^N. For each t, let R_t(p)={u in {0,1}^{N-t}: pu in F}, where p ranges over prefixes of length t, and let q_t be the number of distinct such residual sets. Any deterministic one-pass transducer that decides membership in F exactly has at least q_t reachable states after t input bits, for every t. Conversely, there is a deterministic layered transducer with exactly q_t reachable states at layer t and transitions q_t -> q_{t+1} that decides F. Hence the minimum possible maximum number of reachable states over layers is max_t q_t, and the minimum state-bit width is ceil(log2(max_t q_t)) (with width 0 allowed when max_t q_t=1). Proof of lower bound: if two prefixes p,p' lead to the same state at layer t, determinism implies that every common suffix u induces the same final decision from that state. Thus pu is in F iff p'u is in F for every u, so R_t(p)=R_t(p'). Distinct residuals therefore require distinct reachable states. For the upper bound, use the distinct residual sets themselves as layer-t states. On input b, transition R to R_b={u: bu in R}; this is the residual after extending any prefix represented by R, so it is well-defined. At layer N, the residual is {epsilon} exactly for accepted inputs and empty otherwise; decode accordingly. This construction establishes state width only and gives no bound on transition-circuit gate cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795552306.6965144,
+  "session": "pnp-desk/research/R2954",
+  "model": "gpt-6-luna",
+  "id": "S0590",
+  "proved_step": "statement: Residual distinguishability state lower bound. Let F be a subset of {0,1}^N and consider a deterministic one-pass layered machine that, after reading each prefix p of length t, stores a state and whose final decoder accepts exactly F. For each prefix p define R_t(p)={u in {0,1}^{N-t}: pu in F}. At every layer t, prefixes with distinct residual sets must have distinct states. Consequently, if L_t is the number of distinct residual sets at layer t, then the machine has at least L_t states at layer t, requiring at least ceil(log2 L_t) state bits. If at least one length-t prefix has empty residual and L_t counts only nonempty residuals, the machine needs at least L_t+1 states and hence ceil(log2(L_t+1)) bits. Proof: If p,p' have distinct residual sets, their symmetric difference contains a suffix u. Exactly one of pu,p'u is in F. If the machine reached the same state after p and p', determinism forces the same state after appending the same suffix u, so the final decoder would give the same answer on both, contradiction. An empty-residual prefix cannot share a state with a nonempty-residual prefix: choose a suffix accepted from the latter; no suffix is accepted from the former, yielding the same contradiction. These inequalities count required states; the logarithmic bit bounds follow because S Boolean bits encode at most 2^S states.\ndiagnostic_barriers: {'relativizing': 'No lower-bound claim against general computational models; this is a direct property of deterministic layered membership machines.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No locality lower-bound claim.', 'circumvention_tests': 'Not applicable; no P!=NP progress is claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795552571.5353847,
+  "session": "pnp-desk/research/R2954",
+  "model": "gpt-6-luna",
+  "id": "S0591",
+  "proved_step": "statement: Reachable-row transition synthesis in the AND/XOR/NOT basis. Let S>=1, let D be any set of r distinct vectors in {0,1}^{S+1}, and let T:D->{0,1}^S. There exists a fan-in-two AND/XOR/NOT circuit with constants and unrestricted fan-out that agrees with T on D using at most rS+S*max(r-1,0) counted gates; behavior outside D is unrestricted. Proof: For each z in D, form its equality indicator delta_z on the S+1 inputs by ANDing the S+1 matching literals with a binary tree, using S AND gates (NOT gates are free and each literal is available). Distinct indicators have disjoint supports: on any input in D, exactly one delta_z is 1, namely the indicator of that input. For each output coordinate j, let A_j={z in D:T(z)_j=1} and set the output to XOR_{z in A_j} delta_z, using max(|A_j|-1,0) XOR gates (the empty sum is constant 0 and a singleton is a wire). On every z in D the XOR equals T(z)_j, since at most one indicator is 1. The total is rS + sum_j max(|A_j|-1,0) <= rS+S*max(r-1,0).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795553283.9822433,
+  "session": "pnp-desk/research/R2962",
+  "model": "gpt-6-luna",
+  "id": "S0592",
+  "proved_step": "statement: Exact state complexity of a finite layered membership machine. Let F be a nonempty proper subset of {0,1}^N. For each t, let R_t(p)={u in {0,1}^{N-t}: pu in F}, for prefixes p of length t, and let q_t be the number of distinct such residual sets. Among deterministic layered machines with time-dependent state encodings, fixed initial state, an unrestricted final decoder, and transitions required to preserve membership on every input, the minimum number of state values needed at layer t is q_t; hence the minimum uniform state width is ceil(log2(max_t q_t)). Proof: If R_t(p) and R_t(p') differ, choose a suffix u in their symmetric difference. A correct machine cannot be in the same state after p and p', since the common subsequent transitions on u would then yield the same final state and decoder output, contradicting membership difference. Thus at least q_t states are necessary at layer t. Conversely, use the residual sets themselves as states. On input b, transition R to R_b={u:bu in R}; this is well-defined and equals the residual after extending the prefix by b. At t=N, the residual is {epsilon} for accepted strings and empty for rejected strings, so the final decoder distinguishes them. This realizes q_t states at each layer and the stated width. In particular, ceil(log2(|F|+1)) is not the general minimum: only if max_t q_t=|F|+1 does that formula follow. This characterization concerns state count only; it gives no update-gate bound.\nscope: All nonempty proper finite binary languages F of fixed length N, deterministic layered membership, arbitrary time-dependent state encodings, unrestricted final decoder; dead prefixes are included through the empty residual when present.\ndiagnostic_barriers: {'relativizing': 'No oracle argument or lower-bound claim.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic argument.', 'localizing': 'No locality or proof-complexity claim.', 'circumvention_tests': 'Not applicable; this is a finite automaton characterization, not P!=NP progress.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795553545.5630276,
+  "session": "pnp-desk/research/R2962",
+  "model": "gpt-6-luna",
+  "evidence": "Direct induction: q_0=0; if q_t is the XOR of the first t input bits, then q_{t+1}=q_t XOR x_{t+1} is the XOR of the first t+1 bits. Thus q_N is the parity and the identity decoder is correct. Exact scope is the affine parity control; this is an upper bound only.",
+  "id": "S0593",
+  "proved_step": "statement: For every N>=1, parity F(x)=x_1 XOR ... XOR x_N has a deterministic one-pass streaming membership machine with one state bit, initial state 0, one counted XOR gate per update, and final decoder D(q)=q. After t bits the state equals x_1 XOR ... XOR x_t, so after N bits the decoder accepts exactly F.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795553578.074442,
+  "session": "pnp-desk/research/R2962",
+  "model": "gpt-6-luna",
+  "evidence": "For each coordinate j, if A_{ji}=0 the update wires q_j through; if A_{ji}=1 it computes q_j XOR x_i, using one XOR gate. Hence each layer uses at most r gates. Induction on t establishes q_t=sum_{j<=t}A_jx_j; at t=N this equals Ax, and equality with b is exactly membership. This is a constructive affine-control upper bound only; it does not establish optimality or a lower bound for SC.",
+  "id": "S0594",
+  "proved_step": "statement: For every binary matrix A of rank r with r rows and every b in F_2^r, the affine language F={x in {0,1}^N: Ax=b} has a one-pass streaming membership machine with r state bits, initial state 0, at most r XOR gates per update, and final equality decoder. At step i update q by q XOR A_i x_i. Induction gives q_t=sum_{j<=t} A_j x_j, so the final decoder accepts exactly F.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795553750.9084156,
+  "session": "pnp-desk/research/R2962",
+  "model": "gpt-6-luna",
+  "id": "S0595",
+  "proved_step": "statement: Live/dead capacity bound. Let F be a nonempty subset of {0,1}^N, and at layer t let q_t be the number of distinct nonempty residual languages R_t(p)={u in {0,1}^{N-t}:pu in F} among prefixes p of length t. If some prefix of length t has empty residual, then every deterministic exact streaming representation that assigns distinct states to distinct live residuals and keeps dead prefixes separate from live prefixes uses at least q_t+1 states at layer t; hence S>=ceil(log2(q_t+1)) state bits. Proof: each of the q_t distinct nonempty residuals is live and must have its own state by the representation's injectivity requirement. A prefix with empty residual is dead and, by the stipulated separation, must have a state outside those q_t live states. Thus at least q_t+1 different states occur. An S-bit state register has only 2^S possible values, so 2^S>=q_t+1, which implies S>=ceil(log2(q_t+1)). This is exact as a layerwise counting statement: if q_t+1<=2^S, counting alone yields no stronger lower bound.\nscope: Finite binary languages and the live/dead prefix-separation model in the Lemma M specification. This is only a state-capacity bound; it gives no update-circuit gate lower bound.\ndiagnostic_barriers: {'relativizing': 'No computational lower-bound claim; purely finite counting.', 'natural': 'No circuit lower-bound claim.', 'algebrizing': 'No algebraic technique or claim.', 'localizing': 'No proof-complexity locality claim.', 'circumvention_tests': 'No P!=NP claim; no circumvention test is implicated.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795553989.563626,
+  "session": "pnp-desk/research/R2962",
+  "model": "gpt-6-luna",
+  "gap": "This upper bound does not measure the exact minimum G_max for SC_{3,1}, nor provide the required SAT UNSAT certificates.",
+  "gap_id": "G0184",
+  "id": "S0596",
+  "proved_step": "statement: For any finite binary language F of word length N, let q_t be the number of distinct residual sets after prefixes of length t, and let S=max(1,ceil(log2(max_t q_t))). There is a layered membership machine with S state bits and per-layer fan-in-two AND/OR transition circuits, free NOT/constants and shared fan-out, whose layer-t transition uses at most 3q_tS-S gates. Proof: Assign one distinct S-bit code to each residual at each layer. For each of the at most 2q_t reachable pairs (residual code,b), the derivative residual after reading b is determined by the old residual, so its next-layer code is defined consistently. Make a minterm indicator for each reachable pair on the S state bits and b, using S AND gates per pair, for 2q_tS gates. For each output bit, among the 2q_t reachable rows choose the smaller of the rows outputting 1 and the rows outputting 0; this set has size at most q_t. OR its indicators using at most q_t-1 gates when nonempty, then complement the result if the selected rows were the zero rows. Thus at most S(q_t-1) additional gates. Define arbitrary outputs on unreachable pairs. The total is at most 2q_tS+S(q_t-1)=3q_tS-S. At the final layer the residual is either {epsilon} or empty, so a decoder distinguishes acceptance.\nscope: Finite binary languages of fixed length N, layer-specific residual encodings, deterministic one-pass membership; no lower bound or P-vs-NP implication.\ndiagnostic_barriers: {'relativizing': 'No lower-bound claim; explicit finite construction.', 'natural': 'No natural-property claim.', 'algebrizing': 'No algebraic lower-bound claim.', 'localizing': 'No local proof-complexity claim.', 'circumvention_tests': 'No P!=NP progress claimed.'}",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

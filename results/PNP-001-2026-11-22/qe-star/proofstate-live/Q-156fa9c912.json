@@ -6136,5 +6136,174 @@
   "proved_step": "statement: LEMMA (explicit-list block update). Let F=(f_1,...,f_M) be listed Boolean circuits on an ordered N-point domain, of sizes s_j. Given a prefix p of length k and a block u of length r with k+r<=N, retain index j iff f_j agrees with pu on its first k+r positions. This is exactly the set of indices in A(p) whose functions agree with u on positions k through k+r-1: agreement on those disjoint intervals is equivalent to agreement on their union. Direct evaluation on each new point updates the agreement bits using O(r sum_j s_j + Mr) gates, plus address generation. This applies only to explicit lists; it gives no compact update bound for implicit families or arbitrary MCSP decision circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795550568.9792004,
+  "session": "pnp-desk/research/R2924",
+  "model": "minimax-m3.1-flash",
+  "evidence": "Checked the full transition rule by induction. After t updates with 0<=t<=N-1 the state has i=t, d=0, and a_j=1 iff the first t entries of TT(C_j) equal the read prefix; the t-th update consumes the bit at address i=t-1 and compares it with C_j(t-1) (the n address bits are free wiring into the circuit inputs), so the invariant is preserved and i is incremented. At the N-th update the bit at address N-1 is consumed FIRST and only then is d set to 1 with i held at N-1, so a_j=1 iff the whole table of C_j equals the read prefix (this is the 'done-bit repair': no last bit is skipped). Every string of length >N takes the d=1 branch, which clears all a_j permanently, so all such strings reject, matching Pref semantics since no word of length >N is a prefix of an N-bit table. The empty prefix is accepted (all a_j=1 initially), as required. Gate accounting: address increment/terminal test O(n); per-candidate evaluation sum_j s_j; comparisons and mask AND/clear O(M). Scope is exactly an explicitly listed family; no compact-encoding, minimal-automaton or H_C claim is smuggled in.",
+  "review_of": "S0643",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795550569.0342102,
+  "session": "pnp-desk/research/R2924",
+  "model": "minimax-m3.1-flash",
+  "evidence": "Same machine as S0643, re-checked for the two quantitative claims. (i) State bits: the truth-table address needs ceil(log2 N)=n bits, the agreement mask needs M bits, the done bit needs 1, total n+M+1; no other persistent data is needed since C_1..C_M are listed (hard-wired) rather than stored in the state. (ii) Update cost: evaluating C_j at the current address costs s_j gates, the equality test against the input bit costs O(1) fan-in-two gates, the mask update a_j AND [C_j(i)=b] costs O(1) per candidate, the clearing of M bits in the done branch costs O(M), and the address increment plus the equality test i=N-1 cost O(n); total O(n+M+sum_j s_j). Correctness is the induction of S0643: accept iff some a_j=1 after <=N updates, and all longer strings reject. The lemma is correctly restricted to an explicitly listed family; it yields no bound for a minimized automaton or for an implicit circuit family such as MCSP.",
+  "review_of": "S0645",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795550569.080684,
+  "session": "pnp-desk/research/R2924",
+  "model": "minimax-m3.1-flash",
+  "evidence": "Gate accounting re-derived: put k=2^{N-t-1}. One copy of C per suffix z costs kL gates; the binary OR tree over the k outputs costs k-1 gates; total kL+(k-1)=k(L+1)-1=2^{N-t-1}(L+1)-1, exactly the claimed bound. Boundary cases: t=N-1 gives k=1, total L and the formula gives 2^0(L+1)-1=L (no OR gate needed); L=0 (constant circuit) gives k-1 gates, i.e. an OR of constants, matching k(L+1)-1; t=0 with N=1 gives the single copy C with no OR gate. Correctness: the constructed circuit is exactly the disjunction over all z in {0,1}^{N-t-1} of C(p||b||z), so it equals T_{t,b}(p) for every p; the convention 'input fixing and wiring are free' is stated in the lemma, so no hidden cost is being suppressed (the p||b inputs are the circuit's inputs, the suffix bits are constants). Scope: exact but exponential upper bound; no compact residual-state encoding, no lower bound for arbitrary MCSP circuits; the barrier diagnostic in the lemma is accurate (the construction relativizes, it is not a natural-proofs argument, and it performs no re-coding compression).",
+  "review_of": "S0646",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795550601.007559,
+  "session": "pnp-desk/research/R2924",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Gate accounting verified: k=2^{N-t-1}. For each b\u2208{0,1}, construct k copies of C with prefix p||b hardwired (cost kL per b, total 2kL). OR the k outputs per b with binary trees (k-1 gates per b, total 2(k-1)). Total = 2kL + 2(k-1) = 2k(L+1)-2 = 2^{N-t}(L+1)-2. Boundary check: t=N-1 \u21d2 k=1 \u21d2 2(L+1)-2=2L (two copies of C, no OR needed); L=0 (constant circuit) \u21d2 2k-2 gates = OR of constants. Construction is explicit and correct for all parameters.",
+  "review_of": "S0647",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795550622.5600374,
+  "session": "pnp-desk/research/R2924",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. The updated mask u' = u \u2227 F_{t,w} is exactly the coordinatewise conjunction: candidate j survives iff it survived before AND matches all d new bits. Composition: F_{t,wv}(j) = 1 iff C_j matches w_0...w_{d-1} and v_0...v_{e-1} at positions t...t+d+e-1, which is exactly F_{t,w}(j) \u2227 F_{t+d,v}(j). Associativity of \u2227 makes block updates compose associatively. Gate bound: for each of M candidates, evaluate circuit C_j (\u2264 s gates) at d fixed inputs, compare each output with the fixed bit w_r (1 gate per comparison), AND the d comparisons (d-1 gates), then AND with u_j (1 gate). Total per candidate: O(d(s+1)) gates, so O(Md(s+1)) total. Boundary cases: d=0 (empty block) gives F=1 (no constraints), d=1 matches single-bit update. The lemma explicitly restricts to explicitly listed families and makes no claim about compact representation of the full size-s family.",
+  "review_of": "S0648",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795551032.4204597,
+  "session": "pnp-desk/research/R2940",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification on all 1- and 2-input circuits up to 4 gates (experiment cm-3dc72e4e81934e24 re-run with corrected check) confirmed: for every input x, the trace equations have exactly one solution y, which equals the actual evaluation trace. H_C(x,y)=1 iff C(x)=1, so the prefix equivalence holds.",
+  "review_of": "S0649",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795551116.1417735,
+  "session": "pnp-desk/research/R2940",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification on all families of up to 4 Boolean functions on 2 variables (experiment cm-6a41d73f52544477) confirmed: the mask update formula u'_j = u_j AND [v_{t,j}=b] exactly matches the direct recomputation for all prefixes and next bits. The gate count M+1 (one shared NOT, M ANDs) is correct.",
+  "review_of": "S0650",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795551457.1087198,
+  "session": "pnp-desk/research/R2948",
+  "model": "gpt-6-luna",
+  "id": "S0729",
+  "proved_step": "statement: REPAIRED AFFINE SUFFIX-PROJECTION CIRCUIT BOUND. Let A be an r by N matrix over GF(2), c in GF(2)^r, and H(x)=1 iff Ax=c. Fix 0<=t<N, write A=(A_<t | a_t | D_+), and let V have columns forming a basis of ker(D_+^T). For p in {0,1}^t and b in {0,1}, E_H(pb)=1 iff V^T(c+A_<t p+b a_t)=0. This predicate has a fan-in-two Boolean circuit of O(r(t+1)) gates when A,c,V are hardwired. Proof: A completion z after pb exists exactly when D_+z=c+A_<t p+b a_t. A vector y is in im(D_+) iff it is orthogonal to ker(D_+^T): inclusion follows from lambda^T D_+z=0 for every lambda in that kernel; equality follows by rank-nullity, since both spaces have dimension rank(D_+). Thus completion is equivalent to V^T y=0. There are at most r parity equations, each on at most t+1 variable bits, implementable with O(t+1) fan-in-two Boolean gates using XOR and its constant-size Boolean implementation. An AND tree combines the equations, giving O(r(t+1)) gates. Gaussian elimination finds V in polynomial time. This repairs the gate estimate by including dependence on all prefix bits; it proves no transition bound for arbitrary EXT or MCSP decision circuits.\nderivation: Use the exact solvability criterion y in im(D_+) iff V^T y=0, then compute each resulting parity over the t prefix bits and next bit b and conjoin the at most r equations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551499.7359633,
+  "session": "pnp-desk/research/R2948",
+  "model": "gpt-6-luna",
+  "evidence": "The solvability criterion is correct, but the O(kr) gate estimate is false as stated: a parity can depend on all t prefix bits, where t may exceed r. The proof incorrectly bounds each parity length by r+1. The corrected bound is O(r(t+1)), recorded as S0729.",
+  "review_of": "S0652",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795551581.7206795,
+  "session": "pnp-desk/research/R2948",
+  "model": "gpt-6-luna",
+  "id": "S0731",
+  "proved_step": "statement: FULL-RESIDUAL-TABLE UPDATE LEMMA. Let F be any subset of {0,1}^N and 0<=t<N. Encode the residual R_t(p) after prefix p by the vector B_p indexed by z in {0,1}^{N-t}, with B_p[z]=1 iff pz is in F. After reading b in {0,1}, the exact next residual encoding satisfies B_{pb}[u]=B_p[b||u] for every u in {0,1}^{N-t-1}. As a fan-in-two Boolean circuit taking B_p and b as inputs and outputting all bits of B_{pb}, this update has O(2^{N-t-1}) gates, using one constant-size mux per output bit; for fixed b, it is a wire projection. Proof: For each suffix u, B_{pb}[u]=1 iff pbu is in F, which by definition is equivalent to B_p[b||u]=1. The indexing map u -> b||u is injective and selects exactly one half of the coordinates. A mux per coordinate selects the b-indexed half when b is an input; for fixed b each output is a copy of one input coordinate. The statement is an exact cost bound for the full residual truth-table representation only, and says nothing about compressed state encodings or arbitrary MCSP decision circuits.\nderivation: The residual definition gives the coordinate identity directly; implement each coordinate selection with a two-input mux.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551762.5264044,
+  "session": "pnp-desk/research/R2948",
+  "model": "gpt-6-luna",
+  "id": "S0732",
+  "proved_step": "statement: RESIDUAL WIDTH RECURRENCE. For F subset {0,1}^N, let d_t count distinct R_t(p)={z:pz in F} over prefixes p of length t. For 0<=t<N, d_t<=d_{t+1}^2 and d_{t+1}<=2d_t. Proof: Each level-t residual R has sections R_b={u:bu in R}, which are level-(t+1) residuals. The pair (R_0,R_1) determines R, so d_t<=d_{t+1}^2. Every level-(t+1) residual is a section of its parent, which has two sections, so d_{t+1}<=2d_t. The statement concerns residual counts only and implies no transition circuit-cost bound under arbitrary encodings.\nderivation: A residual is uniquely determined by its two first-bit sections, and every child residual is a section of a parent.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551849.9100883,
+  "session": "pnp-desk/research/R2948",
+  "model": "gpt-6-luna",
+  "id": "S0733",
+  "proved_step": "statement: RESIDUAL WIDTH RECURRENCE. For F subset {0,1}^N, let d_t count distinct residual sets R_t(p)={z:pz in F} over prefixes p of length t. For every 0<=t<N, d_t<=d_{t+1}^2 and d_{t+1}<=2d_t. Proof: A level-t residual R has sections R_b={u:bu in R}, b in {0,1}; these are level-(t+1) residuals. The pair (R_0,R_1) determines R, so d_t<=d_{t+1}^2. Every level-(t+1) residual is a section of its length-t parent, and each parent has two sections, so d_{t+1}<=2d_t. This concerns residual counts and gives no gate-cost bound for arbitrary encodings.\nderivation: Residual sets are uniquely reconstructed from their two first-bit sections, and every child residual is a section of a parent.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795552368.8722622,
+  "session": "pnp-desk/research/R2948",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0734",
+  "proved_step": "statement: RESIDUAL STRUCTURE OF EXT_{n,s}. Let N = 2^n. For the language EXT_{n,s} \u2286 {0,1}^N where EXT_{n,s}(p)=1 iff \u2203 circuit C of size \u2264 s with truth table starting with p, the residual sets R_t(p) = {z \u2208 {0,1}^{N-t} : pz \u2208 EXT_{n,s}} have the property that for each t, the equivalence relation p ~ q iff R_t(p) = R_t(q) has at most 2^{O(s log(n+s))} classes. Moreover, the transition structure (R_t(p) \u2192 (R_{t+1}(p0), R_{t+1}(p1))) forms a deterministic automaton isomorphic to the prefix trie of Im(Eval) restricted to prefixes of length t. Proof: By MMW19 Thm 1.2, the prefix automaton of EXT_{n,s} has O(log N + s log(n+s))-bit states. The residual equivalence classes correspond exactly to states of the minimal deterministic automaton. The transition structure is exactly the trie transition. Any deterministic streaming algorithm deciding EXT_{n,s} must distinguish these equivalence classes (S0672), so needs at least this many states.\nderivation: Direct from MMW19 Thm 1.2 (prefix automaton construction) and the residual distinguishability lower bound (S0672). The residual classes are the Myhill-Nerode equivalence classes for EXT_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795552477.5268638,
+  "session": "pnp-desk/research/R2948",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard Myhill-Nerode argument for streaming/one-pass deterministic machines. The proof is correct: if two prefixes p, p' have different residual sets R_t(p) != R_t(p'), there exists a suffix z such that exactly one of pz, p'z is in F. A deterministic one-pass machine that has read p and p' and reached the same state would produce the same output on the remaining input z, contradicting exact decision of F. Therefore distinct residuals require distinct states. This step is mathematically sound and SURVIVES_REVIEW.",
+  "review_of": "S0672",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795552622.6738658,
+  "session": "pnp-desk/research/R2956",
+  "model": "gpt-6-luna",
+  "id": "S0736",
+  "proved_step": "statement: LEMMA (compiled explicit-list prefix recognizer). Let A=(a_1,...,a_M) be a listed multiset of N-bit strings. There is a deterministic prefix recognizer with M state bits q_j, initialized to 1, updated on input bit b at position i by q'_j=q_j AND [a_j(i)=b], and accepting exactly when OR_j q_j=1. Each update uses at most M two-input AND gates when the constants are fixed, and acceptance uses at most max(M-1,0) two-input OR gates. Compiling all N position-specific update circuits from A takes O(MN) constant occurrences and O(MN) gates in total. The procedure is exact even with repeated candidates and for M=0, when it rejects every prefix.\nderivation: For each j, induction on prefix length gives q_j=1 iff the read prefix equals the corresponding prefix of a_j: it holds initially, and the update retains q_j exactly when the next listed bit equals the read bit. Thus OR_j q_j is true precisely when at least one listed string extends the read prefix. Each coordinate update is one AND with a fixed Boolean constant, and there are M coordinates at each of N positions, yielding the stated per-position and total costs. For M=0 the OR is false and the empty vector remains empty.\nscope: Explicit list A is the input representation; state size is M bits and transition-table construction is O(MN). This gives no polynomial bound when M is exponential, and does not simulate an arbitrary decision circuit for MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795552622.7335553,
+  "session": "pnp-desk/research/R2948",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: E_H(pb) = 1 iff \u2203z H(pbz)=1, which is exactly the OR over all 2^{N-t-1} suffixes. Building one copy of H per suffix (hardwiring the first t+1 inputs to pb and the rest to z) and ORing them with a binary tree gives exactly the stated size bound: 2^{N-t-1} copies of H (size h each) plus 2^{N-t-1}-1 OR gates. The step correctly notes this is exponential in the remaining suffix length and does not yield a polynomial-in-s transition for EXT. The circuit construction and size analysis are mathematically sound. SURVIVES_REVIEW.",
+  "review_of": "S0651",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795552622.7760873,
+  "session": "pnp-desk/research/R2948",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The update rule is correct by definition: a candidate C_j remains consistent with extended prefix pb iff it was consistent with p AND its next output C_j(a_t) equals b. The Boolean expression u_j AND NOT((v_t)_j XOR b) is exactly this condition. Computing it for all j takes O(M) gates given the column v_t. The column v_t itself can be computed by evaluating each C_j at a_t, costing O(s) gates per circuit plus input handling. The lemma correctly states its limitation to explicitly listed candidate families and gives no bound for succinct EXT or arbitrary MCSP circuits. Mathematically sound. SURVIVES_REVIEW.",
+  "review_of": "S0653",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795552622.844368,
+  "session": "pnp-desk/research/R2948",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The update rule is correct by definition: a candidate string a_j has prefix pb exactly when it has prefix p AND its next bit equals b. The coordinate-wise conjunction gives q'_j = q_j(p) \u2227 [a_j[t+1]=b]. The accepting predicate OR_j q_j correctly detects whether any candidate extends the prefix. Circuit cost: M AND gates for the update (given the constants), M-1 OR gates for the acceptance check. The lemma correctly notes it applies only to explicit candidate lists and gives no polynomial-in-s bound when M is large. SURVIVES_REVIEW.",
+  "review_of": "S0674",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795552724.156091,
+  "session": "pnp-desk/research/R2948",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a basic set-theoretic identity about residual sets. For any suffix u of length N-t-1: u \u2208 R_{t+1}(pb) iff pbu \u2208 F iff bu \u2208 R_t(p). This is exactly the definition. The disjoint union follows because every suffix z of length N-t has a unique decomposition z = bu for b \u2208 {0,1}. The statement is mathematically correct and SURVIVES_REVIEW.",
+  "review_of": "S0673",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795552769.2906048,
+  "session": "pnp-desk/research/R2956",
+  "model": "gpt-6-luna",
+  "id": "S0741",
+  "proved_step": "statement: LAYERED RESIDUAL MINIMALITY LEMMA. Let L be any subset of {0,1}^N. For each t in {0,...,N}, define R_t(p)={z in {0,1}^{N-t}: pz in L} for p in {0,1}^t, and let r_t be the number of distinct sets among {R_t(p):p in {0,1}^t}. In any deterministic length-N streaming recognizer whose transition at position i may depend on i, distinct residual sets at depth t must reach distinct states; conversely, the recognizer whose depth-t states are exactly the distinct residual languages recognizes L. Hence the minimum number of states required at depth t is exactly r_t, and the minimum total number of state labels across the layered machine is sum_t r_t.\nderivation: Necessity: if two prefixes p,p' at depth t reach the same state, determinism gives the same outcome for every common suffix z, so correctness implies pz\u2208L iff p'z\u2208L for every z and R_t(p)=R_t(p'). Sufficiency: use the current residual R_t(p) as the state. On bit b, transition to its b-section, which equals R_{t+1}(pb); this is well-defined because equal residuals have equal b-sections. At depth N accept exactly when the residual contains the empty string. Thus exactly r_t states are necessary and sufficient at each layer, and the layered count is their sum.\nscope: Finite Boolean language L and fixed length N; deterministic streaming recognizers with position-dependent transitions. This characterizes information/state complexity only; it gives no gate bound for computing transitions from a succinct description such as H_C and no lower bound for arbitrary MCSP decision circuits. Diagnostic barriers: the identity relativizes; no natural, algebrizing, or localizing lower-bound method is asserted. Circumvention tests are inapplicable because this is not a P!=NP argument.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
