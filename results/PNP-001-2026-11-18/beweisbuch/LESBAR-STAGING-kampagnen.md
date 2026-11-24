@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 12504 entries from 3342 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 12617 entries from 3379 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
   - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
@@ -18,12 +18,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The explicit circuit-candidate filtering representation for EXT_{n,s} is exact, but its direct per-position update cost scales with the number of candidate descriptions. Compressing candidates to residual classes may reduce storage without yielding bounded tra
+  - All four claimed steps S0080, S0082, S0083, S0085 in Q-6ead6c935d have been reviewed and SURVIVED_REVIEW. The quantifier logic of (40a) and its negation is now verified. The key distinction: failure of (40a) means some good-index set G_{M,c,d} is UNBOUNDED (fo
+  - An explicit-description prefix-halving refuter for size-s circuit images is polynomial in N whenever s log(n+s)=O(n), but the same construction does not establish polynomial time once s log(n+s)=omega(n).
   - For THR o THR instances whose gate-variable incidence graph has components of at most b variables, exact #SAT can be computed by enumerating each component and convolving score distributions; with b=O(log n), polynomially bounded total absolute top weight, and
   - At a fixed cut t, the full-search state-width lower bound S >= ceil(log2(L_t + [L_t < 2^t])) is sharp as a cardinality constraint, but achieving that width may require greater update or decoder cost than a redundant encoding.
   - The Stage D language gap can be bridged if and only if there exists a P^NP-uniform two-sided family for Gap-MCSP[s,s'] where the YES side has circuit size <= s and the NO side has circuit size >= s', and the reduction from the E^NP language produces both sides
-  - The repaired oracle-elimination bridge lemma (above) correctly establishes that (40a) implies P!=NP, assuming MMW Thm 1.2 resource bounds hold as described in the manuscript and P=NP gives polynomial-time deciders for PH languages. The critical verification ne
-  - There may be a deterministic uniform range-avoidance procedure for circuit families of size K=poly(N) that exploits the succinct circuit enumeration, beyond lexicographically scanning all 2^N candidate tables.
-  - For the exact MMW19 Search-MCSP^A[s(m)] stream procedure, the number and lengths of Σ3SAT^A oracle queries per inter-read interval (including final reporting) are polynomial in s(m), with exponents compatible with its stated update and space bounds.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -35,16 +35,16 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3046 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3055 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-c62b7d55e0 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:2045391049af by pnp-desk/research/R2338:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The kernel accepted `shifted_threshold
   - Q-38dc510b7e [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:81f70d734cbe by pnp-desk/research/R2317:nemotron-3-nano-omni-reasoning@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: Two Gaussian elimination sweeps over 
   - Q-017c3cdcd0 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:394ba43e057d by pnp-desk/research/R2317:nemotron-3-nano-omni-reasoning@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: Two Gaussian elimination sweeps over 
   - Q-b77f104471 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:7e0fc3de5c1e by pnp-desk/research/R2309:nemotron-3-ultra-550b-a55b@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL CLAIM: Let M be a matrix
   - Q-436cb058c0 [IMPLICATION, OPEN] Can the exact dummy-variable restriction identity D_{m-1}[s](y)=D_m[s](E_m(y)) combine with a reviewed structural property of decision circuits to force a superlinear lower bound for MCSP, rather than only monotonicity o
-  - Q-11e0943280 [MISSING_PROOF, OPEN] Can the non-increasing cofactor simulation for arbitrary fan-in-two DAG circuits be strengthened using a potential that charges only gates whose restricted unary map is negation or whose two predecessor wires remain nonc
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

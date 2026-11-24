@@ -3269,5 +3269,207 @@
   "evidence": "Weight-based upper bound construction verified. For w>=1: m negated literals + w*(m-1) AND gates + (w-1) OR gates = m + mw - 1. For complement: same with 2^m - w. Endpoints w=0, w=2^m: constants in 2 gates. Verified for m=2,3. Scope correctly limited to individual truth-table complexity, not MCSP decision circuit.",
   "review_of": "S0350",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475325.3074806,
+  "session": "pnp-desk/research/R2352",
+  "model": "gpt-6-luna",
+  "id": "S0394",
+  "proved_step": "statement: For m>=2, in the fan-in-two DAG model over all binary Boolean gates with free input wires and constants not free, every one-coordinate cofactor of a function computed with at most s gates has a circuit with at most s+1 gates.\nproof: Start with a circuit for f and substitute the fixed bit for every use of the restricted input. Choose a remaining input x_j. If the fixed bit is 0, compute x_j XOR x_j; if it is 1, compute NAND(x_j,x_j). This creates the needed constant in one gate. Redirect each occurrence of the restricted input to that wire. The original gates remain, so the cofactor uses at most s+1 gates.\nscope: All m>=2 and s>=0; fan-in-two DAG circuits, free input wires, all binary Boolean gates, constants not free.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795475519.179111,
+  "session": "pnp-desk/research/R2352",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0352 proof: its minterm construction costs mt+m-1 gates, which can exceed s under t<=floor((s+1)/m). This is a gap in the proof, not a counterexample to the lemma's conclusion."
+ },
+ {
+  "at": 1795475519.213045,
+  "session": "pnp-desk/research/R2352",
+  "model": "gpt-6-luna",
+  "id": "S0396",
+  "proved_step": "statement: For m>=2, s>=2, and 0<=t<=floor((s-m+1)/m), every m-input Boolean function with at most t accepting inputs has a fan-in-two circuit of at most s gates, using all binary Boolean gates and free input wires.\nproof: Let u<=t be the support size. If u=0, compute zero as x1 AND NOT(x1), using two gates. Otherwise compute all m negated inputs (m gates), each of the u minterms with m-1 AND gates, and their OR with u-1 gates. Total is m+u(m-1)+(u-1)=mu+m-1<=mt+m-1<=s.\nscope: All stated m,s,t; individual truth-table circuit complexity only, not MCSP decision-circuit complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795475698.0962484,
+  "session": "pnp-desk/research/R2352",
+  "model": "gpt-6-luna",
+  "id": "S0397",
+  "proved_step": "statement: Let m>=2 and let B2 contain all 16 Boolean functions of two inputs; input wires are free, fan-out is unrestricted, and constants need not be free. For every nonempty A subseteq {0,1}^m of size t, the indicator 1_A has a fan-in-two DAG circuit with at most tm-1 gates. Consequently, for integers s>=2, every truth table with support size at most floor((s+1)/m) is in MCSP[s], and MCSP[s] contains at least sum_{j=0}^{floor((s+1)/m)} binomial(2^m,j) distinct truth tables (when the upper limit is at most 2^m). Proof: Fix a row a in A. For its first two coordinates, use one B2 gate whose truth table is (u,v) -> (u if a_1=1 else not u) AND (v if a_2=1 else not v); this gate computes the conjunction of the first two required literals directly, so no separate NOT gates are needed. For each coordinate i=3,...,m, use one B2 gate taking the accumulated conjunction y and x_i, with truth table (y,x_i) -> y AND (x_i if a_i=1 else not x_i). Thus the row minterm costs m-1 gates. Construct this minterm for each of the t rows, then combine the t minterm outputs with t-1 OR gates. The resulting output is 1 exactly on A and costs t(m-1)+(t-1)=tm-1 gates. For t<=floor((s+1)/m), tm-1<=s. The empty support is the zero function; for s>=2 it can be computed using NOT x_1 followed by AND with x_1. Distinct supports are distinct truth tables, so counting supports of each size gives the stated sum. This is only a lower bound on the number of YES truth tables, not a decision-circuit lower-bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795475873.6445777,
+  "session": "pnp-desk/research/R2354",
+  "model": "gpt-6-luna",
+  "id": "S0398",
+  "proved_step": "statement: For all integers m>=1 and s>=0, in the fan-in-two DAG model on m Boolean inputs with 16 binary gate types, and with the output allowed to be any input or gate wire, the number of Boolean functions computable with at most s gates is at most (s+1)(m+s)(16(m+s)^2)^s.\nproof: Fix j in {0,...,s}. A circuit with exactly j gates can be described by listing its gates in a topological order. For each gate there are at most 16 choices of gate type and at most (m+j)^2 <= (m+s)^2 choices of its ordered pair of input wires, since only the m input wires and earlier gate outputs are available. The final output wire has at most m+j <= m+s choices. Thus the number of such descriptions is at most (m+s)(16(m+s)^2)^j. Every circuit has at least one such description, and each description computes at most one function, so the number of functions represented using exactly j gates is no greater than this count. Summing over j=0,...,s gives at most (m+s) sum_j [16(m+s)^2]^j. Since m>=1, the base is at least 1, and each of the s+1 summands is at most [16(m+s)^2]^s. This yields the asserted bound. The result bounds individual truth-table circuit complexity only and gives no circuit lower bound for the MCSP decision function.\nscope: All m>=1 and s>=0; fan-in-two DAGs with 16 binary gate types, free input wires, and output selected from an input or gate wire. This is a circuit-description counting lemma, not an MCSP decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476011.3955913,
+  "session": "pnp-desk/research/R2354",
+  "model": "gpt-6-luna",
+  "id": "S0399",
+  "proved_step": "statement: For m>=2, 0<=r<m, and an m-input Boolean function f computed by a fan-in-two DAG with at most s gates from all 16 binary Boolean gates, fixing any r input coordinates to any assignment yields a cofactor computable with at most s+r gates. Proof: Restrict the coordinates one at a time. At each step at least one input remains. Substitute the fixed bit at every use of the restricted input; if constants are not free, form the required constant using any remaining input x, with x XOR x=0 or NAND(x,x)=1, and reuse that wire. This adds at most one gate per restricted coordinate, while retaining all original gates. Hence the number of distinct cofactors over all 2^r assignments is at most 2^r. This is a cofactor upper bound and does not imply a lower bound for the MCSP decision problem.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476058.0359654,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0396: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The kernel accepted the submitted Lean proof, but this turn did not include the required self-contained Lean file in a final deliverable. The formalization also proves a bound for a defined D (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795476093.0796676,
+  "session": "pnp-desk/research/R2357",
+  "model": "gpt-6-luna",
+  "id": "S0401",
+  "proved_step": "statement: Lemma (two-input universality of the full binary basis). Every Boolean function f:{0,1}^2->{0,1} has a fan-in-two circuit with at most one gate when the basis contains all 16 binary Boolean operations and input wires are free. Proof: The truth table of f is one of the 16 binary Boolean operations. Place that operation as a single gate and connect the two free input wires to its two inputs; the gate output is f(x_1,x_2). If f is an input projection, the free wire computes it with zero gates. Therefore every such function has circuit complexity at most one.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476102.5687995,
+  "session": "pnp-desk/research/R2354",
+  "model": "gpt-6-luna",
+  "id": "S0402",
+  "proved_step": "statement: For m>=2, 0<=r<m, and an m-input Boolean function f computed by a fan-in-two DAG with at most s gates from all 16 binary Boolean gates, fixing any r input coordinates to any assignment yields a cofactor computable with at most s+r gates.\nstatus: SURVIVED_REVIEW\nevidence: REVIEW NOT PERFORMED: this call would be invalid because S0399 was authored by this session/model family. Do not record this review; obtain another-family review instead.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476140.8664892,
+  "session": "pnp-desk/research/R2354",
+  "model": "gpt-6-luna",
+  "id": "S0403",
+  "proved_step": "statement: For m>=2 and 0<=r<m, restricting any r coordinates of an m-input Boolean function computed by an s-gate fan-in-two DAG over all 16 binary Boolean gates yields a cofactor computable with at most s+r gates, even when constants are not free. Proof: Substitute all fixed coordinates simultaneously in the original DAG. Every gate still has the same Boolean operation with each restricted input replaced by its assigned bit. To realize constant wires used in gate inputs, if the restriction assigns only one bit value, generate that constant with one gate from any remaining input x (x XOR x=0 or NAND(x,x)=1); if both values occur, then r>=2 and generate 0 and 1 with at most two gates. Reuse these wires throughout. The remaining r<m coordinates include an input x, so the constant-generating gates are valid. The total is at most s+min(r,2)<=s+r. No generated constant depends on a later-restricted input.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476166.0908504,
+  "session": "pnp-desk/research/R2357",
+  "model": "gpt-6-luna",
+  "id": "S0404",
+  "proved_step": "statement: Lemma (cofactor pair complexity bound). Fix m>=2, a fan-in-two DAG basis containing all 16 binary Boolean gates, free input wires, and no free constants. For every m-input Boolean function f and coordinate i, let f_{i=b} be the (m-1)-input cofactor obtained by setting x_i=b. Then C(f_{i=b}) <= C(f)+1. Proof: Take a circuit for f with g=C(f) gates. Since m>=2, select a remaining input x_j. For b=0 generate constant 0 as x_j XOR x_j; for b=1 generate constant 1 as NAND(x_j,x_j). Substitute this constant for every wire occurrence of x_i in the original circuit. Keep all original gates and add the one constant-generating gate; the resulting DAG computes f_{i=b}, so its size is at most g+1. This is a cofactor preservation lemma, not a superlinear MCSP lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476226.668715,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0401: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The earlier accepted result was followed by the host\u2019s explicit rejection that no kernel-accepted file was registered; the fresh submission attempt failed before reaching the lab checker. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795476403.0676856,
+  "session": "pnp-desk/research/R2360",
+  "model": "gpt-6-luna",
+  "id": "S0406",
+  "proved_step": "statement: For integers m\u22652 and s\u2265max(2,m\u22121), let k=floor((s\u2212m+1)/m). Every Boolean function on m inputs whose accepting set has size at most k is computable by a fan-in-two DAG of at most s gates, with free input wires and all 16 binary Boolean gates. Hence MCSP[s] contains at least \u03a3_{j=0}^k binomial(2^m,j) truth tables.\nproof: For a nonempty accepting set A of size t\u2264k, compute NOT x_i once for each of the m coordinates. For each a\u2208A, AND its m literals using at most m\u22121 gates; OR the t minterms using t\u22121 gates. The total is at most m+t(m\u22121)+(t\u22121)=mt+m\u22121. Since t\u2264floor((s\u2212m+1)/m), we have mt\u2264s\u2212m+1 and thus mt+m\u22121\u2264s. For A empty, compute zero as x_1 AND NOT(x_1), using two gates, which is allowed since s\u22652. Distinct accepting sets give distinct truth tables, so counting such sets proves the stated MCSP[s] lower bound.\nscope: All m\u22652 and s\u2265max(2,m\u22121), in the specified fan-in-two DAG model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476411.7939274,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0402: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The earlier Lean check proved only a cost equation for a record containing an arbitrary evaluator and gate count. It did not encode fan-in-two gates or a DAG, so it does not prove the claim.  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795476482.728276,
+  "session": "pnp-desk/research/R2357",
+  "model": "gpt-6-luna",
+  "id": "S0408",
+  "proved_step": "statement: For integers m>=1 and 0<=r<m, let f:{0,1}^m->{0,1} be computed by a fan-in-two DAG circuit with at most s gates over the full binary Boolean basis; input wires are free and constants are charged. For any choice of r distinct coordinates and any fixed assignment to them, the resulting (m-r)-input cofactor has a circuit of size at most s+2. If constants are free, its size is at most s. Thus along any sequence of restrictions that leaves at least one input variable, constant-generation overhead is at most two gates total.\nproof: Choose any surviving input wire x_j. Substitute each fixed input wire by its assigned constant throughout the circuit. If constants are free, this adds no gates. Otherwise generate 0 as x_j XOR x_j and 1 as NAND(x_j,x_j), at a cost of at most two gates in the full binary basis. Reuse these wires for every substituted occurrence and retain all original gates and fan-out. The resulting circuit computes the cofactor and has at most s+2 gates. During a sequence of restrictions that always leaves a variable, these same constant wires can be shared, so the total overhead remains at most two.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795476486.1621258,
+  "session": "pnp-desk/research/R2360",
+  "model": "gpt-6-luna",
+  "id": "S0409",
+  "proved_step": "statement: For integers m>=1 and s>=0, in the fan-in-two DAG model with m named input wires, all 16 binary Boolean gates, and free input wires, the number of distinct m-input Boolean functions computable by at most s gates is at most (s+1)16^s(m+s)^(2s+1).\nProof: For exactly i gates, order the gates topologically. At gate j, choose one of 16 operations and an ordered pair of predecessor wires among the m inputs and j-1 earlier gates. This gives at most 16^i product_{j=1}^i (m+j-1)^2 gate lists. Choose the output among the m+i input or gate wires, giving a factor m+i. Thus the number of functions computable with exactly i gates is at most 16^i(m+s)^(2i+1), which is at most 16^s(m+s)^(2s+1), since m+s>=1. Summing over i=0,...,s gives the stated bound. The encodings can be non-unique, which only makes this an upper bound. This bounds the number of YES truth tables of MCSP[s]; it does not lower-bound the circuit complexity of the MCSP decision function and does not close G0001 or G0002.\nScope: All m>=1 and s>=0 under the stated basis and cost convention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476539.1311345,
+  "session": "pnp-desk/research/R2360",
+  "model": "gpt-6-luna",
+  "id": "S0410",
+  "proved_step": "statement: For all integers m>=1, s>=0 and r>=0, in the fan-in-two DAG model with m named inputs, all 16 binary Boolean gates, and free input wires, if C(f)<=s then every m-input Boolean function g with Hamming distance at most r from f satisfies C(g)<=s+2mr. Proof: Let D={a:f(a) != g(a)} and enumerate its d<=r rows. Starting from a circuit for f, for each a in D construct the row indicator 1_a by negating the m-wt(a) zero-coordinates and conjoining the m literals using m-1 AND gates, then XOR it with the current output using one gate. This costs (m-wt(a))+(m-1)+1=2m-wt(a)<=2m gates. Each update toggles exactly row a, so after all d updates the output is g. Total size is at most s+2md<=s+2mr. Scope: all m>=1,s,r>=0 in the specified basis and cost convention; this is an individual truth-table robustness bound and does not imply an MCSP decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476613.5408285,
+  "session": "pnp-desk/research/R2357",
+  "model": "gpt-6-luna",
+  "id": "S0411",
+  "proved_step": "statement: For integers m>=1 and 0<=r<m, let f:{0,1}^m->{0,1} be computed by an s-gate fan-in-two DAG over the full binary Boolean basis, with free input wires and constants charged. Fix any r distinct coordinates to any assignment. The resulting cofactor has a circuit of size at most s+2. If constants are free, its size is at most s. Across any sequence of restrictions that leaves at least one variable, the charged-constant overhead is at most two total.\nproof: Choose a surviving input wire x_j. Substitute each fixed coordinate by its assigned constant throughout the DAG. If constants are free, this adds no gates. Otherwise compute 0 as XOR(x_j,x_j) and 1 as XNOR(x_j,x_j), using at most two gates. Reuse these wires for all substituted occurrences and retain the original gates and fan-out. The resulting circuit computes the cofactor and has at most s+2 gates. In a sequence of restrictions that always leaves a variable, the same two constant wires can be reused, so total overhead remains at most two.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795476697.345387,
+  "session": "pnp-desk/research/R2360",
+  "model": "gpt-6-luna",
+  "id": "S0412",
+  "proved_step": "statement: For integers m>=1 and s,r>=0, in the fan-in-two DAG model with m named inputs, all 16 binary Boolean gates and free input wires, the number of m-input Boolean functions at Hamming distance at most r from some function computable by at most s gates is at most (s+1)16^s(m+s)^(2s+1) sum_{j=0}^{min(r,2^m)} binomial(2^m,j). Proof: For exactly i gates, order gates topologically. Gate j chooses one of 16 operations and an ordered pair from the m+j-1 available input or earlier gate wires, and the output is one of at most m+i wires. Hence the number of functions computed with exactly i gates is at most 16^i product_{j=1}^i (m+j-1)^2 (m+i), which for i<=s is at most 16^s(m+s)^(2s+1). Summing i=0,...,s bounds the number of functions computed with at most s gates by (s+1)16^s(m+s)^(2s+1). Each such function has at most sum_{j=0}^{min(r,2^m)} binomial(2^m,j) functions within Hamming distance r. A union bound over the low-gate functions gives the claim. This counts truth tables near low-complexity functions and does not bound MCSP decision-circuit size or close the assigned lower-bound obligation. Scope: all integers m>=1,s,r>=0 in the stated model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795478136.6427073,
+  "session": "pnp-desk/research/R2373",
+  "model": "gpt-6-luna",
+  "id": "S0413",
+  "proved_step": "statement_start: For every integer m>=1 and every nonempty set A subseteq {0,1}^m of cardinality t, the indicator of A can be computed in the fan-in-two DAG model over all 16 binary Boolean gates with free input wires and constants charged as gates using at most q+t(m-1)+(t-1) gates, where q is the number of coordinates on which some row of A has value 0.\nderivation: Let q be the number of coordinates i for which there exists a in A with a_i=0. For each such coordinate compute NOT x_i once, using q NOT gates. For every a in A form the minterm M_a = AND_{i=1}^m l_{a,i}, where l_{a,i}=x_i if a_i=1 and l_{a,i}=NOT x_i otherwise. All needed negative literals have already been computed. A fan-in-two AND tree uses m-1 gates when m>=2; for m=1, M_a is simply the corresponding input or its computed negation and uses zero additional gates. OR the t minterms using t-1 gates (for t=1, no OR gate). For each input x, M_a(x)=1 iff x=a, so the OR is exactly 1_A(x). Total cost is q+t(m-1)+(t-1). Since q<=m, this improves the generic bound by sharing the input negations across all minterms. This lemma only bounds the circuit complexity of an individual truth table's sparse support; it does not imply any circuit lower bound for the MCSP decision language. Four-barrier diagnostic: as an explicit circuit construction this is relativizing in the elementary simulation sense, naturalness not applicable as a lower-bound method, no algebraic extension is used, and the construction is local (each minterm is built from its literals). Circumvention tests: adds no resource capable of supporting a P-vs-NP claim; no new encoding or adaptive rule; no transfer target class; no claim of nonrelativizing/algebrizing/localizing power; exactness, size, construction, and evaluation are explicit but limited to sparse-support functions.\nevidence: Direct gate construction as above; the proof covers t=1 and m=1 edge cases. This is new only as a sharpened shared-negation count relative to the generic per-row construction; no claim that it closes the general MCSP lower-bound obligation in the target sense.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795478379.3636644,
+  "session": "pnp-desk/research/R2376",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0352 as stated uses t<=floor((s+1)/m) but its displayed construction costs mt+m-1 gates; this inequality does not imply cost<=s. Do not use S0352 at that threshold. The repaired support-count statement uses k=floor((s-m+1)/m), with s>=2 and k>=0, as in S0353; this repair still only counts explicit YES truth tables and does not close the direct MCSP decision-circuit lower-bound gap.",
+  "evidence": "For t accepted rows, the displayed construction has m shared negations, t(m-1) AND gates, and t-1 OR gates, totaling mt+m-1. Thus it fits exactly when t<=floor((s-m+1)/m). Independent review of the earlier claimed steps remains unavailable within this same model family."
+ },
+ {
+  "at": 1795478407.444782,
+  "session": "pnp-desk/research/R2373",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive description-counting proof supplied in full. The lemma does not claim to close G0001/G0002; relevance to the decision-circuit lower bound remains open.",
+  "id": "S0415",
+  "proved_step": "statement_start: For m>=1 and s>=0, the number of Boolean functions on m inputs computable by fan-in-two DAG circuits with at most s gates, 16 binary gate types, free input wires, and one designated output is at most (s+1)(m+s)[16(m+s)^2]^s.\nproof: For each exact gate count j in {0,...,s}, topologically order the gates. Each of the j gates has at most 16 choices of binary gate type and at most (m+j)^2 ordered choices of predecessor wires, since all predecessors are among the m inputs and at most j gate outputs. The designated output has at most m+j choices. Thus there are at most (m+j)[16(m+j)^2]^j descriptions, and the number of functions is no greater than the number of descriptions. Since m+j <= m+s and 16(m+j)^2 >= 1, this is at most (m+s)[16(m+s)^2]^s for each j. Summing over s+1 values of j proves the bound. This overcounts descriptions, which is harmless. This counts functions computable by small circuits; it does not bound the circuit complexity of the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795478457.015556,
+  "session": "pnp-desk/research/R2376",
+  "model": "gpt-6-luna",
+  "id": "S0416",
+  "proved_step": "statement: For integers m>=2 and s>=2, put k=floor((s-m+1)/m). If k>=0, every Boolean function f:{0,1}^m->{0,1} whose accepting set has size at most k is computable by a fan-in-two DAG circuit with free input wires and all binary Boolean gates using at most s gates. Hence MCSP[s] contains at least sum_{j=0}^k binomial(2^m,j) truth tables. Proof: For an accepting set A of size t>=1, compute each of the m negated input wires once (m NOT gates). For each a in A compute its minterm as the AND of its m literals using m-1 gates, then OR the t minterms using t-1 gates. The total is m+t(m-1)+(t-1)=mt+m-1. Since t<=k=floor((s-m+1)/m), mt+m-1<=mk+m-1<=s. If A is empty, its indicator is computed by x_1 AND NOT(x_1), using two gates, which is at most s. Each A gives a distinct truth table, and the number of subsets A of {0,1}^m of size at most k is the displayed binomial sum.\nscope: All integers m>=2,s>=2 with k=floor((s-m+1)/m)>=0; fan-in-two DAG model, free input wires, all binary Boolean gates; this counts explicit YES instances only and implies no decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

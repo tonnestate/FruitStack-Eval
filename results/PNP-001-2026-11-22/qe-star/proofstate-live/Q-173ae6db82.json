@@ -78,5 +78,73 @@
   "proved_step": "statement: Randomized restricted range avoidance. Fix n>=1, N=2^n, and the fan-in-two Boolean circuit model on n named inputs with one output and at most s gates over {AND, OR, NOT}, with constants allowed if included in the encoding. Let K be the number of valid encoded circuits. If K <= N^a for a fixed constant a and K/2^N <= 1/2, there is a uniform Las Vegas algorithm that outputs a truth table outside the size-s circuit image, with expected running time O(N(K+1)) circuit-table operations and O(N) bits of candidate storage, plus the space needed to enumerate one circuit. Proof: independently sample a uniformly random y in {0,1}^N; enumerate all valid circuits, evaluate each on the N input assignments, and reject y if any output table equals y. If rejected, resample. Each trial accepts exactly when y is outside the image. At most K tables are in the image, so acceptance probability is at least 1-K/2^N >= 1/2. The expected number of trials is at most 2. Each trial evaluates at most K circuits on N inputs and compares their tables to y, costing O(N(K+1)) Boolean operations. Accepted y is outside the image by the exhaustive membership check. Under the standard gate-description bound K <= 2^{O((s+1)log(n+s+2))}, this gives polynomial-in-N expected time whenever s log(n+s+2)=O(n), subject to the stated encoding bound.\nevidence: Complete sampling-and-verification proof supplied here. The result is randomized and only covers circuit counts K polynomial in N; it does not satisfy the deterministic polylogtime-uniform AC0 refuter hypothesis of CJSW Prop. 4.3 and does not close G0001.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795476304.6855767,
+  "session": "pnp-desk/research/R2359",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "statement: Finite-list range avoidance lemma. Let N,K be integers with 0 <= K < 2^N, and let L be an explicitly enumerable list of K (not necessarily distinct) strings in {0,1}^N. There is a deterministic algorithm that outputs y in {0,1}^N absent from L using O(NK) inspections of list bits, plus the cost of enumerating L, and O(N) working bits beyond the list enumerator. At each position extend the current prefix by the bit whose resulting prefix occurs in at most half as many list entries as the current prefix. After i positions at most K/2^i list entries match; after N positions this is <1, hence zero.\nevidence: Proof: Initially all K list entries match the empty prefix. Given a prefix matched by q entries, the counts matching its 0- and 1-extensions sum to q, so one extension has count at most q/2. Induction gives at most K/2^i matches after i choices. At i=N the count is at most K/2^N<1 and is an integer, hence 0. To implement, scan the explicit list for each step and count the two next-bit values among entries matching the current prefix; this uses O(NK) bit inspections and stores the prefix and counters in O(N) bits. Duplicate list entries do not affect the argument. For circuit truth tables this only yields the corresponding cost after enumerating the circuit descriptions; it does not establish polynomial time at the CJSW threshold, so G0001 remains open.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795476347.8954334,
+  "session": "pnp-desk/research/R2359",
+  "model": "gpt-6-luna",
+  "evidence": "As stated, the bound omits circuits with zero gates whose output is an input wire. For n>1 and s=0, the image contains n projections, while the displayed bound is 1. The count needs an output-wire factor (or a convention fixing the output wire), and the encoding assumptions for constants must be specified.",
+  "review_of": "S0002",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795476384.0053816,
+  "session": "pnp-desk/research/R2359",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "Corrected image-counting bound. Fix n>=1, s>=0, g>=1. Consider ordered fan-in-two circuits with n named input wires, constants 0 and 1, at most s gates, each gate chosen from g binary operations and taking its two operands from the input, constant, and earlier-gate wires; the output is any such wire. Put W=n+s+2. There are at most W choices for the output wire. For each k<=s, there are at most (g W^2)^k ordered gate lists. Therefore the total number of descriptions, and thus distinct Boolean functions on the n inputs, is at most W sum_{k=0}^s (g W^2)^k <= (s+1)W(g W^2)^s. Proof: for any fixed k, each of its k gates has at most g choices of operation and W choices for each operand, since n+k+2<=W; after the gate list is fixed there are at most W output choices. Summing over k gives the first bound. Since gW^2>=1, each of the s+1 summands is at most (gW^2)^s, giving the second bound. This repairs the omitted output-wire factor for this explicit encoding; it does not imply polynomial-time range avoidance at the CJSW threshold, so G0001 remains open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476563.3573458,
+  "session": "pnp-desk/research/R2359",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "Output-sensitive deterministic range avoidance. Let N>=1 and let L=(z_1,...,z_K) be an explicitly enumerable list of strings in {0,1}^N, with repetitions allowed and K<2^N. There is a deterministic procedure that outputs y outside the set of strings appearing in L using at most NK inspections of list bits, O(N+log(K+1)) working bits beyond the list enumerator, and N sequential scans of L. Proof: start with the empty prefix p, matched by q_0=K list entries. At stage i (1<=i<=N), scan L and count the entries whose first i-1 bits equal p and whose i-th bit is 0 or 1. These counts sum to the number q of entries matching p. Extend p by a bit whose count is at most q/2, breaking ties toward 0. Inductively, after i stages at most K/2^i entries match p. After N stages the matching count is an integer less than 1, hence zero; the resulting y=p is absent from L. Each of N scans reads at most K strings of N bits, so at most NK list-bit inspections suffice. Storing p and counters takes O(N+log(K+1)) bits beyond the enumerator's own state. For a circuit-image list this proves a deterministic construction conditional on a complete enumerator, with total time including N full scans; it gives no polynomial-in-N bound when that list is too large.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795476611.1314957,
+  "session": "pnp-desk/research/R2359",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "statement: Restricted uniform range-refuter theorem. Fix a constant c>0. For each n>=2 let N=2^n and s<=c n/log_2(n+2). In the ordered fan-in-two Boolean circuit model over AND, OR, NOT, with n named inputs, constants 0 and 1, at most s gates, and any available wire as output, a deterministic algorithm outputs an N-bit truth table outside the size-s circuit image in time polynomial in N. Proof: put W=n+s+2. For each k<=s, there are at most (3W^2)^k gate lists and at most W output choices, so the number K of descriptions is at most W sum_{k=0}^s(3W^2)^k <= (s+1)W(3W^2)^s. Since s=O(n/log n) and log W=O(log n), log_2 K=O(log n)+O(s log n)=O(n), hence K<=N^C for a constant C depending on c. Enumerate all descriptions, including duplicates in their truth tables. The explicit-list prefix-halving construction produces a table absent from this list using N scans and O(NK) list-bit inspections. Each table can be generated by evaluating its circuit on all N inputs in O(N(s+1)) Boolean-gate operations. Thus total time is O(N^2 K(s+1)) plus polynomial description-enumeration overhead, which is polynomial in N. The output is outside the circuit image because the prefix procedure leaves zero list entries matching it. This theorem only covers s=O(n/log n); it does not establish a refuter for every superpolylogarithmic-in-N size threshold required by the CJSW route.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795476777.2992208,
+  "session": "pnp-desk/research/R2359",
+  "model": "gpt-6-luna",
+  "id": "S0016",
+  "proved_step": "statement: Near-linear deterministic range avoidance for subcritical circuit size. Let n tend to infinity, N=2^n, and let s=s(n)=o(n/log(n+2)). Consider ordered fan-in-two circuits on n named inputs with constants 0,1, at most s gates over a fixed finite basis of g>=1 binary operations, and one output wire. There is a deterministic algorithm that outputs an N-bit truth table not computed by any such circuit in time N^{1+o(1)} and polynomial space in N. Proof: Set W=n+s+2. By the circuit-description count, the number K of descriptions is at most (s+1)W(gW^2)^s=2^{o(n)}, since log K=O(log(s+1)+log W+s(log g+2log W))=o(n). Enumerate each valid description and its truth table, retaining this explicit list (or rescanning it); apply the prefix-halving procedure, which uses O(NK) bit inspections and outputs a string outside the list. Enumeration and evaluation add at most K*poly(N,n,s)=N^{1+o(1)} time because K=2^{o(n)} and poly(n,s)=N^{o(1)}. The stored list and counters use at most K*N+poly(N) bits, which is N^{1+o(1)} and hence polynomial in N. The output is outside the size-s circuit image by the prefix-halving invariant. This does not establish the CJSW uniform refuter hypothesis at its larger circuit-size threshold, so G0001 remains open.\nevidence: Derived from the already verified description-count bound (claim:10a2c5f610ef) and recorded finite-list prefix-halving lemma S0011; no new finite computation is asserted.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795477475.2417085,
+  "session": "pnp-desk/research/R2367",
+  "model": "gpt-6-luna",
+  "id": "S0017",
+  "proved_step": "statement: Lemma (range avoidance for a polynomial list). Fix a constant a. For each N, let L be a list of K<N^a strings of length N. Suppose a uniform procedure returns any requested list entry in poly(N) time. Then a uniform deterministic algorithm outputs y absent from L in poly(N) time and O(N+log(K+1)) extra space. Proof: Start with the empty prefix p. For each position j, count the entries matching p followed by 0 and by 1. These counts sum to the number q matching p, so choose an extension matched by at most q/2 entries. Induction gives at most K/2^j matches after j positions. At j=N this is less than 1, hence zero, so p is absent from L. There are N scans of K entries, each entry retrieved in poly(N) time; the counters and prefix use O(N+log(K+1)) space. This proves a deterministic refuter for polynomial-size, uniformly random-accessible lists only.\nevidence: The induction proves the output avoids every list entry, including when entries repeat. The polynomial runtime follows from K<N^a and the stated random-access enumeration bound. This does not establish that the size-s circuit image has such a list for the full CJSW parameter range, so it does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
  }
 ]

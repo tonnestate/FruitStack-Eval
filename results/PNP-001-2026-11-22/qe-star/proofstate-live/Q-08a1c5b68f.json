@@ -3326,5 +3326,111 @@
   "proved_step": "Lemma (residual-state lower bound). Let F be any subset of {0,1}^N and fix 0<=t<=N. For each length-t prefix p define R_t(p)={u in {0,1}^{N-t}: pu in F}, and let D_t be the number of distinct such residuals. Every deterministic streaming machine that exactly decides membership in F has at least D_t distinct states after t input bits, hence at least ceil(log_2 D_t) state bits. Proof: If R_t(p) != R_t(q), their symmetric difference contains a suffix u. Exactly one of pu,qu is in F. If the machine reaches the same state after p and q, determinism implies that after reading the common suffix u it reaches the same final state and gives the same answer on both strings, contradicting exact recognition. Thus each distinct residual must correspond to a distinct state. This is an exact lower bound on state count; it does not imply an update-gate lower bound.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795475279.1176882,
+  "session": "pnp-desk/research/R2346",
+  "model": "gpt-6-luna",
+  "id": "S0400",
+  "proved_step": "statement: Singleton streaming upper bound. For every N>=1 and fixed w in {0,1}^N, F={w} has a deterministic time-varying full-search transducer with one state bit, q_0=1, at most two {AND,NOT} gates per update, and a one-bit final decoder, correct on every input. At time t set q_t=q_{t-1} AND x_t when w_t=1, and q_t=q_{t-1} AND (NOT x_t) when w_t=0. Induction gives q_t=1 exactly when the input prefix equals w[1..t]. Thus each live prefix has state 1, all dead prefixes state 0, and q_N decides membership in F. Each update uses at most one AND and one NOT. This is only a constructive upper bound for singleton target families; it says nothing about SC_{n,s} or optimality.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795475745.3181827,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: for each b, the partition ORs cost at most d_t gates total; the multiplexer (NOT b AND h_0) OR (b AND h_1) costs 3 gates per target plus 1 shared NOT = 3d_{t+1}+1. Total 2d_t + 3d_{t+1} + 1. Verified by tracing the one-hot semantics: exactly one source r is active, exactly one h_{b,r'} becomes 1, yielding correct one-hot of delta_b(r). No argument gap found.",
+  "review_of": "S0371",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475745.3599095,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Trivially correct: state = input prefix (N bits), updates are wires only (0 non-constant gates), decoder checks membership in F. This is a valid upper bound frame (S=N, G_max=0) but with unrestricted decoder cost; does not improve fixed-(S,D) Pareto frontier. No argument gap.",
+  "review_of": "S0372",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475745.3860545,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction correct: 2d AND gates (source\u00d7input), 1 shared NOT, sum(k_j-1) = 2d-r OR gates for r nonempty destinations. Total 4d-r+1. Valid on valid one-hot inputs. This is an upper bound for this explicit circuit only; does not prove minimal G_max. No argument gap.",
+  "review_of": "S0373",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475745.4083102,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: if R_t(p)=R_t(q)=R then children depend only on (R,b), giving at most 2D_t distinct children. The earlier finite check (cm-027afddbb3574c83) found F={000} with D_0=1, D_1=2, satisfying D_{t+1}<=2D_t (2<=2) while violating monotonicity. No argument gap.",
+  "review_of": "S0374",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475997.9380286,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: L_t distinct live prefixes need L_t distinct codes. If L_t < 2^t, at least one dead prefix exists and needs a code outside the L_t live codes, giving at least L_t+1 codes total. With S bits, 2^S >= L_t + 1_{L_t<2^t}. For SC_{3,1} with L_t=38 at t=7: 2^5=32 < 38, 2^6=64 >= 38, so S>=6. No argument gap.",
+  "review_of": "S0375",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475997.9648783,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Identical statement to S0375. Same reasoning applies; the duplicate step is also correct. No argument gap.",
+  "review_of": "S0376",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475997.9881434,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction correct: assign unit vectors to live prefixes, zero to dead. Each live child q gets an AND gate from its unique predecessor p gated by the input bit (or NOT bit). Shared NOT costs 1, each of L_{t+1} children costs 1 AND. Total gates at step t <= L_{t+1} + 1 <= min(L_t, L_{t+1}) + 1 (since each child has exactly one predecessor). Correct on reachable states; dead stays at zero. No argument gap.",
+  "review_of": "S0377",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475998.0115478,
+  "session": "pnp-desk/research/R2346",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: zero non-constant gates means each state coordinate is a constant or copies an input bit. If live prefixes = all 2^t strings and need distinct states, S >= t by pigeonhole (some position not copied => collision). No argument gap.",
+  "review_of": "S0378",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795476907.7682455,
+  "session": "pnp-desk/research/R2361",
+  "model": "gpt-6-luna",
+  "id": "S0409",
+  "proved_step": "statement: For a transition level with L live prefixes encoded by distinct 4-bit states and one reserved dead state, there is a fan-in-two AND/OR transition circuit using at most 4(10(L+1)-1) gates that sends every live prefix/input pair to its correct next state and the dead state to the dead state. In particular, the bound is 556 gates for L=13 and 596 for L=14. Proof: There are at most 2(L+1) specified state/input pairs. For each of the four output coordinates, extend its specified values by zero on all other inputs. A DNF for that coordinate has at most 2(L+1) terms. Each term is a conjunction of at most five literals (four state bits and the input bit), so it takes at most four two-input AND gates. Combining at most 2(L+1) terms takes at most 2(L+1)-1 OR gates. Summing over four coordinates gives 4(8(L+1)+2(L+1)-1)=4(10(L+1)-1). The construction agrees with every specified transition, including both transitions from the dead state. This is an upper bound, not an exact minimum.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795477081.8128543,
+  "session": "pnp-desk/research/R2361",
+  "model": "gpt-6-luna",
+  "id": "S0410",
+  "proved_step": "statement: For a transition level with L live prefixes encoded by distinct 4-bit states and one reserved dead state, let T=2(L+1), the number of specified pairs (state,input bit). In the basis AND, XOR, NOT, constants, with fan-out free, the specified transition map has a circuit of at most 28T-7 gates. Proof: For each of the four output coordinates, extend its specified values by zero to all 5-bit inputs. For every specified pair on which that coordinate is 1, form its 5-literal minterm, using shared complements of the five input literals and at most four AND gates per minterm. There are at most T such minterms. Combine them by a binary OR tree; each OR is implemented as (a XOR b) XOR (a AND b), costing three gates, so at most 3(T-1) gates per output. An empty OR is constant 0. Share the five input complements across all outputs. Total cost is at most 4(4T+3(T-1))+5=28T-7. This realizes every specified live and dead transition. Thus the bound is 777 for L=13 and 833 for L=14. This is only an upper bound; it neither determines the minimum nor closes the exact-synthesis gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795478178.690399,
+  "session": "pnp-desk/research/R2370",
+  "model": "gpt-6-luna",
+  "id": "S0411",
+  "proved_step": "statement: Residual-state lower bound. Let F be a subset of {0,1}^N and let R_t(p)={u in {0,1}^{N-t}: pu in F}. In any exact deterministic streaming membership machine, prefixes with distinct R_t(p) reach distinct states. Consequently the machine has at least D_t states at cut t, where D_t is the number of distinct residuals, and needs at least ceil(log2 D_t) state bits. If there are L_t live prefixes and at least one dead prefix, full live/dead separation requires at least L_t+1 states, hence ceil(log2(L_t+1)) bits.\nproof: Suppose p and q reach the same state but R_t(p) != R_t(q). Choose suffix u in the symmetric difference. Starting at the same state and reading u gives the same final answer after p and q, but exactly one of pu, qu belongs to F, contradicting exact membership. Thus distinct residuals require distinct states. For full separation every live prefix has a distinct state and every dead prefix's state is disjoint, giving at least L_t+1 states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
  }
 ]

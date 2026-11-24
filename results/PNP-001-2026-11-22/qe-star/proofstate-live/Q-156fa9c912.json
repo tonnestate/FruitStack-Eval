@@ -3806,5 +3806,68 @@
   "proved_step": "REPAIR LEMMA (explicit candidate filtering with separated costs). Let C_1,...,C_K be a finite indexed family of Boolean circuits, and suppose the position-dependent bits e_{i,j}=C_i(a_j) are supplied as constants. For a prefix p, let z_i(p)=1 exactly when C_i agrees with p on every position already read. On reading bit b at position j, update each coordinate by z'_i=z_i AND [e_{i,j}=b]. This transition uses at most K fan-in-two AND gates. The predicate that at least one listed circuit matches the prefix is OR_{i=1}^K z_i and uses max(K-1,0) fan-in-two OR gates. Thus transition plus acceptance uses at most K+max(K-1,0) gates if both are counted. Proof: Initially all coordinates are 1, which records agreement with the empty prefix. Assume the coordinates record agreement through the positions before j. A listed circuit agrees through position j exactly when it previously agreed and its supplied bit e_{i,j} equals b; the update therefore preserves the invariant. Induction gives the invariant for every prefix. Its disjunction is true exactly when some listed circuit matches. Each update coordinate requires at most one AND gate; a binary OR tree on K inputs uses K-1 gates when K>=1 and zero gates when K=0. The two computations have separate costs, so no claim of a K+1 combined bound is needed. Scope: explicit finite families with supplied position-dependent constants; this does not bound preprocessing, give a polynomial-in-s implementation for EXT, or simulate arbitrary MCSP decision circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795477009.0584607,
+  "session": "pnp-desk/research/R2364",
+  "model": "gpt-6-luna",
+  "id": "S0457",
+  "proved_step": "statement: Residual derivative identity. Let F be any subset of {0,1}^N, 0<=t<N, and p a length-t prefix. Define R_t(p)={u in {0,1}^{N-t}: pu in F}. For b in {0,1}, R_{t+1}(pb)={u in {0,1}^{N-t-1}: bu in R_t(p)}. Therefore EXT_F(pb)=1 iff this derivative set is nonempty, where EXT_F(p) means R_t(p) is nonempty. Proof: for every u of length N-t-1, u\u2208R_{t+1}(pb) iff pbu\u2208F iff bu\u2208R_t(p), by associativity of concatenation and the definition of R_t. Equality follows by extensionality; nonemptiness gives the stated equivalence.\nscope: All finite Boolean-string families F\u2286{0,1}^N and valid t,p,b. This is a semantic transition identity only; it gives no efficient representation or update-time bound when F=Im(Eval).\nbarriers: Diagnostic: relativizing\u2014yes, the identity is representation-free and oracle-independent; natural\u2014no circuit lower bound or largeness/easiness property; algebrizing\u2014no algebraic argument; localizing\u2014no locality claim. Circumvention tests: none claimed; this is a set identity, not a P-vs-NP route.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795477052.6468327,
+  "session": "pnp-desk/research/R2364",
+  "model": "gpt-6-luna",
+  "id": "S0458",
+  "proved_step": "statement: Explicit-family trie lemma. Let F be a nonempty subset of {0,1}^N with M=|F|. Let P(F) contain the empty string and every prefix of every member of F. There is a deterministic streaming automaton with one state for each p\u2208P(F), plus a dead state \u22a5. From p on bit b it moves to pb if pb\u2208P(F), and otherwise to \u22a5; \u22a5 loops to itself. It accepts exactly the viable prefixes. The automaton has at most 2+MN states. Given F explicitly, a trie constructs it in O(MN) time and space, and a transition is one child-pointer lookup. Proof: Initially the state is the empty prefix, which is viable since F is nonempty. Inductively, if the state is p, after reading b the new prefix is pb; it is viable exactly when pb\u2208P(F), which is precisely the transition rule. If the state is \u22a5, no extension can become viable. Hence the state after any input prefix p is p if p\u2208P(F), and \u22a5 otherwise; acceptance therefore agrees with EXT_F. Each of the M strings contributes at most N nonempty prefixes, so |P(F)|\u22641+MN; adding \u22a5 gives at most 2+MN states. Inserting each explicitly listed string and its prefixes builds the trie in O(MN) time and space, and each transition follows one child pointer.\nscope: All nonempty explicitly listed F\u2286{0,1}^N. This is a RAM/trie lookup bound with O(log(MN+2)) state bits and O(MN) preprocessing/storage; it gives no polynomial-in-(n,s) bound when F=Im(Eval_{n,s}) is only implicit.\nbarriers: Diagnostic: relativizing\u2014yes, the construction is oracle-independent; natural\u2014no lower-bound property; algebrizing\u2014no algebraic method; localizing\u2014no locality claim. No P-vs-NP circumvention is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795477142.02145,
+  "session": "pnp-desk/research/R2364",
+  "model": "gpt-6-luna",
+  "id": "S0459",
+  "proved_step": "statement: Levelwise residual-state characterization. Fix a finite family F\u2286{0,1}^N. For 0\u2264t\u2264N and each length-t prefix p, define R_t(p)={u\u2208{0,1}^{N\u2212t}: p\u00b7u\u2208F}. Let r_t be the number of distinct sets R_t(p) as p ranges over {0,1}^t. A deterministic layered streaming automaton that, at level t, must determine for every continuation u whether p\u00b7u\u2208F needs at least r_t distinguishable states at that level; storing R_t(p) uses exactly r_t states and supports the exact transition R_{t+1}(p\u00b7b)={u\u2208{0,1}^{N\u2212t\u22121}: b\u00b7u\u2208R_t(p)}. Proof: If R_t(p)\u2260R_t(q), choose u in their symmetric difference. Then exactly one of p\u00b7u and q\u00b7u is in F. Any deterministic automaton in the same level with the same state after p and q would give identical acceptance on continuation u, a contradiction. Thus all r_t residuals require distinct states. Conversely, use the distinct residual sets as level-t states. On bit b transition to the set {u: b\u00b7u\u2208R}; by the definition of residuals this is R_{t+1}(p\u00b7b) whenever R=R_t(p). At level N, accept iff the residual contains the empty string. This recognizes F exactly.\nscope: Finite F\u2286{0,1}^N, fixed bit order, deterministic layered automata whose required output is membership of the completed string in F. The result characterizes state count at each level; it gives no efficient encoding, transition computation, or polynomial update bound for F=Im(Eval_{n,s}).\nbarriers: Diagnostic: relativizing\u2014yes, combinatorial and oracle-independent; natural\u2014no lower-bound property; algebrizing\u2014no algebraic method; localizing\u2014no locality claim. No P-vs-NP progress claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795477605.393775,
+  "session": "pnp-desk/research/R2364",
+  "model": "gpt-6-luna",
+  "id": "S0460",
+  "proved_step": "statement: Layered projection construction. Let H:{0,1}^N->{0,1} be computed by a fan-in-two Boolean circuit of size T. For each prefix length t and prefix p in {0,1}^t, define E_t(p)=1 iff there exists z in {0,1}^{N-t} with H(pz)=1. For each such p, a fan-in-two circuit computing E_t(p) can be constructed by placing one copy of H for each of the 2^(N-t) suffixes and ORing their outputs, with size at most 2^(N-t)(T+1)-1. Consequently, for every t<N the two child extension values E_{t+1}(p0), E_{t+1}(p1) are obtained by the same construction with 2^(N-t-1) copies each; together, the two child circuits have size at most 2^(N-t)(T+1)-2. Proof: E_t(p)=OR_{z in {0,1}^{N-t}} H(pz), by definition. Each term is implemented by a copy of H with its first t input wires fixed to p and remaining wires fixed to z; this does not increase the gate count. A binary OR tree on q=2^(N-t) outputs uses q-1 gates, so size is at most qT+(q-1)=q(T+1)-1. Applying this with q/2 completions to each child gives two costs 2[(q/2)T+(q/2-1)]=q(T+1)-2. The construction is uniform given H, p, and the truth-table input order, but exponential in the unobserved suffix length in general.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795477684.5253954,
+  "session": "pnp-desk/research/R2368",
+  "model": "gpt-6-luna",
+  "id": "S0461",
+  "proved_step": "statement: Residual-state counting and transition lemma: for finite F subseteq {0,1}^N and each level t, define R_p={z: pz in F} for length-t prefixes p. There are at most min(2^t,|F|) distinct nonempty residuals and at most one empty residual; for t<N, R_{pb}={z:bz in R_p}. The layered residual automaton recognizes F exactly.\nproof: There are 2^t prefixes. Every prefix with nonempty residual extends to an element of F, and distinct prefixes have distinct extensions, so there are at most |F| such prefixes. The count of distinct nonempty residuals is bounded by the count of those prefixes. All empty residuals equal the empty set. For the transition, z in R_{pb} iff pbz in F iff bz in R_p. Finally, R_x is nonempty exactly when x in F.\nscope: Finite binary languages, fixed length N and coordinate order; exact layered state characterization only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795477755.654537,
+  "session": "pnp-desk/research/R2368",
+  "model": "gpt-6-luna",
+  "id": "S0462",
+  "proved_step": "statement: Residual equivalence exactly characterizes mergeable prefixes in deterministic layered streaming for any finite fixed-length language F: at level t, p and q may share a state only if R_p=R_q; equal residuals admit identical continuation acceptance and define a well-defined residual transition.\nproof: If R_p\u2260R_q, choose a suffix z in their symmetric difference; precisely one of pz,qz is in F, contradicting deterministic identical continuation behavior from a common state. If R_p=R_q, every suffix has the same acceptance outcome from p and q. The residual transition is well-defined since R_{pb}={z:bz in R_p}; equal parent residuals yield equal child residuals. The residual-class machine accepts exactly F at the terminal level.\nscope: Finite F subset {0,1}^N, fixed input order; exact deterministic layered streaming only, no efficiency claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795477881.71348,
+  "session": "pnp-desk/research/R2368",
+  "model": "gpt-6-luna",
+  "id": "S0463",
+  "proved_step": "statement: Exact residual-width lemma. Let F be any finite subset of {0,1}^N and, for each t, let d_t be the number of distinct residuals R_p={z in {0,1}^{N-t}: pz in F} over prefixes p of length t. Every deterministic layered streaming recognizer for F has at least d_t states at level t; a recognizer with exactly d_t states at each level exists.\nproof: For the lower bound, suppose prefixes p and q with different residuals reach the same state. Choose z in the symmetric difference of R_p and R_q. Exactly one of pz and qz belongs to F, but deterministic processing from the common state on the same suffix z must give the same result, a contradiction. Thus each distinct residual requires a distinct state. For the upper bound, use the residuals themselves as states. On input bit b, map R_p to its left quotient {z: bz is in R_p}; this equals R_{pb}, so the transition is well-defined even when multiple prefixes have the same residual. At level N, accept exactly the nonempty residual. This recognizes F and has d_t states at level t.\nscope: All finite F subseteq {0,1}^N, fixed input order, deterministic layered streaming; no uniform construction or transition-cost claim.\nknown_closest: Myhill\u2013Nerode residual equivalence for deterministic automata, specialized to fixed-length layered machines.\nnovelty: Gives the exact minimum width at every layer, rather than only a necessary state-merging condition.\nobstacle: For EXT_{n,s}, this does not bound d_t or show that residual transitions can be implemented with bounded real-gate cost from arbitrary MCSP decision circuits H_C.\nattack: Use a distinguishing suffix for unequal residuals to prove the width lower bound, then construct the matching residual-state machine using left quotients.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
