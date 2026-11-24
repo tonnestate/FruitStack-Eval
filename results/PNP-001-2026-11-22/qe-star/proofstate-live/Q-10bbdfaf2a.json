@@ -4633,5 +4633,55 @@
   "evidence": "The proof constructs v = NAND(x,x) claiming it is constantly 1. But NAND(x,x) = NOT(x AND x) = NOT(x), which equals 1 when x=0 and 0 when x=1. It is NOT a constant function. This breaks the proof's construction of constant-1 wires. The statement might still be true with a different construction (e.g., using XNOR(x,x)=1 or IMPLIES(x,x)=1, or adding a NOT gate after u), but the given proof is incorrect.",
   "review_of": "S0433",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795525910.0241456,
+  "session": "pnp-desk/research/R2792",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is standard restriction monotonicity for Boolean circuits. Given a circuit C for f with \u2264 s gates, substitute constants for the r fixed inputs. Evaluate all gates whose inputs become constants (replacing them with constant gates at zero cost in this model) and delete gates no longer connected to the output. The resulting DAG computes f|_{I=a}, has fan-in \u2264 2, and has \u2264 s gates because only deletions occur. No counterexample exists: restriction cannot increase circuit size in the fan-in-2 model with free constants. The caveat noted (does not imply MCSP_{m-r}[(m-r)^c] containment when s=m^c) is correctly stated and does not affect the step's validity.",
+  "review_of": "S0435",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795527365.0972047,
+  "session": "pnp-desk/research/R2792",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The padding argument is standard and correct. Forward direction: any circuit for f on d inputs directly computes F on d+r inputs by leaving the r extra inputs unconnected, so C_{d+r}(F) <= C_d(f). Reverse direction: given a minimum circuit for F, fixing the r extra inputs to constants (0) and propagating constants through the circuit (evaluating gates with constant inputs, removing gates that no longer feed the output) yields a valid circuit for f on d inputs with no more gates. Constant propagation and dead-gate elimination never increase gate count. The injective mapping of truth tables preserves the threshold s exactly. No argument gap found.",
+  "review_of": "S0437",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795527445.2675612,
+  "session": "pnp-desk/research/R2792",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The restriction monotonicity argument is correct. Given a minimum circuit for f, fixing r input wires to constants and propagating those constants through the circuit (evaluating gates whose inputs become constants, removing gates disconnected from the output) yields a circuit for f|rho with at most the same number of gates. Constant inputs can be supplied freely in the model (e.g., as gates (x,x) for constant-0 and (NOT (x,x)) for constant-1), so fan-in remains at most 2. The caveat about MCSP decision circuits is appropriately noted. No argument gap found.",
+  "review_of": "S0438",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795527445.2973716,
+  "session": "pnp-desk/research/R2792",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The distinct-cofactor synthesis bound is correct. The construction builds a multiplexer: compute each distinct cofactor g_i on the first m inputs; for each selector string a in {0,1}^r, build an equality indicator e_a(y) = 1 iff y=a using r NOT gates (shared) and r-1 AND gates per string; OR the indicators for each group A_i to get selector h_i; gate g_i with h_i (AND); XOR the k gated outputs. Since exactly one h_i is 1 on each y, the XOR equals the sum. Gate count: sum C_m(g_i) for cofactors; r shared NOTs; k(r-1) ANDs for indicators; at most 2^r-k ORs to combine indicators; k ANDs for gating; k-1 XORs to combine. Total <= sum C_m(g_i) + r + k(r-1) + (2^r-k) + k + (k-1) = sum C_m(g_i) + r + kr - k + 2^r - k + k + k - 1 = sum C_m(g_i) + r + kr + 2^r - 1 = sum C_m(g_i) + k(r+2^r) + 2^r - 1? Wait: k(r+2^r) = kr + k*2^r, but the expression has only one 2^r term. Let me recheck: r + k(r-1) + (2^r-k) + k + (k-1) = r + kr - k + 2^r - k + k + k - 1 = r + kr + 2^r - 1 = sum C_m(g_i) + r + kr + 2^r - 1. The claimed bound is sum C_m(g_i) + k(r+2^r) + 2^r - 1 = sum C_m(g_i) + kr + k*2^r + 2^r - 1. These differ unless k=1. There's an error in the stated bound: the indicator ORs take at most 2^r - k gates total (not per group), so the k*2^r term is wrong. The correct bound should be sum C_m(g_i) + r + kr + 2^r - 1. However, the proof sketch correctly describes the construction and the step count; the formula has a typo (k*2^r instead of 2^r). The core argument survives. I'll mark SURVIVED_REVIEW with this noted correction.",
+  "review_of": "S0439",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795527534.4436595,
+  "session": "pnp-desk/research/R2792",
+  "model": "muse-glimmer-30b",
+  "evidence": "The cofactor recombination construction is correct. Given circuits for f|_{x_i=0} and f|_{x_i=1} of sizes c0 and c1, build NOT x_i, then AND NOT x_i with output of c0 circuit, AND x_i with output of c1 circuit, then OR the two results. In a fan-in-two basis containing AND, OR, NOT (contained in all 16 gates), this uses 4 extra gates. The construction computes f on both cases by definition of cofactors, with no constants required. No argument gap found.",
+  "review_of": "S0462",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795528503.914617,
+  "session": "pnp-desk/research/R2792",
+  "model": "gpt-6-luna",
+  "evidence": "Direct topological-induction argument and count of the 2g fan-in slots; no computational evidence or assumption about MCSP pivotality is used.",
+  "id": "S0553",
+  "proved_step": "Lemma (pivotal-coordinate support lower bound). Let F:{0,1}^N->{0,1} be computed by a fan-in-two Boolean DAG with g gates, unrestricted fan-out, and arbitrary binary gate types. If for every coordinate i in {1,...,N} there exists x^(i) such that F(x^(i)) != F(x^(i) with bit i flipped), then g >= ceil(N/2). Proof: For each pivotal coordinate i, choose a witnessing pair differing only at i. Hence F depends on i. Any input coordinate on which a circuit's output depends must occur in at least one gate-input slot: if it occurs nowhere, induction in topological order shows every gate value and the output are independent of it. A g-gate fan-in-two DAG has exactly 2g input slots, so at most 2g distinct input coordinates can occur in those slots. Since all N coordinates affect F, N <= 2g, proving g >= ceil(N/2). The conclusion is also valid if the model permits a free input-wire output only when N<=1; for N>=2, dependence on every coordinate rules that case out. Applied to MCSP[m^c], this gives a size lower bound only if every truth-table coordinate is pivotal for that threshold predicate; this pivotality condition is not established here.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

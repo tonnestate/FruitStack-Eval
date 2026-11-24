@@ -5338,5 +5338,49 @@
   "evidence": "This lemma correctly characterizes the states of the minimal deterministic streaming automaton for a prefix language L=Pref(A). Proof: (1) If prefixes p and q reach the same deterministic state, then for every continuation u, the acceptance outcome after p+u equals that after q+u. Since acceptance after p followed by u is exactly pu\u2208L, this implies L_p = L_q. Thus distinct residuals require distinct states (lower bound). (2) The distinct right residuals L_p themselves form a valid DFA: transition \u03b4(L_p, b) = L_{pb} is well-defined because if L_p = L_q then {u: bu\u2208L_p} = {u: bu\u2208L_q} so L_{pb} = L_{qb}. A residual is accepting iff it contains \u03b5 (i.e., p\u2208L). Starting from L_\u03b5, after reading prefix p the state is L_p. The empty residual L_p=\u2205 is a rejecting sink (\u03b4(\u2205,b)=\u2205). This is exactly the Myhill-Nerode construction for prefix languages. No counterexample - standard automata theory, correctly applied.",
   "review_of": "S0517",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795526194.5890887,
+  "session": "pnp-desk/research/R2788",
+  "model": "minimax-m3.1-flash",
+  "evidence": "The proof is correct as stated. For each depth k, every nonempty right residual L_p has a length-k prefix p with at least one descendant in A. There are at most 2^k such prefixes. Moreover, the descendant sets A_p={a in A:a extends p} for different length-k prefixes are pairwise disjoint and nonempty, so at most M such prefixes occur. Hence at most min(2^k,M) nonempty residuals are represented at depth k. The Myhill-Nerode right-residual characterization says that the minimal DFA has one state per distinct residual. Summing over depths can only overcount a residual occurring at several depths, and the only possible empty residual adds one state. No hypothesis is missing beyond the stated finiteness and nonemptiness of A.",
+  "review_of": "S0518",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795528639.107093,
+  "session": "pnp-desk/research/R2788",
+  "model": "gpt-6-luna",
+  "id": "S0630",
+  "proved_step": "LEMMA (exact residual characterization for a finite fixed-length language). Let A be a nonempty subset of {0,1}^N and L=A, viewed as a language over {0,1}. For each prefix p of length k\u2264N define R_p={u\u2208{0,1}^{N-k}: pu\u2208A}. The minimal deterministic finite automaton for L has exactly 1+\u03a3_{k=0}^N |{R_p : p\u2208{0,1}^k, R_p\u2260\u2205}| states, where the additional state is the rejecting sink. Proof: For any prefix p, its right language {u:pu\u2208L} equals R_p, and is empty exactly when p is not a prefix of any word in A. Two prefixes p,p' are equivalent in the Myhill\u2013Nerode relation precisely when their right languages agree. If their lengths differ, their nonempty right languages contain words of different fixed lengths, so they cannot agree; an empty right language is shared by all non-prefixes and is the sink. At a fixed length k, equivalence is exactly equality of the sets R_p. Every nonempty R_p is reached by reading p, and the empty right language is reached by any non-prefix (or, if none exists, the transition from a length-N accepting state on either further bit). Thus the stated count is exact. Consequently, the upper bound in S0520 can be sharpened by replacing min(2^k,|A|) with the exact number of distinct nonempty suffix sets at level k; any two prefixes at that level with different residual sets require distinct automaton states. This is an exact characterization for explicit finite A only and gives no lower bound on the gate cost of an implicit EXT transition or on arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795528706.930912,
+  "session": "pnp-desk/research/R2788",
+  "model": "gpt-6-luna",
+  "id": "S0631",
+  "proved_step": "statement: LEMMA (residual derivative gives the exact EXT transition). Let N\u22651 and A\u2286{0,1}^N. At level k<N, for p\u2208{0,1}^k define R_p={u\u2208{0,1}^{N-k}:pu\u2208A}. For b\u2208{0,1}, define D_b(R_p)={u\u2208{0,1}^{N-k-1}:bu\u2208R_p}. Then R_{pb}=D_b(R_p). Hence the deterministic prefix automaton transition from residual state R_p on b goes to D_b(R_p) if nonempty, otherwise the rejecting sink. At level N both outgoing transitions go to the sink. Proof: for each u of length N\u2212k\u22121, u\u2208R_{pb} iff (pb)u\u2208A iff p(bu)\u2208A iff bu\u2208R_p iff u\u2208D_b(R_p). Thus equality holds pointwise. In particular, equal residual sets at the same level have equal b-successors. This characterizes the exact information and abstract update for an explicit finite language, but gives neither a compact encoding nor a low-cost update circuit for implicit EXT_{n,s}, and implies nothing about arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795528711.1047118,
+  "session": "pnp-desk/research/R2796",
+  "model": "gpt-6-luna",
+  "id": "S0632",
+  "proved_step": "statement: LEMMA (exact residual states of a finite word family). Let N be a nonnegative integer and let A be a nonempty subset of {0,1}^N. Let Pref(A) be the set of all prefixes of words in A, including the empty word, and let L=Pref(A). For each k in {0,...,N} and each length-k prefix p occurring in a member of A, define S(p)={u in {0,1}^{N-k}: pu in A}. Then the minimal DFA recognizing L has exactly 1 + sum_{k=0}^N |{S(p): p is a length-k prefix of a member of A}| states. Proof: For any such p, its left quotient p^{-1}L consists exactly of Pref(S(p)): pw is a prefix of some a in A iff w is a prefix of the unique length-(N-k) suffix u with pu=a. At a fixed k, the words of maximum length N-k in Pref(S(p)) are exactly S(p), so different S(p) yield different quotients. For nonempty S(p), Pref(S(p)) has maximum word length N-k; hence quotients from different depths k are distinct. Every prefix in L has one of these quotients, while any non-prefix has empty quotient and all such prefixes share the rejecting sink. By Myhill-Nerode, the stated count is exact. This is a theorem about explicitly specified finite word families; it makes no assertion about compact transition circuits for implicitly represented families.\nderivation: The quotient identity follows from the definition of prefix closure. Recovering the suffix set from maximum-length words proves injectivity within a level; maximum accepted continuation length distinguishes levels. The only quotient outside those represented by prefixes is the empty quotient, giving one sink.\nscope: All finite nonempty A subset {0,1}^N; exact DFA state count for Pref(A), no circuit complexity or PNP transfer claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795528826.6169221,
+  "session": "pnp-desk/research/R2788",
+  "model": "gpt-6-luna",
+  "id": "S0633",
+  "proved_step": "statement: LEMMA (residual languages are necessary streaming state information). Let L be any language of finite binary strings, and let a deterministic one-pass streaming machine decide, after each prefix p, whether p is a prefix of some word in L. Define R_p={z : pz is in L}. If two prefixes p,q lead the machine to the same internal state, then R_p=R_q. Consequently the machine has at least as many reachable states as there are distinct residual languages R_p. Proof: for every suffix z, deterministic processing from the same state on z has the same final outcome. The machine accepts pz exactly when z\u2208R_p, and accepts qz exactly when z\u2208R_q. Equality of states therefore implies, for every z, z\u2208R_p iff z\u2208R_q, hence R_p=R_q. Contrapositively, distinct residuals require distinct states. This is a necessary-information bound; it makes no gate-cost claim and does not imply that an arbitrary MCSP decision circuit exposes or updates the residuals efficiently.\nderivation: The state-equality implication follows by applying the same continuation z to equal deterministic states and using exact correctness on both completed streams.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
