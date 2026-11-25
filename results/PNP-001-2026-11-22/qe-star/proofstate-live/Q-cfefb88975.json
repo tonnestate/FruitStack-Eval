@@ -82,5 +82,50 @@
   "session": "pnp-desk/research/R2679",
   "model": "gpt-6-luna",
   "lemma": "Residual count bound with proof: Let N>=1, F subseteq {0,1}^N, and 0<=t<=N. For each length-t prefix u let R_u={z in {0,1}^{N-t}: uz in F}, and let D_t(F) count distinct residuals. Then D_t(F)<=min(2^t,|F|)+1. Proof: There are at most 2^t residuals because there are that many prefixes. For each distinct nonempty residual choose one inducing prefix u and one suffix z in it. The word uz belongs to F. Distinct residuals have distinct chosen prefixes, because a prefix determines a unique residual; therefore the chosen words are distinct and the number of nonempty residuals is at most |F|. There is at most one empty residual. The bound follows. Scope is fixed-length finite Boolean languages; no update-cost implication."
+ },
+ {
+  "at": 1795567676.4852297,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "statement_start: For every finite Boolean language F subseteq {0,1}^N and every deterministic exact one-pass decider M, the layered quotient by equal continuation behavior is a well-defined exact machine with D_t(F) states at cut t; its transitions are well-defined and it is minimal at each cut.\nproof: For each t-prefix u define R_u={z in {0,1}^{N-t}: uz in F}. At layer t identify u,v iff R_u=R_v. If R_u=R_v, then for either next bit b and every suffix z of length N-t-1, z\u2208R_{ub} iff bz\u2208R_u iff bz\u2208R_v iff z\u2208R_{vb}; hence R_{ub}=R_{vb}, so the transition on b is well-defined on equivalence classes. The initial class is R_empty=F. At layer N, the sole suffix is empty and acceptance is its membership in R_u, which equals the definition of F, proving exactness. If a deterministic exact machine merges u,v at layer t, every common continuation must receive the same decision, so R_u=R_v; therefore distinct residual classes cannot be merged, proving per-layer minimality and exactly D_t(F) quotient states.\nscope: Finite fixed-length Boolean languages; this canonicalization proves an abstract state-count characterization only. It gives no circuit/update-time bound for implementing quotient transitions, and no map into the paper's linear kernel (R,L,E).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567834.6266503,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement_start: Let M be a deterministic exact one-pass decider for F subseteq {0,1}^N with state sets Q_t, transitions \u03b4_t, and residual map \u03c0_t(q) equal to the continuation language after any prefix reaching q. If \u03c0_t and \u03c0_{t+1} have Boolean circuit implementations, then the canonical residual transition \u03c4_t satisfies \u03c0_{t+1}\u2218\u03b4_t(\u00b7,b)=\u03c4_t(\u03c0_t(\u00b7),b), and has circuit size at most size(\u03c0_{t+1})+size(\u03b4_t)+size(\u03c0_t) plus wire overhead.\nproof: For any reachable state q after prefix u of length t, define \u03c0_t(q)=R_u={z\u2208{0,1}^{N-t}:uz\u2208F}. This is well-defined: if two prefixes u,v reach the same state q, determinism gives identical accept/reject outcomes on every common continuation z, so R_u=R_v. Define \u03c4_t(R,b) by \u03c4_t(R,b)={z:bz\u2208R}. Then for every such q and every suffix z, z\u2208\u03c0_{t+1}(\u03b4_t(q,b)) iff the machine accepts after prefix ub followed by z iff bz\u2208\u03c0_t(q), iff z\u2208\u03c4_t(\u03c0_t(q),b). Thus the function identity holds on every reachable q. To implement the induced update on encoded residual labels, compute \u03c0_t(q), apply the original \u03b4_t(q,b) while retaining q, then compute \u03c0_{t+1} of the resulting state; alternatively a circuit for \u03c4_t can be composed directly with \u03c0_t. Circuit composition gives an implementation size at most size(\u03c0_t)+size(\u03c4_t)+O(1), while \u03c4_t equals the stated \u03c0_{t+1}\u2218\u03b4_t factorization on reachable states and therefore can be implemented by that composition with size at most size(\u03c0_{t+1})+size(\u03b4_t)+O(1). This is a conditional simulation theorem; without circuit bounds for \u03c0_t and \u03c0_{t+1}, it implies no small update cost.\nscope: Finite-horizon exact deterministic streaming machines. State encodings may be nonlinear and time-dependent, but the result assumes Boolean circuits for the residual extraction maps on reachable states. It gives no lower bound and no representation of arbitrary machines as a GF(p)-linear kernel.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567933.9824276,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement_start: For a deterministic exact one-pass machine M for F\u2286{0,1}^N, the residual transition T_t(R,b)={z:bz\u2208R} is well-defined on reachable residuals and agrees with the residual of the successor machine state.\nproof: Let Q_t be machine states reachable after t bits, \u03b4_t its transition, and let \u03c0_t(q) be the set of suffixes accepted from q. First, \u03c0_t is well-defined: if prefixes u,v reach the same q, determinism implies identical acceptance on every common suffix z, so R_u=R_v. For any reachable q and bit b, define R=\u03c0_t(q). For each z\u2208{0,1}^{N-t-1}, z\u2208\u03c0_{t+1}(\u03b4_t(q,b)) iff the machine accepts from q on input bz iff bz\u2208R iff z\u2208T_t(R,b), where T_t(R,b):={z:bz\u2208R}. Thus \u03c0_{t+1}(\u03b4_t(q,b))=T_t(\u03c0_t(q),b). In particular, if two reachable states q,q\u2032 have the same residual R, their successor states under b have the same residual T_t(R,b); hence T_t is a well-defined function on the set of reachable residuals.\nscope: Finite-horizon deterministic exact streaming machines. This proves existence and correctness of the induced transition on reachable residuals. It makes no circuit-size or update-time claim: implementations of \u03c0_t on machine-state inputs do not supply an inverse encoding or circuit on residual encodings. No general lower bound or P vs NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567986.9927542,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "statement_start: For every N\u22651, every F\u2286{0,1}^N, and every cut 0\u2264t<N, encode each residual R\u2286{0,1}^{N\u2212t} by its incidence vector v_R\u2208{0,1}^{2^{N\u2212t}}, indexed lexicographically by suffixes. The residual transition T_t(R,b)={z:bz\u2208R} is implemented by a coordinate projection using no Boolean gates, with output width 2^{N\u2212t\u22121}.\nproof: Let input coordinates be indexed by all suffixes w\u2208{0,1}^{N\u2212t}, and set (v_R)_w=1 iff w\u2208R. For each z\u2208{0,1}^{N\u2212t\u22121}, define y_z=(v_R)_{bz}. Then y_z=1 iff bz\u2208R, iff z\u2208T_t(R,b), so y is exactly the incidence vector of the successor residual. Each output bit copies one input bit, hence the update is a coordinate projection and uses zero Boolean gates when wires and coordinate selection are free. The encoding width is 2^{N\u2212t}; this gives no succinct streaming machine or polynomial-resource algorithm.\nscope: Finite Boolean languages and cuts; full residual truth-table encoding. This bounds transition-gate cost only, not encoding width or construction cost, and implies no lower bound for other encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568333.7198548,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "For every N>=1, F subseteq {0,1}^N, prefix u of length t<N, and bit b in {0,1}, let R_u={z in {0,1}^{N-t}: uz in F}. Then R_{ub}={z in {0,1}^{N-t-1}: bz in R_u}. Hence the residual indicator after reading b is the coordinate restriction g -> (z -> g(bz)), a linear map over every field. Proof: for each z, z in R_{ub} iff ubz in F iff bz in R_u. This is an exact layered representation, without any circuit-cost or update-time guarantee.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

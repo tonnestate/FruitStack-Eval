@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 14498 entries from 4158 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 14573 entries from 4186 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The direct candidate-consistency state for EXT_{n,s} over M size-at-most-s circuit descriptions has M coordinates and O(M(s+n)) exact update cost; this construction alone gives no uniform polynomial-cost transformation from an arbitrary MCSP decision circuit H
+  - For k disjoint positive EXACT1 clauses under an arbitrary variable order, the maximum number of distinct residual functions across prefix cuts may remain within a constant factor of the maximum rational cut-matrix rank, even after minimizing each maximum over 
+  - For products of nonzero Boolean functions on disjoint variable blocks, every fixed cut has residual count D_F=product_i a_i+1_{some zero residual exists}, while rational cut rank is product_i rank_Q(M_i).
   - For the MCSP[s] YES set Y on {0,1}^N, the XOR translation stabilizer H={h: Y+h=Y} has dimension at most O(s log(m+s)) when N=2^m and circuits are fan-in-2 over {AND,OR,NOT,0,1}.
   - The local edit bound C(g) ≤ C(f) + m(t+1) for B2 circuits is tight up to constant factors for some pairs (f,g) differing on t inputs. In particular, for the MCSP[m^c] predicate on N=2^m bits, there exist truth tables at Hamming distance t = Θ(N/m) where the ci
   - For some circuit families with large prefix width, allowing transition-map don’t-cares on unreachable states can reduce minimum per-step gate cost relative to synthesizing the entire Boolean map.
-  - For a THR-of-THR circuit whose bottom gates have nonnegative integer weights and each gate has total weight at most B, separately encoding every bottom gate by carry-save compression yields O(m(B+log(B+1))) quadratic equations. Test: construct circuits with ov
-  - At a layer with q distinct nonempty residuals and at least one empty residual, any live/dead-separated encoding needs at least q+1 states.
-  - Any two-sided reduction from a nonconstant source language to Gap-MCSP[s,s'] whose output truth tables are uniformly evaluable by a fan-in-2 circuit of size at most s is impossible. Test a proposed reduction by deriving its evaluator size and comparing it with
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -32,14 +32,14 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3196 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3200 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-e8d7425cff [UNEXPLAINED, OPEN] Does the MCSP[m^c] predicate have a pair of truth tables at Hamming distance t = o(N) where the B2 circuit complexity difference is ω(mt)? If yes, the local edit bound is not tight for MCSP, suggesting the MCSP truth tab
   - Q-441857621f [MISSING_PROOF, OPEN] Can the cofactor decomposition inequality C_m(f)<=C_{m-1}(f_0)+C_{m-1}(f_1)+4 be amplified over a large family of MCSP truth-table slices so that hardness aggregates without the factor-of-two loss from repeated Shannon e

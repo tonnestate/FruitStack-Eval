@@ -1209,5 +1209,78 @@
   "proved_step": "statement_start: Repaired bounded-crossing EXACT1 #SAT lemma. Let F be a positive EXACT1 3-CNF on n variables and m clauses, with a fixed variable order whose every prefix cut has at most B crossing clauses. Then exact #SAT(F) is computable in O((n+m) + n * 3^B * B) arithmetic operations, storing at most 3^B+1 states per level. Proof: Preprocess to find, for each cut level k, the set of clauses crossing that cut (size \u2264 B). Maintain the state set at level k as triples (flag, common_conjunct_id, crossing_conditions) with integer weights. The common_conjunct is just the set of clauses wholly in unprocessed variables; it can be represented by its first clause index and size (or a pointer to a precomputed list), updated in O(1) amortized when moving to level k+1. The failure flag is a single bit. The crossing_conditions are a tuple of at most B entries, each taking one of {0, 1, fixed-0, fixed-1, false} (3 possibilities per clause, plus the flag handling). Thus at most 3^B non-flag tuples plus the single zero state. Transition from level k to k+1 for one state examines only the \u2264B crossing clauses at level k, updates their conditions based on the next variable's value (O(B) work), and computes the new common_conjunct_id for level k+1 (O(1) by precomputed table). Summing weights of identical child states takes O(3^B log 3^B) = O(B 3^B) per level via hashing. Total work: preprocessing O(n+m), main loop n levels * O(3^B * B) = O(n 3^B B). At level n, sum weights of states with flag=0 and no crossing clauses (constant 1) to get #SAT(F). This achieves the stated bound with no m factor in the main loop.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795566853.2627404,
+  "session": "pnp-desk/research/R3057",
+  "model": "gpt-6-luna",
+  "id": "S0143",
+  "proved_step": "statement: Cut composition lemma for products on disjoint blocks. Let f_i be nonzero Boolean functions on pairwise disjoint blocks and fix a variable cut. Let R_i be each block's set of residual Boolean functions, a_i=|R_i\\{0}|, and z_i=1 iff 0 is in R_i. For F=product_i f_i, the number of distinct residuals is D_F=product_i a_i + 1_{exists i:z_i=1}. If M_i is the cut matrix of f_i over Q, then M_F is the Kronecker product of the M_i and rank_Q(M_F)=product_i rank_Q(M_i). Proof: Prefix assignments on disjoint blocks independently realize every tuple in the product of the R_i. Tuples containing a zero residual all give zero, attainable iff some z_i=1. For all-nonzero tuples, if two tuples differ at block j, choose a suffix assignment where their distinct Boolean residuals differ; for each other block choose a suffix assignment where its selected nonzero residual equals 1. The combined suffix distinguishes the products, proving the residual-count formula. The function table factors by blocks, so after ordering rows and columns by block assignments its cut matrix is the Kronecker product of the block matrices; rank over Q is multiplicative for Kronecker products.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795567001.4534159,
+  "session": "pnp-desk/research/R3057",
+  "model": "gpt-6-luna",
+  "id": "S0144",
+  "proved_step": "statement: Boundary-demand DP for positive EXACT1 3-CNF. Let F have n variables, m clauses, each clause containing three distinct positive variables. Fix a variable order such that at every prefix at most B clauses have both an assigned and an unassigned variable. Then #SAT(F) is computable using O(nB2^B + n + m) arithmetic operations and O(2^B) weighted states per level. Proof: Process variables in order. A state records, for each currently crossing clause, its residual demand r=1-t, where t is the number of true variables already assigned in that clause; retain only states with r in {0,1}. Its weight is the number of processed assignments producing that vector. For each state and next-variable bit, update the demands of incident crossing clauses and clauses that start at this variable. Reject if a demand leaves {0,1}; when a clause ends, reject unless its demand is 0. The resulting vector records exactly the crossing clauses' demands, and equal vectors are merged by adding weights. Inductively, the weight invariant holds because each processed assignment has a unique previous state and next bit, and the transition rejects exactly assignments that already violate a completed or partial EXACT1 constraint. At most B clauses cross a cut, hence at most 2^B states. Updating and merging each state takes O(B) operations using the at-most-B active clauses, so each of n levels costs O(B2^B). Clause incidence preprocessing and final summation cost O(n+m). At the final level all clauses are completed, and the accumulated accepted weight is exactly #SAT(F).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795567194.8630724,
+  "session": "pnp-desk/research/R3057",
+  "model": "gpt-6-luna",
+  "id": "S0145",
+  "proved_step": "statement: Repaired boundary-demand DP bound for positive EXACT1 3-CNF. Let F have n variables and m clauses, each clause containing three distinct positive variables. Fix an order with at most B crossing clauses at every cut. Then #SAT(F) is computable in O((nB+m)2^B) arithmetic operations, with O(2^B) weighted states per level. Process variables in order; each state records the residual demand r=1-t for each crossing clause, where t is its assigned true-variable count, retaining only r in {0,1}. Store the number of prefixes yielding each state. On each next bit, subtract it from every incident clause's residual; reject negative residuals, reject a clause ending with nonzero residual, and retain residuals of clauses still crossing. Clauses first touched at this variable start at residual 1 before the same update. Merge equal states by summing weights. Inductively, each state weight counts exactly the valid prefixes with that boundary residual vector: transitions reject precisely those prefixes that already exceed a clause's target or finish a clause incorrectly. Thus summing final weights gives #SAT(F). At most B boundary clauses and two residual choices per clause give at most 2^B states. Updating/copying a state costs O(B) per state transition; clause incidences and end checks cost O(deg(v)) per transition at variable v. Summed over levels this is O((nB+m)2^B), since sum_v deg(v)=3m. Space is O(2^B) weighted states per level.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795567257.0621285,
+  "session": "pnp-desk/research/R3057",
+  "model": "gpt-6-luna",
+  "id": "S0146",
+  "proved_step": "statement: Boundary-demand DP for positive EXACT1 3-CNF with explicit cut transitions. Let F have n variables and m clauses, each a 3-element subset of variables, and let an order have at most B crossing clauses at every cut. For each cut k let A_k be clauses with at least one variable among the first k positions and at least one among the remaining positions. A state after k variables is a map A_k->{0,1}, recording 1 minus the number of true assigned variables in each clause. Initialize with the empty map. At step k+1, introduce clauses in A_{k+1}\\A_k with demand 1; for each state and bit b, subtract b from demands of clauses in A_k containing the new variable, and from newly introduced clauses containing it. Reject any negative demand. For each clause in A_k\\A_{k+1}, compute its demand after subtracting b if incident and reject unless it is zero. Discard ending clauses and retain demands restricted to A_{k+1}; merge identical maps by adding weights. The invariant is that each state weight counts exactly those assignments to the first k variables satisfying every clause fully contained in that prefix and inducing the recorded residual demands on crossing clauses. It holds initially. At a transition, each clause either was already closed (and is absent), remains crossing, starts at this variable, or ends at this variable; the stated update handles each case and rejects exactly when a clause has already exceeded its target or closes with nonzero demand. Each prefix assignment has a unique prior state and next bit, so merged weights preserve the invariant. At k=n no clauses cross and the total surviving weight is #SAT(F). There are at most 2^B states. Updating maps and checking at most B active clauses costs O(B) per transition; scanning incident clauses costs O(deg(v)) per transition. Thus arithmetic operations are O((nB+m)2^B), because sum_v deg(v)=3m. Space is O(2^B) weighted states per level.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795568039.29691,
+  "session": "pnp-desk/research/R3069",
+  "model": "gpt-6-luna",
+  "id": "S0147",
+  "proved_step": "statement: For every k>=1, let F_k be the conjunction of k positive EXACT1 clauses on pairwise disjoint triples of variables. Under the variable order listing the three variables of each clause consecutively, every prefix cut has at most two distinct residual functions of F_k. Consequently F_k has an ordered binary decision diagram of width at most 2 in this order.\nproof: Fix a prefix cut. Every clause is wholly in the prefix, wholly in the suffix, or is the unique clause whose three variables contain the cut, since clauses are listed consecutively. A wholly assigned clause that is not satisfied makes the residual identically zero; a satisfied wholly assigned clause contributes no further condition. If there is a crossing clause, the prefix assignment induces one residual predicate on its remaining variables, possibly zero. Every nonzero residual is that predicate conjoined with the fixed conjunction of wholly unassigned EXACT1 clauses. Thus there is at most one nonzero residual and possibly the zero residual. If there is no crossing clause, the residual is either the suffix conjunction or zero. In either case there are at most two residuals. The canonical ordered binary decision diagram width at a cut equals the number of distinct residual functions at that cut.\ngap: This proves that for disjoint EXACT1 clauses the minimum-over-orders maximum residual width is at most 2, for every k. It does not establish the corresponding minimum cut-rank or close the general G0001 gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568092.6787477,
+  "session": "pnp-desk/research/R3069",
+  "model": "gpt-6-luna",
+  "id": "S0148",
+  "proved_step": "statement: For every k>=1, let F_k be the conjunction of k positive EXACT1 clauses on pairwise disjoint triples. The minimum, over variable orders, of the maximum rational cut-matrix rank of F_k equals 2.\nproof: Upper bound: order variables clause by clause. At any prefix cut, completed clauses contribute either zero if violated or factor 1 if satisfied; untouched clauses form a fixed suffix factor. At most one clause is split. Every cut-matrix row is therefore zero or the product of the fixed suffix truth table of untouched clauses and a residual row of the split clause. For one split EXACT1 clause, nonzero residual rows arise only when the assigned part has zero or one true variable, so there are at most two distinct row vectors. Hence every cut rank is at most 2. Lower bound: in any variable order, consider the cut immediately after its first variable x, in clause C. The row x=1 is nonzero exactly when the other two variables of C are both 0 and all other clauses are satisfied. The row x=0 is nonzero exactly when exactly one of those two variables is 1 and all other clauses are satisfied. Both rows are nonzero and have disjoint supports, so they are linearly independent over Q. This cut has rank at least 2, proving the minimum maximum rank is exactly 2.\ngap: This computes the exact minimum maximum rational cut rank for the disjoint EXACT1 block family. It does not settle the general minimum-over-orders residual-count versus cut-rank gap G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568239.1751504,
+  "session": "pnp-desk/research/R3069",
+  "model": "gpt-6-luna",
+  "id": "S0149",
+  "proved_step": "statement: For every Boolean function f:{0,1}^n->{0,1}, every variable order, and every prefix cut, if the cut matrix M over Q has rank r, then the number of distinct residual functions at that cut is at most 2^r. Consequently, if every cut in the order has rank at most r, the ordered branching program obtained by merging equal residual functions has width at most 2^r at every level.\nproof: Each prefix assignment gives a Boolean row of M in its rational row space V, whose dimension is r. Choose r coordinate positions such that projection from V onto those coordinates is injective: take pivot columns of a matrix whose rows form a basis of V. Distinct rows therefore have distinct projections. Each projected row is an r-bit string, so there are at most 2^r distinct Boolean rows, equivalently residual functions. At each level, merge prefixes with the same residual. Extending either prefix by the same next bit gives the same next residual, so transitions are well-defined; the terminal residual determines f's value. Thus the merged ordered branching program has the asserted width.\ngap: This per-cut bound does not establish a family with growing minimum-over-orders width-to-rank gap, nor does it bound the cost of constructing or comparing residuals from a circuit description. G0001 remains open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
  }
 ]

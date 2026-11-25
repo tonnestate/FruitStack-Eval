@@ -6457,5 +6457,85 @@
   "evidence": "Computational verification with M=3 circuits on N=8 domain points, k=2, r=3: the set of indices retained from A(p) by matching u on positions k..k+r-1 exactly equals the set matching the concatenated prefix pu on the first k+r positions, for two different prefixes (from circuit 0 and circuit 1). The equivalence holds because agreement on disjoint contiguous intervals [0,k-1] and [k,k+r-1] is logically equivalent to agreement on their union [0,k+r-1] for any function. The gate count O(r \u03a3 s_j + Mr) correctly accounts for explicit evaluation of each of M circuits (size s_j) on each of r new inputs, plus Mr comparisons against u.",
   "review_of": "S0721",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795566734.356443,
+  "session": "pnp-desk/research/R3060",
+  "model": "gpt-6-luna",
+  "id": "S0759",
+  "proved_step": "statement: CANDIDATE-MASK EXT UPDATE LEMMA. Let C be a finite family of Boolean circuits, each computing a string w_C in {0,1}^N. After reading prefix p of length t, encode q_C=1 iff w_C begins with p. On reading b at position t, update q'_C=q_C AND [w_C(t)=b]. This exactly encodes candidates consistent with pb and is implementable by O(|C|) fan-in-two Boolean gates when the family and position are hardwired. Proof: A candidate matches pb iff it matched p and its position-t bit equals b, giving the stated bitwise update. Since w_C(t) is hardwired, comparison is b or NOT b; one AND gate per candidate suffices. Therefore the updated mask is exact and costs O(|C|) gates. For the family of all size-at-most-s circuit descriptions this gives an exact EXT prefix process but no compact-state transition bound, since the mask has one bit per description.\nderivation: Maintain one candidate bit per circuit description. Filter by the next hardwired output bit and prove the filtered set equals precisely those descriptions whose output begins with the longer prefix.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795566779.837023,
+  "session": "pnp-desk/research/R3052",
+  "model": "gpt-6-luna",
+  "id": "S0760",
+  "proved_step": "statement: AFFINE RESIDUAL COUNT AND TRANSITION TEST. Let A=[A_<t|D_t] be an r by N matrix over GF(2), c in GF(2)^r, and F={x:Ax=c}. For prefix p in GF(2)^t, let R_t(p)={z:D_t z=c-A_<t p}. Then R_t(p) is nonempty iff c-A_<t p lies in im(D_t), and R_t(p)=R_t(q) iff A_<t p=A_<t q. The number of distinct nonempty residuals is either zero or 2^d, where d=dim(im(A_<t) intersect im(D_t)); it is nonzero exactly when c lies in im(A_<t)+im(D_t). Proof: For fixed D_t, fibers with distinct right-hand sides are disjoint, hence equal iff the right-hand sides are equal. A right-hand side c-A_<t p is attainable exactly when A_<t p lies in c+im(D_t). If this intersection is nonempty, it is an affine translate of im(A_<t) intersect im(D_t), so it contains 2^d distinct right-hand sides, each giving one distinct residual. Finally, membership is tested by V^T(c-A_<t p)=0 for a basis V of ker(D_t^T), using at most r parity tests and O(r(t+1)) fan-in-two gates. This applies only to affine solution sets and does not bound transitions for arbitrary EXT or MCSP circuits.\nderivation: Fibers of a fixed linear map are disjoint unless their right-hand sides coincide; the attainable right-hand sides form the intersection of an affine coset with the prefix image, whose nonempty size is the size of their linear-space intersection.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795566873.8868973,
+  "session": "pnp-desk/research/R3052",
+  "model": "gpt-6-luna",
+  "id": "S0761",
+  "proved_step": "statement: AFFINE RESIDUAL FIBER COUNT. Let A=[B|D] be an r by N matrix over GF(2), let c be in GF(2)^r, and fix a cut with B the first t columns. For each prefix x in GF(2)^t, the residual set R_x={z in GF(2)^(N-t): Dz=c-Bx} is either empty or has cardinality 2^d, where d=dim(im(B) intersect im(D)). Proof: For any y, the solution set {z:Dz=y} is empty if y is not in im(D); otherwise it is a coset of ker(D), hence has size 2^(N-t-rank(D)). Across prefixes, the right sides c-Bx range over the affine coset c+im(B). The nonempty fibers therefore correspond to (c+im(B)) intersect im(D). If nonempty, this intersection has size 2^d because im(B) intersect im(D) is its translation space. Every rhs in it contributes 2^(N-t-rank(D)) suffixes. This proves the exact formula |R_x| is either 0 or 2^(N-t-rank(D)); and the number of prefixes with nonempty residual is either 0 or 2^(rank(B)-d), depending on c+im(B) meeting im(D).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795566919.5652578,
+  "session": "pnp-desk/research/R3052",
+  "model": "gpt-6-luna",
+  "gap": "The prior affine residual-count statements confused the size of a suffix fiber with the number of prefixes having completions. The corrected formulas above repair that distinction; the connection to arbitrary EXT/MCSP transition-cost lower bounds remains open.",
+  "gap_id": "G0191",
+  "id": "S0762",
+  "proved_step": "statement: AFFINE RESIDUAL FIBER AND PREFIX COUNT. Let A=[B|D] be an r by N matrix over GF(2), with B having t columns, and let c be in GF(2)^r. For x in GF(2)^t let R_x={z in GF(2)^(N-t): Dz=c-Bx}. Every nonempty R_x has size 2^(N-t-rank(D)). The number of x with R_x nonempty is zero if c is not in im(B)+im(D), and otherwise is 2^(t-rank(B)+d), where d=dim(im(B) intersect im(D)). Proof: D z=c-Bx is solvable exactly when c-Bx belongs to im(D), equivalently c belongs to im(B)+im(D). For any solvable right-hand side, its solution set is a coset of ker(D), so it has 2^(N-t-rank(D)) elements. Define L={y in im(B): c-y is in im(D)}. If nonempty, L is a translate of im(B) intersect im(D), hence has size 2^d. The linear map B:GF(2)^t -> im(B) is onto and every fiber has size 2^(t-rank(B)); thus the number of prefixes mapping into L is 2^(t-rank(B)+d).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567004.4451895,
+  "session": "pnp-desk/research/R3052",
+  "model": "gpt-6-luna",
+  "gap": "The affine formulas exactly count suffix completions and extendible prefixes for linear systems. Whether this yields any transition-cost lower bound for general EXT/MCSP remains open.",
+  "gap_id": "G0192",
+  "id": "S0763",
+  "proved_step": "statement: AFFINE RESIDUAL FIBER AND PREFIX COUNT. Let A=[B|D] be an r by N matrix over GF(2), with B having t columns, and let c be in GF(2)^r. For x in GF(2)^t let R_x={z in GF(2)^(N-t): Dz=c-Bx}. Every nonempty R_x has size 2^(N-t-rank(D)). The number of x with R_x nonempty is zero if c is not in im(B)+im(D), and otherwise is 2^(t-rank(B)+d), where d=dim(im(B) intersect im(D)). Proof: For fixed x, the equation Dz=c-Bx is solvable iff c-Bx belongs to im(D). If solvable, its solutions form a coset of ker(D), of size 2^(N-t-rank(D)). Let L={y in im(B): c-y in im(D)}. L is empty unless c belongs to im(B)+im(D); when nonempty, L is a translate of im(B) intersect im(D), so |L|=2^d. The map B:GF(2)^t -> im(B) is onto and each fiber has size 2^(t-rank(B)), so the number of prefixes mapping into L is 2^(t-rank(B)+d).\nderivation: Apply the kernel-coset count to each solvable suffix equation; then count prefix preimages of the compatible affine intersection L.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0191",
+  "closes_valid": false
+ },
+ {
+  "at": 1795567811.8459327,
+  "session": "pnp-desk/research/R3068",
+  "model": "gpt-6-luna",
+  "id": "S0764",
+  "proved_step": "statement: RESIDUALS FORCE DISTINCT SAME-LEVEL STATES. Let L be any subset of {0,1}^N and fix t in {0,...,N}. For p in {0,1}^t define R_t(p)={z in {0,1}^{N-t}: pz in L}. In every exact deterministic left-to-right streaming decider for L, if p and q reach the same state after t bits, then R_t(p)=R_t(q). Therefore at least |{R_t(p):p in {0,1}^t}| distinct states are necessary at level t. Proof: if the residual sets differ, choose z in their symmetric difference. From the same state, the deterministic continuation on z is identical, so the algorithm gives the same answer on pz and qz, contradicting exact decision since exactly one is in L. This proves the exact information requirement at a fixed level; it gives no real-gate transition-cost bound and no transfer to arbitrary MCSP decision circuits.\nderivation: At a fixed prefix length, the continuation behavior from a state is a function only of that state and the remaining suffix. Exactness identifies this function with the residual-language membership function. Equal states therefore imply equal residual languages; taking the contrapositive gives the state lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568093.7036805,
+  "session": "pnp-desk/research/R3068",
+  "model": "gpt-6-luna",
+  "gap": "The direct construction has exponentially many coordinates in s and does not answer whether compact MMW prefix-automaton transitions can be expressed by bounded real-gate operations on an arbitrary MCSP decision circuit H_C. Find a compact representation with polynomial-in-s state and charged update cost, or establish a limitation.",
+  "gap_id": "G0193",
+  "id": "S0765",
+  "proved_step": "statement: EXPLICIT CANDIDATE-FILTER UPDATE FOR EXT. Fix n,s and a finite encoding family C_{n,s} of all Boolean circuits of size at most s, with M descriptions and a defined output at each truth-table index i in [N], N=2^n. For prefix p of length t, store the M-bit vector v_p with v_p[j]=1 iff description C_j outputs p_i at every i<t. On reading b at index t, update v_{pb}[j]=v_p[j] AND [C_j(x_t)=b], where x_t is the t-th input in the fixed truth-table order. The initial vector is all ones; each update is computable by a fan-in-two circuit of O(M(s+n)) gates given the descriptions and t hardwired; and EXT_{n,s}(p)=1 iff some coordinate of v_p is 1. Proof: the invariant is exactly consistency with all previously read bits; adjoining b imposes precisely the additional equality C_j(x_t)=b. Induction on t proves the invariant, and at t=N nonemptiness is equivalent to the existence of a size-at-most-s circuit with that truth table. This exact construction does not yield a polynomial-in-s transition bound or an arbitrary-MCSP-circuit bridge.\nderivation: Enumerate all size-at-most-s circuit descriptions; maintain one consistency bit per description and filter it by that circuit's output on the newly revealed truth-table input.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568150.9453707,
+  "session": "pnp-desk/research/R3068",
+  "model": "gpt-6-luna",
+  "id": "S0766",
+  "proved_step": "statement: EXT RESIDUALS ARE SETS OF CONSISTENT CIRCUIT SUFFIX TABLES. Fix n,s, let N=2^n and let C_s be the finite set of circuit descriptions of size at most s. For 0<=t<=N and p in {0,1}^t, define A_p={C in C_s : the first t truth-table bits of C equal p} and T_C^(t) as the suffix of C's truth table after those t bits. For EXT_{n,s}(p)=1 iff p is a prefix of a size-at-most-s circuit truth table, its residual R_t(p)={z in {0,1}^{N-t}: pz in EXT_{n,s}} satisfies R_t(p)={T_C^(t): C in A_p}. Thus R_t(p)=R_t(q) iff the sets of distinct suffix tables generated by A_p and A_q are equal, even if A_p and A_q differ as sets of descriptions. Hence the number of distinct residuals at level t is at most min(2^{|C_s|},2^{2^{N-t}}). Proof: z belongs to R_t(p) iff pz is the truth table of some C in C_s, which is equivalent to C in A_p and T_C^(t)=z. Taking all such z gives the equality. The equivalence and cardinality bounds follow immediately from equality of sets and the two ambient set sizes. This gives an exact semantic quotient of the candidate-filter state; it does not give a compact representation or a real-gate transition bound for arbitrary MCSP circuits.\nderivation: For each prefix p, existential completion by a size-at-most-s circuit is exactly membership in the set of suffix truth tables of circuits consistent with p. Quotient consistent descriptions by equality of their suffix tables; residual equality is equality of the resulting sets. Count subsets in either finite universe.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
