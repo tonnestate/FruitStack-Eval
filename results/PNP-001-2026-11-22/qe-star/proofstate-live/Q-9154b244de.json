@@ -428,5 +428,51 @@
   "evidence": "Independent exact counterexample: m=3, c=2, t=3, support A={(1,0,0),(0,1,0),(0,0,1)}. Each of the three zero-cofactors has support size 2, not 3, so no zero-restriction preserves support. Thus the claimed support-preserving zero-restriction conclusion fails. The averaging step only yields at most t/2 inputs with x_i=1; it does not yield zero such inputs.",
   "review_of": "S0030",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795563142.18619,
+  "session": "pnp-desk/research/R3033",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction correct: t minterms each using m-1 binary AND gates, combined with t-1 binary OR gates, total tm-1. Free negations shared. Boundary cases m=1, t=1 give 0 gates. No counterexample.",
+  "review_of": "S0042",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563142.223923,
+  "session": "pnp-desk/research/R3033",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: restriction to m-k variables, u accepting assignments. Each minterm uses m-k-1 AND gates, u minterms with u-1 OR gates, total u(m-k)-1. Matches S0042 with m->m-k, t->u.",
+  "review_of": "S0043",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563142.2470324,
+  "session": "pnp-desk/research/R3033",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Restriction cannot increase support (t' <= t <= (m-1)^(c-1)). DNF uses t'(m-1)-1 <= (m-1)^(c-1)*(m-1)-1 = (m-1)^c-1. For t'=0, constant-zero uses 0 gates. All correct.",
+  "review_of": "S0045",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563749.5334303,
+  "session": "pnp-desk/research/R3033",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0052",
+  "proved_step": "statement_start: REPAIRED D2 OBSTRUCTION THEOREM (Weight-(c-1) Survival Under All Zero-Restrictions): For MCSP[m^c] with integer c >= 2 and threshold s = m^c over the full fan-in-2 basis B2 (AND, OR, NOT), define the weight-(c-1) function W_{m,c-1}: {0,1}^m -> {0,1} by W_{m,c-1}(x) = 1 iff sum_i x_i = c-1. Then:\nproof: Proof. B2 model: each gate (AND, OR, NOT) costs 1, fan-in 2, negations NOT free.\n1. W_{m,c-1} is YES for MCSP[m^c]. Support t = C(m, c-1) <= m^(c-1). Monotone DNF: C(m, c-1) minterms, each (c-1) vars, (c-2) ANDs, (C(m,c-1)-1) ORs. Total = C(m,c-1)*(c-1)-1 <= m^c-1. Verified: c=2: m<=m^2; c=3: m(m-1)<=m^3; c>=4: <=m^(c-1)<=m^c.\n2. Every x_i=0 gives W_{m-1,c-1}. Support C(m-1,c-1). Size = C(m-1,c-1)*(c-1)-1 <= (m-1)^c-1. Verified: c=2: m-1<=(m-1)^2; c=3: (m-1)(m-2)<=(m-1)^3; c>=4: <=(m-1)^(c-1)<=(m-1)^c.\n3. Obstruction: W_{m,c-1} survives EVERY zero-restriction as YES for MCSP[(m-1)^c]. Zero-restriction gate elimination cannot force gate consumption on this subclass - the function remains YES at every step, so the argument (which requires eventual NO) fails.\nCounterexample to S0030: weight-1 vectors had t=m but only t-1 survived; W_{m,c-1} has t=C(m,c-1) and ALL zero-cofactors survive as YES.\nComputational verification: experiment cm-e90f685c0e474a2f confirms for m=3..7, c=2..4.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795564028.7140958,
+  "session": "pnp-desk/research/R3033",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0053",
+  "proved_step": "statement_start: REPAIRED D2 OBSTRUCTION THEOREM (Corrected Cofactor Support Bound for MCSP[m^c]): For MCSP[m^c] with integer c >= 2 and threshold s = m^c over the full fan-in-2 basis B2 (AND, OR, NOT), let f: {0,1}^m -> {0,1} have support t >= 1. Then:\nproof: Proof. B2 model: each gate (AND, OR, NOT) costs 1, fan-in 2, input negations free.\n\n1. DNF upper bound for f: f has at most t minterms, each of m literals, combined with t-1 OR gates. Total gates <= t*m - 1. If t <= floor((m^c + 1)/m), then t*m - 1 <= m^c, so f is a YES instance for MCSP[m^c]. This bound is tight for the free-negation convention.\n\n2. Cofactor support bound (exact): For any coordinate i in [m], let t_0 = support(f|x_i=0) and t_1 = support(f|x_i=1). Then t_0 + t_1 = t. Hence max(t_0, t_1) >= ceil(t/2). At least one cofactor (zero or one) has support at least ceil(t/2).\n   - This is tight: for the weight-1 function on m=3 (support {(1,0,0),(0,1,0),(0,0,1)}), every zero-cofactor has support 2 = ceil(3/2), every one-cofactor has support 1. No cofactor preserves the full support t=3.\n   - The original S0023 claim \"exists zero-restriction with support t\" is FALSE; the correct guarantee is only ceil(t/2).\n\n3. Threshold comparison for restricted function: Suppose t <= m^(c-1) so f is YES for MCSP[m^c]. Take a coordinate i where the larger cofactor has support t' >= ceil(t/2). The restricted function f' on m-1 variables has DNF size <= t'*(m-1) - 1.\n   We need t'*(m-1) - 1 <= (m-1)^c for f' to be YES for MCSP[(m-1)^c].\n   Since t' <= t <= m^(c-1), the worst case is t' = m^(c-1). Then t'*(m-1) = m^(c-1)*(m-1) = m^c - m^(c-1).\n   Compare to (m-1)^c = m^c - c*m^(c-1) + O(m^(c-2)).\n   For c >= 2 and sufficiently large m: m^c - m^(c-1) > m^c - c*m^(c-1), so the DNF bound EXCEEDS the MCSP[(m-1)^c] threshold.\n   Thus the restricted function is NOT guaranteed to be YES for MCSP[(m-1)^c].\n\n4. Obstruction conclusion: The small-support subclass (t <= m^(c-1)) does NOT provide a clean zero-restriction obstruction because:\n   (a) Zero-cofactors need not preserve support (only ceil(t/2) is guaranteed for some cofactor, not necessarily the zero one).\n   (b) Even when a large cofactor exists, the threshold (m-1)^c shrinks faster than the DNF bound, so the restricted function may become NO for the smaller threshold.\n   (c) The weight-(c-1) function W_{m,c-1} (S0052) survives ALL zero-restrictions as YES, but this is a special symmetric function, not the general small-support class.\n\n5. What this means for gate elimination: A zero-restriction gate elimination argument that requires (i) a zero-restriction preserving the MCSP answer and (ii) consuming at least one gate per step, cannot be applied uniformly to the small-support subclass. The weight-(c-1) obstruction (S0052) shows an even stronger survival: a specific function where EVERY zero-restriction remains YES, so no gate can be forced out via zero-restrictions alone.\n\nComputational verification: experiment cm-e90f685c0e474a2f confirms for m=3..7, ",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

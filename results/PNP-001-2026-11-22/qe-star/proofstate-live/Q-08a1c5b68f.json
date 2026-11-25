@@ -5347,5 +5347,117 @@
   "proved_step": "statement: Shared-minterm transition upper bound. Let S\u22650 and let F:{0,1}^S\u00d7{0,1}\u2192{0,1}^S be any total transition map. With NOT and constants free, and fan-out free, F has a circuit of at most 2^(S+1)\u00b7S + S\u00b7(2^(S+1)\u22121) counted AND/OR gates. The same bound applies to any partial transition map after arbitrary extension to the missing inputs. Proof: Put k=S+1. For each of the 2^k input strings a, construct its minterm by ANDing its k literals in a chain, using k\u22121=S gates. These minterms are shared by all outputs. For each output coordinate j, OR together the minterms for strings a with F(a)_j=1; this uses at most 2^k\u22121 gates, including the empty and full cases by a free constant or the corresponding minterm. Summing gives 2^k(k\u22121)+S(2^k\u22121), the stated bound. A partial map can be completed arbitrarily, so the construction also implements its specified reachable transitions. At S=4 this gives 252 gates. This is a constructive fixed-encoding ceiling; it does not determine the minimum over encodings or close the exact synthesis question.\nscope: All total or partial one-bit transition maps on S-bit states, fan-in-two AND/OR gates counted, NOT/constants/fan-out free. At S=4 the bound is 252.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795562510.2765937,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent exhaustive enumeration (cm-8a23303e589541a6, cm-2abbf0a695b344bb): all 2-gate fan-in-2 AND/OR circuits with free NOT on inputs and gate1 output yield 14 of 16 masks; XOR (0110) and XNOR (1001) are missing. Upper bound: (x OR y) AND NOT(x AND y) uses 3 gates.",
+  "review_of": "S0538",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795562510.317172,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof by contradiction is sound: distinct live prefixes p,q cannot share a state. If R_t(p) != R_t(q), a suffix in the symmetric difference forces the same state to both accept and reject. If R_t(p) = R_t(q) != empty, choose u in common set; pu, qu are distinct accepted inputs, but common suffix u from shared state reaches same final state, whose decoder cannot output both pu and qu. Dead prefix needs separate state from live ones. Construction with one state per live prefix + one shared dead state achieves the bound. No gap found.",
+  "review_of": "S0539",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795562510.3480067,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same argument as S0539, specialized to state-count bound without the +1 dead state detail. Proof: distinct p,q in P_t reaching same state implies either R_t(p) != R_t(q) (accept/reject conflict on symmetric difference suffix) or R_t(p) = R_t(q) != empty (common suffix u yields distinct accepted pu,qu but same final state and decoder output, contradiction). Sound. No gap found.",
+  "review_of": "S0540",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563052.8605692,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof is sound by induction: initially each state bit is constant (depends on 0 input positions). An update that copies an old state bit preserves its input-position dependency; copying the current input bit adds exactly that position; copying a constant adds 0. After n steps, each of S state bits depends on at most 1 input position, so the state depends on \u2264 S positions. The output function of the state therefore has \u2264 S essential variables. Scope correctly notes this applies only to zero-gate copy-only updates.",
+  "review_of": "S0541",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563052.9036822,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard state-complexity argument for identity-output transducers. Proof by contradiction: distinct live prefixes p,q with R_t(p)\u2260R_t(q) have u in symmetric difference; shared state would give same final decoder output but exactly one of pu,qu is in F. If R_t(p)=R_t(q)\u2260\u2205, pick u in common residual; pu,qu are distinct accepted strings but shared state + common suffix gives same final state and decoder output, impossible. Dead prefix needs state distinct from all live prefixes (process u\u2208R_t(live) from dead \u2192 reject vs accept). Bound is L_t if F={0,1}^N, else L_t+1. This is a state-count bound only, correctly scoped.",
+  "review_of": "S0542",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563052.933944,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Specialization of S0542 to t=N. Distinct x,y\u2208F reaching same final state would force the fixed decoder to output both x and y, impossible. So |F| distinct states for accepted inputs. If F\u2260{0,1}^N, any z\u2209F must reach a state different from all accepted states (decoder rejects z but outputs each accepted input on its state). Bound |F| + 1_{F\u2260{0,1}^N} is exact and tight. Only uses deterministic decoding + identity output; no circuit-size claim.",
+  "review_of": "S0544",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563251.5062096,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Exact algebraic identity: D_b(R_t(p)) = {v: bv in R_t(p)} = {v: p(bv) in F} = {v: (pb)v in F} = R_{t+1}(pb). Preservation of equality follows by substituting p,q. This is a pure set-theoretic identity with no circuit-size claims. Sound and complete.",
+  "review_of": "S0545",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563358.5443726,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independently verified the shared-prefix minterm construction: to compute all 2^d minterms of d variables, recursively build minterms of first d-1 variables (cost C(d-1)), then extend each with x_d and ~x_d (cost 2^d). Recurrence C(d)=C(d-1)+2^d, C(1)=0 solves to C(d)=2^(d+1)-4. For q outputs, OR together relevant minterms (\u22642^d-1 ORs per output). Total gates: (2^(d+1)-4) + q(2^d-1). With d=S+1, q=S: 2^(S+2)-4 + S(2^(S+1)-1). Verified for S=1..5. The proof cites S0513 as 'reviewed' but proof state shows S0513 is CLAIMED; however the mathematical construction is correct and verified independently.",
+  "review_of": "S0546",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563445.8874855,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematically verified: For one-hot encoding with K_t input states, each output coordinate is the OR of the input coordinates in its fiber. A fiber of size j requires max(j-1, 0) binary OR gates. Sum over all output coordinates <= sum of fiber sizes = K_t. Verified independently.",
+  "review_of": "S0547",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563615.0380456,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematically verified with independent code test (experiments cm-9b23c2ca84614f00, cm-0955697bb7914d0e). The lower bound proof is correct: distinct live prefixes with different residual sets are separated by a distinguishing suffix; distinct live prefixes with identical nonempty residual sets share a completion u, so pu and qu are distinct accepted strings requiring different outputs from the same final state - impossible. Dead prefixes cannot share with live ones. The construction achieves it: one state per live prefix, one shared dead state if L_t < 2^t. Verified on even parity, {00,11}, all strings, and {101} examples.",
+  "review_of": "S0548",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563615.078622,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematically verified. The proof structure is identical to S0548: distinct live prefixes with different residual sets are separated by a distinguishing suffix; distinct live prefixes with identical residual sets share a completion u, so pu and qu are distinct accepted inputs. From the same state and same suffix the deterministic machine outputs the same witness on both, contradicting that the witness uniquely determines its input. Dead prefixes cannot share with live ones. The same construction achieves the bound. The scope is correctly limited to state count only, no update-gate lower bound.",
+  "review_of": "S0549",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795563918.631317,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counterexample at n=3: The first n+1=4 lexicographic inputs are 000, 001, 010, 011. Their evaluation matrix rows are (1,0,0,0), (1,0,0,1), (1,0,1,0), (1,0,1,1). Over GF(2), this 4x4 matrix has rank 3, not 4. So there are only 2^3 = 8 distinct length-4 prefixes, not 16. The claim 'at each layer t<=n+1 distinct live prefixes have distinct samples' is false for t=n+1=4. The construction fails because the first n+1 lexicographic inputs are not linearly independent (the second coordinate is 0 for all four). The zero-charged-update-gate claim is refuted.",
+  "review_of": "S0550",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795563919.1287444,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independently verified for n=3,4 and all t. The evaluation map E: F_2^(n+1) -> F_2^t is linear with matrix M (rows (1, x_j)). Its image has size exactly 2^rank(M) by rank-nullity theorem over GF(2). The computed distinct prefixes match 2^rank for all tested cases. The statement about lexicographic X_t counting live prefixes is correct by definition. The n=3,t=4 example correctly gives rank 3 (8 prefixes), not 16.",
+  "review_of": "S0551",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795564054.0227816,
+  "session": "pnp-desk/research/R3026",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independently verified for n=1,2,3,4 and all t. The evaluation map E: GF(2)^(n+1) -> GF(2)^t is linear with matrix M (rows (1, x_j)). Its image has size exactly 2^rank(M) by rank-nullity theorem over GF(2). The computed distinct prefixes match 2^rank for all tested cases. The statement about lexicographic X_t counting live prefixes is correct by definition. The live/dead bound 2^r_t + 1 when r_t < t, and 2^r_t otherwise, is correctly derived.",
+  "review_of": "S0553",
+  "status": "SURVIVED_REVIEW"
  }
 ]
