@@ -5477,5 +5477,87 @@
   "proved_step": "statement: For any N>=1, F subset {0,1}^N, and S>=N, an exact one-pass search transducer can use zero update gates if final-decoder cost is unrestricted.\nscope: Fixed N-bit streams; free state wiring; decoder excluded from update cost.\nproof: Initialize S state bits to zero. At step t, wire input bit x_t to state bit t and leave the others unchanged. Inductively, after t steps the first t state bits equal x_1,...,x_t. Since S>=N, the final state contains all of x. Let the decoder accept iff the first N bits belong to F and output those bits when accepted. This accepts exactly F and returns the input on every accepted stream. Every update uses only wires, hence zero gates.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795569152.341857,
+  "session": "pnp-desk/research/R3079",
+  "model": "gpt-6-luna",
+  "gap": "G0015",
+  "gap_note_on": [
+   "G0015"
+  ],
+  "id": "S0638",
+  "proved_step": "statement: For every binary stream x of length N, there is a layered one-pass transducer with S=N state bits, zero nonconstant update gates in the AND/XOR/NOT basis with free wires and time-dependent updates, and a terminal decoder that outputs x exactly. At layer t, the state is (x_1,...,x_t,0,...,0).\nproof: Initialize all N state bits to zero. At step t, wire the current input bit into state coordinate t and wire every other coordinate unchanged. The update schedule knows t, so this uses no nonconstant Boolean gates. By induction, after t steps the first t coordinates equal the consumed prefix and the remaining coordinates are zero. At t=N the state equals x, so the decoder outputs x exactly.\nscope: All fixed-length binary streams; arbitrary time-dependent layered updates and free wires. This proves only the S=N endpoint; it gives no result for S<N or minimal decoder cost.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569369.3083982,
+  "session": "pnp-desk/research/R3079",
+  "model": "gpt-6-luna",
+  "id": "S0639",
+  "proved_step": "statement: Let F be a nonempty subset of {0,1}^N. In any deterministic layered one-pass transducer that accepts exactly F and, on acceptance, outputs the full input x, all L_t live length-t prefixes must occupy distinct states at layer t. If L_t<2^t, at least one additional state is required for a dead prefix. Thus the layer requires at least L_t+1_{L_t<2^t} states.\nproof: For distinct live prefixes p and q, suppose they reach the same state. Choose a suffix u such that pu is in F, which exists because p is live. From the common state, the same suffix gives identical continuation behavior and final output. Exact acceptance then accepts both pu and qu, while exact full-input output would have to equal two distinct strings, impossible. Thus live prefixes have distinct states. If L_t<2^t, take a dead prefix d and any live p with accepting suffix u. If d and p shared a state, the same continuation u would accept du, contradicting exact membership. Hence a dead prefix requires one additional state. This is only a state lower bound; it implies no update-gate lower bound.\nscope: All finite binary languages F and layers t, for deterministic layered one-pass transducers with exact membership acceptance and exact full-input output on accepted inputs.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569920.3649278,
+  "session": "pnp-desk/research/R3082",
+  "model": "gpt-6-luna",
+  "id": "S0640",
+  "proved_step": "statement: Let f:{0,1}^d->{0,1}^q, d>=2, and let k be the number of distinct nonconstant coordinate functions of f. In the fan-in-two AND/XOR basis with free NOTs and constants and unrestricted fan-out, f has circuit size at most 2^(d+1)-4+k(2^d-1). Proof: For every signed input prefix of length j=2,...,d construct its conjunction from the preceding prefix and the jth signed literal with one AND gate, using sum_{j=2}^d 2^j=2^(d+1)-4 gates. These give all full-assignment minterms. For each distinct nonconstant coordinate function, XOR the minterms on which it is 1; exactly one full-assignment minterm is true on any input, so the XOR equals that function. If r minterms are selected, this takes at most r-1<=2^d-1 XOR gates. Compute each distinct coordinate once and fan it out to all matching output positions; constant coordinates require no gates. Thus total size is at most 2^(d+1)-4+k(2^d-1).\nscope: All finite Boolean maps with d>=2 inputs and q>=1 outputs; fan-in-two AND/XOR, free NOTs/constants, unrestricted fan-out. Upper bound only for a specified map; no claim about optimal encodings or exact G_max.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795569959.3630788,
+  "session": "pnp-desk/research/R3082",
+  "model": "gpt-6-luna",
+  "id": "S0641",
+  "proved_step": "statement: Partial-transition trie bound. Let A be a subset of {0,1}^d and f:A->{0,1}^q be a partial Boolean map, with d>=2. Let T_j be the set of length-j prefixes of points of A, and let k be the number of distinct nonconstant coordinate functions f_i:A->{0,1}. There is a total extension of f to {0,1}^d computed by a fan-in-two AND/XOR circuit with free NOTs/constants and unrestricted fan-out, of size at most sum_{j=2}^d |T_j| + k(|A|-1). Proof: For each prefix in T_j build its conjunction from its parent prefix and its jth signed literal, using one AND gate; all A-point minterms are then available at cost sum |T_j|. Extend each output coordinate by assigning zero outside A, and express it as the XOR of the A-point minterms where it is one. Distinct point minterms are disjoint, so this agrees with f on A. At most |A| minterms occur, requiring at most |A|-1 XOR gates per distinct nonconstant coordinate; constants cost zero. Compute each distinct coordinate once and share it. For A empty, use the zero map at zero cost.\nscope: Every finite partial Boolean transition map. Applies when only reachable state/input pairs are constrained; it does not optimize encodings or establish exact G_max.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795570508.541755,
+  "session": "pnp-desk/research/R3090",
+  "model": "gpt-6-luna",
+  "id": "S0642",
+  "proved_step": "statement: For any F subset {0,1}^N, let K_t be the number of distinct residual sets R_t(p)={u in {0,1}^{N-t}: pu in F} over length-t prefixes. Then K_{t+1} <= 2 K_t for every 0 <= t < N. Proof: For each residual R at layer t and b in {0,1}, define its derivative R_b={v:bv in R}. Every residual at layer t+1 arising from prefix pb equals (R_t(p))_b, so the set of layer-(t+1) residuals is contained in the collection of at most two derivatives of each layer-t residual. Hence K_{t+1} <= 2K_t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795570818.6785896,
+  "session": "pnp-desk/research/R3090",
+  "model": "gpt-6-luna",
+  "evidence": "Direct finite-language argument; exhaustive N=2 discovery check requested independently to contrast acceptance-only residual equivalence with full-search witness-output semantics. The lemma assumes a witness system in which distinct accepted inputs cannot share one valid output; this holds for exact truth-table circuit witnesses because one circuit computes only one truth table.",
+  "id": "S0643",
+  "proved_step": "statement: Full-search live-prefix state lower bound. Let F be a nonempty subset of {0,1}^N. Consider a deterministic layered one-pass transducer that, on every length-N input x, accepts iff x is in F and, when it accepts, outputs a witness uniquely determined by x such that no single witness is valid for two distinct elements of F. At layer t let L_t be the number of prefixes p of length t having an extension pu in F. If L_t<2^t, then the machine has at least L_t+1 states at layer t; otherwise it has at least L_t. Hence it needs at least ceil(log2(L_t + 1_{L_t<2^t})) bits when this quantity is positive.\nproof: Fix t. First take distinct live prefixes p and q. If they reach the same state, choose an extension u such that pu and qu both lie in F if one exists; then the deterministic remaining transitions and final decoder produce the same witness for both inputs, contradicting the witness uniqueness condition. If they have no common accepted extension, their residual sets are nonempty and disjoint, so choose u in the residual of p: pu is accepted while qu is rejected, contradicting equal states and deterministic transitions. Thus all L_t live prefixes have distinct states. If a dead prefix exists, its state cannot equal a live prefix state: choose an accepted extension of the live prefix; it must be rejected from the dead prefix state. This supplies one further state. The number of codes is therefore at least L_t plus one exactly when a dead prefix exists. A state register of S bits has at most 2^S codes, giving the stated bit bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795570840.3869665,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0642: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: `two_choices_image_bound` was kernel-accepted, but it does not formalize the residual sets or the claim\u2019s quantifiers. I did not produce and verify the required self-contained Lean file. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795571518.1114008,
+  "session": "pnp-desk/research/R3098",
+  "model": "gpt-6-luna",
+  "id": "S0645",
+  "proved_step": "statement: Support lower bound for a single streaming update. Let a deterministic one-pass transducer have S state bits and an update map F:{0,1}^{S+1}->{0,1}^S implemented by a fan-in-two circuit with g counted AND/XOR/NOT gates, free constants and unrestricted fan-out. For every output coordinate F_i, the number of primary inputs on which F_i functionally depends is at most g+1; hence if any coordinate depends on k primary inputs, then g >= k-1. Proof: Fix output F_i and retain only its ancestor circuit, including the output wire. Suppose this ancestor subcircuit contains h counted gates. Its underlying directed graph is connected to the output and each gate has at most two incoming edges. The number of distinct primary-input sources reaching the output is at most h+1: this follows by induction while adding the h gates in a topological order, since each binary gate can introduce at most one more source than the sources already accounted for in the connected ancestor graph; unary NOT gates introduce none. Equivalently, unfold the ancestor graph into a binary tree and suppress any repeated subexpressions: a binary tree with h internal gate occurrences has at most h+1 leaves, and identifying repeated gates cannot increase the number of distinct primary inputs. Functional dependence can only use those sources. Since h<=g, the support size is at most g+1. Rearranging gives g>=k-1. This is encoding-independent as a circuit fact, but yields a Lemma M lower bound only when the exact transition constraints force some next-state coordinate to depend on k distinct current-state/input wires.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
  }
 ]

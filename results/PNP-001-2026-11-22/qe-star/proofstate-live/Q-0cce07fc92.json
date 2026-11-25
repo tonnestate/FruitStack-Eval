@@ -1005,5 +1005,23 @@
   "evidence": "Verified the circuit construction: (1) Reading scanned symbol via OR of S conjunctions per alphabet bit: O(S) fan-in-2 gates. (2) Constant-size transition table: O(1) gates. (3) Work cell updates via multiplexers: O(S) gates. (4) One-hot head shift via local formulas: O(S) gates. (5) Input head binary counter with controlled ripple-carry increment/decrement/identity: O(log N) fan-in-2 gates (verified by exact gate counting code for S up to 1000, logN up to 20; ratio total/(S+logN) stabilizes to constant ~6-11). Padding to exactly tau steps with identity transitions makes the circuit input-independent. No argument gap found. The lemma correctly handles the S < log N case with the general O(tau(S+log N)) bound.",
   "review_of": "S0116",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795571488.809321,
+  "session": "pnp-desk/research/R3097",
+  "model": "gpt-6-luna",
+  "id": "S0118",
+  "proved_step": "LEMMA (exact variable-length oracle query compilation with explicit derived oracle). Let O be any language and ell>=0. Let enc(y)=1^k 0 y 0^(ell-k) for y of length k<=ell, and define O_enc={enc(y): y\u2208O, |y|<=ell}. A bounded deterministic computation making at most q adaptive O-queries, each of length at most ell, can be simulated by a fixed circuit with q O_enc-oracle gates, preserving its output exactly, with O(T+q ell) ordinary gates when its non-query transition/query-generation logic has a T-gate circuit. Proof: For each query y of length k, compute enc(y) using the length k, unary delimiter, payload y, and zero fill. By definition O_enc(enc(y))=O(y), so the answer is unchanged without any trailing-padding invariance assumption. Feed that answer into the same transition logic. Mask unused query slots. Unroll the bounded computation; induction on transitions gives the same configurations and output. The construction incurs O(ell) gates per slot. Scope: the oracle is O_enc. For O=Sigma_3SAT^A, this is a tagged Sigma_3SAT^A oracle, not an A oracle; hence it repairs the padding issue only in a circuit model that permits that derived oracle, and closes neither G0001 nor G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795571699.9703212,
+  "session": "pnp-desk/research/R3097",
+  "model": "gpt-6-luna",
+  "id": "S0119",
+  "proved_step": "LEMMA (fixed-width encoding for a derived oracle). Let O be any language and ell>=0. Set b=ceil(log_2(ell+1)). For each y in {0,1}^k with k<=ell, encode y as the b-bit binary representation of k followed by y0^(ell-k). Define O_enc to accept exactly valid strings of width b+ell whose decoded query belongs to O, rejecting malformed strings. Then enc has fixed width b+ell, is injective, and O_enc(enc(y))=O(y). Proof: the length field determines k, and the next k bits recover y, so distinct queries have distinct encodings. Membership preservation is the definition of O_enc. For ell=0, b=0 and the only query is empty, encoded by the empty string, so the statement remains true. Scope: this proves an encoding lemma for a derived oracle. For O=Sigma_3SAT^A it does not establish an A-oracle circuit simulation or close G0001/G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -1282,5 +1282,55 @@
   "kind": "LEMMA",
   "closes": "G0002",
   "closes_valid": true
+ },
+ {
+  "at": 1795569177.2697525,
+  "session": "pnp-desk/research/R3081",
+  "model": "gpt-6-luna",
+  "id": "S0150",
+  "proved_step": "statement: Repaired bounded-crossing EXACT1 counting lemma: Let F be a positive EXACT1 3-CNF on n variables and m clauses, each clause having three distinct variables. Fix a variable order such that every prefix cut has at most B crossing clauses. Then #SAT(F) is computable in O(n B 2^B+n+m) arithmetic operations, using at most 2^B weighted states per cut. Proof: At cut k, the set C_k of crossing clauses is fixed by the variable order. For each processed assignment, store its residual-demand vector d in {0,1}^{C_k}; discard a prefix if any clause already has more than one true variable. The DP weight at d is the number of processed assignments yielding d. Initially the empty prefix has weight one. To process the next variable, extend each state by its two possible values. For each clause incident to that variable, update its residual demand if the clause was already crossing, initialize it if its first variable is processed, and when its last variable is processed retain the extension only if its demand is met. Every clause incident to the new variable belongs to C_k or C_{k+1}, so at most 2B clauses are examined per transition. Merge equal resulting vectors by adding weights. Inductively, each stored weight counts exactly the prefixes consistent with all clauses wholly processed so far; thus after the last variable the sole accepting total equals #SAT(F). There are at most 2^B vectors at each cut and two extensions per vector, giving O(n B 2^B) transition work; preprocessing the clause incidences costs O(n+m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795569245.470853,
+  "session": "pnp-desk/research/R3081",
+  "model": "gpt-6-luna",
+  "evidence": "The state description allows five listed crossing-condition values per clause but asserts at most 3^B states without establishing a restriction to three values. The common_conjunct_id and failure flag also are not incorporated into a complete state-count argument. The bounded-crossing algorithm can be repaired with one residual-demand bit per crossing clause; that repaired statement is recorded separately as S0150.",
+  "review_of": "S0142",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795569688.3234801,
+  "session": "pnp-desk/research/R3081",
+  "model": "gpt-6-luna",
+  "id": "S0152",
+  "proved_step": "statement_start: Finite-factor frontier elimination computes the partition function exactly. Let variables V={v_1,...,v_n} have a fixed order, and let factors phi_a: {0,1}^{S_a}->R be explicitly tabulated. Define the frontier after prefix k as the assigned variables that occur in some factor also containing an unassigned variable. Initialize one empty assignment with weight 1. At step k, extend each frontier assignment by both values of v_k, multiply by every factor whose last variable in the order is v_k, reject or weight according to those factor values, then project onto the next frontier and sum weights of identical projections. The final empty-frontier weight equals Z=sum_{x in {0,1}^V} product_a phi_a(x|S_a). If all factors have arity at most r and the maximum frontier size is w, this uses O((n+sum_a |S_a|) 2^(w+1)) arithmetic operations and O(2^w) weights per level, assuming O(1) factor-table lookup and arithmetic operations. Proof: Inductively, each stored weight is the sum, over all assignments to forgotten prefix variables compatible with its frontier assignment, of the product of exactly those factors whose last variable has been processed. Extending by one bit partitions these assignments disjointly by that bit; multiplying factors ending now adds each such factor exactly once; projection groups precisely assignments that agree on the new frontier, so summing weights preserves the invariant. At k=n every factor has been included and the frontier is empty, giving Z. At each step at most 2^(w+1) extensions occur. Each variable incidence and factor is processed a constant number of times, giving the stated operation bound under the lookup assumption. Finite verification: experiment cm-17fa7f286e194e11 compared an independent implementation with direct enumeration on 1,554 positive EXACT1 formula/order pairs, all equal; finite evidence only.\nevidence: The complete induction proof is included in the statement. Independent finite verification cm-17fa7f286e194e11 matched direct enumeration on 1,554 formula/order pairs. This is a restricted factor-elimination lemma; it does not establish a general SAT speed-up or a P vs NP lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-b961796396",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569834.5034504,
+  "session": "pnp-desk/research/R3081",
+  "model": "gpt-6-luna",
+  "id": "S0153",
+  "proved_step": "statement_start: For a factor graph with factors of arity at most three, a variable order whose every cut crosses at most B factors has at most 2B live variables at every cut, and exact frontier elimination computes its partition function in O((n+sum_a |S_a|)2^(2B+1)) arithmetic operations, assuming constant-time factor lookup and arithmetic. Define a variable as live after a prefix if it is assigned and occurs in a factor containing an unassigned variable. Every live variable belongs to a factor crossing that cut. Each crossing factor contains at most two assigned variables because its total arity is at most three. Since at most B factors cross, the live set has size at most 2B. For correctness, maintain for each assignment to the live set a weight equal to the sum over forgotten assigned-variable choices compatible with it of the product of all factors whose last variable has been processed. Initially the empty assignment has weight 1. When processing the next variable, extend each state by its two possible values, multiply in each factor whose last variable is this variable, then project to the new live set and add weights of states with the same projection. Extension partitions assignments by the new bit; factor retirement adds each factor exactly once; projection groups exactly those assignments whose retained values agree, so the invariant is preserved. After the last variable all factors have been included and the live set is empty; its sole weight is the partition function. At most 2^(2B) states occur per level and each has two extensions. Processing variable incidences and factor tables contributes O(n+sum_a |S_a|) total lookup work under the stated assumptions, yielding the claimed bound. For positive EXACT1 3-CNF, use one indicator factor per clause, so the partition function equals #SAT.\nevidence: Complete proof is included in the statement. The bound follows by charging each live variable to an incident crossing factor, with at most two assigned variables per arity-three crossing factor. Frontier elimination preserves the stated weighted invariant. Finite implementation check cm-17fa7f286e194e11 matched direct enumeration on 1,554 small positive EXACT1 formula/order pairs; this is corroboration only, not the proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-b961796396",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569954.2586617,
+  "session": "pnp-desk/research/R3081",
+  "model": "gpt-6-luna",
+  "id": "S0154",
+  "proved_step": "statement_start: For explicitly tabulated factors on finite-domain variables in a fixed order, define W as the maximum, over cuts, of the sum of |S_a|-1 over crossing factors a. Then the live frontier has at most W variables, and exact frontier elimination computes the partition function in O((n+sum_a |S_a|)2^(W+1)) arithmetic operations, assuming constant-time factor lookup and arithmetic. Here a factor is crossing if its scope S_a meets both sides of the cut, and a variable is live if it is assigned and occurs in a crossing factor. For every crossing factor a, at least one variable of S_a is unassigned, so |S_a intersect assigned-prefix| <= |S_a|-1. The live set is contained in the union of these assigned portions, hence its size is at most the sum of |S_a|-1 over crossing factors, and therefore at most W. Run frontier elimination by storing, for each assignment to the live variables, the sum of products of all factors whose last variable has been processed, over forgotten assignments compatible with that live assignment. Initially the empty assignment has weight 1. On processing the next variable, extend each state by each value in its domain, multiply in each factor ending there, then project to the next live set and sum weights with identical projections. Extension partitions assignments by the new value; every factor is multiplied exactly once when its last variable is assigned; projection groups precisely assignments agreeing on the retained variables. Thus the invariant is preserved. At the end all factors have been multiplied and the frontier is empty, so its weight is the partition function. At most 2^W states occur at a cut, and at most twice that many extensions occur per binary variable; for general finite domains replace 2^(W+1) by the corresponding product of domain sizes, bounded by d^(W+1) when all domains have size at most d. Processing incidences and factors costs O(n+sum_a |S_a|) lookup work under the stated assumptions. For arity-at-most-three factors, W is at most twice the maximum number B of crossing factors, recovering the 2B live-variable bound as a corollary.\nevidence: Complete invariant proof is included in the statement. The key generated cut measure charges each crossing factor by its maximum possible assigned contribution |S_a|-1, yielding a heterogeneous-arity refinement of the crossing-factor bound. The finite check cm-17fa7f286e194e11 only corroborates an implementation on 1,554 small positive EXACT1 cases; it is not evidence for the general lemma.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-b961796396",
+  "closes_valid": true
  }
 ]

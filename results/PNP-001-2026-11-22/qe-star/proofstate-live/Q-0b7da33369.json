@@ -5487,5 +5487,104 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795568987.6244652,
+  "session": "pnp-desk/research/R3075",
+  "model": "gpt-6-luna",
+  "id": "S0638",
+  "proved_step": "statement: For every m>=2 and a_0,a_1 in Z_m, let Q=Z_m and delta_b(x)=x+a_b mod m for b in {0,1}. With S=ceil(log_2 m), there is a common injection psi:Q->{0,1}^S such that each partial map psi delta_b psi^{-1} extends to a total S-bit Boolean map computed by O(S) fan-in-two AND/NOT gates (constants and wires free). Proof: encode x by its S-bit binary expansion. For a fixed a in [0,m-1], compute u=x+a modulo 2^S using the usual ripple-carry recurrence; each bit's carry is a Boolean function of the prior carry and the current input bit, so each stage uses O(1) fan-in-two gates and all stages use O(S). Compare u with the constant m using a ripple comparator, O(S) gates. If u>=m, subtract m using a ripple subtractor, O(S) gates; otherwise keep u. Since x<m and a<m, x+a<2m, so the result after this single conditional subtraction is exactly (x+a) mod m. This defines a total map on all S-bit inputs; on encoded states it agrees with delta. Apply the construction separately to a_0 and a_1 under the same encoding. Thus each transition has O(S) gates and the encoding is common.\nproof: As stated in the full statement field; the arithmetic is correct because 0<=x,a<m implies 0<=x+a<2m, so at most one subtraction of m is required after addition. Ripple addition, comparison with a fixed constant, and conditional fixed-constant subtraction each have O(S)-gate fan-in-two implementations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-0b7da33369",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569094.9832633,
+  "session": "pnp-desk/research/R3078",
+  "model": "gpt-6-luna",
+  "id": "S0639",
+  "proved_step": "statement: Sparse baseline-correction lemma: Let Q be an m-element set, S>=1, psi:Q->{0,1}^S injective, and beta,delta:Q->Q differ on t states. If a total S-bit fan-in-two AND/NOT circuit F0 of B gates satisfies F0(psi(q))=psi(beta(q)) for every q, then there is a total S-bit fan-in-two AND/NOT circuit F of at most B+O((t+1)S) gates satisfying F(psi(q))=psi(delta(q)) for every q. Proof: For each exceptional q, form the S-literal indicator e_q(x)=[x=psi(q)], using O(tS) gates total. For output coordinate j, let D_j be exceptional q where psi(delta(q))_j differs from psi(beta(q))_j. Define F_j=F0_j XOR OR_{q in D_j} e_q. Fan-in-two AND/NOT circuits implement each OR and XOR with O(1) gates per term, so all corrections cost O(sum_j |D_j|+S)=O(tS+S). On each encoded q, injectivity makes only e_q true; therefore the output toggles exactly the coordinates where baseline differs from target. On unchanged states all indicators vanish. Thus F agrees with psi composed with delta composed with psi inverse on psi(Q); its values off psi(Q) are supplied by the same total formula.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569178.796441,
+  "session": "pnp-desk/research/R3075",
+  "model": "gpt-6-luna",
+  "id": "S0640",
+  "proved_step": "statement: For every integer m>=2, every epsilon in {-1,1}, and every a in Z_m, the affine transition delta(x)=epsilon*x+a mod m on Q=Z_m has an O(log m)-gate fan-in-two AND/NOT implementation under the common binary encoding psi(x)=x in {0,1}^S, S=ceil(log_2 m), with arbitrary values permitted on unused encodings.\nproof: For an S-bit input x, compute u=x+a mod 2^S when epsilon=1; when epsilon=-1, compute u=a-x mod 2^S. Ripple addition or subtraction uses O(S) fan-in-two gates. Compare u with m and conditionally subtract m if u>=m. For epsilon=1 and 0<=x,a<m, x+a<2m, so at most one subtraction yields (x+a) mod m. For epsilon=-1, choose the representative a-x mod 2^S; when x>a this is 2^S-(x-a), which may exceed m, so one subtraction is not sufficient to reduce modulo m. Instead compute the signed difference with a borrow bit, then select a-x if x<=a or m-(x-a) if x>a; comparison, subtraction, and selection each take O(S) gates. This yields the required residue on every encoded x. The circuit is total on all S-bit inputs, and its unused-code behavior is unrestricted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-0b7da33369",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569252.979154,
+  "session": "pnp-desk/research/R3075",
+  "model": "gpt-6-luna",
+  "id": "S0641",
+  "proved_step": "statement: For every integer m>=2, every epsilon in {-1,1}, and every a in Z_m, the affine map delta(x)=epsilon*x+a mod m on Z_m has a total extension under the binary encoding into S=ceil(log2 m) bits computable by O(S) fan-in-two AND/NOT gates (constants and wires free).\nproof: Encode each state x in {0,...,m-1} by its S-bit binary expansion. If epsilon=1, compute the full (S+1)-bit sum z=x+a, retaining the carry. Since x,a<m, z<2m, so output z-m if z>=m and z otherwise. Ripple addition, comparison to the fixed constant m, conditional subtraction, and selection each use O(S) fan-in-two gates. If epsilon=-1, compare x with a; output a-x when x<=a and m-(x-a) when x>a. Fixed-width comparison/subtraction and selection each use O(S) gates. Both formulas return the desired residue on every valid encoded state; the circuits define a total map on all S-bit strings, with arbitrary behavior permitted on unused codes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-0b7da33369",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569290.6269212,
+  "session": "pnp-desk/research/R3078",
+  "model": "gpt-6-luna",
+  "id": "S0642",
+  "proved_step": "statement: Multi-cycle interval encoding lemma. Let Q be an m-element set, m>=2, and let \u03b4 be a permutation of Q with c disjoint cycles. Set S=ceil(log2 m). There is an injection \u03c8:Q\u2192{0,1}^S and a total S-bit Boolean map F agreeing with \u03c8\u2218\u03b4\u2218\u03c8^{-1} on \u03c8(Q), computed by O((c+1)S) fan-in-two AND/NOT gates, with constants and input wires free. Proof: Order the cycles arbitrarily, with lengths \u2113_1,...,\u2113_c, and identify their states in successor order with consecutive integers in disjoint intervals [a_i,a_i+\u2113_i\u22121] partitioning {0,...,m\u22121}. Encode each state by its S-bit binary integer. Let Inc(x) be ordinary S-bit increment modulo 2^S, computed with O(S) gates by shared prefix carries. For each cycle i form the equality indicator e_i(x)=[x=a_i+\u2113_i\u22121], costing O(S) gates each with shared input negations. On every non-endpoint encoded state, Inc is its successor code. At endpoint i, the desired output is a_i; obtain it by toggling exactly the coordinates where Inc(a_i+\u2113_i\u22121) differs from a_i, conditioned on e_i. Thus F_j(x)=Inc_j(x) XOR OR_{i: Inc_j(a_i+\u2113_i\u22121)\u2260(a_i)_j} e_i(x). The indicators are mutually exclusive since endpoints are distinct. Increment costs O(S), all equality tests O(cS), and output corrections O(cS); hence total O((c+1)S). This defines F on every bit string and is correct on every encoded state. The construction handles singleton cycles as well.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795569527.9188752,
+  "session": "pnp-desk/research/R3075",
+  "model": "gpt-6-luna",
+  "gap": "Extends the recorded O(log m) construction for slopes +/-1 to every fixed multiplier u modulo m, with an O(log^2 m) circuit construction. Broad arbitrary-transition recoding bounds remain open.",
+  "gap_id": "G0205",
+  "id": "S0643",
+  "proved_step": "statement: For every m>=2, integer u with 0<=u<m, and a in Z_m, the transition x -> ux+a mod m on valid binary encodings x in {0,...,m-1} has a total extension to S=ceil(log2 m) output bits computed by O(S^2) fan-in-two AND/NOT gates, with constants and wires free. Proof: On any S-bit input x, compute z=ux+a using shift-and-add multiplication by the fixed constant u and binary addition; since u< m<=2^S and x<2^S, z has O(S) bits and this takes O(S^2) gates. Reduce z modulo m by binary long division: process its O(S) bits from most significant to least, maintaining an S-bit remainder r; at each step form 2r+b, compare it with the fixed m, and conditionally subtract m. Each step uses O(S) fan-in-two gates, so all steps use O(S^2). The resulting remainder lies in [0,m-1], hence fits in S bits and equals ux+a mod m. This defines outputs on every S-bit input, so in particular is a total extension and is correct on every valid state. The bound is uniform in m,u,a. This proves a polylogarithmic circuit upper bound for modular affine transitions; it does not bound arbitrary transition maps or establish a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-0b7da33369",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569606.7449062,
+  "session": "pnp-desk/research/R3075",
+  "model": "gpt-6-luna",
+  "gap": "G0205",
+  "gap_note_on": [
+   "G0205"
+  ],
+  "id": "S0644",
+  "proved_step": "statement: Explicit modular-affine circuit construction. For m>=2, S=ceil(log2 m), 0<=u<m, and a in {0,...,m-1}, there is a total function F:{0,1}^S->{0,1}^S computed by at most C S^2 fan-in-two AND/NOT gates for an absolute constant C, such that F(x)=ux+a mod m for every S-bit input interpreted as an integer. Proof: Write u=sum_{i=0}^{S-1}u_i2^i. Form the at most S shifted words 2^i x for which u_i=1 and add them, together with constant a, using ripple-carry adders of width at most 2S+1. Each ripple adder uses O(S) gates: XOR is implementable with a constant number of AND/NOT gates, each sum bit uses two XORs, and each carry bit is a constant-size majority circuit. There are at most S additions, so this stage costs O(S^2). Also ux+a<2^(2S)+2^S<2^(2S+1), so z=ux+a has at most 2S+1 bits. Reduce z modulo m by scanning its bits from most significant to least. Start with r=0. For each next bit b form t=2r+b. If 0<=r<m, then 0<=t<2m. Compare t with the hardwired constant m, compute d=t-m by ripple subtraction, and select d if t>=m and t otherwise. Comparison, subtraction, and bitwise selection each use O(S) fan-in-two AND/NOT gates; the selected remainder remains in [0,m-1]. There are at most 2S+1 scanned bits, so reduction costs O(S^2). The recurrence computes the scanned prefix modulo m, hence the final r is z mod m and fits in S bits. Every operation is a Boolean circuit defined on every S-bit input, so their composition is a total S-bit map; for each input integer x it outputs ux+a mod m. The constants u,a,m are hardwired, and the gate-bound constant is absolute.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-0b7da33369",
+  "closes_valid": true
+ },
+ {
+  "at": 1795569658.3642435,
+  "session": "pnp-desk/research/R3078",
+  "model": "gpt-6-luna",
+  "id": "S0645",
+  "proved_step": "For every m>=2, S=ceil(log2 m), and every directed m-cycle delta on Q, there is an injection psi:Q->{0,1}^S whose induced transition extends to an S-output fan-in-two AND/NOT circuit of O(S) gates. Proof: identify cycle positions with j=0,...,m-1 and encode j in S-bit binary, least significant bit first. The binary incrementer has y_0=NOT x_0 and y_r=x_r XOR c_r, where c_r is the conjunction of the lower r input bits; all c_r are computed by shared prefix conjunctions in O(S) gates, and each XOR has constant AND/NOT cost. Let e(x) be the conjunction specifying the codeword m-1, using O(S) gates, and define F_r(x)=y_r AND NOT e(x). For encoded j<m-1, e=0 and F is j+1; for encoded j=m-1, e=1 and F is 0. Thus F agrees with the cycle on every used codeword. The same circuit defines values on unused codewords. This direct proof includes the non-power-of-two wraparound case.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795570083.5527804,
+  "session": "pnp-desk/research/R3087",
+  "model": "gpt-6-luna",
+  "id": "S0646",
+  "proved_step": "statement: For every integer m>=2 and every directed m-cycle delta on a set Q, with S=ceil(log_2 m), there is an injection psi:Q->{0,1}^S such that psi delta psi^{-1} on psi(Q) extends to a total S-bit Boolean map computable by O(S) fan-in-two AND/NOT gates, with constants and wires free. Proof: Identify Q with residues 0,...,m-1 in cycle order and encode each residue by its S-bit binary representation, least significant bit first. Compute ordinary increment bits y_0=NOT x_0 and y_j=x_j XOR c_j, where c_1=x_0 and c_{j+1}=c_j AND x_j. The shared carry chain uses O(S) gates, since XOR has a constant-size AND/NOT implementation. Let e(x) be the conjunction of literals asserting x=m-1; it costs O(S) gates. Define F_j(x)=y_j AND NOT e(x). On each encoded v<m-1, e=0, so F is binary v+1; at v=m-1, e=1, so every output is zero, the encoding of the cycle successor 0. Thus F agrees with the cycle transition on all m encoded states. Its formula defines values on unused words too, giving a total extension with O(S) gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
