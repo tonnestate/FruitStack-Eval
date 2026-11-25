@@ -6313,5 +6313,88 @@
   "evidence": "The proof construction requires XOR gates with unit cost, but the 'full binary Boolean basis' is ambiguous about XOR availability. In fan-in-two model without XOR primitives, each XOR requires Omega(m) gates to construct from AND/OR/NOT. The proof makes unverified assumption that XOR is available with cost 1.",
   "review_of": "S0623",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795624604.4439564,
+  "session": "pnp-desk/research/R3744",
+  "model": "gpt-6-luna",
+  "gap": "The direct MCSP[m^c] general-circuit lower bound remains open. This lemma improves the perturbation cost only when the error pattern has a low-dimensional cylinder representation; it does not establish that MCSP label changes have this structure or close the target obligation.",
+  "gap_id": "G0215",
+  "id": "S0739",
+  "proved_step": "statement: Structured perturbation lemma. Let m>=k>=1, let g:{0,1}^m->{0,1} have a fan-in-two DAG circuit of size s over the complete binary Boolean basis, with free inputs and unrestricted fan-out. Suppose f(x)=g(x) XOR h(x_1,...,x_k), where h:{0,1}^k->{0,1} has a circuit of size t in that basis. Then C_m(f)<=s+t+1, and by symmetry |C_m(f)-C_m(g)|<=C_k(h)+1 when h is the error function on the first k coordinates. Proof: Use disjoint circuits for g and h, feeding the first k ambient inputs to the h circuit, then append one XOR gate. Its output is g(x) XOR h(x_1,...,x_k)=f(x). The circuit uses s+t+1 gates. Swapping f and g gives the reverse bound because their error function is the same h.\nscope: All m>=k>=1 in the stated complete-basis fan-in-two DAG model. The set of changed truth-table entries must be a cylinder whose indicator depends only on the designated k coordinates; no claim is made for arbitrary error sets.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624692.246564,
+  "session": "pnp-desk/research/R3744",
+  "model": "gpt-6-luna",
+  "gap": "The bound applies only when the error set is a union of q affine subspaces with d equations each. There is no argument that MCSP[m^c] label changes on a useful restriction have this structure. The direct general-circuit lower-bound obligation remains open.",
+  "gap_id": "G0216",
+  "id": "S0740",
+  "proved_step": "statement: Affine-union perturbation lemma. Let m>=2, 1<=d<=m, q>=1, and let g:{0,1}^m->{0,1} have a fan-in-two DAG circuit of size s over the complete Boolean basis, with free inputs and unrestricted fan-out. Suppose E={x:f(x) ne g(x)} is a union of q affine subspaces, each specified by d consistent affine linear equations over GF(2) in m input bits. Then C_m(f)<=s+q(dm+d). Proof: For each subspace, compute each parity equation with at most m-1 XOR gates and, if needed, one NOT gate to match its right-hand side, for at most m gates per equation. Conjoin the d equation indicators with d-1 AND gates, giving a subspace indicator using at most dm+d-1 gates. OR the q indicators with q-1 gates to compute 1_E, then append one XOR gate to g. Total added gates are q(dm+d-1)+(q-1)+1=q(dm+d). Overlaps cause no issue because OR computes the union. The assumptions include all gates charged, free input wires, unrestricted fan-out, and XOR/NOT/AND/OR gates available.\nscope: All m>=2, 1<=d<=m, q>=1 and the stated affine-union error sets in the complete fan-in-two Boolean basis. This is only a perturbation-cost upper bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624805.4749303,
+  "session": "pnp-desk/research/R3744",
+  "model": "gpt-6-luna",
+  "gap": "This two-sided stability estimate remains linear in the truth-table length N=2^m and does not close the direct MCSP circuit lower-bound obligation. A useful next step would need a restriction invariant or circuit fact that yields superlinear gate consumption.",
+  "gap_id": "G0217",
+  "id": "S0741",
+  "proved_step": "statement: Two-sided Hamming stability of Boolean circuit complexity. Let m>=2, and let C_m(h) be the minimum number of gates in a fan-in-two DAG circuit computing h:{0,1}^m->{0,1}, over the complete binary Boolean basis, with free input wires and unrestricted fan-out. For any f,g, let r be the number of inputs x with f(x)!=g(x). Then |C_m(f)-C_m(g)|<=rm. Proof: Let A={x:f(x)!=g(x)}. For each a in A, construct its point indicator [x=a] using one binary gate for the first two prescribed literals and m-2 AND gates to add the remaining literals, at most m-1 gates. OR the r indicators with r-1 gates, then XOR the result with a circuit for g using one gate. This constructs f with at most C_m(g)+r(m-1)+(r-1)+1=C_m(g)+rm gates. Interchanging f and g gives C_m(g)<=C_m(f)+rm, proving the absolute-value bound. For r=0 the functions and their complexities agree.\nscope: All Boolean functions on m>=2 inputs in the stated circuit model; r is their exact Hamming distance as truth tables. The result bounds local label sensitivity but does not establish a superlinear lower bound for MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625183.3269687,
+  "session": "pnp-desk/research/R3744",
+  "model": "gpt-6-luna",
+  "lemma": "A single prefix-cylinder perturbation is circuit-cheap when its suffix predicate is: in the complete fan-in-two Boolean basis with free inputs, let g:{0,1}^m->{0,1} have circuit size s, let 0<=p<m, let a in {0,1}^p, and let h:{0,1}^{m-p}->{0,1} have circuit size t. Define f(x)=g(x) XOR ([x_1...x_p=a] AND h(x_{p+1}...x_m)). Then C_m(f)<=s+t+p+(p-1)+1+1=s+t+2p+1 for p>=1, and C_m(f)<=s+t+1 for p=0. Proof: for p>=1, compute the p signed literals for the prescribed prefix (at most p NOT gates), AND them using p-1 gates, AND the resulting indicator with h using one gate, and XOR with g using one gate. Use disjoint copies of the circuits for g and h and share input wires. For p=0, the cylinder indicator is identically one, so output g XOR h with one XOR gate. This exact construction shows that a cylinder perturbation remains cheap whenever its suffix label is cheap; it does not imply arbitrary MCSP restrictions have cheap suffix labels.",
+  "id": "S0742",
+  "proved_step": "statement: A single prefix-cylinder perturbation is circuit-cheap when its suffix predicate is: in the complete fan-in-two Boolean basis with free inputs, let g:{0,1}^m->{0,1} have circuit size s, let 0<=p<m, let a in {0,1}^p, and let h:{0,1}^{m-p}->{0,1} have circuit size t. Define f(x)=g(x) XOR ([x_1...x_p=a] AND h(x_{p+1}...x_m)). Then C_m(f)<=s+t+2p+1 for p>=1, and C_m(f)<=s+t+1 for p=0. Proof: compute the prefix indicator with at most p NOT gates and p-1 AND gates, AND it with h, then XOR with g; for p=0 use g XOR h. The circuits for g and h are combined with disjoint gates and shared input wires.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625236.2425587,
+  "session": "pnp-desk/research/R3744",
+  "model": "gpt-6-luna",
+  "lemma": "The disjoint-cylinder patch lemma gives an exact additive circuit upper bound for patching a circuit on r distinct p-bit prefix cylinders with suffix functions h_i: C_m(f)<=s+p+r(p+1)+sum_i C(h_i). This does not show that arbitrary MCSP restrictions have simple suffixes.",
+  "id": "S0743",
+  "proved_step": "statement: Disjoint-cylinder patch lemma. Work over fan-in-two DAG circuits with the complete Boolean basis, free input wires, unrestricted fan-out, and charge every gate. Let m>p>=1, let g:{0,1}^m->{0,1} have circuit size s, and choose r distinct prefixes a_1,...,a_r in {0,1}^p, where 0<=r<=2^p. For each i let h_i:{0,1}^{m-p}->{0,1} have circuit size t_i. Define f(x,y)=g(x,y) XOR OR_{i=1}^r ( [x=a_i] AND h_i(y) ), with the empty OR equal to 0. Then C_m(f)<=s+p+r(p+1)+sum_i t_i. Proof: Generate each of the p negated x-literals once, costing at most p NOT gates. For each prefix a_i, AND its p signed literals into an indicator using p-1 gates; gate that indicator with h_i using one AND gate. This costs p gates per prefix beyond the shared NOT gates and the h_i circuits. OR the r gated terms using r-1 gates when r>=1, and append one XOR gate to g. Total for r>=1 is s+sum_i t_i+p+rp+(r-1)+1=s+sum_i t_i+p+r(p+1). For r=0, f=g and the bound holds. Distinct prefixes make these independent cylinder patches; the circuit upper bound itself also holds without distinctness.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625305.0925808,
+  "session": "pnp-desk/research/R3744",
+  "model": "gpt-6-luna",
+  "lemma": "A circuit g can be patched on r prefix cylinders using suffix circuits h_a at total size at most s+p+r(p+1)+sum_a C(h_a). This is an exact construction bound; it does not bound the complexity of MCSP restriction labels.",
+  "id": "S0744",
+  "proved_step": "statement: Prefix-cylinder patching theorem (charged fan-in-two complete Boolean basis). Let m>p>=1, write inputs as (x,y) with x in {0,1}^p and y in {0,1}^{m-p}. Let g:{0,1}^m->{0,1} have a circuit of size s. Let A be a subset of {0,1}^p of cardinality r, and for every a in A let h_a:{0,1}^{m-p}->{0,1} have a circuit of size t_a. Define f(x,y)=g(x,y) XOR (OR_{a in A} ([x=a] AND h_a(y))), with the empty OR equal to 0. Then f has a circuit of size at most s+p+r(p+1)+sum_{a in A} t_a. Proof: If r=0, f=g and the bound holds. Otherwise take disjoint copies of the circuit for g and each h_a, sharing input wires. For each coordinate x_j, form its negation once if needed, using at most p NOT gates. For each a in A, its indicator [x=a] is the conjunction of its p signed input literals, implemented with p-1 binary AND gates. AND this indicator with h_a(y), using one additional AND gate. Thus each gated term costs p gates beyond the shared negations and h_a circuits. OR the r gated terms using r-1 OR gates, then XOR the result with g using one XOR gate. Total: s+sum_a t_a+p+rp+(r-1)+1=s+p+r(p+1)+sum_a t_a. All gates are charged, and all operations are allowed in the basis.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625402.6446154,
+  "session": "pnp-desk/research/R3752",
+  "model": "gpt-6-luna",
+  "gap": "This counting lemma does not close the assigned direct lower-bound obligation: it bounds how many truth tables have small circuits, but gives no lower bound on the circuit size needed to decide membership in MCSP[m^c]. The proof-state response was truncated before the open-obligation list, so no specific G-id can be safely attached.",
+  "gap_id": "G0218",
+  "id": "S0745",
+  "proved_step": "Circuit-description counting lemma (complete fan-in-two Boolean basis). For m input bits and integer s>=0, the number of Boolean functions computable by circuits with at most s gates is at most sum_{r=0}^s 16^r (m+r+2)^{2r+1}. Proof: Count ordered descriptions of circuits with exactly r gates. At gate i (1-based), each of two predecessors has at most m+i+1 choices among the m inputs, two constants, and earlier gates; the gate computes one of 16 binary Boolean functions. The output wire has at most m+r+2 choices. Thus there are at most 16^r (m+r+2)^{2r+1} descriptions. Every such circuit has at least one description, so the number of represented functions is no greater than the number of descriptions. Sum over r<=s. This is an upper bound on the number of easy truth tables, not a circuit lower bound for the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625524.1987529,
+  "session": "pnp-desk/research/R3752",
+  "model": "gpt-6-luna",
+  "id": "S0746",
+  "proved_step": "Robust rarity of small-circuit truth tables. Fix m>=1, N=2^m, s>=0, and the model of fan-in-two circuits over all 16 binary Boolean gates, with m free input wires, two constant wires, unrestricted fan-out, and an output wire. Let D(m,s)=sum_{r=0}^s 16^r(m+r+2)^(2r+1). For any integer 0<=t<=N/2, the number of N-bit truth tables at Hamming distance at most t from the truth table of some circuit of size at most s is at most D(m,s) sum_{j=0}^t binom(N,j). Consequently, if D(m,s) sum_{j=0}^t binom(N,j)<2^N, at least one truth table has distance greater than t from every size-s circuit. Proof: For exactly r gates, order gates topologically. At gate i each predecessor wire has at most m+2+(i-1)=m+i+1 choices; its binary gate label has 16 choices. The output has at most m+r+2 choices. Thus at most 16^r (m+r+2)^(2r+1) descriptions exist; summing gives D(m,s), which upper-bounds the number of distinct circuit functions. Around each such truth table, the Hamming ball of radius t has exactly sum_{j=0}^t binom(N,j) strings. The union bound gives the stated count, and strict inequality against 2^N implies an uncovered string. No assumption of disjoint balls is needed. For s=m^c with fixed c and t=floor(delta N), any fixed 0<delta<1/2, the elementary binomial estimate sum_{j<=delta N} binom(N,j)<=2^(N H_2(delta)) gives D times ball <2^N for all sufficiently large m, since log2 D=O(m^c log m)=o(2^m) while 1-H_2(delta)>0. This says many tables are far from easy tables, but does not show the MCSP decision function needs large circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

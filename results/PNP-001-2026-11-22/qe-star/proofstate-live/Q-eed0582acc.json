@@ -244,5 +244,41 @@
   "proved_step": "statement: Explicit residual automaton for a listed finite language. Let N>=0 and let A be an explicitly listed subset of {0,1}^N, with M=|A|. For each k=0,...,N, define R_{k,p}={z in {0,1}^{N-k}: pz in A} for p in {0,1}^k. At each cut k there are at most M+1 distinct residual sets, and a deterministic layered automaton deciding A can be constructed from the list using O(N(M+1)) states and O(N(M+1)) transitions, with O(1) transition lookup time after construction. Proof: At a fixed cut, every nonempty residual R_{k,p} contains at least one word x in A with prefix p. Choose one such x for each distinct nonempty residual. Words chosen for different residuals have different length-k prefixes: a word x has only one such prefix, and therefore can be assigned to only one residual. Hence the number of nonempty residuals is at most M; include the empty residual to get at most M+1. For transitions, if R_{k,p}=R_{k,p'}, then for each bit b and suffix z of length N-k-1, bz belongs to R_{k,p} iff p'bz belongs to A, equivalently z belongs to R_{k+1,pb}; the same equivalence holds for p', so R_{k+1,pb}=R_{k+1,p'b}. Thus the transition from a residual class on b is well-defined. Enumerate prefixes at each level, compute their residuals by scanning the listed words, merge equal residuals, and store each class's two successor class identifiers. This gives the stated state and transition counts and constant-time table lookup. Construction time is polynomial in N and M (for example O(N^2 M) with direct prefix comparisons). The lemma does not imply an efficient uniform construction for MCSP because its accepted truth-table list may be too large to enumerate.\nevidence: Complete finite-language proof and explicit construction given in the statement; the construction-time bound is in terms of the explicit list size M, not a succinct MCSP description.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795625340.6741002,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Lemma (MCSP completion-profile state bound). Fix n,s and let E_{n,s} be the set of length-2^n truth tables computed by Boolean circuits of size at most s. For 0<=k<=2^n and each prefix p in {0,1}^k define R_p={z in {0,1}^{2^n-k}: pz is in E_{n,s}}, and let w_k be the number of distinct sets R_p. Every deterministic one-pass machine that decides MCSP[n,s] on length-2^n truth-table inputs has at least w_k states after k bits. Proof: if p,p' have different residual sets, choose z in their symmetric difference. Then exactly one of pz,p'z is in E_{n,s}. If the machine reached the same state after p and p', its deterministic behavior on the common suffix z and final decision would agree, contradicting correctness. Hence distinct residual sets require distinct states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625451.8630807,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: Fix N>=1, A subseteq {0,1}^N, and 0<=k<=N. For each p in {0,1}^k let R_p={z in {0,1}^{N-k}: pz in A}, and let w_k be the number of distinct R_p. Then w_k<=min(2^k,|A|+1). Moreover, the distinct residual sets at all levels form states of an exact deterministic one-pass machine deciding A. Proof: There are 2^k prefixes. Every nonempty R_p contains a suffix z with pz in A, and each element of A has a unique k-bit prefix, so at most |A| distinct residual sets are nonempty; at most one additional residual set is empty. After prefix p, store R_p. On reading bit b, replace it by {z:bz in R_p}=R_pb. This depends only on the stored set. At level N accept iff the stored residual contains the empty string. This proves the bound and exact decision procedure.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625559.817544,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Let A be any subset of {0,1}^N. For 0<=k<=N, let w_k be the number of distinct residual sets R_p={z in {0,1}^{N-k}: pz in A}, over prefixes p of length k. For 0<=k<N, ceil(w_{k+1}/2) <= w_k <= w_{k+1}^2. Proof: Each residual R_p at cut k has at most two restrictions R_{p0},R_{p1}, so the w_k parent residuals generate at most 2w_k distinct child residuals; hence w_{k+1}<=2w_k. Conversely, R_p is uniquely reconstructed from its ordered pair of child restrictions as {0z:z in R_{p0}} union {1z:z in R_{p1}}. Thus distinct parent residuals correspond to distinct ordered pairs drawn from at most w_{k+1} child types, giving w_k<=w_{k+1}^2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625657.048114,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0029",
+  "proved_step": "statement: Let A be a subset of {0,1}^N. For each prefix p of length k, define R_p={z in {0,1}^{N-k}: pz in A}. For 0<=k<N, the map R_p -> (R_{p0},R_{p1}), where R_{pb}={z: pbz in A}, is well-defined and injective on the distinct residuals realized at level k; its image is exactly the set of ordered child-residual pairs realized by prefixes p. Hence w_k equals the number of distinct realized ordered pairs of level-(k+1) residuals. Proof: If R_p=R_q then for every b and z, pbz in A iff p(bz) in A iff q(bz) in A iff qbz in A, so R_{pb}=R_{qb}. Thus the map is well-defined. If both child residuals agree for p and q, every suffix begins with one of the two bits b, and membership in R_p and R_q agrees on bz by equality of R_{pb} and R_{qb}; hence R_p=R_q, proving injectivity. Every realized pair comes from its defining prefix, so the image is exactly the realized pairs.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

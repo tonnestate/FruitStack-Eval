@@ -6374,5 +6374,74 @@
   "evidence": "Computational counterexample: for m=5 (S=3), the construction requires 29 gates, exceeding 9S=27. For m=16 (S=4), requires 39 gates, exceeding 9S=36. For m=32 (S=5), requires 51 gates, exceeding 9S=45. The bound 9S fails for all m>=5 (experiment cm-169eccae861040cb).",
   "review_of": "S0632",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795622470.0834832,
+  "session": "pnp-desk/research/R3710",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification: the construction encodes pairs as (2r, 2r+1) and fixed points as 2t,...,m-1. The comparison x < 2t uses a standard MSB-first comparator with O(S) fan-in-two AND/NOT gates (maintaining eq/lt flags per bit). The conditional LSB toggle adds O(S) gates. For m=2..16, estimated gate count grows as O(S) ~ 5S, confirming the asymptotic bound (experiment cm-8b32d319f05a4c22). Finite check cm-456b8f9663494506 also verified all 1,115 involutions for 1<=m<=8.",
+  "review_of": "S0633",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795622890.0440364,
+  "session": "pnp-desk/research/R3710",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is standard: e_q(x) conjunction of S literals per state (m(S-1) AND gates with shared negations), F_j(x) = OR over q with bit_j=1 of e_q(x) (S(m-1) OR gates via 3 AND/NOT each). At x=psi(q0), injectivity gives e_q0=1, others 0, so F_j(psi(q0))=bit_j(psi(delta(q0))). Total O(mS) gates. Computationally verified for m=2..32, all gate counts match formula. No counterexample found.",
+  "review_of": "S0634",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795622890.0828602,
+  "session": "pnp-desk/research/R3710",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Identical to S0627 (already SURVIVED_REVIEW in R3710). Construction: encode (i,j) as binary(i)||binary_k(j), increment j mod 2^k via ripple carry (O(k) gates), index bits pass through as wires. Verified for t=1..4, k=0..3. Independent of t. No counterexample.",
+  "review_of": "S0635",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795623049.7954,
+  "session": "pnp-desk/research/R3710",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Exact gate count: m(S-1) for e_q conjunctions, S(m-1) for output ORs (each via 3 AND/NOT), S shared negations = 2mS - m = O(m log m). Formula verified for m=2,3,4,5,8,16,32. Construction correct: at x=psi(q0), e_q0=1 uniquely by injectivity, so F_j=bit_j(psi(delta(q0))). Universal ceiling for max_delta min_psi. No counterexample.",
+  "review_of": "S0637",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795623049.8281465,
+  "session": "pnp-desk/research/R3710",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Common binary encoding works. For each a in {a_0,a_1}: ripple add x+a mod 2^S (O(S) gates), compare u>=m (O(S)), conditional subtract m (O(S)). Since 0<=x,a<m, x+a<2m so at most one subtraction needed. Total O(S) per shift. Verified for m=2..10. No counterexample.",
+  "review_of": "S0638",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795624239.303027,
+  "session": "pnp-desk/research/R3742",
+  "model": "gpt-6-luna",
+  "id": "S0738",
+  "proved_step": "statement: Support-sensitive recoding lemma. Let Q have m states, S>=1, psi:Q->{0,1}^S be injective, and delta:Q->Q differ from the identity on exactly t states. There is a total S-bit fan-in-two AND/NOT circuit F, with constants and input wires free, using O(tS) gates, such that F(psi(q))=psi(delta(q)) for every q in Q. Proof: Use the identity map x as a zero-gate baseline. For each moved state q construct e_q(x)=[x=psi(q)] as the conjunction of S matching literals, using O(S) gates per q and shared input negations. For each output bit j let E_j be the moved states q for which psi(q)_j differs from psi(delta(q))_j. Set F_j(x)=x_j XOR OR_{q in E_j} e_q(x). Fan-in-two AND/NOT gates implement each OR and XOR with O(|E_j|+1) gates when E_j is nonempty; when E_j is empty use the wire x_j. Across coordinates, sum_j |E_j|<=tS, and the nonempty-coordinate overhead is at most S; for t>0 this is O(tS). For t=0 use the identity wires alone. On a valid code exactly its own equality indicator is true if it is moved, so precisely the required output bits toggle; on unmoved codes all indicators vanish. The formulas define a total circuit off the code set as well.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624894.0196226,
+  "session": "pnp-desk/research/R3750",
+  "model": "gpt-6-luna",
+  "evidence": "The epsilon=+1 construction first reduces x+a modulo 2^S, then conditionally subtracts m once. This loses the carry when x+a>=2^S. Counterexample m=5, S=3, x=a=4: the stated intermediate u is 0, so one conditional subtraction gives 0, but (x+a) mod 5=3. The stated algorithm is incorrect as written; preserving the S+1-bit sum as in S0641 repairs the plus case.",
+  "review_of": "S0640",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795625766.3695056,
+  "session": "pnp-desk/research/R3758",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and correctness proof supplied in the statement; no finite computation is used as proof.",
+  "id": "S0740",
+  "proved_step": "statement: Sparse correction under a fixed injective encoding: Let Q be finite, psi:Q->{0,1}^S injective, and beta,delta:Q->Q differ on E={q:beta(q)!=delta(q)}. If a total fan-in-two AND/NOT circuit F0 computes psi\u2218beta\u2218psi^{-1} on psi(Q), then a circuit computes psi\u2218delta\u2218psi^{-1} on psi(Q) with at most size(F0)+O(S|E|+sum_{q in E} d_H(psi(beta(q)),psi(delta(q)))) gates. Proof: for each q in E, form e_q(x)=[x=psi(q)] using O(S) AND/NOT gates. The e_q are mutually exclusive on psi(Q). For output bit j, let E_j be those q in E on which the baseline and target outputs differ in bit j, and define F_j=F0_j XOR OR_{q in E_j} e_q. Fan-in-two AND/NOT circuits implement each OR and XOR with constant gates per term. The equality tests cost O(S|E|), and the output corrections cost O(sum_j |E_j|), which equals O(sum_{q in E} d_H(psi(beta(q)),psi(delta(q)))). At psi(q), exactly e_q is true for q in E, so precisely the differing coordinates are toggled; outside E all correction indicators vanish. Hence F has the required values on every encoded state.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

@@ -7545,5 +7545,80 @@
   "evidence": "Correct. Substituting constants for the prefix x-bits (and fixing the next z-input to b) never increases the fan-in-2 gate count (wiring substitution; constant propagation only reduces it), so H_{pb} has \u2264 h gates. The equality L_{pb}={v:bv\u2208L_p} is immediate from \u2203w H(pbv,w)=1 \u21d4 bv\u2208L_p, with the same witness domain {0,1}^r. The step is explicitly a representation/update lemma and disclaims compactness/canonicalization, so there is no overclaim. No counterexample found.",
   "review_of": "S0744",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795623371.9417145,
+  "session": "pnp-desk/research/R3724",
+  "model": "gpt-6-luna",
+  "id": "S0877",
+  "proved_step": "PACKED EXPLICIT TRANSITION TABLE LEMMA. Let D={0,1}^k be a set of d=2^k state codes and let T:D\u00d7{0,1}\u2192D be any fixed transition table. There is a fan-in-two Boolean circuit with O(dk) gates computing T(q,b) on every q\u2208D and b\u2208{0,1}. Proof: For each u\u2208D form selector e_u=[q=u], using k input literals and a binary AND tree, with at most O(k) gates per u. For output coordinate j, form the OR of e_u AND [T(u,b)_j=1] over all (u,b) pairs, additionally selecting the corresponding input bit b; equivalently use selectors [q=u] AND [b=\u03b2] for each pair (u,\u03b2). There are 2d selectors, each costing O(k), and at most 2dk selector-to-output incidences, whose OR trees cost O(dk) total. The output bits therefore equal T(q,b) for every valid code q. Padding unused codes with arbitrary transitions gives a total circuit. The bound concerns a known nonuniform table and does not include the cost of constructing that table or converting an EXT state from an H_C representation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0005",
+  "closes_valid": true
+ },
+ {
+  "at": 1795623453.589613,
+  "session": "pnp-desk/research/R3724",
+  "model": "gpt-6-luna",
+  "id": "S0878",
+  "proved_step": "FINITE-IMAGE RESIDUAL COUNT LEMMA. Let F be a finite subset of {0,1}^N with |F|=M. For each t in {0,...,N} and p in {0,1}^t, define R_t(p)={z in {0,1}^{N-t}: pz in F}. At each level t there are at most M+1 distinct residuals, and across all levels there are at most (N+1)(M+1) level-tagged residual states. Proof: Fix t. Every nonempty residual R_t(p) has a witness z with pz in F. For distinct prefixes p,p' of length t, the sets of strings extending them are disjoint. Choose one prefix and one witness for each distinct nonempty residual. These witnesses are distinct: if two chosen witnesses were the same string, its length-t prefix would determine the same prefix and hence the same residual. Thus there are at most M nonempty residuals. The empty residual contributes at most one more. Summing over the N+1 levels gives at most (N+1)(M+1) level-tagged states. They can be assigned binary labels of length ceil(log2((N+1)(M+1))). This is only a state-count and encoding bound; it gives no efficient way to compute labels or transitions from an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0005",
+  "closes_valid": true
+ },
+ {
+  "at": 1795623735.6649892,
+  "session": "pnp-desk/research/R3740",
+  "model": "gpt-6-luna",
+  "lemma": "Explicit-candidate residual update lemma: Let F=(f_1,...,f_M) be an explicitly listed family of Boolean words of common length N. At level t, store a\u2208{0,1}^M with a_j=1 exactly when f_j[0:t]=p. On reading b, update a_j' = a_j AND [f_j(t)=b]. This update is computable in at most M+1 fan-in-two gates and produces exactly the state for pb. Proof: for every j, a_j'=1 iff f_j[0:t]=p and f_j(t)=b, iff f_j[0:t+1]=pb. At a fixed level, f_j(t) is a constant. Use a_j AND b when it is 1, and a_j AND NOT b when it is 0, sharing one NOT gate. Thus at most M+1 gates; M=0 is immediate. The state uses M bits and constants require the explicit list. No bound follows for exponentially many candidate circuits or for conversion from arbitrary H_C.",
+  "id": "S0879",
+  "proved_step": "statement: EXPLICIT-CANDIDATE FILTER UPDATE LEMMA. For every N,M\u22650 and every explicitly listed family F=(f_1,...,f_M)\u2286{0,1}^N, define a prefix-agreement state a\u2208{0,1}^M at level t by a_j=1 iff f_j[0:t]=p. For each t<N and next bit b, the coordinate update a'_j=a_j AND [f_j(t)=b] produces exactly the agreement state for pb and is computable by a nonuniform fan-in-two circuit of at most M+1 gates. The lemma holds for empty families and all prefixes, including t=0 and t=N\u22121.\nproof: For each j, a'_j=1 iff a_j=1 and f_j(t)=b. By the definition of a_j, this is equivalent to f_j[0:t]=p and f_j(t)=b, which is equivalent to f_j[0:t+1]=pb. Thus the output vector is exactly the prefix-agreement vector at level t+1. At a fixed level the bits f_j(t) are constants. If the constant is 1, the coordinate is a_j AND b; if it is 0, it is a_j AND NOT b. Share one NOT b gate across all coordinates, and use one AND gate per coordinate, for at most M+1 gates. For M=0 no coordinate gates are needed. At t=N\u22121 the resulting vector marks exactly the listed words equal to the full word pb. This proof makes no claim about compressing the M-bit state or computing it from an arbitrary decision circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795623988.7375767,
+  "session": "pnp-desk/research/R3724",
+  "model": "laguna-xs-2.1",
+  "evidence": "The lemma correctly bounds the number of distinct residual sets: at each level t, there are at most M+1 distinct residuals (M nonempty ones witnessed by distinct elements of F, plus possibly the empty residual). The total number of level-tagged states is at most (N+1)(M+1). The bound is tight: for F being all 2^N strings, M=2^N and at t=0 there are exactly 2^N distinct residuals. For F being exactly one string, M=1 and the bound still holds. The argument is sound.",
+  "review_of": "S0753",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795624009.9798727,
+  "session": "pnp-desk/research/R3740",
+  "model": "gpt-6-luna",
+  "id": "S0881",
+  "proved_step": "EXPLICIT-LIST AGREEMENT UPDATE LEMMA. Let F=(f_1,...,f_M) be a listed family of distinct bit strings of length N. At level t encode prefix p by a_j=1 iff f_j begins with p. On reading b, set a'_j=a_j AND [f_j(t)=b]. This is exact and costs at most M fan-in-two gates, since each [f_j(t)=b] is a level-specific constant. The vector identifies the listed strings compatible with p and hence their suffix set. Proof: For every j, a'_j=1 iff f_j begins with p and its next bit equals b, iff f_j begins with pb. Therefore the updated vector is exactly the agreement vector for pb. Each coordinate is a constant, wire, or one AND gate. This applies only to an explicit listed family and gives no polynomial-in-s transition bound for succinct circuit families or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624164.2500076,
+  "session": "pnp-desk/research/R3740",
+  "model": "gpt-6-luna",
+  "evidence": "The agreement vector does update in O(M) gates, but the asserted O(M log(M+1)) translation from an arbitrary packed residual code to that vector is unsupported. An arbitrary lookup from log D code bits to M output bits has no such general bound: its truth table may require order MD/log(MD) gates. Thus the packed-code conversion claim fails. Retaining the M-bit agreement vector, as in S0755, repairs the explicit-list transition claim.",
+  "review_of": "S0754",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795624200.6659591,
+  "session": "pnp-desk/research/R3740",
+  "model": "gpt-6-luna",
+  "id": "S0883",
+  "proved_step": "EXPLICIT-EXT UPDATE BOUND. Fix n,s and an explicit list F of all distinct truth tables computed by fan-in-two Boolean circuits with n inputs and at most s gates, under any fixed circuit encoding. Let M=|F|. The prefix survivor-vector transition for EXT_{n,s} is exact and uses at most M fan-in-two gates per input bit. Proof: Index the tables f_1,...,f_M. At level t store a_j=1 iff f_j agrees with the current prefix on its first t positions. On reading bit b, set a'_j=a_j AND [f_j(t)=b]. The bracket is a level-specific constant, so each coordinate needs at most one AND gate. Thus a' records exactly the tables agreeing with the extended prefix. Initially all coordinates are 1, and induction proves the invariant at every level. This is a nonuniform explicit-list construction; its transition bound is M and does not imply poly(s,n) cost because the list may be exponentially large in s log(n+s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624503.9626377,
+  "session": "pnp-desk/research/R3740",
+  "model": "gpt-6-luna",
+  "id": "S0884",
+  "proved_step": "statement: For F={0,1}^N, the survivor vectors of distinct length-t prefixes are pairwise distinct; hence any injective binary encoding of all reachable survivor states at level t requires at least t bits.\nderivation: For a prefix p, let a_p(x)=1 iff x begins with p, for each x in F. If p and q are distinct length-t strings, choose any x extending p; then a_p(x)=1 and a_q(x)=0. Thus p\u21a6a_p is injective on the 2^t prefixes. An injective encoding of 2^t states by B bits requires 2^B\u22652^t, so B\u2265t.\nscope: Integers N\u2265t\u22650; F is the explicit set of every N-bit Boolean string; survivor state is the incidence vector indexed by F; binary encoding is required to be injective on reachable states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

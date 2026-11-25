@@ -6207,5 +6207,50 @@
   "kind": "LEMMA",
   "closes": "G0015",
   "closes_valid": true
+ },
+ {
+  "at": 1795623975.154812,
+  "session": "pnp-desk/research/R3738",
+  "model": "gpt-6-luna",
+  "lemma": "Residual-state lower bound for layered membership machines: for F subset {0,1}^N and level t, let R_t(p)={u in {0,1}^{N-t}: pu in F}; every deterministic layered membership machine correct on all length-N inputs uses at least K_t distinct states at level t, where K_t is the number of distinct residual languages R_t(p).",
+  "gap": "The binding Lemma M obligation concerns witness-output streaming systems for SC_{n,s}, including exact Pareto trade-offs among state width, update gate cost, and decoder cost. The residual-language lemma only constrains membership states; it does not imply any update-gate lower bound or witness-output result.",
+  "evidence": "Independent exact finite sanity check cm-c21115b4a1684392 enumerated all Boolean languages for N=1,2,3 and all levels, checking 10,076 ordered prefix pairs with unequal residuals; no counterexample. General proof is the suffix-indistinguishability argument recorded above. The experiment is finite evidence only.",
+  "gap_id": "G0195",
+  "id": "S0712",
+  "proved_step": "statement: For every F subset {0,1}^N, every deterministic layered membership machine that decides F correctly on all length-N inputs has at least K_t distinct states at level t, where K_t=|{R_t(p):p in {0,1}^t}| and R_t(p)={u:pu in F}.\nproof: If two prefixes p,p' reach the same state at level t, then for every suffix u the machine starts from the same state and processes the same remaining input u. Its final acceptance decision is therefore identical on pu and p'u. Correctness implies pu in F iff p'u in F for every u, hence R_t(p)=R_t(p'). Thus prefixes with distinct residual languages must reach distinct states, proving the lower bound K_t.\nscope: All finite Boolean languages F subset {0,1}^N, all N>=0 and levels 0<=t<=N; deterministic layered membership machines with arbitrary time-dependent transitions and arbitrary state encodings. No bound on update gates and no witness-output conclusion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624200.889974,
+  "session": "pnp-desk/research/R3741",
+  "model": "gpt-6-luna",
+  "evidence": "The distinguishability argument proves the lower bound; the residual-transition construction proves attainability. Independent finite check: workflow verify_membership_residual_transitions, run wf-1509b4ef13cf, experiment cm-359b833ec3b5428c: all 256 languages on 3-bit inputs passed 3,584 transition checks. The computation is finite sanity evidence, not the general proof.",
+  "id": "S0713",
+  "proved_step": "statement: For every finite language F subset {0,1}^N and every layer t, the minimum number of reachable states at layer t among deterministic exact layered membership transducers recognizing F equals K_t, the number of distinct suffix residuals R_t(p)={u in {0,1}^{N-t}: pu in F} over prefixes p in {0,1}^t. Proof: If two prefixes p,p' have different residuals, there is a suffix u belonging to exactly one residual. If the machine reached the same state after p and p', determinism would make its subsequent computation on u identical, contradicting exact recognition. Thus at least K_t states are necessary. For sufficiency, use the distinct residuals as the layer-t states. On input b, transition from residual R to R'={u: bu in R}; this is precisely the residual of the extended prefix, so the transition is well-defined. At layer N, accept the residual containing the empty suffix and reject the empty residual. The resulting machine recognizes F and reaches exactly the K_t residual states at each layer. Scope: finite F, deterministic layered membership transducers, arbitrary layer-dependent state sets and transitions, arbitrary final decoder. This proves an exact state-count characterization only; it gives no bound on update-circuit cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795624625.6303267,
+  "session": "pnp-desk/research/R3741",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and gate count: 2q shared edge-indicator AND gates, followed by at most 2q OR gates because the transition map has exactly 2q labelled edges. The result supplies a representation-dependent upper bound for the exact-synthesis gap, but does not close the exact-minimum question.",
+  "id": "S0714",
+  "proved_step": "statement: One-hot transition lemma. Let Q_t and Q_{t+1} be finite nonempty state sets of sizes q and r, and let \u03b4:Q_t\u00d7{0,1}\u2192Q_{t+1} be any total transition map. Encoding each state as its one-hot indicator vector, the next-layer one-hot vector is computed by a fan-in-two AND/OR circuit with free constants and unrestricted fan-out using at most 4q gates. Proof: For each u\u2208Q_t form the two edge indicators e_{u,0}=x_u\u2227\u00acb and e_{u,1}=x_u\u2227b, using 2q AND gates (NOT is free). For each v\u2208Q_{t+1}, output y_v as the OR of the edge indicators e_{u,b'} for which \u03b4(u,b')=v. If there are d_v such indicators, this takes max(d_v\u22121,0) binary OR gates, with the empty case implemented by constant 0. Since \u03b4 is total, \u03a3_v d_v=2q, and therefore \u03a3_v max(d_v\u22121,0)\u22642q. Total size is at most 4q. On every valid one-hot input x_u and arriving bit b, exactly the indicator for \u03b4(u,b) is 1, so the outputs are exactly the next state's one-hot encoding. Scope: one transition layer of a finite deterministic automaton; this is an upper bound only, and does not cover witness-output decoding or prove an exact minimum for SC_{3,1}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795624702.9574676,
+  "session": "pnp-desk/research/R3741",
+  "model": "gpt-6-luna",
+  "evidence": "Direct gate construction and count; the finite enumeration requested is an independent small-map sanity check only and is not the proof. No exact-minimum or P-vs-NP conclusion.",
+  "id": "S0715",
+  "proved_step": "statement: Sharpened one-hot transition upper bound. Let Q and Q' be finite sets with |Q|=q>=1 and |Q'|=r>=1, and let delta:Q\u00d7{0,1}->Q' be total. For v in Q', let d_v=|{(u,b):delta(u,b)=v}|. Under one-hot encoding, with fan-in-two AND/OR gates, free NOT/constants, and unrestricted fan-out, the next one-hot vector is computable using at most 2q + sum_{v in Q'} max(d_v-1,0) gates. Proof: For each u form e_(u,0)=x_u AND NOT b and e_(u,1)=x_u AND b, using 2q AND gates. For each v, OR its d_v incoming indicators using max(d_v-1,0) gates; if d_v=0 output constant 0. On a valid one-hot input and either value of b, exactly one edge indicator is 1, so exactly the output coordinate indexed by delta(u,b) is 1. Summing gives the stated count. Since sum_v d_v=2q, this is at most 4q and is strictly smaller whenever some output coordinate has multiple incoming edges. This is a representation-dependent transition upper bound only; it does not determine the minimum over encodings or satisfy a search-witness decoder requirement.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
