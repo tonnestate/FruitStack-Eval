@@ -5939,5 +5939,74 @@
   "kind": "LEMMA",
   "closes": "G0015",
   "closes_valid": true
+ },
+ {
+  "at": 1795591245.5366728,
+  "session": "pnp-desk/research/R3314",
+  "model": "gpt-6-luna",
+  "id": "S0685",
+  "proved_step": "statement: Decision-residual width theorem. Let F be a subset of {0,1}^N. For each prefix p of length t define R_t(p)={u in {0,1}^{N-t}: pu is in F}, and let K_t be the number of distinct such residuals. Every deterministic layered transducer deciding membership in F exactly must assign different states to prefixes with different residuals, and therefore needs at least K_t states at level t. Conversely, one state per distinct residual suffices: on input bit b, update residual R to R'={u: bu is in R}; this is well-defined because R is the residual of the current prefix, and the resulting state is the residual of the extended prefix. At level N, the decoder accepts exactly the residual {empty}. Thus K_t is the exact minimum state count at level t for DECISION semantics. Proof of the lower bound: if R_t(p) and R_t(p') differ, select a suffix u in their symmetric difference. Starting from the same state and reading u must produce the same final decision, contradicting that exactly one of pu and p'u belongs to F. The construction proves the upper bound by induction on prefix length.\nscope: All finite F subset {0,1}^N and deterministic layered membership transducers with arbitrary transitions and final Boolean decoder. This establishes the exact state-width characterization for DECISION only; it does not address SEARCH witness-output semantics, gate count G, or decoder cost D.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795591342.7904696,
+  "session": "pnp-desk/research/R3312",
+  "model": "gpt-6-luna",
+  "id": "S0686",
+  "proved_step": "statement: Residual derivative-pair identity. Let N>=0 and F be any subset of {0,1}^N. For each 0<=t<=N and p in {0,1}^t define R_t(p)={u in {0,1}^{N-t}: pu is in F}, and let K_t be the number of distinct sets R_t(p). For every t<N, K_t equals the number of distinct ordered pairs (R_{t+1}(p0),R_{t+1}(p1)) as p ranges over {0,1}^t; hence K_t<=K_{t+1}^2.\nproof: For any p of length t, each suffix in R_t(p) has a first bit b and remaining suffix v, and pv is in F exactly when v is in R_{t+1}(pb). Therefore R_t(p) is the disjoint union {0v:v in R_{t+1}(p0)} and {1v:v in R_{t+1}(p1)}. The ordered child pair determines R_t(p) by this union. Conversely, from R_t(p), the first-bit-0 suffixes with their first bit removed recover R_{t+1}(p0), and the first-bit-1 suffixes recover R_{t+1}(p1). Thus two parent residuals are equal iff their ordered child pairs agree, yielding the identity after counting distinct values. There are at most K_{t+1}^2 ordered pairs, proving the inequality.\nscope: All finite Boolean languages F subset {0,1}^N, N>=0; all 0<=t<N. This concerns only the canonical residual quotient; it implies no circuit update-cost lower bound under arbitrary recodings and no fixed-(S,D) Pareto result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591671.9339952,
+  "session": "pnp-desk/research/R3312",
+  "model": "gpt-6-luna",
+  "id": "S0687",
+  "proved_step": "statement: For finite F subset {0,1}^N in a fixed order, let R_t be its distinct residual languages and K_t=|R_t|. The canonical residual automaton has a one-hot encoding of width K_t. Its layer-t transition has an AND/OR circuit with free NOTs/constants, fan-in two and unrestricted fan-out, of size at most 4K_t+K_{t+1}. Proof: for each bit b and target r', OR the source coordinates in the fiber delta_b^{-1}(r'); the fibers partition R_t, so this costs at most K_t per bit. AND each bit-specific indicator with its input literal (at most 2K_t gates), then OR the two cases for each target (at most K_{t+1}). Equal residuals have equal children, so this implements the transition on every valid one-hot state.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2203964d2a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795591743.149181,
+  "session": "pnp-desk/research/R3319",
+  "model": "gpt-6-luna",
+  "id": "S0688",
+  "proved_step": "statement: Let k\u22650 and let f:{0,1}^d\u2192{0,1} be f(x)=b\u2295\u2295_{i\u2208I}x_i, where |I|=k. In the circuit basis consisting of fan-in-two XOR gates, free NOT gates and constants, and unrestricted fan-out, the minimum number of counted XOR gates computing f on the full domain is max(k\u22121,0).\nproof: If k\u22641, f is a constant, an input, or its free negation, so its cost is zero. If k\u22652, a chain of k\u22121 XOR gates computes the parity, with a free NOT if b=1. For the lower bound, consider the XOR gates in the output\u2019s dependency graph and initially regard each distinct input variable x_i, i\u2208I, as a separate component. A binary XOR gate can join at most two components, so reducing k separate input components to one output component requires at least k\u22121 joining gates. Gates whose inputs are already in the same component, and NOTs or constants, cannot join components. Since the output depends on every variable in I, all k input components must be joined in its dependency graph. Thus at least k\u22121 XOR gates are required.\nscope: One full-domain affine Boolean output; XOR-only counted gates, with free NOTs and constants. This does not cover AND gates, multi-output sharing, or arbitrary state recodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2203964d2a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795592487.780826,
+  "session": "pnp-desk/research/R3322",
+  "model": "gpt-6-luna",
+  "id": "S0689",
+  "proved_step": "statement: For every N>=0, F subset {0,1}^N, and layer t, the minimum state count of a deterministic layered membership transducer recognizing F equals the number K_t of distinct residual sets R_t(p)={u:pu in F} among length-t prefixes.\nproof: If two prefixes reach one state, determinism gives the same final state after every common suffix, so the decoder agrees and their residual sets are equal; hence at least K_t states are necessary. Conversely assign one state per residual set. On bit b, transition R_t(p) to its section {v:bv in R_t(p)}; this is well-defined since equal sets have equal sections. At layer N accept residual {epsilon} and reject the empty residual. This recognizes F using exactly K_t states.\nscope: Finite deterministic layered membership transducers only; no update-gate bound or witness-output claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795592876.7211804,
+  "session": "pnp-desk/research/R3322",
+  "model": "gpt-6-luna",
+  "id": "S0690",
+  "proved_step": "statement: Finite relation witness transducer with explicit Pareto coordinates. Let N>=2, r>=0, and R be any subset of {0,1}^N x {0,1}^r. There is a deterministic length-N transducer with N state bits, zero counted update gates, and a final decoder with at most 2^(N+1)-4+(r+1)(2^N-1) fan-in-two AND/OR gates (NOTs, constants, and fan-out free), which on input x outputs the lexicographically least y such that (x,y) is in R, or outputs a distinguished invalid flag if no such y exists.\nproof: Use state q in {0,1}^N initialized to 0^N. On input b update q=(q_2,...,q_N,b), wiring existing state lines and b directly, so the update has zero counted gates. After reading t bits, q consists of N-t zeros followed by the t-bit prefix read so far; induction on t proves this invariant. Thus after N bits q=x. Define decoder outputs h_1(x),...,h_r(x) as the bits of the lexicographically least y with (x,y) in R, taking y=0^r when no witness exists, and define h_0(x)=1 exactly when at least one witness exists. These are Boolean functions on the finite domain. For all 2^N assignments x, construct every full-assignment minterm by building all signed prefix conjunctions of lengths 2 through N: at length k there are 2^k conjunctions, each formed with one AND gate from its length-(k-1) prefix and the next signed literal. This costs sum_{k=2}^N 2^k=2^(N+1)-4 gates. For each of the r+1 decoder outputs, OR the minterms on which it is 1 using at most 2^N-1 binary OR gates; use constant 0 or 1 for the empty or full set. The total decoder size is at most 2^(N+1)-4+(r+1)(2^N-1). The outputs have the stated semantics by their definition.\nscope: Finite relation witness-output streaming only; S=N is explicitly the trivial-width regime in the Lemma M specification. This does not establish any S<N point or the SC_{n,s} fixed-(S,D) Pareto frontier.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795593058.320993,
+  "session": "pnp-desk/research/R3322",
+  "model": "gpt-6-luna",
+  "id": "S0691",
+  "proved_step": "statement: Common-completion incompatibility lemma. Let F be any subset of {0,1}^N and consider a deterministic length-N streaming machine whose transition at each layer is a function of its current state and next input bit, and whose final decoder outputs a valid witness for every x in F such that the witness uniquely determines x (for example, a circuit with truth table x), while correctly rejecting x outside F. For 0<=t<=N, form a graph H_t with vertex set P_t={p in {0,1}^t : p extends to an element of F}; join distinct p,p' when there exists u in {0,1}^{N-t} such that pu and p'u both belong to F. Then every correct machine assigns different layer-t states to the endpoints of every edge of H_t. Consequently it uses at least chi(H_t) distinct states at layer t and at least ceil(log2 chi(H_t)) state bits.\nProof: Suppose adjacent p,p' receive the same state at layer t. By the edge definition choose a common suffix u with pu,p'u in F. Starting from equal states and feeding the same suffix u, determinism implies by induction over its bits that both computations reach the same final state. The final decoder therefore outputs the same witness on pu and p'u. But p != p', so pu != p'u; the witness uniquely determines the input truth table, and hence cannot be valid for both. This contradicts correctness. Thus adjacent vertices have different states; the state assignment is a proper coloring of H_t, so the number of available states is at least chi(H_t), yielding the bit bound.\nScope: Arbitrary finite F, arbitrary state recoding, layer-dependent transitions, and any uniquely identifying witness semantics. This is a state-width lower bound only; it gives no update-gate or decoder-cost lower bound and does not by itself establish a nontrivial value for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

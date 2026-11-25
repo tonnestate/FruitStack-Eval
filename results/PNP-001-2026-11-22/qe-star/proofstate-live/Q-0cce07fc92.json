@@ -1093,5 +1093,72 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795590400.1518245,
+  "session": "pnp-desk/research/R3301",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0128",
+  "proved_step": "statement_start: LEMMA (RAM-to-circuit update simulation, plain RAM model). Let M be a deterministic RAM with S memory cells of w bits each, a finite control, and a read-only input tape of length N=2^m. Suppose M reads the input in order, and between successive reads (including the final reporting phase) it executes at most \u03c4 steps. Then the stage map (configuration at read i, next input bit) -> configuration at read i+1 is computed by a uniform fan-in-2 Boolean circuit of size O(\u03c4 * poly(S, w)).\nproof: Configuration encoding: memory = S cells \u00d7 w bits; program counter, registers, flags = O(log S + w) bits; input head position = m bits (since N=2^m). Total configuration size L = S*w + O(log S + w + m). One RAM step: (1) Fetch: the instruction at PC selects a memory address (w bits) and operation. Address selection is a multiplexer over S cells: O(S*w) gates. (2) ALU: fixed finite operation on O(w)-bit operands: O(w) gates. (3) Write-back: conditional write to selected address: O(S*w) gates via demultiplexer. (4) PC update: O(log S) gates. Total per step: O(S*w) gates. Unroll \u03c4 steps: O(\u03c4 * S * w) gates. The circuit is uniform (same for every input) because the RAM program is fixed and the step bound \u03c4 is worst-case. The input head advances by exactly 1 per stage; its m-bit counter increments with O(m) = O(log N) gates, absorbed in poly(S,w) since m \u2264 s(m) and S_alg = s^{O(1)}. Halting configurations are made stationary.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795592341.0158963,
+  "session": "pnp-desk/research/R3324",
+  "model": "gpt-6-luna",
+  "evidence": "The lemma omits a bound relating input-head width m=log2(N) to S,w, but concludes O(tau*poly(S,w)), independent of m. Its proof adds an m-bit input-position counter and says its O(m) increment cost is absorbed only under m<=s(m) and S_alg=s^{O(1)}, neither of which is a hypothesis of this lemma. For fixed S=w=tau=1 and arbitrarily large m, the stage transition must update the m-bit position i to i+1. A bounded-fan-in Boolean circuit needs a growing number of gates: the m output bits of increment are distinct non-input functions, each requiring a gate. Thus the claimed bound fails as stated. Repair candidate: include O(m) in the size bound, or assume m=O(poly(S,w)); this review concerns only the current statement.",
+  "review_of": "S0128",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795592408.9137075,
+  "session": "pnp-desk/research/R3324",
+  "model": "gpt-6-luna",
+  "id": "S0130",
+  "proved_step": "statement: LEMMA (repaired RAM-to-circuit stage simulation with explicit input-position cost). Let M be a fixed deterministic RAM with S>=1 memory cells of w>=1 bits, a fixed finite instruction set whose word operations have fan-in-2 circuits of size at most p(w) for a fixed polynomial p, and a read-only input of length N=2^m. Suppose M reads the input in order and uses at most tau RAM steps between consecutive reads. Encode memory, registers, and finite control in O(Sw + w + log(S+1)) bits, and encode the input position in m bits. Then the map from the configuration at read i and the next input bit to the configuration at read i+1, including the updated input position, is computed by a uniform fan-in-2 Boolean circuit of size O(tau*(S*w + p(w) + log(S+1)) + m). The constant in O(.) depends only on M's instruction set, not on i or N.\nproof: For one RAM step, select the addressed memory word with a multiplexer of O(Sw) gates; perform the selected fixed word operation with at most p(w) gates up to a constant factor for instruction selection; and conditionally write the result using O(Sw) gates. Updating the finite control and registers costs O(p(w)+log(S+1)) further gates. Thus one step has O(Sw+p(w)+log(S+1)) gates, and unrolling at most tau steps gives the first term. The input is consumed in order, so its position changes once between read i and read i+1; binary increment has a fan-in-2 circuit of O(m) gates, giving the additive term. The same transition circuit works at each i because the RAM program is fixed; boundary handling can be included in fixed control logic. In particular, an O(tau*poly(S,w)) conclusion requires an additional relation absorbing m; it is not asserted without that relation.\nscope: Repairs the omitted input-position cost in S0128, for a plain RAM with the explicit fixed instruction set above. It does not establish the oracle-RAM case or a P!=NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795593470.0802789,
+  "session": "pnp-desk/research/R3336",
+  "model": "gpt-6-luna",
+  "id": "S0131",
+  "proved_step": "statement: LEMMA (fixed-stage RAM simulation without an input-pointer register). Fix a deterministic RAM M with S>=1 memory words of w bits, a fixed finite instruction set, O(1) registers of w bits, and work-address width a=ceil(log2 S) (for S=1 take a=1). Assume each word operation and control update has fan-in-2 circuit size at most p(w+a), for a fixed polynomial p; each step accesses at most a fixed number of words. The input is read-only, consumed strictly in order, and each stage i receives the next input bit z_i as an external input exactly once; between stages M cannot inspect the input. If each stage executes at most tau RAM steps, then for every i the map from the encoded work configuration and z_i to the next work configuration is computed by a fan-in-2 circuit of size O(tau*(S*w + p(w+a))). The circuits can be generated uniformly from (M,S,w,tau,i) in time polynomial in their description length and log N; their gate-count constant is independent of i,N. Proof: Encode the S words, registers, and control explicitly. For one RAM step, decode each address by comparing its a bits to each of S indices and use the resulting one-hot selectors to select each accessed word, costing O(S(w+a)) gates for a fixed number of accesses. Apply the instruction's word-operation circuit and control logic in O(p(w+a)) gates. For each addressed destination, each word either retains its old w bits or takes the new value, selected by its one-hot address indicator, costing O(Sw) gates per fixed number of writes. Thus one step costs O(Sw+p(w+a)); concatenating tau copies gives the asserted bound. The stage index i is a compile-time parameter selecting which external bit is supplied, and no input-position state or increment circuit is needed. This proves only the stated plain-RAM, ordered-read stage simulation; oracle transitions and any transfer to a lower bound remain open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795593692.3280187,
+  "session": "pnp-desk/research/R3336",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive gate accounting in this session; no computational experiment was used or needed for this finite circuit-construction lemma.",
+  "id": "S0132",
+  "proved_step": "statement: LEMMA (address-width-corrected fixed-stage RAM simulation). Let a deterministic RAM have S>=1 writable words of w>=1 bits, O(1) registers of w bits, a fixed instruction set, and work addresses of a=ceil(log2 S) bits (take a=1 for S=1). Suppose each word operation/control function has fan-in-2 circuit size at most p(w+a), and each step makes at most a fixed number of reads and writes. Input is read exactly once per stage in order; stage i receives its next bit as an external input and otherwise cannot inspect the input. If at most tau RAM steps occur per stage, the work-configuration transition at every stage has a fan-in-2 circuit of size O(tau*(S*(w+a)+p(w+a))). Proof: In one step, for each read address, compute S equality indicators between its a bits and the binary encodings of 0,...,S-1, costing O(Sa) gates; use these indicators to select the addressed w-bit word in O(Sw) gates. Apply the selected fixed word operation and control function in O(p(w+a)) gates. For each write, compute its address indicators with O(Sa) gates and update each stored bit by selecting old versus new value, costing O(Sw). The number of accesses is fixed, so one step costs O(S(w+a)+p(w+a)); composing at most tau step circuits proves the bound. The stage number only selects the external input bit as a formal input and contributes no pointer register. This statement covers plain RAM transitions only; oracle queries and the manuscript's transfer remain separate obligations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795593692.359493,
+  "session": "pnp-desk/research/R3336",
+  "model": "gpt-6-luna",
+  "evidence": "The statement does not specify whether the input head is restricted to forward-only movement or whether arbitrary read-only input positions are accessible. Its proof says the transition is uniform over configurations and next-bit values, but if the head may move backward or skip positions, the next transition depends on the fixed input bit at that position, which is not among those inputs. If the intended model is strictly ordered one-pass with a supplied next bit, the missing hypothesis repairs this exact objection; as written, the claimed transition map is not fully specified. The O(log N) pointer-update gate count itself is valid.",
+  "review_of": "S0127",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795593692.3856075,
+  "session": "pnp-desk/research/R3336",
+  "model": "gpt-6-luna",
+  "evidence": "The per-step write-address decoding is omitted from the claimed O(Sw+p(w)+log(S+1)) bound. For S words addressed with a=ceil(log2 S) bits, straightforward equality decoding costs O(Sa), and for w=1 with p(w)=O(1), this is not absorbed by O(Sw+p(w)+log S). Thus the proof does not establish its stated bound. A corrected generic bound includes O(S(w+a)+p(w+a)) per step; alternative circuit models/encodings may improve it but are not provided in S0130.",
+  "review_of": "S0130",
+  "status": "REFUTED"
  }
 ]

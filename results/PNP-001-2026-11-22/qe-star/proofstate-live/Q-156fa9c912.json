@@ -6921,5 +6921,117 @@
   "proved_step": "statement: CORRECTED LAYERED RESIDUAL STATE COUNT. For L subset {0,1}^N, let r_t count distinct residual languages at depth t. With position-dependent transitions and a shared state set, the minimum number of states is max_t r_t. If layer labels must be disjoint, the minimum number of layer-state copies is sum_t r_t.\nderivation: At depth t, prefixes with different residuals need different states: some suffix distinguishes them. Thus at least max_t r_t states are necessary. Let R=max_t r_t and assign each layer's residuals distinct codes from a common palette of R states. At position t, send the code for residual A on bit b to the code for A_b={z:bz in A}. This is well-defined because A determines both sections. Induction shows the state encodes the current residual, so acceptance is exact. With disjoint layer copies, the per-layer lower bounds add and separate copies attain their sum. This is a state-count result, not a transition gate-cost bound.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795590175.6610959,
+  "session": "pnp-desk/research/R3300",
+  "model": "gpt-6-luna",
+  "evidence": "The necessity and per-depth sufficiency statements hold, but the claimed minimum total number of state labels as sum_t r_t fails when labels may be reused across depths. For N=1 and L={0}, each of the two layers has one residual, so the sum is 2; a single state label suffices at both positions with position-dependent transitions. The repaired statement must count states layer-by-layer or impose disjoint labels across layers.",
+  "review_of": "S0741",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795590217.56855,
+  "session": "pnp-desk/research/R3300",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and proof are included in the statement. It uses only the definition of residuals and one-hot encoding; it does not rely on unreviewed proof-state steps or claim a succinct construction from an MCSP circuit.",
+  "id": "S0810",
+  "proved_step": "statement: ONE-HOT RESIDUAL TRANSITION CIRCUITS. Let L\u2286{0,1}^N. At depth t, let the states be the r_t distinct residual languages R_t(p)={z:pz\u2208L}. For each t<N and input bit b, the transition from these states to the r_{t+1} residual states has a fan-in-two Boolean circuit of at most 2r_t r_{t+1} AND/OR gates, given one-hot state input. Thus all position-specific transitions have total size at most 2\u2211_{t=0}^{N\u22121}r_t r_{t+1}. Proof: For each depth-t residual R, its b-section {z:bz\u2208R} is a unique depth-(t+1) residual, so the transition is a well-defined function f_b:[r_t]\u2192[r_{t+1}]. For each target state j, output the OR of the one-hot input bits i for which f_b(i)=j. Implement each selected term with an AND gate and its OR with at most one fewer OR gates than terms. Across targets there are r_t terms total, hence at most r_t AND and r_t OR gates, bounded by 2r_t\u22642r_t r_{t+1} since r_{t+1}\u22651. This produces the exact next one-hot state. Applying the construction independently at every layer and for both input bits gives the stated bound per bit-symbol transition and total.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795590258.0281363,
+  "session": "pnp-desk/research/R3300",
+  "model": "gpt-6-luna",
+  "evidence": "This is a direct construction from the residual transition function and the exact fan-in-two OR tree count. A finite verification is requested independently across all languages of lengths 0 through 3, including empty and singleton target classes; it is sanity evidence only, not needed for the proof.",
+  "id": "S0811",
+  "proved_step": "statement: ONE-HOT RESIDUAL TRANSITIONS WITH EXACT OR COST. Let L be a nonempty subset of {0,1}^N and let r_t be the number of distinct residuals after prefixes of length t. Encode each depth-t residual by a one-hot vector of length r_t. For each t<N and input bit b, the next one-hot vector is computable using at most max(r_t-1,0) fan-in-two OR gates; across both symbols and all positions the total is at most 2*sum_{t=0}^{N-1} max(r_t-1,0). Proof: each source residual has exactly one b-section, which is a depth-(t+1) residual. For each target coordinate j, OR together the source coordinates whose b-section is j. If k_j sources map to j, this uses max(k_j-1,0) OR gates (zero for empty, one for singleton). Since every source maps to exactly one target, sum_j k_j=r_t, and the total is sum_j max(k_j-1,0) <= max(r_t-1,0). The resulting vector is exactly one-hot because each source one-hot vector maps to one target. Summing over b and t gives the bound. The empty language has one empty residual at every level and each transition is the identity on its sole one-hot coordinate, costing zero gates, also covered by the formula.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795590323.0460544,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0806: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: `existential_cofactor_update_verified2`\nRELATION: SAME \u2014 Lean 4.35 kernel-checked the residual equivalence. Both sides quantify over the same witness type `Fin r \u2192 Bool`, and the proof carrie (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795590486.978534,
+  "session": "pnp-desk/research/R3308",
+  "model": "gpt-6-luna",
+  "id": "S0813",
+  "proved_step": "statement: EXPLICIT CIRCUIT-LIST PREFIX RECOGNIZER. Let A be the finite set of ordered fan-in-two Boolean circuit descriptions on n inputs with at most s gates, M=|A|. Maintain q_C in {0,1} for every C in A, initialized to 1. At position i, on bit b, update q_C := q_C AND [C(1,...,i-1,b,0,...,0)=b], where the bracket is the fixed truth-table bit of C at position i. Accept iff OR_{C in A} q_C=1. This recognizes exactly prefixes extendible to a truth table in A. Each position-specific transition takes at most M two-input AND gates and acceptance at most max(M-1,0) OR gates. If gate j has at most n+j available wires, then M <= sum_{k=0}^s product_{j=0}^{k-1}(2(n+j)^2+n+j+2).\nderivation: For each C, induction on prefix length shows q_C=1 exactly when the first t truth-table bits of C equal the read prefix. The invariant holds at t=0. At the next position the update preserves q_C exactly when C's fixed truth-table bit there equals the received bit, proving the invariant at t+1. Therefore some q_C is 1 exactly when some listed circuit extends the prefix. The transition uses one AND per C with a position-and-circuit-dependent constant. The acceptance OR uses a binary tree. To bound M, count each exact gate count k by encoding each gate as one of two binary operations on an ordered pair of at most n+j wires, one of n+j wires, or one of two constants; sum these products for k=0 through s. This is an explicit-list construction only and gives no polynomial-in-s bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795590835.4086113,
+  "session": "pnp-desk/research/R3308",
+  "model": "gpt-6-luna",
+  "id": "S0814",
+  "proved_step": "statement: ONE-HOT RESIDUAL TRANSITION CIRCUIT. Let F be any subset of {0,1}^N. At level t<N, let R_t be the distinct residual sets R_t(p)={z: pz in F}, and let d_t=|R_t|. With one-hot input encoding of R in R_t, the map (R,b) -> R_b={u: bu in R}, encoded in R_{t+1}, is computed correctly on valid states by a fan-in-two circuit with at most 4d_t gates, with constants free.\nderivation: For each source R in R_t and bit b, let dest(R,b)=R_b in R_{t+1}. For each destination S and bit b, form g_{S,b}=OR_{R:dest(R,b)=S} e_R, using a binary OR tree; empty groups yield constant 0. Since each source has exactly one destination for each b, the total number of OR gates across all groups for a fixed b is at most d_t, and across both b values at most 2d_t. Form h_{S,b}=g_{S,b} AND [input bit equals b], using at most 2d_{t+1} gates naively, but only destinations reached by at least one source need a gate; their count for each b is at most d_t, hence at most 2d_t such gates. Finally y_S=h_{S,0} OR h_{S,1}, using at most d_{t+1} gates, and d_{t+1}<=2d_t because every next-level residual is a section of some level-t residual, each of which has two sections. Total is at most 2d_t+2d_t+2d_t=6d_t, so the asserted 4d_t bound needs refinement. A valid bound of 6d_t follows from this construction. On a valid one-hot input exactly one source R is active, so exactly the coordinate for R_b is output as 1. Therefore replace the stated 4d_t bound with 6d_t before treating the claim as established.\nscope: Canonical residual automaton of an arbitrary finite language at one fixed level, with one-hot state encoding and fixed level-dependent transitions. Does not bound d_t in terms of circuit size and does not give a representation map from arbitrary MCSP decision circuits H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795590947.1452296,
+  "session": "pnp-desk/research/R3308",
+  "model": "gpt-6-luna",
+  "id": "S0815",
+  "proved_step": "statement: Corrected one-hot residual transition bound. Let F be a nonempty subset of {0,1}^N, 0<=t<N, and let R_t be the distinct residuals after length-t prefixes, with d_t=|R_t|. The transition (R,b)->R_b, encoded one-hot, is computable on valid states by a fan-in-two Boolean circuit with at most 7d_t gates, counting NOT gates and treating constants and wires as free.\nderivation: For each destination S in R_{t+1} and bit b, let E_{S,b}={R in R_t:R_b=S}. Form g_{S,b}=OR_{R in E_{S,b}} e_R, using zero for an empty group. Across all (S,b), the OR trees use at most 2d_t gates, since each source contributes exactly one edge for each bit and an OR tree on k inputs uses at most k-1 gates. Form h_{S,b}=g_{S,b} AND (b=b), where the bit literal is b for b=1 and NOT b for b=0. The groups with nonempty E_{S,b} number at most 2d_t, so these AND gates cost at most 2d_t; one shared NOT gate supplies NOT b. For every S, output y_S=h_{S,0} OR h_{S,1}, using d_{t+1} gates. Every next-level residual is a section of a previous residual, so d_{t+1}<=2d_t. Total is at most 2d_t+2d_t+1+2d_t=6d_t+1<=7d_t, since d_t>=1. On a valid one-hot input exactly one source coordinate is active, so exactly the coordinate for R_b is output. This proves the corrected bound; it does not imply a bound on d_t from a circuit description or a transition simulation for arbitrary MCSP decision circuits.\nscope: All finite nonempty languages F subseteq {0,1}^N, levels t<N, and valid one-hot state inputs. Fan-in-two AND/OR and unary NOT gates are counted; constants and wires are free. The construction is level-specific. No MCSP transfer or arbitrary-encoding lower bound is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591129.4739592,
+  "session": "pnp-desk/research/R3308",
+  "model": "gpt-6-luna",
+  "gap": "For the exact EXT residual automaton, determine whether a transition cost bound useful for the MMW transfer can be obtained without explicitly using one coordinate per residual state. The one-hot construction has O(d_t) gates but d_t is uncontrolled and may be exponential; the remaining core gap is a representation/update-cost theorem that applies to arbitrary encodings or a proved lower bound for them, and a map connecting such representations to arbitrary MCSP decision circuits H_C.",
+  "evidence": "The submitted one-hot construction gives at most 7d_t gates per fixed-level transition, while S0815 remains CLAIMED pending independent review; neither result controls d_t by poly(s) nor gives a representation map from H_C.",
+  "gap_id": "G0196"
+ },
+ {
+  "at": 1795591471.078983,
+  "session": "pnp-desk/research/R3308",
+  "model": "gpt-6-luna",
+  "id": "S0817",
+  "proved_step": "statement: WITNESS-ENUMERATION EXT STREAMING LEMMA. Let r,h,N be nonnegative integers and let H_i:{0,1}^r->{0,1} for i=1,...,N each be computed by a fan-in-two Boolean circuit of at most h gates. Let L={x in {0,1}^N: exists w in {0,1}^r such that x_i=H_i(w) for every i}. There is an exact deterministic prefix recognizer for L with 2^r state bits and, at position i, a transition circuit of at most O(2^r(h+1)) gates; the initial state is all ones and acceptance is the OR of the state bits. Proof: index state bits q_w by all w in {0,1}^r. At each position i, set q'_w=q_w AND (x_i iff H_i(w)). Compute H_i(w) with a separate copy of its at-most-h-gate circuit for each w, then combine with x_i and prior q_w using O(1) gates per w. Inductively, after t bits q_w=1 exactly when the first t bits equal H_1(w),...,H_t(w); hence some q_w remains 1 iff the prefix extends to a word in L. The accepting OR uses O(2^r) gates. This is an explicit transition-cost upper bound for a witness relation; it does not imply a lower bound or a relation to an arbitrary MCSP decision circuit C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591487.6793854,
+  "session": "pnp-desk/research/R3316",
+  "model": "gpt-6-luna",
+  "evidence": "The argument is constructive: every gate contributes a constant-size local relation; topological induction proves the witness vector is the unique gate evaluation; fixing prefix bits adds no gates; and writing the suffix as b z' proves the child identity. The existential quantifiers remain in the conclusion, so no claim about their circuit-elimination cost is used.",
+  "id": "S0818",
+  "proved_step": "statement: FIXED-CIRCUIT LOCAL VERIFIER AND PREFIX PROJECTION. Let C be a Boolean circuit with N input bits, h fan-in-two gates in topological order, and one output. There is a {AND,OR,NOT} circuit H_C(x,y), with O(h) gates, where y lists one bit per gate, such that H_C(x,y)=1 iff y gives the consistent gate evaluation of C on x and the output is 1. For any prefix p of length t and next bit b, define E_C(p)=1 iff there exist z in {0,1}^{N-t} and y with H_C(pz,y)=1. Then E_C(pb)=1 iff there exist z' in {0,1}^{N-t-1} and y with H_C(pb z',y)=1. The relation circuit in the latter expression is obtained by substituting the fixed prefix bits in H_C, so it has no more gates than H_C. Proof: For each gate i, its local condition y_i=f_i(a_i,b_i) is a Boolean relation on at most three bits and therefore has a constant-size {AND,OR,NOT} circuit. Conjoin the h local conditions and the assertion that the output wire is 1 using O(h) additional gates. By induction in topological order, the local conditions force y to be exactly the circuit evaluation, so H_C accepts precisely accepting computations. Substituting fixed input bits adds no gates. Finally, write the remaining suffix as b z'; this gives the stated child projection identity. This lemma only constructs the local verifier and its exact prefix projection; it gives no small ordinary circuit for eliminating the existential variables and no transition-cost bound for arbitrary MCSP decision circuits.\nderivation: Use constant-size local Boolean constraints for each fan-in-two gate, conjoin them and the accepting-output constraint, then use topological induction for correctness. Input substitution preserves gate count, and suffix decomposition yields the child identity.\nscope: All finite N and h; fixed fan-in-two Boolean circuit; existential projection is semantic and is not asserted to have a small Boolean circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591786.1432083,
+  "session": "pnp-desk/research/R3316",
+  "model": "gpt-6-luna",
+  "id": "S0819",
+  "proved_step": "statement: FINITE EXHAUSTIVE CHECK OF EXISTENTIAL COFACTOR IDENTITY. For all Boolean relations H:{0,1}^2\u00d7{0,1}\u2192{0,1}, every prefix p of length t<2, next bit b, and remaining suffix z, the projected predicate L(x)=\u2203w H(x,w) satisfies L(pb z)=\u2203w H(pb z,w). The exhaustive check enumerates all 256 relations and all prefix/bit/suffix cases. This is finite verification of the identity only, not a gate-complexity result or a general proof.\nderivation: For each enumerated relation, define L(x) by existentially checking both possible witness values. For every tested p,b,z, the left side evaluates L on the concatenated string pbz, while the right side evaluates the same relation H on that same string for each witness and takes their disjunction. Thus the comparison checks the actual projection, rather than two independently written expressions. Exhaustion covers all Boolean relations on these domains and all indicated prefixes. The finite conclusion is exactly limited to n=2,r=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795591881.2412548,
+  "session": "pnp-desk/research/R3316",
+  "model": "gpt-6-luna",
+  "id": "S0820",
+  "proved_step": "statement: EXPLICIT WITNESS-ENUMERATION CIRCUIT BOUND. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit of h gates, with constants and input wiring free, and let G(x)=\u2228_{w\u2208{0,1}^r}H(x,w). Then G has a fan-in-two circuit with at most 2^r(h+1)\u22121 gates. For any fixed prefix p, the cofactor G_p has a circuit within the same bound, and fixing a further input bit to form G_{pb} adds no gates.\nderivation: For each of the 2^r assignments w, make a separate copy of the h-gate circuit H and hardwire its witness inputs to w; this computes x\u21a6H(x,w) using at most h gates. Combine the 2^r branch outputs with a binary OR tree, which uses 2^r\u22121 fan-in-two OR gates. Thus the total is at most 2^r h+(2^r\u22121)=2^r(h+1)\u22121. Hardwiring any visible input prefix into this circuit preserves its function on the remaining inputs and cannot increase its gate count. Hardwiring the next input bit likewise yields the next cofactor without adding gates. The argument proves an explicit exponential upper bound and makes no polynomial-size assertion when r grows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
  }
 ]

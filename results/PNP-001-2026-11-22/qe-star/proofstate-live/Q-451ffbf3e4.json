@@ -1,0 +1,29 @@
+[
+ {
+  "at": 1795591011.5289311,
+  "session": "pnp-desk/research/R3313",
+  "model": "gpt-6-luna",
+  "id": "S0001",
+  "proved_step": "statement: Let F be a proper subset of {0,1}^N. Consider a deterministic, position-dependent streaming transducer that reads an N-bit string, has unrestricted transitions and decoder, and must output an object identifying the input truth table for every input in F and reject every input outside F. If distinct members of F require distinct output objects, then the minimum number of state bits is ceil(log2(|F|+1)).\nevidence: Proof: At the final position, each f in F must lead to a state whose decoder outputs an object identifying f. Two distinct f,g cannot share a state, since a deterministic decoder on that state would have to identify both. Because F is proper, some y is outside F; its final state must decode as rejection, so it differs from every accepted final state. Thus at least |F|+1 states are necessary. Conversely, let S=ceil(log2(|F|+1)). At each position t, assign distinct codes to the extendable prefixes of members of F; there are at most |F| such prefixes, since each member contributes one prefix at t. Assign a further code to all non-extendable prefixes. For each position t and input bit b, define the transition on codes of reachable prefixes to the code of the resulting prefix (which is either extendable or non-extendable); define transitions arbitrarily on unreachable codes. At the end, decode each accepted member\u2019s code as its identifying object and the non-extendable code as rejection. This uses at most |F|+1 states and establishes the matching upper bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591157.359157,
+  "session": "pnp-desk/research/R3313",
+  "model": "gpt-6-luna",
+  "id": "S0002",
+  "proved_step": "statement: For every nonempty F subset of {0,1}^N with distinct required outputs for its members, there is a stationary deterministic streaming transducer that accepts exactly F, outputs the required identifying object on each f in F, rejects every input outside F, and uses |Pref(F)|+1 states, where Pref(F) is the set of all prefixes of members of F, including the full members.\nevidence: Construct one state q_p for each p in Pref(F), plus a sink \u22a5. Start at q_\u03b5. On bit b from q_p, move to q_{pb} if pb is in Pref(F), otherwise move to \u22a5; both transitions from \u22a5 loop to \u22a5. This is one position-independent transition function. After N bits, an input is in F exactly when its reached state is q_f for some f in F: every such path follows prefixes and reaches q_f, while any input not in F either leaves Pref(F) at some point and reaches \u22a5, or would itself be a length-N member of F. Decode q_f as f's prescribed object and all other states as rejection. The construction has exactly |Pref(F)|+1 states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591236.454415,
+  "session": "pnp-desk/research/R3313",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: Let F be any subset of {0,1}^N, and let a deterministic transducer accept exactly F after reading N bits. For each t, define R_t(p)={u in {0,1}^{N-t}: pu is in F} for each length-t prefix p. Any such transducer, stationary or position-dependent, has at least |{R_t(p): p in {0,1}^t}| distinct states at layer t.\nevidence: Proof: Fix t and prefixes p,q of length t with R_t(p) != R_t(q). By inequality of these sets, there is a suffix u of length N-t belonging to exactly one of R_t(p), R_t(q). If the transducer reached the same state after p and q, determinism implies that processing the identical suffix u from that state produces the same final state and hence the same acceptance decision. But exactly one of pu, qu belongs to F, so the decisions must differ. Therefore p and q reach different states. This holds for every pair with distinct residual sets, giving the stated count. The argument uses no stationarity assumption; stationarity is compatible with it but is not needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

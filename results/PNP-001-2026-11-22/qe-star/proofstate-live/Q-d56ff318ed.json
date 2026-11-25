@@ -204,5 +204,45 @@
   "evidence": "Standard gate elimination with constant propagation. When a gate's output becomes constant under a restriction, it can be replaced by that constant value and removed from the circuit. The topological traversal ensures each constant gate is removed exactly once even with fan-out > 1. The average size identity follows from linearity of expectation over uniform a. No counterexample; this is a constructive proof.",
   "review_of": "S0008",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795590825.8661098,
+  "session": "pnp-desk/research/R3307",
+  "model": "gpt-6-luna",
+  "id": "S0023",
+  "proved_step": "statement: Lemma (support-sensitive cofactor survival). Let X and Y be disjoint finite sets of Boolean variables and let f:{0,1}^X\u00d7{0,1}^Y\u2192{0,1}. Let d be the number of X-coordinates on which f essentially depends. If f depends on at least one Y-coordinate, then for uniform a\u2208{0,1}^X, Pr[f(a,\u00b7) is nonconstant]\u22652^{-d}. Proof: Since f depends on Y, there are x*\u2208{0,1}^X and y,y'\u2208{0,1}^Y such that f(x*,y)\u2260f(x*,y'). Let S\u2286X be the set of essential X-coordinates, so |S|=d. For every a agreeing with x* on S, f(a,y)=f(x*,y) and f(a,y')=f(x*,y'), because f is independent of X\\S. Hence each such a gives a nonconstant Y-cofactor. Exactly 2^{|X|-d} assignments agree on S, so the probability is at least 2^{-d}. The bound is attained, for d\u22650, by f(X,y)=1[X|_S=x*|_S]\u2227y when Y has a designated bit y (and ignores its other bits): precisely one assignment to S gives a nonconstant cofactor, so the probability is 2^{-d}.\nevidence: Complete finite-set argument given in the statement. The independent bounded enumeration cm-c76d2cc7e2024477 checked all functions with |X|\u22643 and |Y|=1 (2, 12, 240, and 65,280 Y-dependent functions at |X|=0,1,2,3) and found no counterexample; this computation is corroboration only, not the general proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795591550.3613982,
+  "session": "pnp-desk/research/R3318",
+  "model": "gpt-6-luna",
+  "id": "S0024",
+  "proved_step": "statement: Lemma (support bounds nonconstant output cofactors). Let X,Y be disjoint finite Boolean variable sets, r=|X|, and f:{0,1}^X\u00d7{0,1}^Y\u2192{0,1} have support size t=|{(x,y):f(x,y)=1}|. Let A={a\u2208{0,1}^X : f(a,\u00b7) is nonconstant}. Then |A|\u2264min(2^r,t), so for uniform a, Pr[f(a,\u00b7) is nonconstant]\u2264min(1,t/2^r). If f is the output of any fan-in-2 circuit, this is also an upper bound on the probability that its output gate remains nonconstant after restricting X.\nproof: For every a\u2208A, nonconstancy of f(a,\u00b7) implies there exists y_a with f(a,y_a)=1. The sets {(a,y): y\u2208{0,1}^Y} for distinct a are disjoint, so choosing one such positive input per a injects A into supp(f); hence |A|\u2264t. Trivially |A|\u22642^r. Dividing by 2^r proves the probability bound. The circuit statement follows because its output gate computes exactly f, and a gate remains nonconstant precisely when its restricted output function is nonconstant.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591686.1017766,
+  "session": "pnp-desk/research/R3318",
+  "model": "gpt-6-luna",
+  "id": "S0025",
+  "proved_step": "statement: Lemma (aggregate cofactor-survival bound for circuit gates). Let C be a fan-in-2 Boolean circuit with gate set G on disjoint finite Boolean input sets X and Y, with |X|=r. For each gate g, let f_g:{0,1}^X\u00d7{0,1}^Y\u2192{0,1} be its computed function and let t_g=|supp(f_g)|. For a\u2208{0,1}^X, let I_g(a)=1 iff f_g(a,\u00b7) is nonconstant. Then \u03a3_a \u03a3_{g\u2208G} I_g(a) \u2264 \u03a3_{g\u2208G} min(2^r,t_g). Equivalently, for uniform a, the expected number of nonconstant gate cofactors is at most 2^-r \u03a3_g min(2^r,t_g). This holds with arbitrary fan-out and gate sharing.\nproof: Fix g. Define A_g={a\u2208{0,1}^X:f_g(a,\u00b7) is nonconstant}. For each a\u2208A_g, nonconstancy implies there is y_a with f_g(a,y_a)=1. The X-fibers for distinct a are disjoint, so the selected satisfying inputs (a,y_a) are distinct members of supp(f_g). Thus |A_g|\u2264t_g. Also |A_g|\u22642^r, hence |A_g|\u2264min(2^r,t_g). Summing this inequality over the finite gate set G gives \u03a3_a \u03a3_g I_g(a)=\u03a3_g |A_g|\u2264\u03a3_g min(2^r,t_g). Dividing by 2^r gives the expectation formula. The proof counts gates individually and makes no independence assumption, so sharing and fan-out do not affect it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795592364.8871846,
+  "session": "pnp-desk/research/R3321",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Lemma (support-weighted expected retained gates). Let C be a Boolean circuit and let X,Y be disjoint input sets. For each gate g, write f_g(X,Y) for its computed function, d_g for the number of X-coordinates in its actual support, and H for any set of gates whose functions depend on at least one Y-coordinate. Under a uniform assignment a to X, the expected number of gates in H whose restricted functions f_g(a,\u00b7) are nonconstant is at least \u03a3_{g\u2208H}2^{-d_g}. Proof: Fix g\u2208H. Since f_g depends on Y, choose x*, y, y\u2032 with f_g(x*,y)\u2260f_g(x*,y\u2032). Fix the d_g support coordinates of X to their values in x*. For every completion on the other X-coordinates, f_g is unchanged because it is independent of those coordinates; thus the same y,y\u2032 witness a nonconstant cofactor. Exactly 2^{|X|-d_g} assignments extend this fixing, so the survival probability is at least 2^{-d_g}. Sum the indicator variables for g\u2208H and use linearity of expectation; no independence assumption is needed. The bound is sharp for an individual gate, e.g. f(X,y)=1[X|_S=x*]\u2227y with |S|=d_g.\nproof: As in the statement: each gate has at least 2^{|X|-d_g} surviving assignments, hence survival probability at least 2^{-d_g}; summing expectations proves the result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
  }
 ]

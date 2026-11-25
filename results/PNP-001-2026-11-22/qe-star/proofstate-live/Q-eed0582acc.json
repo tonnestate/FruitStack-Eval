@@ -189,5 +189,22 @@
   "proved_step": "statement: Length-sensitive sequential oracle simulation. Let M be a deterministic one-pass machine with S(N) working bits and at most T(N) non-oracle update steps per input symbol. If an update adaptively issues queries y_1,...,y_r to a fixed oracle language O, and O has a deterministic decider using time U(ell) and space V(ell) on inputs of length ell, then the update can be simulated with time T(N)+sum_i(O(|y_i|)+U(|y_i|)) and space S(N)+max_i(O(|y_i|)+V(|y_i|))+O(log(r+1)). Proof: simulate M until it issues a query; copy that query to a buffer, run the decider, return its answer, and reuse the buffer and decider workspace for the next query. Adaptivity is preserved because each answer is returned before the next query is generated. Summing per-query running times proves the time bound. Sequential reuse means only the largest query buffer and decider workspace are simultaneously live, proving the space bound. M consumes the input in its original one-pass order. This resource lemma supplies neither the K1/CJSW parameter embedding nor a constructive refuter; G0001 remains open.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795593237.2343023,
+  "session": "pnp-desk/research/R3331",
+  "model": "gpt-6-luna",
+  "evidence": "The time bound uses U(L(N)) and V(L(N)) for queries of length at most L(N), but the lemma does not assume U and V are nondecreasing. A decider may have much larger time or space on a shorter query than at length L, so the claimed resource bound need not hold. Repair: replace U(L(N)),V(L(N)) with max_{0<=ell<=L(N)}U(ell), max_{0<=ell<=L(N)}V(ell), or assume monotone resource bounds explicitly.",
+  "review_of": "S0008",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795593280.4899802,
+  "session": "pnp-desk/research/R3331",
+  "model": "gpt-6-luna",
+  "id": "S0021",
+  "proved_step": "Repair of the bounded-query deterministic simulation lemma. Let M be a deterministic one-pass streaming machine whose per-symbol update makes at most q(N) adaptive oracle queries, each of length at most L(N), with non-oracle update time at most T(N) and working space at most S(N), including query-generation state. Let D decide the oracle language, and let U(ell), V(ell) bound its time and space on every query of length exactly ell. Define U_<=L(N)=max_{0<=ell<=L(N)} U(ell) and V_<=L(N)=max_{0<=ell<=L(N)} V(ell). Then M can be simulated with per-symbol update time at most T(N)+q(N)(cL(N)+U_<=L(N)) and working space at most S(N)+cL(N)+V_<=L(N)+O(log(q(N)+1)), for an absolute constant c, plus unchanged output storage. Proof: Simulate M's ordinary instructions and process each generated query sequentially. Store each query in an L(N)-bit buffer and run D on it using at most V_<=L(N) scratch bits and U_<=L(N) time; reuse both buffer and scratch for subsequent adaptive queries. Query generation uses M's current simulated configuration and previous answers already retained in M's state, so adaptivity adds no query-sized accumulation. At most q(N) queries occur, giving the time bound; the reusable buffer and decider workspace give the space bound. M still consumes each input symbol once. This corrects S0008's missing monotonicity hypothesis. It is a generic simulation lemma and does not close the K1/CJSW resource-match gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
