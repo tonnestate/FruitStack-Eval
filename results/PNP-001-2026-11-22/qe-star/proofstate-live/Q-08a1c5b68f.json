@@ -6059,5 +6059,81 @@
   "proved_step": "statement: Residual-language state lower bound (decision variant). Let F be a subset of {0,1}^N and for each length-t prefix p define R_t(p)={u in {0,1}^{N-t}: pu in F}. In any deterministic layered streaming machine that decides membership in F, if two prefixes p,p' reach the same state at layer t, then R_t(p)=R_t(p'). Consequently the machine needs at least K_t distinct layer-t states, where K_t=|{R_t(p):p in {0,1}^t}|, and at least ceil(log2 K_t) state bits.\nproof: Suppose p and p' reach the same state q at layer t. For any suffix u of length N-t, determinism and identical transition maps imply that processing u from q yields the same final state in both runs. The final decoder therefore gives the same accept/reject answer on pu and p'u. Since this holds for every u, pu is in F iff p'u is in F for every suffix u, so R_t(p)=R_t(p'). Thus distinct residual sets require distinct states, giving at least K_t states; S bits encode at most 2^S states, so S>=ceil(log2 K_t).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795608070.2264225,
+  "session": "pnp-desk/research/R3538",
+  "model": "gpt-6-luna",
+  "evidence": "The statement and scope give incompatible gate-count conventions: the scope includes counted NOT gates, but the bound counts only XOR gates and the proof treats NOT as free. Under the counted-NOT reading, the one-bit affine map F(x)=NOT x (d=q=1, I={1}, b=1) has claimed upper bound max(1-1,0)=0 although it requires a NOT gate. The construction is valid if NOT is explicitly free; alternatively, if NOT is counted, the bound must include the cost of outputs with b_j=1 (or an equivalent accounting).",
+  "review_of": "S0561",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795608142.07051,
+  "session": "pnp-desk/research/R3538",
+  "model": "gpt-6-luna",
+  "id": "S0698",
+  "proved_step": "Repaired affine transition construction. Let d,q>=1 and F:{0,1}^d->{0,1}^q have coordinates F_j(x)=b_j XOR (XOR_{i in I_j} x_i), where b_j in {0,1} and I_j subseteq {1,...,d}. In the basis with fan-in-two XOR gates counted, NOT gates counted, and constants and input wires free, F has a circuit of size at most sum_{j=1}^q (max(|I_j|-1,0) + b_j). Proof: For each output j with k=|I_j|=0, output the free constant b_j, costing zero; the displayed summand is b_j in this case, so this bound remains valid. For k>=1, compute the parity of the k selected inputs with a binary XOR chain using k-1 XOR gates. If b_j=0, this is the output. If b_j=1, apply one NOT gate. Thus the cost for this output is k-1+b_j, equal to its summand. Constructing these circuits separately for all q outputs and summing their costs proves the bound; input sharing is free and can only reduce cost. In particular, size is at most q(d-1)+q. Scope: all affine Boolean maps over GF(2), in the explicitly stated basis. This repairs the prior claim's mismatch between a counted-NOT scope and a proof treating NOT as free; it is an upper bound only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608606.5773885,
+  "session": "pnp-desk/research/R3538",
+  "model": "gpt-6-luna",
+  "id": "S0699",
+  "proved_step": "statement: Witness-output terminal state lower bound. Let I be a finite set of valid instances encoded by streams of a fixed length N, and let W be a finite set of correct witness strings. Suppose a deterministic streaming transducer processes the stream in order, ends in a state q in Q, and its fixed final decoder D:Q->{rejection} union W is correct on every valid and invalid stream. If two valid streams x,y encode instances whose sets of correct witnesses are disjoint, then their terminal states are distinct. Moreover, the terminal state of any invalid stream is distinct from that of every valid stream. Hence the number of terminal states is at least the number of pairwise witness-incompatible valid streams plus one when an invalid stream exists.\nproof: If two streams end in the same state q, the fixed decoder returns the same value D(q) on both. Correctness requires D(q) to be a correct witness for each associated valid instance. If their correct-witness sets are disjoint, no such output exists, a contradiction; therefore their terminal states differ. For an invalid stream z, correctness requires D(q_z)=rejection. For a valid stream x, correctness requires D(q_x) in W, so q_z cannot equal q_x because D is a function. Counting these pairwise distinct terminal states proves the bound.\nscope: Finite fixed-length streaming SEARCH transducers with deterministic transitions, a single fixed terminal decoder, and correctness on every valid and invalid stream; it gives a state lower bound only and no update-gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795609410.5655096,
+  "session": "pnp-desk/research/R3554",
+  "model": "gpt-6-luna",
+  "id": "S0700",
+  "proved_step": "statement: Residual-separation lemma. Let F be a subset of {0,1}^N and let E_t map length-t prefixes to states in any deterministic exact membership transducer. If E_t(p)=E_t(q), then the residual sets R_t(p)={u:pu in F} and R_t(q)={u:qu in F} are equal. Hence every such transducer has at least K_t distinct reachable states at layer t, where K_t is the number of distinct residuals. Proof: If the residuals differed, choose a suffix u in their symmetric difference. Starting from equal states, determinism gives identical state sequences on the common suffix u, and the final decoder must give the same accept/reject result, contradicting that exactly one of pu, qu belongs to F. Therefore equal states imply equal residuals; distinct residuals require distinct states, giving the bound. Conversely, assigning one state per residual and transitioning R_t(p) on bit b to R_{t+1}(pb) is well-defined because R_t(p)=R_t(q) implies R_{t+1}(pb)=R_{t+1}(qb); final acceptance is whether the residual contains the empty suffix. Thus K_t states are sufficient as well. This gives an exact layer-by-layer state characterization, but no update-circuit cost bound.\nscope: Finite F subset {0,1}^N; deterministic layered transducers with exact membership output; N>=0.\nproof: As stated in the step; complete argument included.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795609519.7029629,
+  "session": "pnp-desk/research/R3554",
+  "model": "gpt-6-luna",
+  "id": "S0701",
+  "proved_step": "statement: Adjacent residual-count lemma. Let F be a subset of {0,1}^N. For each 0<=t<=N, let R_t(p)={u in {0,1}^{N-t}: pu in F}, and let K_t be the number of distinct residuals R_t(p) over prefixes p of length t. For every 0<=t<N, K_{t+1}<=2K_t and K_t<=K_{t+1}^2. Proof: For each residual R at layer t, its two derivatives R_0={u:0u in R} and R_1={u:1u in R} are layer-(t+1) residuals. Every layer-(t+1) residual arises as one of these derivatives from its parent prefix, so there are at most two children per distinct parent, proving K_{t+1}<=2K_t. Also R is exactly the disjoint-prefix union {0u:u in R_0} union {1u:u in R_1}; hence the ordered pair (R_0,R_1) uniquely determines R. Distinct layer-t residuals therefore give distinct ordered pairs of layer-(t+1) residuals. There are at most K_{t+1}^2 such pairs, proving K_t<=K_{t+1}^2.\nscope: Finite languages F subset {0,1}^N; residuals are sets of suffixes at each fixed layer; all integers 0<=t<N. No circuit-cost conclusion.\nproof: For any prefix p of length t, its two extensions p0 and p1 have residuals R_{t+1}(p0) and R_{t+1}(p1), which are respectively the 0- and 1-derivatives of R_t(p). This gives at most two child residuals per parent. Conversely, a residual R_t(p) is reconstructed uniquely as {0u:u in R_{t+1}(p0)} union {1u:u in R_{t+1}(p1)}. Therefore the map from distinct parent residuals to ordered pairs of child residuals is injective, yielding the square bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795609784.500234,
+  "session": "pnp-desk/research/R3554",
+  "model": "gpt-6-luna",
+  "id": "S0702",
+  "proved_step": "statement: Fixed-layer residual extremum is attainable. For integers N>=0 and 0<=t<=N, let F range over subsets of {0,1}^N, and let K_t(F) be the number of distinct sets R_t(p)={u in {0,1}^{N-t}: pu in F}, for p in {0,1}^t. Then max_F K_t(F)=min(2^t, 2^(2^(N-t))). Proof: There are 2^t prefixes, so K_t(F)<=2^t. Each residual is a subset of a suffix universe of size 2^(N-t), so K_t(F)<=2^(2^(N-t)). Put k=min(2^t,2^(2^(N-t))). Choose k distinct subsets A_1,...,A_k of the suffix universe and assign them to k distinct prefixes. Assign the empty subset to any remaining prefixes. Define F to contain exactly the concatenations pu for which the suffix u belongs to the subset assigned to p. The residual of each selected prefix is its assigned A_i, hence these k prefixes have pairwise distinct residuals and K_t(F)>=k. The upper bound gives equality. This is an extremum for one fixed layer; it does not assert simultaneous attainment at all layers or bound transition cost.\nscope: All finite Boolean languages of word length N, including N=0; every fixed layer t in [0,N]. Membership residuals only; no circuit or witness-output cost conclusion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795611132.2468953,
+  "session": "pnp-desk/research/R3570",
+  "model": "gpt-6-luna",
+  "evidence": "The proof establishes the general membership result. Finite corroboration only: cm-cc77ccf0863f4434 checked all 255 nonempty languages over three-bit strings at all four layers and found counterexamples to the stronger live-prefix-plus-dead-state count.",
+  "id": "S0703",
+  "proved_step": "statement: Residual automaton theorem. Let N>=0 and F be a subset of {0,1}^N. For each t and prefix p in {0,1}^t define R_t(p)={u in {0,1}^{N-t}: pu in F}, and let K_t be the number of distinct residual sets. There is a deterministic layered membership transducer with exactly K_t states at layer t, and no deterministic layered membership transducer can use fewer than K_t states at that layer. For every residual R at layer t<N and bit b, define delta_t(R,b)={v in {0,1}^{N-t-1}: bv in R}. This is well-defined and equals R_{t+1}(pb) for any p with R_t(p)=R. Assign one state to each distinct residual and use delta_t as transition. At layer N accept precisely the state whose residual is {empty string}, if present; reject the empty residual. For the lower bound, prefixes with different residual sets cannot share a state, since a suffix in their symmetric difference must be accepted after one prefix and rejected after the other. Scope: finite deterministic layered membership transducers with unrestricted transition functions; no gate-cost or witness-output conclusion.\nproof: For a residual R realized by prefix p, its transition on b must represent precisely the suffixes v for which pbv is in F, namely {v:bv in R}. This is independent of the chosen representative p. Induction on t shows that after reading p the state represents R_t(p). At t=N, the only possible residuals are empty and {empty string}; accepting exactly the latter recognizes F. Conversely, if prefixes with different residuals shared a state, determinism would give the same final decision on every common suffix. A suffix in the symmetric difference of the residuals must instead be accepted after one prefix and rejected after the other, a contradiction. Thus at least K_t states are necessary, and the construction attains the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795611326.9479997,
+  "session": "pnp-desk/research/R3570",
+  "model": "gpt-6-luna",
+  "id": "S0704",
+  "proved_step": "statement: SEARCH transducer construction with explicit transition and decoder bounds. Let F subset {0,1}^N, N>=1, and designate for each x in F a valid witness w(x) in {0,1}^r. At each layer t let L_t be the number of live length-t prefixes and d_t=1 iff a dead length-t prefix exists. Put S=max_t ceil(log2(L_t+d_t)). There is a deterministic layered transducer with S state bits, distinct states for all live prefixes at each layer, dead states disjoint from live states, acceptance exactly F and output w(x) on every x in F. In the AND, XOR, NOT, constant basis with shared gates and free fan-out, each transition has at most 2^(S+2)-4 + S(2^(S+1)-1) nonconstant gates, and the final decoder has at most 2^(S+1)-4 + r(2^S-1) nonconstant gates. Proof: At each layer injectively assign S-bit codes to live prefixes and, if dead prefixes exist, one further code disjoint from them; the definition of S guarantees enough codes. Define transitions on reachable live codes by mapping (code(p),b) to code(pb) when pb is live and to a dead code otherwise; map dead codes to dead codes, and define unused inputs arbitrarily. For any Boolean map on d input bits, build all full-assignment minterms using shared signed-prefix conjunctions, costing sum_{k=2}^d 2^k=2^(d+1)-4 AND gates. Each output is the XOR of its accepting minterms, costing at most 2^d-1 XOR gates. With d=S+1 and S outputs this gives the transition bound. At layer N, each live state identifies a unique x in F, so define the decoder there to output w(x) and reject on dead codes. Apply the same minterm construction on S bits with r outputs for the decoder bound. Induction on prefix length proves the assigned state invariant and hence acceptance and witness correctness for all inputs. Scope: finite F, N>=1, fixed designated r-bit witness per accepted word, layered deterministic transducers, injective live-prefix states, one disjoint dead state when needed, AND/XOR/NOT/constants, free fan-out. Constructive upper bound only; not an optimal Pareto result and not P-versus-NP progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

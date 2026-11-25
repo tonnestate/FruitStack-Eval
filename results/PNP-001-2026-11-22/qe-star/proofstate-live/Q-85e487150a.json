@@ -1227,5 +1227,46 @@
   "proved_step": "statement_start: LEMMA (R1, F_2-linear/affine staged realization, SEARCH version, REPAIRED). Let N = 2^m, s >= 1. Circuit basis: AND, OR, NOT, constants 0 and 1 as leaves of size 1. The total search problem SearchMCSP[s] receives x in F_2^N and must output a circuit of size <= s computing x, or 'none' if none exists. Consider a one-pass streaming algorithm with affine state updates over F_2: q_0 = c_0, q_t = M_t q_{t-1} + L_t x_t + c_t for t = 1..N (fixed M_t in F_2^{S x S}, L_t in F_2^{S x 1}, c_t in F_2^S). Final state q_N = M x + c with M in F_2^{S x N}, c in F_2^S. Decoder D: F_2^S -> {circuits of size <= s} U {'none'}. Correctness: for all x, if x has circuit size <= s then D(q_N(x)) is a circuit computing x; else D(q_N(x)) = 'none'. Then S >= N = 2^m. Proof: The all-zero truth table 0^N has circuit size 1 (single leaf 0), and 1 <= s since s >= 1. Thus it is a YES instance. So D(q_N(0)) = D(c) = C_0, a circuit computing the constant 0 function. Now suppose k in ker M, k != 0. Then q_N(k) = M k + c = c = q_N(0). By correctness, D(q_N(k)) = D(c) = C_0. But C_0 computes the constant 0 function. For this to be the correct output on input k, we would need k to be the constant 0 function, i.e., k = 0^N. Contradiction since k != 0. Therefore ker M = {0}. Hence rank M = N. Since M has S rows, S >= rank M = N = 2^m. QED.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795609208.8555834,
+  "session": "pnp-desk/research/R3553",
+  "model": "gpt-6-luna",
+  "evidence": "The affine updates compose to q_N(x)=Mx+c. Since 0^N has a size-1 constant-zero circuit, D(c) computes 0^N. If nonzero k is in ker M, then q_N(k)=c, so D(c) would also have to compute k, contradicting k != 0. Thus ker M={0}, rank(M)=N, and S>=N. The statement explicitly fixes the size-1 constant-leaf convention.",
+  "review_of": "S0137",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795609888.688741,
+  "session": "pnp-desk/research/R3553",
+  "model": "gpt-6-luna",
+  "id": "S0139",
+  "proved_step": "statement: LEMMA (affine prime-field exact-search state lower bound). Let p be prime, N,S nonnegative integers, and q(x)=Mx+c map {0,1}^N into F_p^S, with M an S-by-N matrix over F_p. Suppose 0 is a yes-instance of a search problem whose exact decoder depends only on q(x) and outputs a witness computing x on every yes-instance. Then N<=S(p-1), hence S>=ceil(N/(p-1)). In particular this applies to Search-MCSP[s] whenever the zero truth table has a circuit of size at most s. Proof: Let w_i be the columns of M and G=(Z/pZ)^S. In the group algebra F_p[G], let X^g denote the group basis element and I the augmentation ideal. The algebra is F_p[y_1,...,y_S]/(y_1^p,...,y_S^p), with y_j=X^{e_j}-1, so I^{S(p-1)+1}=0. If N>S(p-1), every factor 1-X^{w_i} lies in I, so product_{i=1}^N(1-X^{w_i})=0. Expanding gives sum_{J subseteq [N]}(-1)^|J| X^{sum_{i in J}w_i}=0. Its identity coefficient sums (-1)^|J| over subsets J with zero column sum. If there were no nonempty such J, this coefficient would be 1 from J=empty, contradicting product=0. Thus some nonempty J has sum_{i in J}w_i=0. Its indicator k in {0,1}^N is nonzero with Mk=0, hence q(k)=q(0). The decoder must return the same witness on k and 0, but a witness computing 0 cannot compute nonzero k; contradiction. Therefore N<=S(p-1).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Repairs the previously refuted prime-field step S0080. The proof-state read returned no open_obligations identifier, so no unrelated gap closure is claimed.",
+  "closes_valid": false
+ },
+ {
+  "at": 1795610696.5572283,
+  "session": "pnp-desk/research/R3567",
+  "model": "gpt-6-luna",
+  "id": "S0140",
+  "proved_step": "statement: Lemma (affine exact-search counting bound). Let p be prime and let N,S be nonnegative integers. Suppose an exact search problem on every x in {0,1}^N has a yes/no status and, on yes inputs, its decoder must output a witness that determines x uniquely (in particular, a circuit computing the truth table x); on no inputs it outputs a distinguished symbol NONE. Suppose the final state is q(x)=Mx+c in F_p^S and the decoder depends only on q(x). Then 2^N <= p^S, hence S >= ceil(N/log_2(p)). Proof: If q(x)=q(y), the decoder outputs the same value on x,y. If one is yes and one no, that value would have to be both a witness and NONE, impossible. If both are yes, the same witness would have to determine both x and y, so x=y. If both are no, q need not distinguish them. Therefore this argument alone does not imply injectivity on all inputs; restrict to the yes set Y to obtain |Y| <= p^S and S >= log_p |Y|. For Search-MCSP[s], this gives S >= log_p(number of N-bit truth tables of circuit size <=s), provided the decoder's witness uniquely determines its truth table. In the special case where every input is a yes instance, |Y|=2^N and the stated 2^N <= p^S follows. This lemma is deliberately scoped to the yes-set counting bound; it does not claim S >= N/log_2(p) for ordinary Search-MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795610746.446231,
+  "session": "pnp-desk/research/R3567",
+  "model": "gpt-6-luna",
+  "id": "S0141",
+  "proved_step": "statement: Lemma (affine exact-search yes-set counting). Let p be prime and N,S be nonnegative integers. Let Y be the yes set of an exact search problem on inputs {0,1}^N. Suppose the final state is q(x)=Mx+c in F_p^S, the decoder depends only on q(x), and every output witness that is valid on a yes input uniquely determines that input. Then |Y| <= p^S, and therefore S >= ceil(log_p |Y|) when |Y|>0. Proof: If x,y in Y have q(x)=q(y), the decoder returns the same output on both. That output is a valid witness for both, and by hypothesis uniquely determines its input, so x=y. Thus q restricted to Y is injective. Its codomain F_p^S has p^S states, whence |Y|<=p^S. Taking logarithms gives the stated bound. No injectivity is asserted for no inputs, so this does not imply S>=N/log_2(p) for a general search problem. For Search-MCSP[s], it applies when each valid circuit witness determines the represented truth table.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
  }
 ]

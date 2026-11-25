@@ -6160,5 +6160,84 @@
   "proved_step": "statement: TRIE-SHARED SPARSE TRANSITION EXTENSION. Let Q have m>=1 elements, S=ceil(log2 m), psi:Q->{0,1}^S be injective, and D={q:delta(q)!=q}, with |D|=t. Let T be the number of non-root nodes in the binary prefix trie of {psi(q):q in D}, and D_j={q in D:psi(q)_j!=psi(delta(q))_j}. A total extension of the encoded transition has a fan-in-two AND/NOT circuit of size O(S+T+sum_j max(0,|D_j|-1)). Proof: Compute each equality indicator [x=psi(q)] by extending shared prefix conjunctions in the trie, costing O(T) gates and O(S) shared input negations. For each j, OR the indicators for q in D_j, using max(0,|D_j|-1) gates, with empty OR equal to 0. Output bit j as x_j XOR that OR, using constant-size AND/NOT circuits. At unchanged encoded states all indicators vanish. At changed encoded state psi(q), injectivity makes exactly its indicator true, so precisely the differing coordinates toggle and the output is psi(delta(q)). The formulas define outputs on all other strings, hence give a total extension. If D is empty the identity uses only wires.\nproof: As stated: shared prefix tests identify changed encoded states; each output coordinate toggles exactly when its active changed-state indicator belongs to D_j. The gate count is the sum of trie extensions, coordinate OR trees, and constant-size XOR circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795608062.383329,
+  "session": "pnp-desk/research/R3534",
+  "model": "gpt-6-luna",
+  "lemma": "The current constructive lemma S0708 gives an exact extension for arbitrary sparse transitions, but its proof-state status is only CLAIMED. A further exact consequence is that for any changed set D, the trie node count T is at most S|D|, since each of the |D| codewords contributes at most S non-root prefixes; therefore S0708 recovers a O(S|D|) bound while potentially saving gates when changed encodings share prefixes. Proof: each word has exactly S prefixes of lengths 1 through S, and the trie node set is their union, so its cardinality is at most the sum S|D|. This is a general bound on the defined trie statistic; it does not establish a lower bound or close the full amortized recoding obligation."
+ },
+ {
+  "at": 1795608173.274518,
+  "session": "pnp-desk/research/R3534",
+  "model": "gpt-6-luna",
+  "id": "S0710",
+  "proved_step": "statement: HAMMING-SENSITIVE SPARSE TRANSITION EXTENSION. Let Q be a finite set of size m>=1, S=ceil(log2 m), psi:Q->{0,1}^S injective, and delta:Q->Q. Set D={q:delta(q)!=q}, D_j={q in D:psi(q)_j!=psi(delta(q))_j}, and let T be the number of non-root nodes in the prefix trie of {psi(q):q in D}. Define H=sum_{q in D} dist_H(psi(q),psi(delta(q))). A total extension of the encoded transition is computable by fan-in-two AND/NOT gates using O(S+T+H) gates. Proof: For each trie node, compute the conjunction testing its prefix by extending its parent conjunction with the next matching input literal; share input negations. This uses O(T+S) gates and yields each equality indicator e_q(x)=[x=psi(q)] at its leaf. For each output coordinate j, OR the indicators e_q for q in D_j, using max(0,|D_j|-1) binary OR gates, and use constant 0 if D_j is empty. Set output bit j to x_j XOR that OR; XOR has a constant-size AND/NOT implementation. At an encoded unchanged state, no changed-state indicator is true, so the output is unchanged. At psi(q) for q in D, injectivity makes exactly e_q true, so coordinate j toggles exactly when psi(q)_j differs from psi(delta(q))_j. Thus the output is psi(delta(q)); the formulas define a total map on all strings. Finally, sum_j |D_j|=H by counting each changed state once for every differing coordinate. Therefore sum_j max(0,|D_j|-1)<=H, giving the claimed gate bound. For D empty, the identity map uses wires alone.\nproof: The trie computes all changed-state equality indicators with shared prefix work. Each output coordinate aggregates exactly the indicators whose transition changes that coordinate, then toggles the input bit. Injectivity ensures that on a valid encoded input precisely its own indicator is active. The number of output aggregation gates is sum_j max(0,|D_j|-1), which is at most sum_j |D_j|=H. Adding the trie gates, shared input negations, and constant-cost XOR circuits gives O(S+T+H). This proves a total extension and the stated bound for every finite instance.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608326.5828235,
+  "session": "pnp-desk/research/R3534",
+  "model": "gpt-6-luna",
+  "id": "S0711",
+  "proved_step": "statement: PREFIX-TRIE BOUND. Let A be a set of t distinct binary strings of length S, and let T(A) be the number of non-root nodes in their prefix trie. Then T(A) <= sum_{d=1}^S min(t,2^d). For t>=1, this is at most t(S-floor(log2 t))+2t-2. For t=0, T(A)=0. Proof: At depth d, trie nodes correspond to distinct length-d prefixes of strings in A. There are at most t such prefixes and at most 2^d binary strings of length d, so that level has at most min(t,2^d) nodes. Summing over depths proves the first inequality. For t>=1 let k=floor(log2 t). The sum through depth k is 2^(k+1)-2 <= 2t-2; the remaining S-k levels contribute at most t each. This proves the second bound. The statement concerns trie size only and does not assume or prove a circuit lower bound.\nproof: At each depth d, every trie node is a prefix of at least one member of A, giving at most t nodes, and there are only 2^d possible prefixes, giving at most 2^d nodes. Add these bounds level by level. For the explicit estimate, depths 1 through k contribute at most sum 2^d=2^(k+1)-2 <= 2t-2, while depths k+1 through S contribute at most t per level, for t(S-k). The empty set has no trie nodes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608326.621067,
+  "session": "pnp-desk/research/R3542",
+  "model": "gpt-6-luna",
+  "evidence": "Complete direct construction and proof are included in the step. Independent finite sanity check: cm-fc5355a099b84193, 362,879 transitions through m=8, all passed; not used as proof.",
+  "id": "S0712",
+  "proved_step": "CYCLE-CONCATENATION TRANSITION UPPER BOUND. Let Q be an m-element set, m>=2, and let \u03b4 be a permutation of Q with c cycles. Put S=ceil(log2 m). There is an injection \u03c8:Q\u2192{0,1}^S such that the transition \u03c8\u03b4\u03c8^{-1}, defined on \u03c8(Q), extends to a total S-bit Boolean map computed by O(S(c+1)) fan-in-two AND/NOT gates. Proof: Order the cycles arbitrarily and concatenate their cyclic orderings into a list q_0,...,q_{m-1}; encode q_i by the S-bit binary representation of i. Let b_i be the index of \u03b4(q_i). For every i that is not the last index of its cycle, b_i=i+1, so ordinary binary increment agrees with the required transition. Let E be the set of cycle-end indices; |E|=c. Build a total increment-modulo-2^S map I on S bits: each carry into bit j is the conjunction of the lower j bits (with the empty conjunction equal to 1), and output bit j is x_j XOR that carry. Shared prefix conjunctions and constant-size AND/NOT implementations of XOR give O(S) gates. For each i\u2208E, compute e_i(x)=[x=i] by an S-literal conjunction. For output bit j, set F_j(x)=I_j(x) XOR OR_{i\u2208E : (i+1 mod 2^S)_j != b_i,j} e_i(x). OR trees use O(c) gates per bit, so all corrections use O(Sc) gates; equality tests use O(Sc) gates as well. At a valid non-end code i the correction is zero and I(i)=i+1=b_i. At a valid end code i, injectivity makes exactly e_i active, toggling precisely the bits where I(i) differs from b_i; hence F(i)=b_i. The formulas define F on unused codes too, giving a total extension. Therefore the circuit size is O(S(c+1)). The finite verification cm-fc5355a099b84193 checked the cycle-concatenation identity on 362,879 transitions through m=8; it is sanity evidence only, while the argument above proves the stated bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795610191.5321672,
+  "session": "pnp-desk/research/R3558",
+  "model": "gpt-6-luna",
+  "id": "S0713",
+  "proved_step": "FEW-DISTINCT-CYCLE-LENGTH ENCODING LEMMA. For every m>=2 and every permutation delta on an m-element set Q with exactly d distinct cycle lengths l_1,...,l_d, there is an injective encoding psi:Q->{0,1}^S, S=ceil(log2 m), such that psi delta psi^{-1} on psi(Q) extends to a total Boolean map computed by O(d log m + log m * sum_{i=1}^d log(l_i+1)) fan-in-two AND/NOT gates. Proof: For each i, list the c_i cycles of length l_i, and assign their states consecutive integer codes A_i+a*l_i+j, where A_i=sum_{h<i}c_h*l_h, 0<=a<c_i, 0<=j<l_i. These codes partition 0,...,m-1, hence their S-bit binary encodings are injective. On each such cycle delta sends x to x+1 unless j=l_i-1, in which case it sends x to x-l_i+1. For each i make an interval indicator I_i(x) for A_i<=x<A_i+c_i*l_i; binary comparison to constants costs O(log m) fan-in-two gates. Within that interval the boundary indicator is E_i(x)=[(x-A_i+1) mod l_i=0]. Compute it by subtracting the constant A_i, then scanning the resulting O(log m)-bit string from most significant to least significant while maintaining a remainder r in {0,...,l_i-1}; each bit updates r to (2r+b) mod l_i using O(log(l_i+1)) Boolean gates, so this test costs O(log m log(l_i+1)). The flags I_i AND E_i are disjoint. The ordinary output is x+1; when flag i holds, select x-l_i+1 instead. Binary increment, constant subtraction, and d-way disjoint selection cost O(d log m) gates total. Thus on every valid code the output is exactly the next state on its cycle. The same circuit defines outputs on unused codes, giving a total extension. This is a constructive bound for the stated family only; it does not prove the unrestricted O(sqrt(m) log^2 m) upper bound or any lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795610652.2363791,
+  "session": "pnp-desk/research/R3566",
+  "model": "gpt-6-luna",
+  "id": "S0714",
+  "proved_step": "INTERVAL-ENCODING LEMMA. Let Q be an m-element set, m>=2, and let delta be a permutation of Q with d cycles. Put S=ceil(log2 m). There is an injection psi:Q->{0,1}^S such that the transition on psi(Q) extends to a total S-bit Boolean map of fan-in-two AND/NOT circuit size O((d+1)S). Proof: List the cycles in any order, with lengths ell_1,...,ell_d, and let a_i=sum_{h<i} ell_h. Enumerate cycle i as q_{i,0},...,q_{i,ell_i-1}, and encode q_{i,j} by the S-bit binary representation of a_i+j. These are distinct codes in [0,m-1], so psi is injective. Let B(x)=x+1 mod 2^S, computed by a shared ripple incrementer using O(S) fan-in-two AND/NOT gates: the carry into bit j is the conjunction of lower bits, and XOR has a constant-size AND/NOT implementation. For each cycle endpoint e_i=a_i+ell_i-1, compute the indicator E_i(x)=[x=e_i] using an S-literal conjunction, costing O(S). On endpoint e_i, the base output B(e_i) must be changed to a_i. For each output bit r define F_r(x)=B_r(x) XOR OR_{i: B(e_i)_r differs from (a_i)_r} E_i(x). The endpoint indicators are mutually exclusive because the e_i are distinct; OR and XOR each have constant-size fan-in-two AND/NOT implementations per operation. Thus all endpoint tests and corrections cost O(dS), and the total circuit costs O((d+1)S). At a non-endpoint encoded state a_i+j with j<ell_i-1, no E_i is active and B outputs a_i+j+1, the next cycle state. At endpoint e_i exactly E_i is active and the correction changes B(e_i) to a_i, the cycle successor. This includes e_i=m-1, whether or not m is a power of two, since B is explicitly modulo 2^S. The formulas define outputs on every S-bit input, giving a total extension. This proves only an upper bound depending on the number of cycles; it does not establish a uniform O(sqrt(m) polylog(m)) bound for arbitrary permutations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795610933.924455,
+  "session": "pnp-desk/research/R3574",
+  "model": "gpt-6-luna",
+  "id": "S0715",
+  "proved_step": "statement: GENERAL DNF EXTENSION BOUND. For every m>=1, every m-element set Q, every permutation delta:Q->Q, and S=ceil(log2 m), there exists an injection psi:Q->{0,1}^S such that psi delta psi^{-1} on psi(Q) extends to a total S-bit Boolean map computed by O(mS) fan-in-two AND/NOT gates. Proof: Choose m distinct S-bit strings a_q and encode q by a_q. For each output coordinate j, define F_j(x)=OR_{q: (psi(delta(q)))_j=1} [x=a_q], where [x=a_q] is the conjunction of the S literals matching a_q. Implement each equality with fan-in-two AND gates, sharing input negations across all terms, and each disjunction with fan-in-two OR gates; OR is implementable with constant-size AND/NOT circuitry. Across S output bits this uses O(mS) gates. At x=a_q, exactly the q equality indicator is true, so F_j(a_q)=(psi(delta(q)))_j for every j. The formulas define a total map on all strings, including unused codes. For m=1, S=0 and the unique map needs no gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795610944.6634355,
+  "session": "pnp-desk/research/R3566",
+  "model": "gpt-6-luna",
+  "id": "S0716",
+  "proved_step": "CANDIDATE REPAIR \u2014 grouped-length interval encoding. Let a permutation on m states have d distinct cycle lengths. Set S=ceil(log2 m), order the cycles by length, and assign each cycle of length \u2113 its own consecutive interval of \u2113 integers, with all cycles of the same length in one contiguous block beginning at a. On a valid code x in that block, the transition is x+1 unless (x-a+1) mod \u2113=0, in which case it is x+1\u2212\u2113. Proof: write x=a+u\u2113+r with 0\u2264r<\u2113 and u the cycle index in the block. If r<\u2113\u22121 then x+1=a+u\u2113+(r+1), the next state in that cycle. If r=\u2113\u22121 then x+1\u2212\u2113=a+u\u2113, the first state of that same cycle. The endpoint predicate is equivalent to r=\u2113\u22121. This proves the transition identity on every encoded state. This claim is only the arithmetic transition identity; it does not assert a circuit-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795611492.996119,
+  "session": "pnp-desk/research/R3574",
+  "model": "gpt-6-luna",
+  "id": "S0717",
+  "proved_step": "statement: CYCLE-BOUNDARY EXTENSION LEMMA. For every m>=2 and every permutation delta on an m-element set with c cycles, there is an injective encoding into S=ceil(log2 m) bits such that its transition extends to a total Boolean map with O(S(c+1)) fan-in-two AND/NOT gates. Proof: list states cycle by cycle in transition order and encode them as 0,...,m-1. Use B(x)=x+1 modulo 2^S as the default transition. For each cycle terminal i with start a(i), compute h_i(x)=[x=i] using S literals. Output bit j is B_j(x) XOR the OR of h_i(x) over terminal indices with B_j(i) != a(i)_j. The incrementer costs O(S); equality indicators cost O(cS); all per-bit OR and XOR corrections cost O(cS). On each valid nonterminal index, B increments to its successor. At a terminal index, exactly its equality indicator is active and the corrections produce the cycle's start code. The circuit formulas define values on unused codes too, giving a total extension.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

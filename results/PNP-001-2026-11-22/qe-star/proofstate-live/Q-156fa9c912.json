@@ -7277,5 +7277,98 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0841: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim remains open. The Lean checker rejected the latest file because the length proof was unresolved, and no corrected file was accepted. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795608404.7183607,
+  "session": "pnp-desk/research/R3548",
+  "model": "gpt-6-luna",
+  "id": "S0848",
+  "proved_step": "statement: For fixed n,s, let F_{n,s} be the length-N truth tables computed by circuits of size at most s. For every prefix p let R_p={z:pz in F_{n,s}}. The minimum number of states of a deterministic automaton recognizing the prefix language of F_{n,s} is D=|{R_p:p a prefix}|; consequently any exact state encoding requires at least ceil(log2 D) bits.\nproof: If R_p=R_q, every suffix is accepted after p iff it is accepted after q, so merging them preserves the language. If R_p differs from R_q, choose z in their symmetric difference; then exactly one of pz,qz belongs to F_{n,s}, so merging p,q misclassifies one. Therefore equality of completion sets is precisely the indistinguishability equivalence, and its D classes are necessary and sufficient states. D distinct states require at least ceil(log2 D) bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608518.1175754,
+  "session": "pnp-desk/research/R3548",
+  "model": "gpt-6-luna",
+  "id": "S0849",
+  "proved_step": "For a finite family F\u2286{0,1}^N, define R_p={z\u2208{0,1}^{N\u2212|p|}: pz\u2208F} for every binary prefix p of length at most N. The minimum number of states in a deterministic automaton that recognizes exactly the prefixes of words in F is the number D of distinct sets R_p, including the empty set when it occurs. Proof: Each prefix p has residual language R_p. If R_p=R_q, then for each next bit b and each remaining suffix z, bz\u2208R_p iff bz\u2208R_q, so p and q have identical acceptance behavior for every continuation and may be merged. Conversely, if R_p\u2260R_q, choose z in their symmetric difference; the continuation z is accepted from exactly one of p,q, so any deterministic automaton recognizing the language must place them in different states. Thus the equivalence classes of prefixes under equality of residual languages are exactly the necessary and sufficient states, and their number is D.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608636.9434304,
+  "session": "pnp-desk/research/R3548",
+  "model": "gpt-6-luna",
+  "id": "S0850",
+  "proved_step": "statement: PREFIX-CLOSURE RESIDUAL CHARACTERIZATION. Let N\u22650, F\u2286{0,1}^N, P=Pref(F), and for p\u2208P let R_p={u\u2208{0,1}^{N\u2212|p|}: pu\u2208F}. Let K_p={z\u2208{0,1}^{\u2264N\u2212|p|}: pz\u2208P}. Then K_p=Pref(R_p): z\u2208K_p iff z is a prefix of some u\u2208R_p. Consequently K_p=K_q iff either |p|=|q| and R_p=R_q, or R_p=R_q=\u2205.\nproof: For z of length at most N\u2212|p|, pz\u2208P iff there exists y with pzy\u2208F, by prefix closure. This is equivalent to zy\u2208R_p for some y, meaning z is a prefix of an element of R_p. If R_p and R_q are nonempty at different depths, their words have different fixed lengths, so their prefix languages have different maximum word lengths. At equal depth, equality of R sets implies equality of prefix sets; conversely, elements of R_p have maximum remaining length and so are exactly the maximum-length elements of Pref(R_p), recovering R_p from that prefix language. Empty residuals yield the same empty continuation language at every depth. Myhill\u2013Nerode then says precisely the equal continuation languages can be merged, while unequal ones are distinguished by a continuation in their symmetric difference.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795608721.6522708,
+  "session": "pnp-desk/research/R3548",
+  "model": "gpt-6-luna",
+  "id": "S0851",
+  "proved_step": "WIRE-CONSISTENCY REPRESENTATION. Let C be a fan-in-two Boolean circuit with g gates, topologically ordered, and output wire o. Introduce one bit w_i for each gate. Let H_C(y,w) assert, for every i, that w_i equals gate i applied to its input wires, and also assert o=1. Then H_C has O(g) fan-in-two gates, and C(y)=1 iff there exists w with H_C(y,w)=1. For every y, the gate equations force a unique w. Proof: Induct in topological order: each gate\u2019s inputs are primary inputs or earlier gate outputs, so its equation uniquely sets w_i to the value computed by C. Thus the unique satisfying assignment to the gate equations is C\u2019s evaluation; adding o=1 makes the existential projection accept exactly when C(y)=1. Each local equation has constant-size implementation and their conjunction uses O(g) gates. This representation does not bound the cost of updating or canonicalizing projected residuals.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608875.1249466,
+  "session": "pnp-desk/research/R3548",
+  "model": "gpt-6-luna",
+  "id": "S0852",
+  "proved_step": "MINIMAL EXACT RECOGNIZER STATES ARE RESIDUAL LANGUAGES. Let L be a language over a finite alphabet and let P be the set of prefixes under consideration. For p define R_p={z:pz\u2208L}. Every deterministic exact recognizer has distinct states after p and q whenever R_p\u2260R_q; conversely, the distinct residuals form the states of an exact recognizer, with transition R_p --a--> R_{pa} and acceptance iff the empty suffix belongs to the residual. Thus the minimum number of states reachable by prefixes in P is exactly the number of distinct residuals among P. Proof: If R_p\u2260R_q, choose z in their symmetric difference. A recognizer in the same state after p and q processes z identically, contradicting exactness. For the converse, define the transition by R_p\u2192R_{pa}; it is well-defined because R_p=R_q implies for every a,z, az\u2208R_p iff az\u2208R_q, hence R_{pa}=R_{qa}. Also R_p is accepting exactly when \u03b5\u2208R_p, which is equivalent to p\u2208L. This characterizes precisely the information any exact prefix recognizer must retain. It gives no lower bound on real-gate transition cost for H_C and no implication for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795609630.8324585,
+  "session": "pnp-desk/research/R3556",
+  "model": "gpt-6-luna",
+  "evidence": "Direct quantifier expansion proves the transition identity for all H,p,b,z'. The representation is explicitly (H,p), with prefix storage counted; no projection elimination is claimed.",
+  "id": "S0853",
+  "proved_step": "Constructive literal-prefix representation lemma: for every Boolean relation H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} and L(x)=\u2203w H(x,w), the residual after p is represented exactly by (H,p), and reading b updates to (H,pb) without changing H or its gate count; the representation stores |p| prefix bits. Proof: define L_p(z)=\u2203w H(pz,w). Then L_pb(z')=1 iff \u2203w H(pb z',w)=1 iff L_p(bz')=1. The update appends b to p; H is untouched, so gate count remains h. This gives an exact construction and update-cost bound in representation (H,p), while explicitly charging |p| bits and making no compactness or canonicality claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795610271.9930515,
+  "session": "pnp-desk/research/R3564",
+  "model": "gpt-6-luna",
+  "id": "S0854",
+  "proved_step": "statement_start: DISTINGUISHING-SUFFIX SIGNATURE LEMMA. Let U be a finite suffix set and let R_1,...,R_K be distinct subsets of U. For every unordered pair {i,j}, choose u_{ij} in the symmetric difference R_i triangle R_j. Define sigma(R_i) as its membership vector over the chosen suffixes. Then sigma is injective and uses at most binomial(K,2) coordinates. Conversely, any injective binary signature for these K residuals requires at least ceil(log_2 K) coordinates. Proof: For i != j, the selected u_{ij} belongs to exactly one of R_i,R_j, so their corresponding coordinate differs and sigma(R_i) != sigma(R_j). There are binomial(K,2) pairs, hence no more than that many chosen coordinates (duplicates can be removed). A q-coordinate binary vector has at most 2^q possible values, so injectivity implies K <= 2^q and q >= ceil(log_2 K). For K=0 or 1, the empty coordinate set is injective and the lower bound is zero. At an EXT prefix level, take U to be the set of all suffixes of the remaining length and the R_i to be its distinct residual languages; the same result applies exactly. This gives a finite separating feature set once the witnesses are selected, but does not construct the witnesses efficiently or bound update cost from H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795610443.693803,
+  "session": "pnp-desk/research/R3564",
+  "model": "gpt-6-luna",
+  "id": "S0855",
+  "proved_step": "statement_start: FINITE-FAMILY PREFIX RESIDUAL BOUND. For F subset {0,1}^N with |F|=M and 0<=t<=N, the number K_t of distinct residual sets F_p={z:pz in F}, p in {0,1}^t, is at most min(2^t,M)+1. Proof: there are 2^t prefixes. Every nonempty residual comes from an extendable prefix. Distinct extendable prefixes each contain a distinct member of F, so there are at most M such prefixes and at most M nonempty residuals. There is at most one additional empty residual. Thus K_t<=min(2^t,M)+1. The levelwise minimal deterministic residual automaton has at most sum_{t=0}^N (min(2^t,M)+1) states. The update after bit b is exactly F_{pb}={z:bz in F_p}, by definition. This finite-family bound does not bound real-gate transition cost for arbitrary MCSP decision circuits or improve the known EXT bound when M is large.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795610517.3251846,
+  "session": "pnp-desk/research/R3564",
+  "model": "gpt-6-luna",
+  "id": "S0856",
+  "proved_step": "statement_start: EXT DESCRIPTION-COUNT RESIDUAL BOUND. Fix n,s and a finite encoding of fan-in-two Boolean circuits of size at most s, with at most B distinct descriptions. Let F be the set of their N-bit truth tables, N=2^n. At every prefix length t, the number of distinct residual sets F_p={z:pz in F} is at most min(2^t,|F|)+1, hence at most B+1. Proof: There are 2^t prefixes. Every nonempty residual belongs to an extendable prefix; distinct extendable prefixes contain disjoint sets of full truth tables, so choosing one table from each gives at most |F| such prefixes. There is at most one empty residual. Also |F|<=B because each description computes one table. Thus the bound follows. Encoding each residual by its prefix-history trie state takes at most ceil(log2(B+1)) bits at a level, and its exact transition is residual R -> {z:bz in R}. This bounds the states needed for EXT from description count; it does not give bounded real-gate transitions for an arbitrary MCSP decision circuit H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795611550.5998054,
+  "session": "pnp-desk/research/R3580",
+  "model": "gpt-6-luna",
+  "lemma": "For any fan-in-two circuit H(x,w) with h gates and r witness bits, G(x)=exists w H(x,w) has a fan-in-two circuit with at most 2^r(h+1)-1 gates. Proof: instantiate H separately for each of 2^r witness strings, then combine outputs with a binary OR tree. Cofactoring fixed prefix inputs cannot increase the bound. For EXT, circuit-description witnesses make this bound exponential in description length; no transition bound or bridge to arbitrary MCSP decision circuits follows.",
+  "evidence": "Direct construction and gate count; this restates the unreviewed S0743 consequence and is not claimed as new P-vs-NP progress."
  }
 ]
