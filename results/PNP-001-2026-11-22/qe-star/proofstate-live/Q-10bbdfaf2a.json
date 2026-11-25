@@ -6607,5 +6607,101 @@
   "evidence": "The step is correct. The induction is valid: base case k=0 holds trivially. Inductive step: given a restriction rho leaving q disagreements, pick any free coordinate i. The two cofactors partition the q extensions, so one has at most floor(q/2) disagreements. Extend rho with that bit. After k steps, disagreements <= floor(...floor(r/2)/2...) = floor(r/2^k) by nested floor property. The lemma correctly states it makes no circuit-size or MCSP-promise claims - it's purely about disagreement counts under restrictions.",
   "review_of": "S0714",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633707.8568656,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is sound: each essential variable must appear on at least one input pin in the output cone. The cone has at most g gates and thus at most 2g input pins. Even with fan-out, distinct essential variables \u2264 pins connected to primary inputs \u2264 2g. The max(1,2g) covers g=0 and output-as-primary-input cases. No counterexample exists.",
+  "review_of": "S0716",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633724.1778655,
+  "session": "pnp-desk/research/R3857",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct by a simple cone argument. If the output is a primary input, it depends on exactly 1 variable, and max(1,2g) >= 1 holds for all g>=0. If the output is a gate, consider the output cone (all gates whose output reaches the designated output gate). This cone has at most g gates. Every essential primary input variable must appear on at least one input pin of a gate in this cone; a variable not appearing on any such pin cannot affect the output. The cone has at most 2g input pins total (2 per gate), so there are at most 2g distinct essential primary input variables. Thus the bound holds in both cases. No counterexample exists; the argument is tight (e.g., a tree of g gates with all 2g leaves being distinct primary inputs achieves 2g).",
+  "review_of": "S0716",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633729.4339461,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same argument as S0716, which is sound: each essential variable must appear on at least one input pin in the output cone (otherwise flipping it cannot change the output). The output cone contains at most g gates, hence at most 2g input pins. Even with fan-out, the number of distinct essential primary inputs cannot exceed the number of pins connected to primary inputs, which is \u2264 2g. The max(1,2g) handles g=0 and output-as-primary-input cases. No counterexample exists.",
+  "review_of": "S0719",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633745.4218352,
+  "session": "pnp-desk/research/R3857",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a correct repair/strengthening of S0716. The proof is identical: if output is a primary input, d=1\u2264max(1,2g). If output is a gate, every essential input must reach the output cone, which has at most g gates and 2g input pins, so d\u22642g. The statement is correct and the proof is sound. No counterexample exists.",
+  "review_of": "S0719",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633786.2729845,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard probabilistic method argument: for any fixed set S of k coordinates, choosing a uniform assignment a to S gives each disagreement x probability 2^{-k} of surviving. By linearity of expectation, E[surviving disagreements] = r\u00b72^{-k} for every S. Since the number of surviving disagreements is integer-valued, its minimum over all (S,a) is \u2264 its expectation, so \u2264 floor(r/2^k). The argument is sound; no counterexample exists.",
+  "review_of": "S0721",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633908.9638345,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard circuit counting argument: fix topological order of t \u2264 g gates. At gate i, each ordered input pin has \u2264 m+i+1 sources (m inputs, i-1 previous gates, 2 constants) and 16 binary gate types, so \u2264 16(m+i+1)^2 choices. Output has \u2264 m+t+2 choices. Descriptions with t gates \u2264 (m+t+2)\u220f_{i=1}^t 16(m+i+1)^2 \u2264 (m+g+2)[16(m+g+1)^2]^g. Sum over t=0..g gives \u2264 (g+1)(m+g+2)[16(m+g+1)^2]^g. This overcounts (multiple descriptions may compute same function), so it's a valid upper bound on computable functions. No error or counterexample.",
+  "review_of": "S0722",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633908.9992077,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard parallel circuit evaluation: the encoded circuit C with s gates can be evaluated on one input with size poly(s,m) and depth poly(s,m) (topological evaluation). Instantiate N=2^m copies in parallel, each gets the same gate description w and a different input x. Compare each output with T[x] using XOR+NOT (equality), then AND all N results with a balanced binary tree (O(N) gates, O(log N)=O(m) depth). Total size: N\u00b7poly(s,m) + O(N) = O(N poly(s,m)). Depth: poly(s,m) + O(m). Correct; no counterexample.",
+  "review_of": "S0723",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633999.0680838,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly replaces every wire carrying x_i by constant b and processes gates in topological order. Inductively, each modified gate computes the original gate's value with x_i fixed to b. No gates are added; constant propagation may remove gates but isn't needed for the upper bound. This is a standard restriction argument that holds for any basis B with constants. The lemma states non-increase (not strict decrease), which is correct and matches standard circuit complexity facts.",
+  "review_of": "S0725",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634029.6523755,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting argument is standard and correct: topologically order gates, each gate has at most b choices for its type and at most (N+S+2)^2 choices for its two predecessors (N inputs + 2 constants + S-1 earlier gates, padded to S+1). Sum over gate counts j=0..S gives (S+1)[b(N+S+2)^2]^S, then multiply by (N+S+2) for the output wire choice. The corrected bound (S+1)(N+S+2)[b(N+S+2)^2]^S is valid and counts descriptions injectively, hence upper-bounds distinct functions. No gaps or counterexamples.",
+  "review_of": "S0729",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634029.6861627,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The asymptotic counting is correct: |Y_m| <= 2^{O(m^c log m)} = 2^{o(2^m)} = 2^{o(N)} < 2^N for large m. The 2^N distinct OR functions (one per subset A of [N]) each have fan-in-two OR circuits of size at most N-1 (or 0 for empty A). This is a standard counting comparison that correctly shows |Y_m| < number of N-gate functions eventually. No errors found.",
+  "review_of": "S0731",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634029.7132785,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction is correct: q NOT gates for negations, then for each of t satisfying inputs a conjunction of q literals using q-1 AND gates, then OR the t minterms with t-1 OR gates. Total = q + t(q-1) + (t-1) = tq + q - 1. For t=0 the constant-0 circuit has size 0. This is a standard upper bound and the proof is complete with no gaps.",
+  "review_of": "S0733",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634044.6083732,
+  "session": "pnp-desk/research/R3856",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard description-counting argument identical in structure to S0729. For each j \u2264 s gates in topological order: each gate chooses a type from B (|B| choices) and two predecessors from at most m+j+2 available wires (m inputs + 2 constants + j-1 earlier gates). This gives |B|^j(m+j+2)^(2j) descriptions for the gates, times (m+j+2) choices for the output wire. Summing over j=0..s and bounding each term by the j=s term gives (s+1)|B|^s(m+s+2)^(2s+1). This counts descriptions injectively, hence upper-bounds distinct functions. The bound is correct and the proof is complete.",
+  "review_of": "S0734",
+  "status": "SURVIVED_REVIEW"
  }
 ]

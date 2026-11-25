@@ -6277,5 +6277,61 @@
   "model": "gpt-6-luna",
   "gap": "Need an exact and independently checked characterization of when the live-prefix coordinate-projection condition is sufficient for a valid zero-gate layered transducer in the binding SEARCH model, including simultaneous state-code consistency across layers and the witness-output decoder requirement. The requested SC_{3,1} exhaustive projection computation and full (S,G_max,D) Pareto measurements remain open.",
   "gap_id": "G0196"
+ },
+ {
+  "at": 1795633911.9459374,
+  "session": "pnp-desk/research/R3858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the constructive upper bound proof: (1) S = ceil(log2 M) with M = max_t(L_t+1) ensures enough codes for live prefixes + one dead code per layer. (2) Transition function at each layer is a Boolean map f_t: {0,1}^{S+1} -> {0,1}^S (S state bits + 1 input bit -> S next-state bits). (3) The minterm construction explicitly builds a circuit for ANY such map in the fan-in-2 AND/OR basis with free NOT/constants and unrestricted fan-out: sum_{k=2}^{S+1} 2^k = 2^{S+2}-4 AND gates to build all 2^{S+1} minterms incrementally, then at most 2^{S+1}-1 OR gates per output bit (S outputs) to OR the accepting minterms. Total gates = 2^{S+2}-4 + S(2^{S+1}-1). This is a standard constructive upper bound; the shared minterms across outputs are correctly counted once. No argument gap found. The claim is an upper bound (existence), not a lower bound, and the construction proves it for every finite F.",
+  "review_of": "S0559",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633950.337718,
+  "session": "pnp-desk/research/R3858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the complement-minterm construction: (1) Builds all 2^d minterms using sum_{k=2}^d 2^k = 2^{d+1}-4 AND gates (length-1 literals free). (2) For each output j, picks the smaller of accepting/rejecting sets (size r = min(w_j, 2^d-w_j)). (3) ORs the r minterms with r-1 OR gates, adds free NOT if using rejecting set. Total: 2^{d+1}-4 + sum_j max(min(w_j,2^d-w_j)-1,0). This is a standard optimal construction for the given basis; the bound is tight for worst-case functions. No argument gap.",
+  "review_of": "S0560",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795633950.3761144,
+  "session": "pnp-desk/research/R3858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the residual counting bound: K_t = number of distinct residual sets R_t(p) = {u: pu in F} for p in {0,1}^t. (1) At most 2^t prefixes, so K_t <= 2^t. (2) Each residual is a subset of {0,1}^{N-t} (size 2^{N-t}), so at most 2^{2^{N-t}} subsets. (3) K_t <= min(2^t, 2^{2^{N-t}}). Boundary cases: t=0 -> K_0=1; t=N -> K_N=2 for nonempty proper F, else 1. Correct counting argument; no gap.",
+  "review_of": "S0563",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634026.4539723,
+  "session": "pnp-desk/research/R3858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the distinct-output lower bound: r = number of distinct coordinate functions among F_1,...,F_q that are not 0, 1, or any primary input x_i. Each such function must be the signal of at least one gate node. Distinct functions cannot be computed by the same gate node (a node has exactly one output signal). Therefore we can inject the r distinct functions into counted gate nodes, giving at least r gates. This holds for any circuit with arbitrary sharing and output wiring over the stated basis. The argument is sound; no counterexample exists. Note: XOR gates are counted, so a function computed by a single XOR gate contributes 1 to r and requires at least 1 gate.",
+  "review_of": "S0564",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634026.494445,
+  "session": "pnp-desk/research/R3858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the layer-state lower bound: (1) L_t live prefixes must reach distinct states because if two shared a state and had different residuals, a distinguishing suffix would force a contradiction; if they had identical nonempty residuals, a common suffix u would make both pu and qu accepted, but from a shared state the deterministic transducer produces the same final decoder output, which cannot equal both distinct strings (required by witness-output semantics). (2) If any dead prefix exists, it needs a state distinct from all live states (otherwise a live prefix's witness would also accept the dead prefix). The bound L_t + 1_{L_t < 2^t} reachable states is correct for transducers with exact witness output. No argument gap.",
+  "review_of": "S0565",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634026.526426,
+  "session": "pnp-desk/research/R3858",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the live-prefix separation from output requirement: If p and q are distinct live prefixes with identical nonempty residual R, pick any u in R. Then pu and qu are distinct accepted inputs. From a shared state, determinism + same suffix u -> same final state -> same decoder output. The decoder must output the full accepted input, so it would need to output both pu and qu simultaneously, impossible. This argument is independent of residual distinctness and correctly uses the witness-output requirement. No gap.",
+  "review_of": "S0566",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795634275.458889,
+  "session": "pnp-desk/research/R3858",
+  "model": "laguna-xs-2.1",
+  "evidence": "Checked the XOR restriction lower bound: With 0 gates, output is literal/constant, not XOR. With 1 gate (AND/OR), cannot produce XOR truth set {01,10}. With 2 gates, case analysis shows no combination produces XOR: if output is AND, inputs must both be 1 at 01 and 10, but no primary literal, constant, or intermediate gate achieves this; if output is OR, inputs must both be 0 at 00 and 11, which no signal achieves. The exhaustive case analysis is correct. This establishes that computing XOR requires at least 3 gates in the AND/OR basis with free NOT/constants and unrestricted fan-out. No counterexample exists.",
+  "review_of": "S0577",
+  "status": "SURVIVED_REVIEW"
  }
 ]

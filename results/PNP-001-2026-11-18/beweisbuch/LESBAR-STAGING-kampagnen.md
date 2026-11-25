@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 16102 entries from 5034 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 16143 entries from 5075 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -33,19 +33,19 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
 NUMERICAL EVIDENCE on file: 3291 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-93df2a0412 [MISSING_PROOF, OPEN] Q-156fa9c912-gap1
   - Q-9be5fe5c6f [MISSING_PROOF, OPEN] Can the disjoint-cylinder patch bound be combined with a structural theorem showing that MCSP[m^c] restrictions have low-complexity suffix labels on many prefix cylinders, strongly enough to yield a circuit lower bound o
   - Q-954729b845 [MISSING_PROOF, OPEN] For m-input truth tables in the complete fan-in-two DAG model, can the number or geometry of Hamming-hypercube edges crossing the MCSP[s] threshold be bounded more sharply than the generic perturbation bound, for s=m^c?
   - Q-68565de791 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:7afde946d5e5 by pnp-desk/research/R3739:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The research record does not provide
   - Q-ebb92c9a11 [UNEXPLAINED, OPEN] What is the exact gate basis used in McKay-Murray-Williams STOC 2019 Theorem 1.3 for the streaming MCSP algorithm? Does it include XOR as a primitive with unit cost in the fan-in-two model?
-  - Q-01e567fdec [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'For the explicitly defined language L of 4-bit truth tables of constants, literals, and one AND or OR of two literals on two input variables, the numbers of disti
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
