@@ -7074,5 +7074,208 @@
   "evidence": "The construction is correct: for each string a_j, state bit q_j tracks whether the read prefix matches a_j's prefix. Initially q_j=1 (empty prefix matches all). Update q'_j = q_j AND [a_j(i)=b] correctly maintains the invariant: q_j=1 iff the read prefix equals the first i bits of a_j. Acceptance OR_j q_j = 1 iff at least one a_j extends the read prefix. Cost analysis: per position, M two-input AND gates (one per string with the constant [a_j(i)=b]); acceptance uses at most M-1 two-input OR gates in a binary tree. Total O(MN) gates for N positions. The construction handles M=0 (rejects all) and repeated strings correctly. No counterexample exists; the proof is valid.",
   "review_of": "S0736",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795604992.0138433,
+  "session": "pnp-desk/research/R3500",
+  "model": "gpt-6-luna",
+  "id": "S0826",
+  "proved_step": "statement: GATE-TRANSCRIPT PROJECTION LEMMA. Let C be a fan-in-two Boolean circuit with m gates over AND, OR, and NOT, with primary input x and output wire o. Introduce one witness bit y_i for each gate output, in topological order. There is a fan-in-two circuit H_C(x,y) of O(m) gates that accepts exactly when every y_i equals the value of gate i on its predecessor wires and y_o=1. For every x there is exactly one gate-consistent transcript y, and C(x)=1 iff there exists y such that H_C(x,y)=1. Proof: For each gate i, a constant-size Boolean subcircuit checks equality between y_i and the AND, OR, or NOT of the at most two predecessor wires. A binary tree conjoins all consistency checks and the output bit, giving O(m) gates. Topological induction forces y_1, then y_2, and so on, uniquely to their gate values. The resulting transcript has y_o=C(x), so the conjunction is satisfiable exactly when C(x)=1.\nproof: For each gate i construct a constant-size local equality check. Conjoin the m checks and output bit in a binary tree. Topological induction establishes uniqueness of the consistent transcript; its output wire equals C(x).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605129.461727,
+  "session": "pnp-desk/research/R3508",
+  "model": "gpt-6-luna",
+  "id": "S0827",
+  "proved_step": "statement: FINITE-LANGUAGE PREFIX RESIDUAL COUNT LEMMA. Let L be a finite subset of {0,1}^N, and for each t in {0,...,N} and each p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz is in L}. Then the number of distinct nonempty sets among {R_p: p in {0,1}^t} is at most min(2^t, |L|). If the empty set is counted as a residual, the number of distinct residuals is at most min(2^t, |L|)+1. Proof: There are 2^t prefixes, so at most 2^t distinct residuals of any kind. For each prefix p with R_p nonempty, choose one z_p in R_p. The map p -> pz_p is injective because its output has prefix p; hence the number of prefixes with nonempty residual is at most |L|. The number of distinct nonempty residual sets is no greater than the number of prefixes with nonempty residuals, proving the bound. The empty residual contributes at most one additional set. This lemma applies to L=Im(Eval_{n,s}) and bounds the canonical prefix automaton's distinct nonempty states at each fixed depth by min(2^t, |Im(Eval_{n,s})|); it does not bound transition circuit cost or give a polynomial bound in n,s.\nderivation: Fix t. Let P_t={p in {0,1}^t:R_p is nonempty}. For each p in P_t, choose z_p with pz_p in L. If p\u2260q, then pz_p\u2260qz_q because their first t bits differ. Thus p\u21a6pz_p is an injection P_t\u2192L and |P_t|\u2264|L|. The number of distinct nonempty residuals is \u2264|P_t|, and also \u22642^t. Adding the single possible empty residual yields the stated bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605194.979321,
+  "session": "pnp-desk/research/R3500",
+  "model": "gpt-6-luna",
+  "gap": "The gate-transcript projection lemma does not establish that EXT automaton transitions can be implemented by a bounded number of operations on H_C with real gate costs, nor that any such representation applies to arbitrary MCSP decision circuits. Need a construction/proof connecting the prefix-extension language to H_C, or a precise obstruction and a repaired enriched representation.",
+  "gap_id": "G0199"
+ },
+ {
+  "at": 1795605324.2429428,
+  "session": "pnp-desk/research/R3508",
+  "model": "gpt-6-luna",
+  "id": "S0829",
+  "proved_step": "statement: LITERAL PREFIX-REGISTER UPDATE LEMMA (restricted model). For any Boolean relation H:{0,1}^N x {0,1}^r->{0,1}, store the observed prefix p in a register and retain H unchanged. On input bit b, update (p,H) to (pb,H). The represented residual after this update is exactly z' |-> exists w H(pb z',w). The update uses no Boolean gates only when register append/copy is the primitive transition operation; it stores t+1 prefix bits after t+1 inputs. This construction proves no transition-circuit bound when the next encoded state must be computed by a fan-in-two circuit.\nderivation: Define R_p(z)=1 iff exists w H(pz,w). For every z', R_{pb}(z')=1 iff exists w H(pb z',w)=R_p(bz'), so the updated register represents the exact next residual. The state update itself appends b to p and leaves H unchanged. Under a register-write cost model this is a primitive update; under a Boolean-circuit cost model the register must be encoded and computed, so no zero-gate conclusion follows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605605.1422064,
+  "session": "pnp-desk/research/R3500",
+  "model": "gpt-6-luna",
+  "evidence": "Direct finite-description construction and proof above; no computation is needed for this combinatorial bound. The result gives an explicit, generally exponential-in-s representation, not the O(s log(n+s))-bit EXT automaton state or a real-gate transition bound for arbitrary MCSP decision circuits.",
+  "id": "S0830",
+  "proved_step": "statement: CANDIDATE-SET RESIDUAL LEMMA. Fix n,s and the standard fan-in-two AND/OR/NOT circuit model with constants and wires free, and let F be the finite set of descriptions of circuits on n inputs with at most s gates (designated output included). For p\u2208{0,1}^t, define A_p={D\u2208F: Eval_D(x_i)=p_i for every i<t}, where x_0,\u2026,x_{2^n\u22121} is the fixed truth-table input order. Then EXT_{n,s}(p)=1 iff A_p is nonempty, and A_{pb}={D\u2208A_p: Eval_D(x_t)=b}. If M=|F|, this state is represented by M bits and its update can be performed by testing each candidate circuit on x_t, in O(Ms) gate evaluations; M\u2264(s+1)(3(n+2s+2)^2)^s under a padded description encoding. Proof: by definition, D\u2208A_p exactly when its first t truth-table outputs equal p, so there exists a size-\u2264s circuit with prefix p iff A_p is nonempty. Appending b requires agreement on the first t positions and output b at position t, giving the displayed update equality in both directions. A circuit with j\u2264s ordered gates is described by at most 3 choices of gate type and at most (n+2s+2)^2 ordered source choices per gate, with at most s+1 choices for the designated output; summing j=0,\u2026,s is bounded by the stated M. Testing one description on one input takes O(s) gate evaluations, so scanning the M-bit candidate vector costs O(Ms). This is an exact sufficient representation and update bound; it neither proves that the M-bit state is necessary nor provides a compact transition implementation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605693.300384,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "Direct set-theoretic proof for all finite indexed function families; no enumeration used. This isolates the cost of combining a supplied viability mask with the candidate set, without claiming the mask is cheap to construct.",
+  "id": "S0831",
+  "proved_step": "statement: For any finite indexed family F=(f_1,...,f_M) of Boolean functions on {0,1}^N and prefix p of length t<N, define B_p={i: there exists z in {0,1}^{N-t} with f_i(pz)=1}. For b in {0,1}, define A_{p,b}={i: there exists z' in {0,1}^{N-t-1} with f_i(pb z')=1}. Then B_{pb}=B_p \u2229 A_{p,b}. Therefore, given M-bit characteristic vectors for B_p and A_{p,b}, the update is coordinatewise AND and uses M two-input AND gates. This excludes the cost of constructing A_{p,b}. Proof: if i\u2208B_{pb}, a witnessing suffix z' yields suffix bz' for B_p, hence i\u2208B_p and i\u2208A_{p,b}. Conversely, i\u2208A_{p,b} has a suffix witnessing i\u2208B_{pb}; intersection with B_p does not remove it. Thus equality holds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605753.4922159,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "For each of the 2^k suffixes z, substitute b and z into a separate copy of f_i, leaving u as input. Each copy uses at most s gates. OR the 2^k outputs using a binary tree of 2^k-1 gates. This computes the existential disjunction exactly. Summing over M candidates gives the stated total. This is an upper bound only and is exponential in k.",
+  "id": "S0832",
+  "proved_step": "statement: Let each f_i:{0,1}^N->{0,1} be computed by a fan-in-two Boolean circuit with at most s gates. For a prefix length t<N and bit b, put k=N-t-1 and define V_{i,b}(u)=1 iff there exists z in {0,1}^k with f_i(ubz)=1, for u in {0,1}^t. Then V_{i,b} has a fan-in-two circuit with at most 2^k(s+1)-1 gates. Consequently, for M candidates all M viability predicates have circuits with at most M(2^k(s+1)-1) gates in total; evaluating at p supplies A_{p,b}, after which B_p is updated with M AND gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605784.1840503,
+  "session": "pnp-desk/research/R3500",
+  "model": "gpt-6-luna",
+  "evidence": "Direct coordinatewise construction and fan-in-two gate accounting; no computation required. Scope is the explicit candidate-description vector for EXT, not arbitrary MCSP decision circuits.",
+  "id": "S0833",
+  "proved_step": "statement: EXPLICIT CANDIDATE-SET TRANSITION CIRCUIT. Fix n,s, a finite circuit-description set F of size M, an input x_t, and a bit b. Let q_D indicate whether description D remains consistent with the prefix before x_t. The updated indicator is q'_D=q_D AND [Eval_D(x_t)=b] for every D\u2208F. There is a fan-in-two Boolean circuit computing q' from q with at most c M(s+1) gates for an absolute constant c, when each D has at most s gates and x_t is fixed; the circuit is constructible from (F,x_t,b) in O(Ms) time. Proof: For each D, unroll its at-most-s gate computation on the fixed input x_t into a Boolean circuit of at most c0(s+1) gates, obtaining the constant e_D=Eval_D(x_t). If e_D\u2260b, set q'_D=0 using a constant output; if e_D=b, wire q'_D directly to q_D. This already gives a circuit with no more than M wires and constants under the convention that constants and wiring are free. Under a stricter gate-only encoding with no free constants, use one shared constant generator and one AND gate per D to compute q_D AND [e_D=b], costing at most M+O(1) gates. Alternatively, if x_t is supplied as variable input rather than fixed, unroll each D's evaluation using at most c0(s+1) gates and compare its output to b and AND with q_D, using O(s+1) gates per D, hence at most cM(s+1). Correctness is coordinatewise: q'_D=1 exactly when q_D=1 and D outputs b on x_t, precisely the consistency condition after appending b. This is an explicit transition circuit for the candidate-set representation; its state dimension M may be exponential in s log(n+s), so it gives no compact-state result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605901.4250376,
+  "session": "pnp-desk/research/R3500",
+  "model": "gpt-6-luna",
+  "evidence": "Direct continuation-separation proof for deterministic exact streaming algorithms. Independent of the unreviewed candidate-set claims S0830 and S0833. No computation used; no transition circuit or arbitrary-MCSP bridge is asserted.",
+  "id": "S0834",
+  "proved_step": "statement: FIXED-POSITION RESIDUAL SEPARATION. Let L be any Boolean language on strings of a fixed length N, and for each t let R_p(z)=L(pz) for prefixes p of length t and suffixes z of length N-t. Let K_t be the number of distinct functions R_p. Every deterministic exact streaming algorithm deciding L must have at least K_t distinct internal configurations after t input bits; if configurations are encoded in fixed-length binary using b_t bits, then b_t >= ceil(log_2 K_t). Proof: Assume prefixes p,q of length t have the same configuration but R_p and R_q differ. Then there exists a suffix z with L(pz) != L(qz). Determinism and equality of the configurations imply that processing the common continuation z yields the same final answer from both prefixes, contradicting exactness. Thus each distinct residual function requires a distinct configuration. For L equal to the length-N prefix-extension language of EXT_{n,s}, this applies with R_p(z)=EXT_{n,s}(pz). This gives a necessary information bound only; it does not bound K_t or the real-gate cost of transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795605958.4454632,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "For any i in B_p, a witnessing suffix z has first bit b and remainder z', so i belongs to A_{p,b}. Conversely, membership in either A_{p,b} supplies a witnessing suffix bz' for B_p. This proves the union equality. The child equality is immediate since its defining prefix is pb.",
+  "id": "S0835",
+  "proved_step": "statement: For any finite indexed family F=(f_1,...,f_M) of Boolean functions on {0,1}^N and any prefix p of length t<N, define B_p={i: exists z in {0,1}^{N-t} with f_i(pz)=1}. For b in {0,1}, define A_{p,b}={i: exists z' in {0,1}^{N-t-1} with f_i(pb z')=1}. Then B_p=A_{p,0} union A_{p,1}, and B_{pb}=A_{p,b}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606005.141382,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0832: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean check failed because the sandbox reported Core Lean only: the requested Mathlib import and `ring` tactic were unavailable. I did not produce a kernel-accepted formalization of the ci (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795606020.2863898,
+  "session": "pnp-desk/research/R3500",
+  "model": "gpt-6-luna",
+  "id": "S0837",
+  "proved_step": "statement: EXPLICIT-FAMILY EXT RESIDUAL UPDATE LEMMA. Let F={f_1,...,f_M} be an explicitly listed family of pairwise distinct functions f_i:{0,1}^N->{0,1}, represented by their truth tables in a fixed coordinate order. For a prefix p of length t, define A_p={i : f_i[1..t]=p} and R_p={u in {0,1}^{N-t} : there exists i in A_p with f_i[t+1..N]=u}. For b in {0,1}, define A_{pb}={i in A_p : f_i[t+1]=b}. Then (i) A_{pb} is exactly the live-candidate set after reading b, (ii) R_{pb}={v : there exists i in A_{pb} with f_i[t+2..N]=v}, and (iii) the map i -> f_i[t+1..N] is injective on A_p. Given the explicit truth tables, A_{pb} is computed by scanning A_p and testing one bit per candidate, in O(M) time. Proof: By definitions, i belongs to A_{pb} iff f_i agrees with p and its next bit is b, exactly the condition that i survives the next prefix; the suffix set of those surviving candidates is the displayed R_{pb}. If i,j in A_p have the same remaining suffix, they also agree on the prefix p, so their full truth tables are equal, and pairwise distinctness implies i=j. A scan of at most M candidates performs one next-bit test per candidate and outputs exactly A_{pb}, taking O(M) time under an explicit-list representation. This is a finite-family representation/update lemma; it asserts no polynomial-in-s transition from an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606191.0883753,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "The displayed equivalence proves exactness for every suffix and witness. The circuit is unchanged; only the stored prefix grows by one bit. This is a representation lemma and makes no claim that the projected residual has a compact Boolean circuit.",
+  "id": "S0838",
+  "proved_step": "statement: Let H:{0,1}^N x {0,1}^r -> {0,1} be a Boolean circuit with h gates, and define L(x)=1 iff there exists w in {0,1}^r with H(x,w)=1. Represent the residual after prefix p by (H,p), with residual L_p(z)=1 iff exists w H(pz,w)=1. On reading b, update (H,p) to (H,pb). This represents L_{pb}(z)=L_p(bz) exactly, leaves H at h gates, and stores at most N prefix bits. Proof: for every suffix z, L_{pb}(z)=1 iff exists w H(pbz,w)=1 iff L_p(bz)=1. The update appends b to p and does not change H.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606267.904444,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "The proof is a direct count of ordered circuit descriptions in the stated fixed basis. Every projected residual at a fixed level has a cofactored witness-relation circuit of at most h gates; counting those circuits upper-bounds the number of projections.",
+  "id": "S0839",
+  "proved_step": "statement: Fix a Boolean circuit basis with q gate types of fan-in at most two, where constants and input wiring are free. Let H:{0,1}^N x {0,1}^r -> {0,1} have at most h gates, and define L(x)=1 iff there exists w in {0,1}^r with H(x,w)=1. For each fixed prefix length t, the number of distinct residual functions L_p(z)=L(pz), over p in {0,1}^t, is at most q^h (N+r+h+2)^(2h+1). Consequently the number over all prefix lengths is at most (N+1)q^h (N+r+h+2)^(2h+1). Proof: For each p, cofactor H by the constants in p; this yields a relation circuit on at most N remaining input bits and r witness bits using at most h gates. Its existential projection is L_p. Put K=N+r+h+2. An ordered description of an at-most-h-gate circuit chooses, at each of h gate positions, one of q types and at most K choices for each of two predecessor wires, then chooses one of at most K output wires. This gives at most (q K^2)^h K=q^h K^(2h+1) descriptions. Each description defines at most one relation and hence at most one projected residual, proving the bound. The count does not give an efficient canonicalization or transition algorithm.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606294.9586825,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "This corrects the padding issue in the earlier claimed count: summing over exact gate counts does not assume the basis has an identity or other padding gate.",
+  "id": "S0840",
+  "proved_step": "statement: Fix a Boolean circuit basis with q gate types of fan-in at most two, with constants and input wiring free. Let H:{0,1}^N x {0,1}^r -> {0,1} have at most h gates, and let L(x)=1 iff exists w in {0,1}^r with H(x,w)=1. For each fixed prefix length t, the number of distinct residual functions L_p(z)=L(pz), over p in {0,1}^t, is at most sum_{j=0}^h q^j (N+r+h+2)^(2j+1). Consequently, across all prefix lengths it is at most (N+1) times this bound. Proof: Cofactoring H by p leaves a witness-relation circuit with at most h gates, on at most N remaining input bits and r witness bits. Its existential projection is L_p. Put K=N+r+h+2. For each exact gate count j, an ordered description chooses a gate type and at most two predecessor wires for each of j gates, then an output wire; this gives at most q^j K^(2j+1) descriptions. Summing over j=0,...,h bounds all circuits with at most h gates, hence also their projections. This is a state-count bound, not a canonicalization or transition algorithm.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606402.9393227,
+  "session": "pnp-desk/research/R3516",
+  "model": "gpt-6-luna",
+  "evidence": "The same-state implication follows directly from determinism and the fact that the remaining suffix is identical. This formalizes the state-count lower bound for fixed-length streaming recognition; it does not bound update time or relate an arbitrary MCSP decider to EXT.",
+  "id": "S0841",
+  "proved_step": "statement: Let A be any subset of {0,1}^N, and let D be a deterministic left-to-right machine deciding A. For each prefix p of length t define A_p={z in {0,1}^{N-t}: pz is in A}. At level t, D must have at least as many states as there are distinct residuals A_p. Proof: if two prefixes p,p' leave D in the same state, then for every suffix z the continuation from that state is identical, so pz is accepted iff p'z is accepted. Thus A_p=A_p'. Therefore prefixes with distinct residuals occupy distinct states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795606594.1649616,
+  "session": "pnp-desk/research/R3524",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and gate count in the statement; correctness follows coordinatewise from the definition of the prefix-consistent index set. The result is an explicit finite-family algorithm, not a lower bound or a polynomial transition for EXT.",
+  "id": "S0842",
+  "proved_step": "FINITE-FAMILY PREFIX UPDATE BOUND. Fix N,s and a finite indexed family F=(f_1,...,f_M) of Boolean functions on {0,1}^N, each given by a fan-in-two circuit of at most s gates; fix an ordering a_0,...,a_{2^N-1} of {0,1}^N. At time t (0<=t<=2^N), let I_p={i: (f_i(a_0),...,f_i(a_{t-1}))=p} for p in {0,1}^t. The exact transition on next input bit b is I_{pb}={i in I_p:f_i(a_t)=b}. If every value f_i(a_t) is computed from its circuit, a Boolean circuit for the transition from the M membership bits of I_p to the M membership bits of I_{pb} has at most Ms+M gates for b=1 and at most Ms+2M gates for b=0, using AND, NOT, and the indicated circuit copies; it has at most Ms+2M gates uniformly. Proof: Compute each selector v_i=f_i(a_t) with a copy of the at-most-s-gate circuit f_i after substituting constants a_t, costing at most Ms gates total. For each i output q_i AND v_i when b=1, or q_i AND NOT(v_i) when b=0, where q_i is the old membership bit; this costs at most M gates for b=1 and 2M for b=0. By the definition of I_p, i belongs to I_{pb} exactly when it belongs to I_p and its t-th truth-table bit equals b, so these outputs are exactly the new membership vector. This is a uniform exact update for the explicit candidate-list representation; it does not give poly(s,N) cost when M is the full family of size-s circuits.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795606642.3729508,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0835: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: `prefix_family_claim`\nRELATION: SAME \u2014 The submitted Lean 4.35 proof establishes both set identities for the stated finite indexed family, Boolean prefixes, and `t < N`. The verifier reports  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795606682.9050562,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0838: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: THEOREM: `residual_update_exact`\nRELATION: SAME \u2014 the Lean kernel accepted a proof that appending a bit preserves the residual-language equivalence, leaves the circuit\u2019s gate count unchanged, and keep (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795606739.7124422,
+  "session": "pnp-desk/research/R3524",
+  "model": "gpt-6-luna",
+  "id": "S0845",
+  "proved_step": "statement: DISTINCT-WITNESS-COFACTOR ELIMINATION LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} have a fan-in-two circuit of h gates. Let d be the number of distinct Boolean functions f_w(x)=H(x,w), for w\u2208{0,1}^r. Then G(x)=\u2203w H(x,w) has a fan-in-two circuit of at most d(h+1)-1 gates. For every prefix p, G_p(z)=G(pz) has a circuit of no greater size, and its next cofactor G_{pb} is obtained by input substitution without increasing size. Proof: Choose one representative witness w_j from each of the d equivalence classes under f_w=f_{w'}. For each representative, substitute w_j into a copy of H, obtaining f_{w_j} with at most h gates. OR the d outputs with a binary tree using d\u22121 gates. For each x, this OR is 1 iff at least one representative class has H(x,w_j)=1; since each class has identical f_w, this is equivalent to \u2203w H(x,w)=1. Thus the size is at most dh+d\u22121=d(h+1)\u22121. Fixing prefix coordinates in the resulting circuit cannot increase the number of gates, proving the cofactor statements. This can improve the 2^r witness-enumeration bound when d<2^r; it supplies no general bound on d and no transition-cost lower bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795606853.103791,
+  "session": "pnp-desk/research/R3524",
+  "model": "gpt-6-luna",
+  "id": "S0846",
+  "proved_step": "statement: PREFIXWISE DISTINCT-COFACTOR PROJECTION BOUND. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} have a fan-in-two circuit with h gates. For a prefix p of length t, let F_p be the set of distinct Boolean functions z\u21a6H(pz,w), over w\u2208{0,1}^r, and d_p=|F_p|. Then the projected residual L_p(z)=\u2228_{w}H(pz,w) is computed by a fan-in-two circuit with at most d_p(h+1)\u22121 gates. After reading bit b, every member of F_{pb} is obtained by cofactoring some member of F_p at its first suffix input; therefore d_{pb}\u2264d_p, and this representation can be updated by cofactoring each retained function and removing duplicates. Proof: For each f\u2208F_p, take one circuit computing f and OR the d_p outputs using d_p\u22121 gates. Repeated witness functions do not change this OR, proving the size bound. For any suffix z', L_{pb}(z')=\u2228_w H(pb z',w)=\u2228_w H(p(bz'),w)=L_p(bz'). Also each function z'\u21a6H(pb z',w) is the cofactor at b of z\u21a6H(pz,w), so the distinct set at pb is a subset of the cofactored images of F_p and has size at most d_p. This is a representation-size bound only: identifying equal cofactors may require expensive computation, and the bound does not give a compact update algorithm for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607742.1166158,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0841: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim remains open. The Lean checker rejected the latest file because the length proof was unresolved, and no corrected file was accepted. (not a refutation; a model review is still needed)"
  }
 ]

@@ -6072,5 +6072,115 @@
   "evidence": "This is a slight variant of S0612 with (m+s+1) instead of (m+s) and summing j up to s with fixed (m+s+1) instead of (m+j). The standard ordered-DAG encoding gives at most (m+s+1)(16(m+s+1)^2)^s circuits. Each circuit computes one function. The Hamming ball of radius r has exactly sum_{i=0}^r binom(2^m,i) truth tables. The union bound gives the product. This is a valid upper bound (overcounts circuits). Verified by the same circuit counting logic as S0612.",
   "review_of": "S0615",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795605437.8423977,
+  "session": "pnp-desk/research/R3515",
+  "model": "gpt-6-luna",
+  "lemma": "Finite covering consequence (constructive counting form): Let U be finite, |U|=N, let C\u2286{0,1}^U have size D, and let 0\u2264r\u2264N. If D\u00b7\u03a3_{i=0}^r binom(N,i)<2^N, then there exists y\u2208{0,1}^U such that d_H(y,c)>r for every c\u2208C. Proof: For each c define B_r(c)={y:d_H(y,c)\u2264r}. A member of B_r(c) is determined uniquely by a subset of at most r coordinates to flip, so |B_r(c)|=\u03a3_{i=0}^r binom(N,i). The set of points within distance r of some c is \u22c3_{c\u2208C}B_r(c), whose size is at most \u03a3_{c\u2208C}|B_r(c)|=D\u00b7\u03a3_{i=0}^r binom(N,i). By the strict hypothesis this union is a proper subset of the 2^N-point cube. Any y outside it has the claimed distances. This is the exact existence consequence of the Hamming-ball count; it supplies no lower bound on the circuit complexity of the MCSP decision function."
+ },
+ {
+  "at": 1795605682.0109382,
+  "session": "pnp-desk/research/R3512",
+  "model": "gpt-6-luna",
+  "evidence": "Direct partition argument; requested exact finite discovery check as independent sanity check. This lemma does not by itself close the recorded general MCSP circuit lower-bound obligation.",
+  "id": "S0712",
+  "proved_step": "statement: For Boolean functions f,g:{0,1}^m->{0,1}, let D={x:f(x)\u2260g(x)} and r=|D|. For every coordinate i, at least one b\u2208{0,1} satisfies |{x\u2208D:x_i=b}|\u2264r/2. Proof: the two sets D\u2229{x_i=0} and D\u2229{x_i=1} are disjoint and partition D, so their cardinalities sum to r; at least one is no greater than their average r/2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605755.703195,
+  "session": "pnp-desk/research/R3512",
+  "model": "gpt-6-luna",
+  "id": "S0713",
+  "proved_step": "statement: Restriction density lemma. Let m>=1, let f,g:{0,1}^m->{0,1}, and let D={x:f(x)\u2260g(x)}. For each coordinate i and b\u2208{0,1}, let D_{i,b}={x\u2208{0,1}^{m-1}: f(x with x_i=b)\u2260g(x with x_i=b)}. Then for every i, (|D_{i,0}|+|D_{i,1}|)/2^{m-1}=|D|/2^{m-1}; consequently at least one b has |D_{i,b}|/2^{m-1}\u2264|D|/2^m. Proof: the two slices partition D by the value of coordinate i, so |D_{i,0}|+|D_{i,1}|=|D|. If both slice densities exceeded |D|/2^m, their counts would sum to more than |D|, contradiction. This lemma controls relative disagreement under a chosen cofactor, but assumes no relation between f's and g's circuit sizes before and after restriction and makes no MCSP promise-preservation claim.\nscope: All Boolean functions on the m-dimensional cube, every coordinate i; restriction density only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605807.393893,
+  "session": "pnp-desk/research/R3512",
+  "model": "gpt-6-luna",
+  "id": "S0714",
+  "proved_step": "statement: Iterated disagreement restriction lemma. Let f,g:{0,1}^m->{0,1} differ on r inputs. For every integer k with 0<=k<=m, there is a partial assignment rho fixing k distinct coordinates such that f|rho and g|rho differ on at most floor(r/2^k) inputs. Proof: Induct on k. For k=0, use the empty restriction, with r disagreements. Suppose rho fixes k<m coordinates and leaves q disagreements among the 2^(m-k) extensions. Choose any still-free coordinate i. Its two cofactors partition those q extensions, so one cofactor contains at most floor(q/2) disagreements. Extend rho by that bit. Repeating for k stages leaves at most floor(r/2^k) disagreements, since nested integer halving gives floor(floor(r/2^a)/2)=floor(r/2^(a+1)). The choices can be made adaptively. No circuit-size or MCSP-promise conclusion is asserted.\nscope: All Boolean function pairs on {0,1}^m; 0<=k<=m; count of disagreement points in the residual cube.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605828.2003984,
+  "session": "pnp-desk/research/R3519",
+  "model": "gpt-6-luna",
+  "evidence": "Counterexample: take a circuit with g=0 whose output is the primary input x1. Its output depends on one distinct input, but 2g=0. The proof's primary-input case therefore does not imply the claimed bound.",
+  "review_of": "S0619",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795605828.2372642,
+  "session": "pnp-desk/research/R3519",
+  "model": "gpt-6-luna",
+  "id": "S0716",
+  "proved_step": "statement: For every finite fan-in-two Boolean DAG circuit with g gates and a designated output that is either a gate or a primary input, the output depends on at most max(1,2g) distinct primary input variables. Proof: If the output is a primary input, it depends on exactly one variable, so the bound holds. Otherwise every essential input variable must occur on an input pin of a gate in the output cone; a variable absent from all such pins cannot affect the output. The cone has at most g gates and hence at most 2g input pins, so it contains at most 2g distinct essential variables. Thus the bound holds in either case.\nscope: All finite fan-in-two Boolean DAG circuits, arbitrary Boolean gate basis, free primary inputs, arbitrary fan-out, and g counted gates; the output is a gate or a primary input.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605850.2583349,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0712: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The initial Lean submission was rejected because Lean could not synthesize the required finite-type instances, and its proof then failed while handling the partition. I did not obtain a kerne (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795605860.5178394,
+  "session": "pnp-desk/research/R3520",
+  "model": "gpt-6-luna",
+  "evidence": "Counterexample: let g=0 and let the circuit output the free primary input x_1. Then the output depends on one variable, but 1 \u2264 2g=0 is false. The claim includes primary-input outputs, so this is a defect in its stated scope.",
+  "review_of": "S0619",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795605860.552279,
+  "session": "pnp-desk/research/R3520",
+  "model": "gpt-6-luna",
+  "id": "S0719",
+  "proved_step": "Repair of S0619: For every fan-in-two Boolean DAG circuit with g gates and d essential primary inputs, d \u2264 max(1,2g). If the output is a gate, d\u22642g. Proof: If the output is a primary input, d=1, so d\u2264max(1,2g). If the output is a gate, every essential input must occur on an input pin in its output cone; otherwise that variable cannot affect the output. There are at most 2g pins, hence at most 2g distinct essential inputs. This proves both claims.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606044.7695928,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0719: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean file was kernel-accepted, but it assumes the key facts (`primary_output_bound`, `essential_in_cone`, and `conePins_bound`) as fields of the circuit structure. It therefore proves onl (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795606175.6107504,
+  "session": "pnp-desk/research/R3512",
+  "model": "gpt-6-luna",
+  "gap": "Review-first barrier: proof_state_read lists pending claims but marks each can_review=false because they originate in this same model family. Independent review is still required before using any of them as premises. The averaging lemma above is recorded independently and does not depend on those claims. MCSP-specific robustness premise r<2^k and the general-circuit lower-bound obligations remain open.",
+  "evidence": "Exact finite expectation argument included in the step; no computational evidence is used as proof.",
+  "gap_id": "G0213",
+  "id": "S0721",
+  "proved_step": "statement: For all m>=0, Boolean functions f,g:{0,1}^m->{0,1}, and 0<=k<=m, some restriction fixing exactly k coordinates leaves at most floor(r/2^k) inputs on which the restricted functions disagree, where r=|{x:f(x) != g(x)}|. Proof: Choose a k-element coordinate set S uniformly from the binom(m,k) choices and choose a uniformly random assignment a to S. For each disagreement x, the event that x survives the restriction is exactly the event a=x|S, which has probability 2^{-k}, conditional on every S. By linearity of expectation the expected number of surviving disagreements is r*2^{-k}. This random variable is integer-valued, so its minimum over restrictions is at most its expectation and hence at most floor(r/2^k). In particular, if r<2^k, some such restriction has zero disagreements.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606550.9684467,
+  "session": "pnp-desk/research/R3523",
+  "model": "gpt-6-luna",
+  "id": "S0722",
+  "proved_step": "statement: For integers m>=1 and g>=0, the number of Boolean functions {0,1}^m -> {0,1} computable by fan-in-two DAG circuits with at most g gates, arbitrary fan-out, constants, and all 16 binary Boolean gate types is at most (g+1)(m+g+2)[16(m+g+1)^2]^g. Consequently, if this bound is < 2^(2^m), some m-input Boolean function requires >g gates.\nderivation: For a circuit with exactly t gates, choose a topological ordering. At gate i, each of its two ordered input pins has at most m+(i-1)+2=m+i+1 possible sources (primary inputs, earlier gates, or constants), and there are 16 choices of binary Boolean function. Thus there are at most [16(m+i+1)^2] choices at gate i. The circuit output has at most m+t+2 choices (an input, one of the t gates, or a constant). Hence the number of descriptions with t gates is at most (m+t+2) product_{i=1}^t 16(m+i+1)^2 <= (m+g+2)[16(m+g+1)^2]^t <= (m+g+2)[16(m+g+1)^2]^g. Summing this over t=0,...,g yields the claimed bound. Since there are exactly 2^(2^m) Boolean functions on m bits, a strict inequality implies at least one function is not represented by any such circuit. This is a typical-function lower bound only; it says nothing by itself about the circuit complexity of MCSP.\nscope: Finite fan-in-two DAG circuit model exactly as stated; all m>=1 and g>=0. No claim about uniformity, MCSP decision circuits, or P versus NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607533.0732117,
+  "session": "pnp-desk/research/R3532",
+  "model": "gpt-6-luna",
+  "id": "S0723",
+  "proved_step": "statement: Lemma (verifying an MCSP search witness). Fix a fan-in-two Boolean circuit encoding in which a description of a circuit with at most s gates has length L=O(s log(s+m)). Given an m-input truth table T of length N=2^m and a description w of a circuit C with at most s gates, there is a verifier V(T,w) that accepts exactly when C computes T. It has size O(N poly(s,m)) and depth poly(s,m)+O(m). Proof: For each of the N inputs x in {0,1}^m, evaluate the described circuit C(x) and compare its output with the corresponding bit T[x]. Circuit evaluation from the encoded gate list can be implemented with size polynomial in s,m and depth polynomial in s,m; instantiate this evaluator in parallel for all N inputs. Compare each result with its table bit, then AND the N equality bits using a balanced binary tree, adding O(N) gates and depth O(log N)=O(m). The verifier accepts precisely when every table entry agrees with C. Its total size and depth satisfy the stated bounds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

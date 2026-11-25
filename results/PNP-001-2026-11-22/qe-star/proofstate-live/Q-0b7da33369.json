@@ -6065,5 +6065,100 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795606439.64961,
+  "session": "pnp-desk/research/R3518",
+  "model": "gpt-6-luna",
+  "id": "S0699",
+  "proved_step": "statement: For every permutation delta on an m-element set, m>=2, with S=ceil(log2 m), there exists an injective stationary encoding into {0,1}^S whose encoded transition extends to a total Boolean map of O(sqrt(m) log^2 m) fan-in-two gates. Proof: list each cycle in successor order and allocate consecutive codes to each cycle interval. Let d be the number of distinct cycle lengths; since these lengths are distinct positive integers, d(d+1)/2<=m, hence d<=sqrt(2m). The base map B(x)=x+1 mod 2^S has an O(S)-gate fan-in-two implementation. For each cycle endpoint e with interval start a, compute E_e(x)=[x=e] at cost O(S). For each output bit j use F_j(x)=B_j(x) XOR OR_e(E_e(x) AND (B_j(x) XOR a_j)). Each endpoint correction costs O(S) over all output bits, so total size O((d+1)S^2)=O(sqrt(m) log^2 m). On non-endpoints this is B; at endpoint e exactly its indicator is active and output becomes a, the cycle start. The same formulas define a total map on all codes, including unused codes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606548.5498648,
+  "session": "pnp-desk/research/R3518",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0699's unrestricted O(sqrt(m) log^2 m) conclusion is not justified: its interval construction has one endpoint correction per cycle, and the number of distinct cycle lengths does not bound the number of cycles. Corrected scope: c-cycle permutations have an O((c+1)S) encoding bound.",
+  "id": "S0700",
+  "proved_step": "statement: For every permutation on m>=2 states having c cycles, with S=ceil(log2 m), there exists an injective stationary encoding into {0,1}^S such that the encoded transition extends to a total Boolean map of O((c+1)S) fan-in-two gates. Proof: list each cycle in successor order and assign its states consecutive integer codes, forming one interval per cycle. Let B(x)=x+1 mod 2^S, computed by an O(S)-gate incrementer. For each cycle endpoint e with interval start a_e, compute E_e(x)=[x=e] using O(S) gates. For each output bit j define F_j(x)=B_j(x) XOR OR_e(E_e(x) AND (B_j(x) XOR (a_e)_j)). The endpoint indicators are mutually exclusive; on non-endpoint codes all corrections vanish, and at endpoint e the formula replaces B(x) by a_e, the required cycle successor. These formulas define a total map on all codes. The incrementer costs O(S); endpoint tests cost O(cS); correction terms and per-bit OR aggregation cost O(cS). Total O((c+1)S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606678.6889553,
+  "session": "pnp-desk/research/R3518",
+  "model": "gpt-6-luna",
+  "id": "S0701",
+  "proved_step": "statement: For every permutation delta on m>=2 states, with S=ceil(log2 m), there is an injective encoding into S bits whose encoded transition extends to a total Boolean map using O(sqrt(m) S^2) fan-in-two gates. Proof: Group cycles by length. For each distinct length l, place all its cycles consecutively in a block, each cycle occupying l codes. There are d<=sqrt(2m) distinct lengths because the sum of those distinct positive integers is at most m. Use B(x)=x+1 mod 2^S as default. For a valid code in the l block, the desired successor is B(x), except at endpoints, identified by offset+1 divisible by l, where it is x-(l-1). Compute each block membership with O(S) gates and its endpoint predicate by a bitwise constant-modulus remainder computation using an O(log l)-bit remainder across S input bits, costing O(S log l) gates. Compute endpoint correction output x-(l-1) with O(S) gates and select it at endpoints. The block predicates are disjoint; combining corrections across d blocks costs O(dS). Total O(d S^2)=O(sqrt(m) S^2). These formulas extend to a total map on all codes, with behavior outside encoded states arbitrary.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795606856.840922,
+  "session": "pnp-desk/research/R3518",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0701 grouped-length proof is incomplete: its per-length block predicate is not fully specified, and a lower-bound-only test x>=a allows endpoint corrections for an earlier block to fire on valid codes in later blocks. Example: a length-1 block at code 0 has its endpoint predicate true at every x, so it can alter a later block's valid transition. Repair candidate: gate each endpoint correction by full interval membership a<=x<b; this adds O(S) gates per length block and preserves the claimed asymptotic if the remaining modular circuit bound is valid.",
+  "evidence": "Direct counterexample to the stated lower-bound-only block test: for l=1 and block start a=0, (x-a+1) mod l=0 for all x; hence at a valid code in any later block the earlier endpoint flag is spuriously active. The specification's comparator x>=a is insufficient by itself."
+ },
+ {
+  "at": 1795606952.7129304,
+  "session": "pnp-desk/research/R3526",
+  "model": "gpt-6-luna",
+  "gap": "This lemma does not close the stationary-encoding circuit-complexity bounds or the cost of maintaining/synchronizing time-varying decoders. A matching pre-existing open-obligation ID was not available in the returned proof-state excerpt, so no closure is asserted.",
+  "evidence": "The identity is proved algebraically for every q and t; no earlier claimed stationary-encoding lemma is used. The finite discovery run cm-fbb1d498ef524f69 found zero Hamming update cost in the sampled two-phase cases m=2,3,4, consistent with this identity, but the proof is the displayed calculation, not the experiment.",
+  "gap_id": "G0213",
+  "id": "S0703",
+  "proved_step": "statement: PERIODIC TIME-VARYING RECODING LEMMA. Let Q be a finite set, let \u03b4:Q\u2192Q be a permutation of finite order L, and let \u03c8:Q\u2192{0,1}^S be any injection. For each integer t define \u03c8_t=\u03c8\u2218\u03b4^{-t}, with t interpreted modulo L. Then for every q\u2208Q, \u03c8_{t+1}(\u03b4(q))=\u03c8_t(q). Thus each transition from time t to t+1 is the identity on valid encoded states and has a zero-gate implementation; the encoding schedule is periodic with period L. Proof: \u03c8_{t+1}(\u03b4(q))=\u03c8(\u03b4^{-(t+1)}(\u03b4(q)))=\u03c8(\u03b4^{-t}(q))=\u03c8_t(q). Since \u03b4^L is the identity, \u03c8_{t+L}=\u03c8_t. This lemma concerns the transition between changing codebooks; it does not bound the cost of maintaining or synchronizing the time-dependent decoder.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607095.437303,
+  "session": "pnp-desk/research/R3526",
+  "model": "gpt-6-luna",
+  "evidence": "Applying the same fixed decoder to the assumed code-word equality proves the statement directly. This is independent of the earlier unreviewed stationary-encoding claims and S0703. It formalizes that the time-varying recoding construction must change the decoder for a nonidentity transition; no P-vs-NP transfer is asserted.",
+  "id": "S0704",
+  "proved_step": "statement: FIXED-DECODER ZERO-UPDATE OBSTRUCTION. Let Q be a set, \u03b4:Q\u2192Q a map, C a code set, and D:C\u2192Q a fixed decoder. Suppose encodings \u03c8_t:Q\u2192C satisfy D(\u03c8_t(q))=q for every t,q, and updates preserve code words: \u03c8_{t+1}(\u03b4(q))=\u03c8_t(q). Then \u03b4 is the identity. Proof: Apply D to the update equality. Correct decoding at time t+1 gives D(\u03c8_{t+1}(\u03b4(q)))=\u03b4(q); at time t it gives D(\u03c8_t(q))=q. The code words are equal, so their decoder outputs are equal, and \u03b4(q)=q. Therefore any nonidentity transition with zero code-word updates requires changing the decoder.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0213",
+  "closes_valid": false
+ },
+ {
+  "at": 1795607187.4569478,
+  "session": "pnp-desk/research/R3526",
+  "model": "gpt-6-luna",
+  "evidence": "The proof evaluates each decoder at the single valid code \u03c8(q_0); it does not rely on unreviewed stationary-encoding claims. It establishes phase storage only, not decoder update cost or circuit complexity.",
+  "id": "S0705",
+  "proved_step": "statement: PHASE-DECODER DISTINCTNESS FOR A CYCLE. Let Q={q_0,...,q_{m-1}} with m>=2 and \u03b4(q_j)=q_{j+1 mod m}. Let C be a code set, let \u03c8:Q\u2192C be injective, and for each t in Z/mZ let D_t:C\u2192Q satisfy D_t(\u03c8(q_j))=q_{j+t mod m} for every j. Then D_0,...,D_{m-1} are pairwise distinct. Consequently, if the decoder is determined by a phase state z_t through one fixed map H, so D_t=H(z_t), then there are at least m distinct phase states and any binary representation of them needs at least ceil(log2 m) bits. Proof: If D_a=D_b, evaluate both at \u03c8(q_0): q_a=D_a(\u03c8(q_0))=D_b(\u03c8(q_0))=q_b. The cycle states are distinct, so a=b modulo m. Thus the decoders are pairwise distinct. If z_a=z_b, then H(z_a)=H(z_b), hence D_a=D_b and a=b; therefore the phase states are pairwise distinct. B bits encode at most 2^B states, so 2^B>=m and B>=ceil(log2 m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607717.5696805,
+  "session": "pnp-desk/research/R3534",
+  "model": "gpt-6-luna",
+  "id": "S0706",
+  "proved_step": "statement: BOUNDED-SUPPORT EXTENSION WITH EMPTY-SUPPORT BOUNDARY. Let m>=2, S=ceil(log_2 m), Q be an m-element set, psi:Q->{0,1}^S be any injection, and delta:Q->Q. If supp(delta)={q:delta(q)!=q} has size t, then the partial map psi(q)->psi(delta(q)) extends to a total S-bit Boolean map with O(S(1+t)) fan-in-two AND/NOT gates. If t=0 the extension is the identity and uses zero gates. Proof: For every q in supp(delta), let e_q(x) be the conjunction of the S literals specifying psi(q), using shared input negations; all these indicators cost O(St). For each output coordinate j define F_j(x)=x_j XOR OR_{q in D_j} e_q(x), where D_j={q in supp(delta): psi(q)_j != psi(delta(q))_j}. A conjunction and each OR can be built with fan-in-two AND/NOT gates, and XOR has a constant-size AND/NOT implementation. Sharing all e_q gives total cost O(St+S+sum_j |D_j|)=O(S(1+t)); when t=0 each D_j is empty and F_j=x_j, so no gates are needed. On an encoded unchanged state, every e_q is zero. On an encoded changed state, injectivity ensures exactly its own e_q is one, so each coordinate toggles precisely when source and destination bits differ. Thus F(psi(q))=psi(delta(q)) for every q; values on unused codes are unrestricted. This is a constructive stationary upper bound only, not a representation-independent lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795607876.2541547,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0704: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says WEAKER: The theorem proves `\u03b4 = id` from `hdecode` and `hupdate`, but does not formalize the further assertion that a nonidentity transition with zero code-word updates requires changing the decoder. By the stated completeness rule, that omitted assertion ma (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795607994.5211825,
+  "session": "pnp-desk/research/R3534",
+  "model": "gpt-6-luna",
+  "id": "S0708",
+  "proved_step": "statement: TRIE-SHARED SPARSE TRANSITION EXTENSION. Let Q have m>=1 elements, S=ceil(log2 m), psi:Q->{0,1}^S be injective, and D={q:delta(q)!=q}, with |D|=t. Let T be the number of non-root nodes in the binary prefix trie of {psi(q):q in D}, and D_j={q in D:psi(q)_j!=psi(delta(q))_j}. A total extension of the encoded transition has a fan-in-two AND/NOT circuit of size O(S+T+sum_j max(0,|D_j|-1)). Proof: Compute each equality indicator [x=psi(q)] by extending shared prefix conjunctions in the trie, costing O(T) gates and O(S) shared input negations. For each j, OR the indicators for q in D_j, using max(0,|D_j|-1) gates, with empty OR equal to 0. Output bit j as x_j XOR that OR, using constant-size AND/NOT circuits. At unchanged encoded states all indicators vanish. At changed encoded state psi(q), injectivity makes exactly its indicator true, so precisely the differing coordinates toggle and the output is psi(delta(q)). The formulas define outputs on all other strings, hence give a total extension. If D is empty the identity uses only wires.\nproof: As stated: shared prefix tests identify changed encoded states; each output coordinate toggles exactly when its active changed-state indicator belongs to D_j. The gate count is the sum of trie extensions, coordinate OR trees, and constant-size XOR circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -1193,5 +1193,82 @@
   "evidence": "Valid under external-bit-per-stage model. Address decoding via one-hot comparison costs O(S(w+a)) for fixed number of accesses. Word operations O(p(w+a)). Conditional writes O(Sw). Concatenation of tau steps gives O(tau*(Sw+p(w+a))). No input-position register needed. Cleaner formulation than S0130 for this specific model.",
   "review_of": "S0131",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795605648.5854418,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the circuit construction: (1) Address decoding via S equality checks (a-bit address vs constants 0..S-1) costs O(Sa) fan-in-2 gates (XOR-tree per comparison). (2) Multiplexer to select w-bit word from S words using one-hot indicators costs O(Sw) gates (AND-OR tree per output bit). (3) Word operation/control function costs p(w+a) by hypothesis. (4) Write-back similarly costs O(Sa + Sw). One step total O(S(w+a) + p(w+a)). Composing \u03c4 steps (output config of step i feeds step i+1) gives O(\u03c4(S(w+a)+p(w+a))). The external input bit per stage replaces an input-position register. No argument gap found; construction is valid for fan-in-2 circuits.",
+  "review_of": "S0132",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795605648.6031048,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The bound O((Sw + p(w+a)) \u03a3\u03c4\u1d62) omits the address-decoding cost O(Sa) = O(S log S) per step that appears in S0132 as S(w+a). Here p(w+a) is written as a function of w+a only (independent of S), so it cannot absorb the S log S term unless p depends on S. The claim either needs S(w+a) instead of Sw, or p must be allowed to depend on S. As stated, the bound is missing a factor and the proof sketch does not justify omitting the address-decoding cost.",
+  "review_of": "S0135",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795606137.5285676,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Sigma3SAT^A query encodings (standard encodings of 3-CNF formulas with oracle A-gates) are not padding-invariant: appending bits to an encoded formula changes the formula (adds variables, clauses, or changes the delimiter/length prefix). The proof of S0017 assumes padding invariance without justification. MMW19 Thm 1.2 does not state or imply padding invariance for Sigma3SAT^A queries; it only bounds query length by ell. The stage map construction requires either fixed-length queries without padding, or a padding-invariant oracle - neither holds here. S0044's repair assumes padding invariance as a hypothesis, which is not satisfied by the actual Sigma3SAT^A encoding.",
+  "review_of": "S0017",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795606548.1586032,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma explicitly assumes padding invariance of the Sigma3SAT^A oracle decider as a hypothesis. However, standard encodings of 3-CNF formulas (with oracle A-gates) are not padding-invariant: appending bits to an encoded formula changes the formula by adding variables, clauses, or altering the delimiter/length prefix. MMW19 Thm 1.2 does not state or imply padding invariance for Sigma3SAT^A queries; it only bounds query length by ell. Since the hypothesis is false for the actual Sigma3SAT^A encoding, the lemma is vacuously true but does not apply to the intended setting. The stage map construction for MMW19 requires either fixed-length queries without padding, or a padding-invariant oracle - neither holds. This step does not close G0002 or hypothesis (8).",
+  "review_of": "S0044",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795606647.1042352,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof claims O(tau*S) gates but does not account for updating the input-head counter. Each step requires O(log N) gates for binary increment/decrement of the input head position, giving O(tau*(S + log N)) total. The O(tau*S) bound only holds under the additional hypothesis S >= log N. The RAM variant (poly(S,m) per operation) is not addressed. G0001 remains open.",
+  "review_of": "S0021",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795606753.039314,
+  "session": "pnp-desk/research/R3529",
+  "model": "gpt-6-luna",
+  "id": "S0144",
+  "proved_step": "statement_start: LEMMA (one-pass single-tape update simulation with input-head cost). Let M be a deterministic single-tape machine with S work cells over a fixed finite alphabet and a fixed finite state set. Suppose each update reads one input bit, then takes at most tau steps. For input length N, the map from the configuration immediately before that bit is read to the configuration after the update is computed by a fan-in-2 Boolean circuit of size O(tau*(S + log(N+1))).\nstatement: LEMMA (one-pass single-tape update simulation with input-head cost). Let M be a deterministic single-tape machine with S work cells over a fixed finite alphabet and a fixed finite state set. Suppose each update reads one input bit, then takes at most tau steps. For input length N, the map from the configuration immediately before that bit is read to the configuration after the update is computed by a fan-in-2 Boolean circuit of size O(tau*(S + log(N+1))). The circuit is uniform over the input bits and configurations. Proof: Encode each work-tape cell by a constant number of bits, the work-tape head by S one-hot bits, the finite control by a constant number of bits, and the input-head position by b=ceil(log2(N+1)) bits. A single machine step has a fan-in-2 circuit of size O(S+b): the scanned work-tape symbol is selected by OR-ing the S conjunctions of the one-hot head bits with the corresponding cell-symbol bits; the transition table is a constant-size Boolean function of the control state and scanned symbols; each cell is either retained or overwritten according to its head bit and the transition; the work head shifts its one-hot indicator using neighboring indicators; and the input-head counter increments, decrements, or stays fixed using O(b) gates. Boundary and halting cases are included in the fixed transition table. Thus each step has O(S+b) gates. Compose at most tau copies of this step circuit, padding a halted computation with identity steps; the padding depends only on the configuration's halting bit and introduces no oracle-query or query-padding assumption. The resulting circuit has O(tau(S+b)) gates, which is O(tau*(S+log(N+1))).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795607198.8518438,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof sketch verified: (1) Configuration encoding uses O(S) bits for work tape (constant alphabet), S one-hot bits for work head, O(1) bits for state, and ceil(log2(N+1)) bits for input head counter. Total O(S + log N) bits. (2) Single transition step: reading work symbol via S-way OR of (head_bit AND cell_bits) costs O(S); transition table is O(1); updating cells costs O(S); updating work head one-hot costs O(S); updating input head counter (increment/decrement/stay) costs O(log N) via ripple-carry adder. Total per step: O(S + log N). (3) Composing \u2264tau steps gives O(tau(S + log N)). (4) Padding halted computations with identity steps preserves uniformity. No oracle assumptions, no padding invariance needed. The bound is tight for the model; if S \u2265 log N it simplifies to O(tau\u00b7S). This matches the corrected repair of S0021. No argument gap found.",
+  "review_of": "S0144",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795607265.143543,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0146",
+  "proved_step": "statement_start: LEMMA (Sigma3SAT^A stage map via length-prefix encoding, no padding invariance). Let M be a deterministic single-tape machine with S work cells over fixed finite alphabet and state set Q. Each update reads one input bit z, then takes at most tau steps and makes at most q oracle queries to Sigma3SAT^A, each query a 3-CNF formula with A-gates of length at most ell. The query string is produced by M as a bitstring prefixed by its length in binary (ceil(log2(ell+1)) bits) followed by the formula encoding. Then the stage map (configuration, z) -> configuration is computed by a single A-oracle circuit with O(tau * (S + log N + log ell)) ordinary fan-in-2 gates and exactly tau*q oracle gates, each of fixed input length L = ceil(log2(ell+1)) + ell, uniform over all x.\nproof: CONSTRUCTION:\n\n1. CONFIGURATION ENCODING (as S0144):\n   - Work tape: S cells \u00d7 O(1) bits\n   - Work head: S one-hot bits\n   - State: O(1) bits\n   - Input head: ceil(log2(N+1)) bits\n   Total: O(S + log N) bits.\n\n2. QUERY ENCODING WITH LENGTH PREFIX:\n   Each Sigma3SAT^A query is a 3-CNF formula with A-gates. M produces it bit by bit during its computation.\n   Instead of padding to fixed length ell, we encode each query as:\n   [length_prefix (b bits)][formula_bits (variable, \u2264 ell bits)]\n   where b = ceil(log2(ell+1)) encodes the actual formula length \u03bb \u2208 [0, ell].\n   The total encoded length is at most b + ell = L bits.\n   This encoding is prefix-free and uniquely decodable.\n\n3. ORACLE GATE INTERFACE:\n   Define the oracle gate O_A to accept exactly L-bit strings:\n   - If the first b bits encode a value \u03bb \u2264 ell, and the next \u03bb bits form a valid Sigma3SAT^A formula, O_A evaluates it.\n   - If the first b bits encode \u03bb > ell, or the formula is malformed, or extra bits beyond \u03bb are non-zero: O_A outputs 0 (reject).\n   This is a well-defined Boolean function on L bits. No padding invariance is assumed.\n\n4. CIRCUIT FOR ONE MACHINE STEP:\n   - Work tape transition: O(S) gates (as S0144).\n   - Input head counter: O(log N) gates.\n   - Query generation: M's computation produces query bits sequentially. The circuit simulates this by having, for each of the q query slots, a subcircuit that:\n     * Accumulates the formula bits into a shift register of size ell.\n     * Simultaneously computes the length \u03bb in a b-bit counter.\n     * After the step, the slot holds (length_prefix || formula_bits || 0-padding to L).\n   - This costs O(poly(S) + ell) = O(poly(S, ell)) gates per query slot per step.\n   Since q, ell \u2264 poly(S) by hypothesis, total per step: O(poly(S) + log N).\n\n5. ORACLE CALL CIRCUIT:\n   At the end of the tau steps, each of the q slots contains an L-bit string.\n   Feed each to a fixed L-input oracle gate O_A.\n   The oracle answers are routed to the machine's state transition logic.\n   This uses exactly q oracle gates per update, each of fixed input length L.\n\n6. UNROLLING TAU STEPS:\n   Compose tau copies of the step circuit. The query accumulation registers and length counters ",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607473.8116164,
+  "session": "pnp-desk/research/R3517",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0147",
+  "proved_step": "statement_start: LEMMA (Sigma3SAT^A stage map with length-prefix machine encoding, standard oracle interface). Let M be a deterministic single-tape machine with S work cells over fixed finite alphabet and state set Q. Each update reads one input bit z, then takes at most tau steps and makes at most q oracle queries to Sigma3SAT^A, each query a 3-CNF formula with A-gates of standard encoding length at most ell_std. The machine produces each query as a length-prefixed bitstring [b-bit length][formula bits] where b = ceil(log2(ell_std+1)). The stage map (configuration, z) -> configuration is computed by a single A-oracle circuit with poly(tau, S, ell_std) ordinary fan-in-2 gates and exactly tau*q oracle gates, each of fixed input length ell_std (the standard Sigma3SAT^A encoding), uniform over all x.\nproof: CONSTRUCTION:\n\n1. CONFIGURATION ENCODING (as S0144):\n   - Work tape: S cells x O(1) bits\n   - Work head: S one-hot bits\n   - State: O(1) bits\n   - Input head: ceil(log2(N+1)) bits\n   Total: O(S + log N) bits.\n\n2. MACHINE QUERY ENCODING:\n   M produces each Sigma3SAT^A query as a length-prefixed string:\n   [length_prefix (b bits)][formula_bits (<= ell_std bits)]\n   This is M's internal encoding; it avoids padding invariance issues.\n\n3. ORDINARY CIRCUIT: LENGTH-PREFIX PARSING AND STANDARD ENCODING:\n   For each of the q query slots per step:\n   - The circuit receives the (b + ell_std)-bit machine query string.\n   - It extracts the formula bits using the length prefix as a selector:\n     For each l in [0, ell_std], a multiplexer path selects bits [b, b+l)\n     and pads them to the standard Sigma3SAT^A encoding of length ell_std.\n   - This parsing uses O(ell_std * poly(ell_std)) = poly(S) ordinary gates per query.\n   - The output is a standard-form Sigma3SAT^A formula of fixed length ell_std.\n\n4. ORACLE GATES:\n   Feed each parsed standard-form formula to a fixed Sigma3SAT^A oracle gate\n   (input length exactly ell_std). This uses exactly q oracle gates per step,\n   each a pure Sigma3SAT^A query as required by MMW19 Thm 1.2.\n\n5. PER-STEP CIRCUIT:\n   - Work tape transition: O(S) gates.\n   - Input head counter: O(log N) gates.\n   - Query parsing for q slots: q * poly(S) gates.\n   - Oracle calls: q Sigma3SAT^A gates.\n   Total per step: O(poly(S) + log N) ordinary gates + q oracle gates.\n\n6. UNROLLING TAU STEPS:\n   Compose tau copies. The query parsing registers are local to each step.\n   Total: poly(tau, S, ell_std) ordinary gates + tau*q Sigma3SAT^A oracle gates.\n\nNo padding invariance is assumed for Sigma3SAT^A. The ordinary circuit handles\nvariable-length-to-fixed-length conversion. The oracle interface matches MMW19 exactly.\nsession: pnp-desk/research/R3517\nmodel: nemotron-3-ultra-550b-a55b\ncan_review: False\ninstruction: Try to refute this step with a lab counterexample or name its exact argument gap; then record SURVIVED_REVIEW or REFUTED with evidence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

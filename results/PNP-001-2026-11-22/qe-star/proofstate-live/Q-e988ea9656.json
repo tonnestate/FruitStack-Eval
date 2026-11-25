@@ -247,5 +247,41 @@
   "proved_step": "LEMMA (bounded-sparsity Boolean witness). Let F be any field and let f in F[x_1,...,x_t] be a nonzero multilinear polynomial of degree at most d with at most q nonzero monomials. Then there exists a in {0,1}^t with Hamming weight at most min(qd,t) such that f(a) != 0. Proof: Let U be the union of the supports of the monomials of f. There are at most q supports and each has size at most d, so |U| <= min(qd,t). The polynomial f depends only on coordinates in U. A multilinear polynomial in |U| variables that vanishes on all Boolean inputs is identically zero: induct on |U|, writing f=g+x_i h; evaluations at x_i=0 imply g vanishes everywhere and hence g=0 by induction, while evaluations at x_i=1 then imply h vanishes everywhere and hence h=0. Since f is nonzero, some Boolean assignment to U has nonzero evaluation. Extend that assignment by zero outside U; its value remains nonzero and its weight is at most |U|. The full set of points of weight at most min(qd,t) is therefore an existential hitting set for this class, of size sum_{j=0}^{min(qd,t)} binom(t,j). This step is a bounded mathematical lemma, not a polynomial-time PIT algorithm and not a closure of the general-circuit PIT obligation.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795607115.8387735,
+  "session": "pnp-desk/research/R3531",
+  "model": "gpt-6-luna",
+  "id": "S0030",
+  "proved_step": "statement: For every field F and integer t\u22651, there is an explicitly constructible set H\u2286{0,1}^t of at most ceil(log2(t+1))+1 points such that every nonzero multilinear polynomial of degree at most 1 with at most two nonzero monomials is nonzero at some point of H. Construction: assign each variable a distinct nonzero binary codeword of length r=ceil(log2(t+1)); include the all-zero point and, for each codeword coordinate, the point whose 1-coordinates are exactly variables whose codeword has a 1 there. Proof: a nonzero constant is detected at the zero point; each variable is detected in some coordinate row. For a constant plus a variable, the zero point isolates the constant. For two distinct variables, their distinct codewords differ in a coordinate, whose row sets exactly one of the two variables to 1, isolating its nonzero coefficient. Thus the evaluation is nonzero over any field. The points are generated in O(t log t) time. This is an explicit hitting set for the stated sparse degree-one class only.\nevidence: Direct constructive proof in the statement; distinct nonzero binary codewords exist because 2^r\u22121\u2265t.\ngap: Does not establish the low-degree PIT parameter improvement in TR26-313, which concerns a broader class; no pre-recorded open-obligation ID was supplied for this special case.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607181.1136625,
+  "session": "pnp-desk/research/R3531",
+  "model": "gpt-6-luna",
+  "id": "S0031",
+  "proved_step": "statement: Lemma (explicit hitting set for affine multilinear polynomials). For every field F and integer t\u22650, let H={0,e_1,...,e_t}\u2286{0,1}^t, where e_i is the i-th unit vector. Every nonzero multilinear polynomial f(x)=c+\u03a3_{i=1}^t a_i x_i over F has f(h)\u22600 for some h\u2208H. The set is constructible in O(t) time and has t+1 points.\nevidence: Proof: If f vanished at every point of H, then f(0)=c=0. For each i, f(e_i)=c+a_i=a_i=0. Thus every coefficient is zero and f is the zero polynomial, a contradiction. Hence some point of H detects every nonzero affine multilinear polynomial. Listing the zero vector and t unit vectors takes O(t) time.\ngap: This shrinks the general low-degree PIT question to degree one, but does not close the recorded obligation for higher-degree PIT or the TR26-313 parameter improvement. No matching pre-recorded open-obligation ID was present in the proof-state response.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607212.3203497,
+  "session": "pnp-desk/research/R3531",
+  "model": "gpt-6-luna",
+  "id": "S0032",
+  "proved_step": "statement: Lemma (explicit Boolean hitting set for degree-at-most-two multilinear polynomials). For every field F and integer t>=0, let H contain 0, every unit vector e_i, and every vector e_i+e_j for 1<=i<j<=t. Then every nonzero multilinear polynomial f(x)=c+sum_i a_i x_i+sum_{i<j} b_ij x_i x_j over F has f(h)!=0 for some h in H. The set has 1+t+binom(t,2) points and is constructible in O(t^2) time.\nevidence: Proof: Suppose f vanishes on H. Evaluating at 0 gives c=0. Evaluating at e_i then gives a_i=0 for every i. For each i<j, evaluation at e_i+e_j gives c+a_i+a_j+b_ij=0, so b_ij=0. Thus every coefficient is zero, contradicting that f is nonzero. Therefore H hits every nonzero polynomial in the stated class. Enumerating the zero vector, unit vectors, and pairwise sums takes O(t^2) time.\ngap: This extends the explicit hitting-set construction from degree one to degree at most two. It does not establish higher-degree PIT or the TR26-313 parameter improvement, and no pre-recorded open-obligation ID for this restricted case was available.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607269.9667737,
+  "session": "pnp-desk/research/R3531",
+  "model": "gpt-6-luna",
+  "id": "S0033",
+  "proved_step": "statement: Lemma (Boolean evaluation interpolation through degree d). Let F be any field, t>=0, and 0<=d<=t. Let P_d={1_A : A subseteq [t], |A|<=d}, where 1_A is the Boolean incidence vector. Evaluation on P_d is injective on the space of multilinear polynomials of degree at most d over F. Consequently P_d hits every nonzero polynomial in that space, and has sum_{j=0}^d binom(t,j) points.\nevidence: Write f(x)=sum_{|S|<=d} c_S x_S, with x_S=product_{i in S}x_i. Suppose f(1_A)=0 for every |A|<=d. For each such A, f(1_A)=sum_{S subseteq A}c_S. Induct on |A|: for A empty this gives c_empty=0. If coefficients for proper subsets of A vanish, the equation for A reduces to c_A=0. Thus every coefficient is zero, so evaluation is injective. The same triangular equations explicitly recover c_A=f(1_A)-sum_{S proper subset A}c_S; hence the construction and recovery require only subset enumeration, with O(sum_{A:|A|<=d}2^{|A|}) field operations once evaluations are supplied.\ngap: This proves a bounded-degree interpolation statement, not a sub-polynomial hitting set for growing d or the low-degree PIT improvement in TR26-313. No recorded open-obligation ID was available to claim closure.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

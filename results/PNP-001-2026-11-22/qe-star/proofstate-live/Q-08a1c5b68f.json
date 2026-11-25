@@ -6008,5 +6008,56 @@
   "proved_step": "statement: Common-completion incompatibility lemma. Let F be any subset of {0,1}^N and consider a deterministic length-N streaming machine whose transition at each layer is a function of its current state and next input bit, and whose final decoder outputs a valid witness for every x in F such that the witness uniquely determines x (for example, a circuit with truth table x), while correctly rejecting x outside F. For 0<=t<=N, form a graph H_t with vertex set P_t={p in {0,1}^t : p extends to an element of F}; join distinct p,p' when there exists u in {0,1}^{N-t} such that pu and p'u both belong to F. Then every correct machine assigns different layer-t states to the endpoints of every edge of H_t. Consequently it uses at least chi(H_t) distinct states at layer t and at least ceil(log2 chi(H_t)) state bits.\nProof: Suppose adjacent p,p' receive the same state at layer t. By the edge definition choose a common suffix u with pu,p'u in F. Starting from equal states and feeding the same suffix u, determinism implies by induction over its bits that both computations reach the same final state. The final decoder therefore outputs the same witness on pu and p'u. But p != p', so pu != p'u; the witness uniquely determines the input truth table, and hence cannot be valid for both. This contradicts correctness. Thus adjacent vertices have different states; the state assignment is a proper coloring of H_t, so the number of available states is at least chi(H_t), yielding the bit bound.\nScope: Arbitrary finite F, arbitrary state recoding, layer-dependent transitions, and any uniquely identifying witness semantics. This is a state-width lower bound only; it gives no update-gate or decoder-cost lower bound and does not by itself establish a nontrivial value for SC_{n,s}.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795605413.377511,
+  "session": "pnp-desk/research/R3514",
+  "model": "gpt-6-luna",
+  "id": "S0692",
+  "proved_step": "statement: For every N>=1 and every F subset {0,1}^N, a layered deterministic membership transducer can store each length-t prefix literally in an N-bit state, update with zero counted gates in the fan-in-two basis with free wires/constants, and accept exactly F using a final decoder.\nproof: At layer t, encode p in the first t state coordinates and set the remaining coordinates to 0. On input b, the next state is (p_1,...,p_t,b,0,...,0), which is obtained by wiring old coordinates 1 through t and the input b to the corresponding output coordinates; no counted gate is used. Distinct prefixes at a layer have distinct encodings, so all live prefixes are distinct and every dead prefix is distinct from them, satisfying full SEARCH separation. At layer N the state is exactly the input word, so a decoder whose accepting states are the words in F recognizes F. The construction uses S=N bits and has G_max=0. This is the trivial S>=N regime and makes no claim about the binding S<N frontier.\nscope: All N>=1 and F subset {0,1}^N; state width S=N; layered transitions; free wires/constants; final decoder unrestricted. This is only a zero-update-gate upper bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795605438.7120688,
+  "session": "pnp-desk/research/R3511",
+  "model": "gpt-6-luna",
+  "gap": "This gives the exact state-capacity component of the live/dead prefix separation problem: the relevant layer count is the number of distinct residual continuation sets, not the number of live prefixes plus one. It does not resolve the remaining transition-gate minimization or the required family/control G_max comparison.",
+  "gap_id": "G0192",
+  "id": "S0693",
+  "proved_step": "statement: Exact residual-state characterization. Let N>=0, F subset {0,1}^N, and for each t and p in {0,1}^t define R_t(p)={u in {0,1}^{N-t}: pu in F}; let K_t be the number of distinct sets R_t(p). In a deterministic layered membership transducer whose acceptance after N bits depends only on its state, the minimum number of states available at layer t sufficient to recognize F is exactly K_t. Consequently the minimum uniform state-bit count is ceil(log2(max_t K_t)), with log2(1)=0.\nproof: Lower bound: if p,p' reach the same state at layer t, then determinism implies that for every suffix u of length N-t, the transducer has the same acceptance result after reading u from that state. Hence pu is in F iff p'u is in F for every u, so R_t(p)=R_t(p'). Distinct residual sets therefore require distinct layer-t states, giving at least K_t states. Upper bound: assign one state to each distinct residual set at each layer. For a residual R at layer t and bit b, define the next state to be R'={v in {0,1}^{N-t-1}: bv in R}; this is the residual of any prefix p with R_t(p)=R after appending b, so the transition is well-defined independent of the representative p. At layer N, residuals are either {epsilon} or the empty set; accept precisely the state {epsilon}. Induction on the number of input bits shows the state reached after prefix p represents exactly R_t(p), proving recognition of F. Thus K_t states suffice at each layer. A uniform state register can encode the largest layer's state set, requiring exactly ceil(log2(max_t K_t)) bits, and the lower bound applies at a layer attaining the maximum.\nscope: Finite Boolean membership languages of fixed length N, deterministic layered transitions allowed to vary by t, acceptance determined by the terminal state. No restriction or bound on transition circuit size; this does not determine G_max for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795605745.153762,
+  "session": "pnp-desk/research/R3514",
+  "model": "gpt-6-luna",
+  "id": "S0694",
+  "proved_step": "statement: Singleton-language recognizer bound. For every integer N>=2 and word w in {0,1}^N, the language F={w} is recognized by a deterministic layered transducer with one state bit and at most one counted fan-in-two AND gate per update, when NOTs and constants are free. Initialize q=1. At step t, set q'=q AND x if w_t=1, and q'=q AND NOT(x) if w_t=0. Accept iff the final state is 1. Proof: After t updates, induction gives q=1 exactly when the input prefix of length t equals the prefix of w: this holds initially for the empty prefix; the update preserves 1 exactly when the next input bit agrees with w_t, and once q=0 it remains 0. Thus the final state is 1 exactly on input w. Each update uses one AND gate, with the required literal supplied using the free NOT operation. Since N>=2, the state-bit count S=1 satisfies S<N. This is an update upper bound for singleton membership languages only; it does not prove minimality or the SC witness-output requirement.\nscope: All N>=2 and all singleton binary languages of fixed length N; layered transitions; one state bit; counted fan-in-two AND gates with free NOT/constants. Not a lower bound, exact G_max result, SC witness-output result, or P-vs-NP progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795607138.7171023,
+  "session": "pnp-desk/research/R3530",
+  "model": "gpt-6-luna",
+  "id": "S0695",
+  "proved_step": "statement: Residual-language characterization of layer state width. Let N\u22650 and F\u2286{0,1}^N. For 0\u2264t\u2264N and p\u2208{0,1}^t, define R_t(p)={u\u2208{0,1}^{N\u2212t}:pu\u2208F}, and let K_t be the number of distinct such residual sets. Among deterministic layered membership transducers that decide F on every length-N word, the minimum number of reachable states at layer t is exactly K_t; equivalently the minimum state-bit width there is \u2308log\u2082K_t\u2309 (with width 0 when K_t=1).\nproof: If two prefixes reach the same layer-t state, every suffix induces identical subsequent computation, so correctness implies their residual sets are equal. Thus distinct residuals require distinct states. Conversely, represent each prefix by its residual R. On input b, transition to R_b={u:bu\u2208R}, which depends only on R, not on the prefix realizing it. Initialize with F. At layer N, residuals are either {\u03b5} or \u2205; accept exactly {\u03b5}. Induction shows the state after p is R_t(p), using exactly K_t reachable states. Injectively coding them requires \u2308log\u2082K_t\u2309 bits. This is decision-only and establishes no update-circuit, decoder-cost, or witness-output bound.\nscope: All finite languages F\u2286{0,1}^N, every layer t, deterministic layered transducers correct on every length-N input; exact reachable-state minimum per layer.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795607513.3298123,
+  "session": "pnp-desk/research/R3530",
+  "model": "gpt-6-luna",
+  "id": "S0696",
+  "proved_step": "statement: Residual-language state lower bound (decision variant). Let F be a subset of {0,1}^N and for each length-t prefix p define R_t(p)={u in {0,1}^{N-t}: pu in F}. In any deterministic layered streaming machine that decides membership in F, if two prefixes p,p' reach the same state at layer t, then R_t(p)=R_t(p'). Consequently the machine needs at least K_t distinct layer-t states, where K_t=|{R_t(p):p in {0,1}^t}|, and at least ceil(log2 K_t) state bits.\nproof: Suppose p and p' reach the same state q at layer t. For any suffix u of length N-t, determinism and identical transition maps imply that processing u from q yields the same final state in both runs. The final decoder therefore gives the same accept/reject answer on pu and p'u. Since this holds for every u, pu is in F iff p'u is in F for every suffix u, so R_t(p)=R_t(p'). Thus distinct residual sets require distinct states, giving at least K_t states; S bits encode at most 2^S states, so S>=ceil(log2 K_t).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 15384 entries from 4660 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 15498 entries from 4706 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,33 +19,33 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For EXT_{n,s}, candidate-set update costs O(M) gates once the prefix viability mask A_{p,b} is supplied, where M is the number of circuit descriptions; the unresolved cost is uniform construction of that mask from a compact state or arbitrary MCSP decider.
   - For THR o THR circuits with weight matrix W in {-K..K}^{m x n} of real rank r, the number of distinct restricted functions satisfies |R_F| <= min(m, (2K+1)^r) * (2k+2). This generalizes the GF(2) rank bound to real rank and K>1.
   - For supports A with a distinguished point a and large pairwise Hamming distance, distance-profile cofactor sparsification may yield smaller nonempty restrictions than the support-size-only bound, potentially useful when combined with a separate circuit invaria
   - For every N>=1 and every input word w in {0,1}^N, the N-bit update q'=(q_2,...,q_N,b), started at 0^N and fed w left-to-right, ends in state w; hence its update circuit uses zero counted gates under wire reuse.
   - For fixed finite membership language F and layer t, exact deterministic layered state complexity is the number of distinct residual sets at that layer; this characterization alone does not determine multi-output update circuit cost or witness-output complexity
   - For the explicit RAM model in repaired S0128, the stage simulation bound is O(tau*(S*w+p(w)+log(S+1))+m), with p bounding the fixed word-operation circuit size.
-  - For MCSP[m^c], sparse-support cofactors may bound the number of restriction paths on which the output gate survives, but this alone does not control total gate elimination when arbitrary internal gates are shared.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3240 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3250 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-67cb277d37 [MISSING_PROOF, OPEN] For the explicit-family update lemma, can one identify a nontrivial circuit class of succinctly encoded candidate families where the live-candidate filter A_p -> A_{pb} can be implemented with cost polynomial in the enco
   - Q-2b4423b9e6 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:5a096a3e95f6 by pnp-desk/research/R3339:nemotron-3-ultra-550b-a55b@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For THR o THR circuits with weight matrix
   - Q-2209f15fcb [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:375a3ac07e01 by pnp-desk/research/R3332:laguna-xs-2.1@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: The circuit enumeration barrier: The number of distinc
   - Q-f1af3845a3 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:1f6ef6ce4bec by pnp-desk/research/R3332:laguna-xs-2.1@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: The circuit enumeration barrier: for EXT_{n,s}, any co
   - Q-f5a15fe3a7 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:1003c94a7ecf by pnp-desk/research/R3330:nemotron-3-ultra-550b-a55b@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For every m>=0, 0<=k<=m, nonempty A subse
-  - Q-a55a18fc3a [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:87c3a9bf5521 by pnp-desk/research/R3332:gpt-6-luna@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For every fixed acyclic Boolean circuit C with g fan-in-a
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
