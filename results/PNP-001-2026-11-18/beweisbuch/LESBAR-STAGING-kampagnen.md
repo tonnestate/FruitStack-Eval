@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 14845 entries from 4309 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 14895 entries from 4357 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - The corrected decoder bound S >= ceil(log2 |Yes_s|) is the tightest possible bound derivable solely from decoder correctness (outputting a valid circuit on yes instances, none on no instances). For affine F_2 encodings, the L_dec lemma (S0024) gives S >= N - d
   - Exact #SAT remains polynomial-time when bottom gates overlap inside incidence components of O(log n) variables, provided total absolute top weight is polynomially bounded.
   - A Stage D transfer can preserve a source lower bound B(m) into a target promise problem only when its total two-sided reduction has same-model circuit cost r(m)=o(B(m)); differing source and target lengths do not change this quantitative requirement.
   - For every m>=2, the natural binary encoding of an m-cycle into S=ceil(log2 m) bits admits a total AND/NOT circuit extension of the cycle transition with O(S) gates, by shared increment carries and a terminal-code mask.
   - For a finite language F with residual width r_t at each layer, optimizing injective residual-state codes may yield a smaller maximum AND/XOR update cost than the universal truth-table synthesis bound for the same state width.
   - The unrestricted S0060 claim may require an argument beyond the smaller-cofactor bound: that bound proves restriction survival for t<=2(m-1)^(c-1), while t<=m^(c-1) can exceed this range when (m/(m-1))^(c-1)>2.
-  - For exact full-input-output streaming transducers recognizing any finite language F, the minimum number of states at layer t equals L_t + 1_{L_t<2^t}; test by comparing this partition against exhaustive state-machine synthesis on small F and t.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -34,12 +34,12 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3215 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+NUMERICAL EVIDENCE on file: 3216 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-21b6165d37 [ASSUMPTION, OPEN] The claim 'For prime p, let A be an S×N matrix over F_p and q(x)=Ax+c for Boolean vectors x∈{0,1}^N. If a final-state decoder correctly solves exact SearchMCSP[s] on every N-bit truth table and 0^N has circuit size at mo
   - Q-2c0519a953 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:e517f17398a8 by pnp-desk/research/R3140:gpt-6-luna@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For every deterministic finite automaton A=(Q,delta,q0,F)
