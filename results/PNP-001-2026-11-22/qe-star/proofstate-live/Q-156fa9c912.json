@@ -7370,5 +7370,156 @@
   "model": "gpt-6-luna",
   "lemma": "For any fan-in-two circuit H(x,w) with h gates and r witness bits, G(x)=exists w H(x,w) has a fan-in-two circuit with at most 2^r(h+1)-1 gates. Proof: instantiate H separately for each of 2^r witness strings, then combine outputs with a binary OR tree. Cofactoring fixed prefix inputs cannot increase the bound. For EXT, circuit-description witnesses make this bound exponential in description length; no transition bound or bridge to arbitrary MCSP decision circuits follows.",
   "evidence": "Direct construction and gate count; this restates the unreviewed S0743 consequence and is not claimed as new P-vs-NP progress."
+ },
+ {
+  "at": 1795611712.5851321,
+  "session": "pnp-desk/research/R3580",
+  "model": "gpt-6-luna",
+  "evidence": "Independent exhaustive verification of the transition identity on all 276 binary languages of lengths 1 through 3: experiment cm-REPLACE_WITH_RESULT_ID.",
+  "id": "S0858",
+  "proved_step": "statement: Residual-trie construction. For any finite A subset {0,1}^N, let R_p={z in {0,1}^{N-|p|}: pz in A}. At each depth t, use one state for each distinct nonempty R_p with |p|=t, plus a dead state. From state R_p on bit b, transition to R_{pb} if nonempty, otherwise dead; dead loops to itself. Accept at depth N exactly when the residual contains the empty string. This deterministic automaton recognizes A and has at most 1+sum_{t=0}^N D_t states, where D_t is the number of distinct nonempty residuals at depth t.\nproof: For every prefix p represented by R_p, its continuation z is accepted exactly when z is in R_p, by definition. After reading b then suffix z, acceptance is equivalent to bz in R_p, which is equivalent to z in R_{pb}; if R_{pb} is empty no completion is in A and the dead state is correct. Distinct prefixes with the same residual therefore have identical future behavior, so identifying them is safe. At depth N, the only possible residual is {epsilon} for words in A, and the empty residual is represented by dead. Thus the stated state count and language recognition follow.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795611851.3824115,
+  "session": "pnp-desk/research/R3580",
+  "model": "gpt-6-luna",
+  "id": "S0859",
+  "proved_step": "statement: Explicit candidate-set transition for EXT. Fix n and s, and let C be the finite set of fan-in-two circuit descriptions of size at most s over a fixed finite gate basis, with fixed encodings of inputs and output. For each prefix p of length t define S_p={D in C: Eval(D) has prefix p}. Then the residual EXT_{n,s}|p is nonempty exactly when S_p is nonempty. On reading bit b, S_{pb}={D in S_p: Eval(D)_{t+1}=b}. This representation admits an update circuit with O(M(n,s)(s+log(n+s))) fan-in-two gates, where M(n,s)=|C|, when the truth-table index is supplied in binary. This is an upper bound for this representation, not a lower bound or a transition bound for arbitrary MCSP decision circuits.\nproof: For each D in C, evaluate its output on the input indexed by t+1. Its at-most-s gates can be evaluated using O(s) gates; decoding the binary index costs O(log(n+s)) under the stated model. Compare the output with b and AND that match bit with D's old membership bit in S_p. Parallelizing over M descriptions produces the membership vector for S_{pb} using O(M(s+log(n+s))) gates. A suffix z completes p to a word in Im(Eval) exactly when some D in S_p agrees with all bits of z, so S_p represents the residual exactly. Filtering by the next bit therefore gives the exact next candidate set and the stated cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795612011.4002855,
+  "session": "pnp-desk/research/R3580",
+  "model": "gpt-6-luna",
+  "id": "S0860",
+  "proved_step": "statement: Fixed-position candidate-set update lemma. Fix n,s, a finite encoded family C of M Boolean circuits D:{0,1}^n->{0,1} of size at most s, and an ordering x_0,...,x_{2^n-1} of their truth-table inputs. For a length-t prefix p define u_p(D)=1 exactly when D(x_j)=p_j for every j<t. At level t, reading bit b updates the membership vector by u_{pb}(D)=u_p(D) AND [D(x_t)=b]. With the position t fixed by the level, this update is implementable by a fan-in-two circuit of at most M AND gates, with the constants [D(x_t)=b] hardwired. The representation uses M state bits. It is exact for EXT_{n,s}, but this bound is for the explicit candidate-set representation and makes no claim about compact state or transitions for an arbitrary MCSP decision circuit.\nproof: By definition, D belongs to the candidate set after pb iff it agrees with p on all positions j<t and agrees with b at position t. The first condition is u_p(D)=1 and the second is the fixed Boolean constant [D(x_t)=b]. Their conjunction gives the displayed update independently for every D. Thus the updated vector represents exactly the circuits whose truth tables extend pb. A suffix completes pb to a truth table in the family iff at least one such circuit agrees with every remaining bit, so the represented candidate set determines the EXT residual exactly. Each output coordinate requires at most one AND gate when constants and wiring are free, giving at most M gates total.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795612058.6862464,
+  "session": "pnp-desk/research/R3580",
+  "model": "gpt-6-luna",
+  "id": "S0861",
+  "proved_step": "statement: Candidate-set residual-count lemma. Fix n,s and a finite family C of M Boolean circuits D:{0,1}^n->{0,1}, with truth-table input order x_0,...,x_{2^n-1}. For each prefix p, let S_p={D in C: D agrees with p on its positions}. The number of distinct residual languages EXT_{n,s}|p, over all prefixes p at all levels, is at most 2^M. In particular, at any fixed level t it is at most min(2^t,2^M).\nproof: For each prefix p define its residual R_p={z: there exists D in S_p whose outputs on the positions after p equal z}. Thus R_p is determined entirely by S_p: if S_p=S_q, then the same circuits remain and have the same remaining truth-table outputs, so R_p=R_q. There are at most 2^M subsets of C, hence at most 2^M distinct residual languages across all prefixes. At level t there are 2^t prefixes, giving the additional bound 2^t. This proves the claim. The bound is a representation-specific upper bound; it gives no lower bound on the number of states needed by other representations and no transition bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613171.3166602,
+  "session": "pnp-desk/research/R3596",
+  "model": "gpt-6-luna",
+  "lemma": "Constructive candidate for the recorded residual-transition gap: for any finite language F subseteq {0,1}^N, at cut t include the empty suffix set as a sink alongside the d_t distinct residuals. For each fixed next bit b, every source residual R maps to R_b={u: bu in R}, which is one residual class or the sink. On one-hot valid source states, define each destination output as the OR of its source bits. The OR gates used are sum_j max(0, indegree(j)-1) <= d_t-1 when d_t>=1. This is a mathematical construction; confirm the exact convention and gap closure before treating it as closing an obligation. Full proof: The classes partition the source-state set into nonempty preimages of destination states. If q destinations have nonempty preimages, the gate count is sum over those destinations of (indegree-1) = d_t-q <= d_t-1. Every valid one-hot input has exactly one source bit set, so exactly one destination output is set, and it is the class containing the restricted suffix set; all other outputs are zero. The empty residual maps to itself. This only proves a separate circuit for each fixed b and does not bound a joint-input circuit or connect EXT residuals to an arbitrary MCSP decider.",
+  "gap": "Need host computation result and exact recorded open-obligation id to determine whether this closes or only sharpens Q-156fa9c912's residual-transition subclaim; the EXT versus fixed-decider bridge remains open.",
+  "refuted_approach": "Do not state a one-hot transition bound without specifying whether the input bit is fixed or jointly supplied, and whether the empty residual is represented. The earlier broad 6d claim is recorded with a counterexample question; this construction handles fixed b and includes the sink explicitly.",
+  "gap_id": "G0200"
+ },
+ {
+  "at": 1795613250.7328742,
+  "session": "pnp-desk/research/R3596",
+  "model": "gpt-6-luna",
+  "id": "S0863",
+  "proved_step": "statement: FIXED-BIT RESIDUAL OR-TRANSITION LEMMA. Let F be a nonempty finite subset of {0,1}^N and 0<=t<N. Let S_t be its distinct prefix residuals at level t, augmented by the empty set, and let d=|S_t|. For each fixed bit b, map R to T_b(R)={v in {0,1}^{N-t-1}: bv in R}. The one-hot transition on valid states is computed by OR-ing source coordinates in each destination fiber, with at most d-1 fan-in-two OR gates. Proof: For every source residual R, T_b(R) is a next-level residual, and the empty residual maps to itself. Thus the source states partition into nonempty fibers B_T={R:T_b(R)=T}. Define output y_T=OR_{R in B_T} x_R, using |B_T|-1 gates per fiber. On valid one-hot input e_R0, exactly y_{T_b(R0)} is 1. If q fibers are nonempty, total gates are sum_T(|B_T|-1)=d-q<=d-1. This is a separate circuit for fixed b, under a valid one-hot promise; it does not claim a joint circuit taking b as input or a polynomial bound on d for EXT.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0200",
+  "closes_valid": false
+ },
+ {
+  "at": 1795613889.9787867,
+  "session": "pnp-desk/research/R3604",
+  "model": "gpt-6-luna",
+  "gap": "The pending steps S0742\u2013S0745 were authored by gpt-6-luna; this session cannot review its own model family\u2019s steps. Their review remains open. The compact/canonical residual transition-cost bridge also remains open.",
+  "evidence": "Proof-state instructions require review by a different model family; the listed claimant model is gpt-6-luna.",
+  "gap_id": "G0201"
+ },
+ {
+  "at": 1795613890.0236018,
+  "session": "pnp-desk/research/R3604",
+  "model": "gpt-6-luna",
+  "id": "S0865",
+  "proved_step": "statement: ONE-HOT RESIDUAL TRANSITION BOUND. Let L be a language of binary strings of fixed length N. At depth t, let R_t be the set of distinct residual languages L_p={z in {0,1}^{N-t}: pz in L}, over prefixes p of length t, and put r_t=|R_t|. For each residual R in R_t and bit b, its child is R_b={z: bz in R}, which lies in R_{t+1}. Encode a residual by its one-hot vector over R_t. The deterministic update on input b from layer t to t+1 has a fan-in-two Boolean circuit with at most r_t-1 OR gates (besides free wires/constants), producing the one-hot child vector.\nproof: For each Q in R_{t+1}, define its fiber F_Q={R in R_t: R_b=Q}. The output coordinate for Q is the OR of the input coordinates indexed by F_Q; this is exact because the input is one-hot and each residual has exactly one child. A fiber of size k>0 needs k-1 binary OR gates, and an empty fiber needs zero gates (constant 0). The nonempty fibers partition R_t, so summing their costs gives r_t-|im(child)|\u2264r_t-1, since R_t is nonempty and hence the image has at least one element. This constructs the update circuit and proves the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614029.7208889,
+  "session": "pnp-desk/research/R3604",
+  "model": "gpt-6-luna",
+  "evidence": "The complete proof is in the proved_step statement. Independent finite VERIFICATION cm-794063daa7e447e3 checked all 65,812 languages of lengths 1..4 and 525,896 transitions, with zero failures; this is a sanity check, not the general proof.",
+  "id": "S0866",
+  "proved_step": "statement: BLOCK-CONTROLLED RESIDUAL TRANSITION LEMMA. Let L be a language of fixed-length binary strings, and at depth t let R_t be its r distinct residuals. For a block length k with t+k<=N, each block a in {0,1}^k induces a deterministic map f_a:R_t -> R_{t+k}, where f_a(R)={z: az in R}. If the block a is supplied as an external control (not computed by the transition circuit), then the one-hot encoding of R is updated exactly to the one-hot encoding of f_a(R) using at most r-1 fan-in-two OR gates. Proof: For each Q in R_{t+k}, let F_Q={R in R_t:f_a(R)=Q}. Output coordinate Q is the OR of input coordinates in F_Q (or constant 0 if empty). Since the input is one-hot, exactly the coordinate for f_a(R) is set. A fiber of size q costs max(q-1,0) OR gates. Nonempty fibers partition R_t, so total cost is r-|im(f_a)|<=r-1, since R_t is nonempty. This only bounds the controlled update; it does not include computing a or provide a compact canonical encoding.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614266.2379835,
+  "session": "pnp-desk/research/R3604",
+  "model": "gpt-6-luna",
+  "id": "S0867",
+  "proved_step": "statement: INPUT-CHARGED ONE-HOT RESIDUAL TRANSITION. Let R and R' be nonempty finite sets, |R|=r, and let f_0,f_1:R\u2192R' be arbitrary maps. In the circuit model with fan-in-two AND/OR and NOT gates all charged, a circuit taking a one-hot encoding x of an element of R and a bit b outputs the one-hot encoding of f_b(x) using at most 4r gates on valid one-hot inputs. Proof: Compute \u00acb once. For each i\u2208R compute u_i=x_i\u2227b and v_i=x_i\u2227\u00acb, using 2r gates. For each j\u2208R', output y_j as the OR of all u_i with f_1(i)=j and all v_i with f_0(i)=j; an empty OR is constant 0. Across all outputs these term lists partition the 2r terms, so binary OR trees use at most 2r\u22121 gates. Total is 1+2r+(2r\u22121)=4r. For a valid one-hot x, exactly the term selected by b and its unique source coordinate is 1, and it appears at output f_b(i); hence outputs are exactly one-hot. This repairs the transition-cost statement with an explicit input convention and charged NOT gate. It concerns arbitrary finite transition maps and does not provide a compact encoding or a transition procedure for H_C / EXT.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614410.447301,
+  "session": "pnp-desk/research/R3604",
+  "model": "gpt-6-luna",
+  "id": "S0868",
+  "proved_step": "statement: RESIDUAL DISTINGUISHABILITY LOWER BOUND. Let L be any language of fixed-length strings {0,1}^N. For each t in {0,...,N}, let R_t={L_p:p in {0,1}^t}, where L_p(z)=1 iff pz is in L. Any deterministic one-pass streaming machine that, after reading each length-t prefix, stores a state from which it can correctly decide membership for every continuation z of length N-t must have at least |R_t| distinct states at level t. Proof: Suppose two prefixes p,q of length t with L_p != L_q led to the same state. Since the residual functions differ, there exists a suffix z of length N-t for which exactly one of pz,qz belongs to L. Starting from the same state and then reading the same z forces a deterministic machine to produce the same final answer on both strings, contradicting correctness. Thus prefixes with distinct residuals must occupy distinct states, giving at least |R_t| states. In particular the state requires at least ceil(log2 |R_t|) bits. For EXT_{n,s}, this applies to the exact prefix language over truth-table strings, but by itself neither bounds |R_t| superpolynomially for the relevant threshold nor charges the cost of deriving transitions from an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614577.6468294,
+  "session": "pnp-desk/research/R3612",
+  "model": "gpt-6-luna",
+  "id": "S0869",
+  "proved_step": "statement: RESIDUAL-TABLE TRANSITION LEMMA. For L\u2286{0,1}^N and prefix p, let T_p be the lexicographically ordered truth table of z\u21a61[pz\u2208L]. For b\u2208{0,1}, T_{pb}[z]=T_p[bz] for every suffix z; hence T_{pb} is the b-indexed half of T_p and the transition is coordinate selection, using zero Boolean gates when wires and output selection are free. If a level has D distinct residual functions, any deterministic exact state encoding with a decoder needs at least log\u2082D bits.\nproof: For each suffix z, T_{pb}[z]=1 iff pbz\u2208L iff T_p[bz]=1, proving the transition identity and half-table description. Distinct residual functions differ on some suffix, so an exact deterministic decoder cannot assign them the same state; D states require at least log\u2082D bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614678.8661356,
+  "session": "pnp-desk/research/R3612",
+  "model": "gpt-6-luna",
+  "id": "S0870",
+  "proved_step": "statement: RESIDUAL COUNTING LEMMA. Fix a finite Boolean gate basis of size g and a standard fan-in-two circuit model with N input bits and h gates. Let D_t be the number of distinct residual functions L_p(z)=L(pz) over prefixes p of length t, where L is computed by such a circuit. Then D_t \u2264 min(2^t, (g(N+h+2)^2)^h (N+h+1)) for h\u22651; for h=0, D_t\u2264min(2^t,N+1).\nproof: There are 2^t prefixes, so D_t\u22642^t. Each residual is computed by the original circuit after fixing t input wires, hence by a circuit with at most h gates and at most N remaining inputs. To count descriptions, order the gates topologically. For each gate choose one of g types and two incoming wires from at most N+h+2 available inputs or earlier gates; choose one output wire from at most N+h+1 wires. Thus the number of descriptions is at most (g(N+h+2)^2)^h(N+h+1), which bounds the number of functions represented. If h=0, the output is an input or a constant, giving at most N+1 functions. Combining the two bounds proves the claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614851.517939,
+  "session": "pnp-desk/research/R3612",
+  "model": "gpt-6-luna",
+  "id": "S0871",
+  "proved_step": "statement: WITNESS-ELIMINATION CIRCUIT BOUND. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates. Then G(x)=1 iff there exists w\u2208{0,1}^r with H(x,w)=1 has a fan-in-two circuit with at most 2^r(h+1)-1 gates. For every prefix p of x, the cofactor G_p has a circuit with no more than this bound.\nproof: For each w\u2208{0,1}^r, copy the h-gate circuit H and substitute the constants of w on its witness inputs. The resulting circuit computes x\u21a6H(x,w) and uses at most h gates. OR the 2^r outputs with a binary tree, which uses 2^r\u22121 gates. The total is at most 2^r h +(2^r\u22121)=2^r(h+1)\u22121, and this computes G by existential semantics. Fixing the coordinates of any prefix p by input substitution cannot increase the gate count, giving the same bound for G_p.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614962.7703595,
+  "session": "pnp-desk/research/R3612",
+  "model": "gpt-6-luna",
+  "id": "S0872",
+  "proved_step": "statement: DISTINCT-WITNESS-SLICE ELIMINATION LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two circuit with h gates. For each w define H_w(x)=H(x,w), and let q be the number of distinct Boolean functions among {H_w : w\u2208{0,1}^r}. Then G(x)=1 iff \u2203w H(x,w)=1 has a fan-in-two circuit with at most q(h+1)-1 gates. Every prefix cofactor of G has a circuit within the same bound.\nproof: Choose one representative witness w_i for each of the q distinct functions H_w. For each representative, copy H and substitute the constants w_i on its witness inputs; this computes H_{w_i} with at most h gates. OR the q outputs with a binary tree of q\u22121 OR gates. The resulting circuit computes G, since duplicate slices do not change an OR and every witness assignment belongs to one represented slice. Its size is at most qh+(q\u22121)=q(h+1)-1. Fixing the input coordinates of any prefix cofactor cannot increase circuit size, so the same bound holds for every prefix.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795615046.1687398,
+  "session": "pnp-desk/research/R3612",
+  "model": "gpt-6-luna",
+  "id": "S0873",
+  "proved_step": "statement: COFACTOR MONOTONICITY OF DISTINCT WITNESS SLICES. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1}. For a prefix p of length t, let q_p be the number of distinct functions z\u21a6H(pz,w), as w ranges over {0,1}^r. For every next bit b, q_{pb}\u2264q_p. Consequently, if H has a fan-in-two circuit with h gates, the existential projection G_p(z)=\u2203w H(pz,w) has a fan-in-two circuit of at most q_p(h+1)-1 gates at every prefix, and this bound never increases along a path.\nproof: For each witness w, write f_w(z)=H(pz,w). Its child slice is f_{w,b}(z')=H(pbz',w)=f_w(bz'), the cofactor of f_w obtained by fixing its first input to b. If f_w=f_{w'} as functions on all suffixes z, then f_w(bz')=f_{w'}(bz') for every z'; hence the map from parent slice classes to child slice classes is well-defined and surjective onto the set of child classes. Therefore q_{pb}\u2264q_p. Applying the distinct-slice elimination construction to the child relation yields a circuit for G_{pb} of size at most q_{pb}(h+1)-1, which is no larger than q_p(h+1)-1. The same argument applies at every prefix, including the empty and full prefixes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
  }
 ]

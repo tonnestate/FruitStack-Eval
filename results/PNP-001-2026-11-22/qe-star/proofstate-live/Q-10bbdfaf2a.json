@@ -6198,5 +6198,59 @@
   "proved_step": "statement: Cofactor restriction lemma: Let B be any Boolean gate basis with constants available, and let C be a fan-in-two DAG circuit over B with g gates computing f:{0,1}^m->{0,1}. For any input x_i and b in {0,1}, the cofactor f|_{x_i=b} has a B-circuit with at most g gates. Proof: Replace every wire carrying x_i by the constant b. Process the gates in topological order. Inductively, each modified gate computes the original gate\u2019s value on inputs with x_i fixed to b, so the modified output computes f|_{x_i=b}. No gates are added; constant propagation may remove gates but is not needed for the bound. Thus restriction proves non-increase, not strict decrease. This repairs the unsupported strict cofactor-size proposal.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795611652.3855135,
+  "session": "pnp-desk/research/R3576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The statement is a standard union bound argument: each radius-r Hamming ball in {0,1}^N contains exactly sum_{i=0}^r binom(N,i) strings (choose i coordinates to flip). The union of D such balls has size at most the sum of individual ball sizes, even with overlaps. If this sum is < 2^N, the union cannot cover the whole cube, so some string has distance > r from all members of C. The proof is correct and the scope is properly stated. No counterexample exists for this elementary combinatorial fact.",
+  "review_of": "S0611",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795611668.2462184,
+  "session": "pnp-desk/research/R3576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is sound: the output cone contains q gates and d' essential input vertices. Every vertex in the cone has a path to the output, so the underlying undirected graph on these q + d' vertices is connected, giving at least q + d' - 1 edges. Since each gate contributes at most 2 input wires, there are at most 2q edges, yielding d' <= q + 1. All essential inputs are in the cone, so d <= d' <= q + 1 <= g + 1, hence g >= d - 1. This holds for any fan-in-two DAG circuit with arbitrary fan-out and basis. The finite check on small circuits confirms no violation. The bound is linear only and does not reach the N(log N)^k target.",
+  "review_of": "S0620",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795612204.569865,
+  "session": "pnp-desk/research/R3584",
+  "model": "gpt-6-luna",
+  "evidence": "Under the standard interpretation that MCSP[m^c] truth tables are the accepted m-variable truth tables, a direct counting argument verifies the inequality. The number of accepted tables is at most the number of fan-in-two circuits of size at most m^c, which is 2^{O(m^c log(m+m^c))}=2^{O(m^c log m)} for a fixed finite basis. Meanwhile, on N=2^m input bits, the 2^N distinct functions OR_{i in A} z_i, one for each subset A of [N], each have circuits of size at most N (using constants for the empty subset). Since m^c log m=o(2^m)=o(N), eventually 2^{O(m^c log m)}<2^N. Thus the stated comparison holds for sufficiently large m. This review checks only the counting lemma as stated; it does not establish the assigned direct MCSP circuit lower bound.",
+  "review_of": "S0647",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795612302.0358121,
+  "session": "pnp-desk/research/R3584",
+  "model": "gpt-6-luna",
+  "id": "S0729",
+  "proved_step": "statement: Circuit-description counting lemma. Fix a finite Boolean gate basis of fan-in at most two, with at most b gate types, and allow constants and N named input wires. The number of functions computable by circuits with at most S gates is at most (S+1)(b(N+S+2)^2)^S, for integers N>=1 and S>=0. Proof: Give a circuit a topological ordering of its gates. For gate i, each of its at most two predecessors is selected from the N input wires, two constants, or the i-1 earlier gates; padding unary gates with a fixed dummy predecessor only enlarges the count. Thus there are at most b(N+S+2)^2 choices per gate. Summing over gate counts j=0,...,S gives at most sum_j [b(N+S+2)^2]^j <= (S+1)[b(N+S+2)^2]^S, since the base is at least one. Each circuit has one output selected among N+S+2 wires, so multiplying by this factor gives the valid bound (S+1)(N+S+2)[b(N+S+2)^2]^S. Therefore the statement as written must include the output choice factor; the corrected bound is (S+1)(N+S+2)[b(N+S+2)^2]^S. This encoding counts descriptions, hence upper-bounds distinct functions even when many descriptions compute the same function.\nscope: All N>=1, S>=0, fixed finite basis with b>=1 gate types of fan-in at most two, constants and named inputs available, size counts gates, circuit is a DAG with a designated output wire.\nevidence: Direct injective encoding into gate-type choices, predecessor indices in topological order, gate-count choice, and output-wire choice. The output choice is explicitly included in the corrected bound; no computational evidence is needed for this finite combinatorial encoding.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-10bbdfaf2a",
+  "closes_valid": true
+ },
+ {
+  "at": 1795612375.6238055,
+  "session": "pnp-desk/research/R3584",
+  "model": "gpt-6-luna",
+  "evidence": "The review's own estimate gives at most 2^{O(m^c log m)} accepted m-variable truth tables, which is less than 2^N for sufficiently large m, where N=2^m. Its comparison set contains at least 2^N distinct functions on N inputs computable with at most N gates: for each A\u2286[N], OR_{i\u2208A} z_i (with the empty disjunction constant 0) is distinct and uses at most N\u22121 gates. Thus the claimed 'exceeds' inequality has the wrong direction; the cited counting argument cannot prove it.",
+  "review_of": "S0647",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795612375.6807475,
+  "session": "pnp-desk/research/R3584",
+  "model": "gpt-6-luna",
+  "id": "S0731",
+  "proved_step": "statement: Corrected counting comparison. Fix c>=1 and a fixed finite fan-in-two Boolean basis with constants. Let N=2^m, and let Y_m be the set of m-variable truth tables computable by circuits of size at most m^c. For all sufficiently large m, |Y_m| < 2^N, and there are at least 2^N distinct N-input Boolean functions computable by circuits of size at most N. Proof: A circuit with j\u2264m^c gates over a fixed finite basis has a description using O(j log(m+j)) bits: list each gate type and its at most two predecessors among m inputs, constants, and earlier gates, then designate an output. Summing over j\u2264m^c gives |Y_m|\u22642^{O(m^c log m)}. Since c is fixed, m^c log m=o(2^m)=o(N), so |Y_m|<2^N eventually. For each subset A\u2286[N], define h_A(z_1,...,z_N)=OR_{i\u2208A} z_i, with h_empty=0. These 2^N functions are distinct, and each has a fan-in-two OR circuit of at most N\u22121 gates (or a constant circuit when A is empty), hence at most N gates. Therefore |Y_m| is smaller, not larger, than the number of size-at-most-N circuit functions for sufficiently large m. This corrects the counting comparison only; it gives no lower bound for MCSP.\nscope: Fixed c>=1, fixed finite fan-in-two Boolean basis with constants, m sufficiently large, N=2^m; circuit size counts gates.\nevidence: Complete asymptotic description-counting argument and explicit family of 2^N distinct OR functions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-10bbdfaf2a",
+  "closes_valid": true
  }
 ]

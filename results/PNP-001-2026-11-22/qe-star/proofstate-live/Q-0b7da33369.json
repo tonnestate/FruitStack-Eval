@@ -6239,5 +6239,65 @@
   "proved_step": "statement: CYCLE-BOUNDARY EXTENSION LEMMA. For every m>=2 and every permutation delta on an m-element set with c cycles, there is an injective encoding into S=ceil(log2 m) bits such that its transition extends to a total Boolean map with O(S(c+1)) fan-in-two AND/NOT gates. Proof: list states cycle by cycle in transition order and encode them as 0,...,m-1. Use B(x)=x+1 modulo 2^S as the default transition. For each cycle terminal i with start a(i), compute h_i(x)=[x=i] using S literals. Output bit j is B_j(x) XOR the OR of h_i(x) over terminal indices with B_j(i) != a(i)_j. The incrementer costs O(S); equality indicators cost O(cS); all per-bit OR and XOR corrections cost O(cS). On each valid nonterminal index, B increments to its successor. At a terminal index, exactly its equality indicator is active and the corrections produce the cycle's start code. The circuit formulas define values on unused codes too, giving a total extension.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795611896.903934,
+  "session": "pnp-desk/research/R3582",
+  "model": "gpt-6-luna",
+  "evidence": "Complete direct construction and gate count in the step. No computation result is available; the finite check request did not run. The proof-state response did not expose a prior obligation ID, so no closure is claimed.",
+  "id": "S0718",
+  "proved_step": "Universal extension upper bound for a fixed encoding. Let m\u22652, S=ceil(log2 m), Q be an m-element set, \u03c8:Q\u2192{0,1}^S be any injection, and \u03b4:Q\u2192Q be any map. Then \u03c8\u2218\u03b4\u2218\u03c8\u207b\u00b9 on \u03c8(Q) extends to a total S-bit Boolean map with at most S + m(S\u22121) + 3S(m\u22121) fan-in-two AND/NOT gates, with constants and wires free. Proof: For each q\u2208Q, form e_q(x)=[x=\u03c8(q)] by ANDing its S matching literals using S\u22121 gates; share the S negated input bits. For output bit j, let I_j={q\u2208Q : \u03c8(\u03b4(q))_j=1}. Define F_j(x)=OR_{q\u2208I_j} e_q(x), taking an empty OR as 0. A binary OR is implemented as NOT(AND(NOT a,NOT b)), at most three gates, so all output ORs use at most 3S(m\u22121) gates. On any encoded input \u03c8(q), injectivity makes e_q=1 and all other indicators 0; hence F_j(\u03c8(q))=\u03c8(\u03b4(q))_j. On unused inputs every indicator is 0, so the circuit is a total extension (with output 0 there). Thus the stated gate count holds and is O(m log m). This is an upper bound for a fixed encoding and arbitrary transition; it gives no lower bound over encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795611977.6624413,
+  "session": "pnp-desk/research/R3582",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and explicit AND/NOT gate accounting. This corrects S0718's incorrect assertion that an OR costs at most three gates when NOT gates are counted. No computation or independent review is claimed.",
+  "id": "S0719",
+  "proved_step": "REPAIRED UNIVERSAL EXTENSION UPPER BOUND WITH NOT GATES COUNTED. Let m>=2, S=ceil(log2 m), Q an m-element set, psi:Q->{0,1}^S any injection, and delta:Q->Q any map. Then psi delta psi^{-1} extends to a total S-bit Boolean map using at most 2mS+2S fan-in-two AND/NOT gates, with constants and input wires free. Proof: Share the S input negations. For each q form e_q(x)=[x=psi(q)] using S-1 AND gates, then form h_q=NOT e_q using one NOT gate. For output bit j put I_j={q: psi(delta(q))_j=1}. If I_j is empty output constant 0; otherwise output F_j=NOT(AND_{q in I_j} h_q), using |I_j|-1 AND gates and one NOT gate. At x=psi(q), injectivity gives h_q=0 and h_r=1 for r!=q, so F_j equals psi(delta(q))_j. At an unused x all e_q=0 and all h_q=1, hence every output is 0. The total is at most S + m(S-1) + m + sum_j |I_j| + S, and sum_j |I_j|<=mS, giving 2mS+2S. Thus the fixed-encoding arbitrary-transition extension bound is O(m log m), with every NOT counted. This is an upper bound only and closes no named obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613537.518086,
+  "session": "pnp-desk/research/R3598",
+  "model": "gpt-6-luna",
+  "id": "S0720",
+  "proved_step": "statement: For every m>=2, every permutation delta on an m-element set Q, and S=ceil(log2 m), there is an injective encoding psi:Q->{0,1}^S such that psi delta psi^{-1} extends to a total Boolean map on S bits with at most O(m log m) fan-in-two AND/NOT gates. Proof: Choose any bijection psi from Q to the first m binary strings of length S. For each q in Q form the equality indicator e_q(x)=[x=psi(q)], using S input literals and a fan-in-two AND chain, requiring at most S-1 AND gates per q, with the input negations shared across all q. For each output coordinate j, define F_j(x)=OR over q with psi(delta(q))_j=1 of e_q(x); the OR uses at most m-1 fan-in-two OR gates, and OR is expressible using NOT and AND. On each valid code psi(q), exactly e_q is 1 by injectivity, so F_j(psi(q))=psi(delta(q))_j. On unused codes every indicator vanishes, defining a total output (all zero). The total count is at most S input negations + m(S-1) equality gates + S(m-1) OR gates, which is O(mS)=O(m log m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795614185.8501422,
+  "session": "pnp-desk/research/R3606",
+  "model": "gpt-6-luna",
+  "id": "S0721",
+  "proved_step": "statement: EVEN INVOLUTION ONE-GATE RECODING LEMMA. For every even m=2p>=2 and every fixed-point-free involution delta on an m-element set Q, with S=ceil(log2 m), there exists an injection psi:Q->{0,1}^S such that psi delta psi^{-1} extends to a total S-bit Boolean map using at most one NOT gate (input wires and constants free). Proof: Partition Q into its p unordered delta-pairs and enumerate the pairs by i=0,...,p-1. Let k=ceil(log2 p). Since p<=m/2, k+1<=ceil(log2 m)=S. Encode the two members of pair i as the S-bit words 0^{S-k-1} bin_k(i) 0 and 0^{S-k-1} bin_k(i) 1, where bin_k is the k-bit binary encoding (for p=1, k=0 and the empty index field is omitted). These 2p words are distinct, so psi is injective. Define the total Boolean map F on all S-bit strings by copying every bit except the final tag bit, which it negates. F uses one NOT gate and satisfies F(psi(q))=psi(delta(q)) for each q, because delta swaps the two members of each pair while preserving its index. This includes p=1 and arbitrary even m, including non-powers of two; unused strings require no special behavior.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795614973.1659317,
+  "session": "pnp-desk/research/R3611",
+  "model": "gpt-6-luna",
+  "id": "S0722",
+  "proved_step": "statement: CANDIDATE INTERVAL-ENCODING UPPER BOUND. Let \u03b4 be a permutation of an m-element set, let d be the number of distinct cycle lengths of \u03b4, and let S=ceil(log2 m). There exists an injection \u03c8 into {0,1}^S such that \u03c8\u03b4\u03c8^{-1} on \u03c8(Q) extends to a total Boolean map computed by O((d+1)S) fan-in-two AND/NOT gates. Proof: Order the cycles arbitrarily and encode their states consecutively, in cycle order, as integers 0,...,m\u22121. The desired transition is x\u21a6x+1 except at each cycle endpoint e, where it maps to the start a of that cycle. Compute the ordinary S-bit increment circuit, costing O(S). For each endpoint e, compute the equality indicator I_e(x)=[x=e] as a conjunction of S literals, costing O(S), with input negations shared. For output bit j, XOR the increment bit with the parity (XOR) of those indicators I_e for which bit j of (e+1 mod 2^S) differs from bit j of a. At a valid non-endpoint, all indicators vanish and the output is x+1; at endpoint e exactly I_e is one, so the specified output bit is toggled exactly when needed. The formula defines a total map on all S-bit strings, while its values off \u03c8(Q) are unconstrained. There are at most d endpoints, so indicator computation and all bit corrections use O(dS) gates. Finally, if the distinct positive cycle lengths are l_1<...<l_d, then l_i\u2265i and sum_i l_i\u2264m, hence d(d+1)/2\u2264m and d\u2264sqrt(2m). Thus every permutation admits such an encoding with O(sqrt(m) log m) gates.\nevidence: Full constructive argument with exact endpoint correction and gate accounting; awaiting independent finite computation and review.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795615041.7453978,
+  "session": "pnp-desk/research/R3611",
+  "model": "gpt-6-luna",
+  "id": "S0723",
+  "proved_step": "statement: ENDPOINT-CORRECTION CIRCUIT LEMMA. Let \u03b4 be a permutation of an m-element set Q, m\u22652, with d distinct cycle lengths, and set S=\u2308log\u2082m\u2309. There is an injection \u03c8:Q\u2192{0,1}^S for which \u03c8\u03b4\u03c8\u207b\u00b9 on \u03c8(Q) extends to a total Boolean map using O((d+1)S) fan-in-two AND/NOT gates. Proof: List the cycles in any order and each cycle in its \u03b4-order, assigning consecutive integer codes from 0. Each cycle occupies an interval [a,e], and \u03b4 acts as x\u21a6x+1 except at its endpoint e, where the desired output is a. The codes 0,\u2026,m\u22121 fit in S bits. Compute the ordinary S-bit modular increment B(x)=x+1 with O(S) gates: the carry into bit j is the conjunction of input bits 0,\u2026,j\u22121 (the empty conjunction is 1), and XOR has a constant-size AND/NOT implementation. For each of the at most d cycle endpoints e, compute I_e(x)=[x=e] as a conjunction of S literals, sharing input negations, at cost O(S) gates per endpoint. For each output bit j, XOR B_j with all indicators I_e for which bit j of (e+1 mod 2^S) differs from bit j of the start a_e of e's cycle. On a valid non-endpoint code, every indicator is zero, so the output is its successor. On a valid endpoint e, exactly I_e is one, so exactly the differing bits are toggled and the output equals a_e. This defines a total map on all S-bit inputs and has O(S+dS) gates (the dS output-bit corrections and the dS equality tests dominate). If the distinct positive cycle lengths are l_1<\u22ef<l_d, then l_i\u2265i and each length occurs at least once, so m\u2265\u2211l_i\u2265d(d+1)/2. Hence d\u2264\u230a(\u221a(8m+1)\u22121)/2\u230b, and the gate bound is O(\u221am log m).\nevidence: Complete construction and gate accounting; the prior exact discovery computation cm-531827c5d1b74b79 checked all 5,912 permutations through m=7 with zero transition failures, as corroboration only. No asymptotic claim relies on that finite check.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0630",
+  "closes_valid": false
  }
 ]

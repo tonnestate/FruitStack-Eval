@@ -6135,5 +6135,66 @@
   "proved_step": "statement: SEARCH transducer construction with explicit transition and decoder bounds. Let F subset {0,1}^N, N>=1, and designate for each x in F a valid witness w(x) in {0,1}^r. At each layer t let L_t be the number of live length-t prefixes and d_t=1 iff a dead length-t prefix exists. Put S=max_t ceil(log2(L_t+d_t)). There is a deterministic layered transducer with S state bits, distinct states for all live prefixes at each layer, dead states disjoint from live states, acceptance exactly F and output w(x) on every x in F. In the AND, XOR, NOT, constant basis with shared gates and free fan-out, each transition has at most 2^(S+2)-4 + S(2^(S+1)-1) nonconstant gates, and the final decoder has at most 2^(S+1)-4 + r(2^S-1) nonconstant gates. Proof: At each layer injectively assign S-bit codes to live prefixes and, if dead prefixes exist, one further code disjoint from them; the definition of S guarantees enough codes. Define transitions on reachable live codes by mapping (code(p),b) to code(pb) when pb is live and to a dead code otherwise; map dead codes to dead codes, and define unused inputs arbitrarily. For any Boolean map on d input bits, build all full-assignment minterms using shared signed-prefix conjunctions, costing sum_{k=2}^d 2^k=2^(d+1)-4 AND gates. Each output is the XOR of its accepting minterms, costing at most 2^d-1 XOR gates. With d=S+1 and S outputs this gives the transition bound. At layer N, each live state identifies a unique x in F, so define the decoder there to output w(x) and reject on dead codes. Apply the same minterm construction on S bits with r outputs for the decoder bound. Induction on prefix length proves the assigned state invariant and hence acceptance and witness correctness for all inputs. Scope: finite F, N>=1, fixed designated r-bit witness per accepted word, layered deterministic transducers, injective live-prefix states, one disjoint dead state when needed, AND/XOR/NOT/constants, free fan-out. Constructive upper bound only; not an optimal Pareto result and not P-versus-NP progress.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795612676.8911552,
+  "session": "pnp-desk/research/R3591",
+  "model": "gpt-6-luna",
+  "gap": "This shrinks the state-capacity part of Q-08a1c5b68f: exact residual counts K_t, rather than live-prefix counts alone, are necessary for any deterministic membership transducer. The Lemma M transition-circuit cost and witness-output obligations remain open; applying this lemma to SC_{n,s} requires computing or proving useful lower bounds on its K_t values.",
+  "gap_id": "G0193",
+  "id": "S0705",
+  "proved_step": "statement: Residual distinguishability lower bound. Let F be a subset of {0,1}^N, and for each t in {0,...,N} and prefix p in {0,1}^t define R_t(p)={u in {0,1}^{N-t}: pu in F}. Let K_t be the number of distinct sets R_t(p). Any deterministic one-pass streaming membership machine that reads the bits in this fixed order, has a state set Q, and after reading t bits determines membership correctly for every length-N input, must satisfy |Q| >= K_t for every t. Consequently it needs at least ceil(log2(max_t K_t)) state bits (with zero bits allowed when the maximum is 1).\nproof: Fix t and suppose two length-t prefixes p and p' reach the same machine state. Determinism implies that for every common suffix u of length N-t, the machine's subsequent state sequence and final output are identical when started from that state and fed u. Correctness says the final output on pu is 1 exactly when pu is in F, and likewise for p'u. Hence for every u, pu is in F iff p'u is in F, so R_t(p)=R_t(p'). Thus prefixes with different residual sets cannot share a state. There are K_t distinct residual sets, so at least K_t distinct states are reached after t bits, proving |Q|>=K_t. Taking the maximum over t and applying |Q|<=2^b to a machine with b state bits gives 2^b>=max_t K_t and therefore b>=ceil(log2(max_t K_t)).\nscope: Finite deterministic streaming membership machines on fixed-order Boolean words of length N, with exact correctness on all 2^N inputs. This is a state-count lower bound only; it gives no transition gate lower bound and does not address witness-output machines unless their outputs determine membership.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795612894.5274649,
+  "session": "pnp-desk/research/R3594",
+  "model": "gpt-6-luna",
+  "evidence": "The proof is an explicit shared-minterm construction. Independent finite arithmetic verification cm-3b66fdb399844c99 checked the output-cost formula on all 16 maps for d=2 and all 256 maps for d=3; that check is corroboration, not the general proof.",
+  "id": "S0706",
+  "proved_step": "statement: For integers d>=2 and q>=1, let f:{0,1}^d->{0,1}^q be a Boolean map. With fan-in-two AND/OR gates, free NOTs and constants, and unrestricted fan-out, f has a circuit of size at most 2^(d+1)-4 + sum_{j=1}^q max(min(w_j,2^d-w_j)-1,0), where w_j is the number of inputs on which output j is 1. Proof: For every signed prefix of each length k=2,...,d, construct its conjunction from its length-(k-1) prefix and its next literal, using one AND gate. This uses sum_{k=2}^d 2^k=2^(d+1)-4 gates and constructs every full-assignment minterm. For output j, choose the smaller of its accepting and rejecting assignment sets, of size r=min(w_j,2^d-w_j). If r=0, output a constant or its free negation. Otherwise OR the r corresponding minterms using r-1 OR gates; negate the result for the rejecting set. This computes each output with max(r-1,0) gates. Summing the shared minterm cost and output costs gives the bound. Scope: finite Boolean maps in the stated basis; this is a constructive upper bound only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795612901.7276304,
+  "session": "pnp-desk/research/R3591",
+  "model": "gpt-6-luna",
+  "id": "S0707",
+  "proved_step": "statement: Residual quotient construction with explicit transition-circuit bound. Let N>=1 and F be a nonempty subset of {0,1}^N. For each t, define p~_t p' iff the suffix sets {u in {0,1}^{N-t}:pu in F} and {u:p'u in F} are equal, and let r_t be the number of equivalence classes. Set S=max_t ceil(log2 r_t), with ceil(log2 1)=0. Then F has a deterministic layered membership transducer using S state bits whose layer-t states encode exactly these residual classes. Each transition is computed by a fan-in-two AND/OR circuit with free NOT, constants and unrestricted fan-out, of size at most 2^(S+2)-4 + S(2^(S+1)-1). Proof: For a class [p] at layer t and bit b, define delta_t([p],b)=[pb]. This is well-defined: if p~_t p', then for every suffix v of length N-t-1, pbv is accepted iff p'bv is accepted, so pb~_{t+1}p'b. Encode the r_t classes injectively in {0,1}^S; this is possible since r_t<=2^S. Define transitions arbitrarily on unused codes, yielding a total map from S+1 bits to S bits. For any such map on d=S+1 inputs, construct every signed prefix conjunction of lengths 2 through d with one AND gate per prefix, for a total of sum_{k=2}^d 2^k=2^(d+1)-4 gates; length-one signed literals are free. These include all 2^d full-assignment minterms. For each of S output bits, OR the minterms where it is 1 using at most 2^d-1 binary OR gates; constants handle empty or full sets. The total is 2^(d+1)-4+S(2^d-1), as claimed. Induction on prefix length shows the state after reading p is its residual class. At t=N, the residual class accepts exactly when its empty suffix belongs to F, so the machine recognizes F. Scope: finite nonempty Boolean languages with layered transitions and the stated circuit basis. This is a constructive upper bound only; it gives no lower bound on G_max and does not meet the separate SC witness-output experiment obligation.\nbarrier_diagnostic: Diagnostic only: relativizing in form; not a natural-proofs or algebrizing argument, and does not use localization. No P!=NP progress is claimed.\nevidence: Complete proof is included above. The saved workflow run wf-d604cd6af83f reused experiment cm-d06efb0dd36149ce, so its PASS over 4,355 small transition tables is exploratory corroboration only, not independent verification.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0193",
+  "closes_valid": false
+ },
+ {
+  "at": 1795613426.6282413,
+  "session": "pnp-desk/research/R3594",
+  "model": "gpt-6-luna",
+  "id": "S0708",
+  "proved_step": "statement: Sparse-domain minterm extension lemma. Let d,q>=1 and let g:D->{0,1}^q be a partial Boolean map with D subseteq {0,1}^d. For output j put A_j={x in D:g(x)_j=1}; let P(A_j) be the set of distinct signed prefixes x[1..k] for x in A_j and 2<=k<=d. There exists a total Boolean map extending g, with unspecified inputs mapped to 0^q, whose fan-in-two AND/OR circuits with free NOT/constants and unrestricted fan-out have total size at most sum_j(|P(A_j)|+max(|A_j|-1,0)).\nproof: For each output j and each distinct signed prefix in P(A_j), compute its conjunction recursively, using one AND gate per prefix. Length-one literals are free. This costs |P(A_j)| gates and provides the length-d minterms for all x in A_j; when d=1, each minterm is a free literal. OR those minterms with max(|A_j|-1,0) binary OR gates, taking the empty OR to be constant 0. Distinct full minterms are true on distinct inputs, so on every z in D the resulting output is 1 exactly when z is in A_j, as required. If z is outside D, it is not in A_j, so every selected minterm is false there and the output is 0. Summing these costs over outputs proves the bound; sharing across outputs can only reduce the size.\nscope: Finite partial maps on d Boolean input bits to q Boolean output bits; fan-in-two AND/OR, free NOT/constants, unrestricted fan-out. This is an upper bound only, not a minimum-cost result or a bound for a witness-output model without matching requirements.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613619.7744007,
+  "session": "pnp-desk/research/R3602",
+  "model": "gpt-6-luna",
+  "id": "S0709",
+  "proved_step": "statement: Residual equivalence exactly characterizes the minimum layer-state count for deterministic membership streaming. Let F be a subset of {0,1}^N. For each 0<=t<=N and prefix p in {0,1}^t, define R_t(p)={u in {0,1}^{N-t}: pu in F}, and K_t=|{R_t(p):p in {0,1}^t}|. Among deterministic layered transducers that read one bit per step and decide membership in F, the minimum number of states at layer t is exactly K_t, even when each transition map may depend on t. Proof: For the lower bound, if two prefixes p,q at layer t reach the same state, then for every suffix u the deterministic continuation from that state on u is identical, so the machine gives the same final decision on pu and qu. Correctness implies pu in F iff qu in F for every u, hence R_t(p)=R_t(q). Therefore distinct residual sets require distinct layer-t states. For the upper bound, use each distinct residual set R_t(p) as a state. Define the transition on bit b by R_t(p) -> R_{t+1}(pb). This is well-defined: if R_t(p)=R_t(q), then for every suffix v, v is in R_{t+1}(pb) iff bv is in R_t(p), iff bv is in R_t(q), iff v is in R_{t+1}(qb). At layer N, accept exactly when the sole empty suffix belongs to the residual set. Induction on the read prefix shows the machine is in state R_t(p), so this decoder decides F. Thus the minimum layer-t state count is K_t for every t, with a single family of transitions attaining all these minima simultaneously.\nscope: Finite Boolean membership languages F subset {0,1}^N; deterministic layered machines with arbitrary time-dependent transitions and a final membership decoder. This concerns state count only; it does not establish transition circuit cost, witness-output correctness, or an asymptotic P-vs-NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795614000.5659206,
+  "session": "pnp-desk/research/R3602",
+  "model": "gpt-6-luna",
+  "lemma": "Finite verification cm-38e079b069d54e42 checked the residual-transition identity for all Boolean languages through length 4, totaling 1,969,768 transitions. This is finite evidence only and is not the assigned witness-output/update-cost result.",
+  "gap": "The assigned fixed-budget witness-output update-cost Pareto point for SC_{n,s} and affine families remains open; membership residual state counts do not determine update-circuit synthesis cost.",
+  "evidence": "cm-38e079b069d54e42 passed; the outcome matched the predicted residual-transition identity.",
+  "gap_id": "G0194"
  }
 ]
