@@ -966,5 +966,159 @@
   "kind": "LEMMA",
   "closes": "Q-85e487150a",
   "closes_valid": true
+ },
+ {
+  "at": 1795573305.5105057,
+  "session": "pnp-desk/research/R3119",
+  "model": "gpt-6-luna",
+  "id": "S0108",
+  "proved_step": "statement: LEMMA (YES-fiber injectivity for affine exact search). Let X be a finite subset of F_2^N, let Y subseteq X be the YES inputs, and let W be a witness set with relation R subseteq Y x W. Suppose every x in Y has at least one valid witness and the valid-witness sets W_x={w in W:R(x,w)} are pairwise disjoint for distinct x in Y. Let q(x)=Ax+c in F_2^S, where A is an S-by-N matrix over F_2 and c in F_2^S, and let D:F_2^S -> W union {none} be deterministic with D(q(x)) in W_x for every x in Y. Then q is injective on Y and S >= ceil(log_2 |Y|) (with the bound interpreted as 0 if Y is empty). Proof: Take distinct x,y in Y. If q(x)=q(y), determinism gives D(q(x))=D(q(y))=w. Correctness on YES inputs implies w is a valid witness for both, so w belongs to W_x intersect W_y, contradicting pairwise disjointness. Thus q is injective on Y. Since q(x)=Ax+c, injectivity of q on Y implies injectivity of A on Y. Therefore |Y| <= |im(A)|=2^rank(A) <= 2^S, and taking base-2 logarithms gives S >= ceil(log_2 |Y|). The decoder's output on X\\Y is irrelevant, so it may output none there.\nevidence: Complete direct proof by contradiction on any pair of distinct YES inputs; cardinality of the image of a rank-r linear map is 2^r. For Search-MCSP, valid circuit witnesses for distinct truth tables are disjoint because a circuit computes a unique truth table. This repairs the none-output issue but yields only the YES-set counting bound, not S >= N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573365.749319,
+  "session": "pnp-desk/research/R3119",
+  "model": "gpt-6-luna",
+  "id": "S0109",
+  "proved_step": "statement: LEMMA (YES-fiber injectivity for deterministic exact search). Let X be finite, Y\u2286X, W a witness set, and R\u2286Y\u00d7W. Suppose W_x={w\u2208W:(x,w)\u2208R} are pairwise disjoint for distinct x\u2208Y. If q:X\u2192F_2^S and a deterministic decoder D:F_2^S\u2192W\u222a{none} is correct for every x\u2208Y, then q is injective on Y and S\u2265ceil(log_2|Y|). Proof: if distinct x,y\u2208Y satisfy q(x)=q(y), determinism gives D(q(x))=D(q(y)); correctness makes this common output a member of W_x\u2229W_y, contradicting disjointness. Thus q(Y) has |Y| elements in a set of size 2^S, so |Y|\u22642^S and S\u2265ceil(log_2|Y|). Decoder behavior on X\\Y is unused.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795573549.9871616,
+  "session": "pnp-desk/research/R3119",
+  "model": "gpt-6-luna",
+  "evidence": "Reviewed the stated chain: ker M is contained in the translation-symmetry subspace P_s, so rank(M) >= N-dim(P_s), and rank(M) <= S. P_s is a subgroup; if the YES set is nonempty, D^{-1}(1) is a union of its cosets and therefore |P_s| <= |D^{-1}(1)|. Every YES truth table has a circuit of size at most s, so the number of YES tables is at most the stated circuit-count upper bound. These imply the claimed S >= N-d_s bound under the stated circuit-count convention. The argument gives no unrestricted streaming lower bound.",
+  "review_of": "S0100",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795573550.0114505,
+  "session": "pnp-desk/research/R3119",
+  "model": "gpt-6-luna",
+  "id": "S0111",
+  "proved_step": "statement: LEMMA (bounded witness multiplicity fiber bound). Let X and Y be finite sets with Y subseteq X, let W be a witness set, and let R be a subset of Y times W. For x in Y define W_x={w in W:(x,w) in R}. Assume each x in Y has at least one valid witness. Define L=max over w in W of |{x in Y:w in W_x}|. Let q:X->F_2^S be any state map and D:F_2^S->{none} union W be deterministic, with D(q(x)) in W_x for every x in Y. If Y is nonempty, then |Y|<=L*2^S and hence S>=ceil(log_2(|Y|/L)). Proof: For each state z in q(Y), correctness implies D(z)=w_z in W. Every x in the fiber {x in Y:q(x)=z} must then satisfy w_z in W_x. By the definition of L, this fiber has at most L elements. The fibers over q(Y) partition Y, so |Y|<=L*|q(Y)|<=L*2^S. Since Y is nonempty and every YES input has a witness, L>=1. Taking base-two logarithms and using integral S gives the stated ceiling bound. The result does not require q to be affine.\nevidence: Complete fiber-counting proof supplied in the statement. It generalizes pairwise-disjoint witness sets (L=1) to bounded witness multiplicity; it does not assert a strong MCSP state lower bound without a useful bound on L.\ngap: For Search-MCSP, determine whether a useful upper bound on the number of size-<=s circuits computing any one truth table yields a nontrivial |Y|/L bound in the exact realization model. This counting lemma alone does not close the manuscript's stronger target.\nrefuted_approach: The earlier YES-only disjoint-witness lemma does not apply when one witness may be valid for several inputs. The bounded-multiplicity hypothesis captures that overlap explicitly.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574149.845754,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counterexample: Let N=2, S=1. Let the search problem have Y={x1,x2} with x1=(0,0), x2=(1,0) in F_2^2. Let witness set W={w} (single witness valid for both YES inputs). Define A = [[0,0]] (zero 1x2 matrix), c=0, so q(x)=Ax+c=0 for all x. Decoder D(0)=w. This is a correct one-pass affine streaming machine for the search problem (outputs valid witness w for both x1,x2 in Y). But A is NOT injective on Y (A*x1 = A*x2 = 0). The lemma's claim 'A is injective on Y' is false for general finite search problems. The proof only establishes injectivity for Search-MCSP (where witnesses are circuits, unique to each truth table), but the lemma statement omits the pairwise-disjoint-witness hypothesis. S0108/S0109 correctly include this hypothesis.",
+  "review_of": "S0106",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795574169.243547,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. For any h in ker(M), M(x+h)+c = Mx+c for all x, so f(x+h) = D(M(x+h)+c) = D(Mx+c) = f(x). Thus ker(M) \u2286 H_f. Since H_f is a subspace (invariance under addition), dim(ker(M)) \u2264 dim(H_f). Rank-nullity: rank(M) = N - dim(ker(M)) \u2265 N - dim(H_f). And rank(M) \u2264 S because M is S\u00d7N. So S \u2265 N - dim(H_f). No counterexample exists; this is a standard linear algebra fact applied to the given setup.",
+  "review_of": "S0107",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795574341.0988283,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. The pairwise disjointness of witness sets W_x is the crucial hypothesis that S0106 omitted. Given distinct x,y in Y, if q(x)=q(y) then D(q(x))=D(q(y))=w by determinism. Correctness means w \u2208 W_x and w \u2208 W_y, so w \u2208 W_x \u2229 W_y, contradicting pairwise disjointness. Hence q is injective on Y. Since q(x)=Ax+c, injectivity of q on Y implies injectivity of the restriction of A to Y (if A(x-y)=0 then q(x)=q(y), so x=y). Thus |Y| \u2264 |im(A)| = 2^rank(A) \u2264 2^S, giving S \u2265 ceil(log\u2082|Y|). The decoder's behavior on X\\Y is indeed unused. No counterexample exists under the stated hypotheses.",
+  "review_of": "S0108",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795574527.1691356,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. This is the same injectivity argument as S0108 but for a general state map q: X \u2192 F_2^S (not necessarily affine). The pairwise disjointness of witness sets W_x is the key hypothesis. If distinct x,y \u2208 Y have q(x)=q(y), then D(q(x))=D(q(y))=w by determinism. Correctness means w \u2208 W_x and w \u2208 W_y, contradicting pairwise disjointness. Thus q is injective on Y, so |Y| \u2264 |q(Y)| \u2264 2^S, giving S \u2265 ceil(log\u2082|Y|). The decoder's behavior on X\\Y is irrelevant. No counterexample exists under the stated hypotheses.",
+  "review_of": "S0109",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795574527.2124119,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. This generalizes the injectivity bound to allow witness multiplicity. For each state z \u2208 q(Y), let w_z = D(z) \u2208 W. The fiber F_z = {x \u2208 Y : q(x) = z} must satisfy w_z \u2208 W_x for all x \u2208 F_z. Thus F_z \u2286 {x \u2208 Y : w_z \u2208 W_x}. By definition of L, |{x \u2208 Y : w \u2208 W_x}| \u2264 L for any w, so |F_z| \u2264 L. The fibers partition Y, so |Y| = \u03a3_z |F_z| \u2264 \u03a3_z L = L \u00b7 |q(Y)| \u2264 L \u00b7 2^S. Hence |Y| \u2264 L\u00b72^S, giving S \u2265 ceil(log\u2082(|Y|/L)). When L=1 (pairwise disjoint witnesses), this recovers the injectivity bound S \u2265 ceil(log\u2082|Y|). No counterexample exists under the stated hypotheses.",
+  "review_of": "S0111",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795574672.176299,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0117",
+  "proved_step": "LEMMA (staged affine exact-search lower bound over a prime field, REPAIRED). Let p be prime, N,S \u2265 0. Consider a one-pass streaming algorithm with state q_t \u2208 F_p^S evolving on input x = (x_1,...,x_N) \u2208 {0,1}^N by q_0 = c_0 and q_t = M_t q_{t-1} + x_t v_t + c_t for t = 1..N, where M_t \u2208 F_p^{S\u00d7S}, v_t,c_t \u2208 F_p^S are fixed (input-independent). Let q_N(x) = M x + c with M \u2208 F_p^{S\u00d7N}, c \u2208 F_p^S. Let D: F_p^S \u2192 {circuits of size \u2264 s over the full binary basis {AND,OR,NOT,0,1}} \u222a {'none'} be a decoder. Correctness: \u2200x \u2208 {0,1}^N, if x has a circuit of size \u2264 s then D(q_N(x)) is a circuit computing x; else D(q_N(x)) = 'none'. Assume the constant-0 function on N bits has a circuit of size \u2264 s (true for s \u2265 1 with constants as size-1 gates). Then N \u2264 S(p-1). Equivalently, S \u2265 \u2308N/(p-1)\u2309. Proof: (1) By induction, q_t is affine in x_1..x_t, so q_N(x)=Mx+c. Let w_i \u2208 F_p^S be the columns of M. (2) In the group algebra A = F_p[(Z/pZ)^S] \u2245 F_p[y_1,...,y_S]/(y_1^p,...,y_S^p), the augmentation ideal I=(y_1,...,y_S) satisfies I^{S(p-1)+1}=0 because any monomial of total degree \u2265 S(p-1)+1 has some y_j with exponent \u2265 p. (3) Each 1 - X^{w_i} \u2208 I since X_j = 1+y_j. If N > S(p-1), then \u220f_{i=1}^N (1 - X^{w_i}) \u2208 I^N = 0. (4) Expand: \u220f(1-X^{w_i}) = \u2211_{J\u2286[N]} (-1)^{|J|} X^{\u2211_{i\u2208J} w_i}. The coefficient of X^0 is \u2211_{J: \u2211_{i\u2208J} w_i=0} (-1)^{|J|}. The empty set contributes +1. If no nonempty J has zero column sum, the coefficient is 1 \u2260 0, contradicting the product being 0. Thus \u2203 nonempty J\u2286[N] with \u2211_{i\u2208J} w_i = 0. (5) Let k \u2208 {0,1}^N be the indicator of J. Then k \u2260 0 and M k = 0, so q_N(k) = q_N(0) = c. (6) Since 0^N has a size-\u2264s circuit, D(c) = C_0 where C_0 computes the constant-0 function. By correctness, D(q_N(k)) = D(c) = C_0. But C_0 computes 0^N \u2260 k. If k is a YES instance, D(q_N(k)) should compute k \u2260 0^N. If k is a NO instance, D(q_N(k)) should be 'none'. Either way contradicts correctness. Therefore N \u2264 S(p-1). \u220e",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0080",
+  "closes_valid": false
+ },
+ {
+  "at": 1795574743.6848123,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0118",
+  "proved_step": "LEMMA (R1, F_2-linear input-independent streaming, REPAIRED v2). Let N = 2^m. Let D_s: {0,1}^N \u2192 {0,1} be the decision problem: D_s(x) = 1 iff x has a Boolean circuit of size \u2264 s over the full binary basis {AND, OR, NOT, 0, 1} (constants count as size-1 gates). Let P_s = {k \u2208 F_2^N : D_s(x \u2295 k) = D_s(x) for all x \u2208 {0,1}^N}. P_s is an F_2-subspace (a subgroup under XOR). Any realization with state q(x) = Mx + c (M \u2208 F_2^{S\u00d7N}, c \u2208 F_2^S) computing D_s on all inputs has S \u2265 N - dim(P_s). Proof: (1) If Mk = 0 then q(x \u2295 k) = M(x\u2295k) + c = Mx + c = q(x), so the decoder gives the same output on x and x\u2295k. Since D_s(x\u2295k) = D_s(x) for all x by definition of P_s, we have ker M \u2286 P_s. (2) dim(ker M) \u2264 dim(P_s). Rank M = N - dim(ker M) \u2265 N - dim(P_s). Since rank M \u2264 S, we get S \u2265 N - dim(P_s). (3) Bound on dim(P_s): D_s^{-1}(1) is a union of cosets of P_s (if x is YES and k \u2208 P_s then x\u2295k is YES). So |P_s| \u2264 |D_s^{-1}(1)|. Number of circuits of size \u2264 s is at most (number of gates)^{s} \u00d7 (choices of inputs)^{2s} \u2264 (m+s+5)^s \u00d7 (m+s)^{2s} \u2264 (m+s)^{3s} for large enough. More carefully: each circuit has \u2264 s gates, each gate chooses operation (5 choices) and two inputs from \u2264 m+s previous gates/constants, so \u2264 5^s (m+s)^{2s} \u2264 (5(m+s)^2)^s. Since D_s^{-1}(1) \u2286 {all circuits of size \u2264 s}, |D_s^{-1}(1)| \u2264 (5(m+s)^2)^s. Thus |P_s| \u2264 (5(m+s)^2)^s, so dim(P_s) \u2264 s log_2(5(m+s)^2) = O(s log(m+s)). Therefore S \u2265 N - O(s log(m+s)). For s = o(N/log N), this gives S = \u03a9(N). \u220e",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0066",
+  "closes_valid": false
+ },
+ {
+  "at": 1795574811.15042,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0119",
+  "proved_step": "LEMMA (R1, F_2-linear input-independent streaming, DECISION version, REPAIRED). Let N = 2^m. Let D_s: {0,1}^N \u2192 {0,1} be the decision problem: D_s(x) = 1 iff x has a Boolean circuit of size \u2264 s over the full binary basis {AND, OR, NOT, 0, 1} (constants count as size-1 gates). Let P_s = {k \u2208 F_2^N : D_s(x \u2295 k) = D_s(x) for all x \u2208 {0,1}^N}. P_s is an F_2-subspace (a subgroup under XOR). Any realization with state q(x) = Mx + c (M \u2208 F_2^{S\u00d7N}, c \u2208 F_2^S) and decoder D: F_2^S \u2192 {0,1} computing D_s on all inputs (i.e., D(q(x)) = D_s(x) \u2200x) has S \u2265 N - dim(P_s). Proof: (1) If Mk = 0 then q(x \u2295 k) = M(x\u2295k) + c = Mx + c = q(x), so D(q(x\u2295k)) = D(q(x)) for all x. Since D computes D_s, D_s(x\u2295k) = D_s(x) for all x, so k \u2208 P_s by definition. Hence ker M \u2286 P_s. (2) dim(ker M) \u2264 dim(P_s). Rank M = N - dim(ker M) \u2265 N - dim(P_s). Since rank M \u2264 S, we get S \u2265 N - dim(P_s). (3) Bound on dim(P_s): D_s^{-1}(1) is a union of cosets of P_s (if x is YES and k \u2208 P_s then x\u2295k is YES). So |P_s| \u2264 |D_s^{-1}(1)|. Number of circuits of size \u2264 s: each circuit has \u2264 s gates, each gate chooses operation (5 choices) and two inputs from \u2264 m+s previous gates/constants, so \u2264 5^s (m+s)^{2s} \u2264 (5(m+s)^2)^s. Since D_s^{-1}(1) \u2286 {all circuits of size \u2264 s}, |D_s^{-1}(1)| \u2264 (5(m+s)^2)^s. Thus |P_s| \u2264 (5(m+s)^2)^s, so dim(P_s) \u2264 s log_2(5(m+s)^2) = O(s log(m+s)). Therefore S \u2265 N - O(s log(m+s)). For s = o(N/log N), this gives S = \u03a9(N). \u220e",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0014",
+  "closes_valid": false
+ },
+ {
+  "at": 1795574899.5763159,
+  "session": "pnp-desk/research/R3126",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0120",
+  "proved_step": "LEMMA (R1, F_2-linear/affine staged realization, SEARCH version, REPAIRED). Let N = 2^m. Let SearchMCSP[s] be the total search problem: on input x \u2208 {0,1}^N, output a circuit of size \u2264 s over the full binary basis {AND, OR, NOT, 0, 1} (constants 0 and 1 count as size-1 gates) that computes x, or output 'none' if no such circuit exists. Let s \u2265 1 (so the constant-0 function on N bits has a circuit of size 1 \u2264 s). Consider a one-pass streaming algorithm with affine state updates over F_2: q_0 = c_0, q_t = M_t q_{t-1} + L_t x_t + c_t for t = 1..N (fixed M_t \u2208 F_2^{S\u00d7S}, L_t \u2208 F_2^{S\u00d71}, c_t \u2208 F_2^S). Final state q_N = M x + c with M \u2208 F_2^{S\u00d7N}, c \u2208 F_2^S. Decoder D: F_2^S \u2192 {circuits of size \u2264 s} \u222a {'none'}. Correctness: \u2200x \u2208 {0,1}^N, if x has circuit size \u2264 s then D(q_N(x)) is a circuit computing x; else D(q_N(x)) = 'none'. Then S \u2265 N = 2^m. Proof: (1) By induction, q_t is affine in x_1..x_t, so q_N(x) = Mx + c. (2) The all-zero truth table 0^N has the constant-0 circuit of size 1 \u2264 s, so it is a YES instance. By correctness, D(q_N(0)) = D(c) = C_0 where C_0 computes the constant-0 function. (3) Suppose for contradiction that ker M \u2260 {0}. Let k \u2208 ker M, k \u2260 0. Then q_N(k) = Mk + c = c = q_N(0). By correctness, D(q_N(k)) = D(c) = C_0. (4) Case analysis: (a) If k has circuit size \u2264 s, then D(q_N(k)) must be a circuit computing k. But D(q_N(k)) = C_0 computes 0^N \u2260 k (since k \u2260 0). Contradiction. (b) If k has circuit size > s, then D(q_N(k)) must be 'none'. But D(q_N(k)) = C_0 is a circuit. Contradiction. (5) Therefore ker M = {0}. So rank M = N. Since M has S rows, S \u2265 rank M = N = 2^m. \u220e",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0032",
+  "closes_valid": false
+ },
+ {
+  "at": 1795575365.047122,
+  "session": "pnp-desk/research/R3137",
+  "model": "gpt-6-luna",
+  "evidence": "Checked the proof under the stated hypotheses. In F_p[(Z/pZ)^S], the augmentation ideal I=(y_1,...,y_S) satisfies I^{S(p-1)+1}=0, and each 1-X^{w_i} lies in I. Thus if N>S(p-1), the product of these factors is zero. Its coefficient at the identity is the signed count of zero-sum subsets; absent a nonempty zero-sum subset that coefficient would be 1, a contradiction. Such a subset gives nonzero Boolean k with Mk=0. The states for 0^N and k coincide, but exact total decoding must return a circuit computing 0^N on the former and either a circuit computing k or none on the latter. No gap found under the stated assumptions.",
+  "review_of": "S0117",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795575413.180767,
+  "session": "pnp-desk/research/R3137",
+  "model": "gpt-6-luna",
+  "evidence": "Checked the statement as decision complexity of m-bit Boolean functions indexed by their N=2^m truth tables, with s>=1 and constants allowed. P_s is the period subgroup of D_s under XOR; because the zero function is YES, its whole P_s-coset lies in the YES set, so |P_s|<=|D_s^{-1}(1)|. The kernel argument gives ker(M) subset P_s, hence S>=rank(M)>=N-dim(P_s). Circuit counting is valid using topologically ordered circuits with the output as the last useful gate: at most 5 choices per gate and at most m+s possible predecessors per input, giving log2 |D_s^{-1}(1)|=O(s log(m+s)). Thus the stated asymptotic conclusion follows. No gap found under the stated encoding assumptions.",
+  "review_of": "S0118",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795575413.201276,
+  "session": "pnp-desk/research/R3137",
+  "model": "gpt-6-luna",
+  "evidence": "Independent check of the decision-only kernel proof: equal states on x and x XOR k imply equal D_s values, so every kernel vector is a period and ker(M) subset P_s. Since the zero function is YES for s>=1, |P_s|<=|D_s^{-1}(1)|. Counting topologically ordered circuits for m inputs with at most s gates gives log2 |D_s^{-1}(1)|=O(s log(m+s)); therefore S>=N-O(s log(m+s)), and S=Omega(N) for s=o(N/log N). This establishes the stated bound with an arbitrary decoder.",
+  "review_of": "S0119",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795575709.7353594,
+  "session": "pnp-desk/research/R3137",
+  "model": "gpt-6-luna",
+  "id": "S0124",
+  "proved_step": "statement: For prime p, let A be an S\u00d7N matrix over F_p and q(x)=Ax+c for x\u2208{0,1}^N. If a final-state decoder correctly solves exact SearchMCSP[s] on all N-bit truth tables and 0^N has circuit size \u2264s, then N\u2264S(p\u22121). Proof: Write A's columns as v_1,\u2026,v_N\u2208F_p^S. If N>S(p\u22121), the augmentation ideal J of F_p[(Z/pZ)^S] satisfies J^{S(p\u22121)+1}=0: it is generated by y_j=X^{e_j}\u22121, with y_j^p=0. Thus \u220f_i(1\u2212X^{v_i})=0. Its identity coefficient is the signed sum over subsets whose column sum is zero; if no nonempty subset summed to zero, that coefficient would be 1, a contradiction. So some nonempty I has \u03a3_{i\u2208I}v_i=0. For k=1_I, Ak=0 and q(k)=q(0). Correctness at zero makes the decoder output a circuit computing 0^N. The same output on k is invalid: if k has size \u2264s it must compute k\u22600^N; otherwise the decoder must output none. Hence N\u2264S(p\u22121). Scope: affine F_p final-state maps with 0^N a yes-instance; nonlinear updates are not covered.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

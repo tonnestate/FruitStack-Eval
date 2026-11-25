@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 14681 entries from 4233 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 14803 entries from 4276 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,33 +19,33 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - Exact #SAT remains polynomial-time when bottom gates overlap inside incidence components of O(log n) variables, provided total absolute top weight is polynomially bounded.
+  - A Stage D transfer can preserve a source lower bound B(m) into a target promise problem only when its total two-sided reduction has same-model circuit cost r(m)=o(B(m)); differing source and target lengths do not change this quantitative requirement.
+  - For every m>=2, the natural binary encoding of an m-cycle into S=ceil(log2 m) bits admits a total AND/NOT circuit extension of the cycle transition with O(S) gates, by shared increment carries and a terminal-code mask.
+  - For a finite language F with residual width r_t at each layer, optimizing injective residual-state codes may yield a smaller maximum AND/XOR update cost than the universal truth-table synthesis bound for the same state width.
   - The unrestricted S0060 claim may require an argument beyond the smaller-cofactor bound: that bound proves restriction survival for t<=2(m-1)^(c-1), while t<=m^(c-1) can exceed this range when (m/(m-1))^(c-1)>2.
   - For exact full-input-output streaming transducers recognizing any finite language F, the minimum number of states at layer t equals L_t + 1_{L_t<2^t}; test by comparing this partition against exhaustive state-machine synthesis on small F and t.
-  - For a fixed stationary encoding, transitions differing at t states from a baseline with B-gate total extension admit an exact total extension of size B+O((t+1)S), where S is encoding width.
-  - The direct candidate-consistency state for EXT_{n,s} over M size-at-most-s circuit descriptions has M coordinates and O(M(s+n)) exact update cost; this construction alone gives no uniform polynomial-cost transformation from an arbitrary MCSP decision circuit H
-  - For k disjoint positive EXACT1 clauses under an arbitrary variable order, the maximum number of distinct residual functions across prefix cuts may remain within a constant factor of the maximum rational cut-matrix rank, even after minimizing each maximum over 
-  - For products of nonzero Boolean functions on disjoint variable blocks, every fixed cut has residual count D_F=product_i a_i+1_{some zero residual exists}, while rational cut rank is product_i rank_Q(M_i).
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
   - False at n=6: the 180 minimal GF(3) gap cores with degree sequence (2,2,2,3,3,3) are Z-blind (all 900 cores are integer-solvable, D-023) and have no variable of degree 1. Representative {012, 013, 045, 145, 234}: degrees v0..v5 = 3,3,2,2,3,2.
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3207 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3214 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-8ef5955b64 [ASSUMPTION, OPEN] The claim 'For every finite nonempty F subset {0,1}^N, a deterministic layered transducer that accepts exactly F and outputs on acceptance a witness valid for exactly one input in F has at layer t at least L_t + 1_{L_t<2
-  - Q-e8d7425cff [UNEXPLAINED, OPEN] Does the MCSP[m^c] predicate have a pair of truth tables at Hamming distance t = o(N) where the B2 circuit complexity difference is ω(mt)? If yes, the local edit bound is not tight for MCSP, suggesting the MCSP truth tab
-  - Q-441857621f [MISSING_PROOF, OPEN] Can the cofactor decomposition inequality C_m(f)<=C_{m-1}(f_0)+C_{m-1}(f_1)+4 be amplified over a large family of MCSP truth-table slices so that hardness aggregates without the factor-of-two loss from repeated Shannon e
-  - Q-2285d93e38 [MISSING_PROOF, OPEN] For EXT_{n,s}, can the canonical one-hot residual transition cost O(d_t+d_{t+1}) be bounded by poly(s,n) uniformly in prefix length, or must some level have superpolynomial residual count? This is the exact remaining bri
-  - Q-9b770a3112 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:ec4975c1357c by pnp-desk/research/R2994:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The only Lean verification executed wa
+  - Q-96c80fd109 [ASSUMPTION, OPEN] The claim 'For the enumerated family SC_{3,1} of 3-input Boolean functions generated by constants, variables, and at most one binary Boolean gate, the 38 live prefixes of length 7 have pairwise distinct restrictions to c
+  - Q-e634406bfd [IMPLICATION, OPEN] For the SC_{n,s} and affine families in the Lemma M specification, can the maximum residual width W yield a nontrivial bound on minimum per-step update-circuit cost G_max under the specified circuit basis, accounting for
+  - Q-ef5acd8503 [UNCONVENTIONAL, OPEN] Can the rank-after-deletion DP be strengthened when W' has low rational rank but its independent rows have large binary entries or large basis coefficients, by choosing a different integer basis that minimizes both the c
+  - Q-287de28a6f [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:8bb5426cd606 by pnp-desk/research/R3100:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The verifier rejected the finite-set d
+  - Q-c815476d52 [MISSING_PROOF, OPEN] For the MMW19 EXT prefix machine with N=2^n input bits and s bounded by a polynomial in n, can each oracle-dependent transition be replaced by an ordinary fan-in-two circuit of size poly(n,s,log N), uniformly over positi
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re

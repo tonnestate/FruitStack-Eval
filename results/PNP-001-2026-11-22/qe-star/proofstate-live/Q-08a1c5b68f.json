@@ -5559,5 +5559,170 @@
   "kind": "LEMMA",
   "closes": "G0015",
   "closes_valid": true
+ },
+ {
+  "at": 1795572091.9697995,
+  "session": "pnp-desk/research/R3103",
+  "model": "gpt-6-luna",
+  "id": "S0646",
+  "proved_step": "statement: Lemma: For any finite language F subset {0,1}^N, let r_t be the number of distinct residual sets R_t(p)={u in {0,1}^{N-t}: pu in F}, including the empty residual. Encode these residuals injectively using S_t=ceil(log2 r_t) bits when r_t>=1 (or one bit when needed for a uniform state register). The derivative transition D_b(R)={v:bv in R} is well-defined. If each layer uses a common S>=1 state bits, every transition admits an AND/XOR fan-in-two circuit with free NOT/constants and unrestricted fan-out of size at most 2^(S+2)-4 + S(2^(S+1)-1).\nproof: For every residual R and input b, D_b(R) is exactly the residual after extending any prefix p with R_t(p)=R by b, since v belongs to D_b(R) iff bv belongs to R iff pbv belongs to F. Thus the transition is well-defined on residual states. At layer N the residual is {epsilon} for accepted prefixes and empty otherwise; acceptance is determined by whether the residual contains epsilon, so this machine recognizes F. For the circuit bound, the transition has d=S+1 Boolean inputs and q=S outputs. For each signed prefix of length k=2,...,d, form its conjunction from the length k-1 prefix and next signed literal, using sum_{k=2}^d 2^k=2^(d+1)-4 AND gates. This yields all minterms. For each output, XOR the minterms where that output is 1. Exactly one minterm is true on each input, hence the XOR gives the correct output bit; at most 2^d selected terms require at most 2^d-1 XOR gates. Substitute d=S+1 and q=S.\nscope: Finite binary languages; exact membership transducer; residual-state encoding; common S-bit state width at each layer; AND/XOR basis with free NOT and constants, fan-in two, unrestricted fan-out. This is a constructive upper bound, not a minimum-cost statement for SC families.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795572272.7321239,
+  "session": "pnp-desk/research/R3103",
+  "model": "gpt-6-luna",
+  "id": "S0647",
+  "proved_step": "statement: Lemma (sparse residual-transition upper bound). Let F be a nonempty subset of {0,1}^N. At layer t, let r_t be the number of distinct residuals R_t(p)={u in {0,1}^{N-t}: pu in F} among prefixes p of length t. Assign each such residual a distinct code in {0,1}^{S_t}, with S_t>=1; similarly assign distinct next-layer residuals codes in {0,1}^{S_{t+1}}, with S_{t+1}>=1. There is a transition circuit implementing the correct residual update on every used state code and input bit, and returning the all-zero output on unused state codes, with at most r_t(S_t+1)+S_{t+1}(2r_t-1) fan-in-two AND/XOR gates. NOTs and constants are free and fan-out is unrestricted. This is an upper bound only; it does not establish the minimum update cost or G_max for SC_{3,1} or SC_{3,2}.\n\nProof. For each used state code c, form its indicator I_c as the conjunction of its S_t signed literals, using S_t-1 AND gates (for S_t=1, the literal itself is free). For each used code c and bit b in {0,1}, form J_{c,b}=I_c AND [input=b], using one further AND gate per pair. Thus the total AND count is at most r_t(S_t-1)+2r_t=r_t(S_t+1). On a used state code and input b, exactly one J_{c,b} is 1; all pair indicators vanish on unused codes. For each of the S_{t+1} output bits, XOR the J_{c,b} terms for pairs whose derivative residual D_b(R_t(c))={v:bv in R_t(c)} has code bit 1. XORing at most 2r_t terms uses at most 2r_t-1 gates; zero terms use constant 0 and one term is a wire. The total XOR count is at most S_{t+1}(2r_t-1). On used inputs this outputs the assigned code of the derivative residual; on unused state codes it outputs zero. Adding the gate counts proves the bound.\nproof: For each of the r_t used state codes c, construct its equality indicator I_c by ANDing its S_t signed literals, at cost at most S_t-1 gates; if S_t=1 its literal is free. For each c and input bit b, construct J_{c,b}=I_c AND [input=b] with one gate. This costs r_t(S_t-1)+2r_t=r_t(S_t+1) AND gates. Exactly one pair indicator is true on every used state/input pair, and none is true on an unused state code. For each output bit, XOR precisely the pair indicators whose derivative residual has that bit set. At most 2r_t indicators are selected, so at most 2r_t-1 XOR gates suffice, including the zero- and one-term cases using a constant or wire. The output is the assigned derivative-residual code on used pairs and zero on unused codes. Summing gives the stated bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572993.1076937,
+  "session": "pnp-desk/research/R3114",
+  "model": "gpt-6-luna",
+  "id": "S0648",
+  "proved_step": "statement: Search-width bound with exact witness output. Let F be a nonempty subset of {0,1}^N. At layer t, let P_t be the live length-t prefixes of members of F, and let \u03b4_t(p) be the transducer state after reading p. Any deterministic layered one-pass transducer that accepts exactly F and, on each accepted input x, outputs x must assign distinct states to all prefixes in P_t. If t>0 and P_t is a proper subset of {0,1}^t, it must also use a state at layer t not assigned to a live prefix. Thus the number of layer-t states is at least |P_t| + 1_{|P_t|<2^t}, and the number of state bits is at least the ceiling of the base-2 logarithm of this quantity whenever it is positive.\nproof: Fix distinct live prefixes p,q of length t. Choose an accepted full input x=pu extending p. If q has no accepted extension, then \u03b4_t(p)=\u03b4_t(q) is impossible: processing the suffix u from the common state would make both pu and qu reach the same final state, so the decoder could not accept pu and reject qu. If q has an accepted extension, suppose \u03b4_t(p)=\u03b4_t(q). Processing the suffix u again gives the same final state for pu and qu. Both are accepted under exact membership correctness, but pu\u2260qu because p\u2260q; a deterministic final decoder cannot output both distinct strings from the same final state. Both cases contradict correctness, so live prefixes receive distinct states. If there is a dead prefix r at layer t, choose any live prefix p and an accepted extension x=pu. If \u03b4_t(r)=\u03b4_t(p), processing u forces the same final decision on ru and pu, although ru is rejected and pu accepted. So no dead prefix can use a live state. At least one dead-prefix state is therefore needed. The number of required states is the stated sum; representing that many states with S bits requires 2^S at least that sum, hence S\u2265ceil(log2(sum)). At t=0 there is no dead prefix because F is nonempty, so the indicator convention is immaterial.\nscope: All nonempty finite Boolean languages F\u2286{0,1}^N and deterministic layered one-pass transducers with exact accept/reject behavior and a deterministic final decoder that outputs the full accepted input. This is a state-width lower bound only; it gives no update-circuit gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573104.9153218,
+  "session": "pnp-desk/research/R3114",
+  "model": "gpt-6-luna",
+  "id": "S0649",
+  "proved_step": "statement: Affine syndrome streaming bound. Let H be an r\u00d7N full-row-rank matrix over F_2 with columns h_1,...,h_N, and let b\u2208F_2^r. For F={x\u2208{0,1}^N:Hx=b}, there is a deterministic layered membership transducer with r state bits whose per-step updates use at most r fan-in-two XOR gates, free constants and wires, and whose final decoder accepts exactly F. Proof: Set z_0=b. After reading x_1,...,x_t maintain z_t=b+\u03a3_{i\u2264t}h_i x_i over F_2. On input x_{t+1}, set each coordinate j to z_t[j] XOR x_{t+1} iff h_{t+1}[j]=1, and otherwise pass z_t[j] through as a wire. This uses at most r XOR gates at each step. By induction the invariant holds; at t=N, z_N=0 iff Hx=b. Hence exact membership and G_max\u2264r.\nscope: Decision-only deterministic one-pass membership for affine binary solution sets F={x:Hx=b}, with H full row rank r, state width r, XOR basis, free wires/constants; no witness-output claim and no conclusion for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795573171.00249,
+  "session": "pnp-desk/research/R3114",
+  "model": "gpt-6-luna",
+  "gap": "Correction: S0649's affine syndrome lemma does not close Q-46cebdbccc, which asks for exact G_max for SC_{3,1} at S=4. The affine control is a separate constructive comparison point; the SC synthesis obligation remains open.",
+  "evidence": "The lemma's scope is affine membership languages, while Q-46cebdbccc concerns general B2 transducers for SC_{3,1}. The workflow check cm-359b833ec3b5428c verifies only the residual-transition identity on all 256 Boolean families over 3-bit inputs, not an SC_{3,1} gate-cost optimum.",
+  "gap_id": "G0185"
+ },
+ {
+  "at": 1795573422.31725,
+  "session": "pnp-desk/research/R3114",
+  "model": "gpt-6-luna",
+  "gap": "Q-46cebdbccc remains open: exact G_max for SC_{3,1} with S=4 and general fan-out B2 transducers requires joint synthesis across the layer encodings and update circuits. Existing universal circuit upper bounds do not determine the optimum. This session has not established a new lemma that closes or shrinks that synthesis gap; continue with an independently checked constructive bound or exact synthesis after consulting the binding spec and prior evidence.",
+  "evidence": "The recorded proof state identifies the unsolved levels as those with 13 or 14 live residual classes and requires jointly choosing their 4-bit codes, dead codes, and per-step circuits. The available transcript reports no verified exact synthesis result for those levels.",
+  "gap_id": "G0186"
+ },
+ {
+  "at": 1795573512.3757503,
+  "session": "pnp-desk/research/R3114",
+  "model": "gpt-6-luna",
+  "id": "S0652",
+  "proved_step": "statement: Distinct nontrivial output-coordinate functions force distinct gates. Let X be a finite input domain, and let z_1,...,z_q:X->{0,1} be the required output-coordinate functions of a multi-output Boolean circuit with fan-out allowed. Let B be the set of distinct functions among the z_i that are neither constants nor input-coordinate projections nor their negations. Any circuit over AND, XOR, NOT, and constants, with each nonconstant gate counted once and unrestricted fan-out, has at least |B| gates.\nproof: Each required output coordinate is delivered by an input, a constant, or a gate output. For each distinct f in B, choose one output coordinate equal to f. Because f is neither a constant nor an input projection or its negation, that coordinate requires a gate computing f. A gate computes one Boolean function, so distinct functions in B require distinct gates. Therefore the circuit has at least |B| nonconstant gates.\nscope: Any finite Boolean multi-output function with full truth-table semantics; basis AND/XOR/NOT/constants, fan-in two for AND and XOR, unrestricted fan-out, shared gates counted once.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0186",
+  "closes_valid": false
+ },
+ {
+  "at": 1795573590.7623556,
+  "session": "pnp-desk/research/R3114",
+  "model": "gpt-6-luna",
+  "id": "S0653",
+  "proved_step": "statement: Support-size lower bound for a fixed total transition map. Let C be a fan-in-at-most-two Boolean circuit over AND, XOR, NOT, and constants, with unrestricted fan-out and g counted gates. If an output function of C depends essentially on k distinct primary input variables, then g >= k-1.\nproof: Take the ancestor subcircuit of the output and remove constant sources and branches that do not lie on a path from an essential primary input to the output. The remaining graph contains the k essential inputs and h gates, is connected as an undirected graph, and has at most 2h edges because every gate has indegree at most two. A connected graph on h+k vertices has at least h+k-1 edges. Hence h+k-1 <= 2h, so h >= k-1. Since h <= g, g >= k-1. Unary NOT gates contribute at most one incoming edge, so the edge upper bound still holds.\nscope: A fixed total Boolean output function computed by a fan-in-at-most-two circuit; AND/XOR binary gates, NOT unary gates, constants, unrestricted fan-out. The bound is on counted gates and depends on essential primary-input support; it does not optimize across SC encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0186",
+  "closes_valid": false
+ },
+ {
+  "at": 1795574247.7669723,
+  "session": "pnp-desk/research/R3122",
+  "model": "gpt-6-luna",
+  "id": "S0654",
+  "proved_step": "statement: Fixed-width residual-state characterization for layered membership machines. For F subset {0,1}^N, let w_t count distinct residuals R_t(p)={u:pu in F} over length-t prefixes. In deterministic layered membership machines with layer-dependent transitions and common S-bit state, the minimum S is ceil(log2 W), W=max_t w_t (taking log2(1)=0). Lower bound: distinct residuals at one layer differ on some suffix u; merging their prefixes would force identical acceptance after u, contradicting membership. Hence 2^S>=w_t for each t. Upper bound: injectively label each layer's residuals using W labels. On bit b, map residual R to D_b(R)={v:bv in R}; this is the next residual, so the transition is well-defined for reachable labels. Define transitions arbitrarily on unused labels. At layer N accept only residual {epsilon}. This machine recognizes F. The result characterizes state width, not AND/XOR update-circuit cost G_max.\nscope: All finite binary languages F subset {0,1}^N; deterministic layered membership machines, layer-dependent transitions, shared fixed-width state register, no witness output.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574262.3475785,
+  "session": "pnp-desk/research/R3127",
+  "model": "gpt-6-luna",
+  "id": "S0655",
+  "proved_step": "statement: Reachable-residual update-circuit bound. Let F be a nonempty subset of {0,1}^N, and let K_t be the number of distinct nonempty residual sets R_t(p)={u in {0,1}^{N-t}: pu in F} at layer t, for 0<=t<N. Encode the reachable residual states injectively in S bits at each layer, where S>=1 and every layer width fits in S bits. For each t<N, the transition on reachable states can be implemented by a fan-in-two AND/XOR circuit with free NOTs and constants and unrestricted fan-out using at most 4 S K_t gates. The circuit may be defined arbitrarily on unreachable state/input pairs.\nproof: Fix t<N. There are h<=2K_t reachable state/input pairs. For each pair, construct its indicator minterm on the S state bits and input bit; this takes S AND gates per pair, and these minterms are mutually exclusive. For each of the S output bits, XOR the minterms whose pair transitions to a next-state code with that bit set. This costs at most h-1 XOR gates per output, hence at most hS additional gates. Total cost is at most 2hS<=4SK_t. Correctness follows because after prefix p and bit b the suffixes accepted are exactly {v:bv in R_t(p)}. No optimality claim is made.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574400.9098544,
+  "session": "pnp-desk/research/R3127",
+  "model": "gpt-6-luna",
+  "id": "S0656",
+  "proved_step": "statement: Repaired reachable-residual update-circuit bound. Let F be a nonempty subset of {0,1}^N. For 0<=t<N, let K_t be the number of distinct nonempty residuals R_t(p)={u in {0,1}^{N-t}:pu in F}. Suppose each layer's nonempty residuals are injectively encoded in S bits, S>=1, and whenever an empty residual is reachable after one input bit, it is assigned a separate rejecting code in the same S-bit space. Then the transition on reachable state/input pairs at layer t has a fan-in-two AND/XOR circuit of size at most 4 S K_t, with free NOTs/constants and unrestricted fan-out. The circuit may be arbitrary on unreachable pairs.\nproof: There are h<=2K_t reachable state/input pairs. For each such pair, construct its indicator minterm over the S state bits and input bit using S AND gates; literals and constants are free. These indicators are mutually exclusive. For each of the S output coordinates, XOR the indicators whose pair transitions to a next-state code having that coordinate set. At most h indicators are selected, so at most h-1 XOR gates are needed per coordinate (zero or one selected indicator costs zero). The total is at most hS+hS=2hS<=4SK_t. The assigned rejecting code handles the empty derivative when it occurs; for every nonempty residual R and input b, the next residual is exactly {v:bv in R}.\nscope: Finite deterministic layered membership machines over fixed-length binary strings; this is an update-circuit upper bound, not an optimality or lower-bound claim. The separate rejecting-code capacity condition is necessary when dead transitions occur.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574488.1735032,
+  "session": "pnp-desk/research/R3122",
+  "model": "gpt-6-luna",
+  "gap": "The broader Pareto (S,G_max,D) gap remains. A constructive next target is to characterize zero-gate updates as coordinate copies/constants and test exact coordinate-projection separation on the SC_{3,1} live prefixes at layer 7. The proof state also contains claimed steps awaiting review; this target must not use them as premises.",
+  "gap_id": "G0187"
+ },
+ {
+  "at": 1795574563.1984508,
+  "session": "pnp-desk/research/R3122",
+  "model": "gpt-6-luna",
+  "id": "S0658",
+  "proved_step": "statement: Zero-gate coordinate-projection lemma. In a layered transducer whose update circuits use AND, XOR, NOT, and constants, with NOTs and constants free, every zero-gate update outputs only constants or signed copies of its input coordinates. Starting from a constant initial state, after t input bits every state bit is a constant or a signed copy of one of the t prefix bits. Hence if the transducer distinguishes all live prefixes at layer t, its signed coordinate projection on those prefixes is injective.\nproof: A circuit with zero non-constant gates has no computed intermediate values. Each output can therefore only be wired from an input, complemented by a free NOT, or set to a constant. This proves the one-step assertion. Initially every state coordinate is constant. Assume every state coordinate after t steps is a constant or a signed copy of one of the first t bits. At step t+1, each output is a constant or a signed copy of an old state coordinate or the new input bit, so the same property holds for t+1. Induction proves the state-coordinate description. If two live prefixes agree on every coordinate selected by the state, their state vectors are equal; thus any requirement to distinguish all live prefixes forces the signed coordinate projection to be injective.\nscope: Zero-gate updates in the specified AND/XOR basis with free NOTs and constants; arbitrary deterministic layered transducers and all finite prefix lengths. Structural reduction only; no SC-specific projection result or optimality claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0187",
+  "closes_valid": false
+ },
+ {
+  "at": 1795574950.0406384,
+  "session": "pnp-desk/research/R3130",
+  "model": "gpt-6-luna",
+  "gap": "This verifies the derivative identity underlying S0555 but does not bound update-circuit gate cost G_max or the Pareto frontier (S,G_max,D).",
+  "gap_id": "G0188",
+  "id": "S0659",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N and every prefix length t, the residual derivative maps the residual of prefix p after one input bit b to the residual of pb: R_{t+1}(pb)={v in {0,1}^{N-t-1}: bv in R_t(p)}. Consequently the residual-class automaton has a well-defined deterministic transition at every layer.\nproof: By definition, v belongs to the right-hand side exactly when bv belongs to R_t(p), which holds exactly when p(bv) belongs to F. This is equivalent to (pb)v belonging to F, hence to v belonging to R_{t+1}(pb). The transition depends only on the residual set, so equal residuals have equal derivatives.\nscope: All finite F subseteq {0,1}^N, integers 0<=t<N, prefixes p of length t and bits b.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795575055.2771053,
+  "session": "pnp-desk/research/R3130",
+  "model": "gpt-6-luna",
+  "id": "S0660",
+  "proved_step": "statement: Let F be a nonempty subset of {0,1}^N, and let K_t be the number of distinct residual sets R_t(p)={u in {0,1}^{N-t}: pu in F} at layer t. Put S=max(1, ceil(log2(max_t K_t))). There exists a deterministic layered membership machine for F with S state bits at every layer, a terminal decoder, and each layer update implementable by at most 2^(S+2)-4 + S(2^(S+1)-1) fan-in-two AND/XOR gates (free NOTs and constants, unrestricted fan-out). Proof: Encode each distinct residual at layer t injectively by an S-bit word. By the derivative identity, for each reachable code and input bit, the next residual depends only on that code and bit. Define the update map on those reachable input pairs accordingly and arbitrarily on all other (S+1)-bit inputs. Apply the shared-minterm construction: for d=S+1 inputs and q=S outputs it uses at most 2^(d+1)-4 + S(2^d-1) gates, which is the stated bound. The terminal decoder accepts exactly the code of residual {epsilon}; the residual construction recognizes F. This gives a constructive finite upper bound on G_max, but does not establish an optimal (S,G_max,D) point or a lower bound.\nScope: Every finite nonempty binary language F of fixed length N; fan-in-two AND/XOR basis, free NOTs/constants, unrestricted fan-out; terminal decoding cost D is not bounded here.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": false
+ },
+ {
+  "at": 1795575228.687334,
+  "session": "pnp-desk/research/R3130",
+  "model": "gpt-6-luna",
+  "id": "S0661",
+  "proved_step": "statement: For every N>=1 and fixed w in {0,1}^N, the singleton language {w} has a deterministic layered recognizer with one state bit and at most one AND gate per update. Initialize s=1; on input x_i set s'=s AND (x_i if w_i=1, otherwise NOT x_i). Inductively, after i bits s=1 iff the observed prefix equals w[1..i]. Hence the final state accepts exactly {w}. NOT and constants are free. This establishes an upper bound for singleton languages only; it does not determine G_max for SC_{n,s} or its controls.\nproof: At i=0 the empty prefix matches. If the state after i-1 bits indicates precisely that the prior prefix matches w[1..i-1], AND with the literal testing x_i=w_i leaves state 1 exactly when both the prior prefix and this bit match. This is equality of length-i prefixes. Induction to N proves exact acceptance. Each update uses one AND gate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795575589.5780473,
+  "session": "pnp-desk/research/R3139",
+  "model": "gpt-6-luna",
+  "gap": "Restricted constructive result for positionwise-constraint languages; no existing Lemma M obligation was shown in the supplied proof-state output to be closed by it.",
+  "gap_id": "G0189",
+  "id": "S0662",
+  "proved_step": "statement: For every N\u22650 and sets A_1,\u2026,A_N\u2286{0,1}, the language F={x\u2208{0,1}^N: x_i\u2208A_i for all i} is recognized by a layered one-bit deterministic machine with q_0=1, update q_i=q_{i-1}\u2227[b_i\u2208A_i], and final acceptance iff q_N=1. Each update has AND/XOR/NOT circuit cost at most one AND gate (NOTs and constants are free). Proof: By induction on i, after reading prefix b_1\u2026b_i, q_i=1 iff b_j\u2208A_j for every j\u2264i. The base i=0 holds vacuously since q_0=1. The update equation gives the induction step by conjunction with the condition b_i\u2208A_i. Thus q_N=1 exactly for words in F. If A_i={0}, the membership predicate is \u00acb_i; if A_i={1}, it is b_i; if A_i={0,1}, it is 1; if A_i=\u2205, it is 0. Accordingly each update is q, q\u2227\u00acb, q\u2227b, or 0, realizable with at most one AND gate in the stated basis.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

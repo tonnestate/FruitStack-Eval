@@ -1023,5 +1023,22 @@
   "proved_step": "LEMMA (fixed-width encoding for a derived oracle). Let O be any language and ell>=0. Set b=ceil(log_2(ell+1)). For each y in {0,1}^k with k<=ell, encode y as the b-bit binary representation of k followed by y0^(ell-k). Define O_enc to accept exactly valid strings of width b+ell whose decoded query belongs to O, rejecting malformed strings. Then enc has fixed width b+ell, is injective, and O_enc(enc(y))=O(y). Proof: the length field determines k, and the next k bits recover y, so distinct queries have distinct encodings. Membership preservation is the definition of O_enc. For ell=0, b=0 and the only query is empty, encoded by the empty string, so the statement remains true. Scope: this proves an encoding lemma for a derived oracle. For O=Sigma_3SAT^A it does not establish an A-oracle circuit simulation or close G0001/G0002.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795574515.974112,
+  "session": "pnp-desk/research/R3129",
+  "model": "gpt-6-luna",
+  "evidence": "The proof pads real variable-length queries with trailing bits, but supplies no padding-invariance property for the Sigma3SAT^A query encoding. Changing the encoded string can change the queried instance and answer. Padding unused slots does not repair real queries. The corrected fixed-width derived-oracle lemmas S0118/S0119 address a different scope and do not establish an A-oracle simulation.",
+  "review_of": "S0017",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795574603.0078764,
+  "session": "pnp-desk/research/R3129",
+  "model": "gpt-6-luna",
+  "id": "S0121",
+  "proved_step": "statement_start: LEMMA (fixed-width compilation through a derived oracle). For every oracle O, maximum query length ell, and bounded deterministic q-query computation with T-gate transition logic, there is a fixed circuit using q gates to O_enc that returns the same output, with O(T+q(ell+log(ell+1))) ordinary gates.\nstatement: Let O be any language and ell>=0. Let b=ceil(log2(ell+1)); encode y of length k<=ell as enc(y)=bin_b(k)||y||0^(ell-k), and define O_enc={enc(y): y in O, |y|<=ell}, rejecting malformed strings. For a deterministic computation with at most q adaptive O-queries of length at most ell, whose non-query logic has a T-gate circuit and whose query-generation logic is included in T, replace each query by enc(y) and query O_enc. The resulting fixed circuit uses q O_enc gates and O(T+q(ell+b)) ordinary gates and preserves the output on every input. Proof: b bits encode k, and the following ell bits are y followed by zeros; the decoder recovers exactly the first k bits, so enc is injective and O_enc(enc(y))=O(y). Each encoding is computed with O(ell+b) gates by selecting each payload position according to the represented length and zero-filling the rest. Induct on the adaptive query slots: equal configurations generate equal y, hence equal encoded strings, equal oracle answers by definition, and equal next configurations. Unused slots are masked and do not alter the output. This is a derived-oracle simulation only; for O=Sigma3SAT^A it provides no implementation using A-oracle gates, so it narrows but does not close G0002.\nevidence: Direct encoding/decoding argument and induction over the q adaptive query slots; no padding-invariance assumption. This is an explicit fixed-width formulation and cost accounting for the valid derived-oracle fragment.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

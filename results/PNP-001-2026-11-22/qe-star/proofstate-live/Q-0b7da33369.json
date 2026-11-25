@@ -5586,5 +5586,86 @@
   "proved_step": "statement: For every integer m>=2 and every directed m-cycle delta on a set Q, with S=ceil(log_2 m), there is an injection psi:Q->{0,1}^S such that psi delta psi^{-1} on psi(Q) extends to a total S-bit Boolean map computable by O(S) fan-in-two AND/NOT gates, with constants and wires free. Proof: Identify Q with residues 0,...,m-1 in cycle order and encode each residue by its S-bit binary representation, least significant bit first. Compute ordinary increment bits y_0=NOT x_0 and y_j=x_j XOR c_j, where c_1=x_0 and c_{j+1}=c_j AND x_j. The shared carry chain uses O(S) gates, since XOR has a constant-size AND/NOT implementation. Let e(x) be the conjunction of literals asserting x=m-1; it costs O(S) gates. Define F_j(x)=y_j AND NOT e(x). On each encoded v<m-1, e=0, so F is binary v+1; at v=m-1, e=1, so every output is zero, the encoding of the cycle successor 0. Thus F agrees with the cycle transition on all m encoded states. Its formula defines values on unused words too, giving a total extension with O(S) gates.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795572596.3166246,
+  "session": "pnp-desk/research/R3109",
+  "model": "gpt-6-luna",
+  "id": "S0647",
+  "proved_step": "statement_start: LEMMA: Cyclic successor on the standard S-bit encoding, S=ceil(log2 m), has a fan-in-2 circuit of size O(S).\nevidence: For valid x in [0,m), compute y=x+1 mod 2^S and e=[x=m-1]. Output z_i=y_i AND NOT e for each bit. A fan-in-2 incrementer, equality test against a constant, and output masking each use O(S) gates. For x<m-1 this gives x+1; for x=m-1 it gives 0. Thus the circuit implements cyclic successor on valid encodings in O(S)=O(log m) gates. This proves only an upper bound for the standard encoding.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795572803.1650584,
+  "session": "pnp-desk/research/R3110",
+  "model": "gpt-6-luna",
+  "id": "S0648",
+  "proved_step": "Arbitrary-length single-cycle encoding lemma. For every integer m>=2, let S=ceil(log2 m), let Q be an m-element set, and let delta be a directed cycle on Q. There is an injection psi:Q->{0,1}^S such that psi\u2218delta\u2218psi^{-1}, defined on psi(Q), extends to a total S-bit Boolean map computable by O(S) fan-in-two AND/NOT gates, with constants and input wires free.\n\nProof. List Q in cycle order as q_0,...,q_{m-1}, so delta(q_i)=q_{i+1 mod m}. Encode q_i by the S-bit binary representation of i, with bit 0 least significant. These codes are distinct because 0<=i<m<=2^S. For input x, let y be x+1 modulo 2^S. Compute y_0=NOT x_0 and, for j>=1, y_j=x_j XOR c_j, where c_j is the conjunction x_0 AND ... AND x_{j-1}. All carries are computed with the shared recurrence c_1=x_0 and c_{j+1}=c_j AND x_j, using O(S) gates; each XOR has a constant-size AND/NOT implementation, so all y bits cost O(S). Let e(x) be the equality indicator for x=m-1, computed as the conjunction of the S literals matching the binary representation of m-1; this costs O(S) gates. Define F_j(x)=y_j AND NOT e(x) for each output bit j. This adds O(S) gates. If x encodes q_i with i<m-1, then e(x)=0 and y is the binary representation of i+1, so F(x)=psi(q_{i+1}). If x encodes q_{m-1}, then e(x)=1 and F(x)=0=psi(q_0). Thus F agrees with the encoded cycle on every valid code. Its values on unused codes are immaterial, and the displayed formulas define a total Boolean map. The total gate count is O(S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573227.587103,
+  "session": "pnp-desk/research/R3118",
+  "model": "gpt-6-luna",
+  "id": "S0649",
+  "proved_step": "statement: Equal-length cycle encoding when the bit widths add exactly. Let m>=2 and d>=2 divide m, put t=m/d, and assume ceil(log2 t)+ceil(log2 d)=ceil(log2 m)=S. If delta is a permutation of an m-element set Q whose cycles all have length d, then some injection psi:Q->{0,1}^S makes psi delta psi^{-1} extend to an S-bit Boolean map computed with O(log m) fan-in-two AND/NOT gates, with constants and input wires free. Proof: Label Q by (i,j), where 0<=i<t identifies the cycle and 0<=j<d its phase, so delta(i,j)=(i,j+1 mod d). Encode i in ceil(log2 t) high bits and j in ceil(log2 d) low bits. The width assumption makes this an S-bit injection. Leave the high output bits unchanged. For the low bits, compute binary j+1 using shared prefix carries, using O(ceil(log2 d)) gates; test whether the low bits equal d-1 using O(ceil(log2 d)) gates, and on that test output zero in every low coordinate, otherwise output the incremented bits. The equality test, shared across coordinates, and each conditional output bit have constant fan-in-two AND/NOT cost per bit (XOR is expressible with constant cost in this basis). On every encoded state with j<d-1 the output is (i,j+1); for j=d-1 it is (i,0). Thus the map agrees with the conjugated transition on psi(Q). Its values on unused codes are supplied by the same circuit. Since ceil(log2 d)<=log2 m, the size is O(log m). This covers d=1 separately by the identity map, with zero gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573455.7670121,
+  "session": "pnp-desk/research/R3118",
+  "model": "gpt-6-luna",
+  "id": "S0650",
+  "proved_step": "statement: Transposition circuit under any stationary encoding. Let m>=2, S=ceil(log2 m), Q be an m-element set, psi:Q->{0,1}^S be injective, and delta:Q->Q swap two distinct states a,b while fixing every other state. Then psi delta psi^{-1} on psi(Q) extends to a total S-bit Boolean map computable by O(S) fan-in-two AND/NOT gates, with constants and input wires free. Proof: Put u=psi(a), v=psi(b), and D={j:u_j!=v_j}. Let e_u(x) be the conjunction of the S literals specifying x=u, and define e_v similarly. For every coordinate j, set F_j(x)=x_j XOR ((e_u(x) OR e_v(x)) AND [j in D]). Equality tests e_u,e_v share input negations and cost O(S) gates total; forming the OR and each of the S conditional toggles costs O(S) further gates, since XOR has a constant-size AND/NOT implementation. For x=u or v, exactly one equality indicator is 1, so the coordinates in D toggle and all others stay fixed, giving F(u)=v and F(v)=u. For any other encoded state x=psi(q), injectivity makes both indicators 0, so F(x)=x=psi(delta(q)). The same formula defines F on unused codewords, proving the extension claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573613.4135566,
+  "session": "pnp-desk/research/R3118",
+  "model": "gpt-6-luna",
+  "id": "S0651",
+  "proved_step": "statement: Sparse-change extension for arbitrary maps. Let m\u22652, S=ceil(log\u2082m), Q be an m-element set, \u03c8:Q\u2192{0,1}^S be injective, and \u03b4:Q\u2192Q be any function that differs from the identity on exactly t states. Then \u03c8\u2218\u03b4\u2218\u03c8\u207b\u00b9 on \u03c8(Q) extends to a total S-bit Boolean map computed by O(S+tS) fan-in-two AND/NOT gates, with constants and input wires free. Proof: For each changed state q, form e_q(x), the conjunction of the S literals specifying \u03c8(q). These indicators together cost O(tS) gates, including shared input negations. For each output coordinate j, let D_j={q:\u03b4(q)\u2260q and \u03c8(q)_j\u2260\u03c8(\u03b4(q))_j}, and define F_j(x)=x_j XOR (OR_{q\u2208D_j} e_q(x)), taking an empty OR to be 0. Fan-in-two AND/NOT circuits implement each OR term and XOR with constant overhead per term, so the total cost across coordinates is O(S+\u03a3_j|D_j|)\u2286O(S+tS). On an encoded unchanged state every indicator is 0, so F fixes it. On an encoded changed state \u03c8(q), injectivity makes e_q the sole active indicator, so precisely the coordinates that differ between \u03c8(q) and \u03c8(\u03b4(q)) toggle; hence F(\u03c8(q))=\u03c8(\u03b4(q)). The same formulas define F on unused codes. No injectivity or surjectivity of \u03b4 is used.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573694.473861,
+  "session": "pnp-desk/research/R3118",
+  "model": "gpt-6-luna",
+  "id": "S0652",
+  "proved_step": "statement: Trie-shared sparse-transition extension. Let m\u22652, S=ceil(log\u2082m), Q have m elements, \u03c8:Q\u2192{0,1}^S be injective, and \u03b4:Q\u2192Q differ from identity on a set D of size t. Let T be the number of non-root nodes in the binary prefix trie of the S-bit words {\u03c8(q):q\u2208D}, including leaves, and let H=\u03a3_{q\u2208D} d_H(\u03c8(q),\u03c8(\u03b4(q))). Then \u03c8\u03b4\u03c8\u207b\u00b9 on \u03c8(Q) has a total S-bit extension with a fan-in-two AND/NOT circuit of O(S+T+H) gates (constants and wires free). Proof: Set the root indicator to 1. For every trie node v extending its parent by bit b at coordinate k, compute I_v=I_parent AND x_k if b=1, and I_v=I_parent AND NOT x_k if b=0. Compute each NOT x_k once. This constructs all node indicators in at most T+S gates. For each changed q, the leaf indicator I_q is 1 exactly at x=\u03c8(q); distinct leaves are mutually exclusive. For output coordinate j, let D_j={q\u2208D: \u03c8(q)_j\u2260\u03c8(\u03b4(q))_j} and define F_j(x)=x_j XOR (OR_{q\u2208D_j} I_q(x)), with an empty OR equal to 0. Binary OR trees and constant-size AND/NOT XOR circuits cost O(S+\u03a3_j|D_j|)=O(S+H) gates. At x=\u03c8(q) for changed q, only its leaf is active, so exactly the coordinates differing between \u03c8(q) and \u03c8(\u03b4(q)) toggle. At an encoded unchanged q, no changed-state leaf is active, so F fixes \u03c8(q). Thus F agrees with \u03c8\u03b4\u03c8\u207b\u00b9 on every valid code and is already defined on unused codes. The total cost is O(S+T+H).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795575224.9006152,
+  "session": "pnp-desk/research/R3134",
+  "model": "gpt-6-luna",
+  "id": "S0653",
+  "proved_step": "statement: Power-support transition lemma. Let Q be a finite set of size m>=2, S=ceil(log2 m), let psi:Q->{0,1}^S be injective, and let delta:Q->Q differ from the identity on at most t states. For every k>=0, psi delta^k psi^{-1} on psi(Q) extends to a total S-bit Boolean map computable by O((kt+1)S) fan-in-two AND/NOT gates.\nproof: If delta^k(q) != q, some state among q,delta(q),...,delta^{k-1}(q) is moved by delta; otherwise all iterates in that segment are fixed and delta^k(q)=q. Thus supp(delta^k) is contained in the union of k inverse images of supp(delta), so its size is at most kt. Apply the sparse-change identity-extension construction: form an S-literal equality indicator for each changed encoded state, then for each output bit toggle the input bit by the OR of indicators for changed states whose image changes that bit. Equality indicators cost O(S+|supp(delta^k)|S) total, and OR/XOR formulas cost O(S+|supp(delta^k)|S) fan-in-two AND/NOT gates. This agrees on every encoded state, with arbitrary outputs on unused codes. For k=0 use the identity map.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795575289.1861684,
+  "session": "pnp-desk/research/R3134",
+  "model": "gpt-6-luna",
+  "id": "S0654",
+  "proved_step": "statement: Power support containment and encoding lemma. Let Q be finite, let delta:Q->Q, and let supp(delta)={q:delta(q) != q}. For every integer k>=0, supp(delta^k) is a subset of supp(delta). Consequently, for m=|Q|>=2, S=ceil(log2 m), and every injective psi:Q->{0,1}^S, the encoded map psi delta^k psi^{-1} on psi(Q) extends to a total S-bit Boolean map with O((|supp(delta)|+1)S) fan-in-two AND/NOT gates, uniformly in k.\nproof: If q is outside supp(delta), then delta(q)=q, and induction gives delta^k(q)=q for every k>=0. Thus supp(delta^k) subset supp(delta), so its size is at most t=|supp(delta)|. For each moved encoded state psi(q) with delta^k(q) != q, form its equality indicator e_q(x), a conjunction of the S literals specifying psi(q). For output coordinate j, set F_j(x)=x_j XOR OR_{q:delta^k(q)_j differs from q_j} e_q(x), where the subscript denotes the jth encoded output bit. On any encoded state, injectivity makes exactly its own indicator one if it is in the selected changed set, and all indicators zero otherwise; hence F(psi(q))=psi(delta^k(q)). Each indicator costs O(S) gates and the OR/XOR corrections over all coordinates cost O(S+|supp(delta^k)|S), giving O((t+1)S). Unused codes may take the formula-defined values.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795575679.0254815,
+  "session": "pnp-desk/research/R3134",
+  "model": "gpt-6-luna",
+  "id": "S0655",
+  "proved_step": "statement: For m>=2, S=ceil(log2 m), every m-element Q, injection psi:Q->{0,1}^S, and map delta:Q->Q, the encoded transition psi delta psi^{-1} extends to a total Boolean map computable by O(mS) fan-in-two AND/NOT gates. Proof: For each q in Q build e_q(x), the conjunction testing x=psi(q), with O(S) gates per indicator and shared input negations. For output bit j, OR all e_q for which bit j of psi(delta(q)) is 1, implemented with a binary tree of constant-size AND/NOT OR gates. On x=psi(q), exactly e_q is 1 by injectivity, so the output is psi(delta(q)); on unused encodings every indicator is 0, defining output 0^S. Total size is O(mS).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

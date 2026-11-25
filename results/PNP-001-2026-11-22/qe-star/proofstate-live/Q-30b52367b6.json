@@ -2368,5 +2368,37 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795572238.805666,
+  "session": "pnp-desk/research/R3107",
+  "model": "gpt-6-luna",
+  "gap": "The full O1 obligation remains open for overlapping supports, unbounded score range, or general THR o THR circuits; this proves only the stated restricted O2 subclass.",
+  "evidence": "Complete combinatorial DP proof supplied. The recurrence conditions on gate j's output, with disjoint blocks giving exact multiplicities. No finite computation is used as proof.",
+  "gap_id": "G0102",
+  "id": "S0276",
+  "proved_step": "statement: Let W be an integer m-by-n matrix with pairwise disjoint row supports S_j, each |S_j| <= c log_2 n for a fixed constant c. Let t_j,T be arbitrary integers and v_j integers with V=sum_j |v_j| <= n^C for a fixed constant C. The exact number of x in {0,1}^n satisfying sum_j v_j [sum_i W[j,i]x_i >= t_j] >= T is computable in deterministic polynomial time, specifically O(sum_j 2^{|S_j|} + m(V+1)) arithmetic operations. Proof: For each j enumerate the 2^{|S_j|} assignments to S_j and compute c_j, the number satisfying its threshold. Since supports are disjoint, each gate bit is realized by c_j assignments with bit 1 and 2^{|S_j|}-c_j with bit 0; the n-sum_j|S_j| variables outside all supports are free. Maintain D_j(q), the total multiplicity of gate patterns among the first j gates with score q, with D_0(0)=1. Update D_j(q)=(2^{|S_j|}-c_j)D_{j-1}(q)+c_jD_{j-1}(q-v_j). All reachable q lie in [-V,V], so each of m updates costs O(V+1) integer operations. The answer is 2^{n-sum|S_j|} times sum_{q>=T}D_m(q). Each table entry is at most 2^n and has O(n) bits; thus with V<=n^C and 2^{|S_j|}<=n^c, the algorithm has polynomial bit complexity.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "O2",
+  "closes_valid": false
+ },
+ {
+  "at": 1795572737.6387892,
+  "session": "pnp-desk/research/R3107",
+  "model": "gpt-6-luna",
+  "id": "S0277",
+  "proved_step": "statement: Let W be an integer m-by-n matrix with pairwise disjoint row supports S_j, and let t_j,v_j,T be integers. Put k_j=|S_j| and c_j=|{y in {0,1}^{S_j}: sum_{i in S_j}W[j,i]y_i>=t_j}. Define L_j=max(0,-v_j), L=sum_j L_j, and P(z)=product_{j=1}^m ((2^{k_j}-c_j)z^{L_j}+c_jz^{L_j+v_j}). Then the number of x in {0,1}^n satisfying sum_j v_j[sum_i W[j,i]x_i>=t_j]>=T is 2^{n-sum_j k_j} times sum_{e>=T+L}[z^e]P(z).\nevidence: For each row j, exactly c_j assignments on S_j make its gate true and 2^{k_j}-c_j make it false. Since the supports are pairwise disjoint, choices across the supports are independent, and the n-sum_j k_j coordinates outside their union are free. In expanding P, selecting the first term for row j represents a false gate and selecting the second represents a true gate. Both exponents are nonnegative by the definition of L_j. For a gate pattern b in {0,1}^m, its resulting exponent is sum_j L_j+sum_j v_j b_j=L+sum_jv_jb_j, and its coefficient is its number of realizing assignments on the supports. Thus its exponent is at least T+L exactly when its score is at least T. Summing those coefficients and multiplying by the number 2^{n-sum_j k_j} of free-coordinate assignments proves the identity. This is a counting identity; it asserts no polynomial running time when the support counts or polynomial convolution are expensive.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795575487.1111155,
+  "session": "pnp-desk/research/R3133",
+  "model": "gpt-6-luna",
+  "id": "S0278",
+  "proved_step": "statement_start: Let the bipartite incidence graph between variables and bottom gates have connected components C_1,...,C_r, and let each component contain at most c log_2 n variables, for fixed c. Suppose the top weights are integers with V=sum_j |v_j| <= n^C. Then exact #SAT of the THR o THR circuit is computable in deterministic polynomial time.\nevidence: For each component, enumerate its at most n^c assignments and compute the induced score distribution. Convolve the component distributions; disjoint component variable sets ensure every full assignment is counted exactly once. Scores lie in [-V,V], so direct convolution costs O(rV^2) arithmetic operations, polynomial since r<=n+m and V<=n^C. Counts have at most n+1 bits. Isolated variables are singleton components.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
  }
 ]

@@ -1967,5 +1967,79 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795573420.6022456,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "The state-count and correctness argument are sound, but the displayed running time omits binary input length L for t,v,T and exact arithmetic. For fixed m,n,a,c,k these integers can have arbitrarily many bits, so even reading the input exceeds the claimed bound in the standard bit model. This refutes only the stated complexity bound, not DP correctness.",
+  "review_of": "S0019",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795573420.6675947,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "id": "S0233",
+  "proved_step": "Repaired rank-after-deletion counting lemma. Let W in Z^{m x n}, |W_ji|<=a, t,v in Z^m, T in Z, C a set of c columns, W'=W outside C, n'=n-c, and k=rank_Q(W'). Let L be total binary input length. The exact count of x in {0,1}^n satisfying sum_j v_j [W_j x>=t_j]>=T is computable in bit time 2^c(2an'+1)^k poly(m,n,L,log(2+a)). Proof: enumerate x_C. Choose k independent rows B_l of W'. Express every row W'_j as a rational combination of B_l using Cramer's rule on a nonsingular k-column minor. Hadamard's bound gives numerator and denominator bit lengths O(k log(2+a)+k log(2+n)). DP over remaining variables stores multiplicities by y=(B_l x_prefix)_l; each coordinate has at most 2an'+1 values. Each transition adds zero or one column vector and merges equal states. At the end each W'_j x is the same rational combination of y, so thresholds and the top gate are determined by y and x_C. Multiplicities are at most 2^n and have at most n+1 bits. Exact rational comparisons and additions cost polynomial in m,n,L,log(2+a) per transition. Summing accepting multiplicities over all 2^c branches proves the claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573609.2738335,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "The state-compression and counting identity are valid, but the stated runtime is not a bit-complexity bound: it omits the unrestricted binary lengths of t, v, and T, plus the cost of exact arithmetic in the comparisons and weighted sum. Thus the runtime claim as written is false as a complexity statement; this review does not refute the DP correctness or a version parameterized by the full input length.",
+  "review_of": "S0027",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795573609.2994518,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "The state transition and final-state correctness argument appear sound, but the stated runtime and subexponential consequence omit the binary lengths of t, v, and T and the bit cost of exact comparisons and sums. The complexity claim as written therefore needs a full-input-length factor. This refutes only the stated runtime bound, not the DP identity; a bit-complexity repair remains open.",
+  "review_of": "S0029",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795573816.5461862,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "The DP construction and correctness identity are valid, but the stated runtime omits the binary encoding length of T: its polynomial factor names bitsize(t,v), not bitsize(T), although the final acceptance test compares the weighted sum against T. Thus the runtime bound as stated is not a bit-complexity bound for unrestricted integer T. This refutes only the runtime statement; a repair with full input length in the polynomial factor remains plausible.",
+  "review_of": "S0031",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795573865.9860647,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "For distinct lattice points p,q, the interiors of p+[0,1]^r and q+[0,1]^r are disjoint; each cube is contained in Z+[0,1]^r because p lies in Z. The zonotope volume formula sums |det| over all r-element generator subsets. Subsets with k of the c_i contribute at most binom(r,r-k) binom(n,k)(M sqrt(r))^k by Hadamard, so the total is at most 2^r sum_{k=0}^r (n M sqrt(r))^k. Under the stated proof condition a=n M sqrt(r)>=2 this is at most 2^{r+1}a^r. Since 1<=r<=n and M>=1, the resulting logarithmic exponent is within a constant factor of r log2(2Mn+1). The review is for the exact stated bound in this nondegenerate parameter regime; the proof should explicitly retain a>=2 (or handle zero generators separately).",
+  "review_of": "S0032",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795573945.9063268,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "The clipping identity in (a) is valid: equal clipped thresholds induce the same suffix gate indicators, so the prefix grouping is correct. However, the stated runtime O(poly(n,m) * (2^l + 2^k * |U|)) omits the binary encoding lengths of the unrestricted thresholds t_j and weights, as well as the bit cost of exact arithmetic. Thus it is not a bit-complexity bound as stated. This refutes only the runtime claim; the exact grouping algorithm remains valid with a polynomial factor in the full input length.",
+  "review_of": "S0039",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795573945.9366438,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "id": "S0239",
+  "proved_step": "REPAIRED CLIPPED-THRESHOLD DP LEMMA. Let W=[P R] be an integer m-by-(l+k) matrix, with arbitrary integer thresholds t, output weights v, and target T, all given in binary. Define f(y,z)=[sum_j v_j [P_j.y+R_j.z>=t_j] >= T]. For each y in {0,1}^l let theta_j(y)=clip(t_j-P_j.y, lo_j, hi_j+1), where lo_j=sum_i min(R_ji,0) and hi_j=sum_i max(R_ji,0); let U={theta(y): y in {0,1}^l}. Then #f^{-1}(1) can be computed exactly in O(poly(L,m,l,k) * (2^l + 2^k |U|)) bit operations, where L is the total binary input length. Proof: For fixed y,j, R_j.z ranges over all z in {0,1}^k within [lo_j,hi_j]. If t_j-P_j.y <= lo_j, the gate is always true; if it is >= hi_j+1, it is always false; otherwise its threshold is exactly theta_j(y). Thus the suffix function depends on y only through theta(y). Enumerate all 2^l prefixes, accumulating their multiplicities by theta. For each distinct theta, enumerate all 2^k suffixes and evaluate the circuit, multiplying its satisfying count by the stored prefix multiplicity. This counts every pair (y,z) exactly once. All arithmetic operands have O(L+n+log m) bits (counts are at most 2^(l+k); sums have at most the input weight length plus this count length), so each operation has polynomial bit cost in L,m,l,k. The algorithm therefore has the stated bit bound. No family-level bound on |U| is implied.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574215.4628718,
+  "session": "pnp-desk/research/R3116",
+  "model": "gpt-6-luna",
+  "evidence": "Independent algebraic review: choose r independent rows C. Every row of W is in rowspace(C), so W=BC and W x=B(Cx). For each prefix length i, every state C_{[:,1..i]}a is an integer r-vector with coordinates in [-Mi,Mi], yielding at most (2Mi+1)^r states without a lattice change-of-basis assumption. The recurrence partitions assignments by their last bit, hence counts each prefix exactly. Evaluating each original threshold through Bz and summing the exact counts gives #SAT. Rational elimination/comparisons have polynomial bit complexity in the full binary input length; counts have at most n+1 bits. The runtime bound follows. The claim is explicitly limited to low-rank/low-weight regimes and does not assert a generic full-rank speedup.",
+  "review_of": "S0041",
+  "status": "SURVIVED_REVIEW"
  }
 ]

@@ -5655,5 +5655,132 @@
   "proved_step": "statement: Lemma (simultaneous truth-table perturbation). Let m>=2, and let f:{0,1}^m->{0,1} have a fan-in-two DAG circuit of size s over the complete binary Boolean basis, with free input wires and unrestricted fan-out. For every subset A of {0,1}^m of size r, g=f XOR 1_A has a circuit of size at most s+rm. Proof: If r=0, take the circuit for f. If r>0, enumerate A={a_1,...,a_r}. For each a_i construct its indicator p_i=[x=a_i] using one binary gate to test the two prescribed signed literals x_1,x_2, followed by m-2 binary gates, each conjoining the accumulated prefix with the next prescribed signed literal. Thus each p_i costs m-1 gates. Combine the r indicators by r-1 OR gates, obtaining 1_A at cost r(m-1)+(r-1)=rm-1. Append one XOR gate to the circuit for f to output f XOR 1_A. The total is at most s+rm. Scope: all m>=2, s>=0, and subsets A of the Boolean cube in this circuit model; this gives a local label-stability bound only.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795572164.0764668,
+  "session": "pnp-desk/research/R3104",
+  "model": "gpt-6-luna",
+  "id": "S0663",
+  "proved_step": "statement: Small-support obstruction (exact B2 model). For every m>=2 and every Boolean function f:{0,1}^m->{0,1} whose support T={x:f(x)=1} has cardinality t>=1, f has a fan-in-two circuit of at most tm-1 gates when input negations are free (and at most tm-1 additional gates if negations are charged as separate input inverters, under a convention allowing each input literal to be generated once and shared). Consequently, if t<=floor((m^c+1)/m), then CC(f)<=m^c and MCSP[m^c](T)=1. Proof: For each a in T, construct the minterm [x=a] by conjoining its m literals, costing m-1 binary AND gates when signed input literals are available at zero cost; OR the t minterms using t-1 binary gates. Their disjunction is exactly f, since it is true precisely on T. Total is t(m-1)+(t-1)=tm-1. The threshold consequence follows from tm-1<=m^c when t<=floor((m^c+1)/m). If input negations each cost one inverter per variable and are shared, the same construction costs at most tm-1+m; thus the sufficient support condition becomes t<=floor((m^c-m+1)/m), when the right side is nonnegative. This is only a small-support upper bound for individual truth tables; it supplies no circuit lower bound for the MCSP predicate.\nscope: All m>=2, all supports T of Boolean functions on m variables, the stated fan-in-two basis with free signed input literals; charged-negation variant explicitly charges at most m shared input inverters.\nproof: For each support point a, the conjunction of its m coordinate literals is a minterm equal to 1 exactly at a. A binary conjunction of m literals uses m-1 gates. The OR of t such minterms uses t-1 gates. Distinct minterms are true at distinct inputs, so their OR is the indicator of T. Adding the gate counts gives tm-1. Under charged input negations, generate each complemented input once using at most m inverters and share it among minterms, giving tm-1+m. The threshold implications are direct inequalities.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572251.44388,
+  "session": "pnp-desk/research/R3104",
+  "model": "gpt-6-luna",
+  "id": "S0664",
+  "proved_step": "statement: Sparse Hamming ball contained in the MCSP yes-set. Fix m>=2 and an integer threshold s>=0, and use fan-in-two DAG circuits over all 16 binary Boolean gates, with free input wires, unrestricted fan-out, and no free constants. Let N=2^m and q=floor((s+1)/m). Every truth table f:{0,1}^m->{0,1} whose support has size at most q has circuit complexity at most s; hence every such table is accepted by MCSP[s]. Proof: If the support size is t=0, f is the constant-zero function and is computed by one gate receiving the same input wire twice, using the binary gate that is identically zero; thus its complexity is at most 1, so this boundary case requires s>=1. For t>=1, for each supported input a construct its singleton indicator: one binary gate tests the first two prescribed input bits, and each of the remaining m-2 gates conjoins the accumulated prefix with the next prescribed bit, using an available binary Boolean function (including the signed-literal conjunction). This uses m-1 gates per point. OR the t indicators using t-1 gates. The result is exactly f and uses tm-1<=s gates since t<=floor((s+1)/m). Therefore the stated claim holds for s>=1; for s=0 the only guaranteed table is excluded by this construction. In particular, for s=m^c with integer m>=2 and c>=1, all tables at Hamming distance at most floor((m^c+1)/m) from the zero table are in the yes-set. This is a structural inclusion only and yields no circuit lower bound for the MCSP predicate.\nscope: All m>=2 and integer s>=1 in the specified complete binary basis; for s=0 the claim is not asserted. MCSP[s] labels length-2^m truth tables by whether their function has circuit complexity at most s.\nproof: Let f have support T of size t. For t=0, the complete binary basis contains the constant-zero binary gate, so applying it to any input wire twice computes f in one gate; this is within s when s>=1. For t>=1, enumerate T as a_1,...,a_t. For each a_j, the complete basis contains a gate equal to the conjunction of the first two required signed literals, so one gate recognizes the first two coordinates. For each further coordinate, append a gate that ANDs the current prefix indicator with the required signed literal; these binary gates exist in the complete basis. The resulting wire is 1 exactly on input a_j and costs m-1 gates. The t indicators are singletons, so their OR, computed with t-1 binary OR gates, is 1 exactly on T and costs t(m-1)+(t-1)=tm-1. By t<=floor((s+1)/m), tm-1<=s. Thus f is accepted by MCSP[s]. The zero table is at Hamming distance zero from itself, and any table with support t has Hamming distance t from zero, proving the Hamming-ball formulation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573076.877596,
+  "session": "pnp-desk/research/R3112",
+  "model": "gpt-6-luna",
+  "lemma": "Combinatorial neighborhood-count lemma (candidate): Let U=2^m and let B_s be the set of m-input Boolean functions with fan-in-two DAG circuit size at most s over the complete binary basis. For any integer r>=0, the number of truth tables within Hamming distance r of B_s is at most |B_s| sum_{i=0}^r binom(U,i). Proof: for each f in B_s, there are exactly sum_{i=0}^r binom(U,i) tables at distance at most r; the union over f has size no larger than the sum of these ball sizes. Therefore, if |B_s| sum_{i=0}^r binom(U,i)<2^U, some truth table has distance greater than r from every table in B_s. This gives existence of a robust hard function, but not a lower bound on circuits deciding MCSP.",
+  "gap": "The recorded read-set method yields only a linear lower bound, and this neighborhood count does not yet imply a superlinear lower bound for general MCSP decision circuits. Need a new argument connecting robust hard-function existence to decision-circuit size.",
+  "gap_id": "G0209"
+ },
+ {
+  "at": 1795573122.5809429,
+  "session": "pnp-desk/research/R3112",
+  "model": "gpt-6-luna",
+  "gap": "Review of S0577-S0579 remains pending: the transcript provides only truncated proof text for those steps. The neighborhood-count lemma recorded in this session is valid by a union bound but does not close G0209 or the direct MCSP circuit lower-bound obligation.",
+  "evidence": "The available proof text is insufficient to review S0577-S0579 responsibly. Experiment cm-36a8728a697e473f is exploratory and covers only m=8,s=8; it gives no evidence for a general lower bound.",
+  "gap_note_on": [
+   "G0209"
+  ]
+ },
+ {
+  "at": 1795573202.2549667,
+  "session": "pnp-desk/research/R3112",
+  "model": "gpt-6-luna",
+  "gap": "This elementary counting lemma does not close G0209: it provides robust hard truth tables but no implication from their existence to general circuit size for the MCSP decision function. Need a theorem tying local sensitivity or neighborhood labeling of MCSP to circuit size.",
+  "evidence": "Workflow wf-61d505300da9, experiment cm-36a8728a697e473f gives exploratory m=8,s=8 log2 coverage upper bounds 101.4869, 188.6339, 241.9505, 311.0762 for radii 0,16,32,64 against 2^256 total tables; first three certify uncovered tables, radius 64 does not.",
+  "gap_note_on": [
+   "G0209"
+  ],
+  "id": "S0667",
+  "proved_step": "statement: Hamming-ball union bound. For any m>=0, U=2^m, subset B of {0,1}^U and integer 0<=r<=U, at most |B| sum_{i=0}^r binom(U,i) strings lie within Hamming distance r of B. Hence if this quantity is less than 2^U, a string lies farther than r from every b in B.\nproof: For each b, its radius-r ball has exactly sum_{i=0}^r binom(U,i) members, because distance-i strings are specified by the i flipped coordinates. The union over b has cardinality at most the sum of the ball sizes. If this is less than 2^U, the union cannot cover the cube.\nscope: All finite binary cubes as specified.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573420.6494682,
+  "session": "pnp-desk/research/R3112",
+  "model": "gpt-6-luna",
+  "evidence": "The claimed per-entry cost bound fails in the stated proof when the current value is 1 and must change to 0. The proposed correction h AND NOT p_a is not one binary gate: negation of p_a and combination with h require two gates (for example NAND(p_a,p_a), then AND). Thus the proof gives at most m+1 added gates for this edit, not m; this identifies an exact gap in the asserted bound, not a counterexample to a different construction.",
+  "review_of": "S0577",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795573420.7036426,
+  "session": "pnp-desk/research/R3112",
+  "model": "gpt-6-luna",
+  "gap": "This repaired sensitivity estimate remains linear in r and does not imply a lower bound for general circuits deciding MCSP; G0209 remains open.",
+  "gap_note_on": [
+   "G0209"
+  ],
+  "id": "S0669",
+  "proved_step": "statement: Repaired Hamming sensitivity bound. For m>=2 and Boolean functions f,g:{0,1}^m->{0,1} differing at r inputs, their minimum fan-in-two DAG circuit sizes in the complete 16-gate binary basis (free inputs, unrestricted fan-out, no free constants) satisfy |CC(f)-CC(g)| <= r(m+1).\nproof: For each differing input a, construct p_a=[x=a] using m-1 gates: one gate recognizes the first two signed literals, and one gate per remaining coordinate conjoins the accumulated prefix with that signed literal. Starting from a circuit for f, process the r differing inputs one at a time. If the current output is 0 at a and should become 1, append OR(output,p_a), one gate. If it is 1 and should become 0, append NAND(p_a,p_a) to form NOT p_a and then AND(output,NOT p_a), two gates. Each edit changes only the value at a because p_a is zero elsewhere, so previously corrected entries and all other entries remain unchanged. Each edit adds at most (m-1)+2=m+1 gates, giving CC(g)<=CC(f)+r(m+1). Interchanging f and g yields the reverse inequality.\nscope: All m>=2, 0<=r<=2^m; complete binary Boolean gate basis, free input wires, unrestricted fan-out, no free constants.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573483.450152,
+  "session": "pnp-desk/research/R3120",
+  "model": "gpt-6-luna",
+  "evidence": "Argument-level derivation from the reviewed Hamming perturbation lemma. This gives a local separation statement, not a circuit lower bound for MCSP.",
+  "id": "S0670",
+  "proved_step": "statement: Threshold separation consequence: For m\u22652 and integers 0\u2264s<t in the complete fan-in-two Boolean DAG model with all 16 binary Boolean gates and unrestricted fan-out, if CC(f)\u2264s and CC(g)>t, then their truth tables differ in at least floor((t\u2212s)/m)+1 positions. Let d be their Hamming distance. Distance zero would imply g=f and CC(g)\u2264s\u2264t, a contradiction. Otherwise apply the reviewed point-edit construction S0577 to the d differing positions, obtaining CC(g)\u2264s+md. Since CC(g)>t, d>(t\u2212s)/m; integrality gives the result.\nscope: All m\u22652 and integers 0\u2264s<t; Boolean functions on m inputs; circuit size is gate count in fan-in-two DAGs over all 16 binary Boolean gates, with free input wires, no free constants, and unrestricted fan-out.\nproof: The point-edit construction is S0577; the threshold inequality and integer rounding are shown above.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573541.949936,
+  "session": "pnp-desk/research/R3112",
+  "model": "gpt-6-luna",
+  "id": "S0671",
+  "proved_step": "statement: Boundary-band lemma for MCSP_s. Fix m>=2 and the complete fan-in-two Boolean basis. Let C_m(f) be the minimum number of gates in a fan-in-two DAG computing f:{0,1}^m->{0,1}, with free input wires, unrestricted fan-out, and no free constants. Define M_s(f)=1 iff C_m(f)<=s. If f,g differ at exactly one input and M_s(f) differs from M_s(g), name the endpoint h with M_s(h)=1 and the endpoint k with M_s(k)=0. Then max(0,s-m)<=C_m(h)<=s and s+1<=C_m(k)<=s+m+1. Proof: C_m(h)<=s and C_m(k)>=s+1 by definition. The one-entry edit construction gives C_m(k)<=C_m(h)+m+1<=s+m+1. Applying it in the reverse direction gives C_m(h)>=C_m(k)-(m+1)>=s-m; also C_m(h)>=0. This localizes every sensitive hypercube edge to a complexity band of width at most m+1 on each side, but does not bound how many such edges there are or the circuit size of M_s.\nscope: All m>=2 and integers s>=0, in the stated complete fan-in-two Boolean DAG model; adjacent truth tables only.\nproof: Apply the one-entry edit bound in both directions and combine with the threshold definition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795573738.0307455,
+  "session": "pnp-desk/research/R3120",
+  "model": "gpt-6-luna",
+  "lemma": "For m=2 and m=3 in the complete fan-in-two Boolean gate basis, arbitrary r-entry truth-table perturbations are realizable with at most rm added gates: construct each point indicator from signed input literals in m-1 gates, OR the r indicators in r-1 gates, then XOR with the original output in one gate. This finite checked result is not a general lower bound.",
+  "evidence": "Independent exhaustive verification requested; pending returned computation."
+ },
+ {
+  "at": 1795573814.7003334,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0667: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The submitted Lean file was not accepted. Lean first rejected `Finset.symmDiff`; after replacing it with set differences, it still reported unresolved goals in the Hamming-ball cardinality pr (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795575423.0759044,
+  "session": "pnp-desk/research/R3136",
+  "model": "gpt-6-luna",
+  "lemma": "Circuit-counting baseline in the fan-in-two DAG model: for m inputs and s>=0 gates, the number of computable functions is at most (s+1)(m+s)16^s(m+s)^(2s). For exactly g gates, topologically order them. Each gate has 16 type choices and at most (m+g)^2 ordered predecessor choices; the output has at most m+g choices. Summing this upper bound over g=0,...,s gives the claim. Since there are 2^(2^m) Boolean functions, if the bound is smaller, some function needs more than s gates. This proves existence of hard truth tables only; it does not establish hardness of the MCSP decision function.",
+  "gap": "The counting argument separates hard individual truth tables from small circuits but does not bound circuits deciding MCSP. The target remains a superlinear lower bound for the MCSP decision function or a valid transfer to it.",
+  "gap_id": "G0210",
+  "id": "S0674",
+  "proved_step": "statement: For every m>=1 and integer s>=0, the number of distinct m-input Boolean functions computable with at most s gates in the fan-in-two DAG model with 16 binary Boolean gates, free inputs, unrestricted fan-out, and output chosen from an input or gate wire is at most (s+1)(m+s)16^s(m+s)^(2s). If this is less than 2^(2^m), some function has circuit complexity greater than s.\nproof: For exactly g gates, topologically order them. Each gate has 16 choices of type and at most (m+g)^2 ordered predecessor-wire choices. The output has at most m+g choices. For each 0<=g<=s, this gives at most 16^s(m+s)^(2s+1) circuits. Summing over s+1 gate counts gives the stated bound. Circuits may compute the same function, so the number of functions is no larger. Strict inequality with the full function-space size forces a function outside the size-s class.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795575479.318048,
+  "session": "pnp-desk/research/R3136",
+  "model": "gpt-6-luna",
+  "gap": "Pending local perturbation steps S0575 and S0578 cannot be reviewed by this session under the cross-model-family rule; both are attributed to gpt-6-luna in the transcript. The counting lemma S0674 gives existence of hard individual truth tables, not a lower bound on the MCSP decision function. No implication to the superlinear circuit lower-bound obligation G0001 is established here.",
+  "evidence": "Prior proof_state_read listed S0575 and S0578 as pending; the transcript records a same-family rejection for S0575. knowledge_search identifies R1098 as a linear read-set result and G0001 as open.",
+  "gap_note_on": [
+   "G0001"
+  ]
  }
 ]

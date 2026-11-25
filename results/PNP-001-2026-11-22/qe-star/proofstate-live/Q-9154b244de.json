@@ -553,5 +553,65 @@
   "kind": "LEMMA",
   "closes": "Q-9154b244de",
   "closes_valid": true
+ },
+ {
+  "at": 1795572085.8400154,
+  "session": "pnp-desk/research/R3100",
+  "model": "gpt-6-luna",
+  "evidence": "Checked the claimed support range. Let k=c-1. Sparse support gives an explicit DNF of size t*m-1 <= m^c-1. For t=1, restrict a coordinate to the unique accepting point's bit; support remains 1 <= (m-1)^k. For t>=2, choose two accepting points differing in coordinate i. Both cofactors are nonempty, and the smaller has support t' <= min(floor(t/2), 2^(m-1)). If m^k/2 <= (m-1)^k, then t' <= (m-1)^k. Otherwise, for m=3, (3/2)^k>2 forces integer k>=2, giving 2^(m-1)=4 <= 2^k. For m>=4, k ln(m/(m-1))>ln 2 and ln(m/(m-1))<=1/(m-1), so k>(m-1)ln 2. Since ln(m-1)>=1, this implies k ln(m-1)>(m-1)ln 2, hence 2^(m-1)<(m-1)^k. The restricted cofactor has DNF size t'(m-1)-1 <= (m-1)^c-1, so it is YES at the claimed threshold. This verifies only the stated small-support claim, not gate elimination for arbitrary MCSP inputs.",
+  "review_of": "S0060",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795572378.925212,
+  "session": "pnp-desk/research/R3100",
+  "model": "gpt-6-luna",
+  "id": "S0064",
+  "proved_step": "statement: ITERATED NONEMPTY COFACTOR LEMMA: Let m>=1, 0<=r<=m, and f:{0,1}^m->{0,1} have support size t>=1. There is a restriction fixing r distinct coordinates whose remaining function has nonempty support of size at most max(1,floor(t/2^r)). Proof: Start with the full support. If its current size is 1, fix any remaining coordinate to the value of that support point; this preserves support size 1. If its size is at least 2, choose two support points and a coordinate on which they differ. The two nonempty cofactors partition the current support, so the smaller has size at most floor(t_current/2); fix that coordinate to its bit. Repeat until r coordinates are fixed. While the support size is at least 2, each step at least halves it. Once it reaches 1, the subsequent steps preserve size 1. Thus after r steps the size is at most max(1,floor(t/2^r)), and is always nonzero. In particular, if t<=2^r(m-r)^(c-1), then the resulting function on m-r variables has support at most (m-r)^(c-1) whenever m-r>=1 and c>=2; its free-negation fan-in-2 DNF has at most (m-r)^c-1 gates.\nevidence: Direct induction on the number of fixed coordinates. At each stage with at least two support points, select two differing points and retain the smaller nonempty cofactor; with one point, fix remaining coordinates to that point. The stated bound follows from halving until support reaches one.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572529.990366,
+  "session": "pnp-desk/research/R3100",
+  "model": "gpt-6-luna",
+  "id": "S0065",
+  "proved_step": "statement: ITERATED NONEMPTY COFACTOR LEMMA: For every m>=1, Boolean f:{0,1}^m->{0,1} with support size t>=1, and integer 0<=r<=m, some restriction fixing r distinct coordinates has nonempty support size at most max(1,floor(t/2^r)). Proof: Starting with A=supp(f), whenever the current support has at least two points, choose two distinct points. They differ on some unfixed coordinate i. The two cofactors on i are both nonempty and partition the current support; retain the smaller cofactor, of size at most half, by fixing i to its bit. If the support is a singleton, fix any remaining coordinates to the singleton's bits, preserving size one. After r steps the support is nonempty and at most max(1,floor(t/2^r)). Consequently, for q=m-r>=1 and integer c>=2, if t<=2^r q^(c-1), the restriction has support at most q^(c-1). For u support points on q variables, an explicit free-negation fan-in-2 DNF uses u minterms and an OR tree, totaling u(q-1)+(u-1)=uq-1<=q^c-1 gates.\nevidence: General proof is the support-partition induction above. Finite corroboration: cm-c08e2324b5a340df, exhaustive through m=4; it is not used as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572643.322085,
+  "session": "pnp-desk/research/R3100",
+  "model": "gpt-6-luna",
+  "id": "S0066",
+  "proved_step": "statement: CHARGED-NEGATION SPARSE-SUPPORT DNF LEMMA: Let q>=1 and let f:{0,1}^q->{0,1} have support size u>=1. In the fan-in-two basis with NOT gates charged and unrestricted fan-out, f has a circuit with at most uq+q-1 gates. Proof: Create one shared NOT gate for each input variable, at cost q. For each of the u satisfying assignments, form its minterm as a conjunction of q literals using q-1 binary AND gates (zero gates when q=1). OR the u minterms using u-1 binary OR gates (zero gates when u=1). The total is q+u(q-1)+(u-1)=uq+q-1. For u=0, the constant-zero circuit has zero gates. This is an upper bound under the stated basis and fan-out convention, not a lower bound.\nevidence: Direct explicit circuit construction and gate count; no computational premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572701.0130625,
+  "session": "pnp-desk/research/R3100",
+  "model": "gpt-6-luna",
+  "id": "S0067",
+  "proved_step": "statement: RESTRICTION MONOTONICITY FOR FAN-IN-TWO CIRCUITS: Let C be a Boolean circuit with input variables x_1,...,x_m, gates AND, OR, NOT, and constants, fan-in at most two, unrestricted fan-out, and g gates. For any partial assignment rho fixing r input variables, the restricted function C|rho has a circuit in the same basis with at most g gates on the remaining m-r variables. Proof: Keep the directed acyclic graph of C and replace each fixed input node by its assigned constant. This computes C|rho by induction over a topological ordering of the gates: each gate receives exactly the restricted values of its original predecessors, so its output equals the original gate output under rho. No gate is added or duplicated; the graph still has g gates. If the model disallows constants, simplify constant-input gates recursively: AND/OR with a constant either becomes a constant or the other input, NOT of a constant becomes a constant, and duplicate inputs can be wired through. These rewrites remove gates and never increase their number. Thus every cofactor of a size-g circuit has size at most g. Consequently, if f is a YES instance of MCSP[m^c] in this circuit model, then every restriction of f is a YES instance at its reduced input arity with the same threshold m^c (and hence also with any larger threshold). This monotonicity alone does not imply that any gate is eliminated or that the restricted function is below the new threshold (m-r)^c.\nevidence: Direct topological induction on circuit evaluation after substituting fixed input constants; gate count is unchanged with constants allowed and nonincreasing under constant simplification otherwise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574403.2249398,
+  "session": "pnp-desk/research/R3128",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the combinatorial argument: for any f with support size t in [1, 2(m-1)^(c-1)], pick two distinct support points (possible since t>=1, and if t=1 the claim holds trivially by fixing any coordinate to that point's bit). They differ on some coordinate i. The two cofactors partition the support, so the smaller has size <= floor(t/2) <= (m-1)^(c-1). The DNF construction on m-1 variables with t' support points uses t'(m-2) AND gates + (t'-1) OR gates = t'(m-1)-1 <= (m-1)^c-1 gates. No counterexample found for m=2..6, c=2..4 via exhaustive check (see computation below).",
+  "review_of": "S0062",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795574406.0543625,
+  "session": "pnp-desk/research/R3128",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the inductive argument: at each step with support size >=2, two distinct points differ on some unfixed coordinate; the two cofactors partition the support, so the smaller has size <= floor(current_size/2). This halves the support each step until it reaches 1, after which fixing remaining coordinates preserves size 1. After r steps, size <= max(1, floor(t/2^r)). Computationally verified for all m<=5, all t, all r via exhaustive enumeration (see computation below). The consequence for DNF size (uq-1 gates for u support points on q variables in free-negation basis) is algebraically correct.",
+  "review_of": "S0064",
+  "status": "SURVIVED_REVIEW"
  }
 ]

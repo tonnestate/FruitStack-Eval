@@ -6615,5 +6615,101 @@
   "proved_step": "statement: AFFINE RESIDUAL COUNT LEMMA. Let A=[P|D] over GF(2), with P having t columns, and let H={x:Ax=c}. For a prefix p\u2208GF(2)^t define R(p)={z:Dz=c\u2212Pp}. Let \u03c6:GF(2)^t\u2192GF(2)^r/im(D) be \u03c6(p)=Pp+im(D). If c+im(D) is not in im(\u03c6), there are zero nonempty residuals. Otherwise, for any p\u2080 with \u03c6(p\u2080)=c+im(D), the distinct nonempty residuals are in bijection with P(ker \u03c6), so their number is 2^rank(P|ker \u03c6). Proof: R(p) is nonempty exactly when \u03c6(p)=c+im(D), whose solutions are p\u2080+ker \u03c6. The residual is the fiber of D over c\u2212Pp. Two nonempty fibers of D are equal only if their right-hand sides agree: any shared z gives D z equal to both right-hand sides. Thus residuals are indexed injectively by the values Pp for p\u2208p\u2080+ker \u03c6. Those values form Pp\u2080+P(ker \u03c6), which has cardinality |P(ker \u03c6)|=2^rank(P|ker \u03c6).\nderivation: Use the quotient by im(D) to characterize consistent prefixes, then count distinct right-hand sides of the suffix system over that prefix fiber.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795572372.3040311,
+  "session": "pnp-desk/research/R3108",
+  "model": "gpt-6-luna",
+  "evidence": "Complete algebraic proof is included in the step. No computation is needed: the claim is an identity over GF(2) with an explicit state construction.",
+  "id": "S0776",
+  "proved_step": "statement: AFFINE RESIDUAL STATE BOUND. Let A be an r\u00d7N matrix over GF(2), c\u2208GF(2)^r, and F={x\u2208{0,1}^N: Ax=c}. At a cut t, write A=(A_<t | D_+), where A_<t consists of the first t columns and D_+ the remaining columns. For prefix p\u2208{0,1}^t, its exact residual is R_t(p)={z\u2208{0,1}^{N-t}:D_+z=c+A_<t p}. The number of distinct residuals over all p is at most 2^r. They admit an exact r-bit state y(p)=c+A_<t p, with next-bit update y(pb)=y(p)+b a_t, where a_t is column t of A; the update uses O(r) fan-in-two Boolean gates. Proof: The displayed residual identity follows by splitting Ax=c into prefix and suffix terms; subtraction equals addition over GF(2). Each prefix maps to one of at most 2^r vectors y\u2208GF(2)^r, and y determines its residual set by the displayed equation, so there are at most 2^r residuals. Appending b changes the prefix contribution by b a_t, proving the update formula. Each output coordinate is either the corresponding input bit or its XOR with the fixed bit (a_t)_i when b=1; implementing the r conditional XORs costs O(r) fan-in-two gates. This is an exact bound for the affine language subclass only; it gives no transition bound for arbitrary EXT or MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572461.7882967,
+  "session": "pnp-desk/research/R3108",
+  "model": "gpt-6-luna",
+  "id": "S0777",
+  "proved_step": "statement: ONE-HOT RESIDUAL UPDATE BOUND. Let F be any subset of {0,1}^N and 0\u2264t<N. Let D_t be the set of distinct residuals R_t(p)={z\u2208{0,1}^{N\u2212t}:pz\u2208F} over prefixes p\u2208{0,1}^t, and d_t=|D_t|. Encode a current residual R\u2208D_t by its one-hot indicator vector indexed by D_t. There is a fan-in-two Boolean circuit, depending only on F and t, that on this vector and next input bit b outputs the one-hot encoding of R_b={u\u2208{0,1}^{N\u2212t\u22121}:bu\u2208R}; its size is at most 6d_t+1. Proof: For every R\u2208D_t and b\u2208{0,1}, form token q_{R,b}=x_R\u2227\u2113_b, where \u2113_1=b and \u2113_0=\u00acb. This uses 2d_t AND gates and at most one NOT gate. For each R'\u2208D_{t+1}, output y_{R'} as the OR of all tokens q_{R,b} whose section R_b equals R'; if there are none, output constant 0. Each pair (R,b) has exactly one section in D_{t+1}, since R is itself a residual R_t(p), and R_b=R_{t+1}(pb). Hence the token groups partition the 2d_t tokens. Binary OR trees use at most 2d_t additional gates in total. For a one-hot input x_R*, exactly the token for R* and the actual b is 1, so exactly its successor output is 1 and all others are 0. Total size is at most 4d_t+1, hence at most 6d_t+1. This is a bound for the canonical one-hot residual representation only; it proves neither a polynomial bound on d_t for EXT_{n,s} nor a transition bound from an arbitrary MCSP decision circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572611.1419194,
+  "session": "pnp-desk/research/R3108",
+  "model": "gpt-6-luna",
+  "id": "S0778",
+  "proved_step": "statement: FIXED-ORACLE STREAMING STATES BOUND RESIDUALS. Let F be a language of fixed-length strings {0,1}^N. Suppose a deterministic streaming decider M reads input left to right, has at most 2^w internal configurations at every cut (including all persistent work-tape contents and control state), and may make queries to one fixed oracle O. For each cut t, the number d_t of distinct residuals R_t(p)={z in {0,1}^{N-t}: pz in F} is at most 2^w. Proof: Associate to each length-t prefix p the complete configuration c(p) reached after reading p. If c(p)=c(q), then for every suffix z, the future computation on z from that configuration is identical for pz and qz: the machine is deterministic, and every oracle query receives the same answer from the same fixed O. Hence pz is accepted iff qz is accepted for every z, so R_t(p)=R_t(q). Thus the map from reachable configurations at cut t onto residuals is well-defined and surjective, giving d_t\u2264|configurations|\u22642^w. Scope: this is an exact state-count implication for deterministic fixed-oracle streaming deciders. It does not bound the cost of an oracle transition, does not imply a polynomial-size ordinary circuit for EXT or MCSP, and does not transfer a streaming state lower bound to general circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572611.1775458,
+  "session": "pnp-desk/research/R3108",
+  "model": "gpt-6-luna",
+  "id": "S0779",
+  "proved_step": "statement: FIXED-ORACLE STREAMING STATES BOUND RESIDUALS. Let F be a language of fixed-length strings {0,1}^N. Suppose a deterministic streaming decider M reads input left to right, has at most 2^w internal configurations at every cut (including all persistent work-tape contents and control state), and may make queries to one fixed oracle O. For each cut t, the number d_t of distinct residuals R_t(p)={z in {0,1}^{N-t}: pz in F} is at most 2^w. Proof: Associate to each length-t prefix p the complete configuration c(p) reached after reading p. If c(p)=c(q), then for every suffix z, the future computation on z from that configuration is identical for pz and qz: the machine is deterministic, and every oracle query receives the same answer from the same fixed O. Hence pz is accepted iff qz is accepted for every z, so R_t(p)=R_t(q). Thus the map from reachable configurations at cut t onto residuals is well-defined and surjective, giving d_t\u2264|configurations|\u22642^w. Scope: this is an exact state-count implication for deterministic fixed-oracle streaming deciders. It does not bound the cost of an oracle transition, does not imply a polynomial-size ordinary circuit for EXT or MCSP, and does not transfer a streaming state lower bound to general circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572735.4295042,
+  "session": "pnp-desk/research/R3108",
+  "model": "gpt-6-luna",
+  "id": "S0780",
+  "proved_step": "statement: TIME-VARYING TRANSITION UNROLLING. Let M be a deterministic machine reading inputs x_1,...,x_N in order, with a w-bit state after each step. Suppose for each i its state update from (state,x_i) to the next state is computed by a fan-in-two Boolean circuit of at most T gates, and its final accept/reject output from the last state is computed by a fan-in-two circuit of at most T gates. Then M's decision function on {0,1}^N has a fan-in-two Boolean circuit of at most NT+T gates. Proof: Construct a layered circuit with one copy of the i-th update circuit at each position i, wiring its state inputs to the preceding layer and its input-bit input to x_i; initialize the first layer with M's fixed initial-state constants. By induction on i, the wires after layer i equal M's state after reading x_1,...,x_i. Apply the final decision circuit to the last layer. The resulting circuit computes M's decision function, and its gate count is at most the sum of N update-circuit sizes plus T, hence at most NT+T. Scope: this is conditional on ordinary fan-in-two circuits for every transition. It does not simulate oracle transitions or establish such circuits for the MMW19 EXT prefix machine.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574029.141035,
+  "session": "pnp-desk/research/R3124",
+  "model": "gpt-6-luna",
+  "evidence": "Complete coordinatewise proof is included. A bounded exhaustive discovery check on all families through N=3 and families of size at most two at N=4 is being run; its result is separate and is not used as proof.",
+  "id": "S0781",
+  "proved_step": "statement: CANDIDATE-FILTERING AUTOMATON FOR EXT. Let F=(f_1,...,f_M) be any finite indexed family of words in {0,1}^N, allowing duplicates, and let L_F={f_i:i<=M}. At depth t and prefix p in {0,1}^t, store q_p in {0,1}^M with q_p[i]=1 iff f_i has prefix p. The residual of L_F after p is exactly {f_i[t:N]:q_p[i]=1}. On reading b, update q_p to q_pb by q_pb[i]=q_p[i] AND [f_i(t)=b]. Thus the update is a stage-specific fan-in-two Boolean circuit with at most M AND gates (the selectors [f_i(t)=b] are constants), and EXT acceptance at a prefix is the OR of the M state bits. Proof: For each i, f_i has prefix pb iff it has prefix p and its t-th coordinate equals b, proving the update coordinatewise. A suffix z is in the residual iff some i with q_p[i]=1 has suffix f_i[t:N]=z, precisely the definition of membership in L_F after prefix p. The disjunction of state bits is true iff at least one listed word extends p. For EXT_{n,s}, take F to be the indexed list of truth tables of all size-at-most-s circuits; this gives an exact, generally exponential-state representation and an O(M)-gate update after stage-specific candidate bits are available. It does not bound transition cost by a bounded number of operations on H_C or imply a statement about arbitrary MCSP decision circuits.\nderivation: Maintain one live bit per candidate truth table. Inductively q_p[i]=1 iff candidate i matches the consumed prefix. After b, candidate i remains live exactly when q_p[i]=1 and its fixed t-th output equals b. This establishes the update, residual characterization, and acceptance test.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574092.485973,
+  "session": "pnp-desk/research/R3124",
+  "model": "gpt-6-luna",
+  "evidence": "Direct coordinatewise proof; no computational extrapolation. Barrier diagnostic for this explicit-family lemma: relativizing\u2014yes (pure set filtering); natural\u2014no claim of a lower bound or useful property; algebrizing\u2014no algebraic argument; localizing\u2014no lower-bound argument. Circumvention tests are not implicated because this is an exact representation lemma, not a claimed P!=NP result.",
+  "id": "S0782",
+  "proved_step": "statement: EXACT EXT ACCEPTANCE FROM CANDIDATE FILTERING. Let N,M be positive integers and F=(f_1,...,f_M) an explicitly specified indexed family in {0,1}^N. For each prefix p in {0,1}^t, 0<=t<=N, define q_p in {0,1}^M by q_p[i]=1 iff f_i[1..t]=p. Then p is an extendable prefix of F (that is, there exists f in F with prefix p) if and only if OR_i q_p[i]=1. For t<N and b in {0,1}, q_{pb}[i]=q_p[i] AND [f_i[t+1]=b]. Given the stage-t candidate-output bits a_i=[f_i[t+1]=b], this transition and acceptance test have Boolean circuits of O(M) fan-in-2 gates. Proof: By definition, q_p[i]=1 exactly for indices whose word agrees with p on the first t positions. Such a word exists precisely when at least one coordinate is 1, proving the acceptance equivalence. An index agrees with pb exactly when it agrees with p and its next bit equals b, which is the displayed coordinatewise conjunction. Implement M conjunction gates and an OR tree with M-1 gates (with the M=1 boundary handled by a wire); total O(M). The argument gives a uniform construction from the explicit family and stage bits, but makes no claim that those bits or the family can be constructed in polynomial time from an arbitrary circuit class H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795574298.595276,
+  "session": "pnp-desk/research/R3124",
+  "model": "gpt-6-luna",
+  "id": "S0783",
+  "proved_step": "statement: RESIDUAL DISTINGUISHABILITY FOR EXACT STREAMING STATES. Let F be a language of binary strings of length N and fix 0<=t<=N. For each prefix p in {0,1}^t define R_t(p)={z in {0,1}^{N-t}: pz in F}, and let d_t be the number of distinct such residual sets. Any deterministic one-pass streaming algorithm that decides F exactly after reading all N bits must have at least d_t distinct internal states after t input bits. Proof: If prefixes p and q lead to the same internal state, then determinism implies that for every common suffix z the algorithm has the same final state and output on pz and qz. Exactness therefore implies pz in F iff qz in F for every z, so R_t(p)=R_t(q). Thus prefixes inducing distinct residuals must induce distinct internal states, giving at least d_t states. Consequently the workspace is at least ceil(log2 d_t) bits. This is a representation-independent workspace bound; it gives no lower bound on update time and does not establish that d_t is large for EXT_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795574809.4346933,
+  "session": "pnp-desk/research/R3124",
+  "model": "gpt-6-luna",
+  "evidence": "At r=0, the conjunction has no equations and is the constant-1 predicate. If the output/constant requires a gate, the claimed O(r(t+1)) bound is zero and omits that cost. The linear-algebra criterion remains valid; the gate bound needs an additive constant. Independent finite boundary verification was requested.",
+  "review_of": "S0729",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795574809.4714143,
+  "session": "pnp-desk/research/R3124",
+  "model": "gpt-6-luna",
+  "id": "S0785",
+  "proved_step": "REPAIR: AFFINE SUFFIX-PROJECTION CIRCUIT BOUND WITH EMPTY-SYSTEM COST. Let A be an r by N matrix over GF(2), c in GF(2)^r, and H(x)=1 iff Ax=c. Fix 0<=t<N; write A=(A_<t | a_t | D_+), and let V have columns forming a basis of ker(D_+^T). Then E_H(pb)=1 iff V^T(c+A_<t p+b a_t)=0, and this predicate has a fan-in-two Boolean circuit of O(1+r(t+1)) gates with A,c,V hardwired, counting constants/output as O(1). Proof: A completion z exists iff D_+z=c+A_<t p+b a_t. By orthogonality and rank-nullity, im(D_+)=(ker(D_+^T))^perp, so completion is equivalent to the displayed parity equations. There are at most r equations, each an affine parity of at most t+1 input bits, computable with O(t+1) fan-in-two gates. Their conjunction costs O(r) gates; add O(1) for the output/constant boundary case. Gaussian elimination computes V in polynomial time. This concerns only affine GF(2) suffix projection, not arbitrary EXT or MCSP transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
  }
 ]
