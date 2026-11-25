@@ -637,5 +637,32 @@
   "evidence": "Verified the explicit construction: create q shared NOT gates for negated literals. For each of u satisfying assignments, build its minterm as a conjunction of q literals using q-1 binary AND gates (0 gates when q=1). Combine u minterms with u-1 binary OR gates (0 when u=1). Total: q (NOTs) + u(q-1) (ANDs) + (u-1) (ORs) = uq + q - 1. For u=0, constant-zero circuit has 0 gates. The construction is correct for the stated basis and fan-out convention. Gate count is exact and matches the formula for all q>=1, u>=1. No counterexample exists.",
   "review_of": "S0066",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795585231.2129066,
+  "session": "pnp-desk/research/R3252",
+  "model": "gpt-6-luna",
+  "id": "S0073",
+  "proved_step": "statement: Balanced cofactor lemma. Let m>=1 and f:{0,1}^m->{0,1} have support size t. For every coordinate i, one of the restrictions x_i=b has support at most floor(t/2).\nproof: Fix any coordinate i. Let t_0 and t_1 be the numbers of satisfying assignments with x_i=0 and x_i=1, respectively. These disjoint slices partition the support, so t_0+t_1=t. Thus min(t_0,t_1)<=t/2; since it is integral, min(t_0,t_1)<=floor(t/2). Choosing b attaining this minimum gives a cofactor whose support is exactly t_b, hence at most floor(t/2). This statement permits the chosen cofactor to be empty; it does not imply that a nonempty cofactor has this bound or remains a YES instance at threshold (m-1)^c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795585313.4195094,
+  "session": "pnp-desk/research/R3252",
+  "model": "gpt-6-luna",
+  "id": "S0074",
+  "proved_step": "statement: Multi-coordinate sparse-cofactor lemma. Let f:{0,1}^m->{0,1} have support size t, and fix any set I of k distinct coordinates, 0<=k<=m. Among the 2^k restrictions rho to I, some cofactor f|rho has support t_rho<=floor(t/2^k). If t_rho>=1, that cofactor has a fan-in-two AND/OR circuit with free input negations of at most max(0,(m-k)t_rho-1) gates.\nproof: The 2^k subcubes obtained by fixing I partition {0,1}^m, so their support counts are nonnegative integers summing to t. Their minimum is at most floor(t/2^k), proving the first claim. For a selected restriction with t_rho>=1, put q=m-k. If q>=1, express its t_rho satisfying assignments as full minterms on the q remaining variables. Each minterm costs at most q-1 binary AND gates, and combining the terms costs t_rho-1 binary OR gates, for at most q*t_rho-1 gates. If q=0, the restricted function is constant 1 and costs zero gates. Thus the size is at most max(0,q*t_rho-1) in all cases. This proves the stated construction; it does not assert that the cofactor is hard or satisfies any separate MCSP threshold.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795585806.2028506,
+  "session": "pnp-desk/research/R3252",
+  "model": "gpt-6-luna",
+  "id": "S0075",
+  "proved_step": "statement: Simultaneous cofactor implementation bound. Let f:{0,1}^m->{0,1} have support size t>=1. Fix k coordinates, let q=m-k, and let r be the number of nonempty cofactors after fixing them. If q>=1, the sum of the separate fan-in-two AND/OR circuit sizes of these 2^k cofactors, with free input negations, is at most q*t-r (and hence at most q*t-1). Empty cofactors use zero gates. If q=0, the total is zero.\nproof: For each restriction rho, let t_rho be the support size of its cofactor. The restrictions partition {0,1}^m, so sum_rho t_rho=t. For each nonempty cofactor, write its t_rho satisfying assignments as q-bit minterms, each costing q-1 binary AND gates, and combine the minterms with t_rho-1 binary OR gates. Its cost is at most t_rho(q-1)+(t_rho-1)=q*t_rho-1. Summing over the r nonempty cofactors gives at most q*sum_rho t_rho-r=q*t-r. If q=0, every cofactor is constant and is implementable with zero gates.\nevidence: Direct proof by summing the explicit minterm construction over the disjoint cofactor partition. This is an upper bound only; no hardness-preservation or lower-bound conclusion is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

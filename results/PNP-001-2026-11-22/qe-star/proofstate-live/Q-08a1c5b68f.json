@@ -5743,5 +5743,100 @@
   "evidence": "Exact computation over SC_{3,1} confirms: (1) |SC_{3,1}| = 38 truth tables (excluding constants), (2) Layer t=4 minimum residual states = 13, matching claimed value. The residual-machine construction is verified: distinct R_t(p) sets map to distinct machine states, transitions correctly update R_t(p) by appending bits, accept state is {\u03b5}. Verified via exhaustive enumeration over all 38 truth tables in SC_{3,1}.",
   "review_of": "S0555",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795583755.5975585,
+  "session": "pnp-desk/research/R3201",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The shared-minterm construction is correct: build all 2^d full-assignment minterms incrementally using sum_{k=2}^d 2^k = 2^(d+1)-4 AND gates (each length-k signed prefix conjunction from length-(k-1) prefix AND next literal). For each of q outputs, XOR the minterms where output=1; at most 2^d-1 XOR gates per output since minterms are pairwise disjoint (exactly one true per input). Total gates: 2^(d+1)-4 + q(2^d-1). This is a standard upper bound, not claimed optimal. No counterexample exists for this constructive upper bound.",
+  "review_of": "S0556",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795583755.6377795,
+  "session": "pnp-desk/research/R3201",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction applies the shared-minterm bound (S0556) to the update map with d=S+1 inputs (S state bits + 1 input bit) and q=S outputs (next state bits). This yields at most 2^(S+2)-4 + S(2^(S+1)-1) gates. The argument is a direct substitution and is mathematically sound as an upper bound. No counterexample exists for this constructive upper bound.",
+  "review_of": "S0557",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795584537.1897633,
+  "session": "pnp-desk/research/R3201",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Proof is correct: distinct live prefixes must have distinct states (by residual-set separation argument). Dead prefix needs separate state if it exists. Bit bound follows from 2^b >= state count. No gap found.",
+  "review_of": "S0558",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795585378.8998976,
+  "session": "pnp-desk/research/R3242",
+  "model": "gpt-6-luna",
+  "id": "S0668",
+  "proved_step": "statement: If a layered transducer starts in a fixed state, has S bits, and every transition output is a constant or a literal of one state bit or the incoming bit, then after t updates each state bit is a constant or a literal of one of the t input bits. Therefore, if every length-t prefix is live and distinct live prefixes require distinct states, S>=t.\nProof: Induct on updates. Substitution of a constant or literal into a constant-or-literal transition preserves that form. Hence the S state bits together depend on at most S input positions. If S<t, one position is absent from every state bit; flipping it preserves the state, contradicting injectivity on all 2^t live prefixes.\nScope: Fixed initial state, literal/constant transitions, full live layer, SEARCH semantics. No positive gate lower bound for SC families or decoder bound follows.\nscope: Finite layered transducers at a specified layer t.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795585460.866203,
+  "session": "pnp-desk/research/R3242",
+  "model": "gpt-6-luna",
+  "id": "S0669",
+  "proved_step": "statement: Bounded-gate support lemma. Let a layered transducer have S state bits, a fixed initial state, and at most G fan-in-two gates per update; NOTs and constants are free and fan-out is unrestricted. After t updates, each state bit depends on at most (G+1)^t input positions. Therefore, if every length-t prefix is live and live prefixes must have distinct states, then t <= S(G+1)^t.\nProof: An output of a circuit with g fan-in-two gates depends on at most g+1 distinct primary inputs: its ancestor circuit is connected, and adding each binary gate can introduce at most one new input leaf. Thus each next-state bit depends on at most G+1 previous state bits or the new input. At t=0 its support is empty. Inductively, its support after t updates is a union of at most G+1 earlier supports, each of size at most (G+1)^(t-1), so has size at most (G+1)^t. Across S coordinates, at most S(G+1)^t input positions affect the state. If this is less than t, some position affects no coordinate; flipping it leaves the state unchanged, contradicting injectivity on all 2^t live prefixes. Hence the necessary inequality.\nScope: Finite layered transducers under the stated gate basis, fixed initial state, and SEARCH injectivity on a full live layer. This weak bound does not establish a positive gate lower bound for SC instances or constrain decoder cost.\nscope: All integers S>=1, G>=0, t>=1 in the stated finite transducer model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795585494.0196655,
+  "session": "pnp-desk/research/R3242",
+  "model": "gpt-6-luna",
+  "id": "S0670",
+  "proved_step": "statement: Corrected bounded-gate support lemma. Let a layered transducer start in a fixed state and use S state bits. Each update computes each next-state bit with a fan-in-two circuit containing at most G counted gates; NOTs and constants are free and fan-out is unrestricted. If A_t is the maximum, over state bits after t updates, of the number of input positions on which that bit depends, then for G>=1, A_t <= ((G+1)^t-1)/G. Consequently, if all 2^t length-t prefixes are live and must have distinct states, then t <= S*((G+1)^t-1)/G. For G=0, each state bit after t updates is a constant or a literal of one input bit, so injectivity requires S>=t.\nProof: A circuit with at most G binary gates has at most G+1 distinct primary inputs in the ancestor set of any output: tracing backward from that output gives a connected binary-gate graph, and each gate can add at most one new input leaf. Thus one next-state bit depends on at most G+1 prior state bits and the newly read bit. If each prior state bit depends on at most A_(t-1) input positions, the next bit depends on at most (G+1)A_(t-1)+1 positions. Since A_0=0, induction gives A_t <= 1+(G+1)+...+(G+1)^(t-1)=((G+1)^t-1)/G. Across S state bits, at most S*A_t positions can affect the state. If this is less than t, an input position is absent from every state bit, so flipping that position preserves the state, contradicting injectivity over all 2^t prefixes. For G=0, every output is a constant or a literal of one state bit or the new input; induction shows each final coordinate is a constant or a literal of one input position, and the same absent-position argument gives S>=t.\nScope: Finite layered transducers in the stated circuit basis, fixed initial state, and SEARCH injectivity on a full live layer. This necessary condition does not establish a positive gate lower bound for SC instances or constrain decoder cost.\nscope: All integers S>=1, G>=0, t>=1 in the stated finite transducer model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795585793.6639647,
+  "session": "pnp-desk/research/R3261",
+  "model": "gpt-6-luna",
+  "id": "S0671",
+  "proved_step": "statement: Let F be a proper subset of {0,1}^N. A deterministic streaming transducer that, after reading each length-N word, outputs a circuit computing that word when it belongs to F and rejects otherwise must have at least |F|+1 distinct final states. Thus if its state has S bits, 2^S >= |F|+1.\nproof: For each f in F, let q_f be the final state reached on input f. If distinct f,g in F reached the same state, the deterministic decoder would return the same circuit on both inputs. A circuit computes one fixed truth table, so it cannot be a valid witness for both distinct tables; contradiction. Since F is proper, choose h outside F. If h reached q_f for some f in F, the decoder would have to both output a valid witness and reject on that same state; contradiction. Therefore the |F| states q_f are pairwise distinct and are distinct from the state reached on h, giving at least |F|+1 states. An S-bit state space has at most 2^S states.\nscope: Finite truth-table witness-output transducers with deterministic final decoder, correct on every length-N input, and F a proper subset of all length-N Boolean tables. This is a necessary final-state bound only; it gives no transition-gate or decoder-size bound.\nevidence: Direct argument; no experiment is needed for the general statement. The cited finite recount cm-3dbdfac4ac3547a7 checks |SC_{3,1}|=38 only and is not used as proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795586220.240917,
+  "session": "pnp-desk/research/R3263",
+  "model": "gpt-6-luna",
+  "id": "S0672",
+  "proved_step": "statement: Let A be a deterministic layered transducer whose output depends only on its final state. If equal-length prefixes p and q reach the same state, then for every suffix z such that both pz and qz are accepted, their valid-witness sets intersect.\nproof: Starting from the same state and processing the same suffix follows identical transitions, so both completed inputs reach the same final state. The final-state-only decoder returns the same output w for each. Soundness on both accepted inputs implies w is a valid witness for both, so the two valid-witness sets intersect.\nscope: Finite deterministic layered search transducers with final-state-only decoding and sound outputs on accepted inputs. This qualitative criterion alone gives no SC_{n,s} state or update-cost lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d25720b26b",
+  "closes_valid": true
+ },
+ {
+  "at": 1795586272.1046782,
+  "session": "pnp-desk/research/R3263",
+  "model": "gpt-6-luna",
+  "id": "S0673",
+  "proved_step": "statement: Let F be a finite search language with a deterministic layered transducer and a final-state-only sound decoder. At cut t, form a graph H_t whose vertices are accepted length-t prefixes; join p and q if some common suffix z makes both pz and qz accepted and their valid-witness sets disjoint. Then the number of states used at layer t is at least chi(H_t).\nproof: For any edge {p,q}, choose its witnessing suffix z. If p and q reached the same state at layer t, determinism implies that after reading z they reach the same final state. The decoder then returns the same output w on pz and qz. Soundness makes w a valid witness for both accepted completions, contradicting that their valid-witness sets are disjoint. Hence every edge has endpoints assigned distinct layer-t states. The state assignment is a proper coloring of H_t, so the layer uses at least chi(H_t) states.\nscope: Any finite search language and deterministic layered transducer with final-state-only decoding, sound on every accepted input. This is conditional on H_t; it gives no numerical lower bound for SC_{n,s} until H_t is computed or bounded there.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d25720b26b",
+  "closes_valid": true
+ },
+ {
+  "at": 1795586373.6111073,
+  "session": "pnp-desk/research/R3263",
+  "model": "gpt-6-luna",
+  "id": "S0674",
+  "proved_step": "statement: Let F be a finite search language with accepted length-t prefix set P_t and a sound deterministic layered transducer with a final-state-only decoder. Suppose that for every distinct p,q in P_t there is a suffix z such that both pz and qz are accepted and W(pz) intersect W(qz) is empty. Then the transducer has at least |P_t| states at layer t.\nproof: Take distinct p,q in P_t and choose the suffix guaranteed by the hypothesis. If p and q reached the same layer-t state, deterministic processing of the identical suffix would lead to the same final state. The decoder would return one output w on both completions. Soundness requires w to belong to both valid-witness sets, contradicting their empty intersection. Thus distinct prefixes reach distinct states, so there are at least |P_t| states at layer t.\nscope: Finite search languages with deterministic layered transitions, a final-state-only decoder, and sound outputs on accepted inputs. The pairwise suffix condition is a hypothesis; this does not assert it for SC_{n,s} or imply an update-gate lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d25720b26b",
+  "closes_valid": true
  }
 ]

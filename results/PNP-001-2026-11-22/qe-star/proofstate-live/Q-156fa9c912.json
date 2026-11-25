@@ -6719,5 +6719,56 @@
   "evidence": "Verified the combinatorial argument: each level-t residual R splits into two sections R_0, R_1 at level t+1. The pair (R_0,R_1) uniquely determines R (R = {0u: u in R_0} U {1u: u in R_1}), so number of possible parents d_t <= (number of children d_{t+1})^2. Each parent has at most 2 sections, so total children d_{t+1} <= 2 * d_t. Tested on small examples (N=2, various F) and the inequalities hold exactly. No counterexample or argument gap found. This is a basic property of residual sets / Myhill-Nerode equivalence classes.",
   "review_of": "S0732",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795582948.6344717,
+  "session": "pnp-desk/research/R3220",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified mathematically: B_{pb}[u]=1 iff pbu in F; B_p[b||u]=1 iff p(b||u)=pbu in F; equality holds. Circuit uses one 2-to-1 mux per output bit (O(1) fan-in-2 gates), 2^{N-t-1} outputs => O(2^{N-t-1}) gates. For fixed b, each output is a wire projection. No gap found.",
+  "review_of": "S0731",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795585775.239776,
+  "session": "pnp-desk/research/R3260",
+  "model": "gpt-6-luna",
+  "evidence": "Direct proof included in derivation; no computational evidence.",
+  "id": "S0788",
+  "proved_step": "statement: RESIDUAL QUOTIENT TRANSITION LEMMA. For every finite L subseteq {0,1}^N and t<N, the map from a depth-t residual class [p] and bit b to the depth-(t+1) class [pb] is well-defined. Its residual is exactly the b-section of R_t(p). Therefore the layered minimal deterministic recognizer has r_t states at depth t, where r_t is the number of distinct residual sets.\nderivation: If R_t(p)=R_t(q), then for every suffix u of length N-t-1, u is in R_{t+1}(pb) iff pbu is in L iff bu is in R_t(p). Equality of the parent residuals makes this equivalent to qbu in L, hence u is in R_{t+1}(qb). Thus child residuals agree and the transition is representative-independent. Distinct residuals require distinct states, since a suffix in their symmetric difference distinguishes the prefixes; storing the residual and updating by taking sections suffices.\nscope: Finite fixed-length Boolean languages and position-dependent deterministic streaming recognizers. This is an information/state characterization only; no gate-cost bound for succinct transitions follows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795585804.099074,
+  "session": "pnp-desk/research/R3260",
+  "model": "gpt-6-luna",
+  "evidence": "This checks S0734's claimed isomorphism between the residual-transition structure and the prefix trie. Residual equivalence classes identify prefixes with equal continuation languages, so the structure is the quotient trie (the minimal layered recognizer), not necessarily the trie itself. Counterexample: L={00,10}; prefixes 0 and 1 at depth 1 are distinct trie nodes but both have residual {0}. This does not refute the separate upper bound on residual-class count. No transition gate-cost bound follows.",
+  "review_of": "S0734",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795585922.841398,
+  "session": "pnp-desk/research/R3260",
+  "model": "gpt-6-luna",
+  "gap": "Main assigned gap remains open: give an explicit representation of each EXT_{n,s} residual transition using a bounded number of operations on H_C, charge those operations in real Boolean gates rather than oracle calls, and determine whether the representation applies to arbitrary MCSP decision circuits. The residual quotient transition lemma S0788 establishes only that the map is well-defined. Do not infer a gate-cost bound from the state characterization.",
+  "gap_id": "G0195"
+ },
+ {
+  "at": 1795586292.0287335,
+  "session": "pnp-desk/research/R3260",
+  "model": "gpt-6-luna",
+  "id": "S0791",
+  "proved_step": "statement: TRACE-COFACTOR UNIQUENESS LEMMA. Let C be a fan-in-two Boolean circuit with g gates, input x in {0,1}^N, and designated output gate o. Introduce one witness bit y_i per gate and define H_C(x,y) as the conjunction of y_o=1 and, for each gate i, y_i equals gate_i(x,y_{<i}), with gates in topological order. Then (i) for every x there is exactly one y satisfying all gate equations, namely C's evaluation trace; (ii) H_C(x,y)=1 exactly when C(x)=1 and y is that trace; (iii) fixing any input prefix p gives H_{C,p}(z,y)=H_C(pz,y), with the same gate equations and a unique trace for every z. Thus exists y H_{C,p}(z,y)=C(pz).\nderivation: Induct in topological gate order. Given x and the earlier witness bits, gate i has a uniquely determined Boolean value, so its equation forces exactly one y_i. This proves existence and uniqueness of the complete trace. The output conjunct holds exactly when the trace's output bit is 1, proving (ii). For (iii), substitute the fixed prefix constants into the input wires. This changes no gate equation and adds no witness choices, so the same induction gives one trace for each suffix z. Existentially quantifying that trace accepts exactly when C(pz)=1. This establishes exact cofactoring of the verifier relation; it does not bound the cost of compiling its existential projection from H_C alone.\nscope: Finite fan-in-two Boolean circuits with a fixed topological gate order, any input length, and any fixed prefix. No bound is claimed for compiling the projection z -> exists y H_{C,p}(z,y) from a succinct H_C description, nor for arbitrary MCSP decision circuits.\ndiagnostic_barriers: Relativizing: the identity relativizes, including oracle gates with their answers in the trace. Natural: no lower-bound argument is claimed. Algebrizing: no algebraic extension is used or ruled out. Localizing: the local gate equations are compatible with locality; no lower-bound mechanism is claimed. Circumvention tests are inapplicable because this is not a P!=NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795586373.6402967,
+  "session": "pnp-desk/research/R3268",
+  "model": "gpt-6-luna",
+  "id": "S0792",
+  "proved_step": "statement: REPAIRED LAYERED RESIDUAL IMPLEMENTATION BOUND. For any L subset {0,1}^N, let r_t be the number of distinct residual languages after length-t prefixes. A deterministic length-N recognizer with position-dependent transitions uses max_t r_t state labels, and at least r_t labels are necessary at each fixed depth t.\nderivation: Set W=max_t r_t. For each t, inject the residuals at depth t into [W] using a code c_t. Initialize at c_0(L). At layer t, on bit b, send c_t(R) to c_{t+1}(R_b), where R_b={z:bz in R}. This is well-defined because the source code identifies R and R_b is determined by R. Define transitions arbitrarily on labels unused at layer t. At depth N accept c_N(R) exactly when the empty string belongs to R. By induction the state after prefix p is c_t(R_t(p)), so the machine recognizes L. Reuse across layers is valid because the transition function may depend on t and acceptance is terminal. Conversely, two distinct residuals at the same depth cannot share a state: a suffix distinguishing them would then have to produce the same acceptance. Hence at least r_t labels are necessary at depth t.\nscope: Finite Boolean language of fixed length N; deterministic recognizer with position-dependent transitions and terminal acceptance. This bounds state labels only and says nothing about gate cost for succinctly implementing transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
