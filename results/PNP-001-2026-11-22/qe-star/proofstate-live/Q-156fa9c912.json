@@ -7691,5 +7691,29 @@
   "proved_step": "statement: SURVIVOR-MASK EXTENSION LEMMA. Let F={f_1,...,f_M} be a finite indexed family of Boolean strings of length N, with each f_j explicitly available. At prefix length t, let A(p)={j:f_j[1..t]=p}. The mask m(p) in {0,1}^M whose jth bit is 1 iff j is in A(p) is an exact representation of EXT_F(p): EXT_F(p)=1 iff |A(p)|>0. Given m(p) and next bit b, the mask m(pb) is computed by M fan-in-two gates, one per index, since m'_j=m_j AND [f_j[t+1]=b], where bracket is a hardwired constant. For all prefixes and all t<N, induction gives the invariant that m(p) marks exactly the family members extending p. Consequently, after preprocessing the explicit family, the entire EXT_F automaton has a deterministic transition circuit of size M at each level and uses M state bits; preprocessing time is O(MN). Proof: At t=0 all indices extend the empty prefix. Assuming the invariant at p, index j extends pb iff it extends p and its (t+1)st bit equals b. This is precisely the displayed update. Induction proves exactness. The output bit is the OR of the M mask bits, so acceptance is also computable in at most M-1 additional gates. The representation and cost are explicit-family bounds; they do not imply a polynomial-size transition on a succinct circuit description of the family or on arbitrary MCSP decision circuits.\nderivation: Induction on prefix length using the coordinatewise filter; the per-coordinate predicate is constant after fixing the explicit family and level.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795630888.1129627,
+  "session": "pnp-desk/research/R3820",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim correctly establishes that for the literal-prefix representation (H,p), the transition (H,p) -> (H,pb) is exact with zero additional gates in H. Proof: L_{pb}(v) = 1 iff exists w H(pbv,w) = 1 = L_p(bv) by definition of L_p. The transition only appends b to stored prefix p; H is unchanged so gate count remains h. This is a valid lemma about this representation, though explicitly not compact (stores t+1 prefix bits). No counterexample exists - the argument is mathematically sound for the stated representation.",
+  "review_of": "S0745",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795630967.3646204,
+  "session": "pnp-desk/research/R3820",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The one-hot transition construction is mathematically correct. For any subset F, the residuals at consecutive levels are well-defined. Given one-hot encoding q of R_i at level t, the child residual R_i^b = {u : bu in R_i} is exactly one of the level-(t+1) residuals U_j. The construction a_ib = q_i AND b (or NOT b) followed by q'_j = OR of a_ib with j(i,b)=j correctly computes the one-hot encoding at level t+1. The gate count is at most 2d conjunctions + at most 2d OR gates (binary trees), so O(d+e) is correct. Verified by explicit construction on the even-parity example (F={000,011,101,110}) where d=2, e=2 and transitions work perfectly. The lemma correctly notes this applies to canonical one-hot states, not compressed encodings.",
+  "review_of": "S0752",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795631235.0468113,
+  "session": "pnp-desk/research/R3820",
+  "model": "laguna-xs-2.1",
+  "evidence": "Verified construction: for explicit list of M strings, transition uses at most M AND gates (each a_j AND [f_j(t)=b]). The bracket is hardwired constant 0/1, so this is correct. The invariant a_j=1 iff f_j agrees with prefix on first t coordinates holds by induction. Example verified on F={000,011,101,110}.",
+  "review_of": "S0755",
+  "status": "SURVIVED_REVIEW"
  }
 ]

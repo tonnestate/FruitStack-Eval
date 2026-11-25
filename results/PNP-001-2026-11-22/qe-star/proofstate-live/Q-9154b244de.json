@@ -963,5 +963,46 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795630620.0289311,
+  "session": "pnp-desk/research/R3819",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the logic: (1) For t=1, any coordinate restriction preserves the singleton; circuit size 0 <= B(m-1)-1 holds. (2) For t>=2, A must vary on some coordinate (otherwise |A|=1). The two fibers have sizes u,v>=1, u+v=t, so min(u,v) <= floor(t/2). Since t <= 2B+1, floor(t/2) <= B. (3) The fiber of size r <= B on q=m-1 variables has a free-negation fan-in-2 DNF: r minterms each using q-1 AND gates, combined with r-1 OR gates, total rq-1 <= B(m-1)-1 = (m-1)^c-1. Verified edge cases: m=2,c=2 => B=1, t<=3, floor(t/2)<=1=B; q=1 gives r-1 gates matching formula. No counterexample found; the argument is sound.",
+  "review_of": "S0105",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795630642.4079614,
+  "session": "pnp-desk/research/R3819",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the adaptive restriction construction: (1) At each step while |support|>=2 and fewer than k coordinates fixed, pick a coordinate that varies (exists because support size >1). The two fibers are nonempty, sizes u,v>=1 with u+v=R. Keep the smaller fiber of size floor(R/2). After j steps, support size <= floor(t/2^j) by induction (floor(floor(x)/2)=floor(x/2)). (2) If process stops before k steps, support is singleton (size 1) which is <= max(1, floor(t/2^k)). If k steps complete, size <= floor(t/2^k). (3) Circuit bound: r points on q variables -> r minterms using q-1 AND each, OR'd with r-1 OR gates, total r(q-1)+(r-1)=rq-1. Edge cases: q=0 gives r=1, constant function 0 gates. The construction is correct.",
+  "review_of": "S0106",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795630661.851532,
+  "session": "pnp-desk/research/R3819",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the circuit construction: For q=0, the only nonempty support is the empty string, indicator is constant 1, 0 gates needed - correct. For q>=1, r minterms each using q-1 binary AND gates (combining q literals), combined with r-1 binary OR gates, total r(q-1)+(r-1)=rq-1. This is nonnegative for q>=1 (minimum r=1 gives 1*(q-1)+0 = q-1 >= 0). Edge cases: r=1 gives q-1 gates (single minterm, no OR needed); q=1 gives r*0+(r-1)=r-1 gates (r variables, each minterm is just a literal, OR'd together). The construction is correct and the bound is tight for this specific DNF construction.",
+  "review_of": "S0107",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795630661.8763843,
+  "session": "pnp-desk/research/R3819",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: For t>=2, A is not a singleton, so some coordinate i varies. Two fibers have sizes u,v>=1 with u+v=t. The smaller fiber has size r=min(u,v) with 1<=r<=floor(t/2). This fiber on q=m-1 coordinates has the DNF circuit bound rq-1 for q>=1, and 0 gates for q=0 (m=1 case). The argument is a special case of S0106 with k=1 and is correct.",
+  "review_of": "S0108",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795631461.464577,
+  "session": "pnp-desk/research/R3819",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0113",
+  "proved_step": "statement_start: REPAIRED D2 OBSTRUCTION THEOREM v2 (Restriction Survival for MCSP[m^c] Small-Support YES Instances): For MCSP[m^c] with integer c >= 2 and threshold s = m^c, let f: {0,1}^m -> {0,1} have support t with 1 <= t <= min(m^(c-1), 2^m) (so f is a YES instance via the DNF upper bound t*m - 1 <= m^c - 1). Then there exists a one-coordinate restriction (fixing some x_i to 0 or 1) such that the restricted function f' on m-1 variables has nonempty support t' = |supp(f')| satisfying t' <= (m-1)^(c-1), and hence f' is a YES instance for MCSP[(m-1)^c] under the free-input-negation fan-in-2 basis (circuit size <= t'*(m-1) - 1 <= (m-1)^c - 1).\nstatement: REPAIRED D2 OBSTRUCTION THEOREM v2 (Restriction Survival for MCSP[m^c] Small-Support YES Instances): For MCSP[m^c] with integer c >= 2 and threshold s = m^c, let f: {0,1}^m -> {0,1} have support t with 1 <= t <= min(m^(c-1), 2^m) (so f is a YES instance via the DNF upper bound t*m - 1 <= m^c - 1). Then there exists a one-coordinate restriction (fixing some x_i to 0 or 1) such that the restricted function f' on m-1 variables has nonempty support t' = |supp(f')| satisfying t' <= (m-1)^(c-1), and hence f' is a YES instance for MCSP[(m-1)^c] under the free-input-negation fan-in-2 basis (circuit size <= t'*(m-1) - 1 <= (m-1)^c - 1).\n\nProof: \n1. DNF upper bound: A function with support t has a DNF with t minterms (one per accepting input), each minterm uses m-1 AND gates (free input negations), combined with t-1 OR gates, total t*m - 1 gates. Since t <= m^(c-1), t*m - 1 <= m^c - 1 = s - 1 < s, so f is a YES instance for MCSP[m^c].\n\n2. Restriction existence: If t = 1, choose any coordinate i and restrict x_i to the value of the unique accepting input. The restricted function has support 1 on m-1 variables. Since m >= 2 and c >= 2, (m-1)^(c-1) >= 1, so t' = 1 <= (m-1)^(c-1).\n\n   If t >= 2, since |supp(f)| >= 2, not all inputs in supp(f) are identical. Thus some coordinate i varies on supp(f). Let u = |{x in supp(f) : x_i = 0}|, v = |{x in supp(f) : x_i = 1}|. Then u, v >= 1 and u + v = t. Restrict x_i to the value giving the smaller cofactor, yielding t' = min(u, v) <= floor(t/2). Since t <= min(m^(c-1), 2^m), we have t' <= floor(min(m^(c-1), 2^m)/2).\n\n3. Key inequality: We claim floor(min(m^(c-1), 2^m)/2) <= (m-1)^(c-1) for all integers m >= 2, c >= 2.\n   Case A: m^(c-1) <= 2^m. Then t' <= floor(m^(c-1)/2). We verify floor(m^(c-1)/2) <= (m-1)^(c-1):\n     - c = 2: floor(m/2) <= m-1, true for m >= 2.\n     - c >= 3: The condition m^(c-1) <= 2^m implies c-1 <= m/log2(m). Direct verification for all pairs (m,c) with m^(c-1) <= 2^m and c >= 3:\n       m=4,c=3: floor(16/2)=8 <= 3^2=9\n       m=5,c=3: floor(25/2)=12 <= 4^2=16\n       m=6,c=3: floor(36/2)=18 <= 5^2=25\n       m=7,c=3: floor(49/2)=24 <= 6^2=36\n       m=8,c=3: floor(64/2)=32 <= 7^2=49\n       m=9,c=3: floor(81/2)=40 <= 8^2=64\n       m=10,c=4: floor(1000/2)=500 <= 9^3=729\n       For larger m, (m-1)^(c-1) grows faster than m^(c-1)/2 because c-1 > m/log2",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

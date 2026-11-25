@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 16052 entries from 4988 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 16102 entries from 5034 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -33,10 +33,10 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
 NUMERICAL EVIDENCE on file: 3291 entries (finite cases; they prove nothing about all cases). Latest: None

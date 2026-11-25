@@ -1304,5 +1304,21 @@
   "proved_step": "statement: LEMMA (exact-length oracle stage simulation; repair of S0017). Let M be a deterministic oracle RAM with B-bit configurations and a fixed finite instruction set. Assume that for every input and every interval between consecutive input reads, M makes at most tau transitions and at most q queries to the standard, length-sensitive Sigma_3SAT^A oracle. Each query is a valid binary string of length at most ell, with its length explicitly recoverable from its query-generation registers. Then the map from the configuration at the start of the interval and the next input bit to the configuration at its end is computed by a fan-in-2 circuit with ordinary gate count O(tau*poly(B,ell) + tau*q*poly(ell)) and at most tau*q*(ell+1) standard Sigma_3SAT^A oracle gates. Each oracle gate receives a query string at its exact length; no padding invariance is assumed. PROOF. Unroll at most tau machine transitions, using identity transitions after halting. For each transition, the finite instruction set and B-bit configuration give ordinary Boolean logic of size polynomial in B and ell to update registers and determine whether a query is issued. For each possible query slot, let lambda be its generated length, where 0 <= lambda <= ell, and let p be its generated payload. For every r in {0,...,ell}, form the exact r-bit prefix p[1..r] and apply a standard oracle gate to that string. Select the answer for r=lambda using the ordinary Boolean selector [lambda=r]; because exactly one selector is true, the selected answer equals the oracle answer on the machine's exact query string. Mask the selected answer when the slot is unused. Prefix construction and answer selection take polynomially many ordinary gates in ell per slot. There are at most tau*q slots, so the oracle-gate count is at most tau*q*(ell+1), and their ordinary overhead is O(tau*q*poly(ell)). Together with the unrolled transition logic this gives the stated ordinary-gate bound and computes the stage map for every valid starting configuration and next input bit. The argument does not claim one fixed-length oracle gate per query.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795631331.257352,
+  "session": "pnp-desk/research/R3821",
+  "model": "laguna-xs-2.1",
+  "evidence": "MMW19 Thm 1.2 states oracle queries have variable-length \u00d5(s). S0017's padding to fixed length \u2113 breaks oracle semantics for general oracles: A(q) \u2260 A(q padded) without padding-invariance. R1805 identified this gap.",
+  "review_of": "S0017",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795633145.7372992,
+  "session": "pnp-desk/research/R3852",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a more detailed RAM-specific version of the same core construction as S0150. It explicitly handles the RAM model with B-bit configurations, finite instruction set, and register updates. The unrolling of at most tau transitions with identity extensions after halting is standard. For each query slot, the length lambda and payload p are computed by ordinary Boolean logic from the configuration. The case analysis over r \u2208 {0,...,ell} with prefix p[1..r] and selector [lambda=r] correctly recovers the oracle answer on the exact query string without assuming padding invariance. Invalid prefixes are queried but their answers are discarded by the selector. Oracle gate count tau*q*(ell+1) and ordinary overhead O(tau*q*poly(ell) + tau*poly(B,ell)) are correctly bounded. The circuit computes the stage map for all valid starting configurations and input bits. The construction is sound and repairs the padding flaw of S0017.",
+  "review_of": "S0151",
+  "status": "SURVIVED_REVIEW"
  }
 ]
