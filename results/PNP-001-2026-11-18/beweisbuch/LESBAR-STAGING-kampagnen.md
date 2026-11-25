@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 15742 entries from 4800 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 15803 entries from 4843 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For gate elimination in MCSP[m^c], the restriction approach can be repaired by using a sufficient condition t <= 2*(m-1)^(c-1) - 1 for support size, which ensures after restriction the new support t' <= floor(t/2) satisfies t'*(m-1)-1 <= (m-1)^c - 1
   - For every permutation δ on m states, contiguous cycle-interval encoding yields a total transition circuit of O((d+1)ceil(log2 m)) fan-in-two AND/NOT gates, where d is the number of distinct cycle lengths; therefore O(sqrt(m) log m) gates suffice.
   - For the specific EXT prefix automaton, a useful bridge to H_C requires a representation whose transition inputs include enough information to identify the next residual class; an arbitrary one-hot transition circuit bound alone does not establish such a repres
   - The fixed-position candidate-set representation of EXT_{n,s} has an exact level-t transition circuit of at most M AND gates, where M is the number of size-at-most-s circuit descriptions in the chosen finite basis; this does not imply a small transition circuit
   - Iterated smaller-nonempty-cofactor restrictions yield a sparse residual truth table after O(log t) fixed coordinates, but this may not help arbitrary-circuit MCSP: the restricted truth table still needs an input representation, and its DNF may exceed the targe
   - For every m>=3,c>=2 and support A⊆{0,1}^m with 1<=|A|<=2(m-1)^(c-1), some coordinate restriction has nonempty support at most (m-1)^(c-1), hence a free-negation fan-in-2 DNF of size at most (m-1)^c-1. Proof candidate: singleton case restrict to its bit; otherw
-  - For each finite language F and layer t, the minimum number of reachable states in any deterministic exact layered membership transducer equals the number K_t of distinct suffix residuals.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -32,20 +32,20 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-NUMERICAL EVIDENCE on file: 3272 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+NUMERICAL EVIDENCE on file: 3274 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-ebb92c9a11 [UNEXPLAINED, OPEN] What is the exact gate basis used in McKay-Murray-Williams STOC 2019 Theorem 1.3 for the streaming MCSP algorithm? Does it include XOR as a primitive with unit cost in the fan-in-two model?
   - Q-01e567fdec [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'For the explicitly defined language L of 4-bit truth tables of constants, literals, and one AND or OR of two literals on two input variables, the numbers of disti
   - Q-f95b66efc7 [MISSING_PROOF, OPEN] For Lemma M's binding SEARCH semantics, what equivalence relation on prefixes permits state merging when the final decoder must output a valid witness circuit, and can a minimum-state layered machine meet the required ou
   - Q-db8354e953 [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'Let p be prime, N,S>=0, and q(x)=Mx+c map {0,1}^N into F_p^S. Suppose an exact decoder depending only on q(x) solves a search relation: on every yes-input x it ou
   - Q-6833156c45 [MISSING_PROOF, OPEN] Can the iterated cofactor lemma yield a gate-elimination bound for arbitrary fan-in-two DAG circuits when restrictions are chosen adaptively from the function's support, with unrestricted fan-out? Prove a potential that 
-  - Q-69aa5ebf5f [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:ebf596e0499f by pnp-desk/research/R3553:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I could not produce an accepted Lean
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
