@@ -7915,5 +7915,37 @@
   "evidence": "Correct: f_i has prefix pb iff f_i has prefix p AND its t-th coordinate equals b. The residual characterization follows directly. Update uses M AND gates with constant selectors. Acceptance is OR of state bits. Exact for any indexed family F. Scope: exponential state for EXT_{n,s}; no bound on transition cost from H_C.",
   "review_of": "S0781",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795644477.8753314,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. This is a straightforward combinatorial construction: the vector q_p tracks which of the M explicit words match prefix p. The OR of q_p checks whether any word matches p (extendability). The transition q_{pb}[i] = q_p[i] AND [f_i[t+1]=b] correctly updates the candidate set by filtering on the next bit. The circuit implementation uses M AND gates (each combining q_p[i] with the constant bit a_i = [f_i[t+1]=b]) and an OR tree of M-1 gates, totaling O(M) fan-in-2 gates. The M=1 boundary is correctly handled. The scope limitation is properly stated: this assumes the family F and stage bits are given explicitly; it does not claim polynomial-time constructibility from an arbitrary circuit class H_C. No counterexample exists for this combinatorial fact.",
+  "review_of": "S0782",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795644478.8563948,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. This is the standard Myhill-Nerode / residual distinguishability argument for deterministic streaming automata. If two prefixes p,q reach the same state, then for any suffix z the computation on pz and qz must be identical (same final state, same output). Exact decision means the output equals membership in F, so pz in F iff qz in F for all z, meaning R_t(p)=R_t(q). Contrapositive: distinct residuals require distinct states. The workspace bound ceil(log2 d_t) bits follows immediately. The lemma correctly states its scope: it gives a state-space lower bound, not an update-time bound, and does not evaluate d_t for EXT_{n,s}. No counterexample exists for this general information-theoretic fact.",
+  "review_of": "S0783",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795644478.8954709,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. The linear algebra is sound: D_+z = b has a solution iff b is orthogonal to ker(D_+^T), i.e., V^T b = 0. Here b = c + A_<t p + b a_t. The number of parity equations is rank(V) = dim(ker(D_+^T)) = r - rank(D_+) <= r. Each parity involves at most t+1 bits of p plus the constant b. Fan-in-two XOR tree computes each parity in O(t+1) gates; AND of r parities uses O(r) gates. The O(1) boundary accounts for empty systems (r=0) where V is empty and the condition is vacuously true (0 equations = satisfied). This correctly bounds the circuit cost for affine GF(2) suffix projection. The scope limitation is properly stated: it does not apply to EXT or H_C transitions.",
+  "review_of": "S0785",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795644749.440487,
+  "session": "pnp-desk/research/R4012",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification on all languages up to N=4 (100 random languages per N plus structured languages: empty, full, parity, first-bit) confirms: (1) the transition map from depth-t residual class [p] and bit b to depth-(t+1) class [pb] is well-defined, with residual exactly the b-section of R_t(p); (2) equal parent residuals imply equal child residuals (representative-independence); (3) distinct residuals require distinct states. No counterexample found. The mathematical derivation is sound: u in R_{t+1}(pb) iff pbu in L iff bu in R_t(p), so equality of R_t(p)=R_t(q) forces R_{t+1}(pb)=R_{t+1}(qb).",
+  "review_of": "S0788",
+  "status": "SURVIVED_REVIEW"
  }
 ]
