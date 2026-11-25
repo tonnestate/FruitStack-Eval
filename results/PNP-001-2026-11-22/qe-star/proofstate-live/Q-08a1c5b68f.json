@@ -5838,5 +5838,106 @@
   "kind": "LEMMA",
   "closes": "Q-d25720b26b",
   "closes_valid": true
+ },
+ {
+  "at": 1795586965.5056205,
+  "session": "pnp-desk/research/R3266",
+  "model": "gpt-6-luna",
+  "id": "S0675",
+  "proved_step": "statement: Residual automaton construction. Let N>=0 and F be a nonempty subset of {0,1}^N. For 0<=t<=N and each prefix p in {0,1}^t, define R_t(p)={u in {0,1}^{N-t}: pu in F}; let K_t be the number of distinct sets R_t(p). There is a layered deterministic membership transducer with exactly K_t states at layer t, transition delta_t(R,b)={u in {0,1}^{N-t-1}: bu in R}, and an accepting decoder at layer N, hence at most ceil(log2(max_t K_t)) state bits. Proof: The transition is well-defined on every residual R at layer t: it depends only on R and b, and its result is a residual at layer t+1, since if R=R_t(p), then {u:bu in R_t(p)}=R_{t+1}(pb). Thus equal residuals transition to equal residuals. Starting from R_0(empty)=F, induction on t shows the state after prefix p is R_t(p). At t=N each residual is either {empty} or empty, and it is {empty} exactly when p in F; decode accordingly. Encoding the K_t residuals injectively as bit strings gives the asserted state-bit bound. The empty residual is a single rejecting state at each layer whenever it occurs, and its transitions remain empty.\nscope: Finite nonempty membership languages F subset {0,1}^N, N>=0; arbitrary layered transition maps with no circuit-size restriction. This is a membership result only, not a witness-output SEARCH construction and not an update-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795587264.5232916,
+  "session": "pnp-desk/research/R3274",
+  "model": "gpt-6-luna",
+  "id": "S0676",
+  "proved_step": "statement: For every nonempty F subset {0,1}^N, at each layer t let L_t be the number of length-t prefixes extendible to F and let delta_t be 1 iff at least one length-t prefix is not extendible to F. The minimum number of bits needed to assign distinct codes to every live prefix and, when delta_t=1, a separate common code to all dead prefixes is ceil(log2(L_t+delta_t)); hence all layers admit such assignments with S=max_t ceil(log2(L_t+delta_t)) bits.\nproof: There are exactly L_t required live codes and, iff delta_t=1, one further code for the dead class. Thus the number of required codes is L_t+delta_t. s bits supply exactly 2^s codes, so feasibility is equivalent to 2^s>=L_t+delta_t, whose least integer solution is ceil(log2(L_t+delta_t)). Choosing codes independently at each layer and taking the maximum width proves the simultaneous layered assignment.\nscope: Finite membership languages F subset {0,1}^N, N>=1, with live prefixes distinguished individually and all dead prefixes merged when present. This is a state-capacity lemma only; it does not bound transition gate count or decoder size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795587496.6805499,
+  "session": "pnp-desk/research/R3274",
+  "model": "gpt-6-luna",
+  "id": "S0677",
+  "proved_step": "statement: Sparse reachable-row extension lemma. Let d,q>=1 and let R be a specified subset of {0,1}^d of size r. Let g:R->{0,1}^q be any partial Boolean map. In the fan-in-two AND/OR basis with free NOT and constants and unrestricted fan-out, g has a total extension circuit of size at most r(d-1)+q max(r-1,0), with size 0 when r=0. Proof: For each a in R construct its exact minterm m_a(x)=AND_{i=1}^d (x_i if a_i=1 else NOT x_i) using a binary AND tree with d-1 gates (for d=1 this is a literal and uses 0). For output j, OR the minterms m_a with g(a)_j=1; if there are k_j such rows, this uses max(k_j-1,0) OR gates when k_j>0, and the empty OR is the free constant 0. Since k_j<=r, summing over j costs at most q max(r-1,0). For x in R exactly one minterm is true, so every output equals g(x); outside R the circuit simply chooses the all-zero extension. The stated gate bound follows. For r=0 the empty-domain map extends to the zero constant map. This is an upper bound for partial maps; it says nothing about a minimum circuit size or lower bound.\nscope: All finite d,q>=1, every specified partial map g on R subset {0,1}^d, fan-in-two AND/OR, free NOT/constants, unrestricted fan-out. For layered transducers, R must include every reachable state/input pair whose next state is constrained; the lemma does not itself supply a code or establish the witness-output condition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795587912.6570926,
+  "session": "pnp-desk/research/R3274",
+  "model": "gpt-6-luna",
+  "id": "S0678",
+  "proved_step": "statement: For F subset {0,1}^N, let R_t(p)={u:pu in F} for each length-t prefix p, and let K_t be the number of distinct residuals. Every deterministic layered membership transducer recognizing F has at least K_t reachable states at layer t.\nproof: If two prefixes p,q reach the same layer-t state, then for every suffix u the deterministic continuation from that state on u is identical. Hence pu is accepted iff qu is accepted, so R_t(p)=R_t(q). Distinct residuals therefore require distinct states, giving at least K_t states.\nscope: Finite membership recognition languages F subset {0,1}^N; this does not bound update gates or decoder cost and does not establish witness-output complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588198.6694303,
+  "session": "pnp-desk/research/R3274",
+  "model": "gpt-6-luna",
+  "gap": "This gives a decoder-independent state lower bound when suffix witness sets are disjoint, but does not yet exhibit a nontrivial packing for SC_{n,s} or bound update gate cost G_max at fixed (S,D).",
+  "gap_id": "G0190",
+  "id": "S0679",
+  "proved_step": "Let W be a witness relation on length-N inputs with witness universe Y. In a deterministic one-pass transducer with a common final decoder, if length-t prefixes p and q reach the same state, then for every suffix u of length N-t the decoder output belongs to W(pu) intersect W(qu). Therefore, if each pair in a set P of prefixes has at least one suffix u for which those two witness sets are disjoint, all prefixes in P have distinct states, requiring at least |P| reachable states (ceil(log2 |P|) state bits). Proof: equal states followed by the same suffix yield equal terminal states by determinism; the common decoder returns the same y, and correctness places y in both witness sets. Empty intersection contradicts this. Pairwise application gives injectivity on P.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795588297.0843027,
+  "session": "pnp-desk/research/R3274",
+  "model": "gpt-6-luna",
+  "gap": "The continuation-separation lemma is only CLAIMED and its application currently has exploratory finite evidence. Need independent review of the generic lemma; determine whether any nontrivial witness-output packing can improve on the binding live-prefix bound for SC_{3,1}, then address fixed-(S,D) update-gate minima. The attempted t=4 packing has size 11, below the required 17 states from 16 live prefixes plus dead separation.",
+  "evidence": "cm-fc2413c67c204afb reported packing sizes 1,2,3,4,11,8,4,2,1 for SC_{3,1}; this is exploratory and no packing certificate was emitted.",
+  "gap_id": "G0191"
+ },
+ {
+  "at": 1795588719.827429,
+  "session": "pnp-desk/research/R3293",
+  "model": "gpt-6-luna",
+  "id": "S0681",
+  "proved_step": "statement: Final-state witness counting bound. Let F be a set of M distinct valid truth tables, and suppose a deterministic streaming transducer reads each full truth table and then a deterministic decoder outputs a witness that correctly represents that table. Then the transducer has at least M distinct final states on inputs from F, and therefore at least ceil(log2 M) state bits. Proof: If two distinct tables f,g in F reached the same final state, the deterministic decoder would return the same witness w on both inputs. Correctness requires w to represent f and also g, impossible because f != g. Thus the map from F to final states is injective. A machine with S bits has at most 2^S states, so 2^S >= M and S >= ceil(log2 M). Scope: fixed-length inputs, deterministic transitions, deterministic decoder, and a witness whose correctness identifies the represented truth table. This is a state lower bound only; it gives no per-step gate lower bound and no P != NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795588950.1072783,
+  "session": "pnp-desk/research/R3291",
+  "model": "gpt-6-luna",
+  "id": "S0682",
+  "proved_step": "statement: For every deterministic binary transition system on r>=1 states, its one-hot next-state map is computable with at most 4r-1 fan-in-two AND/OR gates, with NOT gates and fan-out free.\nderivation: For each state q form u_{q,0}=x_q AND NOT a and u_{q,1}=x_q AND a, using 2r AND gates. For each destination j, OR exactly those u_{q,b} for which delta(q,b)=j. The 2r terms are partitioned among destination groups, so all nonempty groups need at most 2r-1 fan-in-two OR gates. On a valid one-hot input exactly the term for the current state and input symbol is true, hence the outputs encode its deterministic destination. Total at most 4r-1 gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795589080.177615,
+  "session": "pnp-desk/research/R3293",
+  "model": "gpt-6-luna",
+  "id": "S0683",
+  "proved_step": "statement: Zero-gate coordinate lemma. Let a deterministic layered transducer start in a fixed state and have S state bits. Suppose every transition output is computed with zero counted gates in the basis AND, XOR, NOT, constants, where NOT and constants are free and fan-out is unrestricted. Then after reading any prefix x_1...x_t, each state bit is either constant or a literal x_i or \u00acx_i for some i\u2264t. Proof: With zero counted gates, an output wire can only be a constant, a state/input wire, or its free negation; AND and XOR outputs would each require a counted gate. Thus each next-state coordinate is constant or a literal of one current-state or current-input coordinate. Induct on t. At t=0 every state coordinate is constant because the initial state is fixed. If the claim holds at t, substituting those constant-or-literal expressions into each zero-gate transition coordinate yields a constant or a literal of one among x_1...x_t and x_{t+1}; negating a literal only changes its sign. This proves the claim for t+1.\nscope: Deterministic layered transducers with fixed initial state, arbitrary time-dependent transitions, S state bits, and zero counted AND/XOR gates per transition; NOT/constants and fan-out are free. The lemma does not characterize positive-gate transitions or establish a lower bound for SC_{n,s}.\nbarrier_diagnostic: Relativizing: no oracle argument. Natural: no circuit lower-bound measure is claimed. Algebrizing: no algebraic oracle argument. Localizing: no proof-complexity localization argument.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795589130.5357952,
+  "session": "pnp-desk/research/R3293",
+  "model": "gpt-6-luna",
+  "id": "S0684",
+  "proved_step": "statement: Let N>=1 and F subset {0,1}^N. Say F depends on coordinate i if there are two strings differing only at i with exactly one in F. Suppose F depends on every coordinate. Any deterministic layered transducer with a fixed initial state, S state bits, and zero counted AND/XOR gates in every transition in the basis AND, XOR, NOT, constants (NOT/constants free; unrestricted fan-out) that decides membership in F, using an arbitrary fixed final decoder, must have S>=N. Proof: A zero-counted-gate transition output is a constant or a wire or its negation: any nonconstant AND or XOR requires a counted gate. Inductively, after t input bits, every state coordinate is constant or a literal of one of x_1,...,x_t. At t=0 this holds because the initial state is fixed. At t+1, each next-state coordinate copies or negates one current state/input coordinate or is constant; substituting the induction hypothesis shows it is constant or a literal of one of x_1,...,x_{t+1}. At t=N, the state therefore depends on at most S distinct input coordinates. If S<N, choose coordinate i absent from all state bits. The final state, and hence its fixed decoder output, is identical on any pair differing only at i. This contradicts that F depends on i. Thus S>=N.\nscope: Zero-gate membership transducers only; arbitrary layered wiring, fixed initial state and arbitrary final decoder. This does not establish coordinate-essentiality of SC_{n,s}, the witness-output version, or any positive-gate lower bound.\nbarrier_diagnostic: Relativizing: no oracle argument. Natural: no circuit lower-bound measure claimed. Algebrizing: no algebraic oracle argument. Localizing: no proof-complexity localization argument.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
  }
 ]

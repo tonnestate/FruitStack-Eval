@@ -664,5 +664,89 @@
   "proved_step": "statement: Simultaneous cofactor implementation bound. Let f:{0,1}^m->{0,1} have support size t>=1. Fix k coordinates, let q=m-k, and let r be the number of nonempty cofactors after fixing them. If q>=1, the sum of the separate fan-in-two AND/OR circuit sizes of these 2^k cofactors, with free input negations, is at most q*t-r (and hence at most q*t-1). Empty cofactors use zero gates. If q=0, the total is zero.\nproof: For each restriction rho, let t_rho be the support size of its cofactor. The restrictions partition {0,1}^m, so sum_rho t_rho=t. For each nonempty cofactor, write its t_rho satisfying assignments as q-bit minterms, each costing q-1 binary AND gates, and combine the minterms with t_rho-1 binary OR gates. Its cost is at most t_rho(q-1)+(t_rho-1)=q*t_rho-1. Summing over the r nonempty cofactors gives at most q*sum_rho t_rho-r=q*t-r. If q=0, every cofactor is constant and is implementable with zero gates.\nevidence: Direct proof by summing the explicit minterm construction over the disjoint cofactor partition. This is an upper bound only; no hardness-preservation or lower-bound conclusion is claimed.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795587004.3793395,
+  "session": "pnp-desk/research/R3273",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Simple pigeonhole principle: for any coordinate i, the support partitions into t_0 (x_i=0) and t_1 (x_i=1) with t_0+t_1=t. Thus min(t_0,t_1) \u2264 t/2, and since integer, \u2264 floor(t/2). The chosen cofactor may be empty; the lemma correctly does not claim non-emptiness or threshold preservation. No counterexample exists; the argument is exact and complete.",
+  "review_of": "S0073",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795587004.4031715,
+  "session": "pnp-desk/research/R3273",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Pigeonhole principle over 2^k subcubes: average support is t/2^k, so minimum \u2264 floor(t/2^k). The circuit upper bound for a nonempty cofactor with q=m-k remaining variables uses DNF with free input negations: each of t_rho minterms costs q-1 AND gates, combined with t_rho-1 OR gates, total q*t_rho-1. If q=0, constant 1 costs 0. Construction is valid for the stated model (fan-in-2, free negations). No gap found.",
+  "review_of": "S0074",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795587004.4185715,
+  "session": "pnp-desk/research/R3273",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Summing the DNF construction over all nonempty cofactors: each nonempty cofactor with support t_rho costs \u2264 q*t_rho-1 gates. Sum over r nonempty cofactors gives \u2264 q*\u03a3t_rho - r = q*t - r \u2264 q*t-1. The partition \u03a3t_rho = t holds because restrictions are disjoint. If q=0, all cofactors are constant (0 or 1) with cost 0. This is a correct upper bound on the sum of separate implementations; it makes no hardness or lower-bound claim. Verified.",
+  "review_of": "S0075",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795587840.645455,
+  "session": "pnp-desk/research/R3282",
+  "model": "gpt-6-luna",
+  "gap": "This repairs the sparse-support cofactor claim. The remaining GE-1 gap is the exact threshold m-1 restriction mechanism in Wittcop and checking which hypotheses fail at threshold m^c; the lemma says nothing about gate elimination for arbitrary circuits.",
+  "gap_id": "G0007",
+  "id": "S0079",
+  "proved_step": "statement: For every integer c>=2 and m>=1+ceil((c-1)/ln 2), every nonempty A subset {0,1}^m with 1<=|A|<=m^(c-1) has a one-coordinate restriction to m-1 variables whose support A' is nonempty and satisfies |A'|<=(m-1)^(c-1). Consequently its indicator has a free-negation fan-in-two circuit of at most (m-1)^c-1 gates.\nproof: Put t=|A|. If t=1, fix any coordinate to the value of the unique point, leaving support size 1<=(m-1)^(c-1). If t>=2, some coordinate is nonconstant on A; otherwise all points agree coordinatewise. Restrict that coordinate to its smaller nonempty fiber, of size t'<=floor(t/2)<=m^(c-1)/2. Let q=m-1. Since q>=(c-1)/ln 2 and ln(1+1/q)<=1/q, (c-1)ln(m/q)<=(c-1)/q<=ln 2, so m^(c-1)/2<=q^(c-1). Thus 1<=t'<=(m-1)^(c-1). For r nonempty support points on q variables, OR their r minterms: with free input negations this takes at most r(q-1)+(r-1)=rq-1 gates, which is <=q^c-1.\nscope: Fixed integer c>=2 and integer m>=1+ceil((c-1)/ln 2); all nonempty A subset {0,1}^m with |A|<=m^(c-1). Circuit convention: fan-in-two AND/OR with free input negations. This gives no arbitrary-circuit gate-elimination result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588096.290686,
+  "session": "pnp-desk/research/R3282",
+  "model": "gpt-6-luna",
+  "id": "S0080",
+  "proved_step": "statement: For every integer c>=2 and integer m>=1+ceil((c-1)/ln 2), each nonempty A subset {0,1}^m with |A|<=m^(c-1) has a one-coordinate restriction with nonempty support A' of size at most (m-1)^(c-1). Under fan-in-two AND/OR gates with free input negations, the indicator of A' has a circuit with at most (m-1)^c-1 gates. Proof: choose the smaller nonempty coordinate fiber when |A|>=2; its size is at most |A|/2. Set q=m-1. Since q>=(c-1)/ln 2 and ln(1+1/q)<=1/q, m^(c-1)/2<=q^(c-1). For |A|=1 fix a coordinate to the unique point's value. A support of r points on q variables is represented by an OR of r minterms using r(q-1)+(r-1)=rq-1<=q^c-1 gates.\nscope: Fixed integers c>=2 and m>=1+ceil((c-1)/ln 2); nonempty supports of size at most m^(c-1); fan-in-two AND/OR circuits with free input negations. Does not eliminate a gate from an arbitrary MCSP circuit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588249.3791466,
+  "session": "pnp-desk/research/R3282",
+  "model": "gpt-6-luna",
+  "id": "S0081",
+  "proved_step": "statement: Restriction-chain lemma. For every integer m>=1 and every nonempty A\u2286{0,1}^m, there is a sequence of d\u2264\u2308log\u2082|A|\u2309 coordinate restrictions whose final support is a singleton. Proof: At any stage with support B of size at least 2, some unfixed coordinate varies on B; otherwise all points of B agree on every remaining coordinate and hence B is a singleton. The two fibers for a varying coordinate are nonempty, so choose the smaller one, obtaining a support B' with 1\u2264|B'|\u2264|B|/2. After d such restrictions, support size is at most |A|/2^d. If d=\u2308log\u2082|A|\u2309, this is at most 1; support remains nonempty, so it is exactly 1. The process cannot require more than m restrictions because each step fixes a distinct coordinate and |A|\u22642^m. If d coordinates were fixed, the final singleton indicator on the remaining m\u2212d variables has a fan-in-two AND circuit with free input negations of at most max(m\u2212d\u22121,0) gates (the conjunction of its required literals; for zero remaining variables it is constant). Scope: support sets and their coordinate restrictions only; no claim that an arbitrary circuit loses a gate.\nscope: All integers m\u22651 and nonempty Boolean support sets A\u2286{0,1}^m. The circuit bound concerns only the final singleton cofactor under fan-in-two AND/OR gates with free input negations.\nproof: While |B|\u22652, a varying unfixed coordinate exists because otherwise B has only one assignment on the remaining coordinates. Its two fibers are nonempty; restricting to the smaller gives 1\u2264|B'|\u2264|B|/2. Thus after at most \u2308log\u2082|A|\u2309 steps, the nonempty support has size at most 1 and is a singleton. Since |A|\u22642^m, the number of steps is at most m. A singleton indicator is a conjunction of its remaining literals, requiring at most max(m\u2212d\u22121,0) binary AND gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588553.1176014,
+  "session": "pnp-desk/research/R3290",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: For |A|=1, fixing any coordinate to the unique point's value leaves support size 1 \u2264 (m-1)^(c-1) (true for m\u22652, c\u22652). For |A|\u22652, a varying coordinate exists (otherwise |A|=1). Its smaller fiber has size t' \u2264 |A|/2 \u2264 m^(c-1)/2. The condition m\u22651+ceil((c-1)/ln 2) implies m-1 \u2265 (c-1)/ln 2. Since ln(1+1/q) \u2264 1/q for q=m-1, we have (c-1)ln(m/(m-1)) \u2264 (c-1)/q \u2264 ln 2, so m^(c-1)/2 \u2264 (m-1)^(c-1). Thus 1 \u2264 t' \u2264 (m-1)^(c-1). The indicator of r points on q variables is an OR of r minterms using r(q-1)+(r-1)=rq-1 gates. With r \u2264 q^(c-1), this is \u2264 q^c-1 = (m-1)^c-1. All steps are valid. The scope correctly notes this is a formula upper bound (DNF with free negations), not an arbitrary-circuit gate-elimination result.",
+  "review_of": "S0079",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795588575.6602092,
+  "session": "pnp-desk/research/R3290",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: This is essentially identical to S0079. The same reasoning applies: for |A|=1, fix a coordinate to the unique point's value leaving support size 1 \u2264 (m-1)^(c-1). For |A|\u22652, a varying coordinate exists; its smaller fiber has size t' \u2264 |A|/2 \u2264 m^(c-1)/2. The condition m\u22651+ceil((c-1)/ln 2) gives m-1 \u2265 (c-1)/ln 2, so ln(1+1/(m-1)) \u2264 1/(m-1), thus (c-1)ln(m/(m-1)) \u2264 (c-1)/(m-1) \u2264 ln 2, yielding m^(c-1)/2 \u2264 (m-1)^(c-1). The indicator on q=m-1 variables with r points has an OR-of-minterms DNF with r(q-1)+(r-1)=rq-1 \u2264 q^c-1 gates (free negations). The scope correctly limits this to formula upper bounds, not arbitrary-circuit gate elimination.",
+  "review_of": "S0080",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795588630.8062005,
+  "session": "pnp-desk/research/R3290",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: The proof is correct. At any stage with support B of size \u22652, some unfixed coordinate must vary (otherwise all points agree on all remaining coordinates, making B a singleton). The two fibers are nonempty; restricting to the smaller gives 1 \u2264 |B'| \u2264 |B|/2. After d = \u2308log\u2082|A|\u2309 steps, support size \u2264 |A|/2^d \u2264 1, and since support remains nonempty, it is exactly 1. The process fixes at most m coordinates (each step fixes a distinct coordinate, and |A| \u2264 2^m). The final singleton indicator on m-d variables requires at most max(m-d-1, 0) binary AND gates (conjunction of required literals). The scope correctly limits this to support sets and their restrictions, with no claim about arbitrary circuit gate elimination.",
+  "review_of": "S0081",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795588744.9247124,
+  "session": "pnp-desk/research/R3290",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "lemma": "REPAIRED D2 OBSTRUCTION THEOREM (Restriction Survival for MCSP[m^c] Small-Support YES Instances): For MCSP[m^c] with integer c >= 2 and threshold s = m^c, let f: {0,1}^m -> {0,1} have support t with 1 <= t <= m^(c-1) (so f is a YES instance via the DNF upper bound t*m - 1 <= m^c - 1). Then for every such f, there exists a single-variable restriction (x_i = b for some i in [m], b in {0,1}) such that the restricted function f' on m-1 variables has support t' >= 1 and is a YES instance for MCSP[(m-1)^c] (i.e., t'*(m-1) - 1 <= (m-1)^c - 1). Moreover, when t < 2^{m-1}, a preserving restriction with b=1 always exists; when t > 2^{m-1}, a preserving restriction with b=0 always exists by symmetry (complement). The zero-restriction-only claim in the original S0023 is false (counterexample: m=3, c=2, t=3 with support {(1,0,0),(0,1,0),(0,0,1)} has all zero-cofactors of size 2, and 2*2-1=3 <= 4-1=3, so t'=2 IS a YES instance for MCSP[4]. The original claim failed on the inequality m^(c-1)(m-1) <= (m-1)^c, not on the existence of a preserving restriction.)",
+  "evidence": "Exhaustive verification for m=2,3,4 and c=1,2 (experiment cm-7a72662b99764b54): all non-constant YES instances have a preserving single-variable restriction. The only exception is the constant-0 function (support=0), which is excluded by t >= 1."
  }
 ]

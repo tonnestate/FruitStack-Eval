@@ -6770,5 +6770,156 @@
   "proved_step": "statement: REPAIRED LAYERED RESIDUAL IMPLEMENTATION BOUND. For any L subset {0,1}^N, let r_t be the number of distinct residual languages after length-t prefixes. A deterministic length-N recognizer with position-dependent transitions uses max_t r_t state labels, and at least r_t labels are necessary at each fixed depth t.\nderivation: Set W=max_t r_t. For each t, inject the residuals at depth t into [W] using a code c_t. Initialize at c_0(L). At layer t, on bit b, send c_t(R) to c_{t+1}(R_b), where R_b={z:bz in R}. This is well-defined because the source code identifies R and R_b is determined by R. Define transitions arbitrarily on labels unused at layer t. At depth N accept c_N(R) exactly when the empty string belongs to R. By induction the state after prefix p is c_t(R_t(p)), so the machine recognizes L. Reuse across layers is valid because the transition function may depend on t and acceptance is terminal. Conversely, two distinct residuals at the same depth cannot share a state: a suffix distinguishing them would then have to produce the same acceptance. Hence at least r_t labels are necessary at depth t.\nscope: Finite Boolean language of fixed length N; deterministic recognizer with position-dependent transitions and terminal acceptance. This bounds state labels only and says nothing about gate cost for succinctly implementing transitions.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795586456.2496064,
+  "session": "pnp-desk/research/R3260",
+  "model": "gpt-6-luna",
+  "id": "S0793",
+  "proved_step": "statement: BOUNDED-SUFFIX PROJECTION LEMMA. Let C be a fan-in-two Boolean circuit with g gates, input x=(u,z) where z has k bits, and output C(u,z). Define P(u)=1 iff there exists z in {0,1}^k with C(u,z)=1. Then P has a fan-in-two circuit of size at most 2^k g + 2^k - 1: take one copy of C(u,z) for each fixed assignment a to z, substitute z=a, and OR the 2^k outputs in a binary tree. In particular, for fixed k this is O(g) and the construction is uniform given C and k.\nderivation: For each a in {0,1}^k, let C_a(u)=C(u,a), formed by substituting constants on the z-input wires. Substitution preserves correctness and uses at most g gates. The circuit P'(u)=OR_{a in {0,1}^k} C_a(u) accepts exactly when at least one suffix assignment makes C(u,z)=1, which is precisely the definition of P. A binary OR tree combines 2^k outputs using 2^k-1 fan-in-two gates. Thus the total is at most 2^k g+2^k-1. The construction does not provide polynomial size when k grows as an unrestricted input parameter, and it says nothing about eliminating an existential trace of an arbitrary succinct relation unless the relation is represented by the circuit C itself.\nscope: Boolean circuits with a designated set of k existentially quantified input bits; fixed k gives linear-size projection. No general polynomial bound in g and k, no lower bound, and no conclusion for arbitrary MCSP decision circuits when k is large.\ndiagnostic_barriers: Relativizing: the enumeration identity relativizes for ordinary Boolean cofactoring. Natural: no lower bound claimed. Algebrizing: no algebraic argument claimed. Localizing: no lower bound claimed. Circumvention tests inapplicable: this is a restricted algorithmic lemma, not P!=NP progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795586517.0243204,
+  "session": "pnp-desk/research/R3268",
+  "model": "gpt-6-luna",
+  "id": "S0794",
+  "proved_step": "statement: FIXED-VERIFIER COFACTOR COST LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates. For any fixed prefix p\u2208{0,1}^t, the relation H_p(z,w)=H(pz,w), on z\u2208{0,1}^{N\u2212t} and w\u2208{0,1}^r, is computable by a fan-in-two circuit with at most h gates. Its existential projection L_p(z)=1 iff \u2203w H_p(z,w)=1 is exactly the residual of L(x)=1 iff \u2203w H(x,w)=1 after prefix p. For b\u2208{0,1}, H_{pb} is obtained by further fixing one input bit and still uses at most h gates. This gives no circuit-size bound for L_p itself and no update bound for maintaining all size-s circuit candidates.\nderivation: Keep the original circuit graph and replace each input wire corresponding to a fixed prefix coordinate by its fixed Boolean constant; leave all other input wires unchanged. Each gate and edge is retained, so the gate count is at most h. For every suffix z and witness w, the resulting circuit evaluates to H(pz,w) by substitution, hence \u2203w H_p(z,w)=1 iff \u2203w H(pz,w)=1, which is precisely membership in the residual after p. Fixing the next input bit b is the same substitution on one more input wire, so again does not add gates. Existential projection is only an equality of relations here; the construction has not eliminated w or produced a Boolean circuit for the projected language.\nscope: All finite Boolean relations represented by fan-in-two circuits; exact cofactoring of fixed input coordinates only. Diagnostic labels: relativizing\u2014yes, the substitution identity remains valid relative to any fixed oracle gate model if oracle wires are untouched; natural\u2014no lower-bound method is asserted; algebrizing\u2014no algebraic extension is asserted; localizing\u2014no lower bound is asserted. Circumvention checks: reversible computing, Strassen cancellation, Barrington width-5, catalytic space, and mass production are inapplicable to this circuit-substitution identity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795586557.7549918,
+  "session": "pnp-desk/research/R3268",
+  "model": "gpt-6-luna",
+  "id": "S0795",
+  "proved_step": "statement: BOUNDED-SUFFIX EXTENSION LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit of h gates, and fix a prefix p of length N\u2212k. The predicate E_p(u)=1 iff there exists v\u2208{0,1}^k with H(puv)=1, for u\u2208{0,1}^0 (or, more generally, with p fixed and the k remaining input bits free), has a fan-in-two circuit of at most 2^k(h+k+1) gates. In particular, for k\u2264c log\u2082(h+2), it has polynomial size in h for each fixed constant c. This bounds explicit suffix elimination for one fixed circuit; it does not represent the existential set of all size-s candidate circuits.\nderivation: For each v\u2208{0,1}^k, cofactor H by fixing the k suffix inputs to v. Input substitution leaves at most h gates and computes the corresponding restricted predicate. Take the OR of these 2^k predicates using a binary OR tree with at most 2^k\u22121 additional gates. If u denotes any other unfixed input coordinates, preserve them in each cofactor. The resulting circuit accepts exactly when at least one suffix v makes H accept, by the definition of OR. The total is at most 2^k h+(2^k\u22121), which is at most 2^k(h+k+1). For k\u2264c log\u2082(h+2), 2^k\u2264(h+2)^c, so the bound is polynomial in h for fixed c. The construction enumerates suffixes of one fixed H; it does not enumerate or update the family of candidate circuits defining EXT.\nscope: Fan-in-two Boolean circuits, fixed H and explicitly bounded suffix length k. This is a constructive circuit upper bound, not a lower bound or P!=NP progress. Diagnostic labels: relativizing\u2014yes, cofactoring and OR composition remain valid with fixed oracle gates; natural\u2014no lower-bound argument; algebrizing\u2014no algebraic extension; localizing\u2014no lower-bound argument. Circumvention tests (reversible computing, Strassen cancellation, Barrington width five, catalytic space, mass production) are not invoked; the construction makes no unavoidable-cost claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795586741.285393,
+  "session": "pnp-desk/research/R3260",
+  "model": "gpt-6-luna",
+  "id": "S0796",
+  "proved_step": "statement: BOUNDED-WITNESS PROJECTION LEMMA. For every fan-in-two Boolean circuit C(u,z) with g gates and z in {0,1}^k, P(u)=1 iff there exists z C(u,z)=1 has a fan-in-two circuit of at most 2^k g + 2^k - 1 gates. Proof: for each assignment a in {0,1}^k, substitute a into C, obtaining C_a(u) with at most g gates. Combine the 2^k outputs with a binary OR tree using 2^k-1 gates. Their OR is true exactly when some witness satisfies C. Therefore the total gate count is at most 2^k g+2^k-1. In particular, for fixed k the cost is O(g); for growing k this bound may be exponential in k. This establishes a bounded-witness projection case only, not a polynomial transition bound for unrestricted EXT.\nderivation: Enumerate all witness assignments, substitute constants into C, and OR the resulting circuit outputs.\nscope: Fan-in-two Boolean circuits; k existential Boolean witness inputs; arbitrary remaining input u; gate count only.\nbarriers: Diagnostic: relativizing identity; no natural, algebrizing, or localizing lower-bound method asserted; circumvention tests inapplicable because no P!=NP claim is made.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-b44848f4fd",
+  "closes_valid": true
+ },
+ {
+  "at": 1795586867.4467173,
+  "session": "pnp-desk/research/R3268",
+  "model": "gpt-6-luna",
+  "id": "S0797",
+  "proved_step": "statement: EXPLICIT LAYERED TRANSITION CIRCUIT LEMMA. Let Q be a nonempty state set of size m, S=ceil(log2 m), and for each of N input positions let \u03b4_i:Q\u00d7{0,1}\u2192Q be an arbitrary transition map. Fix an injective encoding e:Q\u2192{0,1}^S. Each encoded next-state map (q,b)\u21a6e(\u03b4_i(q,b)) has a fan-in-two Boolean circuit of at most S(S+2)2^(S+1) gates; thus all N transitions have at most N S(S+2)2^(S+1) gates. The construction is effective from the explicit transition tables. For m=1, zero state bits suffice and every transition is constant, so the bound is zero. This bounds implementation cost given a table, not the cost of obtaining the table from H_C.\nderivation: For m\u22652, S\u22651. For each output coordinate j, view its value as a Boolean function f_j of d=S+1 input bits (the S state bits and the input bit). Its truth-table DNF has at most 2^d minterms. Each minterm is an AND of d literals and can be built with at most d\u22121 fan-in-two AND gates; literals are input bits or their negations, with at most d NOT gates shared across all output coordinates. The OR of at most 2^d minterms uses at most 2^d\u22121 fan-in-two OR gates. A safe per-coordinate bound including separately charged literal negations is d\u00b72^d + (2^d\u22121); multiplying by S is at most S(d+1)2^d = S(S+2)2^(S+1). Empty DNFs implement constant zero. Applying this independently for each i yields the total. The construction reads the table entries to form each truth table, so it is effective with O(Nm) table lookups, but assumes \u03b4_i is explicitly supplied.\nscope: Finite deterministic layered automata with arbitrary position-dependent binary transitions and explicit transition tables; arbitrary injective state encoding of length ceil(log2 m). Does not bound the cost of constructing transition tables from a succinct MCSP decision circuit H_C, so the original EXT-to-H_C gap remains open. Diagnostic labels: relativizing\u2014yes, the finite truth-table construction is unchanged relative to a fixed oracle model when transitions are explicit; natural\u2014no lower-bound method; algebrizing\u2014no algebraic extension; localizing\u2014no lower-bound method. Circumvention tests: reversible computing, Strassen cancellation, Barrington width five, catalytic space, and mass production are not invoked; no P!=NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795587976.4280236,
+  "session": "pnp-desk/research/R3284",
+  "model": "gpt-6-luna",
+  "id": "S0798",
+  "proved_step": "statement: WITNESS-ENUMERATION PROJECTION BOUND. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates. For any fixed prefix p of x of length t, the residual R_p(z)=1 iff \u2203w\u2208{0,1}^r H(pz,w)=1 has a fan-in-two circuit with at most 2^r h + (2^r\u22121) gates. Proof: For each w\u2208{0,1}^r, substitute p and w into H, obtaining a circuit H_{p,w}(z) with at most h gates. Form their disjunction over all 2^r assignments w using a binary OR tree with 2^r\u22121 gates. At each z, this OR is 1 exactly when at least one witness w satisfies H(pz,w), which is the definition of R_p. Substitution cannot increase gate count. For r=0 the construction is just H_p and uses at most h gates. This is an exact upper bound, not a lower bound; it makes explicit that direct witness elimination costs exponential in witness length and therefore does not establish a polynomial-gate transition from H_C without additional structure.\nderivation: Circuit input substitution for each fixed witness retains at most h gates. Enumerate the finite witness set (2^r assignments), build one copy per assignment, and combine the outputs by a binary OR tree. Correctness follows pointwise from the existential quantifier. Total gates \u22642^r h+2^r\u22121; the empty-witness-bit case is included.\nscope: All finite Boolean relations represented by fan-in-two circuits; arbitrary fixed prefix p; witness length r. Diagnostic: this constructive upper bound is relativizing in form; it claims no lower bound or P\u2260NP progress, so natural/algebrizing/localizing status and circumvention tests are not invoked.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795588184.628022,
+  "session": "pnp-desk/research/R3284",
+  "model": "gpt-6-luna",
+  "id": "S0799",
+  "proved_step": "statement: LOGARITHMIC-WITNESS PROJECTION COROLLARY. Let H(x,w) have h>=1 fan-in-two gates and r witness bits. If r<=c log2(h) for a fixed c>=0, then every fixed-prefix existential residual R_p(z)=exists w H(pz,w) has a fan-in-two circuit of size at most h^(c+1)+h^c.\nderivation: By S0798's witness-enumeration construction, the size is at most 2^r h+2^r-1. Since r<=c log2 h, 2^r<=h^c. Therefore the size is at most h^(c+1)+h^c. This is polynomial in h for fixed c and applies to every prefix.\nscope: All finite fan-in-two Boolean circuits with h>=1 and witness length r<=c log2 h; fixed c. It gives polynomial projection cost only under this witness-length restriction.\ndiagnostic: This is an upper-bound construction, not a lower bound or P!=NP progress. It is relativizing in form; the other barrier labels and circumvention tests are not asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588233.1645794,
+  "session": "pnp-desk/research/R3284",
+  "model": "gpt-6-luna",
+  "id": "S0800",
+  "proved_step": "statement: SELF-CONTAINED LOGARITHMIC-WITNESS PROJECTION LEMMA. Let H(x,w) be computed by a fan-in-two Boolean circuit with h>=1 gates, and let w have r bits. For any fixed prefix p of x, if r<=c log2(h) for fixed c>=0, the residual R_p(z)=1 iff there exists w H(pz,w)=1 has a fan-in-two circuit of size at most h^(c+1)+h^c.\nderivation: For each of the 2^r assignments a to w, substitute p and a into H, producing a circuit on z with at most h gates. Combine these 2^r outputs with a binary OR tree using 2^r-1 gates. Pointwise, the result is 1 exactly when some assignment a satisfies H(pz,a), so it computes R_p. Its size is at most 2^r h+2^r-1. Since r<=c log2(h), 2^r<=h^c, and hence the size is at most h^(c+1)+h^c. This proof constructs the circuit directly and uses no earlier claimed step.\nscope: All finite fan-in-two Boolean circuits with h>=1, fixed c>=0, witness length r<=c log2(h), and arbitrary fixed prefixes p. This is a polynomial upper bound only in the stated logarithmic-witness regime; it gives no lower bound or general MCSP transition bound.\ndiagnostic: This is an upper-bound construction, not a P!=NP claim. No barrier circumvention claim is made.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588405.738471,
+  "session": "pnp-desk/research/R3284",
+  "model": "gpt-6-luna",
+  "id": "S0801",
+  "proved_step": "statement: FINITE-LIST RESIDUAL COUNT LEMMA. Let A be a listed multiset of M strings in {0,1}^N. At every depth t, the number r_t of distinct residual sets induced by prefixes of length t is at most min(2^t,M+1). Consequently sum_{t=0}^N r_t <= (N+1)(M+1). Proof: There are 2^t prefixes, so r_t<=2^t. For each prefix p let I_p be the list indices whose strings extend p. Distinct length-t prefixes have disjoint index sets, so there are at most M nonempty sets I_p, plus at most one empty set. Hence r_t<=M+1. Summing gives the consequence.\nderivation: For every depth t, map each prefix p to I_p={j: a_j begins with p}. Distinct prefixes induce disjoint index sets. Therefore at most M distinct nonempty residual index sets occur, and at most one empty set; also there are at most 2^t prefixes. These yield r_t<=min(2^t,M+1), and summing the M+1 bound across N+1 depths proves the total bound.\nscope: All finite N,t and explicit listed multisets A, including M=0. This bounds state counts for the listed language only and does not bound transition-gate costs from a succinct description H_C.\ndiagnostic: Upper bound only; no lower-bound or P!=NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588990.1410913,
+  "session": "pnp-desk/research/R3292",
+  "model": "gpt-6-luna",
+  "id": "S0802",
+  "proved_step": "statement: RESIDUAL-TABLE TRANSITION CIRCUIT LEMMA. Let L be a subset of {0,1}^N. At depth t, let r_t be the number of distinct residual languages and encode them by indices 0,...,r_t-1. If the explicit transition table mapping each state index and next input bit to the next residual index is supplied, then for r_t>=1 the transition map at that layer has a fan-in-two Boolean circuit of size O(r_t log(r_{t+1})), with state input width ceil(log2 r_t) and output width ceil(log2 r_{t+1}). The table is well-defined because a residual language determines both of its sections. Proof: For each current index i, construct an equality indicator e_i for the binary state input using O(log r_t) fan-in-two gates. For each output bit k, OR together e_i over exactly those indices whose transition on the given input bit has output bit k equal to 1, using O(r_t) gates per output bit; do this for both input-bit values, selected by the input bit. This costs O(r_t log r_t + r_t log r_{t+1}) gates, hence O(r_t(log r_t+log r_{t+1})); since r_{t+1}<=2r_t for residuals, this is O(r_t log r_{t+1}) when r_{t+1}>=2, and the constant-width boundary cases take O(r_t) gates. The construction compiles a supplied table and does not bound the cost of generating it from a succinct description.\nderivation: Equality decoding plus per-output-bit OR of the table entries, separately for each of the two input bits; residual sections ensure table consistency.\nscope: Deterministic layered recognizer for a finite Boolean language; transition table supplied explicitly; fan-in-two Boolean circuits. This gives a real-gate implementation bound but no succinct-table generation bound and no arbitrary MCSP decision-circuit lower bound.\ndiagnostic_barriers: This is an upper-bound construction only; it makes no P!=NP progress claim and asserts no barrier circumvention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795589083.4421647,
+  "session": "pnp-desk/research/R3292",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0802 as stated claims O(r_t log r_{t+1}) from an equality-decoding construction, but its proof also incurs O(r_t log r_t) gates. The claimed simplification is invalid when r_{t+1} is small (notably r_{t+1}=1 while r_t>1); the bound must retain the state-decoding term.",
+  "evidence": "Direct gate count in the S0802 construction: decoding r_t possible state indices requires O(r_t ceil(log2 r_t)) equality-test gates. The output OR networks require O(r_t ceil(log2 r_{t+1})) gates per input-bit branch, plus selection. The asserted asymptotic absorption does not follow when r_{t+1} is small."
+ },
+ {
+  "at": 1795589083.4800255,
+  "session": "pnp-desk/research/R3292",
+  "model": "gpt-6-luna",
+  "id": "S0804",
+  "proved_step": "statement: REPAIRED RESIDUAL-TABLE TRANSITION CIRCUIT LEMMA. Let L subset {0,1}^N and r_i be the number of distinct residual languages at depth i. Suppose the transition table from depth t residual indices and the next input bit to depth t+1 residual indices is explicitly supplied, with canonical binary indices. For r_t,r_{t+1}>=1, each position-specific transition map has a fan-in-two Boolean circuit of size O(r_t ceil(log2 r_t)+r_t ceil(log2 r_{t+1})+ceil(log2 r_{t+1})). Proof: For each legal current index i, build its equality indicator by comparing the ceil(log2 r_t) state bits against the fixed binary code of i, using O(ceil(log2 r_t)) fan-in-two gates; this costs O(r_t ceil(log2 r_t)). For each of the two values b of the next input bit and each output bit k, OR the equality indicators for those i whose table entry on b has output bit k equal to 1. The OR costs O(r_t) per (b,k), so all such ORs cost O(r_t ceil(log2 r_{t+1})). Select between the two branch outputs using b, costing O(ceil(log2 r_{t+1})). For every legal state code and each b, exactly one equality indicator is true, so the selected output equals the supplied table entry. Invalid state codes may map arbitrarily. Residual sections make the table semantically well-defined. The empty-language boundary can instead use a single rejecting state and constant transitions.\nderivation: One-hot equality decoding for each legal state index followed by per-output-bit ORs for each input-bit branch and a final bit-controlled selection. Retaining both logarithmic factors avoids the invalid absorption in S0802 when r_{t+1} is small.\nscope: Finite fixed-length Boolean language; explicitly supplied position-specific residual transition table; canonical binary state codes; fan-in-two Boolean circuits. No bound on generating the table from a succinct circuit description, and no lower bound for arbitrary MCSP decision circuits.\ndiagnostic_barriers: Upper-bound construction only; makes no P!=NP progress claim. The finite workflow verification cm-d06efb0dd36149ce checked related table arithmetic on 4,355 small cases, but is not proof of this general circuit-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795589440.0985715,
+  "session": "pnp-desk/research/R3292",
+  "model": "gpt-6-luna",
+  "id": "S0805",
+  "proved_step": "statement: EXPLICIT WITNESS-ELIMINATION BOUND. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates, with constants and fixed input substitutions free. For any fixed prefix p, the projected residual E_p(z)=1 iff there exists w\u2208{0,1}^r with H(pz,w)=1 has a fan-in-two circuit of at most 2^r h + 2^r \u2212 1 gates. Proof: For each of the 2^r witness strings w, substitute p and w into H, obtaining a circuit on z with at most h gates computing H(pz,w). Take the OR of these 2^r outputs using a binary tree with 2^r\u22121 OR gates. The resulting circuit outputs 1 exactly when at least one witness makes H(pz,w)=1, which is E_p(z). This also covers r=0, where there is one cofactor and zero OR gates. The bound is exact as a construction upper bound; it does not assert that projection requires this many gates, nor provide a polynomial bound when r grows.\nderivation: Enumerate all witness strings, cofactor H at each string and the fixed prefix, then OR the resulting outputs. Each cofactor preserves the h-gate bound; a binary OR of q outputs uses q\u22121 gates. Set q=2^r.\nscope: Finite Boolean relation, fan-in-two circuit, free constants and input substitution; fixed prefix and r witness bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795589545.8774965,
+  "session": "pnp-desk/research/R3300",
+  "model": "gpt-6-luna",
+  "evidence": "Direct quantified equivalence by concatenation; finite check requested separately. This is a candidate lemma, not a claim that it closes an existing obligation.",
+  "id": "S0806",
+  "proved_step": "statement: EXISTENTIAL COFACTOR UPDATE LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} and L(x)=1 iff \u2203w H(x,w)=1. For any prefix p of length t<N and bit b, define R_p(u)=1 iff \u2203w H(pu,w)=1. Then for every suffix z of length N\u2212t\u22121, R_{pb}(z)=R_p(bz). Proof: R_{pb}(z)=1 iff \u2203w H(pbz,w)=1. By concatenation pbz=p(bz), this is equivalent to \u2203w H(p(bz),w)=1, which is R_p(bz)=1. The identity preserves the existential witness domain exactly; it does not construct a circuit for the projected residual or bound the cost of evaluating it.\nstatus: SURVIVED_REVIEW",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795589677.142637,
+  "session": "pnp-desk/research/R3300",
+  "model": "gpt-6-luna",
+  "id": "S0807",
+  "proved_step": "statement: EXPLICIT WITNESS ENUMERATION FOR PROJECTED RESIDUALS. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be given by a fan-in-two Boolean circuit with h gates. Define L(x)=1 iff \u2203w H(x,w)=1. For a prefix p of length t, define R_p(z)=1 iff \u2203w H(pz,w)=1. Given p,z, R_p(z) can be evaluated exactly in at most 2^r circuit evaluations, hence at most 2^r h gate evaluations, using O(h+N+r) working bits in addition to the read-only circuit description. For b\u2208{0,1}, R_{pb}(z')=R_p(bz'). Proof: enumerate the 2^r witnesses w and accept iff one circuit evaluation H(pz,w) is 1; this is equivalent by the definition of existential quantification. The working storage can hold one circuit evaluation's gate values and the input/witness counters, within O(h+N+r) bits. Finally, R_{pb}(z')=1 iff \u2203w H(pb z',w)=1 iff \u2203w H(p(bz'),w)=1 iff R_p(bz'). This gives an exact projected-residual evaluator and transition identity; its 2^r factor does not establish an efficient transition for succinct EXT or arbitrary MCSP decision circuits.\nderivation: For fixed p,z, existential truth is equivalent to at least one of the finitely many 2^r assignments making H(pz,w)=1. Evaluating the h-gate circuit separately on each assignment gives the stated time; storing gate values for one evaluation and counters gives the workspace bound. The transition identity follows by associativity of concatenation and the unchanged witness domain.\nscope: All finite N,r,h and all Boolean circuits H of the stated type.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795589912.6633213,
+  "session": "pnp-desk/research/R3300",
+  "model": "gpt-6-luna",
+  "id": "S0808",
+  "proved_step": "statement: CORRECTED LAYERED RESIDUAL STATE COUNT. For L subset {0,1}^N, let r_t count distinct residual languages at depth t. With position-dependent transitions and a shared state set, the minimum number of states is max_t r_t. If layer labels must be disjoint, the minimum number of layer-state copies is sum_t r_t.\nderivation: At depth t, prefixes with different residuals need different states: some suffix distinguishes them. Thus at least max_t r_t states are necessary. Let R=max_t r_t and assign each layer's residuals distinct codes from a common palette of R states. At position t, send the code for residual A on bit b to the code for A_b={z:bz in A}. This is well-defined because A determines both sections. Induction shows the state encodes the current residual, so acceptance is exact. With disjoint layer copies, the per-layer lower bounds add and separate copies attain their sum. This is a state-count result, not a transition gate-cost bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

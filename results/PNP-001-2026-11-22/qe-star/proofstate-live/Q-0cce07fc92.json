@@ -1074,5 +1074,24 @@
   "proved_step": "statement_start: LEMMA (RAM-to-A-oracle stage map via explicit derived oracle and Sigma3SAT^A simulation). Let M be a deterministic RAM with S memory cells of w bits that reads x in {0,1}^N in order. In each interval between reads, M performs at most tau steps and at most q oracle queries to a fixed Sigma3SAT^A language, each query string of length at most ell. Let ell <= poly(S*w) + otilde(tau). Then the stage map (configuration at read i, bit x_{i+1}) -> configuration at read i+1 is computed by a single A-oracle circuit with tau*poly(S*w)*poly(ell) ordinary fan-in-2 gates and exactly tau*q A-oracle gates of input length poly(ell), uniform over all x. PROOF: (1) For each of the at most q query slots in an interval, the machine generates a Sigma3SAT^A query string y with |y| = k <= ell. Apply the encoding enc(y) = 1^k 0 y 0^(ell-k) from S0118, producing a fixed-length ell-bit string. By construction of O_enc = {enc(y): y in Sigma3SAT^A, |y|<=ell}, we have O_enc(enc(y)) = Sigma3SAT^A(y). The encoding circuit uses O(ell) gates. (2) Sigma3SAT^A is the canonical Sigma_3^P^A-complete problem: an instance is a quantified formula (exists y1 forall y2 exists y3 phi(y1,y2,y3)) with A-oracle gates in phi. The language Sigma3SAT^A_enc = {enc(y): y in Sigma3SAT^A, |y|<=ell} is decided by a P^A machine in time poly(ell) (decode enc to get y, then run the Sigma3SAT^A decider on y). By standard circuit simulation of P^A, there exists an A-oracle circuit of size poly(ell) that computes Sigma3SAT^A_enc on inputs of length ell. (3) Replace each O_enc oracle gate (input length ell) with this poly(ell)-size A-oracle circuit. The resulting circuit has tau*q A-oracle gates of input length poly(ell) (from the Sigma3SAT^A_enc simulation) plus tau*poly(S*w) ordinary gates for RAM step logic (multiplexers for memory addressing, ALU ops) and encoding. (4) Pad each interval to exactly tau steps and q query slots with dummy operations (fixed strings whose A-oracle answers are masked to 0 by slot-usage indicators). The circuit structure is independent of x. SCOPE: per-stage size bound. Does not close G0001 (tableau encoding definition), G0002 (worst-case update time formalization), or hypothesis (8). The polynomial overhead poly(ell) from Sigma3SAT^A_enc simulation is a known consequence of Sigma3SAT^A being in PSPACE^A and PSPACE^A having polynomial-size circuits relative to A, but the exact degree depends on the Sigma3SAT^A encoding. This lemma supersedes S0017 and S0044.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795589432.1403313,
+  "session": "pnp-desk/research/R3301",
+  "model": "gpt-6-luna",
+  "evidence": "Argument gap at (2): it asserts Sigma3SAT^A_enc is decided by a polynomial-time P^A machine and then invokes polynomial-size A-oracle circuit simulation. Sigma3SAT^A is a quantified oracle problem; its canonical completeness does not imply membership in P^A. A fixed-width encoding only addresses query-length normalization and does not remove the existential-universal-existential quantifiers. Thus the claimed A-oracle stage simulation is not established.",
+  "review_of": "S0125",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795589800.7067776,
+  "session": "pnp-desk/research/R3301",
+  "model": "gpt-6-luna",
+  "id": "S0127",
+  "proved_step": "statement_start: LEMMA (single-tape streaming update circuit with explicit input-head cost). For a deterministic single-tape streaming machine with fixed alphabet and control, S work cells, and an N-bit read-only input, an update of at most tau steps has a fan-in-2 circuit of size O(tau(S+log(N+1))).\nproof: Encode the work head one-hot, work symbols in constant-width fields, control in constant width, and input-head position in binary. One step scans the selected work symbol using O(S) gates; the finite transition table uses O(1) gates; each cell conditionally retains or replaces its symbol using O(S) gates; the one-hot work head shifts using O(S) gates; and the input position increments, decrements, or stays using O(log(N+1)) gates. Make halting states stationary and concatenate tau copies of this one-step circuit. This gives O(tau(S+log(N+1))) gates, uniformly over valid configurations and next-bit values. This is restricted to the stated single-tape model and does not establish the RAM or tableau claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

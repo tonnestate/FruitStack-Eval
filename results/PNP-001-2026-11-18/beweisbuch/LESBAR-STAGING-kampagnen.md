@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 14967 entries from 4406 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 15104 entries from 4458 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
-  - For LEMMA M, the minimal G_max for SC_{3,1} at S=6 is likely G=2 or G=3, while the affine control with same |P_t| profile should have G_max=1 or G=0 (wire-only). This would show SC requires non-linear updates while affine does not. The wire-only (G=0) test for
-  - The corrected decoder bound S >= ceil(log2 |Yes_s|) is the tightest possible bound derivable solely from decoder correctness (outputting a valid circuit on yes instances, none on no instances). For affine F_2 encodings, the L_dec lemma (S0024) gives S >= N - d
-  - Exact #SAT remains polynomial-time when bottom gates overlap inside incidence components of O(log n) variables, provided total absolute top weight is polynomially bounded.
-  - A Stage D transfer can preserve a source lower bound B(m) into a target promise problem only when its total two-sided reduction has same-model circuit cost r(m)=o(B(m)); differing source and target lengths do not change this quantitative requirement.
-  - For every m>=2, the natural binary encoding of an m-cycle into S=ceil(log2 m) bits admits a total AND/NOT circuit extension of the cycle transition with O(S) gates, by shared increment carries and a terminal-code mask.
-  - For a finite language F with residual width r_t at each layer, optimizing injective residual-state codes may yield a smaller maximum AND/XOR update cost than the universal truth-table synthesis bound for the same state width.
+  - For the exact MCSP threshold predicate L_s on m-bit truth tables in the complete binary DAG model, every hypercube edge crossing the threshold has both endpoints with complexity in (s−m,s+m].
+  - For verifier relations H, prefix transitions of the existentially projected language are exactly cofactor operations on the projected residual; generally, fixing one witness does not preserve the projected language.
+  - The lower bound of one common coordinate for adjacent-block vectors is sharp, over every field.
+  - A uniform unrestricted IPS-to-roABP-IPS_LIN conversion may require a resource parameter controlling repeated variable occurrences or circuit reuse. Test this by constructing certificate families whose necessary formula occurrence counts grow while their IPS re
+  - For SC_{3,1} and SC_{3,2} in deterministic truth-table order, exact membership update cost under arbitrary recodings is governed by the transition complexity of the layered residual machine; the minimum residual-state count gives the optimal state count for me
+  - If the EXT-to-H_C transition can be represented with a witness length k bounded independently of input size, then existential projection can be compiled with O(g) gates from a g-gate verifier; for growing k the enumeration bound is 2^k g+2^k-1 and does not giv
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -32,23 +32,23 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
-  - None -> None
-  - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
   - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3221 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3229 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-e64b2c9cf8 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:b24dec8b5967 by pnp-desk/research/R3274:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The only kernel-accepted result proves
+  - Q-dc61ab557e [IMPLICATION, OPEN] For an exact deterministic one-pass search transducer with decoder D and witness relation W(x), define A_p(u)=W(pu). Is the largest family of prefixes pairwise separated by some suffix u with A_p(u) intersect A_q(u)=empt
+  - Q-79c4627de1 [MISSING_PROOF, OPEN] Can the Hamming-distance robustness lemma for MCSP threshold labels be combined with a genuinely superlinear circuit property of the MCSP decision table, beyond the read-set inequality |R|<=g+1, to force an N(log N)^k lo
+  - Q-6700e8cbd4 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:bb3c91e6f746 by pnp-desk/research/R3259:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean check rejected the attempted 
   - Q-ad4bef3112 [COUNTEREXAMPLE, OPEN] The fast evaluator reports a counterexample to the claim 'For every Boolean function f:{0,1}^m->{0,1}, every set I of k distinct input coordinates, and support size t, some assignment rho to I has cofactor support at mos
-  - Q-6a64bfdee6 [UNCONVENTIONAL, OPEN] Can the simultaneous cofactor implementation bound be strengthened by sharing subcircuits across cofactors to give a general circuit upper bound depending on their joint support structure, with a proved bound strictly be
-  - Q-21b6165d37 [ASSUMPTION, OPEN] The claim 'For prime p, let A be an S×N matrix over F_p and q(x)=Ax+c for Boolean vectors x∈{0,1}^N. If a final-state decoder correctly solves exact SearchMCSP[s] on every N-bit truth table and 0^N has circuit size at mo
-  - Q-2c0519a953 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:e517f17398a8 by pnp-desk/research/R3140:gpt-6-luna@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For every deterministic finite automaton A=(Q,delta,q0,F)
-  - Q-dce9075e98 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:66432f3d55b9 by pnp-desk/research/R3134:gpt-6-luna@default: INCONCLUSIVE - the validator could not decide it (twice):  CLAIM: For every m>=2, S=ceil(log2 m), m-element set Q, injectio
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
-  - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
+  - QE* FINAL (owner 2026-11-22) CROSS-THEOREM SYNTHESIS CONNECTIONS (after Lines A-C have results; until then collect only): A->B can a basis-independent invariant -> reopen if: Lines A-C yield specific results and a recorded open obligation permits a non-duplicate constructive proof attempt.
   - RECON-REMAINDER Case E (owner 2026-11-23, target (8)): recover proofs left unextracted in FINAL outputs (research R*.json, proofbook FINAL entries); list statem -> reopen if: None
   - RECON-REMAINDER Route G (owner 2026-11-23, target (8)): PIT, GCT, permanent/determinant, algebraic natural proofs, Williams-type transfers, algebraic vs Boolean -> reopen if: A source-checked polynomial-size conversion preserving the Boolean-cube identity predicate, together with a transfer theorem matching its ex
 NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it follows from its premises)

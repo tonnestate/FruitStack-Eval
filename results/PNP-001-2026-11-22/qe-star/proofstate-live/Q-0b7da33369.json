@@ -5869,5 +5869,86 @@
   "proved_step": "TRIE-SHARED TRANSITION EXTENSION LEMMA. Let Q have m>=2 states, let S=ceil(log2 m), let \u03c8:Q\u2192{0,1}^S be injective, and let \u03b4:Q\u2192Q change exactly t states. Let T be the set of their S-bit encodings. Form the binary prefix trie of T, with the root omitted and unary and branching prefix nodes counted; let L be its number of nodes. Put H=\u03a3_{q:\u03b4(q)\u2260q} d_H(\u03c8(q),\u03c8(\u03b4(q))). Then the encoded partial map has a total Boolean extension using O(S+L+H) fan-in-two AND/NOT gates. Proof: Share the negations of the S input bits. For each trie node, compute its prefix-match indicator from its parent indicator and the next matching literal, using one AND gate; the root indicator is 1. Each changed state q has a leaf indicator e_q, equal to 1 exactly at \u03c8(q), because \u03c8 is injective and the leaves are distinct. For each output bit j, collect the leaves q for which \u03c8(q)_j differs from \u03c8(\u03b4(q))_j. Define output j as x_j XOR the OR of their indicators (empty OR is 0). The ORs and XORs use O(1) gates per leaf occurrence, for O(H) total; the trie uses O(L) gates. At an unchanged encoded state no changed leaf indicator is active, so the output is \u03c8(q). At a changed encoded state exactly its leaf indicator is active, so precisely the differing destination bits are toggled. The formulas define outputs on every unused code, giving a total extension. Thus the cost is O(S+L+H). For a full trie L can be \u0398(St), so this does not establish O(S+H) in general; it isolates the remaining obstacle as bounding shared prefix complexity for a useful encoding.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795586576.6310587,
+  "session": "pnp-desk/research/R3262",
+  "model": "gpt-6-luna",
+  "gap": "This boundary lemma does not address the assigned asymptotic extrema for arbitrary transition maps; next need a construction that controls the cost as image size or fiber structure grows.",
+  "gap_id": "G0208",
+  "id": "S0680",
+  "proved_step": "statement: CONSTANT-IMAGE TRANSITION LEMMA. Let Q be a finite set, \u03c8:Q\u2192{0,1}^S any injection, and \u03b4:Q\u2192Q have image of size one, say \u03b4(q)=q_* for every q\u2208Q. Then \u03c8\u2218\u03b4\u2218\u03c8^{-1} on \u03c8(Q) extends to a total S-bit Boolean map computed with zero fan-in-two AND/NOT gates (constants are free). Proof: Define F(x)=\u03c8(q_*) for every x\u2208{0,1}^S. Each of its S output coordinates is the corresponding constant bit of \u03c8(q_*), hence needs no gates under the stipulated free-constants convention. For every q\u2208Q, F(\u03c8(q))=\u03c8(q_*)=\u03c8(\u03b4(q)), so F is the required extension. This holds for every stationary injective encoding and all S, including S=0. The result isolates the constant-map boundary case; it gives no bound for image size at least two.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795587023.412736,
+  "session": "pnp-desk/research/R3270",
+  "model": "gpt-6-luna",
+  "gap": "This establishes a universal constructive upper bound in an expanded one-hot representation only. It does not close the assigned minimum-width stationary recoding obligations or open bridge D; those remain open.",
+  "gap_id": "G0209",
+  "id": "S0681",
+  "proved_step": "statement: ONE-HOT UNIVERSAL TRANSITION UPPER BOUND. For every m>=1, every map delta:Q->{0,1}^Q on an m-element set has an injective encoding psi:Q->{0,1}^m such that the encoded transition extends to a total map on {0,1}^m computed by at most m^2+m fan-in-two AND/NOT gates (input wires and constants are free). Proof: Enumerate Q={q_1,...,q_m} and encode q_i by the unit vector e_i. For each output coordinate j, let P_j={i: delta(q_i)=q_j}, and define F_j(x)=OR_{i in P_j} x_i, with the empty OR equal to 0. Implement each OR as a binary tree of OR gates; OR(a,b)=NOT(AND(NOT a,NOT b)), costing three allowed gates per internal node. The total number of internal nodes over all j is sum_j max(|P_j|-1,0) <= sum_j |P_j|=m, so this implementation uses at most 3m gates, which is <=m^2+m for m>=1. At x=e_i, exactly one input indicator is 1, hence F(e_i)=e_k where q_k=delta(q_i). Thus F is a total extension and the encoding is injective. Diagnostic: the construction uses m state bits, not S=ceil(log2 m), and gives no lower bound or P-vs-NP implication.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795587095.0303082,
+  "session": "pnp-desk/research/R3270",
+  "model": "gpt-6-luna",
+  "gap": "The corrected universal upper bound uses one-hot width m. The assigned minimum-width recoding bounds and time-dependent/amortized bridge D remain open; S0681's m^2+m bound had an invalid m=1 comparison, repaired here by stating the valid 3m bound directly.",
+  "gap_id": "G0210",
+  "id": "S0682",
+  "proved_step": "statement: CORRECTED ONE-HOT UNIVERSAL TRANSITION UPPER BOUND. For every integer m>=1 and every map delta:Q->{0,1}^Q on an m-element set, there is an injective encoding psi:Q->{0,1}^m such that the encoded transition extends to a total Boolean map computed by at most 3m fan-in-two AND/NOT gates, with input wires and constants free. Proof: Enumerate Q={q_1,...,q_m} and encode q_i by the unit vector e_i. For each j define P_j={i:delta(q_i)=q_j} and F_j(x)=OR_{i in P_j} x_i, taking an empty OR to be 0. For |P_j|>=2 implement this OR by a binary tree with |P_j|-1 OR gates; implement each OR(a,b) as NOT(AND(NOT a,NOT b)), costing three allowed gates. For |P_j|=1 the output is a wire, and for |P_j|=0 it is a free constant, so the total gate count is at most 3 sum_j |P_j|=3m. At x=e_i exactly one input bit is 1, so F(x)=e_k for q_k=delta(q_i). Thus F is a total extension agreeing with the encoded transition on every code. This uses m state bits, not ceil(log2 m), and asserts no lower bound or P-vs-NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795587186.960913,
+  "session": "pnp-desk/research/R3270",
+  "model": "gpt-6-luna",
+  "gap": "The image-sensitive one-hot bound refines the universal m-bit upper bound but does not close or shrink the minimum-width stationary recoding bounds or bridge D for time-dependent/one-to-many encodings; those remain open.",
+  "gap_id": "G0211",
+  "id": "S0683",
+  "proved_step": "statement: IMAGE-SENSITIVE ONE-HOT TRANSITION UPPER BOUND. Let m>=1, let Q be an m-element set and delta:Q->Q, and let r=|delta(Q)|. Under the encoding psi(q_i)=e_i in {0,1}^m, the encoded transition has a total Boolean extension using at most 3(m-r) fan-in-two AND/NOT gates, with input wires and constants free. Proof: For each q_j in delta(Q), put k_j=|delta^{-1}(q_j)|>=1 and define output bit j to be OR_{i:delta(q_i)=q_j} x_i; for q_j outside delta(Q), use constant zero. An OR of k_j inputs uses k_j-1 binary OR gates, each implemented using three AND/NOT gates. Since the nonempty preimages partition Q, sum_{j in delta(Q)} k_j=m, so total gates are 3 sum_j(k_j-1)=3(m-r). On input e_i exactly one input bit is one, and the output is e_j for q_j=delta(q_i), proving extension correctness. This uses m state bits and does not assert a minimum-width or lower-bound result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795587560.7345748,
+  "session": "pnp-desk/research/R3278",
+  "model": "gpt-6-luna",
+  "lemma": "For every m-state function and every injective S-bit encoding, there is a total transition extension of size O(mS), by decoding each encoded state once and sharing its indicator across output coordinates.",
+  "id": "S0684",
+  "proved_step": "statement: Explicit minterm extension for arbitrary encoded transitions. Let m>=1, S=ceil(log2 m), Q be an m-element set, delta:Q->Q any function, and psi:Q->{0,1}^S injective. There exists a total Boolean map F:{0,1}^S->{0,1}^S agreeing with psi delta psi^{-1} on psi(Q), computed with O(mS) fan-in-two AND/NOT gates, with input wires and constants free. For each q in Q, form e_q(x) as the conjunction of the S literals specifying x=psi(q), using S-1 binary AND gates when S>=1; share this indicator across all output coordinates. For each coordinate j, set F_j(x)=OR_{q: psi(delta(q))_j=1} e_q(x); a binary OR is implemented from AND/NOT by De Morgan, and the OR uses at most m-1 gates. At x=psi(q), injectivity gives e_q=1 and every other e_r=0, hence F_j(psi(q))=psi(delta(q))_j. The formulas define F on unused codes, whose values are unrestricted. The total gate count is at most m(S-1)+S(m-1)=O(mS). If S=0 then m=1 and the unique output is the zero-bit map, requiring no gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795588209.2606866,
+  "session": "pnp-desk/research/R3278",
+  "model": "gpt-6-luna",
+  "gap": "Current resumed turn must first inspect the latest proof_state_read output. Prior transcript reports S0684 (general O(mS) minterm extension) as CLAIMED and unreviewed; earlier attempted review was rejected for same model family. No new lemma may use S0684 as a premise. A previous discovery attempt failed at parse time (cm-5dfb87ebed454990), so repair the computation before using it. Constructive target: exact-S-bit encoding of arbitrary unequal-cycle permutations via a dense code assignment, with explicit circuit construction and proof of size/correctness; otherwise state the narrower proved scope and remaining gap.",
+  "gap_id": "G0212"
+ },
+ {
+  "at": 1795589023.0705884,
+  "session": "pnp-desk/research/R3294",
+  "model": "gpt-6-luna",
+  "id": "S0686",
+  "proved_step": "statement: GENERIC TOTAL-EXTENSION SYNTHESIS LEMMA. Let Q be an m-element set, m>=2, S=ceil(log2 m), let psi:Q->{0,1}^S be any injection, and let delta:Q->Q be any function. There is a total Boolean map F:{0,1}^S->{0,1}^S extending psi delta psi^{-1} on psi(Q), computed with O(mS) fan-in-two AND/NOT gates (input wires and constants free). Proof: For each q in Q form the minterm e_q(x)=AND_{i=1}^S l_{q,i}(x), where l_{q,i}=x_i if psi(q)_i=1 and NOT x_i otherwise. Compute all input negations once and all minterms with at most S-1 binary AND gates each, for O(mS) gates. For output coordinate j, set T_j={q: psi(delta(q))_j=1} and define F_j=OR_{q in T_j} e_q, using at most max(|T_j|-1,0) binary OR gates, each implementable with a constant number of AND/NOT gates. Summed over j this costs O(mS). On input psi(q), injectivity makes exactly e_q equal 1, so F_j(psi(q))=psi(delta(q))_j. The formulas define F on unused codes as well. This gives an explicit upper bound for every injection and transition, but does not establish the sharper O(sqrt(m) polylog m) bound for a choice of encoding.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795589120.9064064,
+  "session": "pnp-desk/research/R3294",
+  "model": "gpt-6-luna",
+  "id": "S0687",
+  "proved_step": "statement: SPARSE-CHANGES EXTENSION LEMMA. Let |Q|=m>=2, S=ceil(log2 m), and let psi:Q->{0,1}^S be injective. If delta:Q->Q fixes all but t states, then psi delta psi^{-1} on psi(Q) extends to a total Boolean map using O((t+1)S) fan-in-two AND/NOT gates, with input wires and constants free. Proof: Let A={q:delta(q)!=q}. For each q in A, construct e_q(x)=[x=psi(q)] by ANDing its S matching literals, sharing input negations. This costs O(S|A|). For bit j, let D_j={q in A: psi(q)_j!=psi(delta(q))_j}; define F_j(x)=x_j XOR OR_{q in D_j} e_q(x). Binary trees implement each OR, and OR and XOR each have constant-size AND/NOT implementations. Since sum_j |D_j|<=S|A|, the total cost is O(S(t+1)). At an encoded fixed state all indicators vanish, so F_j=x_j. At an encoded changed state, injectivity makes only its indicator active, so F toggles precisely the bits differing between source and destination. Thus F agrees with the transition on psi(Q), and its formulas define a total map on all bit strings. For t=0 use the identity map. This improves the generic O(mS) synthesis bound when t=o(m), but does not establish the worst-case recoding bounds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
