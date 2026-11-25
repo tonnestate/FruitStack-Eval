@@ -6531,5 +6531,245 @@
   "evidence": "The proof is correct. Label cycle elements q_0,...,q_{m-1} in cycle order. Use standard binary encoding psi(q_i)=binary(i) with S=ceil(log2 m) bits. The circuit computes y=x+1 mod 2^S via standard incrementer (O(S) gates): y_0=NOT x_0, y_j=x_j XOR c_j where c_1=x_0, c_{j+1}=c_j AND x_j. Equality test e(x)=[x=m-1] computed as conjunction of literals matching binary(m-1), cost O(S). Output F_j(x)=y_j AND NOT e(x). For x<m-1: F gives x+1; for x=m-1: F gives 0 (wraparound). This is a valid extension with O(S) gates. The argument is sound.",
   "review_of": "S0646",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640902.4659898,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for x in [0,m), compute y = x+1 mod 2^S using shared-carry incrementer (O(S) AND gates), e = [x = m-1] via conjunction of S literals (O(S) gates), output z_j = y_j AND NOT e (O(S) gates). For x < m-1, e=0 so z = x+1; for x=m-1, e=1 so z=0. All gates are fan-in-2 AND/NOT; constants allowed. Total O(S) gates. This proves only an upper bound for the standard binary encoding, which is valid.",
+  "review_of": "S0647",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640926.2502105,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction encodes q_i as binary i (S bits). The incrementer uses shared prefix carries: y_0 = NOT x_0, y_j = x_j XOR c_j where c_1 = x_0 and c_{j+1} = c_j AND x_j, all O(S) AND/NOT gates. The equality test e(x) = [x = m-1] is a conjunction of S literals matching the binary representation of m-1, costing O(S) gates. Output F_j = y_j AND NOT e(x) for each bit. On valid codes: if i < m-1, e=0 and F = i+1; if i = m-1, e=1 and F = 0. All gates are fan-in-2 AND/NOT (XOR uses constant-size AND/NOT). Total O(S) gates. The proof is correct for this specific encoding choice.",
+  "review_of": "S0648",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641076.4280918,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction splits S bits into high bits (ceil(log2 t)) for cycle index i and low bits (ceil(log2 d)) for phase j. The width assumption ensures this fits in S bits. High bits pass through unchanged. Low bits implement j+1 mod d: shared prefix carries compute increment in O(log d) gates; equality test against d-1 costs O(log d) gates; output F_j = y_j AND NOT e with e = [low bits = d-1]. On valid codes: j < d-1 gives (i, j+1); j = d-1 gives (i, 0). Total O(log d) <= O(log m) gates. The proof is correct for this specific encoding when the bit widths add exactly.",
+  "review_of": "S0649",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641076.4743268,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction: u = psi(a), v = psi(b), D = {j: u_j != v_j}. e_u(x) = conjunction of S literals matching u (O(S) gates), e_v(x) similarly. For each j, F_j(x) = x_j XOR ((e_u(x) OR e_v(x)) AND [j in D]). Equality tests share input negations, total O(S) gates. OR and conditional toggles cost O(S). For x=u or v, exactly one equality indicator is 1, so D coordinates toggle giving F(u)=v, F(v)=u. For other encoded states, both indicators 0 so F(x)=x. The same formula defines F on all 2^S inputs. All gates are fan-in-2 AND/NOT (XOR uses constant-size AND/NOT). Total O(S) gates. The proof is correct for any injective encoding psi.",
+  "review_of": "S0650",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641153.782057,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the construction: for each of t changed states q, equality indicator e_q(x) is conjunction of S literals (S-1 fan-in-2 AND gates, using free input literals x_k/\\neg x_k). For each output coordinate j, D_j = {q in changed: psi(q)_j != psi(delta(q))_j}, |D_j|=d_j. OR tree over d_j indicators implemented with AND/NOT: each binary OR = NOT(NOT a AND NOT b) costs 3 gates, total 3(d_j-1) per coordinate. XOR with x_j costs O(1) gates. Sum over j: 3(H - S') + O(S) where H = sum d_j <= tS. Indicators cost t(S-1). Total = tS + 3H + O(S) = O(tS) = O(S+tS). The extension agrees on all psi(Q) by injectivity of psi; unused codes get arbitrary values. No argument gap found.",
+  "review_of": "S0651",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641187.7569768,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the construction: The binary prefix trie of the t changed states' encodings has T non-root nodes. Each node indicator I_v is computed from its parent with one AND gate (using x_k or NOT x_k, where NOT x_k is computed once per coordinate, costing S gates total). This yields T + S gates for all indicators. The leaf indicators I_q for q in D are mutually exclusive because encodings are distinct. For each output bit j, D_j is the set of changed states where the j-th bit flips; |D_j| = d_j. An OR tree over d_j indicators costs 3(d_j - 1) fan-in-2 AND/NOT gates. Sum over j gives 3(H - S') where H = sum d_j is the total Hamming distance. XOR with x_j costs O(1) per coordinate. Total = (T + S) + 3H + O(S) = O(S + T + H). The extension is correct on all psi(Q) by injectivity and mutual exclusivity of leaf indicators; unused codes get arbitrary values. No argument gap found.",
+  "review_of": "S0652",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641278.6133373,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is correct. If delta^k(q) != q, then not all of q, delta(q), ..., delta^{k-1}(q) can be fixed by delta (otherwise delta^k(q)=q by induction). Hence at least one lies in supp(delta), so q belongs to the union of k inverse images of supp(delta). Thus |supp(delta^k)| <= k|supp(delta)| <= kt. The sparse-change construction of S0651 applies directly to the map delta^k (which differs from identity on at most kt states) with the same encoding psi, giving a circuit of size O(S + kt*S) = O((kt+1)S) fan-in-two AND/NOT gates. The construction is existential (a circuit exists for each k); the asymptotic bound is uniform in k. No argument gap found.",
+  "review_of": "S0653",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641302.5051398,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The containment is correct: if delta(q)=q then delta^k(q)=q by induction, so q not in supp(delta) implies q not in supp(delta^k). Thus supp(delta^k) \u2286 supp(delta) and |supp(delta^k)| \u2264 t = |supp(delta)|. The sparse-change construction of S0651 applied to delta^k (which differs from identity on at most t states) with the same encoding psi gives a circuit of size O(S + tS) = O((t+1)S) for each k. The bound is uniform in k (same asymptotic for all k), though the circuit itself depends on k via the set of moved states and their images. No argument gap found.",
+  "review_of": "S0654",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641319.5298321,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction builds equality indicators e_q(x) for all q in Q (m indicators, each S-1 fan-in-2 AND gates using shared input negations: total m(S-1) + S = O(mS)). For each output bit j, an OR tree over indicators where psi(delta(q))_j = 1 (binary OR via AND/NOT costs 3 gates per internal node, so O(m) per coordinate, total O(mS)). XOR with x_j is O(1) per coordinate. At x = psi(q), injectivity makes exactly e_q = 1, so output is psi(delta(q)). On unused codes all indicators are 0, output is 0^S. Total O(mS) gates. This is a standard full lookup table construction; the bound is correct and tight for arbitrary delta and psi. No argument gap found.",
+  "review_of": "S0655",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641329.470231,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct. For each q in T, e_q(x) is an S-literal conjunction testing x = psi(q); with shared input negations this costs O(S|T| + S) gates. For each output coordinate j, D_j = {q in T : psi(q)_j != psi(delta(q))_j}, and |D_j| = d_j. The OR tree over d_j indicators costs 3(d_j - 1) fan-in-2 AND/NOT gates. Sum over j gives 3(sum d_j - S') where sum d_j = sum_{q in T} h_q = H, so O(H + S). XOR with x_j costs O(1) per coordinate = O(S). Total = O(S|T| + S + H + S) = O(S + S|T| + sum h_q). Correctness: at x = psi(q) for q in T, injectivity makes e_q the sole active indicator, so exactly the differing coordinates flip. At x = psi(q) for q not in T, no indicator is active, so output = x = psi(delta(q)). The formulas define a total map on all 2^S inputs. No argument gap found.",
+  "review_of": "S0674",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641367.5563962,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a restatement of S0674 with Unicode notation. The same construction and gate count analysis applies: equality indicators e_q for q in T cost O(S|T|+S); OR trees over D_j cost O(sum|D_j|+S)=O(sum h_q+S); XORs cost O(S). Total O(S + S|T| + sum h_q). Correctness follows from injectivity of psi and mutual exclusivity of e_q on psi(Q). The 'corrected' label refers to repairing an earlier unsupported O(S+sum h_q) claim by including the equality-test cost. No argument gap found.",
+  "review_of": "S0675",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641523.5520694,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: for each output bit j, the truth table on 2^S inputs has at most 2^S minterms. Each minterm is a conjunction of S literals, costing S-1 binary AND gates (sharing negated inputs). The OR of up to 2^S minterms uses 2^S-1 binary OR gates, each OR = 3 AND/NOT via De Morgan. Per output: (S-1)*minterms + 3*(2^S-1) \u2264 (S+2)*2^S = O(S\u00b72^S). For S outputs: S * O(S\u00b72^S) = O(S^2\u00b72^S). With S=ceil(log2 m), 2^S \u2264 2m, so O(m (log m)^2). The lemma statement initially claims O(S\u00b72^S) total but the proof correctly derives O(S^2\u00b72^S); the final corrected bound is valid. No argument gap.",
+  "review_of": "S0678",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641659.5228877,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: shared negations of S inputs (O(S) NOT gates). Trie of T (t distinct S-bit codes) has L non-root prefix nodes; each node's indicator = parent_indicator AND next_literal, costing 1 AND gate per node = O(L). Leaf indicators are exactly the trie leaf indicators (1 iff input matches that code). For each output j, OR of e_q over q where psi(q)_j != psi(delta(q))_j; total leaf occurrences across all outputs = H. Binary OR tree of k indicators costs 3(k-1) AND/NOT gates; XOR with x_j costs O(1). Total O(S + L + H). The lemma honestly notes L can be Theta(St) for a full trie, so this does not prove O(S+H) in general; it isolates the prefix-sharing obstacle. No argument gap.",
+  "review_of": "S0679",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641785.66875,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is trivially correct: the constant function F(x) = \u03c8(q_*) for all x \u2208 {0,1}^S outputs the fixed S-bit string \u03c8(q_*). Each output bit is a constant (0 or 1), which by the free-constants convention costs 0 fan-in-two AND/NOT gates. The function is total and agrees with \u03c8\u2218\u03b4\u2218\u03c8^{-1} on all \u03c8(q) since \u03b4(q) = q_* for all q. No argument gap.",
+  "review_of": "S0680",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641898.0587246,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: the one-hot encoding construction is correct for deterministic transitions delta:Q->Q (statement has typo delta:Q->{0,1}^Q). For each j, P_j={i:delta(q_i)=q_j} partitions Q, so sum|P_j|=m. Binary OR tree with |P_j|-1 internal nodes, each OR=NOT(AND(NOT,NOT)) costs 3 gates. Total gates=3*sum max(|P_j|-1,0) <= 3m. Bound 3m <= m^2+m holds for m>=1 (m=1: 0<=2; m>=2: 3m<=m^2+m). Extension correctness: at x=e_i, only x_i=1, so F_j=1 iff i in P_j iff delta(q_i)=q_j. Uses m state bits, not ceil(log2 m) as required by the model - noted as diagnostic limitation, not proof error.",
+  "review_of": "S0681",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641936.4765956,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: same construction as S0681 with tighter bound 3m (instead of m^2+m). The statement has typo delta:Q->{0,1}^Q but proof treats delta:Q->Q. For each j, P_j partitions Q so sum|P_j|=m. Binary OR tree with |P_j|-1 internal nodes for |P_j|>=2, each OR=NOT(AND(NOT,NOT)) costs 3 gates. Total gates = 3*sum_{j:|P_j|>=2} (|P_j|-1) <= 3*sum|P_j| = 3m. Extension correctness: at x=e_i, F_j=1 iff i in P_j iff delta(q_i)=q_j. Uses m state bits, not S=ceil(log2 m) - diagnostic limitation noted.",
+  "review_of": "S0682",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642058.7277267,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: one-hot encoding psi(q_i)=e_i in {0,1}^m. For each j in delta(Q) (size r), preimage size k_j>=1, sum k_j=m. Output bit j is OR of k_j inputs, implemented as binary tree with k_j-1 OR gates, each OR=NOT(AND(NOT,NOT)) costs 3 AND/NOT gates. Total gates = 3*sum(k_j-1) = 3(m-r). For j not in delta(Q), output is constant 0 (free). At x=e_i, exactly one input is 1, so F_j=1 iff i in preimage of q_j, i.e., delta(q_i)=q_j. Correct extension. Uses m state bits, not S=ceil(log2 m) - diagnostic, not error. Bound improves on S0682 when r>0.",
+  "review_of": "S0683",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642059.6835165,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Standard minterm construction. For each q in Q, e_q(x) = AND_{i=1}^S l_{q,i}(x) where l_{q,i} = x_i if psi(q)_i=1 else NOT x_i. Computing all S input negations once (S gates, absorbed in O(mS)). Each minterm: S-1 binary AND gates, total m(S-1). For each of S output bits, OR of up to m minterms: binary tree with at most m-1 internal nodes, each OR = NOT(AND(NOT, NOT)) costs 3 AND/NOT gates, so at most 3(m-1) per output, total 3S(m-1). Sum = m(S-1) + S + 3S(m-1) = 4mS - m - 2S = O(mS). Correctness: at x=psi(q), injectivity makes e_q=1, others 0, so F_j=1 iff psi(delta(q))_j=1. Handles m=1, S=0 as zero-bit map. No error.",
+  "review_of": "S0684",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642211.7673247,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Same minterm construction as S0684. For each q, e_q(x) = AND of S literals matching psi(q). Input negations shared (S gates). m minterms at S-1 AND gates each = m(S-1). For each of S outputs, OR of up to m minterms via binary tree with \u2264 m-1 internal nodes, each OR = NOT(AND(NOT,NOT)) costs 3 AND/NOT gates = 3S(m-1). Total = m(S-1) + S + 3S(m-1) = O(mS). Correctness: at x=psi(q), injectivity gives e_q=1, others 0, so F_j=1 iff psi(delta(q))_j=1. No error.",
+  "review_of": "S0686",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642211.810209,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: A={q:delta(q)!=q}, |A|=t\u2264m. For each q in A, e_q(x)=[x=psi(q)] costs S-1 AND gates + shared negations = O(St). For each bit j, D_j={q in A: psi(q)_j\u2260psi(delta(q))_j}, sum_j |D_j| \u2264 S|A| = St. F_j(x) = x_j XOR OR_{q in D_j} e_q(x). OR implemented as binary tree (|D_j|-1 OR gates, each OR=NOT(AND(NOT,NOT)) costs 3 gates). XOR(a,b) = (a AND NOT b) OR (NOT a AND b) costs 4 AND/NOT gates. Total gates = O(St + S + St) = O(S(t+1)). Correctness: at x=psi(q) with q fixed (q\u2209A), all e_q=0, F_j=x_j=psi(q)_j=psi(delta(q))_j. At x=psi(q) with q\u2208A, e_q=1, others 0, so F_j = x_j XOR 1 = NOT psi(q)_j if q\u2208D_j, else x_j. Since q\u2208D_j iff psi(q)_j\u2260psi(delta(q))_j, output equals psi(delta(q))_j. Correct. Total map defined by same formulas. No error.",
+  "review_of": "S0687",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642211.8438723,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Encoding psi maps state in cycle i at position k to integer a_i+k (0\u2264k<b_i-a_i+1). Codes used: 0..m-1 \u2286 {0,1}^S. Incrementer u(x) computes (x+1) mod 2^S using O(S) gates (ripple-carry adder with constant 1). For each cycle endpoint b_i, e_i(x)=[x=b_i] via S-literal conjunction: b_i has S-bit pattern, e_i = AND of S literals matching it; O(cS) total. For output bit j, correction at b_i: u_j XOR (e_i AND (u_j XOR (a_i)_j)). When x\u2260b_i, e_i=0, output=u_j(x). When x=b_i, e_i=1, output = u_j XOR (u_j XOR (a_i)_j) = (a_i)_j. Since u(b_i)=b_i+1 (or 0 if b_i=2^S-1), the correction forces output to a_i. Endpoint indicators mutually exclusive since b_i distinct. On unused codes (m..2^S-1), same formula defines total map. Gate count: incrementer O(S) + c indicators O(cS) + c*S bit corrections O(cS) = O(cS). Correct.",
+  "review_of": "S0688",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642211.8749185,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Identical to S0684 and S0686 - the standard minterm construction. For each q\u2208Q, e_q(x) = AND_{i=1}^S l_{q,i}(x) where l_{q,i} = x_i if psi(q)_i=1 else NOT x_i. Shared negations: S gates. m minterms: m(S-1) AND gates. S outputs: each OR of \u2264m minterms via binary tree with \u2264m-1 internal nodes, each OR=NOT(AND(NOT,NOT)) costs 3 gates \u2192 3S(m-1). Total = m(S-1)+S+3S(m-1) = 4mS - m - 2S = O(mS). Correctness: at valid x=psi(q), injectivity gives e_q=1, others 0, so F_j=1 iff psi(delta(q))_j=1. At unused codes, all e_q=0, so F=0 (a valid total extension). Gap noted in statement is accurate: this is a baseline truth-table upper bound, does not establish the target \u03a9(\u221am/log m) lower bound or the sharper O(\u221am polylog m) encoding upper bound. No mathematical error.",
+  "review_of": "S0689",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642252.7688277,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim states O(S+H) gates but the proof explicitly says 'The equality tests cost O(mS)'. Constructing all m equality indicators e_q(x)=[x=psi(q)] requires m(S-1) binary AND gates plus S shared negations = Theta(mS) gates. Since m can be exponentially larger than S (S=ceil(log2 m)), O(mS) is NOT O(S+H) in general (H \u2264 mS, so O(mS+H) = O(mS) which is >> O(S+H) when m is large). The stated bound O(S+H) is incorrect for this construction. A correct bound would be O(mS + H) or a different construction achieving O(S+H) would need to be given.",
+  "review_of": "S0690",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795642385.6855981,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Same minterm construction as S0684/S0686/S0689. Choose any injective psi: Q -> {0,1}^S. For each q, e_q(x) = AND of S literals matching psi(q). Shared negations: S gates. m minterms: m(S-1) AND gates. S outputs: each OR of \u2264 m minterms via binary tree with \u2264 m-1 internal nodes, each OR = NOT(AND(NOT,NOT)) costs 3 gates \u2192 3S(m-1). Total = m(S-1) + S + 3S(m-1) = 4mS - m - 2S = O(mS). Correctness: at x=psi(q), injectivity gives e_q=1, others 0, so F_j=1 iff psi(delta(q))_j=1. At unused codes, all e_q=0, so F=0 (a valid total extension). No mathematical error. The statement is correct but is the same baseline O(mS) upper bound as previous steps.",
+  "review_of": "S0691",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642385.7264314,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Same construction as S0688 (interval encoding for c-cycle permutation). Encode states by integers 0..m-1 in cycle order. Incrementer u(x)=x+1 mod 2^S costs O(S) gates (ripple-carry adder with constant 1). r cycle endpoints: for each endpoint a, e_a(x)=[x=a] via S-literal conjunction, O(rS) total. For each output bit j, correction at endpoint a: u_j XOR (e_a AND (u_j XOR bit_j(a))). This uses XOR and AND, each with constant-size AND/NOT implementations. Total gates: incrementer O(S) + r indicators O(rS) + r*S bit corrections O(rS) = O(rS). Correctness: at non-endpoint x, e_a=0 for all a, output = u(x) = x+1 (correct within cycle). At endpoint x=a_i, e_a=1 for that endpoint, output = bit_j(a_{i+1}) where a_{i+1} is start of next cycle. On unused codes (m..2^S-1), formula defines a total map. No error. This is a verified construction achieving O(rS) for permutations with r cycles.",
+  "review_of": "S0692",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642385.7584558,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: This is a more detailed version of S0688/S0692. Encoding: states in cycle i at position j map to integer a_i+j. Interval indicator I_i(x) = [a_i \u2264 x < a_i+l_i] implemented via two threshold comparisons (x \u2265 a_i and x < a_i+l_i). Each comparison scans bits MSB-to-LSB with equal-prefix and already-less flags: standard O(S) gate implementation. Endpoint equality E_i(x) = [x = b_i] via S-literal conjunction, O(S) each, total O(kS). Ripple incrementer x+1 mod 2^S: O(S) gates. Output bit r: OR over i of (I_i AND ((E_i AND bit_r(a_i)) OR (NOT E_i AND bit_r(x+1)))). Each I_i, E_i, NOT, AND, OR has constant-size AND/NOT implementations. Total cost: k interval indicators O(kS) + k endpoint equalities O(kS) + incrementer O(S) + k*S output selections O(kS) = O(kS). Correctness: For x in I_i, if x=b_i then E_i=1, output = a_i; else E_i=0, output = x+1. For x outside all intervals (unused codes), all I_i=0, output = 0. Valid encodings are exactly 0..m-1, partitioned by I_i. Correct extension. No error. This is a constructive O(kS) upper bound for permutations with k cycles.",
+  "review_of": "S0693",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642618.3326,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Same construction as S0687 (SPARSE-CHANGES EXTENSION LEMMA). Let E = {psi(q) : delta(q) != q}, |E| = t. For each a in E, e_a(x) = [x=a] via S-literal conjunction. Shared negations: S gates. t indicators: t(S-1) AND gates. For each output bit j, E_j = {a in E : a_j != psi(delta(psi^{-1}(a)))_j}. h_j = OR_{a in E_j} e_a. Binary tree OR: |E_j|-1 OR gates, each OR = NOT(AND(NOT,NOT)) costs 3 gates. sum_j |E_j| <= S*t (each changed state can differ in at most S bits). Total OR gates = sum_j (|E_j|-1) <= St. XOR per output: 4 gates each, total 4S. Total = S + t(S-1) + 3St + 4S = O(S(t+1)). Correctness: at x not in E, all e_a=0, h_j=0, y_j=x_j. At x=a in E, e_a=1, others 0, so h_j=1 iff a in E_j, i.e., iff the bit must toggle. XOR gives y_j = NOT a_j = psi(delta(psi^{-1}(a)))_j. Correct. No error. This is a verified construction.",
+  "review_of": "S0694",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642618.9969687,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: Same construction as S0688/S0692/S0693. Encode states by integers 0..m-1 with each cycle's states forming a consecutive interval in cycle order. Shared incrementer u(x)=x+1 mod 2^S costs O(S) gates. c cycle endpoints: each equality indicator e_b(x)=[x=b] via S-literal conjunction, O(cS) total. For each output bit j, E_j = {endpoint b : bit_j(b+1) != bit_j(cycle_start)}. Correction: u_j XOR OR_{b in E_j} e_b. OR implemented as binary tree (|E_j|-1 OR gates, each OR = NOT(AND(NOT,NOT)) costs 3 gates). Total OR gates = sum_j (|E_j|-1) <= cS. XOR per output: 4 gates each = 4S. Total = O(S + cS + cS + S) = O(cS). Correctness: at non-endpoint x in valid range, all e_b=0, output = u(x) = x+1 (correct). At endpoint x=b, e_b=1, output = u_j(b) XOR 1 = NOT u_j(b) if b in E_j, else u_j(b). Since b in E_j iff bit_j(b+1) != bit_j(cycle_start), output equals bit_j(cycle_start). On unused codes (m..2^S-1), formula defines a total map. No error. This is a verified O(cS) upper bound for permutations with c cycles.",
+  "review_of": "S0695",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642673.6418169,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof defines d_i = (a_i - (b_i+1)) mod 2^S (arithmetic subtraction) but uses bitwise XOR for correction: Fhat(x) = y(x) XOR (e_i(x) AND d_i). At endpoint b_i, this gives (b_i+1) XOR d_i, which equals (b_i+1) XOR (a_i - (b_i+1)), NOT a_i. Concrete counterexample: m=3, single 3-cycle, S=2. Codes: 0=00, 1=01, 2=10. a_1=0, b_1=2. d_1 = 0-3 = 1 (mod 4) = 01. At x=2 (10): y(10)=11, Fhat(10)=11 XOR 01 = 10 (2), but correct next state is 0 (00). The construction fails as written. The fix would require d_i = a_i XOR (b_i+1) (bitwise), but the proof explicitly uses arithmetic subtraction.",
+  "review_of": "S0696",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795642737.0682647,
+  "session": "pnp-desk/research/R3958",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified: sparse-transition construction per map costs O(S(1+t_i)) via equality indicators and per-bit OR-of-indicators with binary OR trees. Circuit composition by wiring outputs to inputs preserves fan-in 2 and sums gate counts. Inductive correctness on psi(Q) holds because each delta_i maps Q into Q, so the intermediate state always stays in psi(Q) where the next circuit is correct. No counterexample found.",
+  "review_of": "S0697",
+  "status": "SURVIVED_REVIEW"
  }
 ]

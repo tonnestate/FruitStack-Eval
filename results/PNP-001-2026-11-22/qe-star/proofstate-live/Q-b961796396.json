@@ -1355,5 +1355,77 @@
   "proved_step": "Let f_1,...,f_t be nonzero Boolean functions on pairwise disjoint variable blocks, and let F=product_i f_i. Fix any global variable order and any cut. Write R_i for the distinct residual functions of f_i at the induced cut in block i, and let a_i=|R_i\\{0}| and z_i=1 if 0 is in R_i, otherwise 0. Then the number D_F of residual functions of F at the cut is exactly product_i a_i + 1_{there exists i: z_i=1}. Proof: Every tuple of block residuals is realized by some global prefix assignment, since the blocks are disjoint. The residual of F is the pointwise product of the tuple. Any tuple containing zero yields the zero function; such a tuple exists exactly when some z_i=1. For tuples whose entries are all nonzero, the product map is injective: take two distinct tuples and a block j where they differ. Their two distinct nonzero Boolean residuals differ on some suffix assignment of block j. In every other block, choose a suffix assignment where that tuple\u2019s nonzero residual equals 1, which exists because it is Boolean and nonzero. Combining these suffix assignments distinguishes the two products. Thus there are exactly product_i a_i distinct nonzero products, plus the zero residual if attainable. Consequently D_F >= |R_j| for every block j: if no z_i is 1, D_F=product_i a_i >= a_j=|R_j|; if some z_i is 1, D_F=product_i a_i+1 >= a_j+1 when z_j=1, and >=a_j=|R_j| otherwise.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795640975.6154828,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counterexample: b1=1, b2=1, cut1=0, cut2=1. f1 = identity (truth table 01), f2 = constant 1 (truth table 11). R1 = {(1,0)} (a1=1, z1=0). R2 = {(1,)} (a2=1, z2=0). Predicted D = 1*1 + 0 = 1. Actual F(x1,x2) = x1*1 = x1. With cut at position 1: prefixes 0 and 1 give residuals constant 0 and constant 1 on x2, so D_actual = 2. The proof's injectivity argument fails: it assumes any nonzero residual can be made 1 on some suffix, but the residual (1,0) for f1 is 0 on suffix 0 and 1 on suffix 1; the proof's construction of a distinguishing suffix requires choosing suffixes where other blocks' residuals are 1, which may not be simultaneously possible.",
+  "review_of": "S0137",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795641527.1027691,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counterexample: f1=x1 (block 1), f2=1 (block 2). Cut at position 1 (within block 1). M1 (2x2) has rank 2, M2 (2x2) has rank 1. M_F (2x8) has rank 2. But Kron(M1,M2) is 4x4 and M_F is NOT a submatrix of it in the natural way. The claim 'M_F is the Kronecker product of the M_i' is false for cuts within blocks. The residual-count formula also fails as shown for S0137 (same counterexample: D_actual=2, D_predicted=1). The proof assumes independent prefix assignments realize every tuple, but the cut position couples blocks.",
+  "review_of": "S0143",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795641722.762162,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification cm-eb2e3b9f83be4e94, cm-83c4f662ad9f49b7, cm-79cd1b6a6d9c4c7b: implemented the DP exactly as specified and tested against brute-force #SAT for n=3..10, 100 random formulas per n with varying clause counts and random variable orders. All tests passed - DP counts match brute force exactly, and maximum observed states never exceeded 2^B where B is the maximum crossing clauses at any cut.",
+  "review_of": "S0144",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641784.743754,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same computational verification as S0144 (cm-eb2e3b9f83be4e94, cm-83c4f662ad9f49b7, cm-79cd1b6a6d9c4c7b): the DP algorithm is identical; the time bound O((nB+m)2^B) is equivalent to O(nB2^B + m2^B) which matches the implemented per-state O(B) updates over n levels with \u22642^B states plus clause incidence processing. All tests passed - DP counts match brute force exactly, maximum states never exceeded 2^B.",
+  "review_of": "S0145",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641915.6089678,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same computational verification (cm-eb2e3b9f83be4e94, cm-83c4f662ad9f49b7, cm-79cd1b6a6d9c4c7b): the explicit cut-transition DP is identical in behavior to S0144/S0145; the implementation matches the specified transitions exactly (introducing new crossing clauses with demand 1, subtracting bit from incident clauses, rejecting negative demands, checking ending clauses). All tests passed - DP counts match brute force exactly, maximum states never exceeded 2^B.",
+  "review_of": "S0146",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641915.6375947,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification cm-3c1e2a6c7a04424f: tested k=1..4 (n=3..12) with consecutive variable order. At each cut, counted distinct residual functions exactly. Maximum observed is 2 (1 when cut is at clause boundary, 2 when cut splits a clause). Matches the proof argument: at most one nonzero residual (from the unique crossing clause) plus possibly the zero residual.",
+  "review_of": "S0147",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643066.1389925,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification for parity, AND, OR, EXACT1, and 20 random Boolean functions up to n=5: in all cases, number of distinct residuals <= 2^rank. The proof is correct: Boolean rows lie in an r-dim rational space; choosing r pivot coordinates gives injective projection to {0,1}^r, so at most 2^r distinct rows/residuals. No counterexample found.",
+  "review_of": "S0149",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643106.3672118,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent DP implementation (cm-5d2c325c26eb4cbc) matched brute-force #SAT on disjoint clauses (k=1,2,3), interleaved chains (k=2,3), and a 7-variable chain with overlapping clauses. All 8 test cases: DP count == brute force count exactly. Max states observed <= 2^B (B = max crossing clauses). The proof's inductive invariant (weights count prefixes consistent with processed clauses) holds by construction. No counterexample found.",
+  "review_of": "S0150",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643961.0923736,
+  "session": "pnp-desk/research/R3955",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification on k=1..4 (n=3..12): clause-by-clause order achieves max cut rank 2. Exhaustive search for k=1..3 confirms min over all orders is 2. For k=4, 1000 random orders all had min max rank >= 2; best found was 4. The lower bound proof (cut after first variable gives rank >= 2) is correct and independent of k. SURVIVED_REVIEW.",
+  "review_of": "S0148",
+  "status": "SURVIVED_REVIEW"
  }
 ]

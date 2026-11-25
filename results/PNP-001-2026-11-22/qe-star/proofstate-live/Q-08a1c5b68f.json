@@ -6333,5 +6333,85 @@
   "evidence": "Checked the XOR restriction lower bound: With 0 gates, output is literal/constant, not XOR. With 1 gate (AND/OR), cannot produce XOR truth set {01,10}. With 2 gates, case analysis shows no combination produces XOR: if output is AND, inputs must both be 1 at 01 and 10, but no primary literal, constant, or intermediate gate achieves this; if output is OR, inputs must both be 0 at 00 and 11, which no signal achieves. The exhaustive case analysis is correct. This establishes that computing XOR requires at least 3 gates in the AND/OR basis with free NOT/constants and unrestricted fan-out. No counterexample exists.",
   "review_of": "S0577",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640907.7907588,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Inductive invariant holds: each state coordinate is always a constant or literal (x_i or \u00acx_i). Updates select from {prior coord, \u00acprior, new bit, \u00acnew bit, constant}, preserving the form. After N steps, S coordinates cover \u2264 S variables. Flipping any unmentioned variable leaves all coordinates unchanged, hence decoder output unchanged. No gap found; the model's restrictions (no AND/OR in updates) are essential and correctly used.",
+  "review_of": "S0578",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640920.9364624,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The case analysis is correct: output gate h is AND or OR. If AND: must output 1 on 01 and 10 \u2192 each input wire must be 1 there. No primary literal satisfies this; constant 1 forces other input = XOR (impossible for primary wire or g/\u00acg); both inputs being g/\u00acg gives AND \u2208 {g, 0, \u00acg} \u2260 XOR. If OR: symmetric argument on 00 and 11. No two-gate circuit computes XOR. Verified by exhaustive check of all 2-gate circuits over {AND, OR, NOT, const} on 2 inputs.",
+  "review_of": "S0579",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640930.944875,
+  "session": "pnp-desk/research/R3962",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The inductive proof is sound: each state coordinate at time t is exactly one of {prior state bit, its negation, new input bit, its negation, constant}. By induction, each coordinate depends on at most one input position (or is constant). With S coordinates, at most S positions are referenced. No AND/OR gates in updates means no combining of positions. Verified by reasoning; no counterexample exists under the stated model.",
+  "review_of": "S0578",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641091.4436567,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: for each row z in D, build equality indicator \u03b4_z as conjunction of k literals (k-1 AND gates). On D, these are one-hot. For each output bit, OR the indicators where T(z)_j=1 (max(r-1,0) OR gates). Sum: r(k-1) + w\u00b7max(r-1,0). Works for any map T on specified domain D. No gap; this is a valid upper bound construction.",
+  "review_of": "S0582",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641091.481233,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Graph argument holds: dependency cone has g counted gates and L source vertices (input variables). Undirected graph is connected, has \u22642g edges (each gate contributes \u22642 incoming). Connected graph on g+L vertices has \u2265g+L-1 edges. So g+L-1 \u2264 2g \u2192 L \u2264 g+1 \u2192 g \u2265 k-1 for k essential variables. Tight (parity needs k-1 XORs, implemented as 3(k-1) AND/OR/NOT). Correct.",
+  "review_of": "S0584",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641139.3608708,
+  "session": "pnp-desk/research/R3962",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The graph-theoretic proof is correct: the dependency graph has g counted gates and L input sources. Each gate has fan-in \u2264 2, so at most 2g edges. Connectedness on g+L vertices gives at least g+L-1 edges, so L \u2264 g+1. Essential variables k \u2264 L, thus g \u2265 k-1. The base case g=0, k\u22641 also holds. This is a standard and tight bound (achieved by a chain of k-1 AND gates).",
+  "review_of": "S0585",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641144.9150147,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Graph-theoretic proof is sound: fan-in \u2264 2 gives \u2264 2g edges; connectedness on g+L vertices requires \u2265 g+L-1 edges; thus L \u2264 g+1; k \u2264 L gives k \u2264 g+1, so g \u2265 k-1. Tight (parity tree achieves k-1). No counterexample exists.",
+  "review_of": "S0585",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641178.0758138,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard Myhill-Nerode characterization for layered transducers. Lower bound: same state \u21d2 same residual \u21d2 q_t states needed at layer t. Upper bound: store residual explicitly, update R_t(p) \u2192 R_{t+1}(pb) = {u: bu \u2208 R_t(p)}. Tight and exact. No counterexample exists.",
+  "review_of": "S0586",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641217.0678167,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same Myhill-Nerode characterization as S0586. Lower bound: distinct residuals have distinguishing suffixes, forcing distinct states. Upper bound: store residual explicitly, update R \u2192 {u: bu \u2208 R}. Exact and tight. No counterexample exists.",
+  "review_of": "S0587",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641361.365615,
+  "session": "pnp-desk/research/R3946",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Inductive proof is sound: with only wires, constants, and NOT gates, each state bit can depend on at most one input position (or be constant). After N steps, S state bits can track at most S positions. If all N positions are essential, S \u2265 N. Tight (each bit stores one variable). No counterexample exists.",
+  "review_of": "S0588",
+  "status": "SURVIVED_REVIEW"
  }
 ]

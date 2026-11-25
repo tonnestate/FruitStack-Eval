@@ -7771,5 +7771,149 @@
   "evidence": "This step correctly states that nonempty fibers have size 2^(N-t-rank(D)), unlike the incorrect claim in S0761. The number of x with R_x nonempty is correctly given as 2^(t-rank(B)+d) when c\u2208im(B)+im(D). The proof structure is sound: it correctly identifies the set L={y\u2208im(B): c-y\u2208im(D)} and applies coset counting. This SURVIVES review.",
   "review_of": "S0762",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640872.4196792,
+  "session": "pnp-desk/research/R3956",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the linear algebra over GF(2) thoroughly: (1) R_t(p) = {z : D_t z = c - A_<t p} is an affine subspace, nonempty iff RHS \u2208 im(D_t) \u2713; (2) Fibers of fixed linear map D_t are disjoint for distinct RHS, so R_t(p)=R_t(q) iff c-A_<t p = c-A_<t q iff A_<t p = A_<t q \u2713; (3) Attainable RHS = (c + im(A_<t)) \u2229 im(D_t); when nonempty this is a translate of im(A_<t) \u2229 im(D_t), giving exactly 2^d distinct RHS where d = dim(im(A_<t) \u2229 im(D_t)) \u2713; (4) Nonzero exactly when c \u2208 im(A_<t) + im(D_t) \u2713; (5) Membership test V^T(c-A_<t p)=0 for V basis of ker(D_t^T) is the standard orthogonal complement characterization \u2713. No counterexample found in edge cases (r=0, D_t=0, A_<t=0). The gate-count remark O(r(t+1)) is a minor asymptotic detail not affecting the core mathematical claim. The step correctly notes its limitation to affine solution sets.",
+  "review_of": "S0760",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640905.081175,
+  "session": "pnp-desk/research/R3956",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the counting argument over GF(2): (1) For fixed x, Dz=c-Bx is solvable iff c-Bx \u2208 im(D); solution space is coset of ker(D) with size 2^(N-t-rank(D)) \u2713; (2) L = {y \u2208 im(B) : c-y \u2208 im(D)} = im(B) \u2229 (c+im(D)); nonempty iff c \u2208 im(B)+im(D) \u2713; (3) L is an affine translate of im(B)\u2229im(D) so |L|=2^d where d=dim(im(B)\u2229im(D)) \u2713; (4) B: GF(2)^t \u2192 im(B) is surjective, each fiber has size 2^(t-rank(B)), so preimage of L has size 2^(t-rank(B)+d) \u2713. All steps are standard linear algebra over finite fields. No counterexample found in edge cases. The step correctly notes this is for affine solution sets only.",
+  "review_of": "S0763",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795640989.546871,
+  "session": "pnp-desk/research/R3956",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard Myhill-Nerode argument for layered deterministic streaming automata. The proof is correct: (1) A deterministic left-to-right streaming decider has a state set Q_t at each level t, a deterministic transition function delta_t: Q_t x {0,1} -> Q_{t+1}, and an output function out: Q_N -> {0,1}. (2) The state after reading prefix p determines the entire future behavior: for any continuation z, the computation from state q on z is uniquely determined by delta. (3) If p and q reach the same state q_t in Q_t, then for every z, the final state reached is identical, so out(final state) is identical. (4) If R_t(p) != R_t(q), there exists z in the symmetric difference where exactly one of pz, qz is in L. But the decider gives the same answer on both, contradicting exactness. (5) Therefore R_t(p) = R_t(q), and the number of distinct states at level t is at least the number of distinct residuals. No counterexample exists because this follows directly from the definition of a deterministic streaming decider. The step correctly notes this gives an information-theoretic state lower bound but no real-gate transition-cost bound or arbitrary MCSP circuit transfer.",
+  "review_of": "S0764",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641028.8815002,
+  "session": "pnp-desk/research/R3956",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This construction is correct. It explicitly enumerates all M circuit descriptions of size \u2264 s. The invariant: v_p[j] = 1 iff circuit C_j is consistent with all prefix bits seen so far (i.e., C_j(x_i) = p_i for all i < t). Base case t=0: v_\u03b5[j] = 1 for all j (all circuits consistent with empty prefix). Inductive step: when reading bit b at position t, v_{pb}[j] = v_p[j] \u2227 [C_j(x_t) = b]. This exactly maintains the invariant because a circuit remains consistent with prefix pb iff it was consistent with p AND outputs b on the t-th input x_t. At t=N, v_p[j]=1 iff C_j's full truth table equals p, so EXT_{n,s}(p)=1 iff \u2203j: v_p[j]=1. The update is a fan-in-2 circuit: each coordinate is an AND of the previous bit and a hardwired constant (the circuit's output on x_t), so O(M) gates per update; computing C_j(x_t) for all j takes O(M(s+n)) with the descriptions hardwired. The step correctly notes this does not yield polynomial-in-s transition cost (M is exponential in s) and no transfer to arbitrary MCSP decision circuits. No counterexample exists - this is a direct explicit construction.",
+  "review_of": "S0765",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795641062.9673011,
+  "session": "pnp-desk/research/R3956",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a correct characterization of the residuals for EXT_{n,s}. Proof: z \u2208 R_t(p) \u21d4 pz \u2208 EXT_{n,s} \u21d4 \u2203C \u2208 C_s such that C's truth table = pz \u21d4 C \u2208 A_p and T_C^(t) = z. So R_t(p) = {T_C^(t) : C \u2208 A_p} exactly. Two prefixes p,q have equal residuals iff {T_C^(t) : C \u2208 A_p} = {T_C^(t) : C \u2208 A_q} as sets of suffix tables. The cardinality bound: there are at most 2^{|C_s|} distinct subsets of C_s (each yielding a set of suffix tables), and at most 2^{2^{N-t}} distinct subsets of {0,1}^{N-t}. The min of these is a valid upper bound. The step correctly notes this gives a semantic quotient of the candidate-filter state but no compact representation or real-gate transition bound. No counterexample - this follows directly from the definitions.",
+  "review_of": "S0766",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642708.329962,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is a standard Myhill-Nerode style proof for streaming recognizers. If two prefixes have distinct residual sets, there exists a distinguishing suffix z in their symmetric difference. Determinism forces identical states to produce identical outputs on the same suffix, contradicting exact recognition. The injection from residual classes to states is valid. No counterexample exists - this is a fundamental fact about deterministic automata. The step correctly notes this gives only a state-count (workspace) lower bound, not a transition-circuit or update-time bound.",
+  "review_of": "S0767",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642708.3745968,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This directly follows from S0767: the injection from d_t residual classes to machine states implies at least d_t distinct states. With S state bits, at most 2^S states are representable, so 2^S >= d_t, giving S >= ceil(log2 d_t). This is the standard space lower bound for deterministic streaming recognition (the log of the number of Myhill-Nerode equivalence classes at layer t). The step correctly restricts the claim to workspace only.",
+  "review_of": "S0768",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642708.4104884,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a restatement of the core Myhill-Nerode argument for streaming deciders, identical in substance to S0767 and S0768. The logic is sound: distinct residuals imply a distinguishing suffix; determinism forces equal states to yield equal outputs on that suffix, contradicting exact decision. The conclusion that at least d_t states are needed is correct.",
+  "review_of": "S0769",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642708.444389,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: given the explicit residual transition table tau_b: D_t -> D_{t+1}, the one-hot transition circuit computes the next one-hot state. For each target Q and input bit b, g_{Q,b} is the OR of one-hot sources that transition to Q on b; since the input encoding is valid one-hot, exactly one source is active, so g_{Q,b} correctly indicates whether the transition leads to Q. The output selector o_Q = (not b AND g_{Q,0}) OR (b AND g_{Q,1}) chooses the correct b-branch. Gate count: each of the 2d_t source-bit occurrences appears in exactly one OR tree (total <= 2d_t gates for all ORs); each of the d_{t+1} targets uses at most 3 gates (two ANDs and one OR) plus one shared NOT for b. Total <= 2d_t + 3d_{t+1} + 1 <= 3d_t + 3d_{t+1}. The step correctly notes this is for one-hot encoding with explicit transition table, not for compressed encodings.",
+  "review_of": "S0770",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642873.5044665,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction correctly implements the transition function on valid binary codes. Decoding each source code to a one-hot indicator I_a takes O(k) gates per source (AND of k literals or constant 1). Grouping by successor via OR trees: each of the d sources appears in exactly one OR per bit b, so total OR gates O(d+e). Selecting the branch with b costs O(e) gates (NOT b, two ANDs, one OR per target). Re-encoding the one-hot target to l-bit binary: for each of l output bits, OR the H_q where that bit of code(q) is 1, costing O(e*l + l). Sum: O(d(k+1) + d + e + e*l + l) = O(d(k+1) + e(l+1)). The circuit is correct on valid inputs; invalid inputs are unspecified as stated. No counterexample - this is a standard explicit decoding/transition/encoding construction.",
+  "review_of": "S0771",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642873.5751927,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: maintaining the exact set of live witnesses as an M-bit vector, the update filters by the next required output bit. Since y_{i,t} is a fixed constant for each candidate i and position t, the test [y_{i,t}=b] is either b (if y=1) or NOT b (if y=0). Each updated bit is z_i AND (b or NOT b), which is a single fan-in-2 gate per candidate (plus one shared NOT). This correctly computes S_{t+1}(pb). The state is empty iff no witness matches the prefix. This is an explicit exponential-state construction (M = number of circuits), correctly noted as not bounding compressed encodings.",
+  "review_of": "S0774",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795642901.3967137,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is correct linear algebra over GF(2). The set of prefixes with nonempty residuals is exactly the preimage of c+im(D) under phi(p)=Pp+im(D). This is either empty (if c+im(D) not in im(phi)) or an affine subspace p0+ker(phi). For p in this affine subspace, the residual R(p) is the solution set of Dz = c-Pp. Two such fibers are equal iff their right-hand sides agree, i.e., Pp1 = Pp2. Thus distinct nonempty residuals correspond exactly to distinct values of Pp over p in p0+ker(phi), which is the image P(ker(phi)), of size 2^rank(P|ker(phi)). This is an exact characterization for affine languages.",
+  "review_of": "S0775",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643214.3412924,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for each of d_t residuals R and each bit b, the token q_{R,b} = x_R AND l_b (where l_1=b, l_0=NOT b) uses 2d_t AND gates and 1 NOT gate. Each R' in D_{t+1} receives the OR of tokens whose section R_b equals R'; these tokens partition the 2d_t tokens. Binary OR trees over each partition use at most 2d_t total gates. Total <= 4d_t+1 <= 6d_t+1. The step correctly limits its scope to the one-hot representation and does not claim bounds on d_t for EXT or general MCSP circuits.",
+  "review_of": "S0777",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643214.3864038,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: each prefix p maps to a configuration c(p). If c(p)=c(q), then determinism + fixed oracle O implies identical future behavior on all suffixes z, so R_t(p)=R_t(q). Thus the mapping from reachable configurations to residuals is well-defined and surjective, giving d_t <= 2^w. The step correctly notes scope limits: no bound on oracle transition cost, no polynomial circuit for EXT/MCSP, no transfer to general circuits.",
+  "review_of": "S0778",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643214.4217117,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a duplicate of S0778 with the same statement and proof. The argument is correct for the same reasons: deterministic streaming decider with fixed oracle gives a well-defined surjective map from configurations to residuals, so d_t <= 2^w. Same scope limitations apply.",
+  "review_of": "S0779",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643520.8757305,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: splitting Ax=c gives A_<t p + D_+ z = c, so D_+ z = c + A_<t p over GF(2). The mapping p -> c + A_<t p has at most 2^r values, each determining a residual. The update y(pb) = c + A_<t(pb) = c + A_<t p + b*a_t = y(p) + b*a_t uses r conditional XORs (O(r) fan-in-2 gates). Correct for affine languages only.",
+  "review_of": "S0776",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643975.3860285,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard unrolling: each step's T-gate circuit replicated N times, wired sequentially. Total gates = N*T + T. Correct conditional on ordinary circuits for every transition. Does not simulate oracle transitions.",
+  "review_of": "S0780",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795643996.560096,
+  "session": "pnp-desk/research/R3980",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: f_i has prefix pb iff f_i has prefix p AND its t-th coordinate equals b. The residual characterization follows directly. Update uses M AND gates with constant selectors. Acceptance is OR of state bits. Exact for any indexed family F. Scope: exponential state for EXT_{n,s}; no bound on transition cost from H_C.",
+  "review_of": "S0781",
+  "status": "SURVIVED_REVIEW"
  }
 ]
