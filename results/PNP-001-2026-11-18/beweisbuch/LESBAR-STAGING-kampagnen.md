@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 15968 entries from 4939 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 16052 entries from 4988 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - Zero-fixing q truth-table coordinates yields a constant-YES residual MCSP function whenever q*2^q+q-1 <= s. This restriction therefore cannot preserve hardness on its own; a useful restriction argument must retain a nonconstant residual promise or derive an in
+  - For SC_{3,1}, zero-gate feasibility at a fixed state width can be tested by checking whether each live-prefix family admits an injective coordinate projection of size at most that width, then verifying the induced transitions and decoder.
+  - For every connected unicyclic graph whose unique cycle has length l and whose remaining vertices form attached trees, the Boolean solution count in the manuscript graph-colouring encoding is 2^l+2(-1)^l times 2^(n-l).
+  - For the fixed encoding constructed in S0741, the involution update can be implemented by O(ceil(log2 m)) fan-in-two AND/NOT gates under the convention that constants and wires are free.
+  - For an explicitly listed family F of M distinct N-bit strings, the exact residual automaton at each layer has at most M+1 states, and each layer transition is implementable by a fan-in-two circuit of O((M+1)log(M+1)) gates using binary state indices.
   - For fixed n and s, what asymptotic lower bound can be proved on w_k, the number of distinct suffix-completion sets R_p induced by k-bit prefixes of truth tables of Boolean functions with circuits of size at most s, for cuts k in a specified range?
-  - For every nonempty support A in {0,1}^m, adaptive smaller-fiber restrictions on at most k coordinates yield a nonempty cofactor support of size at most max(1,floor(|A|/2^k)); its free-negation fan-in-2 DNF cost is at most r q-1 for final support size r and q r
-  - For SC_{n,s}, the residual profile K_t determines the exact minimum number of reachable states per layer, but may fail to determine minimum update-circuit cost when arbitrary layer-dependent encodings and shared intermediates are allowed.
-  - For gate elimination in MCSP[m^c], the restriction approach can be repaired by using a sufficient condition t <= 2*(m-1)^(c-1) - 1 for support size, which ensures after restriction the new support t' <= floor(t/2) satisfies t'*(m-1)-1 <= (m-1)^c - 1
-  - For every permutation δ on m states, contiguous cycle-interval encoding yields a total transition circuit of O((d+1)ceil(log2 m)) fan-in-two AND/NOT gates, where d is the number of distinct cycle lengths; therefore O(sqrt(m) log m) gates suffice.
-  - For the specific EXT prefix automaton, a useful bridge to H_C requires a representation whose transition inputs include enough information to identify the next residual class; an arbitrary one-hot transition circuit bound alone does not establish such a repres
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -33,13 +33,13 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3285 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+NUMERICAL EVIDENCE on file: 3291 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-9be5fe5c6f [MISSING_PROOF, OPEN] Can the disjoint-cylinder patch bound be combined with a structural theorem showing that MCSP[m^c] restrictions have low-complexity suffix labels on many prefix cylinders, strongly enough to yield a circuit lower bound o
   - Q-954729b845 [MISSING_PROOF, OPEN] For m-input truth tables in the complete fan-in-two DAG model, can the number or geometry of Hamming-hypercube edges crossing the MCSP[s] threshold be bounded more sharply than the generic perturbation bound, for s=m^c?

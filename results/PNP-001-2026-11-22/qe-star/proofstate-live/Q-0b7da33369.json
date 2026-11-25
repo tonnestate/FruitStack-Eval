@@ -6443,5 +6443,77 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795626320.3533635,
+  "session": "pnp-desk/research/R3758",
+  "model": "gpt-6-luna",
+  "evidence": "Uniform construction and complete proof are included in the step. An exhaustive check of all involutions for 2\u2264m\u22648 was requested as a finite boundary check; no lower bound or P\u2260NP consequence is claimed.",
+  "id": "S0741",
+  "proved_step": "statement: Adjacent-pair encoding for involutions. For every m>=2 and every involution \u03b4 on an m-element set Q, put S=ceil(log2 m). There is an injection \u03c8:Q\u2192{0,1}^S and a total S-bit fan-in-two AND/NOT circuit F of O(S) gates such that F(\u03c8(q))=\u03c8(\u03b4(q)) for all q\u2208Q. Proof: Decompose \u03b4 into p transposition pairs and f fixed points, so 2p+f=m. Enumerate pairs (a_i,b_i), i=0,...,p\u22121, and fixed points c_j, j=0,...,f\u22121. Set \u03c8(a_i)=binary(2i), \u03c8(b_i)=binary(2i+1), and \u03c8(c_j)=binary(2p+j), using S-bit representations; these codes are distinct and valid because their integer values lie in [0,m\u22121] and m\u22642^S. Define F on every S-bit input x to toggle the least significant bit iff x<2p, and otherwise leave x unchanged. A comparison against the fixed constant 2p and a conditional low-bit toggle use O(S) fan-in-two AND/NOT gates; all other output bits are wires. Each paired code 2i,2i+1 is exchanged by the toggle, and every fixed-point code is at least 2p and remains unchanged. Thus the circuit is correct on every encoded state and total on all inputs.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795627610.6241796,
+  "session": "pnp-desk/research/R3774",
+  "model": "gpt-6-luna",
+  "id": "S0742",
+  "proved_step": "statement: Sparse-update-from-identity lemma. Let Q be a set of m states, S>=1, and psi:Q->{0,1}^S an injection. Let delta:Q->Q agree with the identity except on a set E of t states. There is a total S-output-bit fan-in-two AND/NOT circuit F with constants and input wires free, of size O(S+tS), such that F(psi(q))=psi(delta(q)) for every q in Q.\nproof: For each q in E define e_q(x)=1 exactly when x=psi(q), implemented as the conjunction of the S literals specifying psi(q). The input-bit negations are shared, so all indicators cost O(S+tS). For each output bit j, let E_j={q in E: psi(delta(q))_j != psi(q)_j}. Set F_j(x)=x_j XOR (OR_{q in E_j} e_q(x)); an empty OR is 0. A binary OR and XOR are implementable with a constant number of AND/NOT gates per term (De Morgan for OR; XOR has a fixed constant-size AND/NOT implementation), so all output corrections cost O(sum_j |E_j|+S)=O(tS+S). On x=psi(q), injectivity implies e_q(x)=1 only for the corresponding state, and all other indicators are zero. If q is outside E no correction fires, hence F(x)=psi(q)=psi(delta(q)); if q is in E, precisely the coordinates differing between psi(q) and psi(delta(q)) are toggled. Thus the circuit has the required values on every encoded state. The formula defines a total Boolean map on all {0,1}^S, including unused codes.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-0b7da33369",
+  "closes_valid": true
+ },
+ {
+  "at": 1795627610.6659172,
+  "session": "pnp-desk/research/R3774",
+  "model": "gpt-6-luna",
+  "evidence": "Not refuted. The requested confirmation could not be recorded: the lab rejected it because S0642 was authored by the same model family (gpt-6-luna). Exhaustive computation cm-7e3ac7f4060d4431 checked 5,912 permutations for 2<=m<=7 and every encoded state with zero failures, including binary increment wraparound. The general written argument appears sound, but remains unreviewed by an independent model family.",
+  "review_of": "S0642",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795627810.5235276,
+  "session": "pnp-desk/research/R3774",
+  "model": "gpt-6-luna",
+  "id": "S0744",
+  "proved_step": "statement: Sparse baseline correction. Let Q be finite, S>=1, psi:Q->{0,1}^S injective, and beta,delta:Q->Q differ on t states. Given a total S-output-bit fan-in-two Boolean circuit F0 agreeing with psi o beta on psi(Q), there is a total fan-in-two AND/NOT circuit F agreeing with psi o delta on psi(Q), of size size(F0)+O((t+1)S), with constants and wires free. Proof: For each exceptional q, build the equality indicator e_q(x)=[x=psi(q)] as an S-literal conjunction, sharing input negations; this costs O(S+tS). For output bit j, let D_j be the exceptional q where the baseline and target output bits differ. Set F_j=F0_j XOR OR_{q in D_j}e_q. OR and XOR have constant-size fan-in-two AND/NOT implementations per added term. Summed over bits, the correction costs O(sum_j |D_j|+S)=O(tS+S). On each valid encoded state, exactly its equality indicator is one, so the output is toggled precisely on the differing coordinates. The composed circuit is total on all {0,1}^S strings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795627903.7125237,
+  "session": "pnp-desk/research/R3774",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: (1) e_q(x)=[x=psi(q)] as S-literal conjunction needs S-1 fan-in-2 AND gates per q; S NOT gates shared across all q gives O(tS+S)=O((t+1)S). (2) For output bit j, D_j={exceptional q: psi(beta(q))_j != psi(delta(q))_j}. F_j = F0_j XOR OR_{q in D_j} e_q. OR over |D_j| terms needs |D_j|-1 fan-in-2 OR gates; XOR with F0_j needs O(1) AND/NOT gates. Sum_j |D_j| <= tS since each exceptional q affects at most S output bits. Total correction O(tS+S). (3) On psi(q), injectivity makes exactly e_q=1; output toggles precisely on D_j. On non-exceptional states all e_q=0, F=F0. The composed circuit is total on {0,1}^S. No gap found.",
+  "review_of": "S0639",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628067.0409653,
+  "session": "pnp-desk/research/R3774",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct. For epsilon=1: binary ripple adder computes x+a in S+1 bits (O(S) fan-in-2 gates via full adders with AND/NOT). Compare with hardwired m (O(S) gates). Conditional subtraction of m (O(S) gates) and selection (O(S) gates) all total O(S). For epsilon=-1: comparator x<=a (O(S)), subtraction a-x or m-(x-a) (O(S)), selection (O(S)). All circuits defined on all S-bit strings. The O(S) bound holds with constants and wires free. No gap found.",
+  "review_of": "S0641",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628067.083675,
+  "session": "pnp-desk/research/R3774",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct. Shift-and-add multiplication by fixed u uses at most S additions of width O(S), each O(S) fan-in-2 gates = O(S^2). Result z has at most 2S+1 bits. Binary long division remainder mod m: at each of O(S) steps, form t=2r+b (O(S)), compare with m (O(S)), conditional subtraction (O(S)), selection (O(S)) = O(S^2) total. Remainder in [0,m-1] fits S bits. Circuit total on all S-bit inputs. No gap found.",
+  "review_of": "S0643",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628067.1220748,
+  "session": "pnp-desk/research/R3774",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct and more detailed than S0643. Ripple-carry adders with AND/NOT implementation of XOR/majority each O(S) gates, S additions = O(S^2). Reduction phase scans 2S+1 bits, each step O(S) = O(S^2). Hardwired constants u,a,m. Absolute constant C exists. Circuit total on all {0,1}^S. No gap found. Note: S0644 is essentially a more explicit version of S0643; both survive independently.",
+  "review_of": "S0644",
+  "status": "SURVIVED_REVIEW"
  }
 ]

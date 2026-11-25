@@ -6396,5 +6396,144 @@
   "proved_step": "Robust rarity of small-circuit truth tables. Fix m>=1, N=2^m, s>=0, and the model of fan-in-two circuits over all 16 binary Boolean gates, with m free input wires, two constant wires, unrestricted fan-out, and an output wire. Let D(m,s)=sum_{r=0}^s 16^r(m+r+2)^(2r+1). For any integer 0<=t<=N/2, the number of N-bit truth tables at Hamming distance at most t from the truth table of some circuit of size at most s is at most D(m,s) sum_{j=0}^t binom(N,j). Consequently, if D(m,s) sum_{j=0}^t binom(N,j)<2^N, at least one truth table has distance greater than t from every size-s circuit. Proof: For exactly r gates, order gates topologically. At gate i each predecessor wire has at most m+2+(i-1)=m+i+1 choices; its binary gate label has 16 choices. The output has at most m+r+2 choices. Thus at most 16^r (m+r+2)^(2r+1) descriptions exist; summing gives D(m,s), which upper-bounds the number of distinct circuit functions. Around each such truth table, the Hamming ball of radius t has exactly sum_{j=0}^t binom(N,j) strings. The union bound gives the stated count, and strict inequality against 2^N implies an uncovered string. No assumption of disjoint balls is needed. For s=m^c with fixed c and t=floor(delta N), any fixed 0<delta<1/2, the elementary binomial estimate sum_{j<=delta N} binom(N,j)<=2^(N H_2(delta)) gives D times ball <2^N for all sufficiently large m, since log2 D=O(m^c log m)=o(2^m) while 1-H_2(delta)>0. This says many tables are far from easy tables, but does not show the MCSP decision function needs large circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795627487.4791918,
+  "session": "pnp-desk/research/R3776",
+  "model": "gpt-6-luna",
+  "gap": "No direct MCSP[m^c] general Boolean circuit lower bound follows yet: the lemma bounds individual residual functions but does not show that restrictions preserve a hard residual or that eliminated gate counts accumulate. The superlinear lower-bound obligation remains open.",
+  "evidence": "Complete constructive argument stated in the proved_step. An independent exhaustive finite check of the explicit construction for q<=4 has been requested; its result is pending and is not part of the proof.",
+  "gap_id": "G0219",
+  "id": "S0747",
+  "proved_step": "Lemma (minority-support synthesis bound, charged free-literal basis). For every q>=1 and Boolean function f:{0,1}^q->{0,1}, in fan-in-two AND/OR/NOT circuits with free input literals, constants, and unrestricted fan-out, f has a circuit of at most q*min(t,2^q-t) gates, where t=|{x:f(x)=1}|. Proof: Let z=2^q-t. If t=0 or z=0, use a constant output, costing zero. Otherwise choose the smaller of the support and zero-set. For each of its r=min(t,z) assignments, form its q-literal minterm with q-1 AND gates, then OR the r minterms using r-1 gates, for cost r*q-1. If the chosen set is the support, this computes f directly. If it is the zero-set, append one NOT gate, for cost r*q. In either case the cost is at most q*r. This gives a local synthesis bound for every residual truth table; it does not imply restriction stability or accumulation of gate lower bounds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795627527.3077345,
+  "session": "pnp-desk/research/R3776",
+  "model": "gpt-6-luna",
+  "gap": "The residual minority-support condition is local and does not yield a superlinear lower bound for circuits deciding MCSP[m^c]. It remains open how to force many hard residuals or make their circuit costs accumulate.",
+  "evidence": "Deduction from the explicitly constructed synthesis bound S0747 by contraposition; no computational premise is used.",
+  "gap_id": "G0220",
+  "id": "S0748",
+  "proved_step": "Corollary (minority support of an MCSP no-instance). Fix q>=1 and the fan-in-two AND/OR/NOT circuit model with free literals, constants, and unrestricted fan-out. If f:{0,1}^q->{0,1} has circuit complexity greater than s, then min(|supp(f)|, 2^q-|supp(f)|) > s/q. Proof: By the minority-support synthesis lemma S0747, C(f) <= q min(|supp(f)|,2^q-|supp(f)|). If the minimum were at most s/q, this upper bound would give C(f)<=s, contradicting C(f)>s. In particular, any residual truth table outside MCSP[s] must disagree with a constant function on more than s/q inputs. This is a necessary condition only; it supplies no lower bound on the number of gates needed to realize the residual map.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795627533.8635035,
+  "session": "pnp-desk/research/R3771",
+  "model": "gpt-6-luna",
+  "evidence": "For nonempty support, one minterm per supported assignment costs m-1 AND gates, and combining t minterms costs t-1 OR gates, totaling tm-1. Empty support uses a constant-zero output.",
+  "id": "S0749",
+  "proved_step": "statement_start: Lemma (fixed-support/free-coordinate completion bound). Let m>=2, let A and B be disjoint subsets of {0,1}^m with |A|=a and |B|=r, and let h:{0,1}^m->{0,1} have support contained in A union B.\nstatement: Lemma (fixed-support/free-coordinate completion bound). Let m>=2, let A and B be disjoint subsets of {0,1}^m with |A|=a and |B|=r, and let h:{0,1}^m->{0,1} have support contained in A union B. In the fan-in-two DAG model with free input wires, free signed input literals, unrestricted fan-out, and AND/OR gates, h has a circuit of at most max(0,(a+r)m-1) gates. Proof. Let T={x:h(x)=1}; then |T|<=a+r. For each x in T, form the minterm M_x by ANDing the m signed input literals specifying x. This uses m-1 binary AND gates per point. If T is nonempty, OR the |T| minterms using |T|-1 binary OR gates. The total is |T|(m-1)+(|T|-1)=|T|m-1 <= (a+r)m-1. If T is empty, use a constant-zero output and zero gates. Thus the bound is max(0,(a+r)m-1). Consequently, fixing every truth-table coordinate outside A union B to zero leaves a residual MCSP[s] predicate identically YES whenever (a+r)m-1<=s (or a+r=0). This restriction-specific degeneracy criterion does not establish stability of the MCSP promise under restrictions or any lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795627777.9209135,
+  "session": "pnp-desk/research/R3776",
+  "model": "gpt-6-luna",
+  "evidence": "The claimed tm\u22121 bound when input negations are charged is false. For m=2, f(x1,x2)=\u00acx1\u2227\u00acx2 has support size 1; its minterm uses two NOT gates and one AND gate. The tm\u22121 construction is valid only when input literals are free.",
+  "review_of": "S0663",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795627777.9606025,
+  "session": "pnp-desk/research/R3776",
+  "model": "gpt-6-luna",
+  "id": "S0751",
+  "proved_step": "Corrected charged-support synthesis lemma. In the fan-in-two basis {AND, OR, NOT}, with every gate charged, constants and input wires free, and unrestricted fan-out, let m\u22651 and f:{0,1}^m\u2192{0,1} have support size t. If t=0 or t=2^m, f has a zero-gate constant circuit. Otherwise f has a circuit of size at most min{tm+m\u22121, (2^m\u2212t)m+m}. Proof: To synthesize f from its t satisfying assignments, compute all m negated input literals once (m NOT gates). For each satisfying assignment, conjoin its m prescribed literals using m\u22121 AND gates; OR the t minterms using t\u22121 OR gates. Total: m+t(m\u22121)+(t\u22121)=tm+m\u22121. Alternatively synthesize \u00acf from its 2^m\u2212t satisfying assignments and append one NOT gate, for cost m+(2^m\u2212t)(m\u22121)+(2^m\u2212t\u22121)+1=(2^m\u2212t)m+m. Taking the smaller construction proves the bound. This corrects the charged-inverter clause, including the m=2 singleton counterexample. It is a synthesis upper bound, not a lower bound for arbitrary circuits or the target MCSP circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795627976.9317825,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: given B-circuits for g (size s) and e (size t) with e = f \u2295 g, compose them with disjoint gate sets sharing inputs, then add one XOR gate (available since XOR \u2208 B) whose inputs are the outputs of the g-circuit and e-circuit. On input x, this outputs g(x) \u2295 e(x) = g(x) \u2295 (f(x) \u2295 g(x)) = f(x). Total size s + t + 1. No hidden assumptions: fan-in-two is respected, the basis contains XOR by hypothesis, free inputs and unrestricted fan-out are standard in this model. The argument holds for any basis B containing XOR, including the minimal basis {XOR} (where all computable functions are linear and the composition preserves linearity). No counterexample exists.",
+  "review_of": "S0624",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628007.3013406,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is standard and correct. Given circuits for f0 and f1 on x_1,...,x_{m-1} of sizes s0 and s1, we build a circuit for f on x_1,...,x_m: compute \u00acx_m (1 NOT gate), then u = (\u00acx_m) \u2227 f0 (1 AND gate), v = x_m \u2227 f1 (1 AND gate), output = u \u2228 v (1 OR gate). This adds exactly 4 gates. The circuit computes f correctly: when x_m=0, \u00acx_m=1 so u=f0, v=0, output=f0=f(x,0); when x_m=1, \u00acx_m=0 so u=0, v=f1, output=f1=f(x,1). For m=1, the cofactors are constants 0/1, and the available constant gates serve as their circuits. Thus C_m(f) \u2264 C_{m-1}(f0) + C_{m-1}(f1) + 4 holds. No counterexample exists.",
+  "review_of": "S0625",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628035.2557387,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct. For each satisfying assignment a, build its minterm by ANDing the q literals (q-1 gates, 0 when q=1). This uses at most q NOT gates (one per variable, computing negated literals at most once). OR the t minterms with t-1 gates. Total: q + t(q-1) + (t-1) = tq + q - 1 gates. The bound is monotone in t, so it covers support \u2264 t. For the restriction fixing N-2^q bits to 0, each completion has support \u2264 2^q, so t=2^q gives sufficient condition q\u00b72^q + q - 1 \u2264 s for MCSP[s] to accept all completions. The model is exactly the charged B2 basis with free inputs and unrestricted fan-out. No counterexample exists.",
+  "review_of": "S0646",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628035.2866786,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct. For each a_i in A, build its indicator p_i = [x = a_i] by conjoining m prescribed signed literals with m-1 binary gates (first gate tests the first two literals, each subsequent gate conjoins the accumulated prefix with the next literal). This costs m-1 gates per indicator. OR the r indicators with r-1 gates, giving 1_A at cost r(m-1) + (r-1) = rm - 1. XOR with f's circuit (size s) using one XOR gate gives f \u2295 1_A at total size s + rm. The basis is the complete binary Boolean basis (all 16 gates available), fan-in-two DAG with free inputs and unrestricted fan-out. No counterexample exists.",
+  "review_of": "S0662",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628086.0914655,
+  "session": "pnp-desk/research/R3771",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the minterm construction: for each of t satisfying assignments, build its minterm using q-1 AND gates (q literals), requiring at most q NOT gates for negated literals (each literal generated once, shared). OR the t minterms with t-1 OR gates. Total: q (NOT) + t(q-1) (AND) + (t-1) (OR) = tq + q - 1 gates. The bound is monotone in t, so it covers support \u2264 t. The restriction fixing N-2^q bits to 0 yields completions with support \u2264 2^q; substituting t=2^q gives the stated condition. No counterexample exists for this exact circuit model. Scope limitation acknowledged: constant-YES residual under zero restriction only; does not show hardness preservation or gate-cost accumulation across restrictions.",
+  "review_of": "S0646",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628097.322888,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is valid in the complete 16-gate binary basis. For t=0 (constant zero), the constant-zero binary gate (one of the 16) applied to any input wire twice computes f in 1 gate \u2264 s for s\u22651. For t\u22651, each singleton indicator [x=a] is built using m-1 gates: the first gate tests the first two signed literals (a binary gate exists for each of the 4 conjunctions of two literals), and each subsequent gate conjoins the accumulated prefix with the next signed literal (again a binary gate from the 16). The t indicators are ORed with t-1 binary OR gates. Total gates = t(m-1)+(t-1)=tm-1. Since t \u2264 floor((s+1)/m), we have tm \u2264 s+1, so tm-1 \u2264 s. The construction uses only free input wires, unrestricted fan-out, and no free constants. Verified by examining the 16 binary Boolean functions: all conjunctions of two literals and the AND/OR operations needed are present. No counterexample exists; the arithmetic and gate availability both check out.",
+  "review_of": "S0664",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628118.109003,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard union bound argument. The Hamming ball of radius r around any point in {0,1}^U has exactly sum_{i=0}^r binom(U,i) elements (choose which i coordinates to flip). The union of |B| such balls has cardinality at most |B| times the ball size, since overlaps can only reduce the total. If this upper bound is strictly less than 2^U (the size of the whole cube), the union cannot cover the entire cube, so there exists a string at distance > r from every element of B. The argument is elementary and correct for all finite binary cubes.",
+  "review_of": "S0667",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628134.057343,
+  "session": "pnp-desk/research/R3771",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: for each a_i in A (|A|=r), build indicator p_i = [x=a_i] by ANDing the m matching signed literals using m-1 fan-in-2 AND gates (1 gate for first two literals, then m-2 gates conjoining the accumulated prefix with each next literal). OR the r indicators using r-1 OR gates, yielding 1_A at cost r(m-1)+(r-1)=rm-1 gates. Append one XOR gate to the size-s circuit for f, giving g = f XOR 1_A at total size s + rm. The construction works for all m>=2, all subsets A, in the exact fan-in-2 DAG model with free input wires, unrestricted fan-out, and complete binary Boolean basis. No counterexample exists for this model. Scope: local label-stability bound only; does not imply global MCSP lower bounds.",
+  "review_of": "S0662",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628278.5419724,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is valid in the complete 16-gate binary basis. Each singleton indicator p_a=[x=a] uses m-1 gates: the first gate computes the conjunction of the first two signed literals (one of the 4 possible 2-literal conjunctions, all present in the 16 binary gates), and each of the remaining m-2 gates conjoins the accumulated prefix with the next signed literal (a binary AND or AND-with-negated-literal, both in the 16 gates). Editing the circuit for f to match g on a differing input a: if f(a)=0,g(a)=1, append OR(output,p_a) [1 gate]; if f(a)=1,g(a)=0, append NAND(p_a,p_a) [1 gate] for NOT p_a then AND(output,NOT p_a) [1 gate]. Each edit adds at most (m-1)+2 = m+1 gates. Since p_a is 1 only at a and 0 elsewhere, edits are independent and don't disturb previously corrected entries. Doing this for r differing inputs gives CC(g) \u2264 CC(f) + r(m+1). Swapping f,g gives the reverse inequality. The basis provides all needed gates (conjunctions of signed literals, OR, AND, NAND), free inputs, unrestricted fan-out, no constants required. Verified for all m\u22652; no counterexample exists.",
+  "review_of": "S0669",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628389.6031978,
+  "session": "pnp-desk/research/R3784",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof relies on a point-edit construction (S0577) that adds exactly m gates per differing input. In the complete 16-gate binary basis, all 16 functions {0,1}^2\u2192{0,1} are available, including the asymmetric gate x \u2227 \u00acy (first input AND NOT second). For each differing input a: build singleton indicator p_a=[x=a] in m-1 gates (conjunction chain of signed literals). If f(a)=0,g(a)=1: append OR(output,p_a) [1 gate]. If f(a)=1,g(a)=0: append (output) \u2227 \u00ac(p_a) [1 gate, the binary gate x \u2227 \u00acy]. Each edit costs m gates total. For d differing inputs, CC(g) \u2264 CC(f) + d\u00b7m \u2264 s+md. Since CC(g)>t, md > t-s, so d > (t-s)/m; integrality gives d \u2265 floor((t-s)/m)+1. The basis provides all needed gates; free inputs, unrestricted fan-out, no constants required. Construction valid for all m\u22652; no counterexample.",
+  "review_of": "S0670",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628601.118982,
+  "session": "pnp-desk/research/R3784",
+  "model": "laguna-xs-2.1",
+  "evidence": "The proof applies the point-edit construction (each single-input change costs at most m+1 gates, verified in S0669) in both directions. If M_s(h)=1 and M_s(k)=0, then C_m(h) \u2264 s and C_m(k) \u2265 s+1. From the edit bound: C_m(k) \u2264 C_m(h) + m+1 \u2264 s+m+1. Reversing: C_m(h) \u2265 C_m(k) - (m+1) \u2265 s - m. Non-negativity adds max(0, s-m). The construction is valid in the 16-gate basis; free inputs/unrestricted fan-out/no constants. Verified algebraically. No counterexample exists - this correctly bounds the complexity band for any sensitive edge.",
+  "review_of": "S0671",
+  "status": "SURVIVED_REVIEW"
  }
 ]
