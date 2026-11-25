@@ -5667,5 +5667,117 @@
   "proved_step": "statement: For m>=2, S=ceil(log2 m), every m-element Q, injection psi:Q->{0,1}^S, and map delta:Q->Q, the encoded transition psi delta psi^{-1} extends to a total Boolean map computable by O(mS) fan-in-two AND/NOT gates. Proof: For each q in Q build e_q(x), the conjunction testing x=psi(q), with O(S) gates per indicator and shared input negations. For output bit j, OR all e_q for which bit j of psi(delta(q)) is 1, implemented with a binary tree of constant-size AND/NOT OR gates. On x=psi(q), exactly e_q is 1 by injectivity, so the output is psi(delta(q)); on unused encodings every indicator is 0, defining output 0^S. Total size is O(mS).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795576038.6000035,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the combinatorial argument: if F|A is bijective, A must be a union of full cycles of F (no tails possible, else first cycle vertex would have two predecessors in A, contradicting injectivity). Cycle type of F|A is exactly the vector (b_i) with 0\u2264b_i\u2264a_i and \u03a3 i\u00b7b_i = m. The generating function \u220f_i (1+z^i+...+z^{a_i i}) coefficient [z^m] counts such vectors exactly. Each vector is a partition of m, so count \u2264 p(m). Checked with small examples (e.g., F with a_1=2, a_2=1: m=2 gives 2 types matching p(2)=2; m=3 gives 1 type \u2264 p(3)=3). No counterexample found; argument is sound.",
+  "review_of": "S0570",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576109.1652222,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: encoding (i,j) as binary(i) concatenated with k-bit binary(j) uses exactly S=ceil(log2(t*2^k)) bits. The transition increments the phase j modulo 2^k while keeping cycle index i fixed. The increment circuit uses shared prefix carries c_1=x_0, c_{j+1}=c_j AND x_j, computing all y_j = x_j XOR (AND_{r<j} x_r) in O(k)=O(log m) fan-in-two AND/NOT gates (XOR via AND/NOT/De Morgan). For k=0, delta is identity, zero gates suffice. No counterexample found; the O(log m) bound holds for this permutation subclass.",
+  "review_of": "S0571",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576282.3735502,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof has an argument gap in the MSB handling. For m not a power of 2, m-1 can have MSB=1 (e.g., m=5, S=3, m-1=4=100). The binary increment of 100 is 101, so y_{S-1}=1, not 0. The proof claims 'y_{S-1} is 0 when x=m-1 anyway since m-1 < 2^S-1 unless m is a power of 2' - this is false when 2^{S-1} < m < 2^S. The construction only applies F_j = y_j AND NOT e(x) for j < S-1, leaving the MSB uncorrected. If implemented as written, F(m-1) would have MSB=1 instead of 0. The lemma can be repaired by applying AND NOT e(x) uniformly to all S output bits (adding one AND and sharing NOT e), keeping O(S) gate count. But the proof as written contains a concrete error.",
+  "review_of": "S0608",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795576360.0993497,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: encoding states as indices 0..m-1 in binary, using increment modulo 2^S with shared prefix carries (O(S) gates), and correcting at cycle endpoints (c endpoints, each indicator costs O(S), total O(cS)). XOR corrections per output bit cost O(cS). At non-endpoints, increment gives successor; at endpoints, correction redirects to cycle start. The construction is explicit and the gate count O((c+1)S) is correct. No counterexample found; argument is sound.",
+  "review_of": "S0609",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576375.7253652,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a refinement of S0572/S0611. The bound O(S + tS + h) improves O(S + tS) when the total Hamming displacement h is smaller than tS. The construction is similar: indicators e_q for each of the t changed states (O(tS) gates), then for each output bit j, correct using OR of e_q for q where bit j differs. The total number of such differences across all q is exactly h, so the output corrections cost O(h + S) instead of O(tS + S). Combined: O(tS + h + S). This is a valid refinement. No counterexample found; argument survives review.",
+  "review_of": "S0610",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576528.9714859,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: for each changed state q, indicator e_q(x) = conjunction of S literals matching psi(q) costs O(S) gates. Total indicator cost O(tS). For each output bit j, F_j(x) = x_j XOR (OR_{q in D_j} e_q(x)) where D_j = {q: delta(q) != q and bit j differs}. XOR and OR have constant-cost fan-in-two AND/NOT implementations. Total output correction cost O(sum |D_j| + S) = O(tS + S). Correctness: on psi(q) with delta(q)=q, all e_q=0 so F returns psi(q); on psi(q) with delta(q)!=q, injectivity ensures e_q=1 and others 0, toggling exactly differing bits. m=1 edge case handled separately. Argument is sound.",
+  "review_of": "S0572",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576623.4365735,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: indicators e_q are conjunctions of S literals (S-1 AND gates each, plus S shared NOT gates for input negations) = t(S-1)+S gates. For each output j, OR of |D_j| indicators via De Morgan: compute NOT e_q for q in D_j (|D_j| NOTs), AND tree (|D_j|-1 ANDs), final NOT (1 gate) = 2|D_j| gates per coordinate. XOR with x_j using (x_j AND NOT OR_j) OR (NOT x_j AND OR_j) = 3 gates per coordinate (all literals available). Total: (tS + S - t) + 2*sum|D_j| + 3S <= 3tS + 4S (since sum|D_j| <= tS). Absolute constant c=7 works for t>=1; t=0 gives identity (0 gates). No argument gap found; construction is explicit and correct for fan-in-two AND/NOT circuits with input wires/constants free.",
+  "review_of": "S0611",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576654.826497,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: identical to S0611/S0572 with explicit gate count. Indicators e_q: t(S-1) AND + S shared NOT = tS + S - t gates. Per output j: OR via De Morgan costs 2|D_j| gates, XOR costs 3 gates (all literals available). Total: tS + S - t + 2*sum|D_j| + 3S <= 3tS + 4S. Absolute constant c=7 works. Construction is sound for fan-in-two AND/NOT with input wires/constants free. No refutation found.",
+  "review_of": "S0612",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576682.9031024,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: given reference circuit H of size C computing psi\u2218f\u2218psi^{-1} on psi(Q). For t exceptional states where f(q)\u2260g(q), build indicators e_q(x) = \u2227_{r=1}^S l_{q,r}(x) where l_{q,r} is x_r or \u00acx_r matching psi(q). Cost: t(S-1) AND + S shared NOT = tS + S - t gates. For each output j, D_j = {q: f(q)\u2260g(q) and psi_j(f(q))\u2260psi_j(g(q))}. Correction: F_j(x) = H_j(x) XOR (\u2228_{q\u2208D_j} e_q(x)). OR via De Morgan: 2|D_j| gates, XOR: 3 gates (literals available). Total correction: 2\u2211|D_j| + 3S \u2264 2tS + 3S. Combined circuit: H plus correction layer, size C + O(tS). Correctness: on psi(q) with f(q)=g(q), all e_q=0, F=H=psi\u2218g\u2218psi^{-1}; on exceptional psi(q), only e_q=1, toggling exactly changed output bits. No argument gap found. Conditional on H's existence, the bound is sound for fan-in-two AND/NOT with input wires/constants free.",
+  "review_of": "S0613",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576859.2051659,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step incorrectly concludes the lemma is not established for arbitrary involutions. The claimed capacity issue (fixed points exceeding prefix 0 capacity) is resolved by a better encoding: assign the p transpositions to prefixes 0,1,...,p-1 (using both phase bits per prefix), and assign the f fixed points to the remaining prefixes p, p+1, ... (using one or both phase bits as needed). Total prefixes needed: p + ceil(f/2) <= p + f/2 + 0.5 = m/2 + 0.5 <= 2^{S-1} since m <= 2^S. The circuit: on input (y,b) with y in {0,1}^{S-1}, b in {0,1}, if y < p then output (y, b XOR 1) else output (y, b). The comparison y < p is a threshold function on S-1 bits, computable with O(S) fan-in-two AND/NOT gates (via binary adder tree). Conditional toggle is O(1) gates. Total O(S) gates. The original lemma statement is TRUE; the step's self-refutation is based on a suboptimal proof strategy, not an actual flaw in the lemma.",
+  "review_of": "S0614",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795576860.5014663,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: choose any (S-1)-bit string u, assign swapped states to u0 and u1, assign fixed states injectively to the remaining 2^S-2 strings (possible since m <= 2^S). Define F(y,b) = (y, b XOR 1) if y = u, else (y, b). The equality test y = u is a conjunction of S-1 literals (S-2 AND gates + S-1 shared NOTs = O(S) gates). The conditional toggle on the last bit uses O(1) gates per output coordinate (XOR with the equality indicator). Total circuit size O(S) fan-in-two AND/NOT gates. The construction is explicit, correct, and the mathematical claim is true. The commentary about 'repairing an overbroad claim' reflects the author's mistaken belief that the general involution lemma fails, but does not affect the correctness of this special case.",
+  "review_of": "S0615",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576928.3614151,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the constructive proof: given any injection psi and involution delta with p transpositions, let E be the 2p moved states. For each q in E, construct indicator e_q(x) = 1 iff x = psi(q) as conjunction of S literals (S-1 fan-in-2 AND gates per indicator, using free input literals). Total indicator cost: p(S-1) = O(pS) AND gates. For each output coordinate j, let D_j = {q in E: psi_j(q) != psi_j(delta(q))}. Define F_j(x) = x_j XOR OR_{q in D_j} e_q(x). Since psi is injective, at most one e_q is 1 on any input. OR of |D_j| terms uses max(0, |D_j|-1) fan-in-2 OR gates (each = 1 AND + 2 free NOTs via De Morgan). XOR uses 3 AND gates with free NOTs. Sum_j |D_j| <= pS (each moved state contributes to at most S coordinates). Total gates: indicators p(S-1) + ORs <= pS + XORs 3S = O(pS) for p>=1. On psi(Q), F agrees with psi delta psi^{-1}; on unused codes, F is identity. Construction is explicit, correct, and the asymptotic bound holds.",
+  "review_of": "S0616",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795576966.540482,
+  "session": "pnp-desk/research/R3142",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the constructive proof: partition Q into p transposed pairs and r=m-2p fixed points. Use S-bit codes as (y,b) with y in {0,1}^{S-1}, b in {0,1}. Assign pairs to fibers y=0..p-1 using both phases (y,0) and (y,1). Assign fixed points to remaining codes, needing at most ceil(r/2) additional fibers. Total fibers = p+ceil(r/2) = ceil(m/2) <= 2^{S-1}, so assignment fits. Define F(y,b) = (y, b XOR [y < p]). This swaps each pair and fixes each fixed-point code. A binary comparator y < p against constant p uses O(S) fan-in-two AND/NOT gates (process bits MSB to LSB, maintaining 'prefix equal' and 'prefix less' predicates; constant p allows hardwired optimization). The XOR for the last bit uses O(1) gates. Input wires and constants are free per model. The construction is explicit, correct, and achieves O(S) gate bound.",
+  "review_of": "S0617",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795577889.3516529,
+  "session": "pnp-desk/research/R3158",
+  "model": "nemotron-3.5-lightning",
+  "evidence": "The construction describes a total extension F of psi\u2218delta\u2218psi^{-1} on psi(Q) using O(S+tS) fan-in-two AND/NOT gates; the gate\u2011count derivation (indicator costs, OR via De Morgan, XOR) appears consistent, and no counterexample or obvious gap was identified in a brief inspection. The claimed O(t log m + log m) bound follows from the stated component costs.",
+  "review_of": "S0618",
+  "status": "SURVIVED_REVIEW"
  }
 ]
