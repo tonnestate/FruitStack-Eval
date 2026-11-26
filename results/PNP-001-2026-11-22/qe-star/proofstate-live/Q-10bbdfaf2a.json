@@ -7528,5 +7528,32 @@
   "proved_step": "statement: Lemma (within-layer essentiality). Fix m>=1, s>=0, and let F_s:{0,1}^{2^m}->{0,1} be the MCSP predicate for fan-in-at-most-two circuits over AND, OR, NOT, constants, with free fan-out. For truth-table positions u,v in {0,1}^m with equal Hamming weight, the coordinate u is essential for F_s if and only if coordinate v is essential. Proof: Since |u|=|v|, some permutation pi of the m input coordinates maps u to v. For a truth table z, define (pi z)(x)=z(pi^{-1}x). Relabeling every primary input of a circuit by pi^{-1} gives a circuit for pi z of identical gate count; applying the inverse relabeling gives C(pi z)=C(z). Hence F_s(pi z)=F_s(z) for every z. If coordinate u is inessential, then F_s(z)=F_s(z with bit u flipped) for every z. Applying invariance under pi and pi^{-1} shows F_s(z)=F_s(z with bit v flipped) for every z, so v is inessential. The reverse implication follows by using pi^{-1}. Scope: exact for all m,s in the stated basis/model. Limitation: permutations preserve Hamming weight of positions and give no conclusion between distinct layers; this does not prove a superlinear circuit lower bound for F_s.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795723819.530438,
+  "session": "pnp-desk/research/R4472",
+  "model": "gpt-6-luna",
+  "evidence": "Explicit fan-in-two circuit construction and gate count. This repairs the earlier unsupported bound 2mt-2t+3; that bound does not follow from the shared-negation DNF and XOR wrapper.",
+  "id": "S0872",
+  "proved_step": "statement: Let m>=1, let f:{0,1}^m->{0,1} have a fan-in-two Boolean circuit over {AND, OR, NOT, 0, 1} of size C(f), with free fan-out, and let T be any subset of {0,1}^m of size t. Then C(f XOR 1_T) <= C(f) when t=0, and C(f XOR 1_T) <= C(f)+mt+m+3 when t>=1. Proof: For t>=1, construct h=1_T as the OR of the t minterms for elements of T. Use at most m NOT gates to form all negative literals, t(m-1) AND gates for the minterms, and t-1 OR gates to combine them, so h costs at most mt+m-1 gates. Given output wires f and h, compute f XOR h as (f OR h) AND NOT(f AND h), using four gates: one OR, one AND, one NOT, one AND. Thus the added cost is at most mt+m+3. For t=0, 1_T is identically zero and f XOR 0=f. The construction includes m=1 and t=2^m. This is an upper bound for changing t truth-table entries, not a lower bound on the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795725356.4279497,
+  "session": "pnp-desk/research/R4480",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: given circuit for f of size C(f), for each of t\u2264r inputs a where f(a)\u2260g(a), build equality detector \u03b4_a (conjunction of m literals, \u22642m-1 gates). To flip output at a: if g(a)=1 use h\u2228\u03b4_a (+1 OR), if g(a)=0 use h\u2227\u00ac\u03b4_a (+1 AND +1 NOT). Each edit adds \u22642m+1 gates. Detectors for distinct a are independent (\u03b4_a(b)=0 for b\u2260a), so edits compose. Total size \u2264 C(f)+t(2m+1) \u2264 s. Free fan-out allows sharing input wires. No logical gap found.",
+  "review_of": "S0819",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795725664.807993,
+  "session": "pnp-desk/research/R4480",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0873",
+  "proved_step": "statement: Lemma (Essential variables of MCSP decision): For all sufficiently large m and any fixed c >= 1, let s = m^c and let F_s: {0,1}^{2^m} -> {0,1} be the MCSP decision function (F_s(TT) = 1 iff the Boolean function with truth table TT has fan-in-2 circuit size <= s). Then every one of the 2^m input variables of F_s is essential. That is, for every index i in {0,1}^m, there exist truth tables f, g differing only at position i such that F_s(f) = 1 and F_s(g) = 0.\n\nProof: \n1. (Existence of an easy function with a hard neighbor at some position) By the standard gate-counting bound (S0005), |F_s| <= (s+1)(N+s+1)(8(N+s)^2)^s where N = 2^m. This is at most 2^{O(s log N)} = 2^{O(m^{c+1})}. For sufficiently large m, 2^{O(m^{c+1})} < 2^N / (N+1) because 2^N = 2^{2^m} grows doubly-exponentially in m while the bound is singly-exponential. If every f in F_s had all N neighbors also in F_s, then the union of radius-1 Hamming balls around F_s would be contained in F_s, implying |F_s| * (N+1) >= 2^N (since every function is either in F_s or at distance >= 2 from F_s, but the complement has size 2^N - |F_s| > 0). This contradicts |F_s| < 2^N/(N+1). Hence there exists some f_0 in F_s and some i_0 in {0,1}^m such that flipping bit i_0 yields g_0 not in F_s.\n\n2. (Symmetry under input permutations) For any permutation pi in S_m of the m input variables, define the action on truth tables by (pi * TT)(x) = TT(pi^{-1}(x)). If a function f has a circuit C of size <= s, then f o pi has a circuit of the same size (obtained by permuting the input wires of C according to pi). Thus C(f o pi) = C(f), so F_s(pi * TT) = F_s(TT). The action of S_m on {0,1}^m is transitive: for any i, j in {0,1}^m there exists pi with pi(i_0) = j.\n\n3. (All positions are essential) For any target position j, choose pi with pi(i_0) = j. Let f = pi * f_0 and g = pi * g_0. Then f and g differ only at position j (since f_0 and g_0 differ only at i_0). We have F_s(f) = F_s(f_0) = 1 and F_s(g) = F_s(g_0) = 0. Thus bit j is essential for F_s. Since j was arbitrary, all 2^m variables are essential.\n\nScope: All m >= m_0(c), all c >= 1, fan-in-2 circuits with free fan-out and constants. The lemma is a structural property of the MCSP decision function itself, not of the functions in F_s.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

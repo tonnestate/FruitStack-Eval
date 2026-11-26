@@ -8354,5 +8354,36 @@
   "proved_step": "statement: COMPUTABLE-WITNESS ELIMINATION LEMMA. Let H(x,w) be computed by a fan-in-two Boolean circuit of h gates and D(x) compute r witness bits by a fan-in-two Boolean circuit of d gates. Suppose for every x, (exists w H(x,w)=1) iff H(x,D(x))=1. Then G(x)=exists w H(x,w) has a fan-in-two circuit with at most h+d gates.\nderivation: Build D and connect its r output wires to the witness inputs of H, retaining H's visible-input wires. The composed circuit computes H(x,D(x)), which equals the existential projection by the stated hypothesis, and uses at most d+h gates.\nscope: All finite input and witness lengths; fan-in-two circuits; the equality hypothesis is required for every visible input. For fixed deterministic circuit tableaux, D is the gate-evaluation map, so the lemma eliminates tableau witnesses with linear overhead. It gives no bound for witnesses encoding a search over candidate circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795724036.0152416,
+  "session": "pnp-desk/research/R4476",
+  "model": "gpt-6-luna",
+  "id": "S0970",
+  "proved_step": "statement: BOUNDED-WITNESS PROJECTION COST. Let H(x,w) be computed by a fan-in-two Boolean circuit of h gates, with constants and wiring free, and let w range over {0,1}^r. The existential projection G(x)=1 iff there exists w in {0,1}^r with H(x,w)=1 has a fan-in-two circuit with at most 2^r(h+1)-1 gates. Consequently, if h(s) is polynomial in s and r(s)=O(log s), then G has polynomial size in s. This bound alone gives no polynomial-size conclusion when r is not O(log s). Proof: For every assignment a in {0,1}^r, make a separate copy H_a of H with w fixed to a. Each copy computes x -> H(x,a) using at most h gates. OR the 2^r outputs with a binary OR tree using 2^r-1 gates. Total size is 2^r h + 2^r - 1 = 2^r(h+1)-1. If r(s) <= c log_2(s)+d and h(s)<=s^k for fixed c,d,k, this is at most 2^d s^c(s^k+1)-1, a polynomial in s. For unbounded larger r this expression may be superpolynomial, so no such conclusion follows from this construction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795724564.4722853,
+  "session": "pnp-desk/research/R4476",
+  "model": "gpt-6-luna",
+  "id": "S0971",
+  "proved_step": "statement: EXPLICIT CIRCUIT-ENUMERATION CIRCUIT FOR EXT PREFIX TESTS. Fix n>=1, N=2^n, a fixed encoding of fan-in-two Boolean circuits on n inputs with at most s gates, and let D_{n,s} be its set of valid descriptions, of cardinality M. For a prefix p of length t, EXT_{n,s}(p)=1 iff some d in D_{n,s} computes a truth table whose first t bits equal p. There is a Boolean circuit deciding EXT_{n,s}(p), with p as input and n,s,t fixed, of size O(M*t*(s+1)+M), under the convention that description wiring/constant bits are free and candidate circuits are evaluated by their gate equations. Specifically, for each d form the conjunction over i<t of [C_d(i)=p_i], then OR these M conjunctions. Therefore the child predicate EXT_{n,s}(p b) is decided by the same construction with t+1 positions; the algorithmic description is an explicit transition test, with circuit size proportional to the number of descriptions, rather than an existential suffix projection.\nderivation: For each valid description d, compute C_d(i) for every fixed index i<t by evaluating its gates in topological order. Each gate contributes O(1) Boolean gates per evaluation, hence all t outputs for d cost O(t(s+1)) gates (the fixed input i is hardwired, and p_i is wired into the equality test). Conjoin the t equality bits, using O(t) gates. OR the resulting M acceptance bits with M-1 gates. The resulting output is 1 exactly when at least one valid description agrees with p at every one of its t coordinates, which is exactly the definition of EXT_{n,s}(p). Replacing t by t+1 proves the child test. This construction makes no polynomial-in-s claim because M may be exponential in s log(n+s).\nscope: All fixed n,s,t with 0<=t<=2^n, for the explicitly fixed finite circuit-description encoding; it is an ordinary Boolean circuit in the prefix bits. It supplies an explicit but potentially exponential description-enumeration cost and does not bound transitions for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795724819.558722,
+  "session": "pnp-desk/research/R4476",
+  "model": "gpt-6-luna",
+  "id": "S0972",
+  "proved_step": "statement: EXACT CANDIDATE-SET STATE AND TRANSITION FOR EXT. Fix n,s and a finite set D of M circuit descriptions on n inputs, with truth tables indexed 0,...,N-1. After a prefix p of length t, encode the EXT state by the M-bit vector q_p whose coordinate q_p(d)=1 exactly when the truth table of d begins with p. At level t<N, on input next bit b, update each coordinate by q_{pb}(d)=q_p(d) AND [C_d(t)=b]. Because C_d(t) is a fixed bit for each d,t, this transition is implemented by at most M fan-in-two Boolean gates (indeed each coordinate either wires q_p(d) or outputs 0), with the level t and description set fixed. The accepting predicate is OR_d q_p(d), and is 1 exactly when p is an EXT prefix. Thus EXT has an exact deterministic layered streaming representation with M state bits and O(M) real gates per transition; this bound is polynomial in s only if M is.\nderivation: Induct on prefix length t. At t=0 every description agrees with the empty prefix, so q_empty is the all-ones vector. Assume q_p(d)=1 iff C_d agrees with p at positions 0,...,t-1. The stated update retains d precisely when it also agrees at position t, hence q_pb(d)=1 iff C_d agrees with pb on all positions through t. This proves the invariant for every prefix. The output OR is true precisely when at least one such description exists, which is the definition of EXT_{n,s}(p). For a fixed level and description, C_d(t) is a constant; the coordinate update is either the identity wire (if that constant is b) or constant zero. This gives the asserted O(M) transition circuit and makes no polynomial-in-s assertion.\nscope: All finite n,s and every fixed finite circuit-description set D; exact deterministic streaming representation measured in state bits and fan-in-two Boolean transition gates. It does not yield a polynomial-in-s bound when M is exponential, nor a representation for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
  }
 ]
