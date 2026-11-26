@@ -2129,5 +2129,40 @@
   "evidence": "The clipping lemma is a correct case-split argument: for each j, tau_j is either <= lo_j, between lo_j and hi_j, or >= hi_j+1. The count of y in the box for which the threshold gate output changes is exactly captured by the intervals. It is a bookkeeping identity (no asymptotic improvement for m=n^1.5), verified by exhaustive checking on small instances in prior sessions. Status: SURVIVED_REVIEW.",
   "review_of": "S0059",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795674950.5913577,
+  "session": "pnp-desk/research/R4371",
+  "model": "gpt-6-luna",
+  "evidence": "The statement may be true, but its proof is invalid: an arbitrary rational change of basis need not map integer points to integer points or preserve coordinate bounds. The cited determinant-1 property is unjustified. This refutes the submitted proof, not the bound; repair by injective projection onto selected ambient coordinates.",
+  "review_of": "S0046",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795674996.9961061,
+  "session": "pnp-desk/research/R4371",
+  "model": "gpt-6-luna",
+  "evidence": "Choose d=rank(W_R) linearly independent rows A of W_R. Every row of W_R is a rational linear combination C_j of A, so for fixed x_S the value W_j x is exactly C_j(Ax_R)+W_{j,S}x_S. Partitioning assignments by x_S and y=Ax_R proves the count identity. Each coordinate of Ax_R is a subset sum of |R| integers of magnitude at most B; its attainable integer values lie in an interval of width at most |R|B, hence there are at most |R|B+1 values. Thus the number of states is at most (|R|B+1)^d and at most 2^|R|. Exact rational evaluation does not change the state count; solving for C_j has polynomial bit complexity in the input bit length. The lemma and conditional runtime survive review; this establishes no P-vs-NP consequence.",
+  "review_of": "S0065",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795675123.383417,
+  "session": "pnp-desk/research/R4371",
+  "model": "gpt-6-luna",
+  "id": "S0254",
+  "proved_step": "statement: LEMMA (rank-r threshold-counting DP). Let W be an m-by-n integer matrix with |W_ji|<=B, let t_j be integers, v_j be nonnegative integers, and T an integer. If rank_Q(W)<=r, then the number of x in {0,1}^n satisfying sum_j v_j [W_j x>=t_j]>=T can be computed exactly in O(nm (nB+1)^r poly(L)) bit operations, where L is the input bit length. Proof: choose r linearly independent rows A of W. For each prefix length p, maintain a map from y=A x_[p] to the number of prefixes producing y. Initially the map has only y=0 with multiplicity 1. For the next column a_i, replace each state y by y and y+a_i, adding multiplicities when they coincide. By induction, each map entry is exactly the number of prefixes with that row-sum vector. Each coordinate of y is an integer sum of p terms of magnitude at most B, so there are at most (2pB+1)^r states (and at most 2^p). At p=n, every row W_j is a rational linear combination c_j A because rank(W)<=r; hence W_jx=c_j y. Evaluate the threshold predicate from y and sum multiplicities of accepting states. The transitions cost O(r) arithmetic per state; exact rational coefficients c_j are obtained by Gaussian elimination, with polynomial bit complexity in the input encoding. Thus the number of states is at most (2nB+1)^r, yielding the asserted bound. This lemma is restricted to rank at most r and does not imply a subexponential bound for unrestricted THR\u2218THR.\ngap: This gives an exact algorithm for the rank-r core used by the column-deletion reduction; it does not bound the cost of finding a deletion set or establish that unrestricted THR\u2218THR instances have small rank after deletion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795675175.3183212,
+  "session": "pnp-desk/research/R4371",
+  "model": "gpt-6-luna",
+  "evidence": "For any fixed S, partition assignments uniquely as (x_S,x'). Each row sum decomposes exactly as W_{j,S}x_S + W'_jx', so fixing x_S shifts its integer threshold to t_j-W_{j,S}x_S without changing the predicate or losing assignments. The restricted matrix W' has rank at most r by the definition of an admissible S, so the rank-based DP applies to each inner count; summing over all 2^|S| choices gives the stated reduction bound, subject to that DP's state-count assumptions. For the sparse-perturbation corollary, columns touched by E leave W0 unchanged on the remaining columns, hence the residual rank is at most r. Enumerating candidate column sets gives a deterministic n^{O(e)} search; this is not polynomial time for variable e, and the claim does not establish that a small such set exists for general W. No unrestricted THR\u2218THR speed-up follows.",
+  "review_of": "S0068",
+  "status": "SURVIVED_REVIEW"
  }
 ]

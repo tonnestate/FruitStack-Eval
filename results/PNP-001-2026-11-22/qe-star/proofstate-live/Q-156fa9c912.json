@@ -8212,5 +8212,58 @@
   "proved_step": "statement: EXT CANDIDATE FILTERING IDENTITY. Fix n,s and a finite set C_{n,s} of descriptions of Boolean circuits on n inputs of size at most s, with each description c computing f_c:{0,1}^N->{0,1}, N=2^n, the truth-table word in a fixed input order. For a prefix p of length t define A(p)={c in C_{n,s}: the first t bits of f_c equal p}. Then A(pb)={c in A(p): the (t+1)-st bit of f_c equals b}. The EXT residual language R(p)={u in {0,1}^{N-t}: exists c in C_{n,s}, f_c=p||u} equals {suffix_t(f_c):c in A(p)}. Consequently EXT prefix state can be represented exactly by the surviving circuit descriptions A(p), and the next-bit update is a filter on their next output bit. Proof: By definition, c belongs to A(pb) iff its first t+1 output bits are p||b, which is equivalent to its first t bits being p and its next bit being b; this proves the filter identity. A suffix u belongs to R(p) iff there exists c with f_c=p||u, equivalently c belongs to A(p) and its remaining suffix is u; this proves the residual identity. The argument is finite and exact. It gives neither a succinct representation of A(p) beyond listing descriptions nor a bound on the real-gate cost of filtering it, and therefore does not imply a transition-cost reduction for arbitrary MCSP decision circuits.\nderivation: Expand the definitions of the image prefix residual and the surviving-description set; split equality of output prefixes at the (t+1)th bit.\nscope: Any finite circuit-description set C_{n,s}, fixed output truth-table order, and all prefixes of lengths 0 through N. No uniformity or efficient-update bound asserted.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795673256.4638717,
+  "session": "pnp-desk/research/R4356",
+  "model": "gpt-6-luna",
+  "id": "S0956",
+  "proved_step": "statement: EXPLICIT ENUMERATION UPDATE BOUND FOR EXT. Fix n,s and let D be the set of all syntactically valid fan-in-two Boolean circuit descriptions on n inputs with at most s gates, under a fixed encoding of length O(s log(n+s)). Let M=|D|, and list D in a fixed order. For each prefix p of length t of the truth table, store the M-bit vector v_t whose d-th bit is 1 exactly when circuit d agrees with p on its first t truth-table positions, together with the t counter. On reading the next bit b, evaluate each circuit d on the input assignment indexed by t; set its next membership bit to v_t[d] AND [f_d(t)=b], then increment t. This update is exact: by induction on t, v_t[d]=1 iff d agrees with p on the first t positions, so v_{t+1} represents exactly the circuits agreeing with pb. The state uses M+n bits. If evaluating one listed circuit on one input takes O(s) time, a direct sequential update takes O(Ms+n) time per input bit. The description count satisfies M <= 2^{O(s log(n+s))}, so this gives an explicit, generally exponential-resource transition procedure. It does not imply a polynomial transition bound for compressed encodings or a lower bound for arbitrary representations.\nderivation: Initialize every membership bit to 1 at t=0. At step t, each candidate's next truth-table bit is obtained by evaluating its circuit on the t-th assignment. Filtering by equality to b preserves exactly those candidates consistent with the extended prefix. Induction proves the invariant for every t. The memory and time bounds follow from storing M bits and evaluating M circuits, each with at most s gates.\nscope: All finite n,s and the stated circuit encoding; sequential evaluation time assumes circuit descriptions are explicitly available and each gate evaluation costs O(1).",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795673290.5331845,
+  "session": "pnp-desk/research/R4356",
+  "model": "gpt-6-luna",
+  "id": "S0957",
+  "proved_step": "statement: EXPLICIT ENUMERATION UPDATE PROCEDURE FOR EXT. Fix n,s and a fixed, explicitly enumerable list D of M fan-in-two Boolean circuit descriptions on n inputs, each with at most s gates. For a truth-table prefix p of length t, store the M-bit vector v_t with v_t[d]=1 iff circuit d agrees with p on positions 0 through t-1, and an n-bit counter for t (the case t=2^n is handled by a separate terminal flag). On reading bit b, generate the n-bit input assignment x_t indexed by t, then for each d set v_{t+1}[d]=v_t[d] AND [f_d(x_t)=b], and advance the counter. For every t, the invariant v_t[d]=1 iff d agrees with p on its first t positions follows by induction: it holds initially because the empty prefix imposes no constraint, and the update retains exactly candidates whose next output equals b. Thus the update is exact and the prefix is extendible within the represented family iff some bit of v_t is 1. If generating x_t takes O(n) time and evaluating one listed circuit on x_t takes O(s) time, the update takes O(n+Ms) time and the mutable state uses M+n+O(1) bits; the fixed description list is read-only program data. Since a standard gate-list encoding has M <= 2^{O(s log(n+s))}, this is generally exponential in s and n. This procedure gives no lower bound for compressed or arbitrary representations, so it does not close G0004.\nderivation: Use the stated candidate-membership invariant. At position t, compute the corresponding assignment once, evaluate each still-live circuit, and filter by equality with the arriving bit. The induction proves exactness. The stated time sums one O(n) assignment-generation cost and M evaluations of O(s) each; the stored membership vector and counter give the state bound.\nscope: All finite n,s and any fixed explicit circuit list D under the stated costs. The universal update-computation lower bound for all representations remains open.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795673290.5838258,
+  "session": "pnp-desk/research/R4356",
+  "model": "gpt-6-luna",
+  "gap": "G0004 remains open: determine whether an update-computation lower bound for exact Search-MCSP^A transitions holds for every representation with polynomial workspace, including nonlinear/time-dependent encodings, redundant states, shared intermediate computation, arbitrary fan-out, deferred work, and alternative witnesses. The explicit candidate-filtering procedure is only an upper bound for one representation.",
+  "gap_note_on": [
+   "G0004"
+  ]
+ },
+ {
+  "at": 1795675210.851573,
+  "session": "pnp-desk/research/R4372",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive exact survivor-set update derived directly from the definition of prefix extension. No computation was completed in this turn; the proposed finite check is still pending.",
+  "id": "S0959",
+  "proved_step": "statement: SURVIVOR-BITSET TRANSITION FOR EXT. Fix n and a finite family D of Boolean circuits on n input bits, with |D|=M, and fix an ordering x_1,...,x_{2^n} of the truth-table inputs. For each prefix p of length t, let B_p be the M-bit vector whose d-coordinate is 1 exactly when circuit d's truth table begins with p. Given t, B_p, and the next bit b, B_{pb} is computed coordinatewise by (B_{pb})_d=(B_p)_d AND [d(x_{t+1})=b]. Thus the transition has a fan-in-two Boolean circuit with at most 2M gates when the constants [d(x_{t+1})=b] are supplied for this fixed t,b; decoder acceptance is OR of the M coordinates. For EXT_{n,s}, take D to contain one representative for each n-input circuit of size at most s. This gives an exact, explicit transition procedure with M=|D| state bits and O(M) transition gates per fixed position. Proof: d survives prefix p exactly when its first t truth-table bits equal p. It survives the child prefix pb exactly when it survives p and its next truth-table bit equals b. The displayed coordinate formula is precisely this equivalence, independently for each d. OR of the coordinates is 1 exactly when some circuit in D extends p. No claim is made that this representation is minimal or polynomial in s.\nderivation: Enumerate the finite circuit family D. Store one survivor bit per description. For each coordinate, update by AND with the fixed indicator that the circuit's next output bit equals b. By induction on prefix length, the stored coordinates are exactly the descriptions extending the current prefix. The decoder OR therefore recognizes EXT. Each coordinate uses at most one AND gate; a binary OR tree uses at most M\u22121 gates.\nscope: All finite n, s, fixed circuit families D, and fixed truth-table input order. The transition circuit is position-specific (t is fixed in its constants); no bound polynomial in s is asserted. The state width M may be exponential in s log(n+s), and this does not establish a transition bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795675247.47171,
+  "session": "pnp-desk/research/R4372",
+  "model": "gpt-6-luna",
+  "evidence": "Direct set-theoretic proof, including empty and full-prefix cases.",
+  "id": "S0960",
+  "proved_step": "statement: SURVIVOR SET IS A SUFFICIENT STATE FOR EXT. Fix n, a finite family D of Boolean circuits on n input bits, and an ordering x_1,...,x_{2^n} of the inputs. For a prefix p of length t, define S_p={d in D: d(x_i)=p_i for every 1<=i<=t}. Then (i) p is an extendible truth-table prefix iff S_p is nonempty; and (ii) for any next bit b, S_{pb}={d in S_p: d(x_{t+1})=b}. Proof: If p is extendible, by definition some d in D agrees with p at every listed position, so d lies in S_p; conversely any d in S_p supplies a completion, namely its remaining truth-table bits. For the transition identity, d belongs to S_{pb} exactly when it agrees with p on the first t positions and has value b at x_{t+1}, which is precisely membership in the displayed filtered set. Hence the survivor set, with nonemptiness as decoder, is an exact sufficient state for every prefix transition.\nderivation: Both assertions follow by expanding the definition of S_p coordinatewise. Membership is exactly agreement with the prefix; appending b adds exactly one agreement condition.\nscope: All finite n, all finite families D of Boolean functions on {0,1}^n (in particular circuit families), all input orders, all prefixes including t=0 and t=2^n. This is a sufficient-state lemma only; it gives no compact encoding or low-cost transition from H_C.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
  }
 ]

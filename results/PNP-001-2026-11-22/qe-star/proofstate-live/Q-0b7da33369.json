@@ -6823,5 +6823,58 @@
   "proved_step": "CYCLE-GROUPED SUCCESSOR RULE. Let delta be a permutation of a finite set Q. For each cycle length ell, place the cycles of that length consecutively in a block, with each cycle occupying ell consecutive integer codes. For a state with code x, block start a, and offset r=x-a, define its successor code to be x+1 if r mod ell != ell-1, and x-(ell-1) if r mod ell = ell-1. Then this rule sends every encoded state to the code of its delta-successor. Proof: In a cycle, offsets j<ell-1 are followed by offset j+1, whose code is x+1. The final offset ell-1 is followed by the first state of that cycle, whose code is x-(ell-1). Thus the rule is correct on every cycle. This proves only transition-table correctness; it makes no circuit-size claim. Diagnostic: not a P-vs-NP claim; relativizing/natural/algebrizing/localizing labels are not applicable to this finite combinatorial lemma.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795672908.048395,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0785: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean verifier rejected the submitted proof. It reported unresolved `omega` goals in the auxiliary sum lemma and the main theorem. No kernel accepted proof was established, so the claim re (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795674013.948477,
+  "session": "pnp-desk/research/R4361",
+  "model": "gpt-6-luna",
+  "id": "S0788",
+  "proved_step": "ONE-HOT PERMUTATION RECoding. For every finite set Q of size m and every permutation \u03b4:Q\u2192Q, there is an injective encoding \u03c8:Q\u2192{0,1}^m such that the encoded transition \u03c8\u2218\u03b4\u2218\u03c8\u207b\u00b9 on valid codewords is implemented by a permutation of the m input bits, using zero fan-in-2 gates when wire permutations are free (or O(m) gates if output copies are charged). Proof: Fix a bijection e:Q\u2192{1,\u2026,m} and encode q by the unit vector \u03c8(q) whose only 1 is at coordinate e(q). For each output coordinate j, set y_j=x_{e(\u03b4\u207b\u00b9(e\u207b\u00b9(j)))}. If x=\u03c8(q), the selected input coordinate is e(q), so y has its sole 1 at coordinate e(\u03b4(q)); hence y=\u03c8(\u03b4(q)). The coordinate map is a permutation because \u03b4 is bijective. Thus the construction is exact on all encoded states; it makes no claim about extensions on invalid codewords or compact encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795674057.6097095,
+  "session": "pnp-desk/research/R4361",
+  "model": "gpt-6-luna",
+  "id": "S0789",
+  "proved_step": "ONE-HOT FINITE-MAP UPDATE. Let Q be a finite set of size m and let \u03b4:Q\u2192Q be any map, not necessarily injective. There is an injective encoding \u03c8:Q\u2192{0,1}^m for which the encoded transition is exact on valid codewords and uses at most m\u2212|im(\u03b4)| fan-in-2 OR gates. Proof: Fix a bijection e:Q\u2192{1,\u2026,m} and let \u03c8(q) be the unit vector at coordinate e(q). For each r\u2208im(\u03b4), define output y_{e(r)}=OR_{q:\u03b4(q)=r} x_{e(q)}; set y_j=0 for r\u2209im(\u03b4). Each nonempty fiber of size k uses k\u22121 binary OR gates, so the total is \u03a3_{r\u2208im(\u03b4)}(|\u03b4\u207b\u00b9(r)|\u22121)=m\u2212|im(\u03b4)|. On input \u03c8(q), exactly one input bit is 1, so exactly output coordinate e(\u03b4(q)) is 1; hence y=\u03c8(\u03b4(q)). The map is exact for every encoded state. No claim is made for invalid codewords.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795674589.6905756,
+  "session": "pnp-desk/research/R4367",
+  "model": "gpt-6-luna",
+  "evidence": "General proof is the explicit pair-index/tag-bit construction. Finite sanity check cm-8253c839fd674206 tested all fixed-point-free involutions at m=2,4,6,8,10 (1, 3, 15, 105, 945 pairings), with zero failures; prediction matched. This scoped lemma does not close the general recoding bounds or an existing broader obligation.",
+  "id": "S0790",
+  "proved_step": "statement: For every even finite set Q of size m=2p and every fixed-point-free involution \u03b4:Q\u2192Q, there is an injective stationary encoding \u03c8:Q\u2192{0,1}^{ceil(log2 m)} whose transition extends to a total Boolean map of one fan-in-two gate. Proof: The orbits of \u03b4 are p disjoint pairs. Assign each pair a distinct index i\u2208{0,\u2026,p\u22121}, represented with k=ceil(log2 p) bits, and assign its two elements tags 0 and 1. Encode them as (i,b). This is injective and uses k+1=ceil(log2(2p)) bits. On every encoded state, \u03b4 changes (i,b) to (i,1\u2212b). On all k+1-bit strings, define the extension to leave the index unchanged and negate the tag; this is a total Boolean map implemented by one NOT gate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795674629.381357,
+  "session": "pnp-desk/research/R4367",
+  "model": "gpt-6-luna",
+  "evidence": "Complete construction and gate-count proof are given in the statement. It is a scoped constructive extension of the fixed-point-free involution case; it closes no recorded general obligation and makes no claim about P versus NP.",
+  "id": "S0791",
+  "proved_step": "statement: Let \u03b4 be a permutation of a finite set Q whose cycles all have the same length d=2^r, where r\u22651, and let m=|Q|=p\u00b72^r. There is an injective stationary encoding \u03c8:Q\u2192{0,1}^{ceil(log2 m)} such that the encoded transition extends to a total Boolean map using O(r) fan-in-two gates. Proof: Index the p cycles by k=ceil(log2 p) bits and index each cycle\u2019s states by a phase a\u2208{0,\u2026,2^r\u22121}, choosing phase so \u03b4 advances it by one modulo 2^r. Encode state (i,a) as the concatenation of its k-bit cycle index i and r-bit phase a. Since ceil(log2 m)=ceil(log2(p\u00b72^r))=k+r, this uses exactly the permitted number of bits and is injective. Define the total extension on every k+r-bit string by leaving the index bits unchanged and incrementing the phase modulo 2^r. For phase bits a_0,\u2026,a_{r\u22121}, with a_0 least significant, the output bit is a_0 XOR 1 for bit 0 and a_j XOR (AND_{h<j} a_h) for j>0. Compute the prefix conjunctions successively with at most r\u22121 AND gates and each output with one XOR gate; thus the extension uses O(r) fan-in-two gates and agrees with \u03b4 on every encoded state.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795675247.5182083,
+  "session": "pnp-desk/research/R4374",
+  "model": "gpt-6-luna",
+  "id": "S0792",
+  "proved_step": "EQUAL-LENGTH CYCLE CONSTRUCTION. Let a permutation on m states consist of cycles all of the same length l, where l divides m, and let S=ceil(log2 m). There is an injective stationary encoding into S bits whose transition extends to a total fan-in-two Boolean map of O(S log(l+1)) gates. Proof: enumerate the m/l cycles and assign each cycle a consecutive block of l codes, so the used codes are 0,...,m-1. On a code x, the desired successor is x+1 except at a cycle endpoint. The endpoint test is [(x+1) mod l=0], because all block starts are multiples of l. The increment modulo 2^S costs O(S) gates. A left-to-right binary remainder computation modulo the constant l uses O(S log(l+1)) gates: maintain the remainder in ceil(log2 l) bits; for each input bit, double and add the bit, then conditionally subtract l, using O(log(l+1)) fan-in-two gates per bit. At an endpoint, x-(l-1) is the start of its cycle and is computed with O(S) gates; select this value at endpoints and the increment otherwise, bit by bit, at O(S) cost. Define the resulting formulas on all S-bit strings; unused strings may take either branch and the formulas are total. The total is O(S log(l+1)) gates. This construction is independent of the general cycle-grouping arguments.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

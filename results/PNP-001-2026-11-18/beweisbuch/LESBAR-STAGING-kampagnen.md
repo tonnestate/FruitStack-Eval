@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 16670 entries from 5485 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 16740 entries from 5512 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -19,12 +19,12 @@ CITED from the literature (not machine-checked here):
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
   - Atserias-Mueller, Simple general magnification of circuit lower bounds, arXiv 2503.24061v2 (local copy literature/sources/arXiv-2503.24061): general magnification for 2^{n^{o(1)}}-sparse NP problems gives only fixed-polynomial lower bounds (Thm 4, 9; threshold
 HYPOTHESES on file, not proved:
+  - For the explicit survivor-bitset representation of EXT over a fixed family D, position-specific next-bit transitions require at most M coordinate gates plus a decoder OR tree of at most M−1 gates, where M=|D|; the remaining bridge to arbitrary MCSP decision ci
+  - For every rational subspace U of Q^m with dimension r and every integer box [-L,L]^m, coordinate projection onto some r ambient coordinates is injective on U; hence |U intersect Z^m intersect [-L,L]^m| <= (2L+1)^r. Test/refutation criterion: find U and L with 
+  - A lower bound on Search-MCSP transition update time cannot follow from counting distinct output functions alone unless one also proves a task-specific lower bound on how many distinct next-state functions every exact transition must compute, under the stated c
+  - For a fixed tensor-network vertex cut with crossing assignment space Z and induced side maps L:X→Z and R:Z→Y, the rank deficit dim(Z)−rank(R∘L) decomposes as (dim(Z)−rank(L))+dim(im(L)∩ker(R)).
+  - For a tensor network cut with crossing space Z, the flattening rank equals dim(Z) exactly when the two contracted side maps have disjoint image-kernel obstruction: ker(R-side map)∩im(L-side map)={0}, after orienting the factorization as Z→left assignments→cros
   - At a layer where L_t+delta_t is a power of two, the SEARCH occupancy bound can be attained at that layer by an injective state assignment, but occupancy-minimal assignments at adjacent layers may fail to be compatible with zero-gate wiring transitions.
-  - For graphs with edges, the full-coordinate support enumerator of K_G(F_q) generally does not factor as though vertex triples and edge slack triples were independent.
-  - For every finite language F subset {0,1}^N and every t, the minimum number of layer-t states under live-residual injectivity and dead/live disjointness is K_t+1 when a dead prefix exists, and K_t otherwise, where K_t counts distinct nonempty residuals.
-  - For a nonconstant Boolean function on N coordinates invariant under a transitive coordinate-permutation group, essential-variable counting gives an N-1 circuit-size bound but does not by itself establish a superlinear bound. A stronger property controlling sha
-  - MCSP threshold-boundary pairs may admit a sharper complexity-stability bound than the generic edit cost t(2m+3); such a bound could constrain how Hamming-neighborhood arguments interact with MCSP circuit complexity.
-  - For MCSP[m^c] under the fan-in-two basis with constants and free fan-out, truth tables whose minimum circuit size lies outside [m^c-m,m^c+m] have threshold labels invariant under every input translation x->x xor a.
 REFUTED:
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
@@ -32,14 +32,14 @@ REFUTED:
   - False from n=7: S = {036, 045, 026, 124, 456, 235, 016} is Boolean-UNSAT, solvable mod 3 (3 solutions), not solvable mod 9; Smith invariants A: (...,9), [A|1]: (...,3). Random UNSAT GF(3)-consistent sets: 6/300 (n=7), 9/300 (n=8), 11/300 (n=9) have a mod-9 obs
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3308 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3315 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-f1850ba81e [MISSING_PROOF, OPEN] For a finite family F of truth tables, are the residual states of its prefix automaton exactly characterized by the surviving-description set, and what additional representation of circuit descriptions would permit polyn
   - Q-93df2a0412 [MISSING_PROOF, OPEN] Q-156fa9c912-gap1
