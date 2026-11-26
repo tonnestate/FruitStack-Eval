@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 16740 entries from 5512 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 16743 entries from 5513 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
@@ -41,11 +41,11 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
 NUMERICAL EVIDENCE on file: 3315 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-5081bb802b [MISSING_PROOF, OPEN] CLOSURE (owner 2026-11-26) BARRIER LEMMAS: state and prove or refute exactly (1) ORACLE-LOCALITY: any lower-bound argument for search-MCSP^A[s] streaming that remains valid when each update may query a Sigma_k-oracle on 
+  - Q-dbaf615ddf [MISSING_PROOF, OPEN] CLOSURE (owner 2026-11-26) CHAIN AUDIT: audit route M of results/PNP-001-2026-11-26/closure/PNP-001-PROOF-CLOSURE-REPORT.md (FruitStack-Eval branch cc/pnp001-results-20261118) edge by edge against the primary sources: MM
+  - Q-ade9c9f92c [MISSING_PROOF, OPEN] CLOSURE (owner 2026-11-26) O*-CE: Core obligation O* of route M (results/PNP-001-2026-11-26/closure/PNP-001-PROOF-CLOSURE-REPORT.md (FruitStack-Eval branch cc/pnp001-results-20261118)). TASK: propose a concrete property 
   - Q-f1850ba81e [MISSING_PROOF, OPEN] For a finite family F of truth tables, are the residual states of its prefix automaton exactly characterized by the surviving-description set, and what additional representation of circuit descriptions would permit polyn
   - Q-93df2a0412 [MISSING_PROOF, OPEN] Q-156fa9c912-gap1
-  - Q-9be5fe5c6f [MISSING_PROOF, OPEN] Can the disjoint-cylinder patch bound be combined with a structural theorem showing that MCSP[m^c] restrictions have low-complexity suffix labels on many prefix cylinders, strongly enough to yield a circuit lower bound o
-  - Q-954729b845 [MISSING_PROOF, OPEN] For m-input truth tables in the complete fan-in-two DAG model, can the number or geometry of Hamming-hypercube edges crossing the MCSP[s] threshold be bounded more sharply than the generic perturbation bound, for s=m^c?
-  - Q-68565de791 [MISSING_PROOF, OPEN] VALIDATOR RESULT for the claim claim:7afde946d5e5 by pnp-desk/research/R3739:gpt-6-luna@default: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The research record does not provide
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
