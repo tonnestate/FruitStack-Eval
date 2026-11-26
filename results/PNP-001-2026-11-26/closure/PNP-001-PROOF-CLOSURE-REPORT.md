@@ -121,3 +121,19 @@ Remaining obligation (unrestricted circuits): Gap-MCSP[N^beta] circuits of size 
 Desk: 9 research slots (REVIEW 2, CLOSURE 1, W-C 2, W-A/D/B/E/FG 1 each), gpt-6-luna primary; backup `desk/lanes.json.bak-deep-*`.
 Shared bottleneck exposed by A2, D1c, G1 and D5: every route needs a *uniform/structural selection* that a seed-length or
 information count cannot supply - exactly the locality/information barriers of sec. 2. Nothing in this section is verified cross-family yet.
+
+## 8. Quantifier weakening, coverage, DISJ collisions (2026-11-26, proofbook seq 16795-16804, director/closure-quant)
+
+| Item | Statement | Status |
+|---|---|---|
+| QO1 | NP in P/poly => exists K, for every s: Gap-MCSP[s/(cn), s] in SIZE[N s^K] (greedy anti-checker, approximate counting); s = N^beta gives N^{1+K beta} | derivation (Claude family), cross-family review queued |
+| QO2 | weakest sufficient form Q*: for every K some s_K with Gap-MCSP[s_K/(cn), s_K] notin SIZE[N s_K^K] i.o.; Q1 => Q2 => Q*, Q3 => Q* | derivation, review queued |
+| QO3 | Q3 = MMW19 Thm 1.4 bullet 3 (source checked; depth poly(s) already suffices) = book target (8), S0141 | dedup |
+| QO4 | 368 cross-family-survived lower-bound steps: none superlinear for general circuits; D2 extends to size N^{1+k beta}; D5 quantifier objection removed under Q2, magnitude gap stays | evaluation |
+| COV1 | cover K1 (T07+CJW20, low reuse) + K2 (D6) + K3 (AF, conditional); residual R = > N^{beta-eta} wide reused gates after restriction | open: R |
+| CJ1 | CJSW Thm 1.4 proof (source checked): the P = NP algorithm is deterministic, so deterministic separations suffice | source |
+| CJ2 | suffix y = u AND NOT v (or swapped): no selection of the failing instance needed | checked |
+| CJ3 | enumerator A*: refuters with deterministic polylog-time bits fail; W-D bits need real alternations | checked, CLAIMED |
+| CJ4 | W-D obligation contains O* (the P = NP compressor never collides on simple prefixes); A/D/G related, transfers not proved | derivation |
+
+Open obligations after this section: OBL-QSTAR (residual R / O*), OBL-W-D-COLLIDE (question seq 16804, supersedes 16783). No new lanes.
