@@ -8316,5 +8316,32 @@
   "proved_step": "statement: CANONICAL CANDIDATE-SET AUTOMATON FOR EXT. Fix n,s and a finite canonical circuit-description set D_{n,s} containing a description for every Boolean function on n bits computable by a circuit of size at most s. Order the 2^n truth-table inputs as x_1,...,x_{2^n}. For each prefix p of length t, let A_p={d in D_{n,s}: the function computed by d agrees with p on x_1,...,x_t}. Then p is extendible iff A_p is nonempty, and after reading next bit b the exact update is A_{pb}={d in A_p: d(x_{t+1})=b}. Proof: By definition, d agrees with pb precisely when it agrees with p on the first t positions and has value b at x_{t+1}; hence the displayed equality. Induction on t shows that the state maintained after p is exactly A_p, and nonemptiness is equivalent to a size-at-most-s circuit realizing a completion of p. The subset representation uses |D_{n,s}| membership bits and can be updated directly by evaluating each candidate description at x_{t+1} and filtering. This gives no lower bound on information required by alternate encodings and no polynomial real-gate transition bound for arbitrary MCSP decision circuits.\nderivation: The state is the set of all bounded-size circuit descriptions consistent with the observed prefix. The next bit filters this set by its value on the next truth-table input. The definition proves the update identity and induction proves exact recognition.\nscope: Every n,s, finite canonical description set complete for size-at-most-s functions, and every fixed truth-table ordering.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795718224.6636958,
+  "session": "pnp-desk/research/R4436",
+  "model": "gpt-6-luna",
+  "id": "S0966",
+  "proved_step": "statement: FINITE-FAMILY PREFIX-MASK UPDATE. Let F={f_1,...,f_K} be a finite indexed family of Boolean functions on {0,1}^N. For a prefix p, define M(p)_i=1 exactly when f_i agrees with p on all positions of p. If p has length t<N and b\u2208{0,1}, define M(pb)_i=M(p)_i AND [f_i(p_1...p_t)=b]. Then M(pb) is exactly the mask of functions agreeing with pb, including when M(p) is empty. The update uses at most K AND gates once the K next-output bits are available; testing whether any candidate remains takes at most K\u22121 OR gates. Proof: For each i, agreement with pb holds iff agreement with p holds and f_i\u2019s bit at position t+1 equals b. This is precisely the stated bitwise update, coordinate by coordinate. The acceptance test is the OR of the K mask bits, implemented by a binary OR tree. Scope is a fixed, explicitly indexed finite family; this gives no bound on computing the next-output bits from a compressed state and no useful polynomial bound when K is large.\nderivation: Coordinatewise, f_i agrees with pb iff f_i agrees with p and its next bit is b; the acceptance test is the OR of the mask coordinates.\nscope: All finite K,N and prefixes of length t<N. This is a finite-family representation lemma only; it does not bound transitions for arbitrary MCSP decision circuits or close the EXT-versus-H_C connection.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795718878.5950294,
+  "session": "pnp-desk/research/R4444",
+  "model": "gpt-6-luna",
+  "id": "S0967",
+  "proved_step": "statement: BOUNDED-WITNESS PROJECTION AND COFACTOR BOUND. Let H(x,w) be computed by a fan-in-two Boolean circuit with h gates, where x has N bits and w has r bits. Define G(x)=1 iff there exists w in {0,1}^r with H(x,w)=1. For any fixed r, G has a fan-in-two circuit of at most 2^r(h+1)-1 gates. For any prefix p of x and next bit b, the cofactors G_p and G_{pb} have circuits no larger than this bound. Consequently, for each fixed constant k, projections with r<=k have circuits of size at most 2^k(h+1)-1, and fixing any prefix bits is implementable by hardwiring with zero additional gates.\nderivation: For each of the 2^r assignments a to w, copy H and hardwire w=a, giving a circuit H_a(x) of at most h gates. A binary OR tree on the 2^r outputs uses 2^r-1 gates, so their disjunction computes G with at most 2^r h+2^r-1=2^r(h+1)-1 gates. This disjunction equals G by the definition of existential quantification over {0,1}^r. Hardwiring any prefix p or next bit b in this circuit removes inputs and cannot add gates; the resulting circuit computes the corresponding cofactor. If r<=k, the bound is at most 2^k(h+1)-1.\nscope: All finite Boolean fan-in-two circuits H; constants and input wiring free. The linear-in-h consequence assumes witness width r bounded by fixed constant k. Does not imply a useful bound when r grows, nor bridge arbitrary MCSP decision circuits or P vs NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795719099.6485581,
+  "session": "pnp-desk/research/R4444",
+  "model": "gpt-6-luna",
+  "id": "S0968",
+  "proved_step": "statement: FACTORISED WITNESS PROJECTION WITH SHARED INPUTS. Let H(x,w_1,...,w_k)=AND_{i=1}^k H_i(x,w_i), where each H_i is computed by a fan-in-two Boolean circuit with h_i gates and w_i has r_i bits. Then G(x)=1 iff there exist w_1,...,w_k such that H(x,w_1,...,w_k)=1 has a fan-in-two circuit of at most sum_i(2^{r_i}(h_i+1)-1)+(k-1) gates. The same bound holds for every cofactor of G obtained by fixing input bits.\nderivation: Because the witness blocks are disjoint and H is their conjunction, for each fixed x, there exist w_1,...,w_k with AND_i H_i(x,w_i)=1 iff for every i there exists w_i with H_i(x,w_i)=1. For each i, enumerate its 2^{r_i} witness assignments, hardwire each assignment into a copy of H_i, and OR the outputs with a binary tree. This constructs G_i(x)=exists w_i H_i(x,w_i) using at most 2^{r_i}h_i+(2^{r_i}-1)=2^{r_i}(h_i+1)-1 gates. AND the k outputs using k-1 gates. The resulting circuit computes G and has the stated size. Fixing input bits in that circuit cannot increase its gate count, so the same upper bound applies to every cofactor.\nscope: All finite fan-in-two Boolean circuits with the displayed conjunction factorization; blocks may share visible inputs x but have pairwise disjoint witness variables. Constants and input wiring are free. No claim that arbitrary verifiers admit this factorization, and no growing-witness bound beyond the displayed sum.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

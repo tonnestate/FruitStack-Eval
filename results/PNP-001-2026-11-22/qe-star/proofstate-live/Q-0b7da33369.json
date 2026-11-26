@@ -6963,5 +6963,50 @@
   "proved_step": "statement: PERMUTATION-ORDER PHASE MEMORY. Let delta be a permutation of finite Q with order L, and let psi:Q->C be injective. For each integer t, suppose D_t:C->Q satisfies D_t(psi(q))=delta^t(q) for every q. Then D_0,...,D_{L-1} are pairwise distinct. If D_t=H(z_t) for one fixed selector H, at least L phase states and ceil(log2 L) phase bits are necessary; L phase states suffice by storing t mod L. Proof: for a not congruent to b modulo L, delta^(a-b) is not identity, so some q has delta^a(q) != delta^b(q). Evaluating D_a and D_b at psi(q) distinguishes them. Therefore z_a != z_b whenever a != b. Conversely, residues modulo L select all decoders.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795717973.8662393,
+  "session": "pnp-desk/research/R4438",
+  "model": "gpt-6-luna",
+  "id": "S0800",
+  "proved_step": "statement: Fixed-modulus remainder circuit lemma. For integers l>=2 and S>=1, there is a fan-in-two Boolean circuit with O(S ceil(log2 l)) gates that, on input x in {0,1}^S interpreted as an unsigned integer, outputs x mod l in binary. Consequently it tests x mod l = a for any fixed a in {0,...,l-1} within the same asymptotic gate bound.\nproof: Process the bits of x from most significant to least significant. Maintain a binary register r for the remainder of the prefix processed so far, with invariant 0<=r<l. Initially r=0. On reading a bit b, form u=2r+b, so 0<=u<2l. The new remainder is u if u<l and u-l otherwise. The comparison u>=l against a fixed constant and the conditional subtraction of that constant are each computable by O(ceil(log2 l)) fan-in-two Boolean gates: a constant comparator is a chain of bitwise equality/ordering tests, subtraction by a fixed binary constant is a ripple borrow circuit, and muxing between u and u-l costs O(ceil(log2 l)) gates. Thus each input bit updates the register using O(ceil(log2 l)) gates, and after S updates the register equals x mod l by induction on the processed prefix. The invariant ensures the register width is ceil(log2 l); comparing the final register to fixed a costs O(log l) gates, absorbed in O(S ceil(log2 l)) for S>=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795718031.1438732,
+  "session": "pnp-desk/research/R4438",
+  "model": "gpt-6-luna",
+  "id": "S0801",
+  "proved_step": "CYCLE-BLOCK SUCCESSOR LEMMA. Let a cycle of length l>=1 occupy consecutive integer codes a,a+1,...,a+l-1. On its valid codes, the successor map is x+1 except at x=a+l-1, where it is a. Equivalently, for valid x in this block, successor(x)=x+1-l*[x=a+l-1]. Proof: If x<a+l-1, its next listed code is x+1. The last listed code is the cycle's final state, whose successor is the first state with code a. The indicator is zero in the first case and one in the second, giving the formula in both cases. Hence encoding disjoint cycles as consecutive blocks reduces the transition specification to identifying block endpoints; behavior on unused codes can be assigned arbitrarily. This is an exact structural reduction and makes no gate-complexity claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795718103.4326737,
+  "session": "pnp-desk/research/R4438",
+  "model": "gpt-6-luna",
+  "id": "S0802",
+  "proved_step": "statement: ENDPOINT-TO-SUCCESSOR REDUCTION. Let a cycle occupy the consecutive integer interval [a,a+l-1], with l>=1, and define E(x)=[x=a+l-1]. On codes in this interval, the successor map is x+1-lE(x). Thus, if a Boolean circuit computes E on the interval and has arithmetic addition/subtraction by the fixed constants l and 1 available as fan-in-two Boolean circuits, composing those circuits computes the correct successor on the interval; the behavior outside the interval may be arbitrary. Proof: For x<a+l-1 the endpoint indicator is zero, so the expression is x+1, the next code. For x=a+l-1 the indicator is one, so the expression is x+1-l=a, the first code in the cycle. These are all codes in the interval, including l=1, where the sole code is the endpoint and the expression returns a.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795718141.3699205,
+  "session": "pnp-desk/research/R4438",
+  "model": "gpt-6-luna",
+  "id": "S0803",
+  "proved_step": "statement: CYCLE-BLOCK ENDPOINT CIRCUIT. For any fixed S-bit code e, the predicate E_e(x)=[x=e] is computable by a fan-in-two Boolean circuit with at most 3S+1 gates, using NOT, AND, and OR gates. Consequently, for a fixed cycle interval [a,a+l-1] contained in {0,1}^S, its endpoint predicate is computable within this bound. Proof: For each bit i, compute the literal x_i if e_i=1 and \u00acx_i if e_i=0; this uses at most S NOT gates. The conjunction of the S literals uses S\u22121 binary AND gates when S\u22651. The result is 1 exactly when every input bit agrees with e. Thus the total is at most 2S\u22121 gates, which is at most 3S+1. For S=0 the domain has one code and the predicate is constant, also within the bound. Composing this predicate with the cycle-block formula x+1\u2212lE_e(x) gives the correct successor on the interval, with fixed-constant arithmetic implementable by standard ripple circuits using O(S) fan-in-two gates; hence this particular cycle transition has an O(S)-gate implementation on its valid codes. This is an upper-bound construction for one consecutively encoded cycle, not a bound for arbitrary permutations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795719201.7721257,
+  "session": "pnp-desk/research/R4446",
+  "model": "gpt-6-luna",
+  "id": "S0804",
+  "proved_step": "statement: Exceptional-input correction lemma: For S>=1 and any f:{0,1}^S->{0,1}^S differing from modular increment B(x)=x+1 mod 2^S at exactly r inputs, there is a fan-in-two Boolean circuit for f with O((r+1)S) gates. Set E_a(x)=[x=a], d_a=B(a) XOR f(a), and output F(x)=B(x) XOR OR_a(E_a(x) AND d_a), bitwise. This agrees with f on every input.\nproof: Compute each equality indicator E_a with O(S) gates. For each output coordinate, form the OR of the r terms E_a AND d_a[j], then XOR it with B_j. Total gate count is O(S+rS), including an O(S)-gate increment circuit. Outside the exception set all indicators vanish, so F=B=f. At an exceptional input a, its indicator alone is 1, hence F(a)=B(a) XOR (B(a) XOR f(a))=f(a).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -1,5 +1,9 @@
-PROOF LEDGER of this problem (kept across missions; 16937 entries from 5564 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 17016 entries from 5591 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
+  - The threshold function 'at most m of n variables are 0' depends only on the numbers of zeros on the two sides of a cut
+PREMISES: 
+PROOF:
+SOURCE: proofbook seq 67; mission pi-theory-T1-T2; author model claude-opus-5-5; claim hash 7be07cb8720b7d74; registered by
   - The rank of a submatrix is at most the rank of the matrix
 PREMISES: 
 PROOF:
@@ -9,7 +13,6 @@ SOURCE: proofbook seq 57; mission pi-theory-T1-T2; author model claude-opus-5-5;
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
 derivation: Assume such an m1 exists. Instantiat
-  - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
 CITED from the literature (not machine-checked here):
   - OPS21 (ToC v017a011, abstract-page theorem, numbering as Thm 1.4 unconfirmed): exists c>=1; if exists eps>0 such that for every small enough beta>0 Gap-MCSP[2^{beta n}/(cn), 2^{beta n}] notin Circuit[N^{1+eps}] then NP notsubset Circuit[poly] (hence P != NP) (
   - Thm 4.1, Thm 5.4, Cor 6.2 of the owner's paper (as stated there). PAPER SETTING: G=(V,E) finite graph, F field, K subspace of F^I, blocks I_v; pi_X: K -> prod_{v in X} F^{I_v}. (R) rank pi_X >= d|X| for all X subset V; (L) z,z' in K with z|v != 0 != z'|v => su
@@ -37,21 +40,21 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3327 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3342 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-1c841c90f7 [MISSING_PROOF, OPEN] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve
+  - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve
   - Q-7828a2a6e1 [MISSING_PROOF, PURSUED] CLOSURE-B (owner 2026-11-26) RESIDUAL R' - supersedes the D6 part of seq 16784. D6 is REFUTED (seq 16839, window-parity counterexample); use D6' (seq 16840) and the hypothesis D6'' (director/closure-intervention). Task 1
   - Q-88090df9cf [MISSING_PROOF, OPEN] VERIFY (owner 2026-11-26, cross-family) DIRECTOR DERIVATIONS: the steps in this question's proof state were written by the Claude family (director). Review each step against its stated premises and the primary sources; r
-  - Q-47a55293d1 [MISSING_PROOF, OPEN] CLOSURE-D (owner 2026-11-26) UNIFORM STATE COLLISIONS - supersedes seq 16783; no other D work. Read CJ1-CJ4 (director/closure-quant) first. Reduction (CJ2, done): it suffices to construct, for every admissible DETERMINIS
+  - Q-47a55293d1 [MISSING_PROOF, PURSUED] CLOSURE-D (owner 2026-11-26) UNIFORM STATE COLLISIONS - supersedes seq 16783; no other D work. Read CJ1-CJ4 (director/closure-quant) first. Reduction (CJ2, done): it suffices to construct, for every admissible DETERMINIS
   - Q-aea782b366 [MISSING_PROOF, OPEN] CLOSURE-FG (owner 2026-11-26) CANONICAL WITNESSES AND SIMPLE HITTING SETS: F1 and G1 are in the proofbook (F = route M with a Sigma_2 canonicaliser; G = restatement unless H is explicit, structured and uniformly selected
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
-  - PRIORITY (owner 2026-11-21, DIRECTION 1 - lane P: PSEUDORANDOM GENERATORS FOR XOR_2 o THR o THR): an explicit generator G: {0,1}^r -> {0,1}^n that fools XOR_2 o -> reopen if: A threshold-level (single THR gate or THR o THR) bias bound for G_c, or an explicit family whose parity bound transfers through an L1 bound 
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
   - RECON-REMAINDER Case E (owner 2026-11-23, target (8)): recover proofs left unextracted in FINAL outputs (research R*.json, proofbook FINAL entries); list statem -> reopen if: None
   - RECON-REMAINDER Route G (owner 2026-11-23, target (8)): PIT, GCT, permanent/determinant, algebraic natural proofs, Williams-type transfers, algebraic vs Boolean -> reopen if: A source-checked polynomial-size conversion preserving the Boolean-cube identity predicate, together with a transfer theorem matching its ex
+  - CLOSURE (owner 2026-11-26) O*-CE: Core obligation O* of route M (results/PNP-001-2026-11-26/closure/PNP-001-PROOF-CLOSURE-REPORT.md (FruitStack-Eval branch cc/p -> reopen if: A permitted, meaningful restriction excluding the MMW PH-oracle control is specified, or its exact oracle and cost conventions are audited a
 NEXT PROOF GAP: State this step formally and have it checked: #F equals the sum over clause sets S of (-1)^|S| N(S), where N(S) = 2^(n - |V(S)|) if S is consistent and 0 otherwise (inclusion-exclusion over falsified clauses)  (derived in words only: state it formally and have the proof tool check that it follows from its premises)
