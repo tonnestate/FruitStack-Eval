@@ -164,3 +164,17 @@ rounds give no constructive advantage). OBL-ST-ABS: the transfer is secured pend
 
 Allocation: REVIEW 3 (D6/AF first: owner condition for residual R), CLOSURE 1, W-B 1, W-D 1, QE* 3 (uniform only, question seq 16827,
 reuses Q-C seq 8531 time-space route); W-A, W-C, W-E, W-FG paused (backup desk/lanes.json.bak-uniform-*).
+
+## 11. Closure intervention (2026-11-26, proofbook seq 16839-16848, director/closure-intervention)
+
+| Item | Result | Effect on obligations |
+|---|---|---|
+| Verification path | director proofbook steps had NO review path (REVIEW sessions only review proof-state steps Q:S); 0 reviews since seq 16813 | fixed: 11 director steps now Q-88090df9cf:S0001-S0011, first in REVIEW, Claude family excluded (checked) |
+| D6 (seq 16770) | REFUTED (seq 16839): per-gate bound summed wrongly; window-parity circuit keeps ~N^{1+7eps/5-2eta} narrow reused gates; finite check N=2^14: 1653-4515 survivors vs budget 2.6 | R was understated |
+| D6' (seq 16840) | correct version: E[gamma] <= W(C) = sum min(1, p^2 d_g^2/2); narrow threshold N^{(1-beta)/2} | residual R' = {W(C) > N^{beta-2eta}} (larger than R) |
+| D6'' (hyp. 16847) | pay surviving narrow reused gates in formula size (budget N^{3beta}) instead of correlation: threshold N^{(1+beta)/2-eps}; first open point = heterogeneous shrinkage P2' (also a defect of P2 as stated) | question seq 16848 (W-B) |
+| K0 (seq 16841) | unconditional: no De Morgan circuit of depth < (2+beta-eps)log2 N, no B2 circuit of depth < (1+beta/2-eps/2)log2 N | new covered class; far below MMW's depth poly(s) |
+| 368 steps (seq 16842) | 162 not lower bounds; 206 lower-bound-shaped, 140 of them streaming/update; none against depth omega(log N) | no existing result meets the MMW size-depth condition |
+| W-D (seq 16843) | first failing inference: the refuter cannot simulate A ((log n)^{O(1)} vs (log n)^{f}); counting forces no collision among simple prefixes for f > c+1 | W-D = update-cost obligation for DISJ (O*), via transition cost only |
+
+Allocation: REVIEW 3 (Q-88090df9cf first), CLOSURE 1, W-B 2 (R', P2'), W-D 2, QE* 1.
