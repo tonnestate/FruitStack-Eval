@@ -105,3 +105,19 @@ Proved constraints (assessor, cross-family review pending):
 
 Remaining obligation (unrestricted circuits): Gap-MCSP[N^beta] circuits of size N^{1+eps} with more than N^beta wide reused gates
 (each depending on > N^{1-beta-eta} inputs), for a fixed eps and all small beta. FruitStack question seq 16764 (CLOSURE lane) works on P1-P4.
+
+## 7. Deep research routes A-G: dedup and fail-fast (2026-11-26, proofbook seq 16774-16786, director/closure-deep)
+
+| Route | Dedup against the book | Fail-fast result (step) | Remaining obligation (gated question) | Desk lane |
+|---|---|---|---|---|
+| C gate elimination + reparametrisation | seq 1710, H4 seq 1719 | — (needs Mishra-Santhanam TR26-260 source) | potential Phi = S + lambda R + mu D with super-linear drop, promise preserved (OBL-W-C, seq 16781) | W-C, 2 slots |
+| A semantic T07 | = D4 restricted to occurring assignments | A1 valid lemma; contrapositive forces \|B_K^+\| >= N^{2+beta-eps}/(2S+1) for every cut. A2 control: every sparse subcube V_T lies in YES, so the cut tuple must take few values on all of them; A o B meets the D5 information threshold | cut rule with few values on sparse subcubes and PRG outputs (OBL-W-A, seq 16782) | W-A, 1 |
+| D constructive separation | K8 F/G seq 8479/8481 | D1c: CJSW Thm 1.4 verified at source; simple counterexamples exist by pigeonhole for deterministic space-S streams; the obligation is uniform AC0 selection without advice (+ randomized case) | OBL-W-D, seq 16783 | W-D, 1 |
+| B gap-preserving restriction | = D1; Q-9154b244de S0023/S0067/S0113 | B1: as stated refuted (seq 16761); continues as AF premises P1/P2 + D6 | OBL-W-B, seq 16784 | W-B, 1 |
+| E sparse NP language | seq 5204/5206 | E1: CJW19 Thm 1.2 gives only C not in Circuit[n^k]; P/poly needs MCSP-type self-reducibility | sparse NP family with that self-reducibility (OBL-W-E, seq 16785) | W-E, 1 |
+| F canonical witnesses | route M | F1: CanMCSP not in Streaming[poly,poly] => P != NP (Sigma_2 canonicaliser); instance of M1, quantifier-order barrier applies | OBL-W-FG, seq 16786 | W-FG, 1 |
+| G simple hitting sets | CJW20 Thm 5.2 | G1: with H = all simple tables it is the lower bound itself; content only for explicit structured H, merges with D1c | OBL-W-FG | W-FG |
+
+Desk: 9 research slots (REVIEW 2, CLOSURE 1, W-C 2, W-A/D/B/E/FG 1 each), gpt-6-luna primary; backup `desk/lanes.json.bak-deep-*`.
+Shared bottleneck exposed by A2, D1c, G1 and D5: every route needs a *uniform/structural selection* that a seed-length or
+information count cannot supply - exactly the locality/information barriers of sec. 2. Nothing in this section is verified cross-family yet.
