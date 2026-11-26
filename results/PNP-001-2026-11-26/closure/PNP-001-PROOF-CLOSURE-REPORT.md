@@ -209,3 +209,12 @@ Details: `QE-ORACLE-BARRIER-AND-SEARCH.md`.
   - 171 EXCLUDED_HYPOTHESIS;
   - 0 unregistered. Invariant holds.
 - End to end with a real reviewer session: pending (see next section update).
+
+### 12.x First cross-family verdict through the pipeline (2026-11-26 21:19)
+- S0110 = D6 (proofbook seq 16770): REFUTED by nemotron-3-ultra-550b (session R4467, family != Claude). Objection: p^2 d_g^2 <= N^{2eps/5-2eta},
+  not N^{-2eta}, for d_g <= N^{1-beta-eta}. Director check: correct; same gap as the in-book refutation seq 16839.
+- Propagation: registry status REFUTED, dependants 16776 and 16839, gap G0001 "REPAIR OR EXCLUDE seq 16770".
+- Disposition of G0001: the repair D6' (seq 16840, step S0142, threshold D* = N^{(1-beta)/2-eta-7eps/10}) exists; director check
+  p^2 D*^2 N^{1+eps} = N^{beta-2eta}, Markov N^{-eta}/2. It is second in the review queue. G0001 closes only when S0142 survives review.
+- Blocker repaired on the way: REVIEW sessions ended without a verdict because of supply silence (Luna overflow). lab_tools now waits
+  for a worker slot (Aurora-sync 69dacde).
