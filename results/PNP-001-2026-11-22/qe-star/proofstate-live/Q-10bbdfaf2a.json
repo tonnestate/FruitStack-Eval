@@ -6751,5 +6751,69 @@
   "evidence": "Verified the construction: prefix indicator [x_1...x_p=a] requires at most p NOT gates (one per 0-bit in a) and p-1 AND gates to combine the p signed literals. One AND gate combines this with h. One XOR gate combines with g. Total added: p + (p-1) + 1 + 1 = 2p+1 gates for p>=1. For p=0, just one XOR gate. Assumes XOR is a primitive gate in the basis (consistent with S0740's explicit 'XOR/NOT/AND/OR gates available'). If basis is only {AND,OR,NOT}, XOR simulation adds overhead; but under the stated assumptions with XOR available, the bound is correct.",
   "review_of": "S0742",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657340.6987114,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is exact: p NOT gates for negated x-literals (shared across prefixes); for each of r prefixes, p-1 AND gates for its indicator [x=a_i] (conjunction of p signed literals) and 1 AND gate to gate with h_i(y); r-1 OR gates to combine the r terms; 1 XOR gate with g. Total s + sum t_i + p + rp + (r-1) + 1 = s + sum t_i + p + r(p+1). Distinct prefixes not needed for the upper bound (explicitly noted). All gates charged in fan-in-2 complete basis, input wires free, unrestricted fan-out. No argument gap or counterexample found.",
+  "review_of": "S0743",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657340.760215,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Identical construction to S0743: p NOT gates for negated x-literals; per prefix a, p-1 AND gates for indicator [x=a] (conjunction of p signed literals), 1 AND to combine with h_a; r-1 OR gates to combine r terms; 1 XOR with g. Total s + sum t_a + p + rp + (r-1) + 1 = s + sum t_a + p + r(p+1). Holds for any subset A of {0,1}^p of cardinality r; empty OR = 0 handled correctly. All gates charged, basis complete. No argument gap.",
+  "review_of": "S0744",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657340.8190188,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Counting argument is correct: for a circuit with exactly r gates ordered topologically, gate i has two predecessors each with at most m + i + 1 choices (m inputs, 2 constants, i-1 earlier gates), and 16 choices for the binary Boolean function. Output wire has at most m + r + 2 choices. So 16^r (m+r+2)^(2r+1) descriptions per r, sum over r=0..s gives D(m,s). This upper-bounds the number of distinct functions computable by size-s circuits (every circuit has at least one description). The lemma explicitly notes this is an upper bound on easy truth tables, not a circuit lower bound for MCSP. No error in the counting.",
+  "review_of": "S0745",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657340.850036,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Union bound argument is correct: D(m,s) from S0745 upper-bounds number of size-s circuit functions. Hamming ball of radius t around each has exactly sum_{j=0}^t binom(N,j) strings. Union bound gives at most D(m,s) * sum_{j=0}^t binom(N,j) tables within distance t of some size-s circuit. If this is < 2^N, at least one truth table has distance > t from all size-s circuits. The binomial estimate sum_{j<=delta N} binom(N,j) <= 2^(N H_2(delta)) for 0<delta<1/2 is standard. For s = m^c, log2 D = O(m^c log m) = o(2^m) = o(N), while 1 - H_2(delta) > 0 is constant, so inequality holds for large m. The lemma correctly states this shows many tables are far from easy tables but does not give an MCSP circuit lower bound. No error.",
+  "review_of": "S0746",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657543.8358123,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard DNF synthesis: r = min(t, 2^q-t) minterms, each q-1 AND gates (free literals), r-1 OR gates to combine. Cost = r(q-1)+(r-1)=rq-1 for support; add 1 NOT for zero-set giving rq. Since r <= min(t,2^q-t), bound q*min(t,2^q-t) holds. No counterexample; counting exact.",
+  "review_of": "S0747",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657550.7309072,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Direct contrapositive of S0747: C(f) <= q*min(|supp(f)|, 2^q-|supp(f)|). If min(...) <= s/q then C(f) <= s, contradicting C(f) > s. The inference is valid; no counterexample. This is a necessary condition for being outside MCSP[s], not a lower bound construction.",
+  "review_of": "S0748",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657569.693217,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction: for each x in support T (|T| <= a+r), form minterm with m-1 AND gates (free signed literals), OR them with |T|-1 OR gates. Total |T|(m-1)+(|T|-1) = |T|m-1 <= (a+r)m-1. If T empty, constant 0 (0 gates). Free input literals (both polarities) and unrestricted fan-out are explicitly assumed. Counting is exact. No counterexample found.",
+  "review_of": "S0749",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657569.745705,
+  "session": "pnp-desk/research/R4176",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction: m NOT gates for negated literals. For t satisfying assignments: each minterm costs m-1 ANDs, t-1 ORs to combine. Total: m + t(m-1) + (t-1) = tm+m-1. Alternative: synthesize \u00acf from 2^m-t assignments and add 1 NOT: m + (2^m-t)(m-1) + (2^m-t-1) + 1 = (2^m-t)m+m. Minimum gives the bound. The m=2 singleton case: t=1 gives min(1*2+1, 3*2+2)=3 gates (NOT x1, NOT x2, AND x1 x2 for x1\u2227x2? Wait: for t=1, m=2, tm+m-1 = 2+2-1=3. Let's check: compute \u00acx1, \u00acx2 (2 NOTs), AND x1 x2 (1 AND) = 3 gates for x1\u2227x2. Correct. The previous version missed the NOT count. Counting is exact.",
+  "review_of": "S0751",
+  "status": "SURVIVED_REVIEW"
  }
 ]

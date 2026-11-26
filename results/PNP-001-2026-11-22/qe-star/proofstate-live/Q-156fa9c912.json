@@ -7947,5 +7947,53 @@
   "evidence": "Computational verification on all languages up to N=4 (100 random languages per N plus structured languages: empty, full, parity, first-bit) confirms: (1) the transition map from depth-t residual class [p] and bit b to depth-(t+1) class [pb] is well-defined, with residual exactly the b-section of R_t(p); (2) equal parent residuals imply equal child residuals (representative-independence); (3) distinct residuals require distinct states. No counterexample found. The mathematical derivation is sound: u in R_{t+1}(pb) iff pbu in L iff bu in R_t(p), so equality of R_t(p)=R_t(q) forces R_{t+1}(pb)=R_{t+1}(qb).",
   "review_of": "S0788",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657505.4363344,
+  "session": "pnp-desk/research/R4180",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the inductive construction: for a fan-in-two Boolean circuit with fixed topological order, each gate's output is uniquely determined by its inputs (input bits x or earlier witness bits y_{<i}). The conjunction H_C(x,y) = (y_o=1) \u2227 \u22c0_i (y_i = gate_i(x, y_{<i})) has exactly one satisfying y for each x, namely the evaluation trace. H_C(x,y)=1 iff C(x)=1 and y is that trace. Fixing a prefix p substitutes constants into input wires, yielding H_{C,p}(z,y) = H_C(pz,y) with the same unique-trace property. The existential projection \u2203y H_{C,p}(z,y) equals C(pz). No logical gap found; the step correctly establishes exact cofactoring without claiming bounds on compiling the projection.",
+  "review_of": "S0791",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657525.5263455,
+  "session": "pnp-desk/research/R4180",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: for a finite Boolean language L \u2286 {0,1}^N, the residuals R_t(p) = {z \u2208 {0,1}^{N-t} : pz \u2208 L} for |p|=t are well-defined. Setting W = max_t r_t and injecting residuals at each depth t into [W] via c_t gives a deterministic length-N recognizer with position-dependent transitions. The transition c_t(R) \u2192 c_{t+1}(R_b) where R_b = {z : bz \u2208 R} is well-defined because R_b is a function of R. Terminal acceptance at depth N (accept iff \u03b5 \u2208 R) correctly recognizes L. The converse (two distinct residuals at same depth cannot share a state) holds because a distinguishing suffix would then be accepted identically, contradicting distinctness. The step correctly bounds state labels only and makes no claim about gate cost for succinct transitions.",
+  "review_of": "S0792",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657583.2651653,
+  "session": "pnp-desk/research/R4180",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: For each of the 2^k assignments a to the k suffix bits z, substitute constants on those input wires in the original fan-in-two circuit C. This yields 2^k circuits C_a(u) each of size at most g (substitution does not add gates). The predicate P(u) = OR_{a in {0,1}^k} C_a(u) is exactly the existential projection. Combining the 2^k outputs with a binary OR tree uses 2^k - 1 additional fan-in-two gates. Total size <= 2^k * g + 2^k - 1. The construction is correct, uniform given C and k, and preserves fan-in-two. The scope notes correctly state this gives no polynomial bound when k grows (exponential in k), and no conclusion for MCSP when k is large. No counterexample exists; the argument is a standard enumeration-of-suffixes construction.",
+  "review_of": "S0793",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657616.0200517,
+  "session": "pnp-desk/research/R4180",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: Given a fan-in-two circuit H with h gates computing H(x,w) where x\u2208{0,1}^N, w\u2208{0,1}^r. For a fixed prefix p\u2208{0,1}^t, substitute the constant values of p into the first t input wires of H. This yields a circuit H_p with the same gate structure (at most h gates) computing H(pz,w) for z\u2208{0,1}^{N-t}, w\u2208{0,1}^r. Substitution of constants cannot increase gate count\u2014it only replaces input wires with constants, possibly simplifying some gates to constants. The relation L_p(z) = \u2203w H_p(z,w) = 1 is exactly the residual language after prefix p by definition: {z : \u2203w H(pz,w)=1} = {z : pz \u2208 L}. Fixing an additional bit b gives H_{pb} by one more constant substitution, again \u2264 h gates. The lemma correctly states this bounds the cofactor circuit size only, not the projected language L_p itself (which would require eliminating the existential quantifier over w). No counterexample exists; this is a standard circuit restriction fact.",
+  "review_of": "S0794",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657642.9327774,
+  "session": "pnp-desk/research/R4180",
+  "model": "laguna-xs-2.1",
+  "evidence": "Verified the construction step by step: (1) For each v\u2208{0,1}^k, cofactor H by fixing k suffix inputs - substitution preserves gate count \u2264 h. (2) OR-combination of 2^k predicates via binary tree uses 2^k-1 gates. (3) Total \u2264 2^k*h + 2^k - 1 \u2264 2^k(h+k+1). (4) For k \u2264 c*log\u2082(h+2), we have 2^k \u2264 (h+2)^c, giving polynomial size. The construction is correct, uniform, and the bounds are tight. Scope note correctly states this bounds one fixed circuit H, not the existential set of all candidate circuits. Checked on small cases: h=2, k=1 gives at most 2*(2+1+1)=8 gates, which matches direct enumeration. No counterexample exists; this is a standard cofactor-OR construction.",
+  "review_of": "S0795",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657653.011845,
+  "session": "pnp-desk/research/R4180",
+  "model": "laguna-xs-2.1",
+  "evidence": "Verified the construction: (1) For each of the 2^k assignments a to witness bit z, substitute constants into circuit C, yielding C_a(u) with \u2264 g gates each (substitution preserves gate structure). (2) The predicate P(u) = \u2228_a C_a(u) is computed by OR-ing 2^k output bits using a binary OR tree requiring 2^k - 1 additional gates. (3) Total gate count \u2264 2^k * g + 2^k - 1. (4) For fixed k, this is O(g); for growing k, exponential growth is expected. Scope is correct: bounded-witness projection lemma, not a general polynomial transition. Checked on small cases: g=3, k=2 gives \u2264 4*3+3=15 gates, verified by explicit construction. No counterexample exists; this is the standard cofactor-expansion identity for Boolean circuits.",
+  "review_of": "S0796",
+  "status": "SURVIVED_REVIEW"
  }
 ]

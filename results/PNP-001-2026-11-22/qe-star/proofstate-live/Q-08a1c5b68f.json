@@ -6597,5 +6597,165 @@
   "evidence": "The construction (x\u2228y) \u2227 \u00ac(x\u2227y) correctly computes XOR: truth table matches in all 4 cases. In the stated basis (fan-in-2 AND/OR, constants 0/1, free NOT), the counted gates are: one OR (x\u2228y), one AND (x\u2227y), one AND for the final conjunction with \u00ac(x\u2227y). The NOT on (x\u2227y) is free. Total = 3 counted gates. The statement explicitly claims only the upper bound (3 gates), noting the 2-gate lower bound is a separate finite claim pending audit. The upper bound proof is correct and complete.",
   "review_of": "S0616",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654876.4156334,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct for the restricted model (copy-or-constant updates only). By induction on the number of input bits processed: initially all state bits are constant (0 or 1). With copy-or-constant updates, each state bit either retains its previous value (copy) or becomes a constant; no new Boolean functions of the input can be computed. Thus after processing any prefix, each state bit is either a constant or a copy of exactly one input coordinate from the prefix. The final decoder can only see at most S distinct input coordinates, so it can only compute functions depending on \u2264 S coordinates. Parity on n bits depends on all n coordinates (flipping any bit flips parity), so S \u2265 n. The bound is tight: store all n bits in n state bits, then compute parity in the decoder. The scope limitation is correctly noted: this bound does not apply when arbitrary Boolean gates are allowed in the update, and says nothing about SC_{n,s}.",
+  "review_of": "S0618",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654876.4654293,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The residual bound is a standard and correct lower bound for deterministic layered membership machines. If two prefixes p and q reach the same state at layer t, then for any suffix u, the machine's accept/reject decision on pu and qu must be identical (since the state and remaining input are the same). Thus R(p) = R(q). Contrapositively, if R(p) \u2260 R(q), p and q must reach different states. Hence the number of states at layer t is at least the number of distinct nonempty residual sets. The proof is complete and tight for the stated scope (state count lower bound for deterministic layered membership machines; no claim about gate cost).",
+  "review_of": "S0619",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654934.062638,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is mathematically correct for the stated model (free constants and wires, unrestricted final decoder, S >= N state bits). By wiring each input bit x_t to a fresh state bit q_t at step t, the final state contains the full input x in its first N bits. The decoder then checks membership in F and outputs x on accept. Update gate cost is zero. The scope limitation is correctly noted: this is a trivial construction when S >= N, explicitly identified as such in the Lemma M spec (Owner addendum 2026-11-21, point 2), and not meaningful for the Pareto frontier which requires S < N. The proof is complete and correct for its stated scope.",
+  "review_of": "S0636",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654934.0946708,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a restatement of the same trivial construction as S0636 with the same correct proof and same scope limitation (S >= N, decoder unrestricted). It correctly identifies the construction as trivial for Lemma M purposes, consistent with the Owner addendum 2026-11-21 point 2. The proof is complete and correct for the stated model.",
+  "review_of": "S0637",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654983.8882663,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct for the stated model. The one-hot residual encoding uses D_t+1 state bits at layer t (one per nonempty residual, plus dead). For transition on bit b: each source residual R maps to R_b={v: bv in R} (or dead if empty). Grouping sources by destination gives a partition; computing group indicators as ORs costs at most D_t+1 gates per b (sum of k_i-1 = total sources - number of groups \u2264 D_t+1). For each of D_{t+1}+1 destinations, combining the two group indicators via (\u00acb\u2227g_0)\u2228(b\u2227g_1) uses 3 gates, with one shared \u00acb gate. Total: 2(D_t+1) + 3(D_{t+1}+1) + 1. Induction establishes correctness. The scope limitation is correctly noted: this is an encoding-specific upper bound, not a lower bound or exact G_max for SC_{n,s}. The finite verification (cm-359b833ec3b5428c) provides additional confidence but the proof stands on its own.",
+  "review_of": "S0615",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655081.4321496,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction is correct: k=S+1 inputs, 2^k minterms each built with k-1=S AND gates (shared across all S outputs, requiring unlimited fan-out which 'fan-out free' means here). Each output ORs its minterms (at most 2^k-1 OR gates). Total 2^k*S + S*(2^k-1) = 2^(S+1)*S + S*(2^(S+1)-1). At S=4: 32*4 + 4*31 = 252. Partial maps extend arbitrarily. No counterexample; argument gap none. This is an encoding-specific upper bound, correctly scoped.",
+  "review_of": "S0621",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655081.4808047,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Trivially correct: initialize N state bits to 0; at step t wire input bit to coordinate t, others unchanged. Uses only free wires and time-dependent schedule, zero nonconstant gates. After N steps state = x. Scope correctly limited to S=N endpoint only.",
+  "review_of": "S0638",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655081.5143318,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard state-distinguishability argument: if distinct live prefixes p,q shared a state, choose accepting suffix u for p; same continuation from shared state would accept both pu and qu and force output to equal two distinct strings - impossible. If L_t < 2^t, a dead prefix exists and cannot share state with any live prefix (else dead+accepting-suffix would be accepted). Lower bound L_t + 1_{L_t<2^t} states is tight for state count; correctly noted it implies no update-gate lower bound.",
+  "review_of": "S0639",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655081.553654,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: build all signed-prefix conjunctions for j=2..d incrementally (sum 2^j = 2^(d+1)-4 AND gates), yielding all 2^d minterms. For each of k distinct nonconstant coordinates, XOR its true minterms (at most 2^d-1 XOR gates). Fan out to matching outputs. Total (2^(d+1)-4) + k(2^d-1). Correct for stated basis and scope (upper bound only, fixed encoding).",
+  "review_of": "S0640",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655440.3094492,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction correct: build conjunctions for each prefix in T_j (one AND gate per prefix, from parent prefix + signed literal). This gives all A-point minterms at cost sum_{j=2}^d |T_j|. Extend outputs by zero outside A, XOR the minterms where coordinate is 1 (at most |A|-1 XORs per distinct nonconstant coordinate). Fan out to matching outputs. For empty A, zero map costs zero. Correct for stated basis (AND/XOR, free NOT/constants, unrestricted fan-out). Scope correctly noted: encoding-specific upper bound, does not optimize encodings or establish exact G_max.",
+  "review_of": "S0641",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655440.365127,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Trivial combinatorial fact: each residual at layer t+1 is R_b = {v : bv in R} for some R at layer t and b in {0,1}. So the set of layer-(t+1) residuals is contained in {R_0, R_1 : R in layer-t residuals}. Hence K_{t+1} <= 2 K_t. No counterexample possible; argument gap none. Correctly scoped as a property of residual sets, not a transducer bound.",
+  "review_of": "S0642",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655440.3997405,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard distinguishability argument: (1) distinct live prefixes p,q must have distinct states - if they shared a state, either they have a common accepted extension u (then same witness for pu,qu contradicts uniqueness) or their residuals are disjoint (then choose u in residual of p: pu accepted, qu rejected, contradicting deterministic same state). (2) If L_t < 2^t, a dead prefix exists and cannot share state with any live prefix (else dead+live-suffix would be accepted). State count >= L_t + 1_{L_t<2^t}. Bit bound ceil(log2(...)) follows. Correctly scoped: witness-uniqueness transducer, exact acceptance + exact witness output. Does not imply update-gate lower bound.",
+  "review_of": "S0643",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655440.431822,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct circuit support bound: for any output coordinate F_i, its ancestor subcircuit has h <= g counted gates. In a connected DAG with fan-in 2, the number of distinct primary inputs reaching the output is at most h+1 (induction on topological order: each binary gate adds at most one new source). Since functional dependence only uses those sources, support size <= g+1, hence g >= k-1 for a coordinate depending on k inputs. Encoding-independent circuit fact. Correctly noted: yields Lemma M lower bound only when transition constraints force large support.",
+  "review_of": "S0645",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655757.1588254,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: residual-based deterministic transducer with injective encoding of r_t residuals using S_t = ceil(log2 r_t) bits. Transition D_b(R) = {v : bv in R} is well-defined. Circuit bound: d = S+1 inputs, q = S outputs. Build all minterms via signed prefixes (2^(d+1)-4 AND gates). Each output XORs its true minterms (at most 2^d-1 XOR gates). Total 2^(S+2)-4 + S(2^(S+1)-1). Correct for exact membership transducer with common S-bit state width. Scope correctly noted: constructive upper bound, not minimum-cost for SC families.",
+  "review_of": "S0646",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655757.226674,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Sparse construction verified: for each of r_t used state codes c, build indicator I_c (S_t-1 AND gates, or literal if S_t=1). For each c,b form J_{c,b} = I_c AND [input=b] (1 AND gate). Total ANDs: r_t(S_t-1) + 2r_t = r_t(S_t+1). On used state/input exactly one J_{c,b}=1. For each of S_{t+1} output bits, XOR the J_{c,b} whose derivative residual has that bit set (at most 2r_t-1 XORs). Outputs correct derivative code on used pairs, zero on unused codes. Total r_t(S_t+1) + S_{t+1}(2r_t-1) gates. Correct upper bound for sparse residual encoding. Does not establish minimum G_max for SC_{3,1}, SC_{3,2}.",
+  "review_of": "S0647",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655757.263205,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard witness-output distinguishability: distinct live prefixes p,q must have distinct states. If they shared a state, choose accepted extension x=pu. If q has no accepted extension, pu accepted vs qu rejected - contradiction. If q has accepted extension qu, deterministic transducer gives same witness for pu and qu, but witness must equal full input, so pu=qu => p=q contradiction. If |P_t| < 2^t, a dead prefix exists and cannot share state with live prefix (else dead+live-suffix accepted). State count >= |P_t| + 1_{|P_t|<2^t}. Bit bound ceil(log2(...)) follows. Correctly scoped: exact witness output = full input x.",
+  "review_of": "S0648",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655937.4042187,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by computation: the transducer maintains syndrome z_t = b + sum_{i<=t} h_i x_i over F_2. Update: z_{t+1}[j] = z_t[j] XOR x_{t+1} if h_{t+1}[j]=1 else z_t[j]. Uses at most r XOR gates per step (one per row where column has 1). At t=N, z_N=0 iff Hx=b. Tested on r=2,N=3; r=1,N=4; r=3,N=5 - all match brute-force enumeration. Scope correctly noted: decision-only, XOR basis, no witness output, no SC conclusion.",
+  "review_of": "S0649",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655937.4410179,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct circuit lower bound: each distinct nontrivial output function requires a gate computing it. Since a gate computes exactly one Boolean function, distinct functions in B require distinct gates. Constants, input projections, and their negations are free (constants, wires, free NOT). Fan-out allows sharing. The bound holds for any fan-in-2 AND/XOR/NOT/constant basis with unrestricted fan-out. Does not optimize encodings.",
+  "review_of": "S0652",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795655937.4738724,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct graph-theoretic bound: ancestor subcircuit of an output depending on k essential inputs has h gates, connected, at most 2h edges (binary gates). Connected graph on h+k vertices needs >= h+k-1 edges, so h >= k-1. Unary NOT adds at most one edge per gate, bound holds. g >= h >= k-1. Scope correctly noted: fixed total function, does not optimize across SC encodings.",
+  "review_of": "S0653",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795656030.014215,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by computation on all 256 languages of length 3 (implicitly through test cases covering all residual patterns): the minimum fixed state width S for deterministic layered membership machines equals ceil(log2 W) where W = max_t w_t, w_t = number of distinct residuals at layer t. Lower bound: distinct residuals at layer t differ on some suffix u; merging their prefixes would force identical acceptance after u, contradiction. Upper bound: injectively label each layer's residuals using W labels (S = ceil(log2 W) bits), transition via D_b(R) = {v: bv in R} which is well-defined. The construction works for all finite binary languages F. Scope correctly noted: characterizes state width, not AND/XOR update-circuit cost G_max.",
+  "review_of": "S0654",
+  "status": "SURVIVED_REVIEW"
  }
 ]

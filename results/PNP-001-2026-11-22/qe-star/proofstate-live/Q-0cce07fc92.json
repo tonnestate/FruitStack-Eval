@@ -1359,5 +1359,44 @@
   "proved_step": "statement_start: LEMMA (full staged circuit from per-stage circuits; closes G0001). Let M be the MMW19 Thm 1.2 streaming algorithm solving Search-MCSP^A[s] with space S_alg(m) <= s(m)^c0 and worst-case update time tau_alg(m) <= s(m)^d0. Let ell(m) = Otilde(s(m)) be the max oracle query length. For each stage i (0 <= i < N), let C_i be the stage circuit from Lemma S0156 computing (state_i, x_{i+1}) -> state_{i+1} with at most O(tau_alg * poly(S_alg, ell)) ordinary gates and at most tau_alg * q_max * (ell + 1) oracle gates. Construct the full circuit C by connecting the state output wires of C_i to the state input wires of C_{i+1} for i = 0..N-2, and attaching the final decoder circuit D (which maps state_N to the output circuit or \"no circuit\" report) after C_{N-1}. The initial state_0 is hardwired to the all-zero configuration. Then C is a fan-in-2 Boolean circuit with oracle gates that: (1) has size sum_i |C_i| + |D| = N * O(tau_alg * poly(S_alg, ell)) + poly(S_alg) = 2^m * poly(s(m)) = poly(N, s(m)); (2) carries at most S_alg(m) state wires across each of the N input-time boundaries; (3) computes the exact same function as the streaming algorithm M on every input x in {0,1}^N. PROOF: By induction on the prefix length k (0 <= k <= N). Base: k=0, state_0 is the correct initial configuration of M. Inductive step: assume after reading first k bits, the connected circuit's state wires hold the correct configuration state_k of M. Stage C_k receives (state_k, x_{k+1}) and by Lemma S0156 computes exactly the configuration state_{k+1} that M reaches after processing x_{k+1}. Thus after k+1 bits, the state wires hold the correct configuration. After N bits, state_N is the final configuration of M. The decoder D computes the correct output (a circuit of size <= s(m) with A-oracle gates representing the input function, or \"no circuit\") because M is correct on all inputs. The gate count bound follows from N * max_i |C_i| + |D|. The state wire bound is S_alg(m) by construction. Uniformity: the circuit family is logspace-uniform in m because each C_i is uniform in (m,i) by S0156 and D is fixed for given m. This establishes the full staged Boolean realization whose existence is quantified in the manuscript's equation (8), closing G0001.\nsession: pnp-desk/research/R3961\nmodel: nemotron-3-ultra-550b-a55b\ncan_review: True\ninstruction: Try to refute this step with a lab counterexample or name its exact argument gap; then record SURVIVED_REVIEW or REFUTED with evidence.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795657419.9709613,
+  "session": "pnp-desk/research/R4174",
+  "model": "laguna-xs-2.1",
+  "evidence": "Exact verification shows: (1) Circuit correctly simulates variable-length queries by feeding all prefixes 0..\u2113 to oracle gates, selecting via lambda selector. (2) Gate count O(\u03c4\u00b7poly(B,\u2113)+\u03c4\u00b7q\u00b7\u2113) ordinary + \u03c4\u00b7q\u00b7(\u2113+1) oracle is accurate. (3) Key insight: each slot feeds exact prefix to oracle, selector ensures correct prefix fires. The construction assumes no padding invariance - oracle defined on exact binary strings - which is the stated premise. No counterexample found for the specific construction.",
+  "review_of": "S0150",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657419.9904203,
+  "session": "pnp-desk/research/R4174",
+  "model": "laguna-xs-2.1",
+  "evidence": "Exact verification shows: (1) Configuration encoding is optimal: one-hot work head (S bits) + log N input position + constant state. (2) Circuit unrolling tau steps, each O(S+log N) gates, yields O(tau*(S+log N)) bound. (3) No counterexample found; gate count formula verified for test parameters S\u2208{2,3,4}, tau\u2208{1,2,3}, N\u2208{4,8,16}. (4) Construction is uniform over all inputs as TM, S, tau are fixed parameters.",
+  "review_of": "S0154",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795657500.861932,
+  "session": "pnp-desk/research/R4174",
+  "model": "laguna-xs-2.1",
+  "evidence": "Padding counterexample: original query '0' (length 1) differs from padded '000' (length 3). The simulation lemma in S0155 claims OR over lambda=r correctly simulates, but this construction changes the actual binary string fed to the oracle. Oracle(A, '0') computes SAT on formula encoded by '0', while Oracle(A, '000') computes SAT on different encoding. The proof incorrectly assumes padding preserves oracle behavior - a fatal error for variable-length queries without padding invariance. This directly contradicts the counterexample R1805 which found the padding changes the Sigma3SAT^A instance.",
+  "review_of": "S0155",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795657514.6912777,
+  "session": "pnp-desk/research/R4174",
+  "model": "laguna-xs-2.1",
+  "evidence": "Padding counterexample: original query '0' (length 1) differs from padded '000' (length 3). The simulation lemma in S0155 claims OR over lambda=r correctly simulates, but this construction changes the actual binary string fed to the oracle. Oracle(A, '0') computes SAT on formula encoded by '0', while Oracle(A, '000') computes SAT on different encoding. The proof incorrectly assumes padding preserves oracle behavior - a fatal error for variable-length queries without padding invariance.",
+  "review_of": "S0155",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795657576.5408435,
+  "session": "pnp-desk/research/R4174",
+  "model": "laguna-xs-2.1",
+  "refuted_approach": "S0155: Padding lemma that pads queries to fixed length ell changes the query string identity. Counterexample: query '0' (len 1) != padded '000' (len 3). Repair: compute exact query length lambda and exact lambda-bit query string. Circuit computes lambda in log(ell) bits, computes each query bit b_p for p=0..ell-1, then invokes oracle on the lambda-bit string. This avoids the query-string identity change while preserving the asymptotic bounds. Recorded in S0155-REPAIR",
+  "evidence": "Padding counterexample verified: '0' != '000'. Repair computation confirms exact simulation approach."
  }
 ]
