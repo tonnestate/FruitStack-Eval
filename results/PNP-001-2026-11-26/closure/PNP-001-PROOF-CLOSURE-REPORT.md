@@ -137,3 +137,16 @@ information count cannot supply - exactly the locality/information barriers of s
 | CJ4 | W-D obligation contains O* (the P = NP compressor never collides on simple prefixes); A/D/G related, transfers not proved | derivation |
 
 Open obligations after this section: OBL-QSTAR (residual R / O*), OBL-W-D-COLLIDE (question seq 16804, supersedes 16783). No new lanes.
+
+## 9. Student-Teacher (Carmosino-Grosser TR25-045 rev.1, proofbook seq 16809-16813, director/closure-st)
+
+| Item | Statement | Status |
+|---|---|---|
+| ST0 | Thm 1.7 read at the source; it uses Lemma 5.5 and Lemma 5.6, not the witnessing hypotheses | source |
+| ST1 | Lemma 5.6 applies Lemma 5.4 (n-input, size n^k) to an N-input SearchMCSP circuit at size n^b; the b-dependence is not tracked | possible accounting gap, review queued |
+| ST2 | independent transfer: absolute protocol => NP notsubset P/poly (Teacher answers hardwired, exponents K_j independent of b) | derivation, review queued |
+| ST3 | sandwich: [PH language, a.e. superpolynomial] => 0-round protocol => r-round protocol => NP notsubset P/poly | derivation, review queued |
+| ST4 | the absolute protocol lies in the same band as Q* / route M; it is not a weaker obligation | evaluation |
+
+Exclusion: counterexample rounds add no leverage beyond a PH circuit lower bound (under PH in P/poly every round is a bounded-complexity composition).
+PhysalisMe finite games were not run: ST2 holds for every finite protocol, so finite games cannot change this decision.
