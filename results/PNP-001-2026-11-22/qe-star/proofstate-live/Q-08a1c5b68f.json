@@ -6517,5 +6517,85 @@
   "evidence": "The proof is correct. For any assignment a\u2208{0,1}^n, the zero function (all-zero truth table) is in SC_{n,s} (empty circuit). The function \u03b4_a that is 1 only at a requires a circuit that depends on all n variables (an AND tree of the literals matching a has n-1 gates). For s < n-1, \u03b4_a \u2209 SC_{n,s}. Thus flipping coordinate a changes membership from 0 (accepted) to \u03b4_a (rejected). So all 2^n coordinates are essential. By S0598 (zero-gate model characterization), any zero-gate streaming machine needs S \u2265 |E| = 2^n state bits. The claim is correct for the zero-gate model. The statement correctly restricts to s < n-1.",
   "review_of": "S0604",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795651454.5782003,
+  "session": "pnp-desk/research/R4089",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Experiment cm-e538d4399ca642f2 exhaustively checked SC_{3,1} (38 functions, N=8) and found ZERO essential coordinates. The premise is FALSE. A 6-bit zero-gate machine exists (cm-8fff5163faa54747), confirming S=6 suffices.",
+  "review_of": "S0601",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795651454.9772096,
+  "session": "pnp-desk/research/R4089",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified mathematically: the bounds q_t <= min(2^t, M+1, 2^(2^(N-t))) are correct combinatorial facts. The construction assigns S-bit codes to residuals, builds 2*q_t shared minterms (S AND gates each), and for each of S output bits ORs at most q_t minterms (q_t-1 OR gates), totaling 3*q_t*S - S gates per layer. Computational verification for SC_{3,1} (cm-e89d11d6ee1d46bd) confirms q_t values and that max q_t = 15, giving S = 4. The construction is a valid exact recognizer for any finite F.",
+  "review_of": "S0602",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795651455.0438852,
+  "session": "pnp-desk/research/R4089",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified mathematically: per output coordinate, minterm construction uses S*2^{S+1} + 2^{S+1} - 1 gates. S outputs gives S*(S*2^{S+1} + 2^{S+1} - 1). For S=4: 4*(4*32 + 32 - 1) = 4*(128+31) = 636. General combinatorial upper bound for any specified F.",
+  "review_of": "S0608",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654315.3944623,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for each output coordinate, take the smaller of the 1-set (size r) and 0-set (size q). A DNF for the 1-set uses r minterms of k=S+1 literals each, requiring r(k-1) AND gates and r-1 OR gates = rk-1 = (S+1)r-1 gates. For the 0-set, similarly (S+1)q-1 gates plus a free NOT. Since min(r,q) <= 2^{k-1} = 2^S, each nonconstant output costs at most (S+1)2^S - 1 gates. Summing over S outputs gives S((S+1)2^S - 1). For S=4: 4*(5*16-1)=316. This is a valid upper bound (not claimed minimal). No counterexample exists for an upper bound claim.",
+  "review_of": "S0609",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654315.4450333,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The pigeonhole argument is correct. The specification (and dataset agent_lemma_m_sc31_sc32_families_4de44106) confirms L_7 = 38 live prefixes for SC_{3,1} at t=7. Full-search semantics require pairwise distinct states for distinct live prefixes, plus at least one dead state. An S-bit register has 2^S patterns, so 2^S >= 38 + 1 = 39 is required when a dead prefix exists. However, the step states 2^S >= 38 giving S >= 6. Since 2^5=32 < 38 and 2^6=64 >= 38, S>=6 holds even without the +1. The conclusion S>=6 is correct. Verified by the owner's addendum: 'SC_{3,1}: 38 fns -> 6 bits < N=8 (meaningful)'.",
+  "review_of": "S0610",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654315.4782016,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Argument gap: the proof derives a bound of S(S+1)2^{S+1} gates, but the statement claims S(2^{S+1}-1). For S=2: proof gives 2*3*8=48, claim gives 2*(8-1)=14. The construction in the proof uses disjoint minterms per output with AND/XOR, costing (S+1)|A_j| per output where |A_j| can be up to 2^{S+1}. Summing gives ~S(S+1)2^{S+1}, not S(2^{S+1}-1). The claimed bound is a factor of (S+1) smaller and is not established by the given proof. Whether the stronger bound holds is a separate question; as presented, the step's proof does not support its statement.",
+  "review_of": "S0611",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795654315.5126183,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: build all prefix conjunctions incrementally. For i=2..k, each of the 2^i length-i prefixes is formed by one AND gate from its length-(i-1) prefix and the appropriate literal. This uses sum_{i=2}^k 2^i = 2^{k+1}-4 AND gates. Then each of the r outputs is the OR of at most 2^{k-1} minterms (choosing the smaller of 1-set and 0-set), requiring at most 2^{k-1}-1 OR gates per output. Total: (2^{k+1}-4) + r(2^{k-1}-1). For k=5 (S=4 state bits + 1 input), r=4: 2^6-4 + 4*(2^4-1) = 60 + 60 = 120 gates. Valid upper bound.",
+  "review_of": "S0612",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654575.0914068,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lower bound argument is correct: distinct live prefixes must reach distinct states because (a) if their residual languages differ, a suffix in the symmetric difference would force the shared state to both accept and reject; (b) if residuals agree, a common accepted suffix would produce two distinct accepted strings from the same terminal state, but a deterministic transducer's decoder cannot output both. Dead prefixes cannot share states with live prefixes for the same reason. The attainment construction (one state per live prefix + one dead state, with transitions to child live states or dead state, dead state looping) correctly achieves |P_t| states when all prefixes are live and |P_t|+1 otherwise. No counterexample exists; the proof is complete for the stated scope (state-count lower bound for layered deterministic transducers with full-input output on acceptance).",
+  "review_of": "S0613",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654575.136135,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is a standard minterm-based circuit: compute all 2^(S+1) minterms of the S+1 input bits (sharing the S+1 negated literals, costing S+1 NOT gates), each minterm uses at most S AND gates (fan-in-2 tree of depth S), and each of the S output bits ORs the relevant minterms (at most 2^(S+1)-1 OR gates per output). Total non-constant gates: (S+1) NOT + S*2^(S+1) AND + S*(2^(S+1)-1) OR = 1 + 2*S*2^(S+1) = 1 + S*2^(S+2). The claimed bound S*((S+1)+(S+1)*2^(S+1)) = S(S+1)(1+2^(S+1)) is larger (for S>=1, S(S+1) >= 2, so S(S+1)(1+2^(S+1)) >= 2*(1+2^(S+1)) > 1+S*2^(S+2) for S>=2; for S=1, claimed=1*(2+2*4)=10, actual=1+1*8=9). Thus the bound holds as a valid (loose) upper bound. The statement correctly notes it is an upper bound only and does not prove a lower bound or distinguish SC from controls.",
+  "review_of": "S0614",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795654575.1878638,
+  "session": "pnp-desk/research/R4122",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction (x\u2228y) \u2227 \u00ac(x\u2227y) correctly computes XOR: truth table matches in all 4 cases. In the stated basis (fan-in-2 AND/OR, constants 0/1, free NOT), the counted gates are: one OR (x\u2228y), one AND (x\u2227y), one AND for the final conjunction with \u00ac(x\u2227y). The NOT on (x\u2227y) is free. Total = 3 counted gates. The statement explicitly claims only the upper bound (3 gates), noting the 2-gate lower bound is a separate finite claim pending audit. The upper bound proof is correct and complete.",
+  "review_of": "S0616",
+  "status": "SURVIVED_REVIEW"
  }
 ]
