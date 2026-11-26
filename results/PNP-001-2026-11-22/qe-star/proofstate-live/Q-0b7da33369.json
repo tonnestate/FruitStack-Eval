@@ -7008,5 +7008,72 @@
   "proved_step": "statement: Exceptional-input correction lemma: For S>=1 and any f:{0,1}^S->{0,1}^S differing from modular increment B(x)=x+1 mod 2^S at exactly r inputs, there is a fan-in-two Boolean circuit for f with O((r+1)S) gates. Set E_a(x)=[x=a], d_a=B(a) XOR f(a), and output F(x)=B(x) XOR OR_a(E_a(x) AND d_a), bitwise. This agrees with f on every input.\nproof: Compute each equality indicator E_a with O(S) gates. For each output coordinate, form the OR of the r terms E_a AND d_a[j], then XOR it with B_j. Total gate count is O(S+rS), including an O(S)-gate increment circuit. Outside the exception set all indicators vanish, so F=B=f. At an exceptional input a, its indicator alone is 1, hence F(a)=B(a) XOR (B(a) XOR f(a))=f(a).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795720492.2679994,
+  "session": "pnp-desk/research/R4454",
+  "model": "gpt-6-luna",
+  "id": "S0805",
+  "proved_step": "statement: For every fixed-point-free involution \u03b4 on a set Q of even size m=2p, there is an injective stationary encoding \u03c8:Q\u2192{0,1}^{ceil(log2 m)} such that the encoded transition on valid codes is implemented by one NOT gate and wires. Proof: Partition Q into its p unordered pairs {u_i,v_i}. Since 2^S\u2265m=2p, we have 2^{S-1}\u2265p (for S=ceil(log2(2p))). Choose distinct (S\u22121)-bit strings a_i for the pairs. Set \u03c8(u_i)=a_i||0 and \u03c8(v_i)=a_i||1. Then \u03b4 swaps the two members of each pair, so its encoded action preserves the first S\u22121 bits and complements the last bit. This uses one NOT gate; unused codes may be assigned arbitrary behavior. The encoding is injective because pair indices are distinct and the two tags differ.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795720602.2773445,
+  "session": "pnp-desk/research/R4454",
+  "model": "gpt-6-luna",
+  "id": "S0806",
+  "proved_step": "statement: PAIR-TAG ENCODING LEMMA. Let Q be a finite set with |Q|=m=2p\u22652, and let \u03b4:Q\u2192Q be a fixed-point-free involution (\u03b4(\u03b4(q))=q and \u03b4(q)\u2260q for every q\u2208Q). Set S=ceil(log2 m). There is an injective stationary map \u03c8:Q\u2192{0,1}^S such that, for every q\u2208Q, \u03c8(\u03b4(q)) is obtained from \u03c8(q) by complementing its last bit and leaving its first S\u22121 bits unchanged. Thus the induced transition on \u03c8(Q) is implemented by one NOT gate and wires; its action on unused codes is unrestricted. Proof: Because \u03b4 is a fixed-point-free involution, its orbits partition Q into exactly p disjoint sets of size two, say {u_i,v_i} for i=1,...,p. From S=ceil(log2(2p)) we have 2^S\u22652p, hence 2^(S\u22121)\u2265p. Choose p distinct strings a_i\u2208{0,1}^{S\u22121}. Define \u03c8(u_i)=a_i||0 and \u03c8(v_i)=a_i||1. Different orbits have different a_i, and the two states in each orbit have different final bits, so \u03c8 is injective. Since \u03b4 swaps u_i and v_i, the first S\u22121 bits are preserved and the final bit is complemented on every encoded state. A Boolean circuit consisting of wires on the first S\u22121 coordinates and one NOT gate on the last coordinate realizes this transition on \u03c8(Q).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795720712.38458,
+  "session": "pnp-desk/research/R4454",
+  "model": "gpt-6-luna",
+  "id": "S0807",
+  "proved_step": "statement: CYCLE-CLASS UPDATE LEMMA. Let \u03b4 be a permutation of a set Q of size m\u22652, let S=ceil(log2 m), and let r be the number of distinct cycle lengths of \u03b4. There is an injective stationary encoding \u03c8:Q\u2192{0,1}^S whose induced transition extends to a total Boolean map on {0,1}^S using O(r S^2) fan-in-two gates. Proof: For each distinct cycle length l, concatenate the codes of all \u03b4-cycles of length l into a block of consecutive integers, with each cycle occupying l consecutive codes. Concatenate these blocks in any order and assign the resulting m integers to the corresponding states in successor order. These codes lie in {0,...,m\u22121}\u2286{0,1}^S, so \u03c8 is injective. Let B(x)=x+1 modulo 2^S. On a valid code x in a block for length l, B gives the successor except at a cycle endpoint. If the block starts at a, its endpoints satisfy x\u2265a and (x\u2212a+1) mod l=0. For each length l, compute the block-membership predicate, the endpoint predicate using a bit-serial remainder computation, and the correction value x\u2212(l\u22121). The membership and endpoint computations cost O(S log l) gates per length; the correction and selection cost O(S) per length. Apply the corresponding correction at endpoints and use B elsewhere. The endpoint predicates for distinct blocks are disjoint, so the corrections can be combined with O(rS) additional gates. The default incrementer costs O(S); summing gives O(r S log m + rS + S)=O(r S^2). Assign arbitrary outputs to invalid codes not covered by the construction; the described circuit already defines outputs there. Thus the bound holds for every permutation, with the stated dependence on its number r of distinct cycle lengths.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795722206.885819,
+  "session": "pnp-desk/research/R4462",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive argument with explicit placement and gate accounting. Independent finite placement check cm-d83c7894c76141a7 enumerated every permutation for m=2,...,7 and observed zero placement failures; this is corroborative finite evidence only, not the proof of the asymptotic bound.",
+  "id": "S0808",
+  "proved_step": "LEMMA (cycle-length-block upper bound). Let \\(\\delta\\) be any permutation of an \\(m\\)-element set, where \\(m\\ge2\\), and let \\(S=\\lceil\\log_2m\\rceil\\). There is an injective stationary encoding \\(\\psi:Q\\to\\{0,1\\}^S\\) such that the encoded transition \\(\\psi\\delta\\psi^{-1}\\) on encoded states extends to a total Boolean map computed by \\(O(\\sqrt m\\,S^2)\\) fan-in-2 gates over a fixed complete basis. Proof: Decompose \\(\\delta\\) into disjoint cycles. For each distinct cycle length \\(l\\), place all cycles of length \\(l\\) consecutively in a block, each cycle occupying an interval of \\(l\\) codes; assign states in successor order within each interval. The number \\(d\\) of distinct lengths satisfies \\(d(d+1)/2\\le m\\), hence \\(d\\le\\sqrt{2m}\\). On a cycle interval, the successor code is \\(x+1\\), except at its endpoint, where it is the interval start. Let \\(a_l\\) be the start of the length-\\(l\\) block. For codes in that block, the endpoint condition is \\((x-a_l+1)\\equiv0\\pmod l\\). A block-membership comparator uses \\(O(S)\\) gates. Subtracting the constant \\(a_l-1\\) from \\(x\\) uses \\(O(S)\\) gates. To compute a remainder modulo \\(l\\), scan the resulting \\(S\\)-bit value from most significant to least significant, updating a remainder \\(r\\in\\{0,\\ldots,l-1\\}\\) to \\((2r+b)\\bmod l\\) at each bit \\(b\\). Each update is a Boolean function of \\(O(\\log l)\\) bits, realizable with \\(O(\\log l)\\) fan-in-2 gates by a truth-table circuit; thus the endpoint test costs \\(O(S\\log l)\\). For each length block, use that test and block membership to select the wraparound output at endpoints and increment otherwise; the output selection costs \\(O(S)\\) gates per block. A default \\(S\\)-bit incrementer handles codes outside all cycle intervals. Since the block predicates are disjoint, these circuits combine into a total map with cost \\(O(S)+O(dS\\log m)+O(dS)=O(\\sqrt m\\,S^2)\\). On every encoded state the map gives exactly its cycle successor, so its restriction is \\(\\psi\\delta\\psi^{-1}\\). Values on unused codes are unrestricted. This proves the stated upper bound; it makes no lower-bound or P-vs-NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "A2",
+  "closes_valid": false
+ },
+ {
+  "at": 1795722339.1620433,
+  "session": "pnp-desk/research/R4462",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive repair: the only altered operation is calculating the endpoint residue from the exact nonnegative within-block offset, avoiding the 2^S wraparound defect. The O(S+1)-bit offset and modulo scan fit the stated O(S log l) cost. Prior finite placement check cm-d83c7894c76141a7 checks placement only, not this arithmetic repair.",
+  "id": "S0809",
+  "proved_step": "REPAIRED LEMMA (cycle-length-block upper bound with exact offsets). For every permutation delta on an m-element set, m>=2, with S=ceil(log2 m), there is an injective stationary encoding into {0,1}^S whose successor map on encoded states extends to a total Boolean map using O(sqrt(m) S^2) fan-in-2 gates over a fixed complete basis. Proof: group cycles by length l and allocate each group's cycles as consecutive length-l intervals in [0,m-1], assigning each cycle in successor order. There are d distinct cycle lengths and 1+...+d<=m, so d<=sqrt(2m). In the length-l block starting at a_l, the exact endpoint condition for x in the block is (x-a_l+1) mod l=0, where x-a_l+1 is computed as a nonnegative integer, not as a wrapped S-bit subtraction. A comparator tests block membership with O(S) gates. On that block, compute u=x-a_l using an S+1-bit subtractor (valid because x>=a_l), then add one in S+1 bits and compute u+1 mod l by scanning its at most S+1 bits; the running remainder has ceil(log2 l) bits and each update is a Boolean function of O(log l) bits, hence has a fan-in-2 truth-table circuit of O(log l) gates. This costs O(S log l) per length block. At an endpoint, the successor is x-(l-1); elsewhere it is x+1. Use the endpoint test and block membership to select the wraparound value versus increment; this costs O(S) per block. Outside all encoded intervals define the map arbitrarily, for example by the default increment. The total is O(S+d S log m+dS)=O(sqrt(m) S^2). The encoding is injective and the map agrees with delta on all encoded states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "A2",
+  "closes_valid": false
+ },
+ {
+  "at": 1795722378.9772182,
+  "session": "pnp-desk/research/R4462",
+  "model": "gpt-6-luna",
+  "evidence": "This repairs the gate-count issue in the earlier exact-offset construction: the remainder update is implemented by comparison and conditional subtraction on O(log l)-bit integers, whose standard ripple circuits use O(log l) fan-in-2 gates. The endpoint offset is computed without S-bit wraparound.",
+  "id": "S0810",
+  "proved_step": "REPAIRED LEMMA (cycle-length-block upper bound with structured remainder arithmetic). Let delta be a permutation of an m-element set, m>=2, and S=ceil(log2 m). There is an injective stationary encoding into {0,1}^S whose encoded transition extends to a total Boolean map using O(sqrt(m) S^2) fan-in-2 gates over a fixed complete basis. Proof: Group cycles by length l and place the cycles of each length consecutively in [0,m-1], each as a length-l interval with states in successor order. If there are d distinct lengths, then 1+...+d<=m, so d<=sqrt(2m). For a length-l block starting at a_l, a code x in that block is an endpoint exactly when (x-a_l+1) mod l=0, with the offset computed as an ordinary nonnegative integer. Block membership takes O(S) gates. Within the block compute u=x-a_l and then u+1 using S+1-bit arithmetic. Compute its residue modulo l by scanning bits from most significant to least significant. At each bit b, given current residue r in [0,l-1], form z=2r+b, which has O(log l) bits and satisfies 0<=z<2l. The next residue is z if z<l and z-l otherwise. Binary comparison with the constant l and conditional subtraction of l use O(log l) fan-in-2 gates (bitwise subtraction with borrow and a conditional selection), so each scan step costs O(log l), not a truth-table bound. Thus the endpoint test costs O(S log l). On endpoints the successor is x-(l-1); elsewhere it is x+1. Selecting the wraparound output per block costs O(S) gates. A default increment defines outputs outside the encoded intervals; disjoint block predicates select the block-specific corrections. Total cost is O(S+d S log m+dS)=O(sqrt(m) S^2). On encoded states the map gives exactly the cycle successor, proving the claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "A2",
+  "closes_valid": false
  }
 ]
