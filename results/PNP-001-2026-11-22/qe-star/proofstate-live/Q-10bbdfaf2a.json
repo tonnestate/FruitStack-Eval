@@ -6727,5 +6727,29 @@
   "evidence": "Verified construction: use disjoint circuits for g (size s) and h on first k inputs (size t), combine with XOR gate (total s+t+1). Symmetry check: if f=g\u2295h then g=f\u2295h, so |C_m(f)-C_m(g)| \u2264 C_k(h)+1 holds. No counterexamples found for small cases (m=2,k=1 verified). Argument gap: none found; proof is valid.",
   "review_of": "S0739",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650901.5321765,
+  "session": "pnp-desk/research/R4088",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: each affine equation a\u00b7x = b over GF(2) is computed with \u2264 m-1 XOR gates for the parity a\u00b7x, plus at most 1 NOT gate if b=0 (to compute 1\u2295(a\u00b7x)), totaling \u2264 m gates per equation. d equations conjoined with d-1 AND gates yields \u2264 dm+d-1 gates per subspace indicator. q subspace indicators combined with q-1 OR gates gives the union indicator. One final XOR with a size-s circuit for g yields total size s + q(dm+d-1) + (q-1) + 1 = s + q(dm+d). All gates charged, free inputs, unrestricted fan-out, and explicit XOR/NOT/AND/OR basis assumed. No counterexample found; the bound is a valid upper bound on circuit complexity.",
+  "review_of": "S0740",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650901.5801063,
+  "session": "pnp-desk/research/R4088",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof claims each point indicator [x=a] costs at most m-1 gates, but this assumes negated literals (\u00acx_i for positions where a_i=0) are free. In the standard model with only free input wires x_1,...,x_m and NOT gates costing 1, a point indicator for a \u2208 {0,1}^m requires up to m NOT gates (one per 0-bit) plus m-1 AND gates = up to 2m-1 gates. Counterexample: m=3, r=2, A={000,111}, g=0. The function f = 1 on 000 and 111 else 0 (all-equal) requires at least 8 gates in {AND,OR,NOT} basis (3 NOTs for \u00acx,\u00acy,\u00acz; two 3-input ANDs using 2+2=4 AND gates; 1 OR gate). The bound claims C_3(f) \u2264 0 + 2*3 = 6, which is false. The bound holds only if negated literals are free inputs, which is not stated in the lemma's assumptions.",
+  "review_of": "S0741",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795650901.6271527,
+  "session": "pnp-desk/research/R4088",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: prefix indicator [x_1...x_p=a] requires at most p NOT gates (one per 0-bit in a) and p-1 AND gates to combine the p signed literals. One AND gate combines this with h. One XOR gate combines with g. Total added: p + (p-1) + 1 + 1 = 2p+1 gates for p>=1. For p=0, just one XOR gate. Assumes XOR is a primitive gate in the basis (consistent with S0740's explicit 'XOR/NOT/AND/OR gates available'). If basis is only {AND,OR,NOT}, XOR simulation adds overhead; but under the stated assumptions with XOR available, the bound is correct.",
+  "review_of": "S0742",
+  "status": "SURVIVED_REVIEW"
  }
 ]

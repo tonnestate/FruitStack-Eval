@@ -6413,5 +6413,109 @@
   "evidence": "Inductive proof is sound: with only wires, constants, and NOT gates, each state bit can depend on at most one input position (or be constant). After N steps, S state bits can track at most S positions. If all N positions are essential, S \u2265 N. Tight (each bit stores one variable). No counterexample exists.",
   "review_of": "S0588",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650118.6189506,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a correct adaptation of the Myhill-Nerode theorem to deterministic layered membership transducers with time-dependent state encodings. The lower bound: if two length-t prefixes p,p' reach the same state, determinism forces identical continuations for all suffixes u, so R_t(p)=R_t(p'). Thus distinct residuals require distinct states; at least q_t states at layer t. The upper bound construction uses residual sets as states with transitions R -> R_b = {u: bu in R}, which is well-defined because residuals are equivalence classes. At layer N, residuals are {epsilon} (accept) or empty (reject). The minimum uniform state-bit width across layers is ceil(log2(max_t q_t)) since layer t needs ceil(log2 q_t) bits and max_t ceil(log2 q_t) = ceil(log2(max_t q_t)). Width 0 when max_t q_t=1 corresponds to the trivial languages empty or all strings. No argument gap found; this is a standard, correct theorem.",
+  "review_of": "S0589",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650239.1758215,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The argument is a standard Myhill-Nerode / residual distinguishability proof for deterministic finite automata, adapted to the layered (time-dependent encoding) setting. The key invariant: if two prefixes p, p' have different residual sets R_t(p) != R_t(p'), there exists a suffix u in their symmetric difference such that exactly one of pu, p'u belongs to F. In a deterministic layered machine, the state after reading a prefix determines all future behavior. If the machine were in the same state after p and p', then on input u it would follow identical transitions and reach the same final state, causing the decoder to output the same value on both pu and p'u - contradicting that exactly one is in F. The empty-residual case is handled correctly: a prefix with empty residual accepts no suffix, while a nonempty-residual prefix accepts at least one; they cannot share a state for the same reason. No counterexample exists; this is a basic fact of deterministic automata theory. The logarithmic bit bound follows because S bits distinguish at most 2^S states.",
+  "review_of": "S0590",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650257.4268115,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard construction of a decision tree / indicator-based circuit that computes an arbitrary function on a finite domain D. The proof is correct: (1) For each z in D, the indicator delta_z(x) = 1 iff x=z is computed by ANDing S+1 literals (x_i if z_i=1, \u00acx_i if z_i=0), using S AND gates in a binary tree. These indicators have disjoint support on D. (2) For each output bit j, the function is the XOR of indicators for inputs where T(z)_j=1. Since at most one indicator is 1 on any input in D, the XOR equals T(z)_j. The gate count is rS for the indicators plus sum_j max(|A_j|-1,0) for the XOR trees, which is bounded by rS + S*max(r-1,0). This construction works for any finite D and any T:D->{0,1}^S. No counterexample exists; this is a basic circuit construction fact. The circuit is not necessarily minimal, but the claim is an existential upper bound, which holds.",
+  "review_of": "S0591",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650404.160844,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the standard Myhill-Nerode theorem for fixed-length languages, adapted to the layered setting with time-dependent state encodings. The necessity argument (lower bound) is identical to S0590: distinct residuals require distinct states. The sufficiency argument (upper bound) constructs the canonical minimal deterministic automaton where states are exactly the residual sets, transitions are R -> R_b, and the final decoder distinguishes {epsilon} (accepted) from empty (rejected). This is exactly the minimal DFA construction for finite languages, which is well-known to have exactly q_t states at layer t. The characterization is correct and complete for state count. The note about ceil(log2(|F|+1)) is accurate: that formula only holds when the maximum number of distinct residuals equals |F|+1, which is not generally true. No counterexample exists; this is a fundamental theorem of automata theory.",
+  "review_of": "S0592",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650404.237244,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a straightforward construction. The parity function is computed by a single XOR gate updating a 1-bit state: q_0 = 0, q_{t} = q_{t-1} XOR x_t. By induction, q_t = x_1 XOR ... XOR x_t. At t=N, q_N = parity(x), and the decoder D(q)=q accepts exactly when parity is 1. This uses one state bit and one XOR gate per update. The construction is correct and minimal. No counterexample exists.",
+  "review_of": "S0593",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650557.6731625,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a standard linear algebra construction over GF(2). The matrix A has r rows and N columns, rank r. The language F = {x in {0,1}^N : Ax = b}. The machine maintains state q in {0,1}^r, initialized to 0. At step i (reading x_i), it updates q := q XOR (A_i * x_i), where A_i is the i-th column of A. Since x_i is 0 or 1, this is either q (if x_i=0) or q XOR A_i (if x_i=1). After t steps, q_t = sum_{j=1..t} A_j x_j = A_{[1..t]} x_{[1..t]}. At t=N, q_N = Ax. The final decoder checks if q_N = b (using r XOR gates and an AND, or just equality check). This uses r state bits, at most r XOR gates per update (since each column has at most r 1s, but actually the update is q XOR (x_i * A_i), which is r XOR gates conditioned on x_i; can be implemented with r AND + r XOR, but the claim says 'at most r XOR gates per update' which is true if we count the gated XOR as one gate per bit). The construction is correct and well-known. No counterexample exists.",
+  "review_of": "S0594",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650557.7152784,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a straightforward counting argument. The premises are: (1) distinct nonempty residuals get distinct states (injectivity on live residuals), (2) dead prefixes (empty residual) get states distinct from all live states. There are q_t distinct nonempty residuals, so at least q_t distinct live states. If there's at least one dead prefix, its state must be outside those q_t states, giving at least q_t+1 distinct states total. Since S bits encode at most 2^S states, we need 2^S >= q_t+1, so S >= ceil(log2(q_t+1)). This is a pure counting bound, not a computational lower bound. The logic is sound and the bound is exact as a capacity bound (it doesn't claim the bound is always achievable, just that it's necessary). No counterexample exists.",
+  "review_of": "S0595",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650557.7446735,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This constructs an explicit transition circuit for the canonical minimal DFA (states = residual sets). Given S bits where 2^S >= max_t q_t, we can assign a distinct S-bit code to each residual at each layer. There are at most q_t residuals at layer t, each with 2 possible next inputs (0 or 1), giving at most 2q_t reachable (code, bit) pairs. For each pair, we build a minterm indicator using S AND gates (on state bits and the input bit), totaling 2q_t S gates. For each of the S output bits, we look at which of the 2q_t reachable rows have output 1; we OR the indicators of the smaller of the 1-rows and 0-rows (at most q_t indicators), using at most q_t-1 OR gates, and complement if we selected the 0-rows. This gives at most S(q_t-1) additional gates. Total: 2q_t S + S(q_t-1) = 3q_t S - S. The construction is correct and gives an explicit upper bound on gate count. No counterexample exists.",
+  "review_of": "S0596",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650557.7739117,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a trivial but valid construction. The state is an N-bit shift register initialized to 0^N. On reading bit b, shift left and append b: (z_1,...,z_N) -> (z_2,...,z_N, b). This uses only wires (the new input wire connects to the last position, other wires shift). After t steps, the state is (0^{N-t}, x_1,...,x_t). After N steps, the state equals the full input x. The unrestricted final decoder simply checks if the state is in F (a lookup table of size 2^N). The construction uses N state bits and 0 counted gates per update. It's an upper bound that only works when S=N. The claim is correct as stated. No counterexample exists.",
+  "review_of": "S0597",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650611.9095294,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim is correct. In the zero-gate model (only wires, constants, free NOT), each state bit at layer t can only be a constant or track a single input variable x_i or its negation. By induction: base case (layer 0) all bits are constants; inductive step: a wire/constant/NOT of a bit that tracks at most one variable still tracks at most one variable. Thus each final state bit depends on \u22641 input coordinate. If an essential variable i\u2208E is not represented in any final state bit, flipping x_i leaves all state bits unchanged, so the decoder output is unchanged, contradicting essentiality. Hence S\u2265|E|. The construction storing x_i for each i\u2208E achieves S=|E| with zero update gates. No counterexample exists for this exact model. The scope is properly limited: this characterizes only the zero-gate streaming model, not general circuits or Lemma M's asymptotic claims.",
+  "review_of": "S0598",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650784.9807532,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim is a standard Myhill-Nerode style argument for fixed-length languages. If two prefixes p and p' reach the same state at layer t, then for any suffix u, the computation from that shared state on u is identical, so pu \u2208 F \u21d4 p'u \u2208 F for all u. Thus R_t(p) = R_t(p'). Distinct residual sets must reach distinct states, so the number of reachable states at layer t is at least q_t. Since there are at most 2^S states total, 2^S \u2265 max_t q_t. The upper bound construction using residuals as states is valid: transition on bit b maps residual R to {v : bv \u2208 R}. This is a correct finite-state counting lemma with no circuit-cost implications. No counterexample exists.",
+  "review_of": "S0599",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650889.4068131,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The bounds are exact consequences of the definitions. q_0\u22641 because there's only one empty prefix. q_N\u22642 because each residual at full length is either {\u03b5} (accepted) or \u2205 (rejected). Each residual at layer t has at most two children (R_0 and R_1), so q_{t+1}\u22642q_t. By induction q_t\u22642^t. Also each residual is a subset of the suffix universe of size 2^{N-t}, so there are at most 2^{2^{N-t}} subsets. All bounds are tight for some languages. No counterexample exists.",
+  "review_of": "S0600",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795650890.3006349,
+  "session": "pnp-desk/research/R4074",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct. For any assignment a\u2208{0,1}^n, the zero function (all-zero truth table) is in SC_{n,s} (empty circuit). The function \u03b4_a that is 1 only at a requires a circuit that depends on all n variables (an AND tree of the literals matching a has n-1 gates). For s < n-1, \u03b4_a \u2209 SC_{n,s}. Thus flipping coordinate a changes membership from 0 (accepted) to \u03b4_a (rejected). So all 2^n coordinates are essential. By S0598 (zero-gate model characterization), any zero-gate streaming machine needs S \u2265 |E| = 2^n state bits. The claim is correct for the zero-gate model. The statement correctly restricts to s < n-1.",
+  "review_of": "S0604",
+  "status": "SURVIVED_REVIEW"
  }
 ]
