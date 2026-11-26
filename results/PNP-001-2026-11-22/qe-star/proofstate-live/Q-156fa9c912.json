@@ -8529,5 +8529,103 @@
   "proved_step": "statement: FIXED-DEPTH EXT RESIDUAL COUNT. Let F be a finite subset of {0,1}^N and 0 <= t <= N. For p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz in F}. Then the number of distinct sets R_p is at most |F|+1.\nderivation: Let P+ be the length-t prefixes p with R_p nonempty. For each p in P+, choose f_p in F whose length-t prefix is p. Distinct prefixes yield distinct chosen words, so p -> f_p is injective and |P+| <= |F|. Every nonempty residual is realized by a prefix in P+, hence there are at most |F| distinct nonempty residuals. All empty residuals equal the empty set, adding at most one more. Thus the total is at most |F|+1. Distinct residual sets need not be disjoint; the proof uses only the injection from viable prefixes to F.\nscope: All finite F subseteq {0,1}^N and all 0 <= t <= N; a state-count bound for the exact prefix automaton.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795730522.000007,
+  "session": "pnp-desk/research/R4500",
+  "model": "gpt-6-luna",
+  "id": "S0985",
+  "proved_step": "statement: RESIDUALS ARE EXACTLY THE FUTURE DISTINGUISHERS. Let F be any subset of {0,1}^N. For each prefix p of length t<=N define R_p={z in {0,1}^{N-t}: pz in F}. Any deterministic left-to-right streaming recognizer correct for F must be in different internal states after prefixes p and q whenever R_p != R_q. If R_p=R_q, then p and q have the same acceptance outcome for every common suffix.\nderivation: If R_p=R_q, then for every suffix z, pz is in F iff z is in R_p iff z is in R_q iff qz is in F. If R_p!=R_q, choose z in their symmetric difference. Exactly one of pz and qz is in F. If a deterministic recognizer were in the same state after p and q, processing the same suffix z from that state would produce the same final output on both inputs, contradicting correctness. Thus different residuals require different states, and equal residuals have identical future acceptance behavior. This identifies the exact future-membership information at depth t, without bounding the cost of computing transitions or total state count.\nscope: All N>=0, F subseteq {0,1}^N, and fixed depths 0<=t<=N; deterministic left-to-right streaming recognizers with a common transition rule and correct final membership output.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795730593.3430996,
+  "session": "pnp-desk/research/R4500",
+  "model": "gpt-6-luna",
+  "id": "S0986",
+  "proved_step": "statement: EXT STATE-BIT BOUND FROM CIRCUIT DESCRIPTIONS. Fix n,s>=0. Let F_{n,s} be the set of truth tables on {0,1}^n computed by Boolean circuits with at most s fan-in-at-most-two gates, where each gate is one of the 16 Boolean functions of two inputs, inputs may be chosen from the n variables, constants 0 and 1, or earlier gate outputs, and one output wire is selected. For every prefix depth t in [0,2^n], the number of distinct EXT residuals R_p={z in {0,1}^{2^n-t}: pz in F_{n,s}} is at most |F_{n,s}|+1, and hence can be represented by at most ceil(log2(|F_{n,s}|+1)) bits. In particular, this is O((s+1)log(n+s+2)) bits.\nderivation: Put A=16(n+s+2)^2. A circuit with exactly k gates, for 0<=k<=s, has at most A^k possible ordered descriptions: for each gate there are 16 choices of Boolean function and at most (n+s+2)^2 choices of ordered input wires, an upper bound that allows unavailable future wires and therefore only overcounts. Its output wire has at most n+s+2 choices. Thus the number D of descriptions of circuits of size at most s is at most (n+s+2) sum_{k=0}^s A^k <= (s+1)(n+s+2)A^s. Every truth table in F_{n,s} has at least one such description, so |F_{n,s}|<=D. At depth t, each prefix with nonempty residual has an extension in F_{n,s}; choosing one extension for each such prefix is injective because distinct prefixes cannot be prefixes of the same word. Hence there are at most |F_{n,s}| distinct nonempty residuals, and all empty residuals coincide, giving at most |F_{n,s}|+1 residuals total. The required fixed-width encoding takes ceil(log2(|F_{n,s}|+1)) bits. Finally, log2(D+1)=O((s+1)log(n+s+2)) from the displayed bound and A=16(n+s+2)^2. This proves the claimed state-bit bound. It supplies no circuit for computing a residual transition from H_C and no transition gate-cost bound.\nscope: All n,s>=0, this explicit fan-in-at-most-two Boolean circuit description model, and each fixed prefix depth. A bound on the number of semantic automaton states only; no claim about transition complexity or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795731292.6737332,
+  "session": "pnp-desk/research/R4508",
+  "model": "gpt-6-luna",
+  "id": "S0987",
+  "proved_step": "statement: POLYNOMIAL-CARDINALITY CIRCUIT-UNION PROJECTION LEMMA. Let F={C_1,...,C_M} be a nonempty finite family of Boolean circuits on common input x, each with at most h fan-in-two gates; allow constants and input wiring for free. Define U(x)=1 iff C_i(x)=1 for some i. Then U has a fan-in-two circuit with at most M(h+1)-1 gates. For every fixed input prefix p, the cofactor U_p has a circuit with at most the same number of gates, and fixing one more input bit to obtain U_{pb} does not increase this bound. Consequently, if M and h are polynomially bounded in a parameter, then U and all its prefix cofactors have polynomial-size circuits. Proof: Copy each C_i separately and combine their outputs using a binary OR tree. The copies use at most Mh gates, and the OR tree uses M-1 gates, for a total Mh+M-1=M(h+1)-1. Substituting fixed prefix bits in a circuit only replaces input wires by constants, so cannot increase the number of gates; this applies again to the next bit. Polynomially bounded M and h make the displayed product polynomial. This lemma applies to an explicitly enumerable finite family; it gives no polynomial-size bound when M is exponential, as in the unrestricted family of size-s circuits.\nderivation: For each member circuit take a disjoint copy; join the M outputs by a binary OR tree; hardwire prefix bits in the resulting circuit. The gate count is Mh+(M-1), and cofactors cannot have larger gate count.\nscope: All integers M>=1,h>=0 and all finite families of Boolean circuits over a fan-in-two basis containing OR, with constants and input wiring free. Does not bound unrestricted EXT when its candidate family is exponential.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795731417.8238485,
+  "session": "pnp-desk/research/R4508",
+  "model": "gpt-6-luna",
+  "id": "S0988",
+  "proved_step": "statement: EXT RESIDUAL CHARACTERIZATION. Let F be a finite family of Boolean functions on N-bit inputs, with truth tables in a fixed order, and let p be a prefix of length t that occurs as the first t bits of at least one member of F. Define R(p)={u in {0,1}^{2^N-t}: pu is the truth table of some f in F}. For V(p)={f in F: the truth table of f begins with p}, R(p) is exactly the union, over f in V(p), of the suffixes of f's truth table after position t. Consequently two occurring prefixes p,q (possibly of different lengths) have identical residual completion languages if and only if these unions of suffixes are equal. In particular, equality of candidate sets implies equality of residual languages, but equality of candidate sets is not necessary. Proof: A suffix u belongs to R(p) iff pu is the truth table of some f in F. This is equivalent to f belonging to V(p) and u being exactly the suffix of f after the prefix p. Taking the union over V(p) gives the first equality. Applying that equality to p and q proves the stated iff. The candidate-set map therefore gives a sufficient, possibly nonminimal, representation of the residual language.\nderivation: Unpack membership in the residual completion language: an extension pu is a member truth table exactly when a family member has prefix p and suffix u. This is exactly the union of suffixes over V(p). Equality of residuals is therefore equivalent to equality of those unions; the map from candidate sets to unions can identify different sets.\nscope: Every finite family of Boolean functions with a fixed truth-table order and every occurring prefix. This is an information characterization only; it makes no gate-complexity or transition-cost claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795731752.555514,
+  "session": "pnp-desk/research/R4508",
+  "model": "gpt-6-luna",
+  "evidence": "For S_p defined as size-<=s circuits whose truth tables begin with p, membership in S_{p.b} is equivalent to membership in S_p and Eval(C,|p|)=b. Hence the filtered set is exactly as stated, and it is nonempty iff a size-<=s circuit has prefix p.b. This proves only the set identity, not a polynomial update algorithm or lower bound.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795731752.598131,
+  "session": "pnp-desk/research/R4508",
+  "model": "gpt-6-luna",
+  "evidence": "A direct transition-table implementation uses at most M live indices plus a dead state and O(log(M+1)) bits. For each state and input bit the list specifies one target; selecting these rows and ORing target-code bits costs O(M log(M+1)) fan-in-two gates. This is a constructive upper bound for explicitly listed F only.",
+  "id": "S0989",
+  "proved_step": "statement: FINITE ENUMERATION TRANSITION CIRCUIT BOUND. Let F={w_1,...,w_M} be an explicitly listed set of distinct binary strings of common length L, and let D_t be the distinct length-t prefixes of strings in F. Encode each live prefix by an injective index in {0,...,|D_t|-1}, and reserve one additional index for dead. For each fixed t<L, the exact next-prefix transition (state i, input bit b) to the index of the length-(t+1) prefix if it exists in D_{t+1}, else dead, is computable by a fan-in-two Boolean circuit with O((M+1)log(M+1)) gates, with constants and wiring free. Proof: There are at most M live indices and one dead index. For each live i and b, the explicit list F determines a unique target index j or dead. A binary equality comparator between the state bits and fixed index i uses O(log(M+1)) gates; AND with the input literal selects the corresponding row. OR the selected indicators for each output bit, using O(M log(M+1)) gates in total, and similarly form dead's code. The dead row maps to dead and costs O(log(M+1)) gates. Since |D_t|<=M, the total is O((M+1)log(M+1)). This proves a transition circuit conditional on the family being explicitly listed; it does not bound the cost of generating that list, and for all size-<=s circuits M may be exponential in s log(n+s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795731832.6018596,
+  "session": "pnp-desk/research/R4508",
+  "model": "gpt-6-luna",
+  "evidence": "Each target is the left quotient {u:bu in R}, determined solely by the residual language R. A direct decoded transition table therefore has 2r_t live rows and O(log(r_t+2)) bits per code.",
+  "id": "S0990",
+  "proved_step": "statement: RESIDUAL-INDEXED TRANSITION CIRCUIT BOUND. Let F be a finite set of distinct binary strings of common length L. For 0<=t<L, let R_t be the set of distinct nonempty residual suffix languages after length-t prefixes, and let r_t=|R_t|. Index these states and reserve a dead state. The exact one-bit transition from a state R in R_t and bit b to {u: bu in R}, or to dead if this set is empty, has a fan-in-two Boolean circuit of O((r_t+1) log(r_t+2)) gates, with constants and wiring free. The transition table can be constructed from an explicit listing of F. Proof: For each R and b, its child {u:bu in R} depends only on R, not on the prefix representing it. It is therefore a unique member of R_{t+1} or empty. Decode each state code with an equality comparator, select the target code according to b, and OR the selected target bits for each output bit. There are 2r_t live rows, O(log(r_t+2)) code bits, and O(log(r_t+2)) gates per row/output selection, so the total is O((r_t+1) log(r_t+2)); add a dead row mapping to dead. This bounds circuit size only; table generation may depend on |F| and no polynomial bound follows for an implicit circuit family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795731993.947258,
+  "session": "pnp-desk/research/R4508",
+  "model": "gpt-6-luna",
+  "evidence": "This is a direct circuit construction from the stated universal evaluator and validity predicate; no claim is made that existential projection has comparable circuit size.",
+  "id": "S0991",
+  "proved_step": "statement: PREFIX-MATCHING RELATION FROM A UNIVERSAL EVALUATOR. Let D be a finite set of descriptions, let P(d) be a Boolean predicate selecting the valid size-at-most-s candidates, and let U(d,x) be a Boolean circuit of u gates that outputs the truth-table bit of the circuit described by d on input x whenever P(d)=1. For any ordered list x_0,...,x_{k-1} of distinct inputs and bit string a in {0,1}^k, there is a Boolean circuit V_a(d) of at most k(u+1)+v+O(k) fan-in-two gates, where v is the size of P, such that V_a(d)=1 exactly when P(d)=1 and U(d,x_i)=a_i for every i<k. Consequently, existence of a size-at-most-s circuit matching the selected k truth-table positions is exactly the existential statement \u2203d V_a(d)=1. Proof: Make k copies of U with x_i hardwired, negate each output whose desired bit a_i is 0, and AND all k literals with P(d). Hardwiring x_i adds no gates; each output negation costs at most one gate, and a fan-in-two conjunction of k+1 terms costs at most k gates. Thus the stated bound holds. The conclusion is an existential circuit encoding, not a procedure for eliminating d or producing an ordinary small circuit for the projected predicate on a.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795733210.0316148,
+  "session": "pnp-desk/research/R4516",
+  "model": "gpt-6-luna",
+  "id": "S0992",
+  "proved_step": "statement: DISTINCT-WITNESS-COFACTOR CIRCUIT BOUND. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates. For each w\u2208{0,1}^r define H_w(x)=H(x,w), and let q be the number of distinct Boolean functions among the H_w. Then G(x)=\u2203w H(x,w) has a fan-in-two circuit with at most qh+q\u22121 gates. For every fixed prefix p of the visible input x, the cofactor G_p has a circuit with at most qh+q\u22121 gates. Proof: Choose one witness representative for each distinct function H_w. For each of the q representatives, copy the circuit for H and hardwire that witness, using at most qh gates total. The OR of the q outputs is exactly \u2228_w H_w(x), since every witness function occurs among the representatives; a binary OR tree uses q\u22121 gates. Hardwiring a visible prefix in this circuit cannot increase its gate count. This is an existence bound only: it gives no efficient method to find representatives and no bound on q for arbitrary MCSP decision circuits.\nderivation: Partition the 2^r witnesses by equality of their induced functions H_w. A representative from each class suffices because existential projection is the disjunction of these functions. Implement each representative by one hardwired copy of H (qh gates total), then combine with q\u22121 OR gates. Cofactoring visible inputs is substitution and cannot increase size.\nscope: All finite N,r,h; fan-in-two Boolean circuits with constants and wiring free; q is the exact number of distinct witness-induced functions. The result is not a transition-cost bound for EXT or a claim that q is small.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795733353.6269875,
+  "session": "pnp-desk/research/R4516",
+  "model": "gpt-6-luna",
+  "id": "S0993",
+  "proved_step": "statement: DISTINCT-COFACTOR PROJECTION BOUND. Let H(x,w) be a fan-in-two Boolean circuit with h gates, with x visible and w ranging over {0,1}^r. Let q be the number of distinct functions x \u21a6 H(x,w). Then G(x)=\u2228_{w\u2208{0,1}^r}H(x,w) has a fan-in-two circuit with at most qh+q\u22121 gates.\nderivation: Partition the witness assignments into equivalence classes where w and w' are equivalent exactly when H(x,w)=H(x,w') for every x. Choose one witness from each of the q classes. For each chosen witness, substitute its constant bits into a copy of H; this computes that class's function using at most h gates. OR the q outputs using a binary tree with q\u22121 gates. Every witness function equals one chosen representative function, so the resulting circuit computes exactly G. The total gate count is at most qh+q\u22121.\nscope: All finite fan-in-two Boolean circuits; existence only. No bound on q or efficient method to find representatives is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
  }
 ]

@@ -7424,5 +7424,73 @@
   "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, there is a deterministic layered transducer with N state bits that, after t input bits, stores those t bits in the first t state positions and zeros in the remaining positions, using zero non-constant gates per update. At each layer, its state is injective on all length-t prefixes, so it separates every live prefix from every dead prefix. A final-state decoder can decide membership in F and, for accepted inputs, output any fixed valid witness associated with that input.\nproof: Let q_0=0^N. At layer t<N define F_t(q,b)=(q_1,...,q_t,b,0,...,0), using the known layer index t; each output is a wire from a state coordinate, the current input, or constant zero, so the update uses no non-constant gates. Inductively, after prefix p of length t the state is p followed by N-t zeros. Distinct length-t prefixes therefore have distinct states. A dead prefix and a live prefix are distinct words of the same length, so their states differ. At the final layer the state is the full input word, and a decoder can determine membership in the finite set F and return the corresponding fixed witness on members. This establishes correctness of the transducer and the zero update-gate bound; it makes no claim about decoder size.\nscope: All finite F subseteq {0,1}^N; state width S=N; time-dependent layered updates; B2 basis includes wires and constants; final decoder unrestricted. The claim is not an update-cost bound for S<N and does not bound decoder cost.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795731864.4848502,
+  "session": "pnp-desk/research/R4511",
+  "model": "gpt-6-luna",
+  "id": "S0843",
+  "proved_step": "statement: For any finite layered deterministic transducer whose layer-t states are encoded by S bits, the prescribed next-state map on reachable (state,input-bit) pairs can be implemented by a multi-output circuit over AND, XOR, NOT, and constants with at most (S+1)+S*2^(S+1)*(S+1) nonconstant gates. Proof: Put d=S+1. For each output bit, extend its prescribed values arbitrarily to all 2^d inputs. Express the extended function as a DNF with at most 2^d minterms. Share the input literals and their negations across outputs, using at most d NOT gates. Each minterm uses at most d-1 AND gates; combining at most 2^d terms by De Morgan uses at most 2^d additional AND/NOT gates. Thus each output uses at most d*2^d gates, plus at most d shared negations overall. This implements every prescribed transition; unreachable inputs are unconstrained. This is a universal finite upper bound only and gives no lower bound or exact minimum G_max for SC_{n,s}.\nscope: All S>=0 and finite layered deterministic transitions with one input bit and S-bit state; AND, XOR, NOT, constants; count nonconstant gates, fan-out free.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795732186.8204465,
+  "session": "pnp-desk/research/R4511",
+  "model": "gpt-6-luna",
+  "id": "S0844",
+  "proved_step": "statement: Let F be a nonempty finite set of accepted length-N streams, and let P_t={p in {0,1}^t: p is a prefix of some f in F}, L_t=|P_t|, and let d_t be 1 if some length-t prefix is not in P_t and 0 otherwise. In the full-search model, in which distinct live prefixes at layer t must occupy distinct states and a dead prefix must occupy a state disjoint from all live-prefix states, every layer-t state space has size at least L_t+d_t; hence an S-bit machine must satisfy 2^S >= L_t+d_t. Proof: The L_t live prefixes inject into layer-t states by the model's full-search requirement, so their image has size L_t. If d_t=1, take a dead prefix r. Its state is required to be outside that image by dead/live separation, adding at least one state. If d_t=0 there is no additional state requirement. Therefore the number of layer-t states is at least L_t+d_t. Since S bits encode at most 2^S states, the inequality follows. The bound is sharp as a pure counting bound: assigning distinct codes to the L_t live prefixes and, when needed, one further code to a dead prefix uses exactly L_t+d_t codes; this does not assert that transitions or a final decoder can be implemented within any gate/size budget.\nscope: Every finite language F subseteq {0,1}^N, every 0<=t<=N, full-search layered deterministic machines under the binding requirement that live prefixes are pairwise state-distinct and dead prefixes have codes disjoint from live codes. This establishes only state capacity, not transition cost G_max or decoder cost D.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795732280.5570905,
+  "session": "pnp-desk/research/R4511",
+  "model": "gpt-6-luna",
+  "id": "S0845",
+  "proved_step": "statement: For any finite language F subseteq {0,1}^N under the binding full-search semantics, there is a layered deterministic transducer that uses exactly L_t + d_t states at each layer t, where P_t is the set of length-t prefixes of members of F, L_t=|P_t|, and d_t=1 iff some length-t string is outside P_t. Thus its maximum layer width is max_t (L_t+d_t).\nscope: Finite binary languages; state width only. No bound on update gates G_max or decoder cost D.\nproof: At layer t, assign one distinct state to each p in P_t and, if d_t=1, one additional state \u22a5_t for all non-live prefixes. On input bit b, the state for p transitions to the state for pb when pb is live, and otherwise to \u22a5_{t+1}; \u22a5_t transitions to \u22a5_{t+1}. At the final layer, the live states are exactly the accepted words, and the dead state, when present, is rejecting. A final decoder can associate each live word-state with its required search witness. The construction uses exactly L_t+d_t states at layer t. Conversely, the binding semantics require L_t distinct live states and a separate dead state when one exists, so no machine in this model can use fewer at that layer. This establishes an exact state-width optimum, not an update-circuit or decoder optimum.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795732767.6286337,
+  "session": "pnp-desk/research/R4514",
+  "model": "gpt-6-luna",
+  "gap": "The exact minimum G_max at a fixed meaningful state width S<N and decoder budget D remains open for SC_{3,1}, SC_{3,2}, and matched controls. This generic truth-table upper bound is exponential in S and does not determine the Pareto frontier or resolve whether cheap updates merely shift work into D.",
+  "gap_id": "G0199",
+  "id": "S0846",
+  "proved_step": "statement: For any deterministic layered transducer update F_t:{0,1}^S\u00d7{0,1}->{0,1}^S, each output coordinate has an exact DNF with at most 2^(S+1) minterms, and hence an AND/NOT implementation with at most (S+1)2^(S+1) AND gates plus 2^(S+1) NOT gates per coordinate (OR is implemented by De Morgan). Thus the whole update has at most S((S+1)2^(S+1)+2^(S+1)) nonconstant gates; this also implements any prescribed reachable transitions because unreachable inputs can be assigned arbitrarily.\nproof: Fix an output coordinate j. For each input u=(q,b) in {0,1}^{S+1} with F_t(u)_j=1, form the minterm M_u=AND_{k=1}^{S+1} l_{u,k}, where l_{u,k} is input k if u_k=1 and its negation otherwise. The disjunction of these minterms evaluates to 1 exactly on the inputs whose jth output bit is 1, so it equals F_t(\u00b7)_j on the entire domain. Each minterm uses at most S AND gates after its literals are available; counting literals conservatively gives at most S+1 AND gates per minterm. Negating each input uses at most S+1 NOT gates, shared across all minterms and outputs (the displayed bound conservatively charges them per output). Implement the disjunction by De Morgan using NOT and AND; charging at most one additional NOT per minterm yields the stated conservative per-output count. Summing over S outputs gives the claimed bound. Since the target transition is specified only on reachable code/bit pairs, extend it arbitrarily to the remaining Boolean inputs and apply the construction.\nscope: All S>=1 and all finite deterministic one-bit layered updates with S-bit states; basis AND, NOT, constants, fan-out free. A coarse constructive upper bound only; it gives no lower bound or minimum G_max and does not establish the required fixed-(S,D) Pareto point for SC_{n,s}.\nevidence: Pending independent finite verification of the minterm realization via the requested code_run; proof is by direct truth-table construction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795732825.365816,
+  "session": "pnp-desk/research/R4514",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0846's stated NOT-gate allowance is insufficient: it does not count the input negations needed to form the DNF literals. The minterm construction remains valid; only its claimed gate bound is refuted.",
+  "evidence": "For an S-bit state and one input bit, a minterm has S+1 literals and requires up to S AND gates. Forming literals requires up to S+1 input NOT gates. Combining m minterms by De Morgan requires up to m minterm NOT gates, m-1 AND gates, and one final NOT gate. Thus the earlier NOT count of 2^(S+1) per output omitted up to S+1 input negations.",
+  "id": "S0847",
+  "proved_step": "statement: For every integer S>=1, every Boolean update F:{0,1}^{S+1}->{0,1}^S has an exact implementation over AND, NOT, and constants using at most S((S+2)2^(S+1)+S+2) nonconstant gates, with unrestricted fan-out. Consequently any prescribed deterministic transition on reachable state/input pairs admits such an implementation after arbitrary extension to unreachable pairs.\nproof: Put m=2^(S+1). For each output coordinate j, list the a<=m inputs u on which F(u)_j=1. For each such u, form its minterm as the AND of the S+1 literals matching u; this uses at most S AND gates per minterm and at most S+1 NOT gates total to create all complemented input literals. The output is the OR of these a minterms. By De Morgan, compute it as NOT(AND_i NOT(M_i)). This uses a NOT for each minterm, at most a-1 AND gates to combine them, and one final NOT. Thus the coordinate uses at most aS+(a-1) <= (S+1)m AND gates and at most (S+1)+a+1 <= m+S+2 NOT gates. Its total is at most (S+2)m+S+2. Summing over S coordinates gives S((S+2)2^(S+1)+S+2). For a transition specified only on reachable inputs, assign arbitrary output values elsewhere to obtain a total Boolean map and apply the construction.\nscope: All S>=1; deterministic one-bit updates on S-bit states; AND/NOT/constants basis, nonconstant gates counted, fan-out free. This is a coarse universal upper bound. It establishes no lower bound or minimum G_max and does not resolve the fixed decoder budget for Lemma M.\nevidence: Finite truth-table VERIFICATION experiment cm-682739b653414061 checked the minterm realization for every Boolean function on S+1 input bits for S=1,2,3. The gate bound follows from the explicit construction and count above.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795733269.9901397,
+  "session": "pnp-desk/research/R4514",
+  "model": "gpt-6-luna",
+  "id": "S0848",
+  "proved_step": "statement: Let S>=1 and F:{0,1}^{S+1}->{0,1}^S be a total Boolean update. For output coordinate j let a_j be the number of input rows on which F_j=1, and let J={j:a_j>0}. Then F has an AND/NOT circuit with free constants and unrestricted fan-out using at most sum_{j in J}((S+2)a_j+S+2) nonconstant gates. Consequently, if every nonzero output support has size at most r and at most k output coordinates are nonzero, the update uses at most k((S+2)r+S+2) gates.\nproof: For each j in J, form a minterm M_u for each u in A_j={x:F_j(x)=1}. Each minterm is a conjunction of S+1 literals and uses at most S binary AND gates. All input complements are shared and require at most S+1 NOT gates total across all outputs. Compute F_j=OR_{u in A_j} M_u as NOT(AND_{u in A_j} NOT(M_u)). This uses a_j NOT gates to negate minterms, at most a_j-1 AND gates to combine them, and one final NOT gate. Charging the shared input complements to this coordinate as an upper bound, its cost is at most S*a_j+(a_j-1)+(S+1)+a_j+1=(S+2)*a_j+S+1, no larger than (S+2)*a_j+S+2. Coordinates outside J are free constant 0. Summing proves the first claim. If |J|<=k and a_j<=r for j in J, each summand is at most (S+2)*r+S+2, proving the consequence.\nscope: All S>=1 and total one-bit-input updates on S-bit states; AND/NOT gates, free constants, unrestricted fan-out. The sparsity parameters are exact support sizes, not assumed small. This is a support-sensitive constructive upper bound only and does not determine the minimum G_max or fixed-decoder Pareto frontier for SC_{3,1}/SC_{3,2}.\nevidence: Direct construction and gate count.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0199",
+  "closes_valid": false
  }
 ]

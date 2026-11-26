@@ -7555,5 +7555,39 @@
   "proved_step": "statement: Lemma (Essential variables of MCSP decision): For all sufficiently large m and any fixed c >= 1, let s = m^c and let F_s: {0,1}^{2^m} -> {0,1} be the MCSP decision function (F_s(TT) = 1 iff the Boolean function with truth table TT has fan-in-2 circuit size <= s). Then every one of the 2^m input variables of F_s is essential. That is, for every index i in {0,1}^m, there exist truth tables f, g differing only at position i such that F_s(f) = 1 and F_s(g) = 0.\n\nProof: \n1. (Existence of an easy function with a hard neighbor at some position) By the standard gate-counting bound (S0005), |F_s| <= (s+1)(N+s+1)(8(N+s)^2)^s where N = 2^m. This is at most 2^{O(s log N)} = 2^{O(m^{c+1})}. For sufficiently large m, 2^{O(m^{c+1})} < 2^N / (N+1) because 2^N = 2^{2^m} grows doubly-exponentially in m while the bound is singly-exponential. If every f in F_s had all N neighbors also in F_s, then the union of radius-1 Hamming balls around F_s would be contained in F_s, implying |F_s| * (N+1) >= 2^N (since every function is either in F_s or at distance >= 2 from F_s, but the complement has size 2^N - |F_s| > 0). This contradicts |F_s| < 2^N/(N+1). Hence there exists some f_0 in F_s and some i_0 in {0,1}^m such that flipping bit i_0 yields g_0 not in F_s.\n\n2. (Symmetry under input permutations) For any permutation pi in S_m of the m input variables, define the action on truth tables by (pi * TT)(x) = TT(pi^{-1}(x)). If a function f has a circuit C of size <= s, then f o pi has a circuit of the same size (obtained by permuting the input wires of C according to pi). Thus C(f o pi) = C(f), so F_s(pi * TT) = F_s(TT). The action of S_m on {0,1}^m is transitive: for any i, j in {0,1}^m there exists pi with pi(i_0) = j.\n\n3. (All positions are essential) For any target position j, choose pi with pi(i_0) = j. Let f = pi * f_0 and g = pi * g_0. Then f and g differ only at position j (since f_0 and g_0 differ only at i_0). We have F_s(f) = F_s(f_0) = 1 and F_s(g) = F_s(g_0) = 0. Thus bit j is essential for F_s. Since j was arbitrary, all 2^m variables are essential.\n\nScope: All m >= m_0(c), all c >= 1, fan-in-2 circuits with free fan-out and constants. The lemma is a structural property of the MCSP decision function itself, not of the functions in F_s.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795732091.1357307,
+  "session": "pnp-desk/research/R4512",
+  "model": "gpt-6-luna",
+  "lemma": "For N=2^m and r<=N/2 with mr-1<=s, every m-input Boolean function whose smaller truth-table support has size at most r has fan-in-two AND/OR circuit size at most s with free input negations. Consequently MCSP[s] accepts at least 2*sum_{i=0}^r binom(N,i) truth tables (a lower bound also at r=N/2). Proof: for support q>=1, use a q-term DNF if the one-set is smaller and a q-clause CNF if the zero-set is smaller. Each term/clause costs m-1 gates and combining q terms/clauses costs q-1, totaling mq-1<=mr-1<=s. For q=0 the function is constant. The support families are disjoint when r<N/2; when r=N/2 they coincide only at balanced supports, so the expression remains a lower bound."
+ },
+ {
+  "at": 1795732564.8755643,
+  "session": "pnp-desk/research/R4512",
+  "model": "gpt-6-luna",
+  "evidence": "The edge-count proof as written has a gap: an essential input can reach the output only through a gate that also has an edge from an inessential input; deleting all nonessential input vertices need not preserve connectivity of the retained graph. The conclusion itself is repairable: retain the entire output cone, including all input vertices, and let h be the number of input vertices in that cone. Its underlying undirected graph is connected and has at least h+g'-1 edges, while at most 2g' wires enter its gates plus any source/constant vertices. This latter count does not generally bound edges by 2g', so the stated proof does not establish g>=k-1 under the given model. A corrected bound requires treating constants and input vertices carefully, or a different argument; the claim should not be accepted on this proof.",
+  "review_of": "S0826",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795733388.312239,
+  "session": "pnp-desk/research/R4520",
+  "model": "gpt-6-luna",
+  "evidence": "Complete constructive proof is contained in the statement. Independently checked the truth-table identity h=g XOR 1_D on all m<=3 truth tables and all flip sets of size at most 2 via physalis_code_run; finite verification only. The bound is explicitly scoped to fan-in-two AND/OR/NOT circuits with charged NOT gates and free fan-out.",
+  "id": "S0874",
+  "proved_step": "statement: Correction-cost lemma. Let m>=1, let g:{0,1}^m->{0,1} have a fan-in-two AND/OR/NOT circuit of size s with free fan-out, and let h differ from g on a set D of r truth-table positions. Then h has such a circuit of size at most s+rm+m+4. Proof: Let P be the indicator of D. For each a in D take its width-m minterm. The OR of these r minterms costs r(m-1)+(r-1)=rm-1 binary AND/OR gates when r>=1; all needed negated input literals are shared using at most m NOT gates. (For r=0, P=0.) Compute h=g XOR P using (g AND NOT P) OR (NOT g AND P), with at most five gates including the two NOT gates. Thus for r>=1 the total added size is at most rm-1+m+5 <= rm+m+4; for r=0 no added gates are needed. This lemma bounds the circuit cost of correcting a bounded number of truth-table entries, but does not lower-bound the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795733817.7400486,
+  "session": "pnp-desk/research/R4520",
+  "model": "gpt-6-luna",
+  "evidence": "The proof constructs the disagreement indicator exactly as a minterm DNF and combines it with g by XOR. For d>=1 the gate count is dm-1 plus at most five gates; for d=0 no gates are needed. Since d<=r, the claimed bound follows. The construction is exact for every truth-table pair; cm-d19355457ab54cd2 independently checked the support-based count on its stated finite range, but is not needed for the proof.",
+  "id": "S0875",
+  "proved_step": "statement: Bounded truth-table correction lemma. Let m>=1, N=2^m, and let g,h:{0,1}^m->{0,1} differ on at most r positions. In the fan-in-two AND/OR basis with free input negations, the circuit size of h is at most the circuit size of g plus rm+m+4. Proof: Let D be the disagreement set, of size d<=r. Compute P as the OR of the d minterms indexed by D; for d>=1 this uses d(m-1)+(d-1)=dm-1 AND/OR gates, and all negated input literals are available under the free-negation convention. For d=0 use P=0. Then h=g XOR P. Implement XOR with (g AND NOT P) OR (NOT g AND P), using at most five binary AND/OR/NOT gates beyond the circuits for g and P. For d>=1 the added cost is at most dm-1+5<=rm+4<=rm+m+4; for d=0 the added cost is zero. Scope: every m>=1, every pair g,h and every r>=0, with fan-out free, constants available, and input negations uncharged. The exhaustive check cm-d19355457ab54cd2 found no violations for all truth tables through m=4 and all flip sets of size at most two; it is finite evidence only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
