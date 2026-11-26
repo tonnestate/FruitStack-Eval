@@ -1,12 +1,15 @@
-PROOF LEDGER of this problem (kept across missions; 16853 entries from 5538 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 16937 entries from 5564 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
+  - The rank of a submatrix is at most the rank of the matrix
+PREMISES: 
+PROOF:
+SOURCE: proofbook seq 57; mission pi-theory-T1-T2; author model claude-opus-5-5; claim hash d981059752cbd2cd; registered by pnp_autoreview
   - CJW20-T5.5-GAP: Gap-MCSP[N^beta/(K m), N^beta] has no probabilistic De Morgan formula of size N^{2+beta-eps}
   - T07: every De Morgan circuit C of size S with r gates of fan-out > 1 has formula size L(C) <= 2^r (2S+1)
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
   - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
 derivation: Assume such an m1 exists. Instantiat
   - For the cyclic 1-in-3 CNF C_n with clauses {x_i, x_{i+1}, x_{i+2}} (indices mod n, n>=3), with exactly-one constraint per clause, C_n is satisfiable over {0,1} if and only if 3 divides n.
-  - Let X and Z be finite sets, and let E = {E_1,...,E_k} (k >= 1) be relations E_i subset of X x Z with projection pi: X x Z -> X. Let H = pi(intersection of all E_i) be nonempty. Assume COND: if k >= 2 then for every j in {1,...,k}, pi(intersection of E_i over i
 CITED from the literature (not machine-checked here):
   - OPS21 (ToC v017a011, abstract-page theorem, numbering as Thm 1.4 unconfirmed): exists c>=1; if exists eps>0 such that for every small enough beta>0 Gap-MCSP[2^{beta n}/(cn), 2^{beta n}] notin Circuit[N^{1+eps}] then NP notsubset Circuit[poly] (hence P != NP) (
   - Thm 4.1, Thm 5.4, Cor 6.2 of the owner's paper (as stated there). PAPER SETTING: G=(V,E) finite graph, F field, K subspace of F^I, blocks I_v; pi_X: K -> prod_{v in X} F^{I_v}. (R) rank pi_X >= d|X| for all X subset V; (L) z,z' in K with z|v != 0 != z'|v => su
@@ -19,12 +22,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For truth-table functions f on m-bit inputs, if a coordinate restriction has one constant cofactor and one nonconstant cofactor, its circuit complexity differs from that of the nonconstant cofactor by at most one gate in the unrestricted fan-in-two basis; cons
+  - For permutations with large order L relative to the allowed phase-register capacity, periodic decoder schedules cannot be implemented with fewer than ceil(log2 L) phase bits.
   - D6'' (repair attempt for R', conditional): surviving narrow reused gates need not be paid in CORRELATION (AF budget N^{beta-eta}); they can be paid in formula SIZE. After the restriction a reused gate g with k_g live variables computes a function of k_g variab
   - For every m>=1 and threshold s, every m-bit truth table with at most floor((s+1)/m) satisfying inputs belongs to MCSP[s] in the free-input-negation fan-in-two basis.
   - INFORMATION THRESHOLD of AF vs magnification: AF can reach at most gamma < t = N^beta reused gates (seed >= log 1/delta, YES complexity <= t). The CHOPRS20 Thm 29 / Lemma 27 almost-formulas that magnification needs carry gamma = 2^{O(n^lambda)} >= t log t reus
   - AF (conditional, replaces the size budget by a correlation budget): let beta in (0,1), eta>0. Assume (P1) a local PRG fooling De Morgan formulas of size s with error delta <= 2^{-gamma}/10, seed and per-bit circuit size <= N^{beta-eta}; (P2) a pseudorandom res
-  - For the explicit survivor-bitset representation of EXT over a fixed family D, position-specific next-bit transitions require at most M coordinate gates plus a decoder OR tree of at most M−1 gates, where M=|D|; the remaining bridge to arbitrary MCSP decision ci
-  - For every rational subspace U of Q^m with dimension r and every integer box [-L,L]^m, coordinate projection onto some r ambient coordinates is injective on U; hence |U intersect Z^m intersect [-L,L]^m| <= (2L+1)^r. Test/refutation criterion: find U and L with 
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
@@ -33,17 +36,17 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3321 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3327 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-7828a2a6e1 [MISSING_PROOF, OPEN] CLOSURE-B (owner 2026-11-26) RESIDUAL R' - supersedes the D6 part of seq 16784. D6 is REFUTED (seq 16839, window-parity counterexample); use D6' (seq 16840) and the hypothesis D6'' (director/closure-intervention). Task 1
+  - Q-1c841c90f7 [MISSING_PROOF, OPEN] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve
+  - Q-7828a2a6e1 [MISSING_PROOF, PURSUED] CLOSURE-B (owner 2026-11-26) RESIDUAL R' - supersedes the D6 part of seq 16784. D6 is REFUTED (seq 16839, window-parity counterexample); use D6' (seq 16840) and the hypothesis D6'' (director/closure-intervention). Task 1
   - Q-88090df9cf [MISSING_PROOF, OPEN] VERIFY (owner 2026-11-26, cross-family) DIRECTOR DERIVATIONS: the steps in this question's proof state were written by the Claude family (director). Review each step against its stated premises and the primary sources; r
-  - Q-4c4127e83e [MISSING_PROOF, OPEN] UNIFORM-QE (owner 2026-11-26) UNIFORM ONLY - route M without circuit lower bounds. Target (40a)/M1: exists A in PH and s such that search-MCSP^A[s] has NO uniform deterministic streaming algorithm with poly(s) space and 
   - Q-47a55293d1 [MISSING_PROOF, OPEN] CLOSURE-D (owner 2026-11-26) UNIFORM STATE COLLISIONS - supersedes seq 16783; no other D work. Read CJ1-CJ4 (director/closure-quant) first. Reduction (CJ2, done): it suffices to construct, for every admissible DETERMINIS
   - Q-aea782b366 [MISSING_PROOF, OPEN] CLOSURE-FG (owner 2026-11-26) CANONICAL WITNESSES AND SIMPLE HITTING SETS: F1 and G1 are in the proofbook (F = route M with a Sigma_2 canonicaliser; G = restatement unless H is explicit, structured and uniformly selected
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):

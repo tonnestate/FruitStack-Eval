@@ -7283,5 +7283,145 @@
   "kind": "LEMMA",
   "closes": "D2",
   "closes_valid": false
+ },
+ {
+  "at": 1795713006.115064,
+  "session": "pnp-desk/research/R4400",
+  "model": "gpt-6-luna",
+  "id": "S0851",
+  "proved_step": "statement: For every m>=1 and Boolean functions f,g:{0,1}^m->{0,1} differing on t inputs, fan-in-at-most-two circuits over AND, OR, NOT and constants with free fan-out satisfy C(g)<=C(f) when t=0 and C(g)<=C(f)+mt+4 when t>=1. Proof: Let h be the indicator of the disagreement set. A DNF for h has t minterms, costing t(m-1)+(t-1)=mt-1 gates. Then g=f XOR h=(f AND NOT h) OR (NOT f AND h), costing two NOT and three binary gates. Substitution gives C(g)<=C(f)+(mt-1)+5. For t=0, f=g. Exact scope: arbitrary Boolean functions and the stated circuit basis/size convention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795713063.001159,
+  "session": "pnp-desk/research/R4400",
+  "model": "gpt-6-luna",
+  "id": "S0852",
+  "proved_step": "statement: Let m>=1 and let f,g:{0,1}^m->{0,1} differ exactly on an affine subspace D of codimension k>=1 over GF(2). In fan-in-at-most-two circuits over AND, OR, NOT, 0, 1, with free fan-out and gate-count size, C(g)<=C(f)+4mk-2k+4. Proof: Write D as k independent affine equations a_i dot x=b_i. For each equation, compute parity of its w_i nonzero variables by a chain of w_i-1 XOR gates; implement each XOR using four AND/OR/NOT gates, and invert once if needed to test parity zero. This costs at most 4m-3 gates per equation. AND the k equation indicators using k-1 gates, obtaining h=1_D at cost at most k(4m-3)+(k-1)=4mk-2k-1. Then g=f XOR h, implemented with two NOT and three binary gates, adds five gates. Thus the total overhead is at most 4mk-2k+4. Exact scope: all affine subspaces of positive codimension and the stated Boolean circuit model. This is a structured disagreement-set patch bound; it does not imply a lower bound for MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795713127.8601048,
+  "session": "pnp-desk/research/R4400",
+  "model": "gpt-6-luna",
+  "id": "S0853",
+  "proved_step": "statement: Cofactor lemma. Let m>=1, f:{0,1}^m->{0,1}, and f_b be the (m-1)-variable cofactor obtained by fixing the last input to b, for b in {0,1}. In fan-in-at-most-two circuits over AND, OR, NOT, 0, 1 with free fan-out and gate-count size, C(f_b)<=C(f) for each b, and C(f)<=C(f_0)+C(f_1)+4. Proof: Substitute the constant b for the last input in a minimum circuit for f; this computes f_b without adding gates, so C(f_b)<=C(f). For the upper bound, take circuits for f_0 and f_1 and combine their outputs as f=(NOT x_m AND f_0) OR (x_m AND f_1). This uses one NOT and three binary gates, hence four additional gates. Exact scope: every m>=1 and the stated basis and size convention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795713175.1577628,
+  "session": "pnp-desk/research/R4400",
+  "model": "gpt-6-luna",
+  "id": "S0854",
+  "proved_step": "statement: Shannon cofactor construction (corrected verification indexing). For m>=1, write an input as (y,b) with y in {0,1}^{m-1} and b in {0,1}; define f_b(y)=f(y,b). For fan-in-at-most-two circuits over AND, OR, NOT, 0, 1 with free fan-out and gate-count size, C(f_b)<=C(f), and C(f)<=C(f_0)+C(f_1)+4. Proof: Substitute the constant b for the last input in a minimum circuit for f, preserving all gates and possibly simplifying, so C(f_b)<=C(f). Conversely, given circuits for f_0 and f_1, compute (NOT b AND f_0(y)) OR (b AND f_1(y)); this uses one NOT and three binary gates, computes f(y,b) for both b values, and yields the bound. Exact scope: all m>=1 and this circuit model. The corrected truth-table convention indexes f_0 by y and f_1 by y+2^(m-1) when the last coordinate is the most significant bit.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795713272.018596,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0851: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean checks verified only that the proposed DNF cost omits NOT gates for negative literals; they did not prove or refute the circuit-size inequality. I could not produce a faithful circui (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795713398.745253,
+  "session": "pnp-desk/research/R4408",
+  "model": "gpt-6-luna",
+  "id": "S0855",
+  "proved_step": "statement: For integers m>=1 and s>=0, let F_{m,s} be the Boolean functions on {0,1}^m computable by fan-in-at-most-two circuits over AND, OR, NOT and constants, with free fan-out, and count each gate once. Then |F_{m,s}| <= (s+1)(m+s+2)[3(m+s+2)^2]^s. Consequently the fraction of length-N truth tables accepted by MCSP[s], N=2^m, is at most this quantity divided by 2^N.\nproof: For each g<=s, topologically order the g gates. Each gate has at most 3 choices of type and at most (m+g+2)^2 ordered choices of sources (m primary inputs, two constants, and at most g gate outputs). This overcounts by permitting later gates and invalid cycles, and by giving NOT gates two sources. The output selector has at most m+g+2 choices. Thus the number of descriptions with g gates is at most (m+g+2)[3(m+g+2)^2]^g. Summing over g=0,...,s and upper-bounding each factor by its value at s gives at most (s+1)(m+s+2)[3(m+s+2)^2]^s descriptions. Every function in F_{m,s} has a description, so |F_{m,s}| is at most this count. There are 2^(2^m) functions on m bits, proving the density consequence.\nscope: All m>=1 and integer s>=0; fan-in-at-most-two Boolean circuits, free fan-out, constants, output selected from input/constant/gate. This bounds the density of accepted truth tables only and does not lower-bound the circuit complexity of the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795713964.9776235,
+  "session": "pnp-desk/research/R4408",
+  "model": "gpt-6-luna",
+  "id": "S0856",
+  "proved_step": "statement: Transitive-symmetry essentiality lemma. Let G act transitively on the coordinates of {0,1}^N by coordinate permutations. If F:{0,1}^N->{0,1} satisfies F(x)=F(gx) for every g in G and is nonconstant, then every coordinate of F is essential. Proof: If coordinate i is inessential, then for any coordinate j, transitivity gives g with g(i)=j. For any x, invariance gives F(x)=F(g^{-1}x); the vectors x and g^{-1}x differ only at coordinate i when x is replaced by x xor e_j? More directly, invariance transports insensitivity: F(x)=F(x xor e_j) follows by applying invariance to x and x xor e_j after choosing g with g(i)=j, since g^{-1} sends e_j to e_i. Thus F is insensitive to every coordinate, hence constant, contradiction. Therefore all N coordinates are essential. In the fan-in-at-most-two circuit model with free fan-out, this implies at least N-1 gates by the connected-output-cone edge count: with k=N essential input vertices and g' gate vertices in the output cone, connectivity requires at least N+g'-1 distinct edges, while at most 2g' wires enter gates; hence g'>=N-1.\nscope: All finite N, all transitive permutation groups G on the N input coordinates, and all G-invariant nonconstant Boolean functions; circuit consequence in fan-in-at-most-two circuits with free fan-out and constants.\nlimitation: The lemma applies to an MCSP truth-table decision function only after proving invariance under a transitive group of truth-table-position permutations and nonconstancy for the chosen threshold. The resulting N-1 bound is linear and does not prove the assigned N(log N)^k target.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714132.3180609,
+  "session": "pnp-desk/research/R4408",
+  "model": "gpt-6-luna",
+  "id": "S0857",
+  "proved_step": "statement: Let N>=1, let G be a transitive group of coordinate permutations of {0,1}^N, and let F:{0,1}^N->{0,1} satisfy F(gx)=F(x) for all g,x. If F is nonconstant, every coordinate is essential. Proof: Suppose coordinate i is inessential, so F(y)=F(y xor e_i) for every y. Fix j and choose g in G with g(i)=j. Then g^{-1}e_j=e_i. For arbitrary x, invariance gives F(x)=F(g^{-1}x), and F(x xor e_j)=F(g^{-1}(x xor e_j))=F(g^{-1}x xor e_i)=F(g^{-1}x), using inessentiality of i. Thus F is insensitive to every coordinate and hence constant, contradiction. Circuit corollary: in a fan-in-at-most-two circuit with free fan-out and constants, the output cone contains all N essential inputs and g' gate vertices. Its underlying graph is connected, so has at least N+g'-1 distinct edges; at most 2g' wires enter gates. Thus g'>=N-1.\nscope: All finite N>=1 and transitive coordinate-permutation groups; circuit corollary for fan-in-at-most-two circuits with free fan-out and constants.\nlimitation: This proves only an N-1 gate lower bound. It does not establish the assigned N(log N)^k lower bound for MCSP[m^c].",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714252.5247092,
+  "session": "pnp-desk/research/R4408",
+  "model": "gpt-6-luna",
+  "id": "S0858",
+  "proved_step": "statement: Cofactor reconstruction with constant and equal branches. Let f:{0,1}^m\u2192{0,1}, and let f_0,f_1 be its cofactors at coordinate i. In the fan-in-at-most-two basis {AND, OR, NOT, 0, 1} with free fan-out, C(f)\u2264C(f_0)+C(f_1)+4; if f_0 is constant 0, then C(f)\u2264C(f_1)+1, if f_0 is constant 1, then C(f)\u2264C(f_1)+2, and if f_0=f_1, then C(f)\u2264C(f_0). Proof: In general compute (\u00acx_i\u2227f_0)\u2228(x_i\u2227f_1), using at most four gates (one NOT, two AND, one OR). If f_0=0, use x_i\u2227f_1; if f_0=1, use \u00acx_i\u2228f_1; if f_0=f_1, output the shared cofactor circuit directly, since the function is independent of x_i. The symmetric cases follow by swapping the branch labels and using \u00acx_i where needed.\nscope: Every m\u22651, every Boolean function and coordinate, with minimum circuit size over fan-in-at-most-two AND/OR/NOT/constants and free fan-out.\nlimitation: This is a local reconstruction inequality only. It gives no lower bound on MCSP[m^c] circuit size without an additional argument showing many restricted subproblems have suitably expensive and distinct cofactors.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714356.891215,
+  "session": "pnp-desk/research/R4408",
+  "model": "gpt-6-luna",
+  "id": "S0859",
+  "proved_step": "statement: For f(x,y)=not x OR y, the x=0 cofactor is constant 1 and the x=1 cofactor is y; the function is computable in two gates but not in at most one gate in the fan-in-at-most-two AND/OR/NOT basis with constants and free input wires.\nscope: The two-input function and the stated circuit basis only.\nproof: Truth table in lexicographic input order is (1,1,0,1). A zero-gate output is an input wire or constant, none of which has this truth table. A one-gate output is NOT of an input, or AND/OR of two input wires/constants. Direct enumeration of these possibilities gives no target truth table. The construction NOT x followed by OR with y uses two gates.\nlimitation: This finite counterexample refutes only the proposed one-extra-gate reconstruction claim; it does not address the general MCSP lower-bound obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714897.684463,
+  "session": "pnp-desk/research/R4416",
+  "model": "gpt-6-luna",
+  "id": "S0860",
+  "proved_step": "statement: Sparse-table constructive MCSP lemma. For every integer m>=1, put N=2^m and let f be a Boolean function on m input bits with t satisfying inputs. In the fan-in-two basis {AND, OR, NOT, 0, 1}, with free fan-out and size counting gates, if t>=1 then C(f)<=tm-1; if t=0 then C(f)=0. Consequently for every integer s>=0, every truth table with at most floor((s+1)/m) ones is a yes-instance of MCSP[s]. Proof: For each satisfying input a in {0,1}^m construct the minterm M_a as the AND of the m input literals that agree with a, using a binary AND tree of m-1 gates (for m=1 this uses zero gates). OR the t minterms using t-1 binary OR gates (zero if t=1). At input x, M_a(x)=1 exactly when x=a, so the OR is 1 exactly on the support of f and computes f. The total is t(m-1)+(t-1)=tm-1. For t=0 the constant-zero circuit has zero gates. If t<=floor((s+1)/m), then tm-1<=s, proving the consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795714968.2301772,
+  "session": "pnp-desk/research/R4416",
+  "model": "gpt-6-luna",
+  "id": "S0861",
+  "proved_step": "statement: Nonconstancy and linear decision-circuit lower bound for polynomial-threshold MCSP. Fix an integer c>=1. For all sufficiently large m, let N=2^m and s=m^c, and define h_m:{0,1}^N->{0,1} by h_m(T)=1 iff the truth table T is computed by a fan-in-at-most-two Boolean circuit over AND, OR, NOT, constants, with free fan-out and at most s gates. Then h_m is nonconstant, every one of its N input coordinates is essential, and every fan-in-at-most-two circuit computing h_m has at least N-1 gates. Proof: The constant-zero function has a zero-gate circuit, so h_m(0^N)=1. A topologically ordered circuit with j gates has at most 5^j(m+j)^(2j) descriptions: each gate has at most five types, and at most two predecessor wires chosen from the m inputs and earlier gates. Summing over j=0..s gives at most (s+1)5^s(m+s)^(2s) descriptions. For fixed c and s=m^c, the base-2 logarithm of this bound is O(m^c log m), which is less than 2^m for all sufficiently large m. There are 2^(2^m) truth tables, so some table is not computed by any such circuit; h_m is nonconstant. For a in {0,1}^m, translating table indices by x -> x xor a preserves circuit size, by relabeling each input wire accordingly; the inverse translation is the same operation. Thus h_m is invariant under every such translation. These translations act transitively on the N table positions. If h_m were insensitive to one coordinate, translation invariance would make it insensitive to every coordinate, forcing it to be constant, a contradiction. Hence all N coordinates are essential. In a fan-in-at-most-two circuit computing a function depending on all N inputs, its output cone is connected and contains the N essential input vertices and g gate vertices. It has at least N+g-1 distinct undirected edges, while its gates contribute at most 2g incoming wires. Therefore g>=N-1. Scope: fixed c>=1 and all sufficiently large m, for the stated basis and gate-count convention. This gives only a linear lower bound for MCSP[m^c], not the target N(log N)^k bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795715024.4177577,
+  "session": "pnp-desk/research/R4416",
+  "model": "gpt-6-luna",
+  "id": "S0862",
+  "proved_step": "statement: Corrected description-count nonconstancy lemma for MCSP. Fix c>=1, let N=2^m and s=m^c, and define h_m(T)=1 iff T is computed by a fan-in-at-most-two circuit with j<=s gates over {AND, OR, NOT, 0, 1}, with m input variables and free fan-out. For all sufficiently large m, h_m is nonconstant. Proof: For each j, encode a circuit by a topological list of j gates, a type per gate, at most two predecessor indices per gate chosen from the m inputs and j earlier gate positions, and a designated output wire among the m+j wires. This gives at most 5^j(m+j)^(2j+1) descriptions; unused predecessor slots in a unary or constant gate are allowed as overcounting. Summing j=0..s gives at most (s+1)5^s(m+s)^(2s+1) descriptions. Its base-2 logarithm is O(s log(m+s))=O(m^c log m), which is less than N=2^m for sufficiently large m. Hence fewer than 2^N truth tables are computed by size-s circuits. The zero table is computed by a constant-zero circuit, so h_m takes both values. Scope: fixed c, sufficiently large m, exact stated basis and gate-count convention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795715474.92382,
+  "session": "pnp-desk/research/R4416",
+  "model": "gpt-6-luna",
+  "id": "S0863",
+  "proved_step": "Lemma: Let N=2^m and H:{0,1}^N->{0,1} be invariant under input-assignment translations P_a, where (P_aT)_x=T_{x xor a}. If H is nonconstant, it depends on every table coordinate. Proof: Suppose H omits coordinate x. For any y, choose a=x xor y. If T,T' differ only at y, then P_aT and P_aT' differ only at x. Thus H(P_aT)=H(P_aT'); translation invariance gives H(T)=H(T'), so H omits y. This holds for all y, contradicting nonconstancy. A fan-in-at-most-two circuit with free fan-out computing H therefore has at least N-1 gates: its output cone is connected, contains the N essential input vertices and g gate vertices, has at least N+g-1 edges and at most 2g incoming wires, so g>=N-1. MCSP_s is invariant under input-assignment translations because x->x xor a is a circuit-size-preserving input renaming. Combined with S0862, this gives only a linear bound, not the target superlinear bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795715782.3948715,
+  "session": "pnp-desk/research/R4416",
+  "model": "gpt-6-luna",
+  "id": "S0864",
+  "proved_step": "statement: For every m>=1, every Boolean function f:{0,1}^m->{0,1}, every coordinate i, and every integer d with 0<=d<=m, let f|rho range over the 2^d cofactors obtained by fixing the first d coordinates in any fixed ordering beginning with i. In the fan-in-two AND/OR/NOT/constant circuit model with free fan-out, C(f) <= sum_rho C(f|rho) + 4(2^d-1). Proof: for d=0 equality holds. For d>=1, partition the restrictions by the last fixed bit. For each restriction rho to the first d-1 coordinates, f|rho is reconstructed from its two next cofactors h0,h1 by (NOT x) AND h0 OR x AND h1, using two AND gates and one OR gate, with NOT x either shared globally or counted once. Thus C(f|rho) <= C(h0)+C(h1)+4. Summing over the 2^(d-1) prefixes gives sum_{|rho|=d-1} C(f|rho) <= sum_{|rho|=d} C(f|rho)+4*2^(d-1). Iterating yields C(f) <= sum_{|rho|=d} C(f|rho)+4 sum_{j=0}^{d-1}2^j = sum C(f|rho)+4(2^d-1).\nscope: All Boolean functions on m variables, fixed ordering of d distinct variables, fan-in-two AND/OR/NOT/constant circuits with free fan-out; size counts gates and allows sharing. This is an upper bound on parent complexity from leaf cofactor complexities; it gives no superlinear MCSP decision-circuit lower bound.\nproof: Induction by restriction depth. At each internal node, Shannon expansion f=(\u00acx\u2227f0)\u2228(x\u2227f1) uses two binary AND gates and one binary OR gate plus at most one NOT gate, so parent complexity is at most the sum of child complexities plus 4. Sum this inequality over all nodes at a level and iterate for d levels. The geometric sum of level costs is 4(1+2+...+2^(d-1))=4(2^d-1).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
