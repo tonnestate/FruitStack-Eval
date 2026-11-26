@@ -150,3 +150,17 @@ Open obligations after this section: OBL-QSTAR (residual R / O*), OBL-W-D-COLLID
 
 Exclusion: counterexample rounds add no leverage beyond a PH circuit lower bound (under PH in P/poly every round is a bounded-complexity composition).
 PhysalisMe finite games were not run: ST2 holds for every finite protocol, so finite games cannot change this decision.
+
+## 10. Strength map and reallocation (2026-11-26, proofbook seq 16823-16827)
+
+Corrections: ST1b (the defect in Lemma 5.6 is already the switch from poly(m) to poly(N) circuits), ST2b (owner's independent
+reconstruction, K_{j+1} = 2a_j(K_j+1)+2), ST3-CORRECTION (ST3 is a sandwich of consequences only; it does not show that Teacher
+rounds give no constructive advantage). OBL-ST-ABS: the transfer is secured pending review; research on it is paused.
+
+| Band | Obligations | Conclusion |
+|---|---|---|
+| non-uniform | OBL-QSTAR, target (8)/Q3, OBL-R10-CJW-BRIDGE, OBL-AF, residual R (W-A/B/C), W-E, OBL-ST-ABS | NP notsubset P/poly (stronger than needed) |
+| uniform | route M M1/O* with uniform streaming algorithms ((40a), new OBL-UNIFORM-QE), OBL-W-D-COLLIDE, F | P != NP only |
+
+Allocation: REVIEW 3 (D6/AF first: owner condition for residual R), CLOSURE 1, W-B 1, W-D 1, QE* 3 (uniform only, question seq 16827,
+reuses Q-C seq 8531 time-space route); W-A, W-C, W-E, W-FG paused (backup desk/lanes.json.bak-uniform-*).
