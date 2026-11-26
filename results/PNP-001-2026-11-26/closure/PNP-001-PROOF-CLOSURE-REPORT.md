@@ -178,3 +178,34 @@ reuses Q-C seq 8531 time-space route); W-A, W-C, W-E, W-FG paused (backup desk/l
 | W-D (seq 16843) | first failing inference: the refuter cannot simulate A ((log n)^{O(1)} vs (log n)^{f}); counting forces no collision among simple prefixes for f > c+1 | W-D = update-cost obligation for DISJ (O*), via transition cost only |
 
 Allocation: REVIEW 3 (Q-88090df9cf first), CLOSURE 1, W-B 2 (R', P2'), W-D 2, QE* 1.
+
+## 12. URGENT CORRECTION (oracle MW barrier) + Mandatory Verification Pipeline Repair (2026-11-26)
+
+### Oracle barrier and witness-sensitive search
+
+Details: `QE-ORACLE-BARRIER-AND-SEARCH.md`.
+
+- **B0, owner derivation (seq 16862).** Re-derived by the director; all four rows of the owner's table confirmed. Free choice of A does not bypass the local decision-reduction barrier. This holds for any A, any uniformity and any gap version.
+- **B1–B2 + FD, director (seq 16863):**
+  - Search reductions with a quasi-AC0 decoder are excluded.
+  - Target size s with s² log s + log T_A(s) ≤ 0.1 log M is excluded unconditionally, so s ≥ (log M)^Ω(1) is needed.
+  - FD normal form: locally recognisable fibers with s-bit advice, plus a BOT region.
+- **B3, director, CLAIMED (seq 16864).** Total search reductions with an oracle that is cheap on length-s queries are excluded, conditional on lemma ROBUST. With A in PH, such a reduction alone already implies P != NP. The total version is therefore circular with respect to MMW.
+- **Obligation update.** OBL-UNIFORM-QE becomes OBL-QE-W: conditions (a)–(d), lossy R. The injective-sketch construction W1 fails at its first inference. Question Q-1c841c90f7 supersedes Q-4c4127e83e (RETRACTED SUPERSEDED, seq 16877) and keeps the QE* lane match. No new lane was opened.
+
+### Verification pipeline
+
+- `Aurora-sync/integration/pnp_autoreview.py`, a separate loop process; desk and sessions untouched.
+- Every proofbook PROOF_STEP or REFUTATION becomes a CLAIMED step of the VERIFY question Q-88090df9cf, with provenance: seq, mission, author model, hash.
+- Deduplication is by normalised text.
+- HYPOTHESIS rows get the disposition EXCLUDED_HYPOTHESIS.
+- The REVIEW lane gets the queue, obligation-relevant first, through review_first. The author family is excluded by the existing review_first_exclusions. The REVIEW lane gate is the VERIFY question.
+- Verdicts flow back: VERIFIED or REFUTED per seq, dependants are listed, and a refutation creates a REPAIR-OR-EXCLUDE gap.
+- **Isolated test** (copy of proofbook, proof states and lanes): passed.
+  - 122 registered; the second run registered 0 (idempotent).
+  - A simulated other-family verdict produced VERIFIED or REFUTED, with gap G0001.
+- **Retrospective audit (live)**, 326 claim rows / 303 distinct claims:
+  - 132 UNDER_REVIEW (122 never reviewed before);
+  - 171 EXCLUDED_HYPOTHESIS;
+  - 0 unregistered. Invariant holds.
+- End to end with a real reviewer session: pending (see next section update).
