@@ -7085,5 +7085,45 @@
   "proved_step": "LEMMA (fixed-point-free involutions have one-gate recodings). Let Q have even cardinality m=2p, and let delta:Q->Q be a fixed-point-free involution. Put S=ceil(log2 m). There is an injection psi:Q->{0,1}^S and a total Boolean map F:{0,1}^S->{0,1}^S with fan-in-two circuit cost at most one gate such that F(psi(q))=psi(delta(q)) for every q in Q. Proof: Partition Q into the p unordered pairs {q,delta(q)}. Assign distinct indices i in {0,...,p-1} to these pairs, and assign the two members of each pair the codes (bin_S-1(i),0) and (bin_S-1(i),1), where bin_S-1 is the standard binary encoding in S-1 bits. This fits because 2^(S-1)>=p: from S=ceil(log2(2p)), S-1>=ceil(log2 p) except when p is a power of two? In that case S-1=log2 p, so it still holds. Define F on every S-bit string by leaving the first S-1 bits unchanged and complementing the final bit. The map is implemented by one NOT gate on the final bit, with all other output bits wired through. On valid codes it exchanges the two members of each pair, exactly delta. Hence the stationary recoding has cost at most one gate.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795729315.3268797,
+  "session": "pnp-desk/research/R4494",
+  "model": "gpt-6-luna",
+  "evidence": "Independent exhaustive verification experiment cm-e75422280f4043f7 checked the underlying cycle-interval transition rule on all 5,912 permutations for 2<=m<=7 and found no counterexample. This is finite corroboration only; the general lemma follows from the explicit incrementer/equality construction in the statement.",
+  "id": "S0812",
+  "proved_step": "statement: ONE-CYCLE STATIONARY RECODING LEMMA. For every m>=2 and every permutation \u03b4 consisting of one m-cycle q_0\u2192q_1\u2192...\u2192q_{m-1}\u2192q_0, let S=ceil(log2 m). There is an injective stationary encoding \u03c8:Q\u2192{0,1}^S such that a total fan-in-two Boolean map on S bits agrees with \u03c8\u03b4\u03c8^{-1} on \u03c8(Q) and uses O(S) gates. Proof: Set \u03c8(q_i) to the S-bit binary representation of i. Let B(x)=x+1 mod 2^S, implemented by an S-bit ripple incrementer with O(S) fan-in-two gates. Let E(x)=[x=m-1], computed by comparing each input bit with the corresponding constant bit and ANDing the S literals, also with O(S) gates. Define each output bit F_j(x)=B_j(x) AND NOT E(x). For every valid code i<m-1, E(i)=0 and F(i)=i+1. At i=m-1, E(i)=1 and F(i)=0. Thus F agrees with the cycle transition on every encoded state; its behavior on unused codes is defined by the same formula, so it is total. The construction cost is O(S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729420.238745,
+  "session": "pnp-desk/research/R4494",
+  "model": "gpt-6-luna",
+  "evidence": "The proof is direct for every finite fixed-point-free involution; the accompanying finite workflow check is a sanity check of the pair-index/tag-bit construction, not a premise of the proof.",
+  "id": "S0813",
+  "proved_step": "statement: FIXED-POINT-FREE INVOLUTION RECODING LEMMA. Let Q have m=2p states and let \u03b4 be a fixed-point-free involution on Q. Then there is an injection \u03c8:Q\u2192{0,1}^{ceil(log2 m)} for which the encoded transition on valid codes is implemented by one NOT gate (with identity wires on all other bits). Proof: Partition Q into its p unordered pairs {u_i,v_i}, i=0,...,p\u22121, and choose an ordering of each pair. Encode u_i as (bin(i),0) and v_i as (bin(i),1), using ceil(log2 p) bits for i and one tag bit. This uses ceil(log2 p)+1 = ceil(log2(2p)) bits. The encoding is injective because distinct pairs have distinct indices and the two members of a pair have distinct tags. Since \u03b4 swaps the two members of every pair, it preserves the index and complements the tag. Thus the total Boolean map that leaves the index bits unchanged and complements the tag agrees with \u03c8\u2218\u03b4\u2218\u03c8^{-1} on every encoded state. It uses one fan-in-two-basis NOT gate, independent of m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729530.5450544,
+  "session": "pnp-desk/research/R4494",
+  "model": "gpt-6-luna",
+  "evidence": "The statement follows directly from the adjacent-pair encoding, a constant comparison, and a controlled low-bit toggle; no finite computation is needed for the proof.",
+  "id": "S0814",
+  "proved_step": "statement: ODD INVOLUTION WITH ONE FIXED POINT RECODING LEMMA. Let |Q|=2p+1 and let \u03b4 be an involution with exactly one fixed point. For S=ceil(log2(2p+1)), there is an injective stationary encoding \u03c8:Q\u2192{0,1}^S such that the encoded transition extends to a total fan-in-two Boolean map with O(S) gates. Proof: Pair the 2p nonfixed states as {u_i,v_i}, 0\u2264i<p, with \u03b4(u_i)=v_i and \u03b4(v_i)=u_i; call the fixed point w. Encode u_i by the binary representation of 2i, v_i by 2i+1, and w by 2p. These are distinct S-bit codes. On input x, let E(x)=[x<2p], computed by an S-bit constant comparator using O(S) fan-in-two gates. Define F to preserve all bits except the least significant bit, which is XORed with E(x). For each valid pair code x\u2208{0,...,2p\u22121}, this toggles between 2i and 2i+1, implementing \u03b4. For x=2p, E(x)=0, so F(x)=x, implementing the fixed point. The same circuit defines F on every S-bit input, hence is total, and its cost is O(S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729568.5382206,
+  "session": "pnp-desk/research/R4494",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and case proof for pair codes, fixed-point codes, the p=0 boundary, and the m=1 zero-bit boundary. This generalizes the recorded fixed-point-free and one-fixed-point involution cases; it does not rely on either claimed step as a premise.",
+  "id": "S0815",
+  "proved_step": "statement: ARBITRARY INVOLUTION RECODING LEMMA. Let Q be a set of m>=1 states and let \u03b4:Q\u2192Q satisfy \u03b4\u00b2=id. Write f for the number of fixed points and p=(m\u2212f)/2 for the number of transposition pairs. With S=ceil(log2 m) (and S=0 when m=1), there is an injection \u03c8:Q\u2192{0,1}^S such that \u03c8\u03b4\u03c8^{-1} on \u03c8(Q) extends to a total fan-in-two Boolean map with O(S) gates. Proof: Enumerate the transposition pairs {u_i,v_i}, 0\u2264i<p, and fixed points w_j, 0\u2264j<f. Encode u_i as binary 2i, v_i as binary 2i+1, and w_j as binary 2p+j. These codes are distinct and lie in [0,m), so they fit in S bits. Let E(x)=[x<2p], implemented by a comparison with a constant in O(S) fan-in-two gates. Define F to preserve bits 1,...,S\u22121 and set its low bit to x_0 XOR E(x). For x=2i or 2i+1, E(x)=1, so F swaps the two pair codes. For each fixed-point code x=2p+j, E(x)=0, so F(x)=x. Therefore F agrees with \u03c8\u03b4\u03c8^{-1} on all valid codes. The same formulas define F on every S-bit input, making the extension total. If p=0 then E is constantly zero and F is identity; for m=1, the unique zero-bit map has the required action. The comparison and toggle cost O(S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

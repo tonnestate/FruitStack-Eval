@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 17134 entries from 5630 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 17263 entries from 5653 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - The threshold function 'at most m of n variables are 0' depends only on the numbers of zeros on the two sides of a cut
 PREMISES: 
@@ -25,12 +25,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For every finite truth-table family F subseteq {0,1}^N, the exact prefix automaton has at most |F|+1 residual states at each fixed depth.
+  - For any F subseteq {0,1}^N, the zero-update-gate endpoint at S=N can be implemented with states equal to zero-padded raw prefixes; for every S<N, obtaining zero update gates may require moving information into the final decoder or a different encoding.
+  - Under recursive De Morgan simplification that evaluates constants, removes neutral constants, folds absorbing constants, and suppresses unary nodes without duplicating subtrees, residual size is at most twice the number X of active leaf occurrences plus one. F
   - For a fixed recognition language F, the zero-gate condition forces every computed function to have essential-variable count at most the state width S, independently of decoder complexity; on structured stream families this may yield stronger meaningful lower b
   - For an S-bit streaming layer with r reachable (state,input-bit) pairs, the zero-extension sparse-row construction will give a strictly smaller gate ceiling than the full truth-table construction whenever r < 2^(S+1); its usefulness for the SC_{3,1} S=4 minimum
   - For SC_{n,s}, layerwise residual counts K_t may provide useful state-bit lower bounds even when they do not imply update-gate lower bounds.
-  - For a fixed live prefix layer of width t in the SC_3,1 SEARCH residual machine, the sharpened support inequality t <= S((G+1)^t-1)/G will exclude at least one small (S,G) point that the older bound t <= S(G+1)^t permits.
-  - For SC_{3,1}, the zero-gate wire-only update model cannot implement the required full SEARCH transition system at any fixed S<8.
-  - For read-once binary De Morgan formula trees under restrictions that independently leave each input variable live with probability p and otherwise fix it uniformly, the expected number of residual internal gates after recursive constant propagation is at most 
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
@@ -40,18 +40,18 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
-  - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-NUMERICAL EVIDENCE on file: 3353 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3362 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve
   - Q-7828a2a6e1 [MISSING_PROOF, PURSUED] CLOSURE-B (owner 2026-11-26) RESIDUAL R' - supersedes the D6 part of seq 16784. D6 is REFUTED (seq 16839, window-parity counterexample); use D6' (seq 16840) and the hypothesis D6'' (director/closure-intervention). Task 1
   - Q-88090df9cf [MISSING_PROOF, PURSUED] VERIFY (owner 2026-11-26, cross-family) DIRECTOR DERIVATIONS: the steps in this question's proof state were written by the Claude family (director). Review each step against its stated premises and the primary sources; r
   - Q-47a55293d1 [MISSING_PROOF, PURSUED] CLOSURE-D (owner 2026-11-26) UNIFORM STATE COLLISIONS - supersedes seq 16783; no other D work. Read CJ1-CJ4 (director/closure-quant) first. Reduction (CJ2, done): it suffices to construct, for every admissible DETERMINIS
-  - Q-aea782b366 [MISSING_PROOF, OPEN] CLOSURE-FG (owner 2026-11-26) CANONICAL WITNESSES AND SIMPLE HITTING SETS: F1 and G1 are in the proofbook (F = route M with a Sigma_2 canonicaliser; G = restatement unless H is explicit, structured and uniformly selected
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
   - RECON-REMAINDER Case E (owner 2026-11-23, target (8)): recover proofs left unextracted in FINAL outputs (research R*.json, proofbook FINAL entries); list statem -> reopen if: None

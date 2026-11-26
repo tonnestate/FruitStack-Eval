@@ -7367,5 +7367,62 @@
   "evidence": "Recurrence A_t <= (G+1)A_{t-1} + 1 with A_0=0 solves to A_t = ((G+1)^t - 1)/G for G>=1. For G=0, each output is constant or a literal of one input; injectivity requires S>=t. Tighter than S0669's (G+1)^t bound. Same scope limitation: assumes all 2^t prefixes live. Mathematically correct within stated scope.",
   "review_of": "S0670",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795728049.0531104,
+  "session": "pnp-desk/research/R4490",
+  "model": "gpt-6-luna",
+  "id": "S0837",
+  "proved_step": "statement: For a finite language F subseteq {0,1}^N and cut t in {0,...,N}, let R_t(p)={z in {0,1}^{N-t}: pz in F} for each length-t prefix p, and let r_t be the number of distinct sets R_t(p), including the empty set if it occurs. The minimum number of states at layer t among deterministic one-pass recognizers of F is exactly r_t.\nproof: Upper bound: assign each length-t prefix p the state R_t(p). On reading bit b, update residual R to R'={z in {0,1}^{N-t-1}: bz in R}. If R=R_t(p), then z is in R' iff bz is in R_t(p), iff p(bz) is in F, iff (pb)z is in F. Thus R'=R_{t+1}(pb), so the transition is well-defined from the residual state. At t=N, the residual is {epsilon} for accepted words and empty for rejected words; accept exactly in state {epsilon}. This constructs a recognizer with r_t states at each layer. For the lower bound, distinct residuals R_t(p), R_t(q) have a suffix z in their symmetric difference. Exactly one of pz,qz belongs to F. If p and q reached the same state, determinism would force the same final state after z and therefore the same decision, a contradiction. Hence distinct residuals require distinct states, proving equality.\nscope: Exact state count for deterministic layered one-pass recognizers with fixed input order, one transition per input bit, and final accept/reject depending only on final state. This gives no transition-circuit or decoder gate-cost bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728256.2492125,
+  "session": "pnp-desk/research/R4490",
+  "model": "gpt-6-luna",
+  "evidence": "Direct proof as stated. Independent finite boundary check cm-06260b92a2784322 exhaustively checked all 256 languages F subseteq {0,1}^3 and all 8,960 same-level prefix pairs; residual inequality agreed with suffix distinguishability in every case. Computation is sanity evidence only; the general claim follows from the argument.",
+  "id": "S0838",
+  "proved_step": "Let F be any subset of {0,1}^N and fix 0<=t<=N. For each length-t prefix p define R_t(p)={z in {0,1}^{N-t}: pz in F}. In every deterministic layered recognizer of F, distinct sets R_t(p) require distinct states at layer t; conversely, there is a deterministic layered recognizer with exactly one reachable state per distinct R_t(p) at each layer. Thus the minimum reachable width at layer t, without transition-cost restrictions, is |{R_t(p): |p|=t}|. Proof: If R_t(p) and R_t(q) differ, choose z in their symmetric difference; exactly one of pz,qz belongs to F, so the recognizer must be in different states after p and q, since a shared state followed by z has identical future transitions and acceptance. For the converse, use the distinct residual sets as layer-t states. From R_t(p), on bit b transition to R_{t+1}(pb); this is well-defined because equal residual sets have equal derivatives: z is in R_{t+1}(pb) iff bz is in R_t(p). At layer N accept iff the residual contains the empty word. Starting at R_0(empty) yields the correct recognition of F, and every state included is reachable by a prefix that defines it. This construction imposes no bound on the Boolean circuit size of a transition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728730.475004,
+  "session": "pnp-desk/research/R4490",
+  "model": "gpt-6-luna",
+  "id": "S0839",
+  "proved_step": "statement: Let q>=2 and k=ceil(log2 q). For any deterministic transition map delta: Q x {0,1}->Q on a set Q of q states, there is a fan-in-2 Boolean circuit with k output bits that agrees with the binary encoding of delta on every valid encoded state and both input bits, using at most q(k-1)+2k(q-1)+3k gates; the circuit may be arbitrary on unused encodings.\nproof: Fix an injective encoding c:Q->{0,1}^k. For each u in Q, form the equality indicator e_u(x)=1 iff x=c(u), using a binary AND tree with k-1 gates; complemented input literals are treated as free wires. For each input symbol b and output coordinate i, form y_{b,i}=OR_{u: c(delta(u,b))_i=1} e_u, using at most q-1 OR gates (an empty OR is constant 0). The indicators are shared across all outputs. Select y_{0,i} or y_{1,i} using the input bit b with two AND gates and one OR gate, for 3k gates total. On valid encoding c(u), exactly e_u is 1, so y_{b,i}=c(delta(u,b))_i and the mux returns the correct next-state bit. Summing gives q(k-1)+2k(q-1)+3k. If NOT gates are charged, add at most k shared input-inverter gates.\nscope: Finite deterministic layered machines with q>=2 states, binary input, fixed injective k-bit state encoding; fan-in-2 AND/OR gates and complemented input literals treated as free wires. If NOT gates are charged, add at most k shared input-inverter gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728945.200752,
+  "session": "pnp-desk/research/R4490",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and verification: after t transitions the state contains exactly the consumed prefix followed by zeros; hence the final decoder receives the original input unchanged. This does not address the binding Lemma M state budget or its exact G_max synthesis.",
+  "id": "S0840",
+  "proved_step": "statement: For every finite witness relation R \u2286 {0,1}^N \u00d7 W, there is a deterministic layered transducer that reads the input in order, uses S=N state bits, has zero non-constant update gates at every step, and whose final decoder accepts exactly inputs x for which some w satisfies (x,w) \u2208 R, outputting one such witness. At layer t, store the t-bit prefix in the first t state bits and set the remaining N\u2212t bits to zero. On input b, the next state copies the current prefix bits, appends b, and leaves the rest zero. These updates use only wires and constants. At layer N the state equals x, so the decoder can apply any fixed choice function selecting a witness for each accepted x, and reject otherwise. This is an exact construction for arbitrary finite R; it gives no bound when the state budget is smaller than N or when decoder complexity is charged.\nscope: Finite input length N, arbitrary finite witness set W and relation R, unrestricted final decoder, state budget S=N, AND/XOR/NOT updates with wires and constants free.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795729904.180223,
+  "session": "pnp-desk/research/R4498",
+  "model": "gpt-6-luna",
+  "evidence": "Direct constructive proof; the finite verification cm-f211eb4df64c4ff4 checked only the separate residual-derivative identity and is not used as proof.",
+  "id": "S0841",
+  "proved_step": "statement: For every integer N>=1 and every finite search problem on inputs x in {0,1}^N with a specified output y(x) for each accepted x, there is a deterministic layered streaming transducer with N state bits, zero Boolean update gates, and a final-state decoder that outputs y(x) on accepted inputs and rejects the others.\nproof: At layer t, store the t bits read so far in state coordinates 1 through t and set the remaining coordinates to zero. Initially the state is all zero. The transition from layer t to t+1 copies coordinates 1 through t unchanged, wires the newly read input bit into coordinate t+1, and sets all later coordinates to zero. These are constants and direct wires, so the transition uses no Boolean gates. Inductively, after t symbols the state is (x_1,...,x_t,0,...,0). After N symbols the state is exactly x. Define the final decoder on each state x to return y(x) if x is accepted and reject otherwise. This decoder is well-defined because distinct complete inputs have distinct final states.\nscope: Layer-dependent transitions, N state bits, unrestricted deterministic final decoder, and zero cost for constants and direct wires. The result gives no bound when decoder complexity or transition uniformity is restricted; it does not imply an SC-specific lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795730349.1985512,
+  "session": "pnp-desk/research/R4498",
+  "model": "gpt-6-luna",
+  "id": "S0842",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, there is a deterministic layered transducer with N state bits that, after t input bits, stores those t bits in the first t state positions and zeros in the remaining positions, using zero non-constant gates per update. At each layer, its state is injective on all length-t prefixes, so it separates every live prefix from every dead prefix. A final-state decoder can decide membership in F and, for accepted inputs, output any fixed valid witness associated with that input.\nproof: Let q_0=0^N. At layer t<N define F_t(q,b)=(q_1,...,q_t,b,0,...,0), using the known layer index t; each output is a wire from a state coordinate, the current input, or constant zero, so the update uses no non-constant gates. Inductively, after prefix p of length t the state is p followed by N-t zeros. Distinct length-t prefixes therefore have distinct states. A dead prefix and a live prefix are distinct words of the same length, so their states differ. At the final layer the state is the full input word, and a decoder can determine membership in the finite set F and return the corresponding fixed witness on members. This establishes correctness of the transducer and the zero update-gate bound; it makes no claim about decoder size.\nscope: All finite F subseteq {0,1}^N; state width S=N; time-dependent layered updates; B2 basis includes wires and constants; final decoder unrestricted. The claim is not an update-cost bound for S<N and does not bound decoder cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

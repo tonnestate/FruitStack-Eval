@@ -41,5 +41,63 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The host did not recognize the reported accepted verification result, and I cannot obtain a new verifier result here. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795729390.3570025,
+  "session": "pnp-desk/research/R4497",
+  "model": "gpt-6-luna",
+  "gap": "No witness family, verifier cost, or parameter regime has been shown to make this exhaustive selector fit the QE* obligation; OBL-QE-W remains open.",
+  "evidence": "Direct finite enumeration argument; each verifier call is bounded by v(N,s), there are at most |C_s| <= 2^{b(s)} encodings, and existence of a valid witness guarantees an accepting encoding.",
+  "gap_id": "G0001",
+  "id": "S0005",
+  "proved_step": "statement: Finite-family exhaustive selector lemma. Let T be a Boolean truth table of length N, let C_s be a finite family of circuit encodings with |C_s| <= 2^{b(s)}, and let V(T,C) be a deterministic verifier that decides whether tt(C^A)=T in time at most v(N,s) for every C in C_s. If some C in C_s satisfies V(T,C)=1, lexicographic exhaustive search returns a satisfying C in at most 2^{b(s)} verifier calls and time at most 2^{b(s)}v(N,s) plus encoding overhead. Proof: enumerate C_s in lexicographic order, run V on each encoding, and return the first accepting encoding. Finiteness and the assumed existence of an accepting encoding imply termination and correctness. Scope: this gives no QE* resource bound unless 2^{b(s)}v(N,s) fits it, and establishes no reduction or P-versus-NP consequence.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795729563.445331,
+  "session": "pnp-desk/research/R4497",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "statement: Prefix-extension self-reduction. Let Y be finite, b>=0, and W subseteq Y x {0,1}^b. Define E(y,p)=1 iff p extends to a string z with W(y,z). If each E query costs at most q, then for any y with a W-witness, a deterministic selector finds one in at most b queries and O(bq+b) time. Proof: maintain that the current prefix p has a W-witness extension, initially true. Query E(y,p0); append 0 if true, and otherwise append 1. In the latter case a witness extends p by the invariant, and none extends p0, so one extends p1. Thus the invariant persists. After b steps, p is a full-length string and E(y,p)=1 implies W(y,p). This shrinks the exhaustive selector gap to the cost of extension queries; it does not bound that cost for QE* witness sets.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": false
+ },
+ {
+  "at": 1795729950.87652,
+  "session": "pnp-desk/research/R4497",
+  "model": "gpt-6-luna",
+  "lemma": "Fiber criterion for reduction-only decoders. Let X,Y be finite, R:X\u2192Y, L:X\u2192{0,1}, and for each relevant y let C_y be nonempty. There exists D:Y\u00d7C\u2192{0,1} such that D(R(x),c)=L(x) for every x and every c\u2208C_{R(x)} iff L is constant on every fiber R^{-1}(y). Necessity: if R(x)=R(x')=y, choose any c\u2208C_y; then L(x)=D(y,c)=L(x'). Sufficiency: for each y with nonempty fiber, set D(y,c) to the common value of L on that fiber; define D arbitrarily on other y. This characterizes the reduction-only interface; it does not show QE* has that interface or an efficient selector.",
+  "id": "S0007",
+  "proved_step": "statement: Fiber criterion for reduction-only decoders. Let X,Y be finite, R:X\u2192Y, L:X\u2192{0,1}, and let C_y be nonempty for each y in R(X). There exists a decoder D:Y\u00d7C\u2192{0,1} satisfying D(R(x),c)=L(x) for all x\u2208X and c\u2208C_{R(x)} if and only if L is constant on every fiber R^{-1}(y). Necessity: if R(x)=R(x')=y, choose c\u2208C_y; then L(x)=D(y,c)=L(x'). Sufficiency: for each y\u2208R(X), define D(y,c) to be the common value of L on R^{-1}(y), independent of c; define D arbitrarily outside R(X). Thus the condition is both necessary and sufficient. It isolates the interface needed for a fiber argument, but does not establish that QE* uses it or that a witness selector is efficient.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795730148.3606634,
+  "session": "pnp-desk/research/R4497",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains open. Prefix-extension self-reduction finds a witness in b extension queries, but no resource bound is established for those queries on the QE* witness family. The reduction-only fiber criterion does not supply that bound or establish that QE* has that decoder interface. Smallest relevant unresolved statement remains a universal lower bound against all admissible deterministic one-pass total search-MCSP algorithms, including arbitrary encodings and allowed work between reads.",
+  "evidence": "proof_state_read for S0006 reports closes_valid:false; the QE-STAR contract and local QE-STAR-REPORT identify universal resource transfer to worst-case update time as open. The exact two-point experiment cm-45203aa9b6494c30 only distinguishes decoders that receive x from reduction-only decoders.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795730208.6824055,
+  "session": "pnp-desk/research/R4497",
+  "model": "gpt-6-luna",
+  "id": "S0008",
+  "proved_step": "statement: Adaptive-cost prefix selector. Let Y be finite, b\u22650, W\u2286Y\u00d7{0,1}^b, and suppose an extension-query procedure E(y,p) correctly decides whether p extends to z\u2208{0,1}^b with W(y,z). If the i-th adaptive query costs at most q_i, then for every y having a W-witness, a deterministic selector outputs such a witness using at most b queries and O(b+\u03a3_{i=1}^b q_i) time. Proof: initialize p=\u03b5, which has a witness extension. For i=1,\u2026,b, query E(y,p0). If true, replace p by p0. Otherwise replace p by p1. In the latter case, by induction p had a witness extension and no witness extends p0, so some witness extends p1. Thus the invariant that p has a witness extension is preserved. At length b, p itself is a witness. The query count is b and the total cost is O(b+\u03a3q_i). This gives an exact adaptive cost bound but does not bound those query costs for QE* witnesses or close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795730235.5686574,
+  "session": "pnp-desk/research/R4497",
+  "model": "gpt-6-luna",
+  "evidence": "Independent claim state check: claim:67884ebd0966 remains PENDING with missing ladder fields; it concerns the separate fiber criterion, not S0008. S0008 has only a direct induction proof and has not been independently reviewed. Awaiting finite exhaustive verification of all witness subsets for b\u22643 before attaching an experiment ID or resubmitting the adaptive-cost selector claim."
  }
 ]

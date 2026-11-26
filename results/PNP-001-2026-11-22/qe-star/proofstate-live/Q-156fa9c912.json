@@ -8385,5 +8385,149 @@
   "proved_step": "statement: EXACT CANDIDATE-SET STATE AND TRANSITION FOR EXT. Fix n,s and a finite set D of M circuit descriptions on n inputs, with truth tables indexed 0,...,N-1. After a prefix p of length t, encode the EXT state by the M-bit vector q_p whose coordinate q_p(d)=1 exactly when the truth table of d begins with p. At level t<N, on input next bit b, update each coordinate by q_{pb}(d)=q_p(d) AND [C_d(t)=b]. Because C_d(t) is a fixed bit for each d,t, this transition is implemented by at most M fan-in-two Boolean gates (indeed each coordinate either wires q_p(d) or outputs 0), with the level t and description set fixed. The accepting predicate is OR_d q_p(d), and is 1 exactly when p is an EXT prefix. Thus EXT has an exact deterministic layered streaming representation with M state bits and O(M) real gates per transition; this bound is polynomial in s only if M is.\nderivation: Induct on prefix length t. At t=0 every description agrees with the empty prefix, so q_empty is the all-ones vector. Assume q_p(d)=1 iff C_d agrees with p at positions 0,...,t-1. The stated update retains d precisely when it also agrees at position t, hence q_pb(d)=1 iff C_d agrees with pb on all positions through t. This proves the invariant for every prefix. The output OR is true precisely when at least one such description exists, which is the definition of EXT_{n,s}(p). For a fixed level and description, C_d(t) is a constant; the coordinate update is either the identity wire (if that constant is b) or constant zero. This gives the asserted O(M) transition circuit and makes no polynomial-in-s assertion.\nscope: All finite n,s and every fixed finite circuit-description set D; exact deterministic streaming representation measured in state bits and fan-in-two Boolean transition gates. It does not yield a polynomial-in-s bound when M is exponential, nor a representation for arbitrary MCSP decision circuits.",
   "status": "CLAIMED",
   "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795727414.1004498,
+  "session": "pnp-desk/research/R4484",
+  "model": "gpt-6-luna",
+  "id": "S0973",
+  "proved_step": "statement: DEPTH-SUM PREFIX RESIDUAL BOUND. Let N be a nonnegative integer and L be a finite subset of {0,1}^N. For each 0<=t<=N and each p in {0,1}^t, define R_p={z in {0,1}^{N-t}: pz in L}, and let d_t be the number of distinct nonempty sets R_p at depth t. Then d_t <= min(2^t, |L|), and the total number of distinct residual states across all depths, counting the empty residual separately at each depth, is at most (N+1)+sum_{t=0}^N min(2^t,|L|). Proof: There are 2^t prefixes, so d_t<=2^t. Let P_t be the prefixes with nonempty residual. For every p in P_t choose z_p in R_p. The map p -> pz_p is injective into L because its image has prefix p, hence |P_t|<=|L|. Since the number of distinct nonempty residuals is at most |P_t|, d_t<=|L|. At each depth there is at most one empty residual, so adding it contributes at most N+1 states over all depths. Summing the per-depth bounds proves the result. For L=Im(Eval_{n,s}), this bounds the total canonical prefix-automaton state count by (N+1)+sum_t min(2^t,|Im(Eval_{n,s})|), but says nothing about the cost of computing transitions or whether this quantity is polynomial in n,s.\nderivation: At each t, nonempty residuals are no more numerous than their prefixes; selecting a member suffix injects those prefixes into L. Add at most one empty residual per depth and sum.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795727537.4127302,
+  "session": "pnp-desk/research/R4484",
+  "model": "gpt-6-luna",
+  "id": "S0974",
+  "proved_step": "statement: statement: EXPLICIT PREFIX-TRIE TRANSITION BOUND. Let N>=0 and L be any subset of {0,1}^N with M=|L|. The prefix trie has at most 1+NM nodes and NM directed edges. It recognizes L with a deterministic finite automaton using at most 2+NM states, counting one rejecting sink. Proof: Each word contributes at most N nonempty prefixes, so their union has at most NM nodes; adjoining the empty root gives at most 1+NM trie nodes. Every nonroot trie node has exactly one incoming edge, so there are at most NM edges. Add one rejecting sink; from each trie node on bit b follow the b-edge if present and otherwise enter the sink, and let exactly the length-N word nodes be accepting. This deterministic automaton accepts exactly L. Its states can be encoded using ceil(log2(2+NM)) bits. This is a finite-state transition-table construction, not a Boolean circuit size bound for implementing the transition function.\nderivation: Count at most N nonempty prefixes per word and take their union; each nonroot trie node corresponds to exactly one edge; add a sink and define transitions by trie edges or sink, with accepting nodes precisely L.\nscope: All finite N>=0 and L subset {0,1}^N; gives state count and an explicit transition table only, without circuit complexity guarantees.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795727680.7505264,
+  "session": "pnp-desk/research/R4484",
+  "model": "gpt-6-luna",
+  "lemma": "The local tableau verifier for a fixed circuit gives exact existential prefix semantics and a binary recurrence, but does not by itself bound ordinary-circuit transition cost.",
+  "id": "S0975",
+  "proved_step": "statement: EXACT PREFIX RECURRENCE FOR A FIXED CIRCUIT. Let C:{0,1}^N\u2192{0,1} be a Boolean circuit, and let H_C(x,y) be its local tableau verifier, with y containing one output bit per gate. For each prefix p of length t\u2264N, define E_C(p)=1 iff there are z\u2208{0,1}^{N\u2212t} and y such that H_C(pz,y)=1. Then E_C(p)=E_C(p0)\u2228E_C(p1) for t<N, and E_C(p)=C(p) for t=N. Also, for every p, E_C(p)=1 iff some completion x of p satisfies C(x)=1. Proof: The gate equations in H_C uniquely force y to be the evaluation of C on its input, by induction in topological gate order. Thus H_C(x,y)=1 for some y exactly when C(x)=1. For t<N, every completion of p has a unique first suffix bit b\u2208{0,1} and a remaining suffix z\u2032; hence a satisfying completion of p exists exactly when a satisfying completion of p0 or p1 exists. At t=N the only completion is p itself, giving E_C(p)=C(p). This establishes exact information and its recurrence; it makes no bound on the ordinary-circuit cost of computing E_C from a representation of H_C.\nderivation: Use uniqueness of the local gate-evaluation tableau to replace existential quantification over y by C(x)=1. Partition all completions of a nonterminal prefix according to their next bit; at a full-length prefix there is only that input.\nscope: All finite N and all fixed Boolean circuits C; fan-in is unrestricted for the recurrence, provided H_C correctly encodes C. This is a semantic identity, not a transition-cost or MCSP lower-bound claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795728449.7741163,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "The full size-s circuit family has exponentially many descriptions, so this K-gate state update does not resolve whether EXT transitions have poly(s) real-gate cost or whether arbitrary MCSP decision circuits can implement them.",
+  "evidence": "A finite exhaustive check was requested for N=2 and K<=3; its result is pending. The proof is the direct induction on prefix length given in the statement.",
+  "gap_id": "G0208",
+  "id": "S0976",
+  "proved_step": "statement: FINITE-FAMILY PREFIX FILTER TRANSITION. Let N,K be positive integers and let C_1,...,C_K be explicitly listed Boolean functions on {0,1}^N (equivalently, K fixed truth tables). Define Q(p)={i in [K] : C_i[1..t]=p} for each prefix p of length t. On reading b at position t+1, update q_i to q_i AND [C_i[t+1]=b]. The update is a fan-in-two Boolean circuit of at most K AND gates, with the comparison bits fixed by the family and position. For every prefix p, the maintained set is exactly Q(p), so Q(p) is nonempty iff p is extendible by a member of the listed family. Proof: Initially Q(empty)=[K]. If the invariant holds at length t, then an index remains after the update exactly when its function matched p and its next truth-table bit equals b, which is equivalent to matching p concatenated with b. Induction proves the invariant at every length. Each coordinate update uses one AND gate with a fixed comparison bit, hence at most K gates per transition. This statement gives no polynomial bound in s when K is the full family of size-s circuit descriptions.\nscope: All finite N,K and any explicitly listed family of K Boolean truth tables; transition circuit uses the candidate-membership vector as its state and position-dependent fixed comparison bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728618.9538064,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "G0208 remains open: for the full size-s circuit family, the number of distinct truth tables D can be exponential in the circuit-description length. No poly(s)-gate transition update for a compressed EXT residual state, nor a connection that transfers such an update to arbitrary MCSP decision circuits, has been established.",
+  "evidence": "Experiment cm-02bda24a74d34626 completed successfully: exhaustive enumeration for N=2, all families of K=1,2,3 drawn with repetition from the 16 Boolean truth tables, and every prefix/next-bit transition; 26,208 transition cases passed. This finite computation is corroboration only; the general lemma follows from the induction in S0976.",
+  "gap_note_on": [
+   "G0208"
+  ]
+ },
+ {
+  "at": 1795728914.6714797,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "For EXT_{n,s}, bound the cost of transitions without enumerating exponentially many suffixes/witnesses; determine whether distinct witness cofactors can be bounded or constructed efficiently.",
+  "gap_id": "G0209",
+  "id": "S0977",
+  "proved_step": "statement: DISTINCT-WITNESS-COFACTOR PROJECTION BOUND. Let H(x,w) be a Boolean function with w in {0,1}^r. Suppose the distinct functions among H_w(x)=H(x,w) are d functions, each computable by a fan-in-two Boolean circuit of at most h gates. Then G(x)=exists w H(x,w) has a fan-in-two Boolean circuit of at most d(h+1)-1 gates. Proof: Choose one witness assignment for each distinct cofactor function. Compute those d functions with separate circuits, then OR their outputs in a binary tree using d-1 additional gates. The resulting function is exactly G because duplicate cofactors do not change a disjunction. This bound gives no claim that d is small or efficiently computable.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728986.8511815,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "Determine whether the prefix-dependent distinct witness cofactor count d_p for the EXT verifier has an explicit useful bound or can be maintained with polynomial-in-s transitions; monotonicity alone gives no algorithm for identifying equivalence classes or representatives.",
+  "gap_id": "G0210",
+  "id": "S0978",
+  "proved_step": "statement: PREFIX RESTRICTION MONOTONICITY FOR WITNESS COFACTOR COUNTS. Let H(x,w) be any Boolean function and, for each prefix p, define F_{p,w}(z)=H(pz,w). Let d_p be the number of distinct functions F_{p,w} over all witnesses w. For every next bit b, d_{pb} <= d_p. Proof: restriction R_b sends each parent function f(z) to f(bz'), and every child function is its parent's image under this map. Hence the child set is an image of the parent set, whose cardinality cannot increase. This is semantic; it asserts no efficient way to compute the classes or representatives.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729141.559785,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "For EXT_{n,s}, the witness domain and remaining suffix are not known to satisfy |W|2^q=poly(s); find an EXT-specific representation that avoids this enumeration or establish a useful lower bound on the required update resources.",
+  "gap_id": "G0211",
+  "id": "S0979",
+  "proved_step": "statement: BOUNDED-REMAINING-SUFFIX COFACTOR ENUMERATION. Let H:{0,1}^{t+q}\u00d7W\u2192{0,1}, where W is finite, and let h be the gate size of a circuit for H. Given prefix p of length t, one can construct the exact projected cofactor G_p(z)=\u2228_{w\u2208W}H(pz,w) by enumerating all w and all z\u2208{0,1}^q, storing each truth table, deduplicating identical tables, and OR-ing one representative per distinct table. The construction uses O(|W|2^q(h+q+1)) time and at most d(h+1)-1 output gates, where d is the number of distinct cofactor tables. Proof: direct evaluation fills each table; equality of finite bit strings decides functional equality on the q-bit domain; deduplication preserves the disjunction; a binary OR tree combines the d retained functions. This is useful when |W|2^q is polynomial in the parameters, and gives no bound when q or |W| is large.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729198.1173656,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "For EXT_{n,s}, the witness set is exponentially large or implicitly represented, so the finite-domain construction does not give polynomial-in-s transition cost. Find a compact exact representation of the OR over circuits of size <=s, or show why the representation cannot be updated efficiently.",
+  "gap_id": "G0212",
+  "id": "S0980",
+  "proved_step": "statement: FINITE-DOMAIN PROJECTION CIRCUIT CONSTRUCTION (repaired explicit construction). Let H(x,w) be a fan-in-two Boolean circuit with h gates, x=(u,z) with |z|=q, and W be an explicitly listed finite witness set of size M. For fixed u, G_u(z)=OR_{w in W} H(u,z,w) has a fan-in-two circuit with at most M(h+1)-1 gates: make one copy of H per w, substitute u,w by constants, and combine outputs with M-1 OR gates. Writing the construction takes O(M(h+q+|u|)) time under explicit circuit encoding. No truth-table synthesis is used; the bound is useful when M and h are polynomial in the target parameters.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729273.1202047,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "The explicit EXT prefix-filter state is exponential in s. Determine whether distinct residual functions of the implicit circuit family admit a compact representation with polynomial-in-s updates, or prove a lower bound for a specified representation.",
+  "gap_id": "G0213",
+  "id": "S0981",
+  "proved_step": "statement: EXPLICIT EXT PREFIX-FILTER PROCEDURE. Fix n,s and enumerate ordered fan-in-two Boolean circuit descriptions with at most s gates, allowing AND, OR, NOT, constants and n input wires. Let M be their number. For a prefix p of the truth table in lexicographic input order, store exactly the descriptions whose outputs agree with p. Initially store all M descriptions. On appending the next truth-table bit, evaluate every retained circuit on the corresponding input and discard it if its output disagrees. After each update the retained list is exactly the circuits consistent with the new prefix; hence it is nonempty iff that prefix is extendible by the truth table of a circuit of size at most s. Each circuit evaluation costs O(s), so each transition costs O(Ms), and the explicit list uses O(Ms log(n+s)) bits under a standard encoding. The number M is at most (s+1)(3(n+s+2)^2)^s, by choosing at each of at most s topologically ordered gates a type and at most two sources among inputs, earlier gates, and constants. Proof: induction on prefix length; the filtering step retains precisely those descriptions that also agree at the next position. This is an explicit exponential-in-s procedure, not a polynomial-in-s bound.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795729380.817607,
+  "session": "pnp-desk/research/R4492",
+  "model": "gpt-6-luna",
+  "gap": "The residual-language characterization is exact but does not bound the number of residuals or provide a compact representation/update. Determine a size or update bound for a specified encoding, or connect this characterization to arbitrary MCSP decision circuits with a proved transition-cost relation.",
+  "gap_id": "G0214",
+  "id": "S0982",
+  "proved_step": "statement: RESIDUAL-LANGUAGE CHARACTERIZATION OF EXACT EXT STATES. Fix n,s and let T be the set of truth tables of Boolean circuits on n inputs of size at most s. For every prefix p of length t, define R_p={z in {0,1}^{2^n-t}: pz is in T}. In any deterministic exact streaming algorithm deciding whether each received prefix extends to a member of T, prefixes p,q that reach the same internal state must satisfy R_p=R_q. Conversely, the state R_p, updated on bit b by R_{pb}={z: bz is in R_p}, is sufficient to decide extendibility by testing whether R_p is nonempty. Proof: if R_p and R_q differ, choose z in their symmetric difference; after the identical continuation z, exactly one of pz,qz is extendible, so a deterministic machine in the same state could not answer both correctly. The update formula follows directly by decomposing a completing suffix after its first bit. This characterizes required information, but gives no compact encoding or efficient update bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795729400.3855472,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0978: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The claim is mathematically valid, but I did not obtain an accepted Lean proof. The verifier rejected the attempts due to errors in the set-image proof and cardinality lemma application. No f (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795730152.9733717,
+  "session": "pnp-desk/research/R4500",
+  "model": "gpt-6-luna",
+  "id": "S0983",
+  "proved_step": "statement: RESIDUAL-STATE CHARACTERIZATION FOR FIXED-LENGTH LANGUAGES. Let N be a nonnegative integer and L be any subset of {0,1}^N. For each prefix p of length t<=N define R_p={z in {0,1}^{N-t}: pz is in L}. Any deterministic exact recognizer that reads bits left to right and decides membership in L must be in different states after any two length-t prefixes p,q with R_p != R_q. Conversely, a recognizer whose states at depth t are the distinct residual sets R_p, and whose transition on b maps R_p to {z: bz in R_p}, decides L exactly. Thus the minimum number of reachable states at depth t is exactly the number of distinct residuals at that depth.\nderivation: Necessity: if R_p and R_q differ, choose z in their symmetric difference. If the machine had the same state after p and q, its deterministic continuation on z would have the same result, although exactly one of pz,qz belongs to L, contradiction. Sufficiency: after reading p, store R_p. On reading b, the residual becomes R_pb={z: pbz in L}={z: bz in R_p}, so the transition rule preserves the invariant that the state is the residual of the prefix read. At depth N the residual contains only the empty string when the full word is in L; accept in exactly that case. The two inequalities give the exact minimum state count.\nscope: All finite fixed-length binary languages and every depth 0<=t<=N. The statement concerns abstract deterministic states; it gives no circuit-size bound for encoding residuals or implementing transitions, in particular no bounded-cost transformation from arbitrary MCSP decision circuits H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795730463.5682995,
+  "session": "pnp-desk/research/R4500",
+  "model": "gpt-6-luna",
+  "id": "S0984",
+  "proved_step": "statement: FIXED-DEPTH EXT RESIDUAL COUNT. Let F be a finite subset of {0,1}^N and 0 <= t <= N. For p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz in F}. Then the number of distinct sets R_p is at most |F|+1.\nderivation: Let P+ be the length-t prefixes p with R_p nonempty. For each p in P+, choose f_p in F whose length-t prefix is p. Distinct prefixes yield distinct chosen words, so p -> f_p is injective and |P+| <= |F|. Every nonempty residual is realized by a prefix in P+, hence there are at most |F| distinct nonempty residuals. All empty residuals equal the empty set, adding at most one more. Thus the total is at most |F|+1. Distinct residual sets need not be disjoint; the proof uses only the injection from viable prefixes to F.\nscope: All finite F subseteq {0,1}^N and all 0 <= t <= N; a state-count bound for the exact prefix automaton.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -76,5 +76,32 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0005: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I did not formalize the probability space, union bound, and pairwise-independence assumptions into a complete Lean theorem. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795727404.2615473,
+  "session": "pnp-desk/research/R4483",
+  "model": "gpt-6-luna",
+  "id": "S0008",
+  "proved_step": "statement: Let Phi be a finite binary formula with L input-leaf occurrences, counting repeated occurrences separately. Under any distribution on restrictions that substitutes constants for non-live variables, leaves each distinct variable live with marginal probability p, and simplifies constants and identity gates without semantic tautology detection, let R be the resulting formula. Count leaves and binary gates in size(R), with a constant formula having size 1. Then E[size(R)] <= 2pL+1, and for every real a>0, Pr[size(R)>=a] <= (2pL+1)/a.\nproof: Let X count input-leaf occurrences whose variable is live. By linearity of expectation, E[X]=pL; no independence is needed. For each restriction, if no live occurrences remain, structural simplification leaves a constant of size 1. Otherwise the simplified formula is either a constant of size 1 or a binary formula with k leaves, where k<=X because simplification only deletes leaves or collapses gates. A binary formula with k leaves has k-1 gates, hence size 2k-1<=2X+1. Thus pointwise size(R)<=2X+1. Taking expectations proves E[size(R)]<=2pL+1. Markov's inequality applied to the nonnegative random variable size(R) gives Pr[size(R)>=a]<=E[size(R)]/a<=(2pL+1)/a.\nevidence: Complete argument from leaf-occurrence indicators, the full-binary-tree gate count, and Markov's inequality. The finite independent check cm-e42d28af87614660 found no counterexample in 62,980 enumerated cases, but is not used as proof.\nscope: The claim concerns syntactic simplification of binary formulas under arbitrary dependence among variable-live events, with only their common marginal p specified. It does not establish forest shrinkage, MCSP threshold preservation, or an AF premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728209.6732225,
+  "session": "pnp-desk/research/R4487",
+  "model": "gpt-6-luna",
+  "id": "S0009",
+  "proved_step": "statement: For every integer m>=1, every nonempty A subseteq {0,1}^m of size t, and every integer q with 1<=q<=t, there is a sequence of at most ceil(log2(t/q)) coordinate restrictions whose final restricted support is nonempty and has size at most q. Proof: While the current support has size u>q, select distinct x,y in it and a free coordinate i on which they differ. Both fibers are nonempty and their sizes sum to u, so restricting to the smaller fiber leaves a nonempty support of size at most u/2. After j restrictions its size is at most t/2^j. For j=ceil(log2(t/q)), this is at most q. The process cannot run out of free coordinates while the support has size greater than q>=1: if all coordinates were fixed, the remaining support would have size at most one. This is a support-size lemma only; it does not establish MCSP threshold preservation or AF premises P1/P2.\nproof: At each iteration with u>q>=1, u>=2, so two distinct support strings exist. They differ on a coordinate not yet fixed; otherwise they would coincide on all coordinates. The two fibers on that coordinate are nonempty and partition the support, hence the smaller has size at most u/2. Thus the support remains nonempty and after j iterations has size at most t/2^j. For j=ceil(log2(t/q)), 2^j>=t/q, giving t/2^j<=q. The process terminates within that many steps, or earlier if its support is already at most q.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728248.9988372,
+  "session": "pnp-desk/research/R4487",
+  "model": "gpt-6-luna",
+  "id": "S0010",
+  "proved_step": "statement: Let m>=1, c>=1, and let f:{0,1}^m->{0,1} have support A of size t>=1. There is a sequence of k coordinate restrictions, for any integer 0<=k<=min(m,ceil(log2 t)), leaving a nonempty residual support A' of size u<=ceil(t/2^k). The residual function on r=m-k free variables has a fan-in-2 DNF of size at most max(0,ur-1). Consequently, if ceil(t/2^j)*(m-j)-1 < (m-j)^c for every integer j in [0,k] with m-j>=1, then every residual function along the sequence, including the original f, has circuit size below its corresponding dimension-c threshold. Proof: Starting from A_0=A, while restrictions remain and |A_i|>=2, choose two distinct strings in A_i and an unfixed coordinate on which they differ. The two fibers are nonempty and partition A_i; choose the smaller, so |A_{i+1}|<=|A_i|/2. If |A_i|=1, fix any remaining coordinate to its unique string's bit; this preserves support size one, which is at most ceil(t/2^(i+1)) whenever the process has reached that stage. Induction gives |A_j|<=ceil(t/2^j) for each j<=k, with nonemptiness preserved. On r free variables, represent each of the u satisfying assignments by its minterm, using r-1 binary AND gates per minterm, then OR the minterms with u-1 binary OR gates. For u>=1 and r>=1 this uses u(r-1)+(u-1)=ur-1 gates; the zero-variable residual is a constant and uses zero gates. The stated inequalities therefore give the claimed threshold control at every listed level. This is a sufficient condition depending on support size and restriction depth; it does not prove that every MCSP YES instance meets it or establish AF premises P1/P2.\nproof: The restriction construction and size bound follow by induction. At a stage with at least two points, distinct points differ on some unfixed coordinate, since they agree on all fixed coordinates; the two corresponding fibers are both nonempty, and the smaller has at most half the points. At a singleton stage, fixing any remaining coordinate consistently keeps one point. Since integer support size is nonempty, the half-step estimate yields the ceiling bound. The DNF is exact because its minterms correspond one-to-one with the satisfying assignments. Its gate count is u(r-1)+(u-1)=ur-1 for r>=1; for r=0 the residual is constant. Applying the explicit inequalities at each level proves threshold preservation under the stated sufficient condition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
