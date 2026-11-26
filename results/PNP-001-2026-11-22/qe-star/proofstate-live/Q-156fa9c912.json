@@ -8003,5 +8003,117 @@
   "evidence": "Construction verified: for each output coordinate j (S total), function f_j: {0,1}^{S+1} -> {0,1} built via truth-table DNF. At most 2^{S+1} minterms, each AND of S+1 literals (S AND gates), S+1 shared NOT gates, OR tree of 2^{S+1}-1 gates. Per-coordinate: (S+2)2^{S+1}-1 gates. Total: S(S+2)2^{S+1}-S <= S(S+2)2^{S+1}. Standard constructive upper bound, no gap. Explicitly does not address cost of obtaining transition tables from H_C.",
   "review_of": "S0797",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795663723.8550386,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: for each of the 2^r witness assignments w, substitute the fixed prefix p and w into H, yielding a circuit H_{p,w}(z) on the remaining inputs with at most h gates (fixing inputs never increases gate count in a fan-in-two circuit). Combine the 2^r outputs with a binary OR tree of 2^r-1 fan-in-two OR gates. The resulting circuit computes the existential quantification exactly, has fan-in two throughout, and size at most 2^r h + 2^r - 1. No counterexample exists; this is a standard valid upper-bound construction. The claim explicitly states it is an upper bound, not a lower bound, and makes no P\u2260NP progress claim.",
+  "review_of": "S0798",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795663723.9057698,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This follows directly from S0798 (which survived review). S0798 gives size \u2264 2^r h + 2^r - 1. The hypothesis r \u2264 c log2(h) implies 2^r \u2264 h^c. Substituting: size \u2264 h^c \u00b7 h + h^c = h^(c+1) + h^c. The derivation is algebraically correct and the polynomial bound in h for fixed c is correctly stated. No gap or counterexample.",
+  "review_of": "S0799",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795663723.940807,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This restates S0799 with a self-contained proof that does not depend on earlier steps. The proof constructs the same circuit: 2^r copies of H with substituted constants, combined by a binary OR tree. Size \u2264 2^r h + 2^r - 1. With r \u2264 c log2(h), 2^r \u2264 h^c, giving h^(c+1) + h^c. The construction and arithmetic are correct. It correctly notes this is a polynomial upper bound only in the logarithmic-witness regime and makes no lower-bound or P\u2260NP claim.",
+  "review_of": "S0800",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795663723.9755974,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: each prefix p of length t defines an index set I_p = {j : a_j begins with p}. Distinct prefixes have disjoint index sets. There are at most M nonempty such sets (since the M strings partition into at most M nonempty groups) plus at most one empty set (for prefixes extending no string in A). Also there are at most 2^t prefixes total. Hence r_t \u2264 min(2^t, M+1). Summing the looser bound M+1 over N+1 depths gives the stated total bound. This is a purely combinatorial fact about listed multisets, independent of circuit representations. No counterexample exists.",
+  "review_of": "S0801",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664122.9794626,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Asymptotic bound error: the construction costs r_t*ceil(log2 r_t) gates for equality decoding plus 2*r_t*ceil(log2 r_{t+1}) for OR trees plus ceil(log2 r_{t+1}) for selection = O(r_t log r_t + r_t log r_{t+1}). The claim O(r_t log r_{t+1}) assumes log r_t = O(log r_{t+1}), but r_{t+1} <= 2r_t only gives an upper bound, not a lower bound. Counterexample regime: r_t = 1024, r_{t+1} = 2. Then actual cost ~ 1024*10 + 1024*1 = 11264 gates, but claimed bound O(r_t log r_{t+1}) = O(1024*1) = 1024, off by factor ~11. The boundary case claim 'constant-width boundary cases take O(r_t) gates' also fails when r_t is large but r_{t+1} is constant. S0804 repairs this by keeping both logarithmic factors.",
+  "review_of": "S0802",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795664190.8245595,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction verified: (1) Equality decoding for each of r_t legal indices uses O(ceil(log2 r_t)) fan-in-2 gates per index (AND tree comparing against fixed binary code), total O(r_t ceil(log2 r_t)). (2) For each of 2 input bits b and ceil(log2 r_{t+1}) output bits k, OR the equality indicators of indices i with table entry output bit k = 1 on b; each OR costs O(r_t) gates, total O(2 * r_t * ceil(log2 r_{t+1})) = O(r_t ceil(log2 r_{t+1})). (3) Bit-controlled selection between the two branch outputs uses O(ceil(log2 r_{t+1})) mux gates. Sum = O(r_t ceil(log2 r_t) + r_t ceil(log2 r_{t+1}) + ceil(log2 r_{t+1})). The repaired bound correctly retains both logarithmic factors, fixing S0802's error. No counterexample found for the stated construction.",
+  "review_of": "S0804",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664261.1809323,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: R_{pb}(z) = 1 iff \u2203w H(pbz, w) = 1. By associativity of string concatenation, pbz = p(bz). Thus \u2203w H(p(bz), w) = 1, which is exactly R_p(bz) = 1. The identity holds by definition of R_p and associativity of concatenation; the existential witness domain is identical on both sides. No counterexample exists - this is a tautological identity over finite strings.",
+  "review_of": "S0806",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664301.411997,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification of the explicit algorithm: (1) Evaluation: for fixed p,z, iterate over all 2^r witness strings w\u2208{0,1}^r, evaluate the h-gate circuit H on input (pz,w). Accept iff any evaluation outputs 1. This uses exactly 2^r circuit evaluations, each evaluating at most h gates, so \u2264 2^r h gate evaluations total. (2) Working space: the read-only circuit description (h gates) plus storage for current witness w (r bits), current suffix z (\u2264N bits), gate values during one evaluation (h bits), and loop counters = O(h+N+r) bits. (3) Transition identity: R_{pb}(z') = 1 \u21d4 \u2203w H(pb z', w) = 1 \u21d4 \u2203w H(p(bz'), w) = 1 \u21d4 R_p(bz') = 1 by associativity of concatenation. The bounds are worst-case upper bounds attained by the explicit enumeration algorithm; no counterexample exists for this constructive claim.",
+  "review_of": "S0807",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664526.3493204,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: (1) Lower bound: at depth t, distinct residuals R_t(p) \u2260 R_t(p') are distinguished by some suffix z, so any exact automaton needs different states for them. Thus \u2265 r_t states at depth t, so \u2265 max_t r_t states overall. With disjoint layer copies, the lower bounds add, giving \u2265 \u03a3_t r_t. (2) Upper bound (shared): let R = max_t r_t. Assign each residual at each layer a unique code from [R]. For each layer t and bit b, transition from code of A to code of A_b = {z : bz \u2208 A}. This is well-defined since A determines both sections. Induction: after reading prefix p, state = code of R_t(p); acceptance is exact. (3) Upper bound (disjoint): use separate codes per layer, sum = \u03a3_t r_t. Construction is explicit. No counterexample - this is a standard Myhill-Nerode / residual automaton result for position-dependent (layered) automata.",
+  "review_of": "S0808",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664723.0033927,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification of the one-hot construction: (1) States at depth t are one-hot vectors of length r_t. (2) For each b, the transition function f_b: [r_t] -> [r_{t+1}] is well-defined because each residual R has a unique b-section R_b = {z : bz in R} which is a depth-(t+1) residual. (3) To compute output coordinate j, OR together all input coordinates i where f_b(i)=j. If k_j sources map to j, this uses k_j AND gates (each AND-ing the one-hot input bit with constant 1, effectively just passing it) and max(k_j-1, 0) OR gates. Since sum_j k_j = r_t, total AND gates = r_t, total OR gates <= r_t - 1 < r_t. So total gates per (t,b) <= 2r_t. Since r_{t+1} >= 1, 2r_t <= 2r_t r_{t+1}. The construction is explicit and exact. No counterexample exists.",
+  "review_of": "S0810",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664723.7933497,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification of the optimized one-hot construction: (1) States are one-hot vectors of length r_t. (2) For fixed b, each source residual i has exactly one b-section, which maps to a unique target j = f_b(i). (3) To compute output coordinate j, we OR together the k_j source coordinates mapping to j. If k_j >= 2, this uses k_j - 1 OR gates (fan-in-2, binary tree). If k_j = 1, 0 gates needed (just wire). If k_j = 0, 0 gates (constant 0). Total OR gates = sum_j max(k_j - 1, 0). Since sum_j k_j = r_t and each k_j >= 0, the maximum of this sum is when one k_j = r_t and others = 0, giving max(r_t - 1, 0). Per bit b: <= max(r_t - 1, 0) OR gates. Two bits per layer: <= 2 * max(r_t - 1, 0). Sum over t = 0 to N-1 gives the bound. The empty language case (r_t = 1 for all t) gives max(0,0) = 0 gates, covered by formula. No AND gates needed since one-hot input directly selects sources. Construction is explicit and exact. No counterexample exists.",
+  "review_of": "S0811",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795664772.794278,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The update rule is mathematically incorrect. The claim states: q_C := q_C AND [C(1,...,i-1,b,0,...,0) = b] where the bracket is described as 'the fixed truth-table bit of C at position i'. However, C(1,...,i-1,b,0,...,0) evaluates circuit C on an n-bit input where the first i-1 bits are 1, the i-th bit is b, and the rest are 0. This is NOT the i-th bit of C's truth table (which has length 2^n and is indexed by all n-bit strings in lexicographic order). The truth table bit at position i is a fixed constant for each circuit C (the value of C on the i-th input string), not a function of the input bit b being read. The correct update would be q_C := q_C AND [T_C[i] == b] where T_C is the precomputed truth table of C. The written rule confuses truth table positions with circuit inputs and makes the transition depend on b in the wrong way. This error invalidates the claimed construction.",
+  "review_of": "S0813",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795664895.5716977,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The derivation itself identifies a flaw: the construction yields at most 6d_t gates, not 4d_t as stated. The step counts: (1) g_{S,b} = OR of sources mapping to S for bit b: total OR gates across both bits <= 2d_t (since each of d_t sources has exactly one destination per bit, sum of k_j = d_t per bit). (2) h_{S,b} = g_{S,b} AND [input bit = b]: at most 2d_t gates (only destinations reached need gates, at most d_t per bit). (3) y_S = h_{S,0} OR h_{S,1}: at most d_{t+1} gates, and d_{t+1} <= 2d_t. Total = 2d_t + 2d_t + 2d_t = 6d_t. The claimed 4d_t bound is not justified by the given construction. A valid bound is 6d_t (or 7d_t as noted in S0815). The 4d_t claim is incorrect.",
+  "review_of": "S0814",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795664896.3957195,
+  "session": "pnp-desk/research/R4260",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification of the constructive upper bound: (1) For each of the 2^r witness strings w\u2208{0,1}^r, substitute the fixed prefix p and the fixed witness w into the h-gate circuit H. This yields a circuit on the remaining variables z with at most h gates (substitution of constants and fixed inputs does not increase gate count). (2) Compute the OR of these 2^r outputs using a binary tree of 2^r - 1 two-input OR gates. (3) The resulting circuit outputs 1 iff at least one witness makes H(pz,w)=1, which is exactly E_p(z). (4) Gate count: 2^r * h (for the cofactored subcircuits) + (2^r - 1) (for the OR tree) = 2^r h + 2^r - 1. (5) Edge case r=0: 2^0=1 witness (empty string), 0 OR gates, total = h gates, which matches the formula. The bound is a valid constructive upper bound for the projected residual; it does not claim minimality or polynomial dependence on r. No counterexample exists for this constructive claim.",
+  "review_of": "S0805",
+  "status": "SURVIVED_REVIEW"
  }
 ]
