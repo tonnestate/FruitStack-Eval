@@ -6779,5 +6779,49 @@
   "evidence": "Support union lemma verified by exhaustive check for m up to 7, r up to 3: supp(\u03b4_r\u2218...\u2218\u03b4_1) \u2286 \u22c3 supp(\u03b4_i) holds in all cases. The circuit construction for a permutation with t moved states using O(S(1+t)) fan-in-2 gates is correct: shared input negations (S NOT), t equality indicators at (S-1) AND each, per-output-bit OR of at most t indicators (t-1 OR), and final XOR (S gates). Total S + t(S-1) + S(t-1) + S = O(S(1+t)). The composition bound follows since composite has at most \u03a3 t_i moved states.",
   "review_of": "S0698",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795669883.0318882,
+  "session": "pnp-desk/research/R4326",
+  "model": "gpt-6-luna",
+  "id": "S0782",
+  "proved_step": "statement: LEMMA (fixed-point-free involutions). For every even m >= 2, every m-element set Q, and every fixed-point-free involution \u03b4:Q\u2192Q, there is an injective stationary encoding \u03c8:Q\u2192{0,1}^{ceil(log2 m)} such that the encoded transition extends to a total Boolean map computable with one NOT gate and wires. Proof: Put r=m/2 and list the two-element orbits of \u03b4 as P_0,...,P_{r-1}. Choose one representative q_i from each orbit and assign each orbit a distinct index u_i in {0,1}^{ceil(log2 r)}. Define \u03c8(q_i)=(u_i,0) and \u03c8(\u03b4(q_i))=(u_i,1). These codes are distinct. Also ceil(log2 r)+1=ceil(log2(2r))=ceil(log2 m), so they have the required length. Define T(u,b)=(u,\u00acb) on every bit string of that length, including unused codes. Then T(\u03c8(q))=\u03c8(\u03b4(q)) for each state q: on either member of each orbit, T preserves its index and flips its tag. T copies the index bits and negates the tag, so it uses one NOT gate plus wires.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795671501.5662751,
+  "session": "pnp-desk/research/R4334",
+  "model": "gpt-6-luna",
+  "evidence": "The proof bounds endpoint corrections by the number d of distinct cycle lengths, but its construction has one endpoint per cycle. For the identity permutation on m states, d=1 while there are m endpoints. Thus its claimed O((d+1)S^2) gate count does not follow. This refutes the stated proof argument, not necessarily the existence theorem.",
+  "review_of": "S0699",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795671501.6074982,
+  "session": "pnp-desk/research/R4334",
+  "model": "gpt-6-luna",
+  "id": "S0784",
+  "proved_step": "statement: Common-cycle-length constructive bound. Let \u03b4 be a permutation on an m-element set, m\u22652, all of whose cycles have one common length L (so L divides m), and set S=\u2308log\u2082m\u2309. There is an injective stationary encoding into {0,1}^S such that the encoded transition on valid codes extends to a total Boolean map computed by O(SL) fan-in-two gates.\nproof: Write the cycles as C_0,...,C_{r\u22121}, each in successor order C_i=(q_{i,0},...,q_{i,L\u22121}), where r=m/L. Encode \u03c8(q_{i,t}) as the S-bit binary representation of iL+t. These m codes are distinct and lie in [0,m\u22121]. For valid code x=iL+t with t<L\u22121, the successor code is x+1; if t=L\u22121, it is x\u2212(L\u22121)=iL. Define the total extension on every S-bit input x by F(x)=x\u2212(L\u22121) when x mod L=L\u22121, and F(x)=x+1 modulo 2^S otherwise. This agrees with the desired transition on every valid code. To implement x mod L=L\u22121, scan its S bits from most significant to least significant, maintaining a one-hot remainder in {0,...,L\u22121}; each input bit updates remainder a to (2a+b) mod L. Each layer's L output indicators are computed from the preceding L indicators and the input bit with O(L) fan-in-two gates, for O(SL) total. Testing the final remainder costs O(L). Increment by one modulo 2^S and subtraction of the fixed constant L\u22121 modulo 2^S each have O(S) fan-in-two implementations; selecting the result bitwise costs O(S). Overall size is O(SL), including L=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795672126.3251154,
+  "session": "pnp-desk/research/R4342",
+  "model": "gpt-6-luna",
+  "id": "S0785",
+  "proved_step": "CYCLE-LENGTH COUNTING LEMMA. For any permutation on m states with d distinct cycle lengths, d(d+1)/2 <= m. Proof: the disjoint cycles partition the states; for each distinct length there is at least one cycle of that length, so m is at least the sum of the d distinct positive lengths. That sum is at least 1+2+...+d=d(d+1)/2. This structural lemma supports grouping cycles by length but does not establish the circuit implementation cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795672285.0185874,
+  "session": "pnp-desk/research/R4342",
+  "model": "gpt-6-luna",
+  "id": "S0786",
+  "proved_step": "CYCLE-GROUPED SUCCESSOR RULE. Let delta be a permutation of a finite set Q. For each cycle length ell, place the cycles of that length consecutively in a block, with each cycle occupying ell consecutive integer codes. For a state with code x, block start a, and offset r=x-a, define its successor code to be x+1 if r mod ell != ell-1, and x-(ell-1) if r mod ell = ell-1. Then this rule sends every encoded state to the code of its delta-successor. Proof: In a cycle, offsets j<ell-1 are followed by offset j+1, whose code is x+1. The final offset ell-1 is followed by the first state of that cycle, whose code is x-(ell-1). Thus the rule is correct on every cycle. This proves only transition-table correctness; it makes no circuit-size claim. Diagnostic: not a P-vs-NP claim; relativizing/natural/algebrizing/localizing labels are not applicable to this finite combinatorial lemma.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

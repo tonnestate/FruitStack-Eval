@@ -2596,5 +2596,29 @@
   "evidence": "Same algorithmic structure as S0292, restated. DP over q-dimensional score vectors, state space (2n^{d+1}+1)^q for fixed q. Induction proves recurrence correctness. Final layer determines all bottom gate outputs and thus top threshold. Polynomial time for fixed q,d,e. No argument gap; correct for the subclass.",
   "review_of": "S0293",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795671385.954021,
+  "session": "pnp-desk/research/R4339",
+  "model": "gpt-6-luna",
+  "evidence": "Corrected the signed-exponent issue by shifting each factor separately; exact correctness follows from block independence and coefficient counting.",
+  "id": "S0301",
+  "proved_step": "statement: Let W\u2208Z^{m\u00d7n}, thresholds t\u2208Z^m, top weights v\u2208Z^m, and T\u2208Z. Suppose the supports S_j={i:W_{ji}\u22600} are pairwise disjoint. Define c_j=|{y\u2208{0,1}^{S_j}: \u03a3_{i\u2208S_j}W_{ji}y_i\u2265t_j}| and f=n\u2212\u03a3_j|S_j|. Set L=\u2212\u03a3_{j:v_j<0}v_j and P(z)=\u220f_{j=1}^m((2^{|S_j|}\u2212c_j)+c_j z^{v_j+L_j}), where L_j=\u2212v_j if v_j<0 and 0 otherwise. For each gate j the exponent shift is local; instead define Q(z)=\u220f_j((2^{|S_j|}\u2212c_j)z^{L_j}+c_j z^{L_j+v_j}), with L_j=max(0,\u2212v_j). Then # {x\u2208{0,1}^n: \u03a3_j v_j[\u03a3_iW_{ji}x_i\u2265t_j]\u2265T}=2^f \u03a3_{e\u2265T+L}[z^e]Q(z), where L=\u03a3_jL_j. The c_j can be computed by enumerating each block, and Q by polynomial multiplication, giving an exact algorithm in O(\u03a3_j2^{|S_j|}+mD^2) arithmetic operations for D=\u03a3_j|v_j|, with integer coefficient bit lengths polynomial in n+\u03a3_j|v_j| when the input integers are binary encoded and D is polynomially bounded.\nproof: Disjoint supports make the gate truth indicators independent under uniform assignments, and each block has exactly c_j assignments making its gate true and 2^{|S_j|}\u2212c_j making it false. For gate j, a false assignment contributes score 0 and a true assignment contributes v_j. Multiplication of the corresponding two-term polynomials records the number of block assignments by total score after shifting both exponents by L_j=max(0,\u2212v_j); all exponents are nonnegative. Thus Q's coefficient at e counts block assignments with original total score e\u2212L. The f unused variables contribute a factor 2^f, and summing coefficients for e\u2265T+L gives exactly the required count. Enumerating each block computes c_j in \u03a32^{|S_j|} operations; naive multiplication of m polynomials whose total degree is D costs O(mD\u00b2) arithmetic operations. This is an exact finite subclass algorithm; it provides no speed-up claim for unrestricted or overlapping supports.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795671440.2976224,
+  "session": "pnp-desk/research/R4339",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive exact enumeration over the union of bottom-gate supports proves a 2^{mk} poly(n,m) algorithm and a 2^{(1\u2212\u03b4)n} poly(n,m) bound on the explicit subclass mk\u2264(1\u2212\u03b4)n. This shrinks the general unrestricted running-time obligation only to this bounded-total-support subclass; it makes no claim for arbitrary supports.",
+  "id": "S0302",
+  "proved_step": "statement: Let C be a THR\u2218THR circuit on n Boolean variables with m bottom gates, each bottom gate depending on at most k variables. Let U be the union of the bottom-gate supports. There is an exact #SAT algorithm running in O(2^{|U|} poly(n,m)) time, hence O(2^{mk} poly(n,m)); for every fixed \u03b4>0, the subclass mk\u2264(1\u2212\u03b4)n is countable in O(2^{(1\u2212\u03b4)n} poly(n,m)) time.\nproof: Enumerate every assignment a\u2208{0,1}^U and evaluate each bottom threshold gate and then the top gate on a. Let A be the number of enumerated assignments accepted. Every gate output, and therefore C's output, depends only on variables in U. Thus each accepted assignment a has exactly 2^{n\u2212|U|} extensions to {0,1}^n, all accepted, and each rejected assignment has no accepted extensions. Therefore #SAT(C)=A\u00b72^{n\u2212|U|}. The union bound |U|\u2264mk gives the stated enumeration time and the subclass bound. Evaluating the circuit per assignment costs polynomial time in its encoding size.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

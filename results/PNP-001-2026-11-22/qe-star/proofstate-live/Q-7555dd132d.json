@@ -686,5 +686,60 @@
   "evidence": "Computational verification on 20 random THR o THR instances (n=3..6, m=2..5) and edge cases (zero weights, single gate, negative weights) shows DP algorithm matches brute-force #SAT exactly. Experiment cm-5f33d0b717b64f3db8544ea31516c367. The recurrence D_i(z) = D_{i-1}(z) + D_{i-1}(z - W_J[:,i]) correctly tracks active-form vector counts; state bound min(2^i, (2Bi+1)^k) holds.",
   "review_of": "S0072",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795670085.7416034,
+  "session": "pnp-desk/research/R4327",
+  "model": "gpt-6-luna",
+  "id": "S0081",
+  "proved_step": "statement_start: For a THR\u2218THR circuit whose active bottom-gate columns have at most a fixed r distinct vectors, #SAT is computable in polynomial time.\nstatement: Let C be an integer THR\u2218THR circuit on n Boolean inputs. Let J be the set of bottom gates with nonzero top weight. Suppose the input coordinates are partitioned into r nonempty classes I_1,...,I_r such that each column (W_{ji})_{j in J} is constant on each class. Let q_a=|I_a| and let c_a be that column vector. Then #SAT(C) equals the sum over tuples k_a in {0,...,q_a} for which the top gate accepts, of product_a binom(q_a,k_a), where bottom gate j is evaluated at sum_a k_a(c_a)_j. For each fixed r this is computable in polynomial time in the circuit's binary encoding length. Proof: every assignment induces the unique tuple k_a=number of its 1-coordinates in I_a; the active gate sums and hence output depend only on this tuple. Exactly product_a binom(q_a,k_a) assignments induce it, since classes are disjoint. Thus summing multiplicities over accepting tuples counts satisfying assignments exactly once. There are at most product_a(q_a+1) <= (n+1)^r tuples. Each tuple can be evaluated using polynomially many integer additions and comparisons on numbers whose bit lengths are polynomial in the input encoding length; the binomial multiplicities also have at most n+1 bits. Therefore for fixed r the total bit complexity is polynomial. This is an exact algorithm for the fixed-distinct-active-column subclass only.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-7555dd132d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670397.6312528,
+  "session": "pnp-desk/research/R4327",
+  "model": "gpt-6-luna",
+  "id": "S0082",
+  "proved_step": "statement: Let C be an integer THR\u2218THR circuit on n Boolean inputs, with active bottom-gate columns partitioned into r nonempty classes I_1,...,I_r such that each active column vector (W_{ji})_{j in J} is constant on a class. Write q_a=|I_a| and let L be the binary encoding length. Then #SAT(C) is computable exactly in 2^{O(r log(1+n/r))} poly(L) bit operations. In particular, any family with r=o(n) admits a 2^{o(n)} poly(L) exact counting algorithm. Proof: for each tuple k_a\u2208{0,...,q_a}, evaluate each active bottom gate on the sum of its column coordinates weighted by k_a, then the top gate. Add \u220f_a binom(q_a,k_a) iff accepted. Every assignment induces exactly one tuple, and each tuple has exactly that many assignments, so the sum is exact. There are \u220f_a(q_a+1) tuples. By concavity of log(1+x), this is at most (1+n/r)^r. Each tuple evaluation and multiplicity computation uses polynomially many bit operations in L; all intermediate integer bit lengths are polynomial in L, since weights/thresholds are encoded in L and counts are at most 2^n. Hence time is (1+n/r)^r poly(L)=2^{O(r log(1+n/r))}poly(L). For r=o(n), r log(1+n/r)=o(n), proving the subexponential consequence. This extends the fixed-r lemma without implying a bound for generic instances, where r may equal n.\nevidence: Derivation from tuple counting in S0081 plus concavity bound on tuple count; prior fixed-distinct-threshold workflow cm-f6b8844628834a0e checked implementation against brute force on 500 cases with n\u22644 (finite sanity check only). Barrier diagnostic: relativizing\u2014no oracle behavior used; natural\u2014no lower-bound property established; algebrizing\u2014no algebraic-oracle behavior used; localizing\u2014no localization claim. Five circumvention tests: reversible computing, Strassen cancellation, Barrington width-5, catalytic space, and mass production do not apply to this direct exact enumeration upper bound; none is used to infer an unavoidable cost.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-7555dd132d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670697.397808,
+  "session": "pnp-desk/research/R4327",
+  "model": "gpt-6-luna",
+  "id": "S0083",
+  "proved_step": "statement: Let C be an explicitly encoded integer THR\u2218THR circuit with n inputs and top weights a_j. Form the variable\u2013bottom-gate incidence graph, and let its variable-containing components be H_1,...,H_k, each with at most w variables. Put B=\u03a3_j|a_j|. Then #SAT(C) is computable in O(k\u00b72^w\u00b7poly(L)+k\u00b7(B+1)^2\u00b7poly(L)) bit operations, where L is the encoding length. Proof: Empty-support bottom gates contribute a fixed score c_0. Each other bottom gate touches variables in exactly one component. For each H_i, enumerate its at most 2^w assignments and tabulate D_i(u), the number with local weighted bottom-gate score u; this costs O(k\u00b72^w\u00b7poly(L)). Initialize A_0(c_0)=1. For i=0,...,k\u22121 update A_{i+1}(s)=\u03a3_u A_i(s\u2212u)D_{i+1}(u). By induction, A_i(s) counts assignments to the first i components with total score s. The recurrence partitions these assignments by the next component\u2019s local score. Every global assignment has a unique tuple of component assignments, and its top score is c_0 plus their local scores. Thus #SAT(C)=\u03a3_{s\u2265T}A_k(s). All reachable scores lie in [\u2212B,B], so direct score-range convolution costs O(k\u00b7(B+1)^2) arithmetic operations. Scores and counts have polynomially many bits in L, giving the stated bit bound. Consequently the algorithm is polynomial time if w=O(log L), B=poly(L), and k\u2264L.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-7555dd132d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670750.6737216,
+  "session": "pnp-desk/research/R4327",
+  "model": "gpt-6-luna",
+  "id": "S0084",
+  "proved_step": "statement: Let H_1,...,H_k be the variable-containing components of the variable\u2013bottom-gate incidence graph of an integer THR\u2218THR circuit. Let U_i be the set of distinct weighted top-score contributions attainable by assignments to H_i, and let c_0 be the contribution from empty-support gates. Define R_0={c_0} and R_i={s+u:s in R_{i-1},u in U_i}. Exact #SAT is computable in O(sum_{i=1}^k |R_{i-1}||U_i| poly(L)) bit operations, where L is the circuit encoding length. Proof: Enumerate assignments to each component to obtain D_i(u), the number attaining u in U_i. Store a count for each reachable total score, starting with count 1 at c_0. At step i, add the product of the previous count at s and D_i(u) to the count at s+u, for every s in R_{i-1}, u in U_i. Each global assignment has a unique restriction to every component, and each bottom gate with nonempty support belongs to exactly one component. Therefore the recurrence counts every assignment exactly once by total top score. Summing final counts for scores meeting the top threshold gives #SAT. Scores and counts have polynomially many bits in L; the stated bound counts score-pair updates and their arithmetic.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-7555dd132d",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670826.8918371,
+  "session": "pnp-desk/research/R4327",
+  "model": "gpt-6-luna",
+  "id": "S0085",
+  "proved_step": "statement: Let H_1,...,H_k be the variable-containing components of the variable\u2013bottom-gate incidence graph of an integer THR\u2218THR circuit with binary encoding length L. Let w_i=|V(H_i)|. Let U_i be the set of distinct weighted top-score contributions attainable on H_i, and let R_0={c_0}, where c_0 is the contribution of empty-support gates; define R_i=R_{i-1}+U_i. Then exact #SAT takes O((\u03a3_i 2^{w_i} + \u03a3_i |R_{i-1}||U_i|) poly(L)) bit operations. Proof: enumerate each component\u2019s 2^{w_i} assignments and tabulate D_i(u), the number attaining each u\u2208U_i. Initialize A_0(c_0)=1. For each i, update A_i(s+u) += A_{i-1}(s)D_i(u) for all s\u2208R_{i-1}, u\u2208U_i. Each global assignment has a unique tuple of component assignments; its top score is c_0 plus the sum of their local scores. The recurrence therefore counts every assignment exactly once by total score, and #SAT=\u03a3_{s\u2265T} A_k(s). The stated enumeration and sparse-convolution costs follow directly. All counts have at most n+1 bits, and score arithmetic has polynomial bit complexity in L.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "Q-7555dd132d",
+  "closes_valid": true
  }
 ]

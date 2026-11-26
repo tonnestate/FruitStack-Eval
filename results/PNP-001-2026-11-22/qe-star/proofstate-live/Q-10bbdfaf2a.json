@@ -6850,5 +6850,341 @@
   "session": "formal-lane",
   "model": "unknown",
   "evidence": "FORMAL LANE on S0800: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The submitted Lean file was rejected by the kernel with unresolved identifiers, type mismatches, and proof failures. I could not repair it into an accepted proof. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795669386.0454974,
+  "session": "pnp-desk/research/R4320",
+  "model": "gpt-6-luna",
+  "evidence": "Step 5 claims the union-bound estimate is <1 when u >= 8 ln M. At equality, M exp(-u/8)=1, so the estimate does not imply a probability below 1. The strict sufficient condition from that estimate is u > 8 ln M. The remainder of the argument must also satisfy the separate requirement D >= N^(1-epsilon).",
+  "review_of": "S0799",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795669386.0940948,
+  "session": "pnp-desk/research/R4320",
+  "model": "gpt-6-luna",
+  "id": "S0803",
+  "proved_step": "Exact Hamming-ball refinement: Let R be fixed coordinates, U the remaining u coordinates, and Y any family of M Boolean tables. For integer 0<=d<=u, if M sum_{j=0}^d binom(u,j) < 2^u, there is a table T with T|R=0 and dist_H(T,g)>d for every g in Y. Proof: among the 2^u assignments to U, each fixed g has exactly sum_{j=0}^d binom(u,j) assignments within distance d. The union of these M balls therefore contains at most M sum_{j=0}^d binom(u,j) assignments, strictly fewer than 2^u. An assignment outside the union gives T. This is an exact finite-parameter replacement for the tail bound; applying it to the MCSP read-set construction still requires d>=N^(1-epsilon), and the resulting read-set lower bound remains at most linear in N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669453.378383,
+  "session": "pnp-desk/research/R4320",
+  "model": "gpt-6-luna",
+  "id": "S0804",
+  "proved_step": "statement: Entropy corollary to exact Hamming-ball bound. Let M>=1, u>=1, and integer 0<=d<=u/2. Define H2(p)=-p log2 p-(1-p)log2(1-p), with 0 log2 0=0. If log2(M)<u(1-H2(d/u)), then for any fixed set R of N-u coordinates and any family Y of M Boolean tables, some T with T|R=0 has dist_H(T,g)>d for every g in Y. Proof: Write p=d/u. For p=0, the radius-d ball has size 1. For 0<p<=1/2 and j<=d, p^j(1-p)^(u-j)>=p^d(1-p)^(u-d). Since the binomial probability sum over j=0..d is at most 1, V(u,d)=sum binom(u,j)<=1/(p^d(1-p)^(u-d))=2^(uH2(p)). Thus M V(u,d)<2^u. The M balls cover fewer than all 2^u assignments on the free coordinates, so an uncovered assignment defines T. In the MCSP read-set application this remains limited by the N-coordinate ceiling and requires d>=N^(1-epsilon).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669702.9441135,
+  "session": "pnp-desk/research/R4320",
+  "model": "gpt-6-luna",
+  "id": "S0805",
+  "proved_step": "statement: Restriction-aware Hamming-cover lemma: for finite disjoint R,U with |U|=u, fix T|R=0 and finite tables Y. Put h(g)=|{i in R:g_i=1}| and V(u,q)=0 for q<0, sum_{j=0}^q binom(u,j) for 0<=q<u, and 2^u for q>=u. If sum_{g in Y} V(u,d-h(g))<2^u, some completion T|U has distance >d from every g. Proof: a completion within distance d from g must use at most d-h(g) disagreements on U, so its forbidden set has size at most V(u,d-h(g)); the union bound leaves an uncovered completion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669896.7853124,
+  "session": "pnp-desk/research/R4328",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: For fixed g, the R coordinates already contribute exactly h(g) disagreements since T is fixed to zero on R. Thus any completion on U with total distance at most d must lie within radius d-h(g) of g|U. The number of such completions is V(u,d-h(g)), with the stipulated zero/all-space boundary conventions. The union of these forbidden sets over g\u2208Y has cardinality at most the sum in the hypothesis, strictly less than the 2^u possible completions of U. Choose any completion outside that union. Its extension T has distance greater than d from every g, as required. This exact lemma supplies the restriction-aware refinement of the ordinary Hamming-cover bound; it does not by itself prove a superlinear MCSP circuit lower bound because the needed weighted sum for the full MCSP circuit family is not established.",
+  "id": "S0806",
+  "proved_step": "For finite disjoint coordinate sets R,U and a finite family Y of Boolean tables on R\u222aU, let h(g)=|{i\u2208R:g_i=1}| and V(u,q)=0 for q<0, V(u,q)=sum_{j=0}^q binom(u,j) for 0\u2264q<u, and V(u,q)=2^u for q\u2265u. If sum_{g\u2208Y} V(u,d-h(g))<2^u, then there exists T with T|R=0 and dist_H(T,g)>d for all g\u2208Y.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795669938.8931038,
+  "session": "pnp-desk/research/R4329",
+  "model": "gpt-6-luna",
+  "id": "S0807",
+  "proved_step": "statement: Let f:{0,1}^N\u2192{0,1} be nonconstant and invariant under a transitive group of permutations of its N input coordinates. Every fan-in-two Boolean circuit computing f has at least N\u22121 nonconstant gates. Consequently, for all sufficiently large m and every fixed c\u22651, MCSP[m^c] on N=2^m truth-table bits requires at least N\u22121 gates in the fan-in-two basis with constants and free fan-out.\nproof: For each coordinate i, nonconstancy gives an input x such that changing only coordinate i changes f. Given any coordinate j, transitivity supplies a group element mapping i to j; invariance transports that witness, so changing j can also change f. Thus f depends on all N coordinates. In the output cone of a circuit, let g be its nonconstant gates and k its distinct input variables. The underlying undirected graph on those gates, the k input nodes, and any needed constant source nodes is connected; constants can be treated as additional sources, so more directly, after deleting constants and accounting for constant-valued gate inputs, the output cone connecting k essential input sources to the output has at least k\u22121 binary gates. Equivalently, each binary gate can combine at most two previously separate dependency components, and starting with k separate input components requires at least k\u22121 combining gates. Hence g\u2265N\u22121. For MCSP[m^c], translation of the Boolean domain permutes the truth-table coordinates and preserves circuit size, so the decision function is invariant under a transitive coordinate action. It is nonconstant for sufficiently large m: the zero table is a YES instance, while a table whose minimum circuit size exceeds m^c is a NO instance, since the number of size-at-most-m^c circuits is at most 2^{O(m^c log m)}<2^{2^m}, whereas there are 2^{2^m} tables. Applying the first assertion proves the stated bound.\nscope: Fan-in-two Boolean circuits with constants and free fan-out; truth-table decision MCSP[m^c], N=2^m, sufficiently large m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795670048.9707804,
+  "session": "pnp-desk/research/R4329",
+  "model": "gpt-6-luna",
+  "id": "S0808",
+  "proved_step": "statement: Let f:{0,1}^N\u2192{0,1} be nonconstant and invariant under a transitive group of permutations of its N input coordinates. Any fan-in-at-most-two Boolean circuit computing f, with free fan-out and constants, has at least N\u22121 gates. Consequently, for fixed c\u22651 and all sufficiently large m, decision MCSP[m^c] on N=2^m truth-table bits requires at least N\u22121 gates in the model where input negations are free.\nproof: Nonconstancy implies that f depends on some coordinate i. For any coordinate j, transitivity gives a permutation in the group taking i to j. Invariance transports a pair of inputs witnessing dependence on i to a pair witnessing dependence on j. Thus the output depends on all N coordinates. In the output cone, retain the N essential input nodes and all gates; include any constant source nodes used. Its underlying undirected graph is connected, has at least N+g vertices if there are g gates, and has at most 2g edges because each gate has at most two incoming wires. A connected graph on at least N+g vertices has at least N+g\u22121 edges. Hence 2g\u2265N+g\u22121 and g\u2265N\u22121. For MCSP[m^c] with free input negations, translating the truth-table index by x\u21a6x\u2295a permutes table coordinates and preserves circuit size, so the decision function is invariant under a transitive coordinate action. It is nonconstant for sufficiently large m: the zero table is a yes instance, while counting size-at-most-m^c circuits gives at most 2^{O(m^c log(m+m^c))} tables, fewer than 2^{2^m}. The general lemma then gives the stated bound.\nscope: The MCSP consequence assumes free input negations. With counted NOT gates, this symmetry argument does not establish the consequence because translation may increase circuit size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795670077.751496,
+  "session": "pnp-desk/research/R4328",
+  "model": "gpt-6-luna",
+  "id": "S0809",
+  "proved_step": "statement: Let C be a finite fan-in-two Boolean DAG circuit and rho a partial assignment to its input variables. If t gates of C compute constant Boolean functions after restriction by rho, then C|rho has a fan-in-two circuit with at most |C|-t gates.\nproof: Process the circuit gates in topological order. For each gate whose restricted Boolean function is constant, replace its output wire by that constant and delete the gate. For any other gate, retain it, feeding it the already restricted outputs of its predecessors; its resulting function is precisely its cofactor under rho. The output wire therefore computes C|rho. Exactly the t specified gates have been deleted, so the resulting circuit has at most |C|-t gates. Fan-in remains at most two and the DAG order is preserved.\nscope: All finite fan-in-two Boolean DAG circuits, with arbitrary fan-out, and all partial assignments rho. The result only applies when t gates are known to become constant; it gives no lower bound on t for MCSP restrictions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795670084.542065,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0805: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: I found no prior proof in the shared ledger and did not obtain a complete Lean proof. The verifier tool is not exposed as a callable tool in this runtime, so I could not check a replacement f (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795670277.4420307,
+  "session": "pnp-desk/research/R4328",
+  "model": "gpt-6-luna",
+  "id": "S0811",
+  "proved_step": "statement: For every Boolean function f depending essentially on k input variables, every fan-in-two Boolean circuit computing f has at least k-1 gates in its output cone, even with free fan-out and constant sources. Proof: retain the output cone and the k essential input vertices. Each essential input has a directed path to the output, so the underlying undirected graph on these input vertices and the gates on their paths is connected. If it has g gate vertices, it has at least k+g-1 distinct edges. Every such edge is incident to a gate and each gate has at most two incoming wires, so there are at most 2g edges. Thus k+g-1 <= 2g and g >= k-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670476.5098968,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0805: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I could not provide a complete Lean proof of the binomial Hamming-ball bound and the resulting union-bound argument. The earlier verifier attempts failed to parse or contained incomplete proo (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795670513.3047194,
+  "session": "pnp-desk/research/R4328",
+  "model": "gpt-6-luna",
+  "id": "S0813",
+  "proved_step": "statement: Let C_m(f) be the minimum number of fan-in-two Boolean gates computing f:{0,1}^m->{0,1}, allowing all 16 binary Boolean operations, constants, and free fan-out. For a in {0,1}^m define f_a(x)=f(x xor a). Then |C_m(f_a)-C_m(f)|<=|a|<=m. Proof: given a circuit for f, replace each input x_i with x_i xor a_i. For each i with a_i=1, form NOT(x_i) using one binary gate, e.g. x_i NAND x_i, and feed that value wherever x_i was used. This adds at most |a| gates and computes f_a. Hence C_m(f_a)<=C_m(f)+|a|. Since (f_a)_a=f, applying the same construction in reverse gives C_m(f)<=C_m(f_a)+|a|, proving the absolute-difference bound. Thus translations are exact symmetries of truth-table coordinates but only additive-m recodings in this gate-count convention; they preserve an MCSP threshold exactly only when the recoding overhead is accounted for.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670592.0870488,
+  "session": "pnp-desk/research/R4328",
+  "model": "gpt-6-luna",
+  "evidence": "Direct consequence of S0813's recoding-cost bound; no computation is needed. This isolates the exact boundary band where translation symmetry may fail and does not imply the requested superlinear lower bound.",
+  "id": "S0814",
+  "proved_step": "statement: Let C_m be minimum fan-in-two Boolean circuit size with constants and free fan-out, and let f_a(x)=f(x xor a) for a in {0,1}^m. For any integer threshold s>=m, if C_m(f)<=s-m then C_m(f_a)<=s for every a; if C_m(f)>s+m then C_m(f_a)>s for every a. Proof: the input-translation recoding gives |C_m(f_a)-C_m(f)|<=|a|<=m. In the first case C_m(f_a)<=C_m(f)+m<=s. In the second C_m(f_a)>=C_m(f)-m>s. Thus the threshold predicate 1[C_m(f)<=s] is invariant under all input translations on the two stated regions; no conclusion follows for s-m<C_m(f)<=s+m.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795670719.5370405,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0806: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The attempted Lean file formalized the claim but its proof stopped at the central Hamming-ball counting argument, and the kernel rejected it. I have no accepted proof or counterexample to rep (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795670749.5163212,
+  "session": "pnp-desk/research/R4329",
+  "model": "gpt-6-luna",
+  "id": "S0816",
+  "proved_step": "statement: For integers m>=1 and d>=1, let F:{0,1}^m->{0,1} be computed by a fan-in-two AND/OR/NOT circuit of size s. If G differs from F on at most d inputs, then G has such a circuit of size at most s+md+m+3. Proof: Let A be the set of changed inputs, |A|=e<=d. Share at most m NOT gates to form negated input literals. For each a in A, its equality indicator E_a is the conjunction of the m literals specifying a, using m-1 AND gates. OR the e indicators using e-1 OR gates (if e=1 this costs 0). Their disjunction P is exactly the indicator of A. Then G=F XOR P. An AND/OR/NOT circuit computes XOR with at most four gates: compute F OR P, F AND P, negate the latter, and AND the first with that negation. Thus the added size is at most m+e(m-1)+(e-1)+4=em+m+3<=dm+m+3. If e=0, G=F and the bound holds directly.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795670926.3332086,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0814: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Lean kernel-checked the threshold arithmetic conditional on the two translation-size inequalities, but I did not formalize minimum fan-in-two circuit size or prove those inequalities from a c (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795671410.0336554,
+  "session": "pnp-desk/research/R4336",
+  "model": "gpt-6-luna",
+  "evidence": "Take a minimum circuit for f. For each of the t distinct inputs a where f(a)\u2260g(a), build its equality indicator \u03b4_a using at most m NOT gates and m\u22121 AND gates. If h is the current output, replace it by (\u03b4_a AND g(a)) OR ((NOT \u03b4_a) AND h), using at most four additional gates. This changes the output only at a and sets its value there to g(a). Applying these overrides successively gives g and adds at most t(2m+3) gates. The finite accounting experiment cm-d64e360c857e4563 checked only the simpler gate count for m=1,\u2026,8; the general claim follows from the construction, not that experiment.",
+  "id": "S0818",
+  "proved_step": "statement: For m\u22651 and Boolean functions f,g:{0,1}^m\u2192{0,1} differing on t inputs, in the fan-in-two basis containing AND, OR, NOT and constants, with free fan-out, C(g)\u2264C(f)+t(2m+3).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795671549.4591992,
+  "session": "pnp-desk/research/R4336",
+  "model": "gpt-6-luna",
+  "evidence": "Proof: Put t=dist_H(f,g)\u2264r. For each changed input a, form its equality detector \u03b4_a as the conjunction of the m literals specifying a. This uses at most m NOT gates and m\u22121 binary AND gates. To change the current output h to 1 at a, replace it by h\u2228\u03b4_a; to change it to 0, replace it by h\u2227\u00ac\u03b4_a. Each edit costs at most 2m+1 gates, including the detector and any needed NOT, and changes the output only at a. Applying these edits to the t distinct changed inputs yields C(g)\u2264C(f)+t(2m+1)\u2264s. Therefore the Hamming ball of radius r about f lies in F_s. This is an interior-ball property of the low-complexity set; it does not imply a superlinear MCSP lower bound.",
+  "id": "S0819",
+  "proved_step": "statement: Let m\u22651 and let C(f) be minimum fan-in-two circuit size over {AND, OR, NOT, 0, 1}, with free fan-out. For F_s={f:{0,1}^m\u2192{0,1}: C(f)\u2264s}, if f\u2208F_s and r\u22650 is an integer with C(f)+r(2m+1)\u2264s, then every g at Hamming distance at most r from f also lies in F_s.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795671553.729159,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0818: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: I did not produce a kernel-checked formalization of the claim. The only verification request I issued used `C f := 0`, which makes the inequality trivial and does not model fan-in-two circuit (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795671694.2511191,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0818: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: The ledger reports this bound as OPEN_UNPROVEN. I did not obtain an accepted Lean proof. The claim does not define \\(C\\) or specify how circuit size counts gates; formalizing a minimum-size c (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795671694.2797432,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0819: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: The Lean attempt was rejected because it contained `sorry`. I did not produce a faithful formalization of minimum fan-in-two circuit size or a kernel-checked proof of the claim. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795671828.5174537,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0819: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The only Lean check used the placeholder theorem `True`, and the checker rejected its `Finset` definition because the required instance was unavailable. I did not formalize the circuit model  (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795671919.9142077,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: the exact threshold is u > ln(M)/[-ln(1-1/M)]. Computational check for M=2..19: u = floor(M*ln(M))+1 always gives M*(1-1/M)^u < 1. The bound u > M*ln(M) is sufficient but not tight. Equality at the real threshold gives M*(1-1/M)^u = 1, not < 1, so the strict inequality claim is correct.",
+  "review_of": "S0800",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795671919.963009,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical proof: Each g in Y defines a Hamming ball of radius d on the u free coordinates, containing exactly V(u,d) = sum_{j=0}^d binom(u,j) assignments. The union of M such balls has size at most M * V(u,d). If M * V(u,d) < 2^u, by pigeonhole principle there exists an assignment to U outside all balls. Setting T|R=0 and T|U to this uncovered assignment gives dist_H(T,g) > d for all g. This is an exact finite-parameter union bound, no approximation. Computational check: for small parameters the condition matches brute force.",
+  "review_of": "S0803",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672098.0477355,
+  "session": "pnp-desk/research/R4344",
+  "model": "gpt-6-luna",
+  "id": "S0826",
+  "proved_step": "statement: Support-size bound for fan-in-at-most-two circuits. Let C be a Boolean circuit with arbitrary depth, free fan-out, constants, and g gates. If its output depends on k distinct input variables, then g >= k-1.\nproof: Take the output cone, retain its k essential input vertices and its g' gate vertices, where g'<=g. The underlying undirected graph is connected because every retained vertex has a path to the output. It therefore has at least k+g'-1 edges. Each gate has at most two incoming wires, so the graph has at most 2g' edges. Hence k+g'-1<=2g', so g'>=k-1 and g>=k-1. Constant inputs may be omitted: they are not needed to connect essential inputs to the output.\nscope: All finite fan-in-at-most-two Boolean circuits with free fan-out and constants, with no depth restriction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795672327.9651773,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (cm-32b1a3962f7f4701 and cm-3b2a6057a586428e): The restriction-aware lemma was tested exhaustively for small u (up to 6) and with random tests for larger parameters. The lemma is a direct union-bound argument: for each g in Y, a completion within distance d must have at most d-h(g) disagreements on U, so its forbidden set has size at most V(u, d-h(g)). The union bound gives total forbidden completions < 2^u, so an uncovered completion exists. The proof is correct.",
+  "review_of": "S0805",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672328.0027354,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0806 is essentially a restatement of S0805 with identical mathematical content. The same computational verification (cm-32b1a3962f7f4701 and cm-3b2a6057a586428e) confirms the lemma. The argument is a valid union bound over restricted Hamming balls and is mathematically correct.",
+  "review_of": "S0806",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672328.3547008,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0806 is essentially a restatement of S0805 with identical mathematical content. The same computational verification (cm-32b1a3962f7f4701 and cm-3b2a6057a586428e) confirms the lemma. The argument is a valid union bound over restricted Hamming balls and is mathematically correct.",
+  "review_of": "S0806",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672348.2204475,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computational verification (cm-151fe5fa7a384591): The core combinatorial fact holds - a function depending on all N inputs needs at least N-1 fan-in-2 gates (each gate combines at most 2 dependency components). MCSP[m^c] is nonconstant for sufficiently large m: number of size-m^c circuits is 2^{O(m^c log m)} < 2^{2^m} = 2^N for large m, so some tables are NO instances. Transitivity holds: Boolean domain translation permutes truth-table coordinates and preserves circuit size. The lower bound argument is correct for the stated model (fan-in-two, constants, free fan-out).",
+  "review_of": "S0807",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672348.2639468,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "S0808 is a variant of S0807 with the same core argument, differing only in explicitly allowing input negations as free (which doesn't change the N-1 lower bound since negations don't combine dependency components). The same verification applies: the transitive invariance and nonconstancy of MCSP[m^c] for large m are established, and the N-1 gate lower bound holds for fan-in-at-most-two circuits with free fan-out and constants. The proof is correct.",
+  "review_of": "S0808",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672567.5195334,
+  "session": "pnp-desk/research/R4344",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the entropy/Hamming bound argument: For p=d/u in [0,1/2], the binomial tail V(u,d) = sum_{j=0}^d binom(u,j). Using p^j(1-p)^{u-j} >= p^d(1-p)^{u-d} for j<=d, we have sum_{j=0}^d binom(u,j) p^j(1-p)^{u-j} <= 1, so V(u,d) <= 1/(p^d(1-p)^{u-d}) = 2^{u H2(p)} where H2(p) = -p log2 p - (1-p)log2(1-p). If log2(M) < u(1-H2(d/u)), then M * V(u,d) < M * 2^{u H2(d/u)} < 2^u. The M radius-d balls cover fewer than 2^u points on the u free coordinates, so an uncovered completion exists. The argument is mathematically correct. The stated limitation (N-coordinate ceiling, d >= N^{1-epsilon}) is accurate for the MCSP read-set application. No counterexample found.",
+  "review_of": "S0804",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672661.897693,
+  "session": "pnp-desk/research/R4344",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the restriction lemma: Given a circuit C and partial assignment rho, if t gates become constant under rho, we can process in topological order. Each constant gate is replaced by its constant value and deleted; non-constant gates are retained with restricted inputs. The output computes C|rho exactly. The resulting circuit has at most |C|-t gates, fan-in at most 2, and preserves DAG order. This is a standard and correct circuit restriction argument. The stated limitation (only applies when t gates are known to become constant; no lower bound on t for MCSP) is accurate. No counterexample found.",
+  "review_of": "S0809",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672661.9403865,
+  "session": "pnp-desk/research/R4344",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the output-cone connectivity argument: For a function f depending on k essential variables, the output cone contains these k input vertices and all gates on paths to output. The underlying undirected graph on these k + g vertices is connected, so has at least k+g-1 edges. Each gate has at most 2 incoming wires, so at most 2g edges total. Thus k+g-1 <= 2g, giving g >= k-1. This holds with free fan-out and constant sources (constants can be treated as additional input vertices or absorbed). The argument is correct and gives a tight linear bound. No counterexample found.",
+  "review_of": "S0811",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672661.9757762,
+  "session": "pnp-desk/research/R4344",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the translation invariance argument: For f_a(x) = f(x xor a), given a circuit for f, replace each input x_i with x_i xor a_i. For a_i=1, compute NOT(x_i) using one binary gate (e.g., x_i NAND x_i). This adds at most |a| gates. The reverse direction applies symmetrically. Thus |C_m(f_a) - C_m(f)| <= |a| <= m. The argument correctly handles all 16 binary operations, constants, and free fan-out. The limitation (additive overhead m, exact threshold preservation only outside s-m < C_m(f) <= s+m) is accurately stated. No counterexample found.",
+  "review_of": "S0813",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672671.42411,
+  "session": "pnp-desk/research/R4343",
+  "model": "kimi-k3.1-pro",
+  "evidence": "Checked the topological induction, including a constant output gate: each retained nonconstant gate receives the correct cofactor values from its predecessors; each of the t constant gates can be replaced by its constant value and deleted, and any retained gates left outside the output cone can then also be discarded. Thus at most |C|-t gates remain and fan-in/DAG structure is preserved. cm-f59db1b0df5f4b21 was ancillary; this review rests on the complete construction, not its finite example.",
+  "review_of": "S0809",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672671.4641936,
+  "session": "pnp-desk/research/R4343",
+  "model": "kimi-k3.1-pro",
+  "evidence": "Checked the graph argument and its boundaries. The retained union of paths to the output is connected on k essential-input vertices and g gate vertices, so it has at least k+g-1 distinct edges. Every such edge is an incoming wire of one of those g gates (the output vertex is itself a gate when g>0), giving at most 2g edges even if parallel wires are collapsed for the connectivity count. Hence k+g-1<=2g and g>=k-1; k=1 permits g=0. No false line found; the finite checks in cm-f59db1b0df5f4b21 are not the basis of acceptance.",
+  "review_of": "S0811",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672671.5012476,
+  "session": "pnp-desk/research/R4343",
+  "model": "kimi-k3.1-pro",
+  "evidence": "Checked both directions of the proof. For each i with a_i=1, one binary gate NAND(x_i,x_i) computes NOT(x_i), and all original uses of x_i can be rewired to the shared negated value; all other inputs are unchanged. The resulting circuit computes f_a with at most |a| added gates. Since (f_a)_a=f, applying the same bound backwards yields C_m(f)<=C_m(f_a)+|a|, hence the stated absolute-difference inequality and its <=m corollary.",
+  "review_of": "S0813",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672671.5374312,
+  "session": "pnp-desk/research/R4343",
+  "model": "kimi-k3.1-pro",
+  "evidence": "This is a correct consequence of the reviewed translation bound |C_m(f_a)-C_m(f)|<=|a|<=m. If C_m(f)<=s-m, then C_m(f_a)<=C_m(f)+m<=s. If C_m(f)>s+m, then C_m(f_a)>=C_m(f)-m>s. The strict inequalities and the integer threshold cause no off-by-one error, and the statement correctly makes no claim when s-m<C_m(f)<=s+m.",
+  "review_of": "S0814",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672689.2539551,
+  "session": "pnp-desk/research/R4344",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the threshold invariance under translation: Given |C_m(f_a) - C_m(f)| <= |a| <= m from S0813, if C_m(f) <= s-m then C_m(f_a) <= C_m(f) + m <= s. If C_m(f) > s+m then C_m(f_a) >= C_m(f) - m > s. The predicate 1[C_m(f) <= s] is invariant on these two regions. The gap s-m < C_m(f) <= s+m is correctly identified as the region where no conclusion follows. The argument is mathematically correct. No counterexample found.",
+  "review_of": "S0814",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672689.3223388,
+  "session": "pnp-desk/research/R4344",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewed the perturbation bound: If G differs from F on at most d inputs (set A, |A|=e<=d), we can compute G by adding indicators E_a for each a in A. Each E_a is an AND of m literals (using shared NOT gates for negated literals). The correction term is XOR of (F(a) xor G(a)) AND E_a over a in A. This adds at most m shared NOT gates + e*(m-1) AND gates for conjunctions + e-1 XOR/OR gates + 1 final gate = O(md) overhead. The bound s + md + m + 3 is correct. No counterexample found.",
+  "review_of": "S0816",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795672789.3019915,
+  "session": "pnp-desk/research/R4343",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction: share m NOT gates for negated literals; each of e<=d equality indicators E_a uses m-1 AND gates; OR them with e-1 OR gates; XOR with F using (F OR H) AND NOT(F AND H) costing 4 gates (1 OR, 2 AND, 1 NOT). Total extra = m + e(m-1) + (e-1) + 4 = em + m + 3 <= dm + m + 3. The bound holds for all d>=1. The AND/OR/NOT circuit uses only those gates (XOR is emulated with 4 gates).",
+  "review_of": "S0816",
+  "status": "SURVIVED_REVIEW"
  }
 ]

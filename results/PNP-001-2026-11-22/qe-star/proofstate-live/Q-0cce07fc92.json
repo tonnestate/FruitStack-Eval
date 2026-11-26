@@ -1414,5 +1414,41 @@
   "evidence": "The proof hardwires an all-zero initial state without an assumption that M starts there. Replace it with M's actual fixed initial configuration; this leaves the induction and gate count unchanged. This refutes S0157 as written, not the repaired claim.",
   "review_of": "S0157",
   "status": "REFUTED"
+ },
+ {
+  "at": 1795669622.717313,
+  "session": "pnp-desk/research/R4325",
+  "model": "gpt-6-luna",
+  "id": "S0165",
+  "proved_step": "statement_start: LEMMA (fixed-stage oracle-free RAM simulation). Fix a deterministic word RAM M with S cells of w bits, input length N, and stage i. If every reachable stage-i configuration uses at most tau steps after reading the next bit before the next read, then the stage transition has a fan-in-2 circuit of size tau*poly(Sw), with stage i fixed.\nproof: Encode the machine configuration using O(Sw) bits. Since stage i is fixed, the input cursor and the identity of the next input position are constants of this transition; only the newly read bit z is an input. One RAM step is computed by a fan-in-2 circuit of size poly(Sw): decode the addressed cell, select its contents, apply the fixed instruction, and update the addressed cell and finite control. Compose tau copies of this step circuit. Make halting configurations self-loops, so computations finishing early are padded to tau steps without changing their result. The composed circuit computes the stage transition and has size tau*poly(Sw).\nscope: Oracle-free fixed-stage simulation only. This does not handle variable-length oracle queries, establish the manuscript's lower-bound premise (8), or close G0001/G0002.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669670.7116992,
+  "session": "pnp-desk/research/R4325",
+  "model": "gpt-6-luna",
+  "id": "S0166",
+  "proved_step": "statement_start: LEMMA (explicit fixed-stage RAM simulation). Fix a deterministic word RAM with S memory words of w bits, a fixed finite instruction set, and a fixed stage i. Assume each instruction's address operands are w-bit values and each stage performs at most tau steps after receiving the next input bit.\nproof: Encode the S words, the fixed number of registers, and finite control using B=O(Sw) bits. At fixed stage i the next input position is constant, so the only input-dependent external value is the supplied bit z. One RAM step has a fan-in-2 circuit of size poly(B): for each addressed read, compare the w-bit address against each of the S word indices, select the matching word by a mux tree, apply the selected instruction's fixed Boolean transition, and write back using the same equality indicators. Each comparison and update uses polynomially many gates in B; the finite instruction set contributes a constant factor. Compose tau copies of this transition circuit. Give halting states identity transitions to pad shorter executions. By induction on the number of simulated steps, the composed circuit returns exactly the machine configuration at the next read, and has size tau*poly(Sw).\nscope: This is for a fixed finite instruction set, bounded w-bit address operands, fixed input stage, and oracle-free computation. It does not simulate variable-length oracle queries or establish premise (8).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669969.7245762,
+  "session": "pnp-desk/research/R4325",
+  "model": "gpt-6-luna",
+  "id": "S0167",
+  "proved_step": "statement_start: LEMMA (one-hot circuit for a deterministic finite-state update). Let Q be a finite state set of size q, let \u03a3={0,1}, and let \u03b4:Q\u00d7\u03a3\u2192Q be any total transition map. Encode the current state by q one-hot input bits x_a. Then the next-state one-hot vector is computed by a fan-in-2 Boolean circuit with at most 5q+1 gates.\nproof: For each a\u2208Q, compute u_a=x_a\u2227\u00acz and v_a=x_a\u2227z, using at most 3q gates including one shared inverter for z. For each b\u2208Q, set y_b=OR({u_a:\u03b4(a,0)=b}\u222a{v_a:\u03b4(a,1)=b}); implement an empty OR as 0 and each nonempty OR with fan-in-2 gates. The total number of OR gates is at most 2q, since across b the lists contain exactly 2q terms and each nonempty list of length t costs t\u22121 gates. Thus the total is at most 5q+1 gates. If x is one-hot, exactly one of the terms u_a,v_a is 1, namely the term for the current state and read symbol; by definition of \u03b4 it appears in exactly output y_{\u03b4(a,z)}. Hence y is exactly the one-hot encoding of the next state. The statement concerns finite-state transitions only; it does not bound the general streaming solver\u2019s state-update circuit or prove the manuscript\u2019s lower-bound premise.\nscope: Deterministic finite-state transducers over a binary input alphabet with one-hot state encoding.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795670185.583884,
+  "session": "pnp-desk/research/R4325",
+  "model": "gpt-6-luna",
+  "id": "S0168",
+  "proved_step": "statement_start: LEMMA (decoder-inclusive size of a staged realization). Let a deterministic one-pass computation on N-bit inputs have stage circuits U_1,...,U_N, with g_t gates in U_t, and a final decoder D with g_D gates.\nstatement: LEMMA (decoder-inclusive size of a staged realization). Let a deterministic one-pass computation on N-bit inputs have stage circuits U_1,...,U_N, with g_t gates in U_t, and a final decoder D with g_D gates. Suppose each U_t receives the current input bit and the state passed across the preceding input boundary, and outputs the state passed across the next boundary. Then the computation has a circuit of at most Gamma = sum_{t=1}^N g_t + g_D gates computing its final output. If each stage has at most S state outputs, at most S state wires cross each input-time boundary.\nPROOF: Connect each stage's state outputs to the next stage's state inputs, and connect the last stage's state outputs to D. Induction on t shows that the connected circuit's state after stage t equals the computation's state after reading the first t input bits, so D produces its final output. Connecting wires adds no gates, hence the gate count is at most the stated sum. The boundary-wire bound is immediate from at most S state outputs per stage.\nSCOPE: This is decoder-inclusive accounting conditional on an existing staged realization. It does not construct such a realization for the MMW solver, prove premise (8), or establish P != NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

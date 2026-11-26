@@ -6806,5 +6806,74 @@
   "proved_step": "statement: Layer-dependent support lemma. Consider a layered transducer with a fixed initial state and S state bits. At update i (1<=i<=t), suppose each next-state bit is computed by a fan-in-two AND/XOR circuit with at most G_i gates, with NOTs/constants free and unrestricted fan-out. Then each state bit after t updates depends on at most P_t=\u220f_{i=1}^t(G_i+1) distinct input positions. Consequently, if all 2^t prefixes are live and have pairwise distinct states, then t<=S P_t.\nproof: Let A_i be the union of input positions on which any state bit after i updates depends, and let P_i=\u220f_{j=1}^i(G_j+1), with P_0=1. Initially A_0 is empty. At update i, each output bit is a circuit with at most G_i binary gates over the S old state bits and the new input bit. Its output has at most G_i+1 distinct primary input wires in its ancestor graph: starting from one output and tracing backwards, each binary gate can add at most one new wire to the connected ancestor subgraph. Thus it depends on at most G_i+1 members of the old-state/input wire set. Each old state wire depends only on positions in A_{i-1}; the new input wire contributes at most one additional position. More carefully, the support of an output is contained in the union of at most G_i+1 supports, each old-state support having size at most P_{i-1} and the new input support size one. Since P_{i-1}>=1, this union has size at most (G_i+1)P_{i-1}=P_i. This proves the bound by induction. Across S state bits, the union of their supports has size at most S P_t. If S P_t<t, some input coordinate is absent from every state bit; flipping that coordinate leaves the state unchanged. This contradicts pairwise distinct states for all 2^t live prefixes. Hence t<=S P_t.\nscope: Finite layered deterministic transducers; fixed initial state; S state bits; update i uses at most G_i fan-in-two AND/XOR gates, free NOTs/constants, unrestricted fan-out; at the stated layer all 2^t prefixes are live and SEARCH semantics requires distinct states.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795669382.2386794,
+  "session": "pnp-desk/research/R4314",
+  "model": "gpt-6-luna",
+  "id": "S0785",
+  "proved_step": "statement: Zero-gate coordinate characterization. In a layered binary transducer with fixed initial state, free wires, NOTs, and constants, and no counted gates per update, each state bit at layer t is a constant or a literal of one of the first t input coordinates. Consequently, the live prefixes at layer t can be assigned distinct states by a zero-gate update history if and only if some set of input coordinates distinguishes every pair of live prefixes.\nproof: Induct on t. At t=0 all state bits are constants. At each update, an output bit is a wire from a preceding state bit or the incoming bit, optionally negated, or a constant; substituting the induction hypothesis preserves the form. Thus every state bit at layer t is constant or a signed copy of one of the first t coordinates. The state is therefore a function only of the selected coordinates, so if two live prefixes agree on them they collide. Conversely, given a coordinate set distinguishing every pair, assign state wires to store those coordinates as they arrive (using free wiring and constants), with their signs chosen arbitrarily; the resulting state vectors distinguish all live prefixes. This is a layerwise encoding characterization; consistency of a single fixed transducer across all layers additionally requires choosing the coordinate set schedule compatibly over time.\nscope: Finite binary prefix sets at a fixed layer; zero counted gates, free wires/NOTs/constants, fixed initial state. The necessity holds for any such transducer. The sufficiency is for a specified layer encoding and coordinate-storage schedule; it does not assert dead-state separation or a global SC_{n,s} machine.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669415.7939894,
+  "session": "pnp-desk/research/R4319",
+  "model": "gpt-6-luna",
+  "id": "S0786",
+  "proved_step": "Lemma (bounded-gate support). Let a deterministic layered transducer have S state bits, a fixed initial state, and at most G fan-in-two gates per update, with free NOTs/constants and unrestricted fan-out. For every t>=1, each state bit after t updates depends on at most (G+1)^(t-1) input positions. If every length-t prefix is live and distinct live prefixes must occupy distinct states, then t <= S(G+1)^(t-1). Proof: after update 1, each state output depends on at most the single input bit. For any later output, its ancestor circuit has at most G+1 distinct primary signals: a connected fan-in-two circuit with at most G gates. Each signal is either the incoming bit or a prior state bit. If prior state bits depend on at most B input positions, every primary signal has support at most B, since B>=1 and the incoming bit has support one. Thus the new output support is at most (G+1)B. Induction gives the per-bit bound. Injectivity on all 2^t prefixes implies every input position affects some state bit; otherwise flipping that position leaves the state unchanged. The union of supports of S state bits covers t positions and has size at most S(G+1)^(t-1), proving the inequality. Scope: fixed initial state, layered deterministic binary-input transducer, at most G fan-in-two gates per update; no conclusion about SC-family G_max or P versus NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669421.4827425,
+  "session": "pnp-desk/research/R4314",
+  "model": "gpt-6-luna",
+  "id": "S0787",
+  "proved_step": "statement: Gate-free width bound for SC_{3,1}. In any layered transducer with a fixed initial state, S binary state bits, and updates using only free wires, NOTs, and constants, if the layer-t live prefixes must have distinct states, then |P_t| <= 2^S. In particular, using the supplied exact profile |P_7|=38 for SC_{3,1}, every such gate-free machine needs S>=6.\nproof: At layer t the transducer has a state in {0,1}^S for each live prefix, by determinism from the fixed initial state. Distinct-state SEARCH semantics makes the map from P_t into {0,1}^S injective. Since the codomain has exactly 2^S elements, |P_t|<=2^S. For SC_{3,1}, the supplied profile gives |P_7|=38. Since 2^5=32<38, S cannot be at most 5; hence S>=6. The gate restriction is not needed for the counting inequality itself, so in particular it holds for gate-free machines.\nscope: Finite SEARCH-semantics layered transducers at a specified layer. The SC_{3,1} corollary uses the supplied exact n=3,s=1 truth-table-prefix profile at t=7. This is a state-width lower bound only; it gives no positive gate lower bound and no asymptotic P versus NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669437.5559375,
+  "session": "pnp-desk/research/R4322",
+  "model": "gpt-6-luna",
+  "id": "S0788",
+  "proved_step": "statement: Bounded-gate support bound (independent derivation). Let a deterministic layered transducer have S state bits, a fixed initial state, and at most G fan-in-two gates in each update; wires, NOTs, and constants are free and fan-out is unrestricted. For any t, each state coordinate after t updates depends on at most (G+1)^t input positions. If all 2^t prefixes are live and pairwise distinct live prefixes must occupy distinct states, then t <= S(G+1)^t.\nproof: For an update with g<=G binary gates, an output's ancestor circuit depends on at most g+1 primary inputs: tracing backward from the output, each binary gate can add at most one new input, while wires and NOTs add none. In particular, each output depends on at most G+1 old state coordinates. Let A_i(t) be the input positions on which state coordinate i after t updates depends. Initially A_i(0) is empty. At the next update, each new support is contained in the union of at most G+1 old supports and the new input position. If M_t=max_i |A_i(t)|, then M_{t+1} <= (G+1)M_t+1, so for G>=1, M_t <= ((G+1)^t-1)/G <= (G+1)^t. If G=0, every output is a wire, NOT, or constant of one old coordinate or the incoming bit, so each coordinate depends on at most one input position. Let U_t be the union of all S state-coordinate supports. If any input position is absent from U_t, flipping that bit while fixing the others leaves the full state unchanged, contradicting distinct states for all 2^t prefixes. Thus t<=|U_t|<=sum_i |A_i(t)|<=S(G+1)^t for G>=1; for G=0 the sharper bound gives t<=S.\nscope: Finite deterministic layered transducers with fixed initial state, a full layer of 2^t live prefixes assigned injectively to states, at most G fan-in-two gates per update, free wires/NOTs/constants, and unrestricted fan-out. This is only a necessary bound; it does not claim a useful lower bound for SC_{n,s} at layers that are not full.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795670415.5227013,
+  "session": "pnp-desk/research/R4330",
+  "model": "gpt-6-luna",
+  "id": "S0789",
+  "proved_step": "statement: Layered support bound (necessary condition). Let a deterministic layered transducer have a fixed initial state, S Boolean state bits, and at each update a Boolean circuit with at most G>=1 fan-in-two gates; NOTs and constants are free and fan-out is unrestricted. If every length-t input prefix is live and distinct live prefixes must occupy distinct states, then t <= S*((G+1)^t-1)/G. Proof: For each state bit after j updates, let its support be the set of among the first j input positions on which it functionally depends, and let M_j be the maximum support size over the S bits. M_0=0. In a fan-in-two circuit with at most G gates, the ancestor circuit of one output has at most G+1 distinct primary inputs: its underlying ancestor graph is connected, and adding each binary gate introduces at most one new leaf; an output bypassing gates has support at most one. Those primary inputs are previous state bits and possibly the newly read bit. Thus the next output support is contained in a union of at most G+1 previous-state supports, together with at most the singleton new position, so M_{j+1} <= (G+1)M_j+1. Induction gives M_t <= sum_{i=0}^{t-1}(G+1)^i = ((G+1)^t-1)/G. If two prefixes differ only at position i and i is absent from every final state-bit support, their resulting states agree; injectivity on all 2^t prefixes therefore forces every one of the t positions into the union of state-bit supports. That union has size at most S*M_t, yielding the inequality. This is a necessary condition only and does not imply an asymptotic lower bound for SC_{n,s} or the full Lemma M model.\nscope: Finite layered Boolean transducers with the specified gate basis and full-live, pairwise-distinct prefix layer; all integers S>=1, G>=1, t>=0.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795672195.2750015,
+  "session": "pnp-desk/research/R4346",
+  "model": "gpt-6-luna",
+  "id": "S0790",
+  "proved_step": "Let F be a nonempty subset of {0,1}^N, and at layer t call a prefix p live when it has at least one completion in F. Write R_t(p)={u in {0,1}^{N-t}:pu in F}, and let K_t be the number of distinct nonempty residuals R_t(p) among live prefixes. If at least one length-t prefix is dead, then the minimum number of distinct states in any deterministic layer-t membership machine that assigns distinct states to distinct live residuals and requires every dead prefix state to be disjoint from all live states is exactly K_t+1. If no prefix is dead, the minimum is K_t. Proof: distinct live residuals must have distinct states, giving at least K_t live states; when a dead prefix exists, its state cannot equal any live state, giving at least K_t+1. Conversely, assign one state to each distinct nonempty residual and, when present, one additional state to the empty residual. This assignment satisfies both requirements. For the layered residual machine, the transition on state R and bit b is the residual {v:bv in R}; the empty residual maps to itself, so this assignment is transition-consistent at every layer.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795672841.2091644,
+  "session": "pnp-desk/research/R4354",
+  "model": "gpt-6-luna",
+  "id": "S0791",
+  "proved_step": "statement: For any finite fixed-length language F subseteq {0,1}^N, let L_t be the number of length-t prefixes extendible to a word in F, and let delta_t be 1 iff some length-t prefix is not extendible. Every deterministic layered SEARCH machine that accepts exactly F and gives distinct states to distinct live prefixes at layer t, while separating live from dead prefixes, needs at least L_t+delta_t states at layer t. Thus S_t >= ceil(log2(L_t+delta_t)) state bits. Proof: The L_t live prefixes occupy distinct states by SEARCH semantics. If delta_t=1, a dead prefix must occupy a state different from every live prefix, adding one more state. If delta_t=0, the live-prefix count already gives the bound. An S_t-bit register has at most 2^S_t states. The bound is tight as an occupancy bound at a single layer: assign separate codes to each live prefix and, if present, one additional code to all dead prefixes. This construction makes no claim about compatibility of codes across layers, gate cost, or decoder cost.\nscope: Every finite F subseteq {0,1}^N, each layer 0<=t<=N, deterministic layered SEARCH semantics with live prefixes pairwise state-distinct and live/dead separation; update logic unrestricted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
  }
 ]
