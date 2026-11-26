@@ -65,3 +65,25 @@ Proved constraints (assessor, cross-family review pending):
 - Lane REVIEW: cross-family verification of the M-chain edges and the assessor rows used in §2.
 - Lane CLOSURE: the core obligation O\* (counterexample-first) and the chain audit, admitted through `pnp_graph.gate`.
 - Progress metric: closed critical obligations and verified edges only (`python -m pnp_graph.gate` metrics), not entry counts.
+
+## 5. Evaluation 2026-11-26 17:10 (desk proofbook + proofstates since 2026-11-25 18:00)
+
+- Today: 471 proofbook entries (417 APPROACH, 23 HYPOTHESIS, 24 NUMERICAL_EVIDENCE), **0 VERIFICATION, 0 REFUTATION**: no obligation closed.
+- Route M support, review provenance re-checked (K11: other session AND other family):
+
+| Step | Author | Cross-family review | Consequence |
+|---|---|---|---|
+| Q-156fa9c912:S0037 (resource transfer) | director-owner (Claude) | nemotron SURVIVED_REVIEW | valid support |
+| Q-156fa9c912:S0036 (representation completeness, edge M2) | director-owner (Claude) | **none** (only claude-haiku) | **edge M2 not cross-family verified**; queued REVIEW first |
+| Q-156fa9c912:S0010 (prefix separation, barrier 1) | director-owner (Claude) | **none** (only claude-haiku) | queued REVIEW first |
+| Q-0cce07fc92:S0024 / S0027 (stage circuits) | claude-haiku | 1 each SURVIVED_REVIEW | valid support |
+| Q-0cce07fc92:S0017 | claude-haiku | 6 REFUTED | correctly excluded |
+| Q-6ead6c935d:S0004 (class match) | nemotron | 1 SURVIVED_REVIEW | valid support |
+| Q-b5eddd829d:S0001 (indicator degree) | claude-haiku | none | queued REVIEW first |
+
+- O\* (Q-ade9c9f92c, R4379, gpt-6-luna) S0001 "ring-buffer append cost": correct (circular array, O((r+1) log B) per block). It is
+  the block-processing control of §2, not progress on O\*: it shows that buffering removes prefix-length dependence from appends.
+- Relevant hypotheses consistent with §2: R4353 (counting output functions alone cannot bound update time = barrier 1),
+  R4325 (oracle-free RAM transition maps have poly(S w) circuits per step = M2 support). Neither closes O\*.
+- Model routing: desk research and formal lanes on gpt-6-luna (owner 2026-11-26: Luna primary, not Haiku); Anthropic models excluded.
+- Graph: live graph `/root/fruits/research/PNP-001/graph` promoted to the full build (49k events) plus gate tables; desk results ingested every 3 min.
