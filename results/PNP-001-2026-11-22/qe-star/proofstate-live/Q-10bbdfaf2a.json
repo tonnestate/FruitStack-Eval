@@ -7206,5 +7206,82 @@
   "kind": "LEMMA",
   "closes": "Q-10bbdfaf2a",
   "closes_valid": true
+ },
+ {
+  "at": 1795709620.4664357,
+  "session": "pnp-desk/research/R4384",
+  "model": "gpt-6-luna",
+  "id": "S0845",
+  "proved_step": "statement: Hamming-neighborhood counting lemma: For any A subset {0,1}^N with |A|<=D and any integer 0<=r<=N, at most D sum_{i=0}^r binom(N,i) strings lie within Hamming distance r of A. If D sum_{i=0}^r binom(N,i)<2^N, some string has distance greater than r from every member of A.\nproof: For each center a, the radius-r ball contains exactly binom(N,i) strings at distance i for each i=0,...,r, hence size sum_{i=0}^r binom(N,i). The union bound over at most D centers gives the claimed upper bound. Strict inequality leaves at least one point in the cube outside the union, which has distance greater than r from all centers.\nscope: All finite N, every A subset {0,1}^N, every integer 0<=r<=N.\nlimitation: Applied to A equal to truth tables of circuits of size <=s, this only constructs functions far from that class. It does not lower-bound the circuit size of the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795710102.3154433,
+  "session": "pnp-desk/research/R4384",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct counting bound: for each size j\u2264s, 16 gate types \u00d7 (N+s)\u00b2 wire choices per gate \u00d7 (N+s) output choices gives 16^j(N+s)^(2j+1) encodings. Summing j=1..s and bounding by s\u00b716^s(N+s)^(2s+1) \u2264 (s+1)16^s(N+s)^(2s+1). Every function has at least one encoding. Fraction of truth tables accepted by MCSP[s] is at most this divided by 2^N. For s=m^c, this is 2^{O(m^c log m) - 2^m} \u2192 0. Valid counting lemma, but only shows MCSP is sparse, not a circuit lower bound for the decision function.",
+  "review_of": "S0843",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795711099.371567,
+  "session": "pnp-desk/research/R4392",
+  "model": "gpt-6-luna",
+  "gap": "This proves only the D2 small-support obstruction in the binding MCSP gate-elimination contract. It gives no superlinear lower bound for the general circuit complexity of MCSP[m^c]; the assigned G0001/G0002 obligations remain open. The charged-negation convention would add at most tm NOT gates to this construction and has not been optimized here.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ],
+  "id": "S0846",
+  "proved_step": "For every integer m>=1 and every Boolean function f:{0,1}^m->{0,1} with exactly t>=1 satisfying inputs, f has a fan-in-two circuit over AND, OR, NOT, constants, with free input negations, of size at most tm-1. Proof: for each satisfying input a, form its minterm M_a, the conjunction of the m literals specifying a; a binary AND tree uses m-1 gates (zero if m=1). The OR of the t minterms uses t-1 binary OR gates (zero if t=1). Their disjunction equals f pointwise, with total t(m-1)+(t-1)=tm-1 gates. Consequently t<=floor((s+1)/m) implies C(f)<=s and MCSP[s](f)=1. The empty-support case t=0 is the constant-zero function and has size zero. Exact scope: all m>=1, all truth tables, fan-in-two AND/OR, free negations and constants.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711230.68093,
+  "session": "pnp-desk/research/R4392",
+  "model": "gpt-6-luna",
+  "gap": "The support-size bound only characterizes a region of truth tables automatically in MCSP[s]. It gives no superlinear circuit lower bound for MCSP[m^c]; D3-D5 hardness preservation and accumulation remain open.",
+  "gap_id": "G0222",
+  "id": "S0847",
+  "proved_step": "statement: For every m>=1 and every Boolean function f:{0,1}^m->{0,1} with t ones, in the fan-in-two AND/OR basis with free input negations, its circuit size is at most 0 if q=0 and at most mq-1 if q=min(t,2^m-t)>=1. Proof: If t<=2^(m-1), disjoin the t minterms for the one-set, costing t(m-1)+(t-1)=mt-1 gates. If t>2^(m-1), form the DNF of the 2^m-t zero-set by the same construction and negate its output with one NOT gate; that costs m(2^m-t)-1+1=mq gates, so this is not the claimed mq-1 bound. Corrected proof: use a NOR of the zero-set clauses directly, with each clause false on exactly one zero input. Each width-m clause costs m-1 OR gates, and conjunction of q clauses costs q-1 AND gates, giving mq-1 gates for f. Thus for either smaller support, a DNF (one-set) or CNF (zero-set) costs mq-1. If q=0, f is constant.\nscope: All m>=1 and truth tables, fan-in-two AND/OR, free input negations; constants size zero.\nnote: Corrected the initially tempting output-negation route: it yields mq gates, while direct CNF yields mq-1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "D2",
+  "closes_valid": false
+ },
+ {
+  "at": 1795711284.444193,
+  "session": "pnp-desk/research/R4392",
+  "model": "gpt-6-luna",
+  "gap": "Even the exact support-sensitive upper bound only describes functions automatically inside MCSP[s]. A superlinear lower bound for the general circuit complexity of MCSP[m^c] still requires a D3-D5 invariant with restriction stability and superlinear accumulation.",
+  "gap_id": "G0223",
+  "id": "S0848",
+  "proved_step": "statement: For every m>=1 and every Boolean f on m inputs with q=min(|f^{-1}(1)|,|f^{-1}(0)|)>=1, there is a fan-in-two circuit over AND, OR, NOT, 0, 1 with NOT gates charged and free fan-out of size at most mq+m-1. If q=0, size 0 suffices. Proof: Let A be the smaller of the one-set and zero-set, so |A|=q. If A is the one-set, form the DNF of its q minterms. If A is the zero-set, form the CNF of the q clauses each false at its corresponding input. In either case the AND/OR tree gates total q(m-1)+(q-1)=mq-1. Across all terms, the only needed negated literals are among the m input variables; construct each such complement once with at most m NOT gates and share it freely. Total is at most mq+m-1. Empty smaller support means f is constant.\nscope: All m>=1 and all Boolean functions, unrestricted depth and free fan-out; NOT gates charged, binary AND/OR gates charged, constants free.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "D2",
+  "closes_valid": false
+ },
+ {
+  "at": 1795712129.5481389,
+  "session": "pnp-desk/research/R4400",
+  "model": "gpt-6-luna",
+  "id": "S0849",
+  "proved_step": "statement: For every m>=1 and Boolean function f:{0,1}^m->{0,1}, let q=min(|f^{-1}(1)|,|f^{-1}(0)|). In the fan-in-two AND/OR basis with free input negations and size-zero constants, f has circuit size 0 if q=0 and at most mq-1 if q>=1. Proof: if the one-set has size q, take the OR of its q minterms; each width-m minterm costs m-1 AND gates and combining them costs q-1 OR gates, totaling mq-1. If the zero-set has size q, take the AND of its q clauses, each false on exactly one zero assignment; each width-m clause costs m-1 OR gates and combining costs q-1 AND gates, again totaling mq-1. If q=0, f is constant.\nscope: All m>=1 and all Boolean functions, in the specified fan-in-two AND/OR model with free input negations and size-zero constants.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795712382.1866086,
+  "session": "pnp-desk/research/R4400",
+  "model": "gpt-6-luna",
+  "id": "S0850",
+  "proved_step": "statement: For every m>=1, N=2^m, threshold s>=0 and r=floor((s+1)/m)<N/2, the DNF/CNF small-support construction guarantees MCSP[s](f)=1 for every truth table f whose smaller support q=min(|f^-1(1)|,|f^-1(0)|) is at most r; exactly 2 sum_{i=0}^r binom(N,i) truth tables satisfy this condition. For s=m^c with fixed integer c>=1, this count is at most 2^{O(m^c)} and its fraction among all truth tables is at most 2^{-2^m+O(m^c)}. Proof: for support q>=1, represent the smaller one-set by q minterms or the smaller zero-set by q clauses. Each term/clause costs m-1 binary gates and their combination costs q-1, totaling mq-1<=s. Constants are accepted. For r<N/2 the small-one-support and small-zero-support families are disjoint and each has sum_{i=0}^r binom(N,i) members. The binomial estimate sum_{i=0}^r binom(N,i)<= (r+1)(eN/r)^r gives logarithm O(r log N)=O(m^c) when s=m^c and fixed c; dividing by 2^N gives the fraction bound.\nscope: Fan-in-two AND/OR circuits with free input negations and size-zero constants; the acceptance guarantee and count apply only under the stated r<N/2 condition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "D2",
+  "closes_valid": false
  }
 ]

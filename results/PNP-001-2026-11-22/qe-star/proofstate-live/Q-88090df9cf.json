@@ -1,0 +1,123 @@
+[
+ {
+  "at": 1795711958.5748098,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "QO1 - proofbook seq 16795",
+  "evidence": "proofbook seq 16795; premises ['OPS21 Thm 1.4 / Lemma 4.1 (anti-checker)', 'CHOPRS20 Lemma 27', 'Stockmeyer approximate counting', 'Karp-Lipton: NP in P/poly => PH in P/poly']",
+  "id": "S0001",
+  "proved_step": "QO1 UPPER BOUND UNDER NP in P/poly (derivation of the OPS21 Thm 1.4 mechanism, author Claude family): NP subset SIZE[n^a] => there is K=K(a) such that for EVERY s=s(n) with n <= s <= 2^{n/2}: Gap-MCSP[s/(cn), s] on N=2^n bits has circuits of size N*s^K (a.e.). Proof: s'=s/(cn). Greedy anti-checker: V_0 = all circuits of size <= s', Y_0 = empty. Step i: for every position y in [N] (a fixed wire x_y) evaluate an approximate count of |{C in V_i: C(y) != x_y}|/|V_i| given (Y_i, x|Y_i, y, x_y) - input length L = O(t n), Stockmeyer approximate counting is in BPP^NP subset Sigma_3 subset P/poly (Karp-Lipton chain) so size L^{a'}; a tournament over the N candidates picks the best (y, x_y): N*L^{a'} gates per step. Elimination: if CC(x) > s then for every nonempty V_i some y kills >= 1/3 of V_i (minimax on V_i: otherwise a distribution over V_i is correct w.p. > 2/3 on every input and the majority of O(n) samples computes x with size O(n s') <= s, contradiction); with approximation >= 1/4. Hence V_t = empty after t = O(s' log s') steps. YES (CC(x) <= s'): the circuit for x is never eliminated. Final test 'V_t empty' is coNP on L bits. Total t*N*L^{a'} = N*s^{K}, K = a'+2, independent of s and beta. With s = N^beta: g_beta(N) <= N^{1+K beta} for all beta in (0,1/2]. c is the constant from the majority step (not necessarily 10).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.576032,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "QO2 - proofbook seq 16796",
+  "evidence": "proofbook seq 16796; premises ['QO1']",
+  "id": "S0002",
+  "proved_step": "QO2 WEAKEST SUFFICIENT QUANTIFIER FORM Q*: if for every K >= 1 there is a size function s_K (n <= s_K <= 2^{n/2}) such that Gap-MCSP[s_K/(cn), s_K] has no circuits of size N*s_K^K for infinitely many n, then NP notsubset P/poly, hence P != NP (contrapositive of QO1). Special cases: Q1 (exists eps, all small beta: g_beta notin O(N^{1+eps})) => Q2 (for all k, delta exists beta < delta: g_beta notin O(N^{1+k beta}); take beta < min(delta, eps/k)) => Q* (s_K = N^beta). Q3 (fixed s = n^c, g notin O(N log^k N) for all k) => Q*. Lower bounds whose exponent ratio eps(beta)/beta is bounded (eps = beta, 2 beta) do NOT suffice since K is unknown; eps = sqrt(beta), beta log(1/beta) or N*(log N)^{omega(1)} at s = polylog do. LOCALITY (CHOPRS20): the QO1 circuits are N*poly(s) wires into fan-in-poly(s) PH predicates, so any proof of Q* must fail against such oracle circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.5771406,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "D6' (supersedes D6 seq 16770, refuted seq 16839) - proofbook seq 16840",
+  "evidence": "proofbook seq 16840; premises ['D6 refutation', 'AF', 'D4']",
+  "id": "S0003",
+  "proved_step": "D6' (repair of D6): with p = N^{beta+eps/5-1} and pairwise independent star events, E[gamma(C|rho)] <= W(C) := sum_{g reused} min(1, p^2 d_g^2/2) (a reused gate with <= 1 live variable becomes a literal or constant, free in the principal-formula forest). If |C| <= N^{1+eps} and every reused gate has d_g <= D* := N^{(1-beta)/2-eta-7eps/10}, then W(C) <= N^{beta-2eta}/2 and Pr[gamma(C|rho) > N^{beta-eta}] <= N^{-eta} (Markov). With AF (P1,P2): Gap-MCSP[N^beta] has no De Morgan circuit of size N^{1+eps} with W(C) <= N^{beta-2eta}. Corrected residual R' = {C: W(C) > N^{beta-2eta}}: the narrow/wide threshold moves from N^{1-beta} to N^{(1-beta)/2}, so R' is LARGER than R in COV1. Q2 regime (eps = k beta): D* = N^{(1-beta)/2-eta-7k beta/10}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.5781763,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "AF (conditional implication P1,P2 => no gamma-almost-formula) - proofbook seq 16762",
+  "evidence": "proofbook seq 16762; premises None",
+  "id": "S0004",
+  "proved_step": "AF (conditional, replaces the size budget by a correlation budget): let beta in (0,1), eta>0. Assume (P1) a local PRG fooling De Morgan formulas of size s with error delta <= 2^{-gamma}/10, seed and per-bit circuit size <= N^{beta-eta}; (P2) a pseudorandom restriction rho with >= N^{beta+eta/2} stars such that, w.p. >= 0.9, the principal-formula forest Phi of C|rho (reused-gate leaves kept as never-restricted variables) has size <= s. Then Gap-MCSP[N^beta] has no gamma-almost-formula of size S. Proof: fix such rho; YES = G(z) o rho has circuit size <= N^beta, NO = random fill has circuit size >= N^{beta+eta/2-o(1)} w.p. 1-2^{-N^{Omega(1)}}, so Adv(C|rho) >= 1/2; by D4 some F_a of size <= s has advantage >= 2^{-gamma-1} > delta, contradicting P1. BUDGET: gamma <= log2(1/delta) - 4 instead of r + log2(2S+1) <= 3 beta log2 N; since any PRG needs seed >= log(1/delta), gamma can reach N^{beta-eta} (polynomial) instead of O(log N).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.5792613,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "K0 - proofbook seq 16841",
+  "evidence": "proofbook seq 16841; premises ['CJW20-T5.5-GAP', 'MMW19 Thm 1.4']",
+  "id": "S0005",
+  "proved_step": "K0 (unconditional depth class for COV1): a De Morgan circuit of depth D unfolds to a formula with <= 2^D leaves; a B2 gate is a De Morgan formula using each input at most twice, so B2 depth D gives <= 4^D leaves. With CJW20-T5.5-GAP: Gap-MCSP[N^beta/(Km), N^beta] has no De Morgan circuit of depth < (2+beta-eps)log2 N and no B2 circuit of depth < (1+beta/2-eps/2)log2 N, of any size. This is the full reach of the verified results under the MMW19 joint size-depth condition: Thm 1.4 b.3 needs depth poly(s) >= polylog N; b.2 (NC1 conclusion only) needs every c log N.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.58028,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "CJ2 - proofbook seq 16801",
+  "evidence": "proofbook seq 16801; premises ['CJ1']",
+  "id": "S0006",
+  "proved_step": "CJ2 SUFFIX WITHOUT SELECTION (owner derivation, checked): for u != v with sigma_A(u) = sigma_A(v) let y = u AND NOT v if that is nonzero (then DISJ(u,y)=0, DISJ(v,y)=1), else y = v AND NOT u (roles swapped); the case test is an OR of n bits (AC0). A answers both instances equally, so one of F1(n)=(u_n,y_n), F2(n)=(v_n,y_n) is wrong at each such n, and by pigeonhole one fixed family is wrong infinitely often; the theorem only needs existence of R_A. CC(y) <= CC(u)+CC(v)+O(1), so y stays simple. Remaining W-D obligation: uniform (polylogtime-uniform AC0) colliding prefix families u_n != v_n for every admissible deterministic A, infinitely often.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.5812757,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "CJ3 - proofbook seq 16802",
+  "evidence": "proofbook seq 16802; premises ['CJ1']",
+  "id": "S0007",
+  "proved_step": "CJ3 ENUMERATOR COUNTEREXAMPLE FOR W-D (owner derivation, checked, CLAIMED): A* simulates the first m(n) programs as bit generators G_j(n,i) with time bound (log n)^{h(n)}, h(n) = sqrt(log log n); per position it checks match with the input and tracks DISJ of the generated string (G_j(n,i) AND G_j(n,n+i), random access to both halves); at the end it outputs DISJ(G_j) for a fully matching j. Time n(log n)^{O(h)}, space (log n)^{O(h)}: inside the class for every f = omega(h). Consequence: colliding prefixes for A* cannot come from generators whose output bits are deterministic polylog-time computable (A* then tracks distinct match flags); W-D refuters must use bits defined with real alternations (Sigma_d, d >= 1, polylog time) - which polylogtime-uniform AC0 allows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.5829883,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "ST2b/ST2 (seq 16811) - proofbook seq 16824",
+  "evidence": "proofbook seq 16824; premises ['ST2']",
+  "id": "S0008",
+  "proved_step": "ST2b (owner reconstruction of ST2, independent of the director's): E_j(m,b,i,T_<j) is in PH for a fixed Student; under NP subset P/poly it has circuits of fixed exponent a_j; hardwiring answers of total length O(m^{K_j}) gives size O((m^{K_j}+m)^{a_j}); with encoding overhead K_{j+1} = 2 a_j (K_j+1) + 2; K* = max_{j<=r} K_j independent of b. Conclusion: absolute ST protocol => NP notsubset P/poly. Open review point: exact encoding of Teacher answers (padding, oracle output width).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.5840378,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "ST1b/ST1 (seq 16810) - proofbook seq 16823",
+  "evidence": "proofbook seq 16823; premises ['ST1', 'TR25-045 Lemma 5.4', 'Lemma 5.6']",
+  "id": "S0009",
+  "proved_step": "ST1b (owner refinement of ST1): the defect in TR25-045 Lemma 5.6 is already the change of reference size: Lemma 5.4 simulates circuits of size poly(m), m = log N, by quasi-polynomial AC0; Lemma 5.6 applies it to a SearchMCSP circuit of size poly(N). That simulation is not justified as written (independent of the b-dependence). The published Thm 1.7 is not thereby false; ST2 avoids the step.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711958.588289,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "COV1 (residual R must be read as R' of seq 16840) - proofbook seq 16799",
+  "evidence": "proofbook seq 16799; premises ['T07', 'CJW20-T5.5-GAP', 'D3', 'D6', 'AF', 'QO2']",
+  "id": "S0010",
+  "proved_step": "COV1 COLLECTIVE COVERAGE (forall C exists i exists x R_i(C,x)), target size N^{1+k beta} (Q2): class K1 = B2/De Morgan circuits with r <= (1-(k-1)beta-eps')log2 N reused gates (B2 via D3: r+2t) -> excluded by T07+CJW20 (both owner-verified; T07 also Q-92b080505e:S0001 SURVIVED). K2 = circuits whose reused gates are narrow (d_g <= N^{1-beta-eta}) -> collapse under the CJW20 restriction (D6, derivation, unverified) and fall into K3. K3 = after restriction gamma <= N^{beta-eta} reused gates -> AF (conditional on P1 local PRG with error 2^{-gamma}, P2 forest shrinkage; unverified). RESIDUAL R = circuits of size N^{1+k beta} with more than N^{beta-eta} wide reused gates surviving the restriction: no mechanism. Streaming side: Q3/route M -> O*. The union K1-K3 is not yet a cover of all circuits; covering R is the obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711964.8016872,
+  "session": "director/closure-intervention",
+  "model": "claude-opus-5-5",
+  "lemma": "WD-RES - proofbook seq 16843",
+  "evidence": "proofbook seq 16843",
+  "id": "S0011",
+  "proved_step": "W-D FIRST FAILING INFERENCE: (i) a polylogtime-uniform AC0 refuter has (log n)^{O(1)} alternating time per output bit, A has (log n)^{f(n)} state bits, f = omega(1): the refuter cannot simulate A, so it cannot search for a colliding pair. (ii) refuter outputs have circuit complexity <= c(log n)^c (CJSW Lemma 2.5): 2^{O((log n)^c log log n)} such prefixes versus 2^{(log n)^{f(n)}} states, so for f > c+1 counting forces NO collision among refuter-describable prefixes. Hence the uniform-collision obligation is exactly: no admissible A is injective on simple prefixes with (log n)^f-time updates - the update-cost (O*) obligation for DISJ (CJ4). Repair direction: non-injectivity from transition cost (route M update-map results Q-156fa9c912:S0036/Q-156fa9c912:S0037), not from counting.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

@@ -6876,5 +6876,83 @@
   "proved_step": "EQUAL-LENGTH CYCLE CONSTRUCTION. Let a permutation on m states consist of cycles all of the same length l, where l divides m, and let S=ceil(log2 m). There is an injective stationary encoding into S bits whose transition extends to a total fan-in-two Boolean map of O(S log(l+1)) gates. Proof: enumerate the m/l cycles and assign each cycle a consecutive block of l codes, so the used codes are 0,...,m-1. On a code x, the desired successor is x+1 except at a cycle endpoint. The endpoint test is [(x+1) mod l=0], because all block starts are multiples of l. The increment modulo 2^S costs O(S) gates. A left-to-right binary remainder computation modulo the constant l uses O(S log(l+1)) gates: maintain the remainder in ceil(log2 l) bits; for each input bit, double and add the bit, then conditionally subtract l, using O(log(l+1)) fan-in-two gates per bit. At an endpoint, x-(l-1) is the start of its cycle and is computed with O(S) gates; select this value at endpoints and the increment otherwise, bit by bit, at O(S) cost. Define the resulting formulas on all S-bit strings; unused strings may take either branch and the formulas are total. The total is O(S log(l+1)) gates. This construction is independent of the general cycle-grouping arguments.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795709009.0875437,
+  "session": "pnp-desk/research/R4382",
+  "model": "gpt-6-luna",
+  "evidence": "Completed workflow wf-937fdfa34ef3, finite sanity check experiment cm-8253c839fd674206: zero failures for every fixed-point-free involution tested at m=2,4,6,8,10; the general proof is the pair-orbit construction given in the recorded step. This check is finite evidence only.",
+  "id": "S0793",
+  "proved_step": "statement: PAIR-INDEX RECODING FOR FIXED-POINT-FREE INVOLUTIONS. Let Q be a set of size m=2p, and let \u03b4:Q\u2192Q be a fixed-point-free involution. There is an injective stationary encoding \u03c8:Q\u2192{0,1}^S, S=ceil(log\u2082m), for which the encoded transition on \u03c8(Q) is implemented by one NOT gate. Proof: The orbits of \u03b4 partition Q into exactly p unordered pairs; choose and label them P_0,\u2026,P_{p\u22121}. Choose a bijection h from these labels to {0,\u2026,p\u22121}, represented in b=ceil(log\u2082p) bits (with b=0 if p=1). For each q\u2208P_i, encode \u03c8(q)=(h(i),\u03c4(q)), where \u03c4 chooses distinct tags 0 and 1 for the two elements of P_i. This is injective because different pairs have different indices and the two elements within a pair have different tags. Since \u03b4 exchanges the elements of each pair, \u03c8(\u03b4(q))=(h(i),1\u2212\u03c4(q)); thus the transition preserves the index and negates only the tag bit. It is implemented by one NOT gate, with the index output wires copied unchanged. Finally, S=ceil(log\u2082(2p))=ceil(log\u2082p)+1=b+1, so the encoding uses exactly the permitted number of bits. The construction applies to every fixed-point-free involution, with no uniformity or decoder-cost assertion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711102.3255188,
+  "session": "pnp-desk/research/R4390",
+  "model": "gpt-6-luna",
+  "id": "S0794",
+  "proved_step": "For every permutation \u03b4 on a finite set Q of size m\u22652, if d is the number of distinct lengths among its disjoint cycles, then d\u2264\u230a(\u221a(8m+1)\u22121)/2\u230b<\u221a(2m). Proof: Write the distinct positive integer cycle lengths as \u2113\u2081<\u22ef<\u2113_d. Choose one cycle of each length; these chosen cycles are disjoint, so \u2211\u1d62\u2113\u1d62\u2264m. Since \u2113\u1d62\u2265i, d(d+1)/2\u2264m. Solving gives d\u2264\u230a(\u221a(8m+1)\u22121)/2\u230b, and d(d+1)<2m gives d<\u221a(2m). This bounds distinct lengths, not the number of cycles.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711466.270501,
+  "session": "pnp-desk/research/R4390",
+  "model": "gpt-6-luna",
+  "id": "S0795",
+  "proved_step": "For every integer m\u22651, let D(m) be the maximum number of distinct cycle lengths of a permutation on an m-element set. Then D(m) is the largest integer d\u22651 with d(d+1)/2\u2264m. Proof: If a permutation has d distinct cycle lengths \u2113\u2081<\u22ef<\u2113_d, choosing one cycle of each length gives disjoint cycles, so \u2211\u1d62\u2113\u1d62\u2264m. Since \u2113\u1d62\u2265i, d(d+1)/2\u2264m. Conversely, for any d with d(d+1)/2\u2264m, take disjoint cycles of lengths 1,2,\u2026,d. Add m\u2212d(d+1)/2 extra fixed points; these add no new cycle length because length 1 is already present. The resulting permutation has exactly d distinct cycle lengths. Thus the upper bound is attained.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711496.579269,
+  "session": "pnp-desk/research/R4390",
+  "model": "gpt-6-luna",
+  "gap": "The sharp bound on the number of distinct cycle lengths is proved, but the recoding construction in S0701 still needs an exact fan-in-two implementation and cost proof for each constant-modulus endpoint predicate, correction output, and their combination. Establishing those costs for arbitrary m and arbitrary cycle grouping remains open.",
+  "gap_id": "G0214"
+ },
+ {
+  "at": 1795711508.863854,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0794: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: GIVE_UP: No Lean verifier result was obtained, and I have not produced a kernel-accepted file. The unresolved work is formalizing the cycle lengths of every finite permutation and proving both the exa (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795711629.293194,
+  "session": "pnp-desk/research/R4390",
+  "model": "gpt-6-luna",
+  "gap": "This proves an O(S\u2113) construction for a single constant-modulus endpoint predicate. The claimed O(S log \u2113) cost in S0701 remains unproved; additionally, combining predicates and correction outputs into a total transition circuit still needs a complete gate count.",
+  "gap_id": "G0215",
+  "id": "S0796",
+  "proved_step": "statement: For integers \u2113\u22651 and S\u22651, the predicate x mod \u2113 = \u2113\u22121 on S-bit inputs x\u2208{0,\u2026,2^S\u22121} has a fan-in-two Boolean circuit of O(S\u2113) gates. Proof: process the S bits of x from most significant to least significant while storing the current remainder r\u2208{0,\u2026,\u2113\u22121} in one-hot form, with indicators z_j=[r=j]. On input bit b, the next remainder is (2r+b) mod \u2113. For each target j, its next indicator is the OR of terms z_i AND [b=\u03b5] over pairs (i,\u03b5) satisfying (2i+\u03b5) mod \u2113=j. There are at most 2\u2113 terms across all targets; implementing each conjunction and each OR with fan-in-two gates costs O(\u2113) gates per input bit. Initialize the one-hot state to r=0. After S updates, output the indicator for r=\u2113\u22121. Induction on the processed prefix proves that the stored remainder equals that prefix modulo \u2113, so the output is correct. The total gate count is O(S\u2113).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711660.858536,
+  "session": "pnp-desk/research/R4390",
+  "model": "gpt-6-luna",
+  "gap": "Endpoint detection for grouped cycle lengths has a constructive O(Sm) bound by summing one-hot remainder circuits. The improved O(S log \u2113) predicate bound and a complete O(\u221am S\u00b2) accounting for block membership, correction outputs, and combination remain open.",
+  "gap_id": "G0216",
+  "id": "S0797",
+  "proved_step": "statement: Let a permutation on m states have distinct cycle lengths \u2113\u2081,\u2026,\u2113_d, and let S=ceil(log\u2082 m). In the grouped-cycle encoding described in S0701, the endpoint predicates for all blocks can be implemented together by fan-in-two circuits using O(S\u00b7\u03a3\u1d62\u2113\u1d62) gates, and hence O(Sm) gates. Proof: For each length \u2113\u1d62, apply the one-hot remainder circuit of S0796 to the S-bit input, producing E\u1d62(x)=[x mod \u2113\u1d62=\u2113\u1d62\u22121] in O(S\u2113\u1d62) gates. Concatenating these circuits computes all endpoint predicates with O(S\u00b7\u03a3\u1d62\u2113\u1d62) gates. The selected cycle lengths are distinct positive integers and each is represented by at least one cycle, so \u03a3\u1d62\u2113\u1d62\u2264m. Therefore the total is O(Sm). This only bounds endpoint detection; it does not include block membership, successor correction, or prove S0701\u2019s O(\u221am S\u00b2) total bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795711809.4048128,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0794: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The verifier did not accept the arithmetic proof, and I did not formalize the cycle decomposition of a permutation or verify the exact floor bound. The requested permutation claim remains unp (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795712348.5777175,
+  "session": "pnp-desk/research/R4398",
+  "model": "gpt-6-luna",
+  "id": "S0798",
+  "proved_step": "statement: TAG-BIT RECODING FOR FIXED-POINT-FREE INVOLUTIONS. Let Q be a set of even size m=2p>=2 and let \u03b4:Q\u2192Q be a fixed-point-free involution (\u03b4(\u03b4(q))=q and \u03b4(q)\u2260q). Set S=ceil(log2 m). There is an injection \u03c8:Q\u2192{0,1}^S such that for every q\u2208Q, \u03c8(\u03b4(q)) is obtained from \u03c8(q) by toggling one fixed coordinate; hence the encoded transition extends to the total S-bit Boolean map that toggles that coordinate and uses one NOT gate. Proof: The involution partitions Q into p disjoint unordered pairs {q,\u03b4(q)}. Choose and order one representative pair for each i\u2208{0,...,p\u22121}, and designate its two elements q_i^0,q_i^1 so \u03b4(q_i^0)=q_i^1. Since m=2p, S=ceil(log2(2p))=1+ceil(log2 p). Encode \u03c8(q_i^b) as the concatenation of the ceil(log2 p)-bit binary representation of i and tag b. Distinct pairs have distinct indices and the two elements within a pair have distinct tags, so \u03c8 is injective. Applying \u03b4 preserves i and swaps b, which is exactly toggling the last coordinate. The map that toggles the last coordinate is defined on all S-bit strings, including unused codes, and is a one-NOT-gate total extension. This argument gives only an upper bound for this subclass, not a lower bound for arbitrary permutations or a P vs NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
