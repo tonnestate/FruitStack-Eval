@@ -87,3 +87,21 @@ Proved constraints (assessor, cross-family review pending):
   R4325 (oracle-free RAM transition maps have poly(S w) circuits per step = M2 support). Neither closes O\*.
 - Model routing: desk research and formal lanes on gpt-6-luna (owner 2026-11-26: Luna primary, not Haiku); Anthropic models excluded.
 - Graph: live graph `/root/fruits/research/PNP-001/graph` promoted to the full build (49k events) plus gate tables; desk results ingested every 3 min.
+
+## 6. Route R10 x CJW20: unrestricted-circuit obligation (2026-11-26, proofbook seq 16755-16769, director/closure)
+
+| Item | Statement | Status |
+|---|---|---|
+| T07 | L(C) <= 2^r (2S+1), De Morgan circuits | owner-verified + Q-92b080505e:S0001 SURVIVED_REVIEW |
+| CJW20-T5.5-GAP | Gap-MCSP[N^beta/(Km), N^beta] needs probabilistic De Morgan formulas of size N^{2+beta-eps} | owner-verified against original proof |
+| D1 | origin of the budget: restricted size s = N^{3beta-3eps/5+o(1)}, CKLM19 local PRG seed s^{1/3+o(1)} | derivation |
+| D2 | no De Morgan circuit of size N^{1+eps} with r <= (1+beta-2eps) log2 N reused gates (fixed eps, all beta) | derivation, unconditional |
+| D3 | basis: B2 circuit -> De Morgan with size <= 3S, reuse <= r+2t; formula bounds only De Morgan | derivation |
+| REFUTED | size budget r_rho + log2(2S_rho+1) <= (3beta-eta) log2 N for all circuits | dual-rail parity (r_rho >= k-1); no circuit shrinkage |
+| D4 | gamma-almost-formula = OR of 2^gamma disjoint formulas of size <= S+gamma: reuse costs 2^gamma in correlation | exact lemma |
+| AF | correlation budget gamma <= log2(1/delta) instead of size budget; reaches gamma up to N^{beta-eta} | conditional on P1 (local PRG with error 2^{-gamma}), P2 (forest shrinkage) |
+| D5 | OPS21 quantifiers (exists eps, all small beta, Circuit[N^{1+eps}] => NP not in P/poly): AF budget N^{beta-eta} vanishes as beta -> 0 | limit identified |
+| D6 | restriction collapses reused gates with d_g <= N^{1-beta-eta}; only wide reused gates survive | derivation |
+
+Remaining obligation (unrestricted circuits): Gap-MCSP[N^beta] circuits of size N^{1+eps} with more than N^beta wide reused gates
+(each depending on > N^{1-beta-eta} inputs), for a fixed eps and all small beta. FruitStack question seq 16764 (CLOSURE lane) works on P1-P4.
