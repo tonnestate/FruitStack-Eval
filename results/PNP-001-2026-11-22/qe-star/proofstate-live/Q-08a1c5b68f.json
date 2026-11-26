@@ -6773,5 +6773,38 @@
   "evidence": "Verified the circuit construction: h \u2264 2K_t reachable pairs; each minterm uses S fan-in-2 AND gates over S+1 literals (free NOTs provide negations); minterms mutually exclusive; each of S outputs XORs \u2264 h minterms using h-1 fan-in-2 XOR gates; total gates = hS + S(h-1) = 2hS - S \u2264 4SK_t. The rejecting code condition is accommodated within the arbitrary-on-unreachable-pairs design. No error found.",
   "review_of": "S0656",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795667672.8158092,
+  "session": "pnp-desk/research/R4306",
+  "model": "laguna-xs-2.1",
+  "evidence": "Reviewed S0658 (Zero-gate coordinate-projection lemma). The proof uses induction on input bits t, showing that with zero non-constant gates in AND/XOR/NOT/constant basis, each state bit after t steps is a constant or signed copy of one of the t prefix bits. The base case (t=0, constant initial state) and induction step are logically valid. When a circuit has zero non-constant gates, outputs can only be wired from inputs (possibly complemented) or set to constants. The induction correctly captures this: at step t+1, outputs depend only on constants, old state bits (which by induction are constants or single-input copies), or the new input bit. Hence the entire state after t bits consists of constants or signed copies. If two live prefixes agree on all selected coordinates, their state vectors are equal, making the coordinate projection injective - a necessary condition for distinguishing prefixes. No counterexample exists within the stated scope. The argument is sound.",
+  "review_of": "S0658",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795667899.346464,
+  "session": "pnp-desk/research/R4306",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the singleton language construction: initialize state s=1; on input x_i, update s' = s AND (x_i if w_i=1 else NOT x_i). By induction, after i bits s=1 iff the observed prefix equals w[1..i]. Base i=0 holds vacuously (empty prefix matches). The update uses exactly one AND gate per step (NOTs and constants free). The final state accepts exactly {w}. No counterexample; the construction is correct for all N>=1 and all w in {0,1}^N.",
+  "review_of": "S0661",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795667935.5485487,
+  "session": "pnp-desk/research/R4306",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the product language construction: F = {x in {0,1}^N: x_i in A_i for all i} where each A_i subset {0,1}. The one-bit machine has q_0=1, update q_i = q_{i-1} AND [b_i in A_i]. By induction, q_i=1 iff all first i bits satisfy their position constraints. The membership predicate [b_i in A_i] is: 0 if A_i=empty, 1 if A_i={0,1}, b_i if A_i={1}, NOT b_i if A_i={0}. Each update uses at most one AND gate (NOTs and constants free). The construction is correct for all N>=0 and all choices of A_i. No counterexample exists.",
+  "review_of": "S0662",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795668876.568124,
+  "session": "pnp-desk/research/R4314",
+  "model": "gpt-6-luna",
+  "id": "S0784",
+  "proved_step": "statement: Layer-dependent support lemma. Consider a layered transducer with a fixed initial state and S state bits. At update i (1<=i<=t), suppose each next-state bit is computed by a fan-in-two AND/XOR circuit with at most G_i gates, with NOTs/constants free and unrestricted fan-out. Then each state bit after t updates depends on at most P_t=\u220f_{i=1}^t(G_i+1) distinct input positions. Consequently, if all 2^t prefixes are live and have pairwise distinct states, then t<=S P_t.\nproof: Let A_i be the union of input positions on which any state bit after i updates depends, and let P_i=\u220f_{j=1}^i(G_j+1), with P_0=1. Initially A_0 is empty. At update i, each output bit is a circuit with at most G_i binary gates over the S old state bits and the new input bit. Its output has at most G_i+1 distinct primary input wires in its ancestor graph: starting from one output and tracing backwards, each binary gate can add at most one new wire to the connected ancestor subgraph. Thus it depends on at most G_i+1 members of the old-state/input wire set. Each old state wire depends only on positions in A_{i-1}; the new input wire contributes at most one additional position. More carefully, the support of an output is contained in the union of at most G_i+1 supports, each old-state support having size at most P_{i-1} and the new input support size one. Since P_{i-1}>=1, this union has size at most (G_i+1)P_{i-1}=P_i. This proves the bound by induction. Across S state bits, the union of their supports has size at most S P_t. If S P_t<t, some input coordinate is absent from every state bit; flipping that coordinate leaves the state unchanged. This contradicts pairwise distinct states for all 2^t live prefixes. Hence t<=S P_t.\nscope: Finite layered deterministic transducers; fixed initial state; S state bits; update i uses at most G_i fan-in-two AND/XOR gates, free NOTs/constants, unrestricted fan-out; at the stated layer all 2^t prefixes are live and SEARCH semantics requires distinct states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

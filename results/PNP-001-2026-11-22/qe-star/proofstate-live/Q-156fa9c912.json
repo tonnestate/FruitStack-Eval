@@ -8115,5 +8115,73 @@
   "evidence": "Mathematical verification of the constructive upper bound: (1) For each of the 2^r witness strings w\u2208{0,1}^r, substitute the fixed prefix p and the fixed witness w into the h-gate circuit H. This yields a circuit on the remaining variables z with at most h gates (substitution of constants and fixed inputs does not increase gate count). (2) Compute the OR of these 2^r outputs using a binary tree of 2^r - 1 two-input OR gates. (3) The resulting circuit outputs 1 iff at least one witness makes H(pz,w)=1, which is exactly E_p(z). (4) Gate count: 2^r * h (for the cofactored subcircuits) + (2^r - 1) (for the OR tree) = 2^r h + 2^r - 1. (5) Edge case r=0: 2^0=1 witness (empty string), 0 OR gates, total = h gates, which matches the formula. The bound is a valid constructive upper bound for the projected residual; it does not claim minimality or polynomial dependence on r. No counterexample exists for this constructive claim.",
   "review_of": "S0805",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795667742.0872376,
+  "session": "pnp-desk/research/R4300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction and gate count. For each destination S in R_{t+1} and bit b, E_{S,b} = {R in R_t : R_b = S}. The one-hot source bits e_R feed OR trees g_{S,b} = OR_{R in E_{S,b}} e_R (empty group -> constant 0). Sum of |E_{S,b}| over all (S,b) equals 2d_t (each source has exactly two children). Number of nonempty groups <= 2d_t. OR gates: sum_{nonempty} (|E|-1) = 2d_t - (#nonempty) <= 2d_t - 1. AND gates: h_{S,b} = g_{S,b} AND (b=b) uses one AND per nonempty group (<= 2d_t) and one shared NOT for NOT b. Final outputs: y_S = h_{S,0} OR h_{S,1} uses d_{t+1} <= 2d_t OR gates. Total gates <= (2d_t - 1) + 2d_t + 1 + 2d_t = 6d_t <= 7d_t for d_t >= 1. On valid one-hot input (exactly one e_R=1), exactly the coordinate for R_b becomes 1. The construction is level-specific, uses fan-in-two AND/OR and unary NOT, constants/wires free. No gap found. The bound is correct as stated.",
+  "review_of": "S0815",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795668003.8698545,
+  "session": "pnp-desk/research/R4300",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the construction and gate counts. For each of the 2^r witnesses w, the state bit q_w is updated as q'_w = q_w AND (x_i == H_i(w)). Since H_i(w) is a constant for fixed w, the transition uses at most h gates to evaluate H_i(w) (which can be hardwired as a constant 0 or 1, making this even smaller) plus 1 AND gate per w. With 2^r witnesses, transition cost <= 2^r(h+1). Acceptance is OR of all q_w, using 2^r - 1 OR gates. The bounds O(2^r(h+1)) for transition and O(2^r) for acceptance are correct. The lemma explicitly disclaims any lower bound or relation to arbitrary MCSP decision circuits. No gap found.",
+  "review_of": "S0817",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795668466.7198024,
+  "session": "pnp-desk/research/R4308",
+  "model": "gpt-6-luna",
+  "id": "S0947",
+  "proved_step": "RESIDUAL-STATE CHARACTERIZATION FOR FIXED-LENGTH STREAMING. Let L\u2286{0,1}^N. For each t and p\u2208{0,1}^t, define R_p={z\u2208{0,1}^{N\u2212t}: pz\u2208L}. In any deterministic streaming recognizer of L, two length-t prefixes can lead to the same state only if their residuals are equal; conversely, a recognizer with one state for each distinct residual at each depth recognizes L. Proof: If R_p\u2260R_q, choose z in their symmetric difference. Equal states after p and q would force identical acceptance on the common continuation z, contradicting that exactly one of pz,qz belongs to L. For the converse, transition the state R_p on bit b to R_{pb}={u:bu\u2208R_p}; at depth N accept iff the residual contains the empty string. Induction on the number of read bits shows the state after p is exactly R_p, so the machine recognizes L. This is a state characterization and gives no gate-cost bound for implementing transitions from H_C.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795668867.9168327,
+  "session": "pnp-desk/research/R4316",
+  "model": "gpt-6-luna",
+  "id": "S0948",
+  "proved_step": "statement: FINITE-FAMILY PREFIX-PROJECTION CIRCUIT BOUND. Let C_1,...,C_M be an explicitly listed family of Boolean circuits on N input bits, each with at most g fan-in-two gates. For a prefix p of length t define E(p)=1 iff there exist i in [M] and z in {0,1}^{N-t} such that C_i(pz)=1. Then E has a fan-in-two circuit with at most M 2^{N-t}(g+1)-1 gates, assuming constants and wiring are free. Any further fixed prefix cofactor satisfies the same bound with the shortened suffix length.\nderivation: For every pair (i,z) in [M] x {0,1}^{N-t}, create a copy of C_i, hardwire p and z, and take the OR of all M 2^{N-t} outputs using a binary fan-in-two tree. This uses at most M 2^{N-t}g + (M 2^{N-t}-1) gates. Further hardwiring inputs cannot increase gate count.\nscope: All finite N,M,g and prefixes p; explicit finite circuit family. No polynomial bound is asserted when M or 2^{N-t} grows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669004.5680902,
+  "session": "pnp-desk/research/R4316",
+  "model": "gpt-6-luna",
+  "id": "S0949",
+  "proved_step": "statement: EXPLICIT-FAMILY OR AND COFACTOR BOUND. Let C_1,...,C_M be an explicitly listed family of Boolean circuits on the same N input bits, each with at most g fan-in-two gates. The function F(x)=OR_{i=1}^M C_i(x) has a fan-in-two circuit with at most Mg+M-1 gates. For every fixed prefix p, the cofactor F_p has a circuit with at most the same number of gates.\nderivation: Take disjoint copies of the M circuits and combine their outputs with a fan-in-two OR tree, which has M-1 gates. This computes F using at most Mg+M-1 gates. Substituting constants for any fixed prefix inputs in this circuit cannot increase its number of gates, so the cofactor has the same upper bound.\nscope: All finite M>=1,N,g>=0, explicitly listed Boolean circuits, fan-in-two gates, constants and wiring free. This does not cover an implicitly represented family without an explicit listing or a bound on the cost of generating the family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669031.1337833,
+  "session": "pnp-desk/research/R4316",
+  "model": "gpt-6-luna",
+  "gap": "The explicit-family OR/cofactor bound does not represent the implicit family of all size-<=s circuits defining EXT, nor does it bound the real-gate cost of transitions for an arbitrary MCSP decision circuit H_C. The unresolved task is to identify what information an EXT algorithm needs and whether its transitions admit a bounded-operation representation using H_C, with cost measured in real gates rather than oracle calls.",
+  "gap_id": "G0205"
+ },
+ {
+  "at": 1795669144.4968193,
+  "session": "pnp-desk/research/R4316",
+  "model": "gpt-6-luna",
+  "id": "S0951",
+  "proved_step": "statement: PREFIX LANGUAGE PARENT-CHILD RECURRENCE. Let L be any subset of {0,1}^N. For each prefix p of length t<=N define E_L(p)=1 exactly when some string x in L extends p. If t<N, then E_L(p)=E_L(p0) OR E_L(p1). Consequently, if a circuit computes E_L on all prefixes at level t+1 (with p fixed and one suffix bit as input), the value at p is obtained by one OR gate from the two child acceptance bits; this recurrence alone does not compute either child predicate.\nderivation: The completions of p are the disjoint union of strings extending p0 and strings extending p1. Thus at least one member of L extends p iff at least one of p0,p1 has an extension in L. The Boolean OR of the two indicator bits is exactly E_L(p).\nscope: Every finite N, every language L subset {0,1}^N, every prefix p of length t<N. No circuit-size bound on computing E_L's child values is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795669144.5412278,
+  "session": "pnp-desk/research/R4316",
+  "model": "gpt-6-luna",
+  "gap": "G0205 remains open. The parent value of an exact prefix language is the OR of its two child values, but this does not provide either child value from an arbitrary decision circuit H_C for MCSP, nor bound the real-gate cost of a transition that computes EXT membership on a prefix.",
+  "gap_note_on": [
+   "G0205"
+  ]
  }
 ]
