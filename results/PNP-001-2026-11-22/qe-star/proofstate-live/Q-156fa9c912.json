@@ -9122,5 +9122,97 @@
   "proved_step": "statement: EXPLICIT RESIDUAL-AUTOMATON CIRCUIT SYNTHESIS. Let L be a finite language of words of length N, with at most K distinct residuals at each depth, including the empty residual. Its canonical layered deterministic automaton has a fan-in-two Boolean circuit implementing each one-bit update using O(K log(K+1)) gates, uniformly for every layer, with O(log(K+1)) state bits. Proof: At a fixed depth enumerate its r\u2264K residual states and assign distinct q=ceil(log2 r) bit codes (take q=1 if r=1). For each input b\u2208{0,1}, each state code u, and each output-code bit j, form the minterm [state=u] AND [input=b], costing O(q) fan-in-two gates per (u,b), with constants allowed. The next residual after reading b is uniquely determined; for each output bit j, OR together the minterms whose transition target has jth bit 1, using at most 2r\u22121 further gates (an empty set is constant 0). Thus all q next-state bits cost O(rq+r q)=O(r log(r+1)); a separate accepting/output bit can be computed by OR of the accepting-state minterms at cost O(rq+r). Invalid codes may transition to a fixed sink. The argument applies independently at each layer and gives the same O(K log(K+1)) worst-case gate bound. Correctness follows because exactly one state/input minterm is true for each valid encoded pair, and its target code is selected in each output bit. Applied to L=Im(Eval_{n,s}), this converts a residual-state bound K into a real-gate transition bound O(K log(K+1)); it does not establish K=poly(n,s), nor a small circuit for the existential projection from H_C.\nderivation: Enumerate residual states at each layer, decode state and symbol by minterms, and encode each deterministic successor output bit as an OR of exactly the minterms leading to 1 in that bit. A unique true minterm proves the transition outputs equal the designated successor code.\nscope: Finite fixed-length binary languages; per-layer residual count at most K; nonuniform layer-specific circuits; fan-in-two AND/OR/NOT gates with constants; state update only.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795766491.051424,
+  "session": "pnp-desk/research/R4668",
+  "model": "gpt-6-luna",
+  "id": "S1037",
+  "proved_step": "statement: CIRCUIT-COUNT BOUND ON EXT RESIDUAL WIDTH. Fix n,s\u22650 and a Boolean basis of fan-in at most two with B fixed gate types. Let N=2^n and L_{n,s} be the N-bit truth tables computed by circuits on n inputs with at most s gates. At every depth t, the number K_t of distinct prefix residuals R_p={z\u2208{0,1}^{N-t}:pz\u2208L_{n,s}}, including the empty residual, is at most min(2^t, 1+(s+1)(n+s+1)(B(n+s+1)^2)^s). Proof: Topologically order any j\u2264s gates. For each gate there are at most B choices of type and (n+s+1)^2 choices of predecessor wires; the output wire has at most n+s+1 choices. Thus the number of descriptions, summed over j=0,\u2026,s, is at most (s+1)(n+s+1)(B(n+s+1)^2)^s, with the zero-gate case covered by this overcount. Hence |L_{n,s}| is at most that quantity. There are at most 2^t prefixes. For each prefix with a nonempty residual, choose one completion yielding a truth table in L_{n,s}. Distinct prefixes yield distinct truth tables, so the number of such prefixes\u2014and therefore distinct nonempty residuals\u2014is at most |L_{n,s}|. At most one empty residual exists. Combining these bounds proves the claim. This gives a 2^{O(s log(n+s+2))} upper bound, not polynomial width for growing s, and implies no transition lower bound.\nderivation: Count topologically ordered circuit descriptions to bound the number of realized truth tables. At a fixed prefix depth, choose one completion for each prefix with nonempty residual; distinct prefixes yield distinct full truth tables, so the number of nonempty residuals is bounded by the number of truth tables. Add at most one empty residual.\nscope: All finite n,s and prefix depths t=0,\u2026,2^n; fixed finite Boolean basis of fan-in at most two; nonuniform circuits. Bounds residual count only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795766569.6553419,
+  "session": "pnp-desk/research/R4668",
+  "model": "gpt-6-luna",
+  "id": "S1038",
+  "proved_step": "statement: EXPLICIT CIRCUIT-DESCRIPTION BOUND ON EXT RESIDUAL WIDTH. Fix n,s\u22650 and a finite Boolean basis with B\u22651 gate types, each of fan-in at most two. Allow constants 0 and 1 as source wires. Let L_{n,s} be the truth tables on n inputs computed by circuits with at most s gates, and let K_t be the number of distinct prefix residuals at depth t, including the empty residual. Then for every 0\u2264t\u22642^n, K_t\u2264min(2^t,1+(s+1)(n+s+2)(B(n+s+2)^2)^s). Proof: For a circuit with j gates, order the gates topologically. Gate i has at most B choices of type and at most (n+i+1)^2 choices of ordered predecessor wires, since the available sources are the n inputs, two constants, and at most i\u22121 earlier gate outputs; this is at most (n+s+2)^2. Its output wire is selected from at most n+s+2 choices. Thus the number of descriptions over all 0\u2264j\u2264s is at most (s+1)(n+s+2)(B(n+s+2)^2)^s; the bound also covers j=0. Every realized truth table has a description, so |L_{n,s}| is at most this quantity. At depth t, for every prefix p with nonempty residual choose a completion z_p such that pz_p\u2208L_{n,s}. Distinct prefixes give distinct completed words, so there are at most |L_{n,s}| such prefixes and hence at most that many distinct nonempty residuals. There are at most 2^t prefixes total, and at most one empty residual. Combining the bounds proves the claim.\nderivation: Count topologically ordered descriptions, allowing constants and zero-gate outputs, to upper-bound the number of distinct truth tables. Inject prefixes with nonempty residuals into those truth tables by choosing one completion per prefix; add at most one empty residual.\nscope: All n,s\u22650 and every prefix depth t for fixed finite bases of fan-in at most two, with constants as source wires. This bounds residual width only; it supplies neither a polynomial width bound for growing s nor a transition lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795768189.803561,
+  "session": "pnp-desk/research/R4684",
+  "model": "gpt-6-luna",
+  "id": "S1039",
+  "proved_step": "statement: EXT LEFT-DERIVATIVE LEMMA. Fix n,s and let L_{n,s} be the set of truth tables of Boolean circuits on n inputs of size at most s, in a fixed truth-table bit order, with N=2^n. For each prefix p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz in L_{n,s}}. For every t<N, every p of length t, and b in {0,1}, R_{pb}={z in {0,1}^{N-t-1}: bz in R_p}. Proof: For any such z, z belongs to R_{pb} iff pbz belongs to L_{n,s}, iff bz belongs to R_p by the definition of R_p. Hence equality holds pointwise. The identity gives the exact semantic next residual but gives no bound on the circuit or time cost of computing an encoding of that residual; in particular it does not show that a fixed-circuit verifier H_C suffices for the existential union over all size-s circuits.\nderivation: Pointwise equivalence from the definition of prefix residuals: z\u2208R_pb iff pbz\u2208L iff bz\u2208R_p.\nscope: All finite n,s, standard finite Boolean circuit descriptions and fixed truth-table bit order; semantic residuals only, with no transition implementation bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795768378.7725263,
+  "session": "pnp-desk/research/R4684",
+  "model": "gpt-6-luna",
+  "id": "S1040",
+  "proved_step": "statement: EXPLICIT RESIDUAL-VECTOR COFACTOR UPDATE LEMMA. Let N be a nonnegative integer, let L be any subset of {0,1}^N, let 0 <= t < N, and let p in {0,1}^t. Define the Boolean residual vector v_p indexed by z in {0,1}^{N-t} by v_p(z)=1 iff pz is in L. For b in {0,1}, define v_{pb} on {0,1}^{N-t-1} analogously. Then for every u in {0,1}^{N-t-1}, v_{pb}(u)=v_p(bu). Thus the exact transition on this explicit truth-vector representation is restriction to the coordinates whose first suffix bit equals b, followed by deletion of that first coordinate; in general it is not same-coordinate copying.\nderivation: For each u, v_{pb}(u)=1 iff pbu is in L by definition of the child vector. Also v_p(bu)=1 iff p(bu) is in L by definition of the parent vector. Since p(bu)=pbu, the two Boolean values are equal. The statement about coordinate restriction is a direct restatement of this pointwise equality.\nscope: All finite binary languages L and all valid prefix lengths. This specifies the transition only for the explicit residual truth-vector representation; it gives no polynomial-size encoding or Boolean-gate bound for arbitrary state representations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795768407.611543,
+  "session": "pnp-desk/research/R4684",
+  "model": "gpt-6-luna",
+  "id": "S1041",
+  "proved_step": "statement: ZERO-GATE COFACTOR WIRING LEMMA. Let L be a subset of {0,1}^N, and at a prefix p of length t store the explicit residual vector v_p with one coordinate v_p(z)=1 iff pz is in L for each z in {0,1}^{N-t}. For t<N and b in {0,1}, the child vector v_{pb} is obtained by selecting, for each u in {0,1}^{N-t-1}, the parent coordinate indexed by bu. Thus a transition circuit with unrestricted free wires and coordinate relabeling computes the child vector using zero Boolean gates. Its state width is 2^(N-t) before the update and 2^(N-t-1) after it; hence this representation has an exponential-width cost when N-t grows linearly with N, despite its zero-gate transition.\nderivation: For each output coordinate u, the cofactor identity gives v_{pb}(u)=v_p(bu). Therefore connect the child output wire indexed by u directly to the parent input wire indexed by bu. No Boolean operation is needed. The coordinate counts follow from the sizes of the suffix sets. This proves only the cost for the stated explicit encoding under the stated free-wiring convention.\nscope: All finite binary languages and valid prefix lengths. Gate count is zero only when wiring/relabeling and fanout are free; state width is counted separately. This gives no bound for compact encodings or arbitrary streaming machines.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795768536.4610136,
+  "session": "pnp-desk/research/R4684",
+  "model": "gpt-6-luna",
+  "id": "S1042",
+  "proved_step": "statement: CANDIDATE-MASK COFACTOR UPDATE LEMMA. Let C_1,...,C_M be a fixed finite family of Boolean functions on a fixed ordered input domain, and let T_i be the truth table of C_i in that order. For a prefix p of length t, define A_p(i)=1 iff T_i begins with p. Let y_p(i) be the (t+1)-st bit of T_i. For b in {0,1}, define A_{pb}(i)=1 iff T_i begins with pb. Then for every i, A_{pb}(i)=A_p(i) AND [y_p(i)=b]. Consequently, given the full vector y_p, the child viability mask is computable from A_p using at most M AND gates, with the equality-to-b bits treated as available inputs. This statement gives no bound for computing y_p from a compact representation or an arbitrary MCSP decision circuit.\nderivation: Fix i. By definition, T_i begins with pb exactly when its first t bits equal p and its next bit equals b. The first condition is A_p(i)=1; the second is [y_p(i)=b]. Their conjunction is therefore exactly A_{pb}(i). Applying this identity independently to all M coordinates uses one AND gate per coordinate if y_p(i)=b is supplied as an input bit (or obtained by a NOT of y_p(i) for b=0, with at most M additional NOT gates if complements are not free).\nscope: All finite fixed candidate families and all valid prefix lengths. The circuit-cost bound is conditional on receiving the next-output vector as input. It does not compute that vector, exploit a compact encoding, or imply a bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795768565.7478564,
+  "session": "pnp-desk/research/R4684",
+  "model": "gpt-6-luna",
+  "id": "S1043",
+  "proved_step": "statement: EXPLICIT CANDIDATE-FAMILY TRANSITION COST LEMMA. Let D be a finite input domain with a fixed ordering x_1,...,x_N, and let C_1,...,C_M be Boolean circuits, each of fan-in two and size at most s, computing functions on D. For each t<N and prefix p in {0,1}^t, let A_p(i)=1 iff the truth table of C_i begins with p. Let x_{t+1} be the next domain input. Given the circuits C_1,...,C_M and the mask A_p, one can compute A_{pb} for either b in {0,1} by a fan-in-two circuit with at most Ms+M AND gates, and at most M additional NOT gates if complemented outputs are not free. In particular the transition has O(Ms) gates. This bound is for an explicit candidate family and mask; it does not imply a polynomial-in-s,n bound when M is large and does not apply to an arbitrary MCSP decision circuit.\nderivation: Evaluate each C_i on the fixed input x_{t+1}, using at most s gates per candidate, for at most Ms gates total. Call the resulting bit y_i. By the candidate-mask cofactor identity, A_{pb}(i)=A_p(i) AND [y_i=b]. For b=1 the equality bit is y_i; for b=0 it is NOT y_i, costing at most one NOT per candidate when needed. One AND per coordinate completes the update. This proves the stated bound and correctness coordinatewise.\nscope: All finite ordered domains, all fixed finite candidate families of fan-in-two circuits of size at most s, and all t<N. The candidate circuits are supplied as part of the representation; no compact description of the family or arbitrary-decider transition is established.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795768647.4171479,
+  "session": "pnp-desk/research/R4684",
+  "model": "gpt-6-luna",
+  "id": "S1044",
+  "proved_step": "statement: DESCRIPTION-ENUMERATION TRANSITION BOUND. Fix n input bits and a fan-in-two basis {AND, OR, NOT} with constants. Let D_s be the set of syntactic circuit descriptions with at most s gates, in a fixed topological encoding in which each gate chooses its type from a fixed finite set and each predecessor chooses among n input wires, two constants, and at most s earlier gate outputs. Then |D_s| <= (s+1) K^s (n+s+2)^(2s) for an absolute constant K depending only on the encoding. For the explicit candidate mask indexed by D_s, one next-bit transition can be computed by evaluating each described circuit on the next truth-table input and applying the coordinatewise cofactor update, using O(s |D_s|) fan-in-two gates. Hence this representation has an explicit transition bound exp(O(s log(n+s))) but this does not yield a polynomial-in-s,n transition bound or a lower bound for arbitrary MCSP deciders.\nderivation: For exactly j gates, there are at most K choices for each gate type and at most (n+j+2)^2 choices for its two predecessor wires; this overcounts gates of smaller arity and invalid wire patterns, so is an upper bound. Summing over j=0,...,s gives |D_s| <= (s+1)K^s(n+s+2)^(2s). For each description, evaluate its at most s gates on the fixed next truth-table input, then apply A_{pb}(i)=A_p(i) AND [y_i=b], costing O(s) gates per description. Summing gives O(s|D_s|). Taking logarithms of the cardinality bound gives log |D_s|=O(s log(n+s)), hence the stated exponential expression. The construction is syntactic and explicit; it makes no claim that this is optimal or that every MCSP decision circuit uses this representation.\nscope: All n>=0 and integer s>=0 under the stated finite circuit encoding; explicit mask over syntactic descriptions only. No arbitrary-decider transition lower bound follows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795769576.795697,
+  "session": "pnp-desk/research/R4692",
+  "model": "gpt-6-luna",
+  "id": "S1045",
+  "proved_step": "statement: ONE-HOT PREFIX REGISTER UPDATE LEMMA. Fix N>=1. A state consists of x in {0,1}^N and e in {0,1}^N, where after t<N input bits p have been read, x is p followed by N-t zeros and e_j=1 exactly for j=t. On input b, define x'_j=x_j OR (e_j AND b) for every j, and define e'_0=0 and e'_j=e_{j-1} for 1<=j<N. Then for every t<N, x' is p followed by b followed by N-t-1 zeros, and e' marks t+1 when t+1<N; at t=N-1 the data register becomes the full string pb and the marker becomes the all-zero terminal marker. The data update is implemented by at most 2N fan-in-two AND/OR gates; the marker update is wiring. Proof: Since e has its only 1 at coordinate t, for j!=t, x'_j=x_j; at j=t, x'_t=x_t OR b=b because the invariant gives x_t=0. Thus precisely coordinate t is written and all prior coordinates are preserved. The shift equation moves the unique 1 from t to t+1 if that coordinate exists, and yields the zero vector at the final boundary. This is an explicit O(N)-gate transition circuit for the stated one-hot encoding; it asserts no bound for arbitrary EXT or MCSP decision-circuit state encodings.\nderivation: Coordinatewise use the one-hot invariant: only the current zero suffix coordinate is selected; the marker shift handles the terminal boundary.\nscope: Every N>=1, every prefix length 0<=t<N and every next bit b; fan-in-two AND/OR circuit model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795769694.1251822,
+  "session": "pnp-desk/research/R4692",
+  "model": "gpt-6-luna",
+  "id": "S1046",
+  "proved_step": "statement: MINIMAL PREFIX-RESIDUAL STATE COUNT. Let L be any subset of {0,1}^N and let a deterministic streaming recognizer read exactly N bits, with fixed initial state, deterministic transitions, and final acceptance determined by its state after N bits. For each t and p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz in L}. At depth t every recognizer for L has at least |{R_p:p in {0,1}^t}| distinct reachable states. There exists a layered deterministic recognizer with exactly that many states at every depth, whose state after p is R_p and whose transition on b maps R_p to R_{pb}. Proof: If R_p differs from R_q, choose z in their symmetric difference. If the states after p and q were equal, determinism would give the same final acceptance after processing z, although exactly one of pz and qz belongs to L, contradiction. Conversely, use residual sets as states and define the b-transition R_p to R_{pb}. This is well-defined: for every suffix z of length N-t-1, z is in R_{pb} iff bz is in R_p; hence R_p=R_q implies R_{pb}=R_{qb}. At depth N accept precisely residuals containing the empty string. Induction shows the state after p is R_p, so the recognizer accepts exactly L. This is an exact state-count result only; it gives no Boolean gate bound for implementing transitions.\nderivation: A suffix in the symmetric difference distinguishes prefixes, forcing separate states. Residual transitions are well-defined because child membership is parent membership after prepending b; induction proves the constructed recognizer is exact.\nscope: All finite binary languages L subset {0,1}^N and N>=0; deterministic layered streaming recognizers with transitions allowed to depend on depth. Exact state counts per depth; no circuit transition cost asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

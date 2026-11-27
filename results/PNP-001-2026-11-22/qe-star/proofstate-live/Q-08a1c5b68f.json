@@ -7950,5 +7950,61 @@
   "kind": "LEMMA",
   "closes": "G0188",
   "closes_valid": true
+ },
+ {
+  "at": 1795766545.416293,
+  "session": "pnp-desk/research/R4674",
+  "model": "gpt-6-luna",
+  "id": "S0890",
+  "proved_step": "statement: For any finite family F of N-bit strings and any layer t, let L_t be the number of length-t prefixes that extend to members of F. If at least one length-t prefix does not extend to F, then any deterministic state assignment that gives distinct states to all live prefixes and separates live from dead prefixes needs at least L_t+1 states; if no dead prefix exists, it needs at least L_t states. Conversely, with no transition constraints, these respective numbers of abstract codes suffice at that layer.\nproof: Lower bound: the L_t live prefixes require pairwise distinct states, and a dead prefix, when one exists, must have a state outside that live set. Upper bound: assign a distinct abstract code to each live prefix and, if needed, one additional code to all dead prefixes. This is only a layer-local coding statement; it imposes no compatibility between layers and no circuit-cost bound.\nscope: All finite F subseteq {0,1}^N and 0<=t<=N; layer-local live/dead classification only.\nevidence: Direct finite counting and explicit code assignment; exhaustive check requested separately.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795766825.4453201,
+  "session": "pnp-desk/research/R4674",
+  "model": "gpt-6-luna",
+  "id": "S0891",
+  "proved_step": "statement: In the binding Lemma M transition model with basis AND, XOR, NOT, and constants, if a transition circuit has gate budget G=0, then every next-state output bit is either a current-state input bit, the newly read input bit, or a constant. Consequently, by induction over layers, every state coordinate after t updates is either an initial-state coordinate, one of the t input bits read so far, or a constant.\nproof: A circuit with zero counted nonconstant gates has no AND, XOR, or NOT gate. Thus its outputs can only be wires from its primary inputs or constant wires, proving the one-step statement. For the layered consequence, induction on t: at t=0 the assertion holds by definition. At a subsequent layer, each output coordinate is a prior state coordinate, the new input bit, or a constant. Substituting the induction description for any copied coordinate gives one initial coordinate, one of the already-read bits, or a constant; the new input case adds the latest bit. Hence the property holds at every layer.\nscope: The fixed Lemma M basis with every nonconstant gate charged and G_max=0. This characterizes transition coordinates only; it neither proves existence nor impossibility of a correct machine for SC_{n,s}, and does not constrain decoder size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795766861.5461273,
+  "session": "pnp-desk/research/R4673",
+  "model": "gpt-6-luna",
+  "id": "S0892",
+  "proved_step": "statement: SC continuation-conflict cut bound. Fix N and a set F of accepted N-bit truth tables. At cut t, let P_t be the length-t prefixes that extend to an element of F. Put an edge between distinct p,q in P_t exactly when there exists a suffix z of length N-t such that pz and qz both lie in F. Any deterministic layered streaming transducer with a final-state-only decoder that outputs, on every accepted table f, a circuit whose truth table is f must use at least chi(H_t) states at layer t, where H_t is this graph. In particular, if every pair in P_t has a common accepted suffix, at least |P_t| states are required.\nproof: Consider an edge p,q and a witnessing suffix z. If p and q reached the same layer-t state, determinism would make the two runs reach the same final state after z. The decoder would then output the same circuit C on pz and qz. Since both are accepted, soundness requires C to compute both tables. But pz and qz are distinct N-bit strings (their first t bits differ), and a Boolean circuit has only one truth table, contradiction. Thus every edge has differently colored endpoint states. Assigning each prefix its layer-t state is therefore a proper coloring of H_t, so the number of layer-t states is at least chi(H_t). If H_t is complete, chi(H_t)=|P_t|.\nscope: Exact truth-table circuit search with deterministic transitions and final-state-only sound decoding. This is a state lower bound conditional on the graph\u2019s edges; it makes no claim that H_t is complete for SC_{n,s}, and it gives no update-gate or decoder-size lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d25720b26b",
+  "closes_valid": true
+ },
+ {
+  "at": 1795769128.2390764,
+  "session": "pnp-desk/research/R4690",
+  "model": "gpt-6-luna",
+  "id": "S0893",
+  "proved_step": "statement: Let F be any subset of {0,1}^N. At cut t define R_t(p)={z in {0,1}^{N-t}: pz in F} for each length-t prefix p. Every deterministic streaming membership machine for F has at least |{R_t(p): p in {0,1}^t}| states at cut t, and a layered deterministic machine with exactly that many states exists.\nproof: Lower bound: if prefixes p,q have distinct residual sets, choose z in their symmetric difference. Exactly one of pz,qz is in F. If p,q reached the same state, determinism on common suffix z would give identical final behavior, contradiction. Upper bound: make one state per distinct residual set. From R at cut t, on bit b transition to R'={v: bv in R}; this is a residual at cut t+1 and is determined by R. At cut N accept iff the empty string belongs to R. Induction on the remaining suffix shows the machine accepts exactly F.\nscope: All finite binary languages F subseteq {0,1}^N and all cuts 0<=t<=N. This characterizes state count only; it makes no bound on transition gate complexity or decoder size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795769627.699664,
+  "session": "pnp-desk/research/R4690",
+  "model": "gpt-6-luna",
+  "id": "S0894",
+  "proved_step": "statement: For any finite binary language F subseteq {0,1}^N, a deterministic layered transducer can store the raw prefix in an N-bit register and update it with zero nonconstant gates per step, using free wires and time-dependent wiring. Its final decoder can decide membership in F. The register state is injective on all prefixes at each fixed layer.\nproof: Initialize the N register bits to zero. At layer t, the first t positions contain the read prefix and positions t+1,...,N are zero. On input b, wire the first t positions unchanged, wire b into position t+1, and wire zero constants into the remaining positions. No nonconstant gate is used. Induction on t proves the register invariant. At t=N the register equals the input word, so a decoder implementing the characteristic function of F decides membership. The state encoding distinguishes every prefix at a fixed layer because its first t bits equal that prefix.\nscope: All finite binary languages F subseteq {0,1}^N; fixed width S=N; arbitrary final decoder cost. This is a zero-update-gate upper bound only at the raw-prefix width and gives no bounded-width lower bound or Pareto result for Lemma M.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795769763.9802115,
+  "session": "pnp-desk/research/R4690",
+  "model": "gpt-6-luna",
+  "id": "S0895",
+  "proved_step": "statement: Let a deterministic layered streaming transducer have a fixed initial S-bit state. Suppose every update uses zero nonconstant gates, with free wires and constants, and has one new input bit. At cut t, each state coordinate is either constant or a copy of one of the t bits already read. Consequently the number of possible states at that cut is at most (t+2)^S. If the encoding is injective on the live prefix set P_t, then |P_t| <= (t+2)^S.\nproof: Induct on t. At t=0, the initial state is fixed, so each coordinate is constant. For the induction step, a zero-nonconstant-gate update in the stated wire-and-constant model can set each output coordinate only to a constant, a current state coordinate, or the new input bit. By the induction hypothesis a current state coordinate is constant or copies one of the first t input bits. Hence after the update each output coordinate is constant or copies one of the first t+1 input bits. At cut t, each of the S coordinates therefore has at most t+2 possible descriptions: either constant 0, constant 1, or one of the t input coordinates. The entire state vector has at most (t+2)^S possible values. Injectivity on P_t implies |P_t| cannot exceed this number.\nscope: All fixed-initial-state layered transducers whose per-step updates use only free wires and constants (the zero-nonconstant-gate case); any finite live-prefix set P_t; S state bits. This is a necessary capacity condition, not a bound for positive gate cost or for unrestricted transition circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
