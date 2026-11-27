@@ -8872,5 +8872,119 @@
   "proved_step": "statement: EXPLICIT BOOLEAN-CIRCUIT IMPLEMENTATION OF A FRONTIER UPDATE. Let a layered network have q states at each boundary and layer relation T_i(u,b,v), with the relation supplied as a Boolean table. For each fixed input bit b, the map from the q membership bits of S to those of S' defined by S'[v]=OR_{u=1}^q(S[u] AND T_i(u,b,v)) has a fan-in-two Boolean circuit of at most q^2(2q-1) gates, using AND gates for the q products per output and a binary OR tree. Thus the update is an ordinary circuit of O(q^3) gates; if q<=2^w this is O(2^{3w}). Proof: For each ordered pair (u,v), form one AND gate with inputs S[u] and the fixed table bit T_i(u,b,v), using no gate if the table bit is 0 and a wire if it is 1. For each v, OR its q resulting terms with q-1 binary OR gates. This uses at most q^2 AND gates and q(q-1) OR gates, hence at most q^2+q(q-1) <= 2q^2 gates (for q>=1), and is equivalent by distributivity to the existential update. If table bits must be treated as input variables rather than fixed constants, the same q^2 AND gates suffice. This implementation makes explicit that the prior 2^{2w} bound counted pair evaluations, not Boolean gates; the gate upper bound proved here is O(2^{2w}), since q^2+q(q-1)<2q^2. The statement applies only to the given explicit table and does not represent arbitrary H_C.\nderivation: For each boundary pair, compute the conjunction of reachability and the transition-table bit. For each destination boundary, OR the q conjunctions. Direct truth-table evaluation proves equality with existential composition; gate counting gives q^2+q(q-1)<2q^2, hence at most 2^(2w+1) gates when q<=2^w.\nscope: Every finite layered Boolean constraint network with q boundary states and explicitly supplied Boolean transition tables; per fixed input bit, with fan-in-two AND/OR gates.",
   "status": "CLAIMED",
   "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795749059.1002357,
+  "session": "pnp-desk/research/R4596",
+  "model": "gpt-6-luna",
+  "evidence": "Finite sanity check cm-6fc6b367018943d2 independently checked the derivative identity and suffix separation for L={000,011,101,110}: all 30 prefix-bit transitions and 42 ordered unequal-residual pairs passed. General validity follows from the proof, not the finite computation.",
+  "id": "S1012",
+  "proved_step": "statement: RESIDUAL AUTOMATON CHARACTERIZATION. Let L be a subset of {0,1}^N. For each prefix p of length t define R_p={z in {0,1}^{N-t}: pz in L}. In any deterministic exact streaming recognizer whose state after reading p determines acceptance for every continuation z, prefixes with distinct residuals R_p must reach distinct states. Conversely, the residuals at all depths form an exact recognizer: on bit b, R_p transitions to D_b(R_p)={z in {0,1}^{N-t-1}: bz in R_p}, and this equals R_{pb}; at depth N, accept iff the empty string belongs to R_p. Proof: If R_p and R_q differ, choose z in their symmetric difference. A deterministic recognizer in the same state after p and q would give the same acceptance on continuation z, contradicting the definition of residual. For the converse, if R_p=R_q, then for each b and z, bz belongs to R_p iff z belongs to D_b(R_p), so D_b(R_p)=D_b(R_q); hence transitions are well-defined on residual classes. The identity D_b(R_p)=R_{pb} follows directly from p(bz)=(pb)z. Induction on the number of remaining bits shows that the residual state accepts exactly the continuations completing a word of L. The terminal rule is precisely membership of the empty continuation. For L=Im(Eval_{n,s}), this characterizes the exact information an EXT prefix state must preserve, but does not bound the Boolean gate cost of computing a transition from H_C or imply anything about arbitrary MCSP decision circuits.\nderivation: Distinct residuals are separated by a continuation in their symmetric difference, so exact deterministic recognition requires distinct states. Equality of residual sets is a right congruence under the left-derivative operation D_b; direct concatenation gives D_b(R_p)=R_{pb}. The terminal empty-string test and induction establish exact recognition.\nscope: All finite N and all L subset {0,1}^N; deterministic exact one-pass recognition of fixed-length words. Applied to EXT with L=Im(Eval_{n,s}), it identifies required residual information only; no transition circuit or general MCSP lower bound is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749258.947142,
+  "session": "pnp-desk/research/R4596",
+  "model": "gpt-6-luna",
+  "id": "S1013",
+  "proved_step": "statement: FULL PREFIX REGISTER UPDATE LEMMA. Fix N>=1 and a time layer t in {0,...,N-1}. Encode a length-t prefix p as an N-bit vector q with q_i=p_i for 0<=i<t and q_i=0 for t<=i<N; the layer t is part of the recognizer's control (so this is a layered transition, not one time-homogeneous map). On input b, the next encoded prefix is q'_i=q_i for i<t, q'_t=b, and q'_i=0 for i>t. Each output bit is computed by a fan-in-two {AND,OR,NOT} circuit of at most one gate (indeed q'_i=q_i for i<t, q'_t=b, and q'_i=0 for i>t, so constants/wires suffice); hence total transition circuit cost is O(N), with zero nontrivial gates if wires and constants are free. The encoding is exact: induction on t gives q=(p,0^{N-t}) after every legal prefix. Given any fixed Boolean relation H:{0,1}^N x {0,1}^r->{0,1}, the represented continuation predicate R_q(z)=1 iff exists w H(qz,w) is therefore updated exactly to R_{pb} by this transition. Proof: the coordinate equations copy the old prefix, append b at the unique next coordinate, and zero all unused coordinates; the induction establishes the invariant, and substitution into the definition gives R_{q'}(z)=exists w H(pb z,w). This result only bounds updates for the redundant full-prefix representation; it gives no bound for transitions on the succinct residual-state encoding of EXT, nor for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749330.9038417,
+  "session": "pnp-desk/research/R4596",
+  "model": "gpt-6-luna",
+  "id": "S1014",
+  "proved_step": "statement: REPAIRED PADDED-PREFIX UPDATE LEMMA. Let N>=1, let H:{0,1}^N x {0,1}^r->{0,1}, and at layer t in {0,...,N} encode p in {0,1}^t by q=(p,0^{N-t}) in {0,1}^N. Define comp_t(q,z) in {0,1}^N for z in {0,1}^{N-t} by comp_t(q,z)_i=q_i for i<t and comp_t(q,z)_i=z_{i-t} for t<=i<N. Define F_t(q,z)=1 iff there exists w in {0,1}^r with H(comp_t(q,z),w)=1. For t<N and b in {0,1}, define q' by q'_i=q_i for i<t, q'_t=b, and q'_i=0 for i>t. Then q'=(pb,0^{N-t-1}) and for every z' in {0,1}^{N-t-1}, F_{t+1}(q',z')=F_t(q,bz'). The update on legal layer-t encodings has coordinate outputs that are wires/constants except coordinate t, which is b; its circuit uses zero nontrivial gates when wires and constants are free, or O(N) gates if output copies/constants are charged. Proof: Since q=(p,0^{N-t}), coordinatewise definition gives comp_t(q,bz')=pbz'=comp_{t+1}(q',z'). Existential quantification over the same w therefore gives equality of the F values. The coordinate formula for q' establishes the invariant at layer t+1. This is only a redundant full-prefix encoding; it makes no claim about bounded-cost updates on a succinct residual-state encoding or arbitrary MCSP decision circuits.\nderivation: For legal q=(p,0^{N-t}), the first t coordinates of comp_t(q,bz') are p, and the remaining coordinates are bz'. Thus comp_t(q,bz')=pbz'. The updated legal register q' stores pb followed by zeros, so comp_{t+1}(q',z')=pbz' as well. H receives identical input vectors and the same witness domain {0,1}^r, hence the existential predicates are equal. The update coordinate equations give the stated gate cost.\nscope: All finite N>=1, layers t<N, Boolean relations H with arbitrary fixed witness length r; deterministic layered updates on the padded-prefix register. No succinct-state or arbitrary-MCSP lower-bound implication.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749395.8450427,
+  "session": "pnp-desk/research/R4596",
+  "model": "gpt-6-luna",
+  "id": "S1015",
+  "proved_step": "statement: RESIDUAL-COUNT TWO-SIDED BOUND. Let N>=0, L be a subset of {0,1}^N, and for t in {0,...,N} define R_p={z in {0,1}^{N-t}: pz in L} for each p in {0,1}^t. Let d_t be the number of distinct nonempty sets R_p. Then d_t <= min(2^t, |L|). Proof: There are 2^t prefixes, so d_t<=2^t. For each distinct nonempty residual R choose one prefix p_R realizing it. Distinct residuals have distinct chosen prefixes, since one fixed prefix determines exactly one set R_p. Choose any z_R in R. The words p_R z_R are distinct because their length-t prefixes p_R are distinct, and each belongs to L. This injects the d_t residuals into L, giving d_t<=|L|. Thus d_t<=min(2^t,|L|). This does not imply d_t<=2^{N-t}: residuals are subsets of the suffix universe, not suffixes.\nderivation: Count the 2^t prefixes. Then choose one realizing prefix for each distinct nonempty residual; these prefixes must be distinct. Choosing one accepted suffix for each residual maps each residual to a distinct word in L, proving d_t<=|L|. Combining the bounds gives the result.\nscope: All finite binary languages L subseteq {0,1}^N and all cut depths t. This bounds nonempty residual-state count but not transition circuit cost or the size of the bound for circuit-truth-table languages.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749473.0205548,
+  "session": "pnp-desk/research/R4596",
+  "model": "gpt-6-luna",
+  "id": "S1016",
+  "proved_step": "statement: LAYERED RESIDUAL RECOGNIZER LEMMA. Let N>=0 and L be a subset of {0,1}^N. For each t=0,...,N and p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz in L}; let D_t={R_p:p in {0,1}^t}, including the empty residual if it occurs. There is an exact layered deterministic recognizer for L whose states at layer t are D_t and whose transition on b in {0,1} is delta_t(R,b)={z' in {0,1}^{N-t-1}: bz' in R} for t<N. Its terminal state R at layer N accepts iff the empty word belongs to R. At each layer |D_t|<=min(2^t,|L|)+1, so the total number of layer-state pairs is at most (N+1)(|L|+1). Proof: For each reachable state R=R_p, delta_t(R_p,b)={z': bz' in R_p}={z': pbz' in L}=R_{pb}; thus the transition is well-defined on residual sets, independent of which prefix represents the state, and induction on t shows the state after p is exactly R_p. At t=N the suffix universe consists only of the empty word, so membership of that word in R_p is equivalent to p in L. For the count, the nonempty residuals number at most min(2^t,|L|) by S1015's injection argument; there is at most one additional empty residual. Summing the per-layer bounds gives at most (N+1)(|L|+1) layer-state pairs. This is a state-count and semantic-transition result; it does not bound the Boolean circuit cost of implementing delta_t on a succinct encoding.\nderivation: For any p,b, membership z' in delta_t(R_p,b) is equivalent in sequence to bz' in R_p, pbz' in L, and z' in R_{pb}; hence delta_t(R_p,b)=R_{pb}. This proves well-defined transitions and the recognizer invariant by induction. Terminal acceptance follows from the definition at suffix length zero. The per-layer bound follows from at most min(2^t,|L|) nonempty residuals plus at most one empty residual; summing N+1 layers yields the stated total.\nscope: All finite fixed-length binary languages L and N>=0. Counts layered state pairs; no ordinary-gate transition-cost or MCSP implication is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749802.7547562,
+  "session": "pnp-desk/research/R4596",
+  "model": "gpt-6-luna",
+  "id": "S1017",
+  "proved_step": "statement: BINARY DFA TRANSITION CIRCUIT UPPER BOUND. Let A=(Q,{0,1},\u03b4,q0,F) be any deterministic finite automaton with q\u22651 states, and encode states by distinct k-bit strings where k=ceil(log2 q) (with k=0 if q=1). For each input symbol b\u2208{0,1}, the map \u03b4_b on valid state codes, extended arbitrarily to unused k-bit codes, is computed by a fan-in-two Boolean circuit with O(qk+q) gates; hence one transition circuit taking (state,b) and outputting the next state uses O(q log(q+1)) gates. Proof: For each valid state code a and output coordinate j, form its equality indicator e_a(state)=\u2227_{i=1}^k (state_i if a_i=1 else \u00acstate_i), using O(k) gates per code. For each output coordinate j, form y_j=\u2228_{a\u2208Q: \u03b4(a,b)_j=1} e_a(state), requiring O(q) gates after the indicators. Compute both b-specific outputs and select by b with one mux per output coordinate, O(k) additional gates. Total O(qk+q); q=1 is constant. The circuit agrees with \u03b4 on every valid code; unused codes may be assigned arbitrary behavior. This gives a general construction but for EXT, q may be as large as the number of distinct prefix residuals, which is not shown polynomial in n,s, so it does not close the arbitrary-MCSP transition-cost gap.\nderivation: One-hot equality tests for all q valid k-bit codes cost O(qk). For each symbol and coordinate, OR the indicators of states whose transition output has that coordinate set; this costs O(qk) total over k coordinates and two symbols. The transition symbol selects between the two output words with O(k) gates. Overall O(qk+q), and valid-state correctness follows because exactly one equality indicator is true.\nscope: All finite DFAs over a binary alphabet, ordinary fan-in-two Boolean circuits, binary state encoding; no assertion on the size of the EXT residual automaton.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795750431.6540334,
+  "session": "pnp-desk/research/R4604",
+  "model": "gpt-6-luna",
+  "id": "S1018",
+  "proved_step": "statement: RESIDUAL SUFFICIENCY AND CHILD UPDATE LEMMA. Let N,r be nonnegative integers and H:{0,1}^N\u00d7{0,1}^r\u2192{0,1}. For each prefix p\u2208{0,1}^t, 0\u2264t\u2264N, define R_p={z\u2208{0,1}^{N\u2212t}: \u2203w\u2208{0,1}^r H(pz,w)=1}. Then for every p of length t<N and b\u2208{0,1}, R_{pb}={z\u2208{0,1}^{N\u2212t\u22121}: bz\u2208R_p}. Consequently R_p alone is sufficient to determine the next residual set after reading b: the update is the left quotient b^{-1}R_p. Proof: Fix p,b,z. By definition, z\u2208R_{pb} iff \u2203w H(pb z,w)=1. Since bz is a length-(N\u2212t) string, the definition of R_p says exactly that bz\u2208R_p iff \u2203w H(p(bz),w)=1. These predicates are identical for every z, so the sets are equal. The right side depends only on R_p and b, hence equal residual sets have equal child residuals for each common next bit. This proves exact semantic state sufficiency for the projection automaton. It does not bound the cost of representing R_p or computing its quotient from a circuit description H in an ordinary fan-in-two circuit model.\nderivation: Pointwise membership equivalence: z\u2208R_{pb} iff \u2203w H(pb z,w) iff bz\u2208R_p. Extensional equality follows; the quotient is a function of R_p and b.\nscope: All finite N,r, all Boolean relations H, all prefixes shorter than N; semantic residual states only, with no circuit-cost assertion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795750816.9053404,
+  "session": "pnp-desk/research/R4604",
+  "model": "gpt-6-luna",
+  "id": "S1019",
+  "proved_step": "statement: CANDIDATE-AGREEMENT FILTERING LEMMA. Let N be a positive integer and let F=(f_1,...,f_M) be any fixed finite list of Boolean functions f_j:{0,1}^N->{0,1}. For each prefix p in {0,1}^t, define A_p={j in [M]: f_j(pz)=p_i for every i in [t], where z is the suffix completing pz to length N}; equivalently, j is live iff f_j agrees with p on the t queried inputs. After observing the next input string x_t (the t-th point in a fixed ordering x_1,...,x_{2^N} of {0,1}^N) and its target bit b_t, update each flag a_j to a'_j=a_j AND [f_j(x_t)=b_t]. Then the updated flags encode exactly A_{p'} for the extended observation prefix p'=(p,b_t). A synchronous fan-in-two Boolean circuit implements this update using at most 2M gates when the comparison bits [f_j(x_t)=b_t] are fixed constants for this time step. Proof: Initially all flags are 1, so A_empty=[M]. Suppose inductively that a_j=1 exactly for candidates agreeing with all earlier observed pairs (x_i,b_i), i<t. The update sets a'_j=1 exactly when that condition holds and f_j(x_t)=b_t, which is precisely agreement on all pairs through t. Each coordinate is one AND with a fixed bit (or a wire/constant); even charging one equality-to-constant AND and one combining AND gives at most 2M fan-in-two gates. This establishes the invariant by induction. Scope: fixed finite candidate list and fixed time-step comparison constants. The bound is O(M), with no assertion that M is polynomial in n,s, that comparisons can be generated cheaply, or that the state represents arbitrary MCSP decision circuits.\nderivation: Induct on the number t of observations. Base: no observations leaves every candidate live. Step: retain candidate j exactly when it was previously live and its fixed prediction on x_t equals the observed b_t. This is exactly the defining condition for agreement on the extended prefix. Coordinatewise AND with a fixed comparison bit gives a fan-in-two implementation using at most 2M gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795750988.4377108,
+  "session": "pnp-desk/research/R4604",
+  "model": "gpt-6-luna",
+  "id": "S1020",
+  "proved_step": "statement: REPAIRED CANDIDATE-AGREEMENT FILTERING LEMMA. Let X be a finite set, let F=(f_1,...,f_M) be a fixed finite list of functions f_j:X->{0,1}, and let H_t=((x_1,b_1),...,(x_t,b_t)) be any finite history in X\u00d7{0,1}. Define a_j(0)=1 and a_j(t+1)=a_j(t) AND [f_j(x_{t+1})=b_{t+1}]. Then for every j and t, a_j(t)=1 iff f_j(x_i)=b_i for every i\u2264t. Consequently the vector (a_1(t),...,a_M(t)) exactly represents the set of candidates consistent with H_t. If each comparison bit [f_j(x_{t+1})=b_{t+1}] is supplied as a constant, the update is implemented by at most M fan-in-two AND gates. Proof: Induct on t. At t=0, the history is empty and every candidate is consistent, matching a_j(0)=1. Suppose the equivalence holds at t. By definition, a_j(t+1)=1 iff a_j(t)=1 and f_j(x_{t+1})=b_{t+1}. Applying the induction hypothesis, this is equivalent to agreement on all pairs through t+1. One AND gate computes each coordinate from its prior flag and supplied comparison bit, for M gates total.\nderivation: Induction on history length; each update conjoins precisely the newest agreement predicate.\nscope: All finite X, all M\u22650, arbitrary histories including inconsistent histories; the comparison predicates are assumed supplied. This repairs the mixed prefix/history wording in S1019 but does not bound comparison generation or arbitrary MCSP transition cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795751112.6484835,
+  "session": "pnp-desk/research/R4604",
+  "model": "gpt-6-luna",
+  "lemma": "S1020 is a correctly repaired fixed-candidate agreement-filtering lemma with a complete induction proof, but it remains only CLAIMED and does not address comparison generation or arbitrary MCSP transitions. A first finite check attempt failed due to tuple indexing; a corrected exhaustive check was requested as cm run candidate_filtering_tiny_exhaustive_check_v2 and its result is pending.",
+  "gap": "The assigned EXT-to-H_C connection remains unresolved: no bounded-cost ordinary-gate transition representation for arbitrary MCSP decision circuits has been established. The corrected finite check result and independent validation of the repaired lemma are also pending.",
+  "evidence": "General correctness follows directly by induction on history length. Earlier finite run cm-5104abb5a1664b63 failed with TypeError from tuple-valued table indexing and is not evidence.",
+  "gap_id": "G0218"
+ },
+ {
+  "at": 1795751881.2106068,
+  "session": "pnp-desk/research/R4612",
+  "model": "gpt-6-luna",
+  "evidence": "Induction verifies the prefix invariant at each layer; each next-state bit is a wire, input, or constant, hence zero gates under the stated circuit convention. Existential projection is exact by the residual definition. State uses N+(N+1) bits, exponential in m when N=2^m.",
+  "id": "S1021",
+  "proved_step": "FIXED-WIDTH PREFIX SHIFT-REGISTER LEMMA. Let N>=1 and H:{0,1}^N x {0,1}^r->{0,1} be any Boolean relation. A layered machine with state (a,u) in {0,1}^N x {0,1}^{N+1}, initialized (0^N,e_0), after t bits p=b_1...b_t stores a=0^{N-t}p and u=e_t. On input b its transition is a'=a_2...a_N b and u'=shift(u), so every next-state output is a current bit, input bit, or constant: zero fan-in-two Boolean gates when wires/constants are free. At layer t, decode p as the last t bits of a and represent R(z)=1 iff exists w in {0,1}^r H(pz,w). This is exactly the existential prefix residual, and the transition on b represents the child residual. Proof: induction on t; the initial state stores the empty prefix. Shifting and appending b transforms 0^{N-t}p into 0^{N-t-1}pb and shifts e_t to e_{t+1}. The residual identity follows by substitution into its definition. This gives zero-gate transitions only for an explicit O(N)-bit encoding. For EXT, N=2^m, so it implies neither a poly(m,s)-bit state bound nor a transition bound for compact residual encodings or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795752006.6935606,
+  "session": "pnp-desk/research/R4612",
+  "model": "gpt-6-luna",
+  "id": "S1022",
+  "proved_step": "statement: LAYERED DFA TRANSITION-CIRCUIT LEMMA. Let q>=2 and let a layered deterministic automaton over alphabet {0,1} have at most q states in each layer, with a specified initial state and a specified accepting subset at the final layer. There is an encoding of each layer's states by r=ceil(log2 q) bits such that each layer transition and the final acceptance test are computed by fan-in-two Boolean circuits using O(q log q) gates per layer. Proof: Pad each layer to q states and define transitions arbitrarily from padded states. For each state i, compute the equality selector e_i on the r state bits; each selector uses O(r) gates, so all q selectors use O(qr) gates. For each input symbol b and each next-state output bit k, OR the selectors e_i for which the transition from i on b has output bit k. The total number of selector appearances over the r output bits is at most qr for each b, so these ORs cost O(qr) gates per b. The symbol b can be included as a literal in each selector or the two symbol cases can be combined with O(qr) gates. The final acceptance bit is the OR of e_i over accepting states and costs O(qr). As r=ceil(log2 q), all stated bounds are O(q log q).\nderivation: Explicit one-hot equality decoders from the binary state encoding feed ORs for each next-state bit; gate count is O(qr) for decoder construction and O(qr) for all output-bit ORs, with r=ceil(log2 q).\nscope: All finite layered deterministic automata with binary alphabet and at most q states per layer, under fan-in-two Boolean circuits; this is an implementation upper bound only and makes no claim that the EXT residual automaton has polynomially many states in its parameters.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

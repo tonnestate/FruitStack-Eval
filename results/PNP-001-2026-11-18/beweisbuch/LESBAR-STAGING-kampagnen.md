@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 17628 entries from 5756 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 17708 entries from 5780 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - The threshold function 'at most m of n variables are 0' depends only on the numbers of zeros on the two sides of a cut
 PREMISES: 
@@ -25,12 +25,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For layered Boolean transitions with S state bits and one input bit, direct DNF synthesis gives a universal update-circuit upper bound of S*(S*2^S+3*(2^S-1))+(S+1) nonconstant gates in the AND/XOR/NOT basis.
+  - For arbitrary finite fixed-length languages, the nonempty residual count is at most min(2^t, |L|), while the suffix-universe size alone does not give a 2^(N-t) bound on the number of residuals because residuals are subsets.
+  - For EXT prefixes arising from circuit truth-table prefixes, any exact state representation must distinguish all distinct residual languages at each depth; the residual count yields an information lower bound but does not itself imply a gate-cost lower bound.
   - For layered finite-language residual automata with one-hot encodings of each layer's residual states, arbitrary binary transitions admit linear-size multi-output circuits under AND/OR/NOT; the explicit bound should be stated in terms of the number of source st
   - Some verifier relations H_C may admit equivalent aligned layered constraint networks of width w=O(log(n+s)) with polynomial-size explicit transition tables, enabling compact exact prefix updates via the bounded-frontier lemma.
   - HYPOTHESES FROM SHAPLEY + ML (owner idea 2026-11-27; empirical, small n; not proved). H-S2a: in G2, Sh_c grows with the number of resolution partners of c (corr +0.713) and falls with same-polarity sharing (corr -0.591); linear CV R2 = 0.807 from 4 local featu
-  - For gate elimination on MCSP[m^c] with c>=1, the zero-restriction mechanism from Wittcop's 2N bound (which works for threshold m-1) fails because: (1) at threshold m^c, the radius of accepted tables around small circuits grows; (2) the small-support obstructio
-  - For mixed involutions, contiguous code allocation makes the encoded transition O(S)-size in fan-in-two AND/NOT gates: paired states occupy codes 0 through 2p-1, and fixed points occupy 2p onward.
-  - For any deterministic binary transition system with total transition maps T0,T1 and initial state q, if T0(T1(T0(q)))=T1(T0(T1(q))), then the distinct words 010 and 101 reach the same state.
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
@@ -45,7 +45,7 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3387 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3396 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve

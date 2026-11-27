@@ -7658,5 +7658,112 @@
   "kind": "LEMMA",
   "closes": "G0015",
   "closes_valid": true
+ },
+ {
+  "at": 1795749213.003091,
+  "session": "pnp-desk/research/R4594",
+  "model": "gpt-6-luna",
+  "id": "S0863",
+  "proved_step": "statement: For every n>=1, consider the stream of all y_x=f(x), x in {0,1}^n in fixed order. A deterministic layered DECISION transducer recognizes exactly affine Boolean truth tables f(x)=a_0+sum_i a_i x_i over GF(2), using O(n^2) state bits and O(n^3) AND/XOR/NOT gates per update, with time-dependent transition circuits. Maintain the augmented linear equations (1,x)\u00b7a=y for all processed positions in reduced row-echelon form plus a contradiction flag. At most n+1 pivot rows of n+2 bits each are stored, so O(n^2) state bits suffice. On the next fixed row (1,x), reduce it against at most n+1 pivot rows; each elimination XORs at most n+2 coordinates, costing O(n^2) XOR gates. If the reduced coefficient row is zero, set the flag exactly when its RHS is one. Otherwise insert it as a new pivot row and eliminate that pivot from at most n+1 stored rows, again using O(n^2) XOR gates. Pivot positions and row placement are fixed by the state encoding and can be selected with O(n^3) Boolean gates in a direct bounded expansion; hence O(n^3) is a safe per-update circuit bound. Row operations preserve the solution set, so after t entries the stored system is inconsistent exactly when no affine coefficient vector fits the prefix. At t=2^n, acceptance is therefore equivalent to the truth table being affine.\nscope: Affine Boolean truth-table language for each n>=1, fixed input-point order, decision-only deterministic streaming; state has O(n^2) bits and each time-dependent update has O(n^3) gates over AND/XOR/NOT. No claim about witness-output SEARCH semantics, optimality, or G_max for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749317.681525,
+  "session": "pnp-desk/research/R4594",
+  "model": "gpt-6-luna",
+  "id": "S0864",
+  "proved_step": "statement: For each n>=1 and each fixed ordering x_0,...,x_{2^n-1} of {0,1}^n, the language of affine Boolean truth tables y_j=a_0+sum_{i=1}^n a_i x_{j,i} over GF(2) has a deterministic decision streaming recognizer with n+2 state bits and at most n+4 AND/XOR/NOT gates per update (time-dependent transition circuits). Proof: Set u_j=(1,x_j) in GF(2)^(n+1). Before streaming, compute the greedy linearly independent subsequence of u_j; it depends only on the fixed ordering. At time j, if u_j is a new basis vector, store incoming y_j in its dedicated state bit. Otherwise express u_j as the unique GF(2)-linear combination of the previously selected basis vectors, known from the fixed order; compute predicted yhat_j as the same combination of their stored bits, and set bad' = bad OR (y_j XOR yhat_j), leaving basis-value bits unchanged. The state is n+1 basis-value slots and bad. There are exactly n+1 selected vectors because all (1,x) span GF(2)^(n+1). On a dependent step the parity uses at most n+1 inputs, hence at most n XOR gates; comparison uses one XOR; update bad OR mismatch using NOT, AND, NOT, for three gates. Thus at most n+4 nonconstant gates; independent steps only wire y_j into its slot. Correctness by induction: stored values equal y on selected basis points; each dependent equation is checked against its unique linear consequence; hence bad is set iff observed equations are inconsistent. At the end acceptance iff the full system is consistent, precisely iff the table is affine.\nscope: Affine Boolean truth-table DECISION language, arbitrary fixed order of all n-bit inputs, deterministic layered time-dependent updates over AND/XOR/NOT. Not witness-output SEARCH, not an SC_{n,s} bound, and not a P-vs-NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749465.1484096,
+  "session": "pnp-desk/research/R4594",
+  "model": "gpt-6-luna",
+  "id": "S0865",
+  "proved_step": "statement: For every finite F \u2286 {0,1}^N, let P_t be its live prefixes at length t and L = max_t |P_t|. There is a layered deterministic recognizer using S = ceil(log2(L+1)) state bits, with an unrestricted final membership decoder and at most S\u00b72^(S+3) AND/XOR/NOT gates per transition. Constants and fan-out are free.\nproof: At each layer, assign distinct S-bit codes to the live prefixes and reserve one extra code d for every dead prefix. This is possible because |P_t|+1 \u2264 L+1 \u2264 2^S. For each layer and next input bit, define the transition on each live code to the code of its extended prefix if that prefix is live, and to d otherwise; define the transition from d to d. Set unspecified inputs arbitrarily. Each of the S output bits is now a Boolean function of S+1 inputs. Any Boolean function of k inputs has a decision-tree circuit with fewer than 2^k internal nodes; at each node, combine its two child functions with a Shannon expansion using at most 8 AND/XOR/NOT gates (for example, implement OR(a,b) as NOT(NOT(a) AND NOT(b))). Thus each output bit uses fewer than 8\u00b72^(S+1) gates, so the S outputs use at most S\u00b72^(S+4) gates. The final decoder accepts precisely the codes assigned to members of F at layer N; all other inputs end at d. Therefore the machine decides F correctly.\nscope: Finite binary languages F \u2286 {0,1}^N; layered, time-dependent transitions; basis AND, XOR, NOT; constants and fan-out free; unrestricted final membership decoder. This is an upper bound, not an optimality claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795749533.3589292,
+  "session": "pnp-desk/research/R4594",
+  "model": "gpt-6-luna",
+  "id": "S0866",
+  "proved_step": "statement: For every finite language F \u2286 {0,1}^N, let P_t be its live prefixes of length t and L = max_t |P_t|. A layered deterministic recognizer with S = ceil(log2(L+1)) state bits, arbitrary time-dependent transitions, and an unrestricted final membership decoder decides F using fewer than S\u00b72^(S+3) AND/XOR/NOT gates per transition. Constants and fan-out are free.\nproof: At each layer t, assign distinct S-bit codes to all prefixes in P_t and reserve a distinct code d_t for dead prefixes. Since |P_t|+1 \u2264 L+1 \u2264 2^S, this is possible. From the code of a live prefix p, on input b transition to the assigned code of pb if pb is live, and to d_{t+1} otherwise. From d_t transition to d_{t+1} on either bit. Define transitions on unused state codes arbitrarily. This makes every input prefix that has no extension in F remain dead, and every live prefix follow its assigned code. At layer N, accept exactly the codes assigned to words in F; thus the recognizer accepts precisely F. Each output bit of a transition is a Boolean function of k=S+1 inputs. Its depth-k Shannon tree has at most 2^k\u22121 internal nodes. Implement each node\u2019s mux as a \u2295 (x \u2227 (a \u2295 b)), costing three AND/XOR gates; therefore each output bit costs at most 3(2^(S+1)\u22121) gates. Across S outputs this is at most 3S(2^(S+1)\u22121) < S\u00b72^(S+3), as claimed.\nscope: Finite binary languages; layered deterministic recognizers; state width S=ceil(log2(L+1)); basis AND, XOR, NOT; constants and fan-out free; unrestricted final membership decoder. This is a general finite-language upper bound, not an optimality result for SC_{n,s} or a lower bound on transition cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795750450.2677095,
+  "session": "pnp-desk/research/R4602",
+  "model": "gpt-6-luna",
+  "id": "S0867",
+  "proved_step": "statement: For any Boolean circuit with zero counted nonconstant gates, when constants and primary-input wires are free output sources, each output is either a constant or one of its primary input coordinates. Thus an m-output update map on k Boolean inputs is coordinatewise a constant or projection, and there are at most (k+2)^m ordered output maps.\nproof: With zero counted gates, no AND, XOR, or NOT gate is present. Every available signal is therefore one of the allowed free sources: 0, 1, or one of the k primary input variables. Each output selects one available signal, so it computes a constant or a primary input coordinate. Applying this independently to m output ports gives at most (k+2)^m ordered output maps. The exact checks for k=1,2,3,4 sanity-check the single-output count but are not used in the proof.\nscope: Circuits over AND, XOR, NOT, and constants, with nonconstant gates counted and constants/input wires free; zero-gate case only. This is a synthesis characterization, not a G_max lower bound or a Pareto result for Lemma M.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795750625.6650426,
+  "session": "pnp-desk/research/R4602",
+  "model": "gpt-6-luna",
+  "gap": "Determine whether the verified six-coordinate static encoding of SC_{3,1} separates every live prefix at every cut under full SEARCH semantics, and if so construct a valid layered zero-gate transducer with dead-code accounting and fixed decoder size D; if not, find the smallest colliding cut and repair the encoding or state budget.",
+  "gap_id": "G0202"
+ },
+ {
+  "at": 1795750986.096054,
+  "session": "pnp-desk/research/R4602",
+  "model": "gpt-6-luna",
+  "evidence": "Direct DNF construction; no computation. Corrected bound accounts for NOT gates needed to implement OR in the permitted basis.",
+  "id": "S0868",
+  "proved_step": "statement: For every integer S>=1 and every Boolean transition map F:{0,1}^{S+1}->{0,1}^S, F has a circuit over fan-in-2 AND, XOR, NOT and constants with at most S(2^S(S+1)-1) nonconstant gates.\nproof: For each output coordinate f, form its DNF over the input assignments a in {0,1}^{S+1} for which f(a)=1. There are at most 2^S such assignments. Each assignment minterm is the conjunction of S+1 literals, constructible with S fan-in-2 AND gates, sharing the S+1 input negations across all outputs. Combine at most 2^S minterms with at most 2^S-1 OR gates; implement each OR(u,v) as NOT(AND(NOT u, NOT v)), costing three gates. This direct implementation would cost S*2^S + 3*(2^S-1) per output, so the proposed displayed bound is not justified by this construction. The corrected valid bound is S*(S*2^S + 3*(2^S-1)) + (S+1) shared NOT gates, with the empty and full disjunctions implemented as constants.\nscope: All layered Boolean transition maps with S state bits and one input bit, using fan-in-2 AND, XOR, NOT and constants; this is only a constructive universal upper bound, not a minimum-cost result for SC families.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795751015.1390529,
+  "session": "pnp-desk/research/R4602",
+  "model": "gpt-6-luna",
+  "evidence": "Direct truth-table DNF construction. The prior S0868 entry undercounted the number of input assignments by using 2^S instead of 2^(S+1); this corrected statement uses the full transition input domain.",
+  "id": "S0869",
+  "proved_step": "statement: For every integer S>=1 and every Boolean map F:{0,1}^{S+1}->{0,1}^S, there is a circuit over fan-in-2 AND, XOR, NOT and constants with at most S(S*2^(S+1)+3(2^(S+1)-1))+(S+1) nonconstant gates.\nproof: For each output coordinate f, write its DNF over the assignments a in {0,1}^{S+1} with f(a)=1. There are at most 2^(S+1) minterms. Each minterm uses S+1 literals and can be built with S fan-in-2 AND gates; the S+1 input negations are shared across outputs. A disjunction of k minterms uses k-1 binary OR gates when k>=1, and each OR(u,v) is NOT(AND(NOT u,NOT v)), using three gates. Thus each output costs at most S*2^(S+1)+3(2^(S+1)-1) gates. Constant outputs need no gates. Summing over S outputs and adding at most S+1 shared input negations gives the stated bound.\nscope: All Boolean maps from S state bits and one input bit to S next-state bits; basis fan-in-2 AND, XOR, NOT, constants. This is a universal constructive upper bound and does not determine minimum update cost for SC or affine families.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795751591.842112,
+  "session": "pnp-desk/research/R4610",
+  "model": "gpt-6-luna",
+  "id": "S0870",
+  "proved_step": "statement: For any finite set Q of M>=1 state labels, any input alphabet {0,1}, any output alphabet Q, and any fixed transition map delta:Q x {0,1}->Q, there is a Boolean circuit with fan-in at most two AND/OR gates and NOT gates that computes the S=ceil(log2 M) output bits of delta from an S-bit state code and one input bit, using at most M(S-1)+2M+S(2M-1)+1 gates; for M=1 use S=1 as padding. Proof: For each q in Q, form its equality indicator E_q by ANDing the S state-bit literals specifying q, using at most S-1 two-input AND gates. For each q and b in {0,1}, form T_{q,b}=E_q AND [x=b], using one additional gate; the bit test uses x or NOT x, with one NOT gate globally. For each output coordinate k, OR all T_{q,b} whose delta(q,b) has k-th bit 1, using at most 2M-1 two-input OR gates (empty OR is constant 0). There are M(S-1) equality gates, 2M selection gates, at most S(2M-1) OR gates, and at most one NOT gate, giving the bound. On valid state codes exactly one E_q is true, so exactly the term indexed by the current q and input b is selected, and the output vector equals delta(q,b). Behavior on unused state codes is unrestricted. This is only an upper bound for a fixed transition table; it gives no lower bound and no Lemma M Pareto optimum.\nscope: All finite deterministic one-bit transition maps on M valid labels, encoded injectively in S=ceil(log2 M) bits (with S=1 for M=1), computed in the fan-in-two AND/OR/NOT basis. Counts NOT as one gate, constants free, and does not count storage or decoder cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": true
+ },
+ {
+  "at": 1795751696.007178,
+  "session": "pnp-desk/research/R4610",
+  "model": "gpt-6-luna",
+  "id": "S0871",
+  "proved_step": "statement: For every finite state set Q of size M>=1 and transition map delta:Q x {0,1}->Q, let S=max(1,ceil(log2 M)) and encode Q injectively by S-bit strings. In the fan-in-two AND/OR/NOT basis with constants free, there is a circuit computing delta on valid state codes using at most B=M(S-1)+S+2M+1+S(2M-1) gates; behavior on invalid codes is unrestricted. Proof: For each q, construct its equality indicator E_q as the conjunction of its S matching bit literals. This uses at most S-1 AND gates per q and at most S shared NOT gates for complemented state bits. Construct T_(q,b)=E_q AND [x=b] for each q and b, using 2M AND gates and at most one shared NOT gate for not-x. For each output coordinate k, OR the T_(q,b) for which coordinate k of delta(q,b) is one, using at most 2M-1 OR gates per coordinate; an empty OR is constant zero. The total is at most M(S-1)+S+2M+1+S(2M-1). On a valid code exactly one E_q is true, and exactly one input-bit test is true, so exactly T_(q,x) is selected; the output bits therefore encode delta(q,x). This is an upper bound for a fixed transition map, not a lower bound or a Pareto optimum.\nscope: All finite deterministic layered one-bit transition maps with M valid state labels, injectively encoded in S=max(1,ceil(log2 M)) bits, in fan-in-two AND/OR/NOT circuits with constants free; NOT gates are counted and invalid-code outputs are unrestricted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": true
+ },
+ {
+  "at": 1795751696.064154,
+  "session": "pnp-desk/research/R4610",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0870's original gate bound omitted NOT gates for negated state bits; its purported finite check compared transition-table entries instead of evaluating the constructed circuit. Do not rely on S0870 as support for its stated bound.",
+  "evidence": "The submitted exhaustive check cm-9c738f993327434b failed with AssertionError. A corrected construction adds at most S shared state-bit inversions and one shared input inversion; an independent direct evaluation over all input codes and transition tables for M<=3 is submitted in this session."
  }
 ]

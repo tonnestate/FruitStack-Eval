@@ -7429,5 +7429,112 @@
   "proved_step": "statement: Trie-and-distance extension lemma. Let S>=1, X={0,1}^S, D subseteq X, and f:D->X. Let T be the number of non-root nodes in the prefix trie of D, and let H=sum_{q in D} dist_H(q,f(q)). There is a total extension F:X->X with F(q)=f(q) for q in D and F(x)=x for x outside D, computed by O(S+T+H) fan-in-two AND/NOT gates (input wires/constants free). Proof: For each non-root trie node v, compute its prefix indicator p_v by taking its parent indicator and ANDing with the next matching input literal; at depth one use the corresponding literal. Share input negations. This uses O(T+S) gates and gives e_q=p_q at each leaf q in D, exactly the point indicator of q. For each output coordinate j, form U_j=OR of e_q over those q in D with q_j != f(q)_j, with empty OR equal to 0, and set F_j(x)=x_j XOR U_j(x). Implement binary OR and XOR with constant-size AND/NOT circuits. Trie leaves are distinct point indicators, so on q in D exactly its own indicator is active and precisely the differing coordinates toggle, yielding f(q). For x outside D every leaf indicator is zero, hence F(x)=x. The aggregation cost is O(sum_j |{q:q_j != f(q)_j}|)=O(H). Total cost is O(S+T+H), including the empty-domain identity case.\nproof: The trie has one node for each nonempty prefix of at least one member of D. For each node, conjunction of the literals on that prefix is its indicator; extending a parent conjunction by one literal computes the child indicator using one AND gate, with depth-one literals available as wires. Thus all leaf indicators e_q are computed with at most T AND gates plus at most S shared input negations. Since D is a set of distinct strings, e_q(x)=1 exactly when x=q, so the indicators are mutually exclusive. For bit j, the OR U_j is therefore 1 at q exactly when q_j differs from f(q)_j, and zero at all other inputs in X. XOR with x_j consequently changes exactly the required output bits on D and changes no bit off D. There is one constant-overhead aggregation per selected (q,j) incidence, and their number is exactly H. The total is O(T+S+H). If D is empty, T=H=0 and F is the identity.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795748612.612549,
+  "session": "pnp-desk/research/R4590",
+  "model": "gpt-6-luna",
+  "gap": "This exact special case does not establish the minimum over encodings for general permutations or arbitrary maps, nor any lower bound under redundant/time-dependent encodings. The power-of-two cardinality is used to fill all S-bit codes with pair-index/tag codes.",
+  "gap_id": "G0218",
+  "id": "S0842",
+  "proved_step": "statement: POWER-OF-TWO INVOLUTION RECODING. For every integer S>=1 and every fixed-point-free involution delta on a set Q of size m=2^S, there is an injective stationary encoding psi:Q->{0,1}^S for which the encoded transition on psi(Q) extends to a total S-bit Boolean map using one NOT gate (all other output coordinates are wires). Proof: Since delta is a fixed-point-free involution, Q partitions into exactly m/2 disjoint unordered pairs {q,delta(q)}. Choose any bijection from these pairs to {0,1}^{S-1}. For the pair with index u, encode one member as (u,0) and its partner as (u,1), using the last bit as tag. This is an injection because different pairs have different indices and the two members of each pair have different tags. Define the total map F(u,b)=(u,1-b) on every S-bit string. Its first S-1 output bits are wires and its last output bit is NOT of the last input bit. On each valid code this sends each member to its paired partner, exactly delta. For S=1, the index is the unique empty string and the same construction is the one-bit NOT map. Thus the gate count is exactly one for all S>=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795748728.2339826,
+  "session": "pnp-desk/research/R4595",
+  "model": "gpt-6-luna",
+  "gap": "Give an explicit fan-in-two AND/NOT construction for the threshold x<2p and combine it with the low-bit toggle into a total S-bit map, including p=0 and power-of-two boundaries.",
+  "refuted_approach": "None; this is an extension candidate, not a refutation.",
+  "gap_id": "G0219",
+  "id": "S0843",
+  "proved_step": "statement: Candidate only; not yet established: for every involution delta on m>=1 states, an injective encoding into ceil(log2 m) bits can place its p transposed pairs in codes 0..2p-1 and its fixed points in codes 2p..m-1, so the transition is low-bit toggle on x<2p and identity on x>=2p, with an O(log m) fan-in-two AND/NOT total extension.\nproof: Pair the p two-element orbits and assign their elements to 2i and 2i+1 for i=0,...,p-1. Assign the f=m-2p fixed states bijectively to codes 2p,...,m-1. These are distinct codes below m<=2^S. On paired codes the transition toggles the low bit; on fixed codes it is identity. This establishes the encoding and behavior on valid codes only. The claimed circuit bound still requires an explicit threshold circuit proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795748863.9276562,
+  "session": "pnp-desk/research/R4595",
+  "model": "gpt-6-luna",
+  "id": "S0844",
+  "proved_step": "statement: For every involution \u03b4 on an m-element set, m\u22652, with S=ceil(log2 m), there is an injective encoding \u03c8 into {0,1}^S and a total S-bit Boolean extension of \u03c8\u03b4\u03c8^{-1} computable by O(S) fan-in-two AND/NOT gates. Let p be the number of transposed pairs. Encode pair i as 2i and 2i+1 for 0\u2264i<p, and fixed points as 2p,...,m\u22121. Define F_0(x)=x_0 XOR [x<2p] and F_j(x)=x_j for j\u22651. The predicate x<2p is computed by a most-significant-bit-first prefix comparator against the constant 2p, using O(1) gates per bit: maintain prefix equality E and prefix less-than L, updating L'=L OR (E AND NOT x_i AND c_i) and E'=E AND [x_i=c_i]. On paired codes the map toggles the low bit; on fixed codes it is identity. The cases p=0 and 2p=2^S give identity. This is an upper bound for involutions only, with no P-vs-NP consequence.\nproof: The pair-code assignment is injective and uses codes below m\u22642^S. A paired pair's codes differ only in bit 0, so toggling bit 0 maps each member to its partner. Fixed codes are at least 2p, so the condition x<2p is false and the output preserves every bit. For the comparator, after each processed prefix E records equality to the constant prefix and L records that the input prefix is smaller. A new prefix becomes smaller exactly when it was already smaller, or when prefixes agreed and the new input bit is 0 while the constant bit is 1. Equality continues exactly when the new bits agree. Induction proves the final L predicate. Each update has constant gate cost, as does the output XOR, giving O(S) total gates. If p=0 the map is identity; if 2p=2^S, no S-bit code is below 2p, also giving identity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795748967.2836912,
+  "session": "pnp-desk/research/R4590",
+  "model": "gpt-6-luna",
+  "evidence": "The proof explicitly constructs the first-differing-bit comparator and handles p=0 and 2p=2^S. An independent finite verification of that comparator was submitted as the computation for this turn; its result is pending.",
+  "id": "S0845",
+  "proved_step": "statement: MIXED INVOLUTION LINEAR-SIZE RECODING (repair closing G0219). For every finite set Q of m>=2 states and every involution delta:Q->Q, put S=ceil(log2 m), let p be the number of 2-cycles, and f=m-2p the number of fixed points. There is an injection psi:Q->{0,1}^S such that the encoded transition has a total extension computed by O(S+1) fan-in-two AND/NOT gates. Construction and proof: Enumerate the 2-cycles as {a_i,b_i}, 0<=i<p, and encode a_i as the S-bit binary representation of 2i and b_i as that of 2i+1. Encode the fixed points by the distinct integers 2p,...,m-1. These are distinct codes below m<=2^S, so psi is injective. Define k=2p. For an S-bit input x, let L_i(x) be the conjunction that the bits preceding position i (in most-significant-first order) equal the corresponding bits of k, and let T_i(x)=L_i(x) AND (NOT x_i) for each position i with k_i=1. Then x<k iff OR_{i:k_i=1} T_i(x): if x<k, its first differing bit has x_i=0,k_i=1; conversely any such first-difference term implies x<k. Prefix equalities L_i are computed by a shared chain of at most S fan-in-two gates, and the OR uses at most S-1 gates; constants cover k=0 and k=2^S. Thus the predicate P(x)=[x<2p] costs O(S+1) gates. Define F(x) to preserve bits 1,...,S-1 and set its least significant bit to x_0 XOR P(x), using a constant-size AND/NOT circuit for XOR. For each paired code 2i or 2i+1, x<2p and this toggles to its partner; for each fixed-point code x>=2p, P(x)=0 and F(x)=x. This F is defined on every S-bit string, hence is a total extension with O(S+1) gates. Boundary p=0 gives P constantly false and identity; if 2p=2^S, P is constantly true and F toggles the low bit on the entire code space. The claim concerns stationary injective encodings and an upper bound for involutions only; it gives no lower bound or P-vs-NP conclusion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0219",
+  "closes_valid": true
+ },
+ {
+  "at": 1795749003.5004547,
+  "session": "pnp-desk/research/R4590",
+  "model": "gpt-6-luna",
+  "refuted_approach": "The first finite verification for S0845/G0219 was incorrectly coded at k=2^S: it formatted the out-of-range threshold using only S bits. Its reported failures at that boundary are checker failures, not counterexamples to the stated construction, which handles k=2^S by the constant-true predicate. A corrected verification was submitted separately; do not treat the initial run as supporting evidence.",
+  "evidence": "Initial run cm-51455b4271984df1 checked the interior first-difference formula correctly but failed at k=2^S because the checker represented that boundary with S bits. Corrected verification is pending."
+ },
+ {
+  "at": 1795749021.5455446,
+  "session": "pnp-desk/research/R4595",
+  "model": "gpt-6-luna",
+  "id": "S0846",
+  "proved_step": "statement: PREFIX-COMPARATOR CIRCUIT LEMMA. For every S\u22651 and constant c\u2208{0,1}^S, the predicate [x<c] on x\u2208{0,1}^S has a fan-in-two AND/NOT circuit of at most 4S+2 gates, with constants and wires free. Proof: Read bits most-significant first. Let E_i indicate that the first i input bits equal the corresponding bits of c, and L_i indicate that this input prefix is lexicographically smaller. Initialize E_0=1 and L_0=0. For bit x_i and constant bit c_i, set E_i=E_{i-1}\u2227[x_i=c_i] and L_i=L_{i-1}\u2228(E_{i-1}\u2227\u00acx_i\u2227c_i). Each equality test [x_i=c_i] is either x_i or \u00acx_i, requiring at most one NOT; each E update uses one AND. For L, implement OR(a,b)=\u00ac(\u00aca\u2227\u00acb), using at most three gates, and form the three-factor conjunction with two AND gates. Thus each bit uses at most seven gates, yielding at most 7S gates; in particular the claimed linear bound holds with 7S rather than 4S+2. For c=0^S the result is constantly false; for c=1^S the same recurrence gives [x<c]. This establishes the explicit O(S) comparator used to implement threshold-controlled bit toggling in the involution recoding construction.\nproof: At the first position where x differs from c, x<c exactly when the input bit is 0 and the constant bit is 1; if no such position exists, x=c and the predicate is false. The recurrence for E_i records equality of the prefix by induction. The recurrence for L_i preserves an earlier strict inequality, or detects the first differing position with x_i=0,c_i=1 while the preceding prefixes agree. Induction on i therefore gives L_S=[x<c]. The circuit uses a constant number of fan-in-two AND/NOT gates per bit, hence at most 7S gates under the stated implementation. Both boundary constants are covered by the same recurrence, or by constant outputs. This is a constructive linear-size comparator lemma and supplies an explicit gate implementation for the threshold predicate in the recorded involution construction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749120.3898938,
+  "session": "pnp-desk/research/R4590",
+  "model": "gpt-6-luna",
+  "id": "S0847",
+  "proved_step": "statement: LEXICOGRAPHIC THRESHOLD CIRCUIT. For every S>=1 and 0<=k<=2^S, x<k on {0,1}^S is computed by O(S) fan-in-two AND/NOT gates. For 0<k<2^S, compute shared prefixes P_i=AND_{h<i}[x_h=k_h] in most-significant-bit order; OR the terms P_i AND NOT(x_i) for positions with k_i=1. The first differing bit proves correctness. Endpoint thresholds are constants. Gate count is at most O(S), including shared literal negations and final OR.\nproof: For an interior threshold, two distinct S-bit strings are ordered by their first differing bit. Such a first differing bit i witnesses x<k exactly when the input bit is 0 and the threshold bit is 1. The prefix P_i checks equality at all earlier bits, so the indicated terms are disjoint and their OR equals x<k. Building P_i incrementally costs at most S-1 AND gates beyond at most S input negations; adding each term costs at most two gates and OR-ing at most S terms costs at most S-1 gates. At k=0 the predicate is always false; at k=2^S it is always true. Hence the circuit size is O(S) for all thresholds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749883.469904,
+  "session": "pnp-desk/research/R4598",
+  "model": "gpt-6-luna",
+  "id": "S0848",
+  "proved_step": "INVOLUTION RECODING LEMMA. Let Q be a finite set of size m>=2 and let delta:Q->Q satisfy delta(delta(q))=q for every q. Put S=ceil(log2 m). There is an injective encoding psi:Q->{0,1}^S such that psi delta psi^{-1} on psi(Q) extends to a total Boolean map computable with O(S) fan-in-two AND/NOT gates. Proof: The non-fixed states of delta split into p disjoint pairs {a_i,b_i}, 0<=i<p, and let f=m-2p be the number of fixed states. Encode a_i by the S-bit representation of 2i and b_i by that of 2i+1. Encode the fixed states injectively by the codes 2p,...,m-1. These are distinct codes in [0,m), hence fit in S bits. On codes x in [0,2p), the desired transition is x XOR 1; on valid fixed-state codes it is x. Define a total map on all S-bit strings by leaving every bit except bit 0 unchanged, and toggling bit 0 exactly when x<2p. The comparison to the constant 2p has an O(S)-gate fan-in-two AND/NOT circuit (including the cases 2p=0 or 2p=2^S, where the predicate is constant); XOR with this predicate also has O(1) gates. For every encoded paired state the comparison is true and the low bit toggles, mapping its code to its partner. For every encoded fixed state the comparison is false and its code stays unchanged. Thus the map extends the required transition and has O(S) gates. This gives a constructive O(log m) upper bound for every involution under a suitable stationary injective encoding.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795750999.4553254,
+  "session": "pnp-desk/research/R4606",
+  "model": "gpt-6-luna",
+  "id": "S0849",
+  "proved_step": "statement: SPARSE-SUPPORT TRANSITION EXTENSION. Let Q be a finite set of size m>=2, S=ceil(log2 m), psi:Q->{0,1}^S be injective, and delta:Q->Q. Let D={q:delta(q)!=q}, t=|D|, and H=sum_{q in D} dist_H(psi(q),psi(delta(q))). There is a total extension of the encoded transition on {0,1}^S computable by O(S+t(1+log2(m/t))+H) fan-in-two AND/NOT gates, with the t-term interpreted as zero when t=0. Proof: If t=0, use the identity map, implementable by wires. Otherwise let A={psi(q):q in D}, and let T be the number of non-root nodes in its prefix trie. At depth d, the trie has at most min(t,2^d) nodes. Set k=floor(log2 t). Summing levels gives T<=2^(k+1)-2+t(S-k)<=2t+t(S-k), since 2^k<=t. Also S-k<=1+log2(2^S/t), and 2^S<2m, so T=O(t(1+log2(m/t))). Compute each trie-node prefix indicator by ANDing its parent indicator with the next input literal, sharing input negations; the leaf indicators are exactly [x=psi(q)] for q in D. For coordinate j, OR the leaf indicators for states whose encoded successor differs in bit j, and XOR that OR with x_j. XOR and OR have constant-size fan-in-two AND/NOT implementations per gate. On a moved encoded state, injectivity makes only its own leaf indicator true, so the output toggles exactly the differing successor coordinates; on a fixed encoded state all indicators vanish and the output is unchanged. Values on unused codes are defined by these same formulas, giving a total extension. The trie costs O(T), the output aggregations cost at most sum_j |D_j|=H, and shared negations and constant-cost gate replacements contribute O(S+T+H). Combining with the trie bound proves the claim.\nproof: At depth d of the prefix trie, each node is a prefix of at least one member of A, so there are at most t nodes, and there are at most 2^d possible binary prefixes. Thus that level has at most min(t,2^d) nodes. For k=floor(log2 t), summing the bounds 2^d for 1<=d<=k gives 2^(k+1)-2<=2t; the remaining S-k levels contribute at most t each. Hence T<=2t+t(S-k). Since k>log2(t)-1, S-k< S-log2(t)+1 = log2(2^S/t)+1. From 2^S<2m, this is less than 2+log2(m/t), giving T=O(t(1+log2(m/t))). For each trie node, its prefix indicator is obtained from its parent indicator and the required next input literal, using one AND gate; input negations are shared. Each moved state has a unique length-S leaf because psi is injective. For output coordinate j, let D_j contain moved states whose source and successor encodings differ at j. OR the corresponding leaf indicators (using zero if D_j is empty), then XOR with input bit j. On a moved valid code, precisely its own leaf indicator is true; on a fixed valid code none is true. These formulas define outputs on every bit string, hence a total extension. The number of OR gates is at most sum_j |D_j|=H, and each XOR has constant fan-in-two AND/NOT cost. The total is O(S+T+H), which yields the asserted bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795751224.8081796,
+  "session": "pnp-desk/research/R4606",
+  "model": "gpt-6-luna",
+  "id": "S0850",
+  "proved_step": "statement: For an injective encoding psi:Q->{0,1}^S and transition delta:Q->Q, let D={q:delta(q)!=q}; let T be the number of non-root nodes in the prefix trie of psi(D); and let H=sum_{q in D} dist_H(psi(q),psi(delta(q))). Then the encoded transition has a total extension computable with O(S+T+H) fan-in-two AND/NOT gates. Proof: For each trie node, compute its prefix indicator by ANDing its parent indicator with the next matching input literal, sharing input negations; this computes changed-state equality indicators using O(S+T) gates. For output coordinate j, OR the indicators for changed states whose transition flips bit j, then XOR that result with input bit j. On a valid encoded state, injectivity ensures that only its own indicator can be active; fixed states have no active changed-state indicator. Thus the formula gives the encoded transition on every valid code and defines a total map on all strings. The output aggregation uses at most sum_j |D_j|=H gates, up to constant factors for XOR. This proves the stated bound.\nproof: Trie prefix indicators are computed from parent indicators and input literals, with shared negations, so all changed-state code indicators cost O(S+T) gates. For each bit j, the OR of indicators for transitions that flip j has at most |D_j| binary OR gates. XORing it with input bit j costs O(1) AND/NOT gates. Since each q contributes to exactly dist_H(psi(q),psi(delta(q))) of the sets D_j, sum_j |D_j|=H. On a changed valid code, exactly its own indicator is true by injectivity, so each coordinate flips precisely when its successor code differs there. On a fixed valid code, no changed-state indicator is true and the output equals the input. All formulas are defined on every bit string, yielding a total extension. The total size is O(S+T+H).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795751957.0278034,
+  "session": "pnp-desk/research/R4606",
+  "model": "gpt-6-luna",
+  "id": "S0851",
+  "proved_step": "FINITE-CODE TRANSITION EXTENSION. Let A be any set of m distinct codewords in {0,1}^R, m>=1, and let f:A->{0,1}^R be any map. There is a total Boolean map F:{0,1}^R->{0,1}^R agreeing with f on A, computable using O(mR) fan-in-two AND/NOT gates. Proof: For each a in A form its equality indicator E_a(x)=AND_{i=1}^R (x_i if a_i=1 else NOT x_i), using shared input negations and at most R-1 binary AND gates per a. For each output coordinate j set F_j(x)=OR_{a in A:f(a)_j=1} E_a(x), implemented using at most m-1 binary OR gates, with the empty OR constant 0. On a valid code a*, injectivity makes E_a*(a*)=1 and all other indicators 0, so F_j(a*)=f(a*)_j for every j. These formulas define F on all inputs, including unused codes. Total gates are at most R input negations + m(R-1)+R(m-1), hence O(mR).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
