@@ -1,5 +1,7 @@
-PROOF LEDGER of this problem (kept across missions; 17810 entries from 5816 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 17890 entries from 5842 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
+  - statement: Let Q be any set and let f,g:Q→Q be commuting maps, meaning f∘g=g∘f. For every q∈Q, the words 01 and 10 induce the same terminal state when symbol 0 applies f and symbol 1 applies g.
+proof: Reading 01 applies f then g, so its terminal state is g(f(q
   - The threshold function 'at most m of n variables are 0' depends only on the numbers of zeros on the two sides of a cut
 PREMISES: 
 PROOF:
@@ -11,8 +13,6 @@ SOURCE: proofbook seq 57; mission pi-theory-T1-T2; author model claude-opus-5-5;
   - CJW20-T5.5-GAP: Gap-MCSP[N^beta/(K m), N^beta] has no probabilistic De Morgan formula of size N^{2+beta-eps}
   - T07: every De Morgan circuit C of size S with r gates of fan-out > 1 has formula size L(C) <= 2^r (2S+1)
   - statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X∪Y, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the s
-  - statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.
-derivation: Assume such an m1 exists. Instantiat
 CITED from the literature (not machine-checked here):
   - OPS21 (ToC v017a011, abstract-page theorem, numbering as Thm 1.4 unconfirmed): exists c>=1; if exists eps>0 such that for every small enough beta>0 Gap-MCSP[2^{beta n}/(cn), 2^{beta n}] notin Circuit[N^{1+eps}] then NP notsubset Circuit[poly] (hence P != NP) (
   - Thm 4.1, Thm 5.4, Cor 6.2 of the owner's paper (as stated there). PAPER SETTING: G=(V,E) finite graph, F field, K subspace of F^I, blocks I_v; pi_X: K -> prod_{v in X} F^{I_v}. (R) rank pi_X >= d|X| for all X subset V; (L) z,z' in K with z|v != 0 != z'|v => su
@@ -25,12 +25,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - A broader potential subclass is given by powers r(n)>=1 such that delta_0^(r+1)=delta_0^r and delta_1 delta_0^r=delta_0^r on reachable states. Then the collision candidates 0^(2r) and 0^r1^r are equal-state by the same proof. The testable question is whether a
+  - For every involution on m states, the explicit paired-code/fixed-code assignment with transition F(x)=x XOR 1 on x<2p and F(x)=x otherwise yields an exact transition extension with O(ceil(log2 m)) fan-in-two gates.
   - Under the exact family encoding used in cm-f41de484c8df47a0, every one of the 8 truth-table positions is essential to membership in SC_{3,1}.
   - Supersession: my claim claim:c4cb674d9a3d (pi-cover lemma with hypothesis pi^{-1}(S_A) subset iota(V(H)) and pi(S') subset S_A) is defective - that hypothesis does not force the decision bit to be transferable; the correct condition is S'=pi^{-1}(S_A). Evidenc
   - For THR∘THR instances whose X-restricted bottom weight rows share support U of size r=o(n), signature bucketing by x|_U may give an exact #SAT algorithm in 2^r + 2^r·2^{n-h}·poly(L,n,m) time; test this as a representation-parameterized subclass algorithm, sinc
   - For layered Boolean transitions with S state bits and one input bit, direct DNF synthesis gives a universal update-circuit upper bound of S*(S*2^S+3*(2^S-1))+(S+1) nonconstant gates in the AND/XOR/NOT basis.
-  - For arbitrary finite fixed-length languages, the nonempty residual count is at most min(2^t, |L|), while the suffix-universe size alone does not give a 2^(N-t) bound on the number of residuals because residuals are subsets.
-  - For EXT prefixes arising from circuit truth-table prefixes, any exact state representation must distinguish all distinct residual languages at each depth; the residual count yields an information lower bound but does not itself imply a gate-cost lower bound.
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
@@ -42,10 +42,10 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3408 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3420 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve

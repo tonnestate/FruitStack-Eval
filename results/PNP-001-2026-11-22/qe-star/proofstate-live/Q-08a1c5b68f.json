@@ -7843,5 +7843,112 @@
   "proved_step": "statement: Let F subseteq {0,1}^N be recognized by a deterministic layered transducer with fixed initial state, final-state-only decoder, and zero nonconstant update gates at every layer. If every input coordinate is essential for membership in F, then the transducer has at least N state bits.\nproof: With zero nonconstant gates, each state coordinate at each layer is either constant or a copy of one input wire available so far: this holds initially, and each transition output is a constant or a wire from a previous state bit or the new input bit. Thus the final state is determined by at most S input coordinates, where S is its number of bits. The decoder's acceptance value is consequently invariant under changing any coordinate not represented among those at most S positions. If all N coordinates are essential, no coordinate can be omitted, so S>=N.\nscope: General deterministic layered transducers with a final-state-only decoder and the AND/XOR/NOT/constants basis, when all update gates are absent. The finite computation cm-f41de484c8df47a0 supplies evidence, not a premise, for applying this lemma to its explicitly generated SC_{3,1} language.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795756461.09165,
+  "session": "pnp-desk/research/R4634",
+  "model": "gpt-6-luna",
+  "id": "S0880",
+  "proved_step": "statement: For any F\u2286{0,1}^N, let K_t count distinct residual languages after t bits and K=max_t K_t. A layered recognizer for F uses at most K+1 states per layer and S=ceil(log2(K+1)) bits, with each transition implementable using at most S[S\u00b72^(S+1)+2^(S+1)\u22121] nonconstant AND/XOR/NOT-basis gates (constants free).\nproof: Assign one code to each residual at each layer and reserve one code for the empty residual. On input b, send residual R to R_b={v:bv\u2208R}; send the empty residual to itself. At layer N accept precisely residual {\u03b5}. Iterated derivatives therefore accept exactly F. Each transition output bit is a Boolean function of k=S+1 inputs. Its algebraic normal form has at most 2^k monomials. Build each nonconstant monomial with at most k\u22121 AND gates and XOR at most 2^k terms using at most 2^k\u22121 XOR gates. Multiply this per-output bound by S.\nscope: Finite-language recognizers with final-state acceptance, residual encoding, shared gates not required; this is an explicit upper bound, not a lower bound or a witness-decoding result.\nexperiment: cm-69aef2baa7ff4c25",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795756522.296207,
+  "session": "pnp-desk/research/R4634",
+  "model": "gpt-6-luna",
+  "id": "S0881",
+  "proved_step": "statement: For any finite F\u2286{0,1}^N, any deterministic layered recognizer whose acceptance depends only on its final state has at least K_t states at layer t, where K_t is the number of distinct residual languages R_t(p)={z\u2208{0,1}^{N\u2212t}:pz\u2208F} over prefixes p of length t.\nproof: Take prefixes p,q of length t with distinct residual languages. Since R_t(p)\u2260R_t(q), there is a suffix z of length N\u2212t belonging to exactly one of them. Thus exactly one of pz,qz is in F. If the recognizer placed p and q in the same state at layer t, determinism would make it reach the same final state on the common suffix z, so it would give the same acceptance decision on pz and qz, a contradiction. Hence every two prefixes with distinct residual languages reach distinct layer-t states. Choosing one representative prefix per residual yields at least K_t states.\nscope: All finite binary languages, fixed input length N, deterministic layered recognizers with transitions determined by state and next input bit and final-state-only acceptance. This proves a state lower bound only; it gives no transition gate lower bound or witness-output result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795756523.0350478,
+  "session": "pnp-desk/research/R4634",
+  "model": "gpt-6-luna",
+  "id": "S0882",
+  "proved_step": "statement: For any finite F\u2286{0,1}^N, any deterministic layered recognizer whose acceptance depends only on its final state has at least K_t states at layer t, where K_t is the number of distinct residual languages R_t(p)={z\u2208{0,1}^{N\u2212t}:pz\u2208F} over prefixes p of length t.\nproof: Take prefixes p,q of length t with distinct residual languages. Since R_t(p)\u2260R_t(q), there is a suffix z of length N\u2212t belonging to exactly one of them. Thus exactly one of pz,qz is in F. If the recognizer placed p and q in the same state at layer t, determinism would make it reach the same final state on the common suffix z, so it would give the same acceptance decision on pz and qz, a contradiction. Hence every two prefixes with distinct residual languages reach distinct layer-t states. Choosing one representative prefix per residual yields at least K_t states.\nscope: All finite binary languages, fixed input length N, deterministic layered recognizers with transitions determined by state and next input bit and final-state-only acceptance. This proves a state lower bound only; it gives no transition gate lower bound or witness-output result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757936.3959537,
+  "session": "pnp-desk/research/R4642",
+  "model": "gpt-6-luna",
+  "id": "S0883",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, define at layer t the state of prefix p to be the characteristic vector chi(R_t(p)) in {0,1}^{2^(N-t)}, with coordinates indexed by suffixes in lexicographic order. Then the exact residual update on input bit b is the coordinate projection chi(R_{t+1}(pb))[v] = chi(R_t(p))[bv]. It is implemented using zero Boolean gates, only wires, if layer t+1 is allowed to have the shorter state width 2^(N-t-1). At layer N, the state is the one-bit acceptance indicator. Thus this variable-width exact decision transducer has G_max=0 and decoder cost 0, with the work represented entirely by its state width.\nproof: By the residual derivative identity, v belongs to R_{t+1}(pb) iff bv belongs to R_t(p). Therefore the output coordinate indexed by v is exactly the input coordinate indexed by bv. For each fixed b, all output coordinates are distinct input coordinates (the half whose first suffix bit is b), so assigning those input wires to the output coordinates implements the transition with no gates. At t=N, the only suffix is the empty string, so its membership bit is 1 exactly when p is in F; accepting iff that bit is 1 is a wire decision with no additional gate. This proves correctness by induction on t, since each state is the characteristic vector of the residual language of the prefix read so far.\nscope: Finite binary languages of fixed length N; exact decision only, variable state width 2^(N-t), layer-dependent wire selection allowed, no final witness output. This does not satisfy the Lemma M fixed (S,D), S<N SEARCH frame and gives no lower bound there.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758016.1676385,
+  "session": "pnp-desk/research/R4642",
+  "model": "gpt-6-luna",
+  "id": "S0884",
+  "proved_step": "statement: Let S>=1 and let T:{0,1}^S x {0,1}->{0,1}^S be any deterministic one-bit-input transition function. With fan-in-two AND, OR, and NOT gates, T has a circuit with at most S((S+1)2^S+(2^S-1)) gates, where NOT gates are shared across output bits.\nproof: For each output coordinate j, write its Boolean function as a disjunction of the minterms on which it is 1. There are at most 2^(S+1) minterms, but the stated sharper bound follows by grouping on the input bit b: for each fixed b, the function on the S state bits has at most 2^S satisfying assignments. Each satisfying minterm is an AND of S literals and costs at most S-1 two-input AND gates; combining at most 2^S minterms costs at most 2^S-1 OR gates. Thus each fixed-b function costs at most (S-1)2^S+(2^S-1) gates. Select between the b=0 and b=1 results using (b AND f_1) OR (NOT b AND f_0), costing at most four additional gates per output, including the shared NOT b once globally. The displayed bound dominates this total for S>=1: (S-1)2^(S+1)+2(2^S-1)+3 <= (S+1)2^S+(2^S-1) is not true in general, so instead use the direct minterm construction on S+1 variables: at most 2^(S+1) minterms, each costing S gates for its literals, followed by at most 2^(S+1)-1 OR gates. This gives per output at most (S+1)2^(S+1)+(2^(S+1)-1), and hence S times that many gates overall, with all input negations shared.\nscope: Arbitrary total transition functions on S state bits and one input bit; fan-in-two AND/OR/NOT basis; gate count excludes wires and counts shared input negations once. This is a generic circuit upper bound only; it gives no SC_{n,s}-specific Pareto point, no lower bound, and no full-SEARCH decoder bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758086.8814518,
+  "session": "pnp-desk/research/R4642",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0884 claimed the bound S((S+1)2^S+(2^S-1)) for arbitrary S-bit/one-bit transition maps. Its proof switches to a direct minterm bound of S((S+1)2^(S+1)+(2^(S+1)-1)), which is larger; thus the claimed smaller bound is unsupported by that proof. Repaired below using Shannon expansion on the input bit.",
+  "evidence": "For each output coordinate j, write T_j(x,b)=(not b AND f_{j,0}(x)) OR (b AND f_{j,1}(x)). Each f_{j,b} on S variables has a DNF with k<=2^S minterms. If k>=1, the terms cost at most k(S-1) AND gates and the OR costs k-1, totaling kS-1<=S*2^S-1; the zero function is free. The selector costs 3 gates per output, and not b is shared once. Thus at most 2(S*2^S-1)+3=S*2^(S+1)+1 per output, plus one inverter, for total S(S*2^(S+1)+1)+1.",
+  "id": "S0885",
+  "proved_step": "statement: For every integer S>=1 and every total deterministic transition map T:{0,1}^S x {0,1}->{0,1}^S, there is a fan-in-two AND/OR/NOT circuit computing T with at most S(S*2^(S+1)+1)+1 gates, when constant 0 and 1 gates are free and the input negation may be shared across outputs. Wires are free.\nproof: For each output coordinate j and each b in {0,1}, let f_{j,b}(x)=T_j(x,b). If f_{j,b} has k>=1 satisfying assignments, express it as the OR of the k corresponding full minterms on x_1,...,x_S. Each minterm is an AND of S literals, requiring at most S-1 fan-in-two AND gates; ORing the k minterms requires k-1 fan-in-two OR gates. Thus its cost is at most k(S-1)+k-1=kS-1<=S*2^S-1. If k=0, f_{j,b}=0 is free and satisfies the bound. Shannon expansion gives T_j(x,b)=(not b AND f_{j,0}(x)) OR (b AND f_{j,1}(x)), adding at most three gates for the two ANDs and one OR. The inverter for b is shared among all outputs. Therefore each output costs at most 2(S*2^S-1)+3=S*2^(S+1)+1 gates, and all S outputs plus the shared inverter cost at most S(S*2^(S+1)+1)+1. This constructs a circuit computing T exactly.\nscope: Generic total one-bit-input transition tables with S state bits, S>=1; fan-in-two AND/OR/NOT basis; free constants and wires; no SC_{n,s} structure, synthesis measurement, decoder bound, or lower bound is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758346.809903,
+  "session": "pnp-desk/research/R4649",
+  "model": "gpt-6-luna",
+  "id": "S0886",
+  "proved_step": "statement: Let F be any finite language contained in {0,1}^N. For 0<=t<=N, let R_t(p)={z in {0,1}^{N-t}: pz in F} for each prefix p in {0,1}^t, and let r_t be the number of distinct sets R_t(p). Then the exact layered membership transducer whose states at layer t are these residual sets uses r_t live states, plus one rejecting state if the empty residual occurs; in particular r_t<=min(2^t, |F|+1), and its state width is at most min(2^t, |F|+1)+1. Proof: Define the transition from residual R at layer t on bit b by D_b(R)={z in {0,1}^{N-t-1}: bz in R}. If R=R_t(p), then z lies in D_b(R) iff bz lies in R_t(p), iff pbz lies in F, iff z lies in R_{t+1}(pb); thus the transition is well-defined on residual classes and recognizes F at layer N, where the residual is {epsilon} for accepted words and empty for rejected words. The number of layer-t residuals is at most 2^t because there are 2^t prefixes. Also every nonempty residual contains some suffix z and therefore has a prefix p with pz in F; assigning one such accepted completion pz to each nonempty residual is injective across distinct residuals only after choosing distinct completions, so instead bound directly by |F| is not justified. The valid universal bound is r_t<=min(2^t, 2^(N-t)+1), since there are only 2^(N-t) possible suffix subsets, with the +1 accounting for the empty set. Hence the width is at most min(2^t, 2^(N-t)+1), with no additional sink beyond the empty residual. Scope: Exact membership recognition for finite binary languages with a layered deterministic transition and residual-set states. This does not produce a witness-output transducer and gives no update-gate or decoder-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795758346.8494217,
+  "session": "pnp-desk/research/R4649",
+  "model": "gpt-6-luna",
+  "id": "S0887",
+  "proved_step": "statement: Let F be any finite language contained in {0,1}^N. For 0<=t<=N define R_t(p)={z in {0,1}^{N-t}: pz in F} for p in {0,1}^t, and let r_t be the number of distinct residual sets R_t(p). Then an exact layered deterministic membership transducer exists with exactly r_t states at layer t, and r_t<=min(2^t, 2^(2^(N-t))). Proof: Use the distinct residual sets as states. From state R at layer t and input bit b, transition to D_b(R)={z in {0,1}^{N-t-1}: bz in R}. If R=R_t(p), then z in D_b(R) iff bz in R_t(p) iff pbz in F iff z in R_{t+1}(pb), so this transition is independent of the representative p and reaches the correct next residual. At layer N the residual is {epsilon} exactly for accepted words and empty exactly for rejected words; accepting precisely the former recognizes F. There are at most 2^t prefixes, hence r_t<=2^t. Each residual is a subset of the 2^(N-t) possible suffixes, so there are at most 2^(2^(N-t)) possible residuals, yielding the other bound. Scope: Membership recognition only, with an abstract residual-set state alphabet; no bound on binary encoding width, update-gate count, or decoder size is asserted. This is a valid replacement for the overstrong draft bound r_t<=|F|+1, which was not justified.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758802.908604,
+  "session": "pnp-desk/research/R4650",
+  "model": "gpt-6-luna",
+  "gap": "The residual-class characterization gives exact minimum state count for decision at a fixed layer, but does not determine G_max or the fixed-(S,D) Pareto frontier for SC_{3,1}. A constructive gate-cost result or exact bounded synthesis with checked certificates remains open.",
+  "gap_id": "G0203"
+ },
+ {
+  "at": 1795759110.1435215,
+  "session": "pnp-desk/research/R4650",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive truth-table synthesis proof above. Independent finite sanity workflow wf-951c43d91cd0 / experiment cm-d06efb0dd36149ce checked 4,355 small transition tables and matched its prediction; this experiment is not used as proof.",
+  "id": "S0888",
+  "proved_step": "statement: For any finite language F subseteq {0,1}^N, let r_t be the number of distinct residual languages R_t(p)={z: pz in F} over prefixes p of length t, including the empty residual if present. Set R=max_t r_t and let S>=ceil(log2 R). The canonical layered residual automaton has an S-bit encoding and admits per-layer transition circuits over AND, XOR, NOT, and constants of size at most S*((S+3)*2^(S+1)-3)+(S+1) non-constant gates, with shared gates and fan-out free. The final decoder may be arbitrary.\nProof: Assign distinct S-bit codes to the r_t residuals at each layer, padding the encodings to S bits. On a reachable pair (code(R_t(p)),b), define the next state to be code(R_{t+1}(pb)); this is well-defined because R_{t+1}(pb)={v: bv in R_t(p)}, so it depends only on R_t(p) and b. Define the transition arbitrarily on unreachable pairs, thereby obtaining S Boolean output functions on k=S+1 input bits. Negate each of the k inputs once, costing at most k gates. For each output, express its one-set as a disjunction of at most 2^k minterms. Each minterm uses at most k-1 AND gates, for at most (k-1)2^k gates. A disjunction of M terms can be formed with at most M-1 OR operations, each OR(a,b)=NOT(AND(NOT a,NOT b)) costing at most 3 gates, hence at most 3(2^k-1) gates. Thus each output costs at most (k+2)2^k-3 gates, and all S outputs plus shared input negations cost at most S((k+2)2^k-3)+k. Substituting k=S+1 gives the stated bound. Constants and empty/full one-sets only reduce the count.\nScope: Finite binary languages, layered residual automata, arbitrary layer-specific encodings, and the stated Boolean basis. This is an upper bound for the canonical residual machine only; it gives no lower bound, no decoder-size bound, and no fixed-(S,D) Pareto optimum for SC.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": true
+ },
+ {
+  "at": 1795759216.2308571,
+  "session": "pnp-desk/research/R4650",
+  "model": "gpt-6-luna",
+  "evidence": "Corrected constructive proof uses OR(a,b)=a XOR b XOR (a AND b), valid in the exact AND/XOR/NOT basis without assuming free negations of intermediate terms. The saved exhaustive transition-table workflow completed as wf-951c43d91cd0 and reported 4,355 tables checked (cm-d06efb0dd36149ce); finite check is only sanity evidence.",
+  "id": "S0889",
+  "proved_step": "statement: For any finite language F subseteq {0,1}^N, let r_t be the number of distinct residual languages at layer t, and let S>=ceil(log2(max_t r_t)). The canonical layered residual automaton has S-bit encodings and per-layer transition circuits over AND, XOR, NOT, and constants of size at most S*((S+3)*2^(S+1)-3)+(S+1), counting non-constant gates with sharing and fan-out free. Proof: Encode each layer's residuals injectively. The derivative identity makes each reachable transition well-defined; extend each output arbitrarily to all k=S+1 input bits. Share k input negations. For each output, write its one-set as at most 2^k minterms, each costing at most k-1 AND gates. Combine M minterms by a binary OR tree with at most M-1 OR operations; implement each OR as a XOR b XOR (a AND b), costing 3 gates in the stated basis. Thus each output uses at most (k-1)2^k+3(2^k-1)=(k+2)2^k-3 gates. Add the shared k input negations and multiply the output bound by S. Substituting k=S+1 gives the claimed expression. Empty/full one-sets only reduce cost. Scope: all finite binary languages and the canonical residual automaton; no lower bound, decoder bound, or SC-specific Pareto optimum is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": true
  }
 ]

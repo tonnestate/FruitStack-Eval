@@ -7554,5 +7554,98 @@
   "proved_step": "statement: SPARSE-TRANSITION TRIE REFINEMENT. Let Q be a finite set of size m>=1, S=ceil(log2 m), psi:Q->{0,1}^S injective, and delta:Q->Q. Let D={q:delta(q)!=q}, t=|D|, H=sum_{q in D} dist_H(psi(q),psi(delta(q))), and let T be the number of non-root nodes in the prefix trie of {psi(q):q in D}. The encoded transition has a total fan-in-two AND/NOT circuit extension of size O(S + H + sum_{d=1}^S min(t,2^d)). In particular, for t>=1 this is O(S+H+t(S-floor(log2 t)+2)); for t=0 it is O(S). Proof: For each non-root trie node, compute the conjunction testing its prefix by extending its parent conjunction by the matching input literal; shared input negations cost O(S), and each trie node costs O(1). The leaf indicators are therefore exactly [x=psi(q)] for q in D. For output coordinate j, OR together the leaf indicators for q in D whose encoded image differs in coordinate j, using at most max(0,|D_j|-1) binary OR gates, where D_j={q in D:psi(q)_j!=psi(delta(q))_j}. XOR this OR with input bit x_j, using a constant-size AND/NOT circuit for XOR. On an unchanged valid state all indicators vanish; on a changed valid state injectivity makes only its own leaf indicator true, so the output is exactly psi(delta(q)). The circuit defines outputs on every input string, hence is a total extension. Summing over coordinates, the OR costs are at most sum_j |D_j|=H. At trie depth d there are at most t nodes, since each is a prefix of some changed-state code, and at most 2^d nodes, since there are only 2^d binary strings of length d. Thus T<=sum_{d=1}^S min(t,2^d). For t>=1, set k=floor(log2 t). The levels d<=k contribute at most sum_{d=1}^k 2^d=2^(k+1)-2<2t, and the remaining S-k levels contribute at most t each. Hence T<=t(S-k+2). If t=0, the identity map is an extension using wires alone. Combining the trie, aggregation, and coordinate-toggle costs proves the stated bounds.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795757033.3437994,
+  "session": "pnp-desk/research/R4638",
+  "model": "gpt-6-luna",
+  "id": "S0854",
+  "proved_step": "statement: ITERATED IDENTITY-TRANSITION CHARACTERIZATION. Let Q be a finite set, let \u03b4:Q\u2192Q be a permutation, and let \u03c8_0,...,\u03c8_T:Q\u2192{0,1}^R be injective encodings. Suppose each encoded transition is the identity on valid codes, meaning \u03c8_{t+1}(\u03b4(q))=\u03c8_t(q) for every q\u2208Q and 0\u2264t<T. Then for every t\u2264T and q\u2208Q, \u03c8_t(q)=\u03c8_0(\u03b4^{-t}(q)). Conversely, encodings defined by this formula satisfy the identity-transition condition. In particular, if \u03c8_T=\u03c8_0, then \u03b4^T is the identity on Q. Proof: For t<T, substitute r=\u03b4(q) in the assumed condition to obtain \u03c8_{t+1}(r)=\u03c8_t(\u03b4^{-1}(r)). Induction on t gives \u03c8_t(r)=\u03c8_0(\u03b4^{-t}(r)); the base t=0 is immediate, and the induction step follows by applying the one-step identity to \u03b4^{-1}(r). Conversely, substituting the formula gives \u03c8_{t+1}(\u03b4(q))=\u03c8_0(\u03b4^{-(t+1)}(\u03b4(q)))=\u03c8_0(\u03b4^{-t}(q))=\u03c8_t(q). Finally, \u03c8_T=\u03c8_0 implies \u03c8_0(\u03b4^{-T}(q))=\u03c8_0(q), and injectivity of \u03c8_0 gives \u03b4^{-T}(q)=q for all q, hence \u03b4^T=id_Q.\nproof: By induction on t. The one-step condition, with r=\u03b4(q), yields \u03c8_{t+1}(r)=\u03c8_t(\u03b4^{-1}(r)). This proves the induction step. The converse follows by direct substitution. If the endpoint encodings agree, injectivity of \u03c8_0 forces \u03b4^{-T}(q)=q for every q.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "D",
+  "closes_valid": false
+ },
+ {
+  "at": 1795757099.4238362,
+  "session": "pnp-desk/research/R4638",
+  "model": "gpt-6-luna",
+  "id": "S0855",
+  "proved_step": "statement: CONSTANT AGGREGATE HAMMING MOTION UNDER IDENTITY TRANSITIONS. Let Q be finite, \u03b4:Q\u2192Q a permutation, and \u03c8_t(q)=\u03c8_0(\u03b4^{-t}(q)) for 0\u2264t\u2264T. For every 0\u2264t<T, \u2211_{q\u2208Q} d_H(\u03c8_t(q),\u03c8_{t+1}(q)) = \u2211_{r\u2208Q} d_H(\u03c8_0(r),\u03c8_0(\u03b4^{-1}(r))). Proof: By the trajectory formula, the summand on the left is d_H(\u03c8_0(\u03b4^{-t}(q)), \u03c8_0(\u03b4^{-(t+1)}(q))). Substitute r=\u03b4^{-t}(q). Since \u03b4 is a permutation, q\u21a6r is a bijection of Q. The sum becomes \u2211_{r\u2208Q}d_H(\u03c8_0(r),\u03c8_0(\u03b4^{-1}(r))), as claimed.\nproof: Substitute \u03c8_t(q)=\u03c8_0(\u03b4^{-t}(q)) and \u03c8_{t+1}(q)=\u03c8_0(\u03b4^{-(t+1)}(q)) into each summand. Reindex the finite sum by r=\u03b4^{-t}(q), a bijection because \u03b4 is a permutation. Then \u03b4^{-(t+1)}(q)=\u03b4^{-1}(r), yielding the stated right-hand side.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757123.7358782,
+  "session": "pnp-desk/research/R4638",
+  "model": "gpt-6-luna",
+  "id": "S0856",
+  "proved_step": "statement: MOVED-STATE HAMMING-MOTION LOWER BOUND. Let Q be finite, let \u03b4:Q\u2192Q be a permutation, and let \u03c8_0:Q\u2192{0,1}^R be injective. Define \u03c8_t(q)=\u03c8_0(\u03b4^{-t}(q)). For every t\u22650, \u2211_{q\u2208Q} d_H(\u03c8_t(q),\u03c8_{t+1}(q)) \u2265 |{q\u2208Q:\u03b4(q)\u2260q}|. Proof: By the constant aggregate Hamming-motion identity, the left side equals \u2211_{r\u2208Q}d_H(\u03c8_0(r),\u03c8_0(\u03b4^{-1}(r))). If \u03b4(r)\u2260r, then \u03b4^{-1}(r)\u2260r; injectivity of \u03c8_0 implies \u03c8_0(r)\u2260\u03c8_0(\u03b4^{-1}(r)), so that summand is at least 1. If \u03b4(r)=r, its summand is 0. Summing gives the number of moved states.\nproof: Apply the reindexing identity of S0855. For each nonfixed state r, \u03b4^{-1}(r) is also distinct from r, so injectivity makes the two encoded strings distinct and their Hamming distance at least one. Fixed states contribute zero. Summation proves the bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757675.3409843,
+  "session": "pnp-desk/research/R4645",
+  "model": "gpt-6-luna",
+  "id": "S0857",
+  "proved_step": "statement: For each integer p>=1, every fixed-point-free involution delta on a set Q of size 2p admits an injective encoding psi:Q->{0,1}^{ceil(log2(2p))} such that psi(delta(q)) differs from psi(q) in exactly one coordinate for every q. Consequently its encoded transition extends to a total Boolean map computed by one NOT gate and wires. Proof: Partition Q into p unordered pairs {u_i,v_i}, i=0,...,p-1, and let S=ceil(log2(2p)). Since 2^S>=2p, we have 2^(S-1)>=p. Thus ceil(log2 p)+1<=S. Encode u_i as the (S-1)-bit binary representation of i followed by tag 0, and v_i as the same representation followed by tag 1. These 2p codes are distinct; delta swaps the tag and preserves the index. Define the total extension on all S-bit strings by leaving the first S-1 bits unchanged and negating the last bit. This is one NOT gate (or a wire under a gate convention that does not count wires), and agrees with delta on every encoded state. The case p=1 has an empty pair index and S=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757765.8462546,
+  "session": "pnp-desk/research/R4645",
+  "model": "gpt-6-luna",
+  "id": "S0858",
+  "proved_step": "statement: Let delta be an involution on a finite set Q of m>=1 states, with p two-cycles, and let S=ceil(log2 m). There is an injection psi:Q->{0,1}^S such that the encoded transition extends to a total Boolean map computed by O(S) fan-in-two AND/NOT gates. Proof: Since 2p<=m<=2^S, p<=2^(S-1). Index the 2^(S-1) prefixes of length S-1 by integers 0,...,2^(S-1)-1. Assign each two-cycle a distinct prefix i<p and encode its two states as (bin_S-1(i),0) and (bin_S-1(i),1). There are 2^S-2p remaining codes, at least m-2p, so encode the fixed points injectively among codes whose prefix index is >=p. Define a total map that leaves the first S-1 bits unchanged and flips the last bit iff the prefix index is less than p. On the paired codes it swaps the tags, and on each fixed-point code it leaves the entire string unchanged. A comparison of the prefix with the constant p and a controlled toggle require O(S) fan-in-two AND/NOT gates. If p=0, the identity map suffices. For m=1, S=0 and the unique state has the empty encoding; the identity map uses zero gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757850.096948,
+  "session": "pnp-desk/research/R4645",
+  "model": "gpt-6-luna",
+  "id": "S0859",
+  "proved_step": "statement: For every finite set Q of size m>=1 and every map delta:Q->Q, with S=ceil(log2 m), there is an injection psi:Q->{0,1}^S such that psi delta psi^{-1} on psi(Q) extends to a total S-bit Boolean map computable by O(mS) fan-in-two AND/NOT gates. Proof: assign distinct S-bit codes to the states. For each q form e_q(x)=[x=psi(q)] by conjoining the S matching input literals, using O(S) fan-in-two gates. For output coordinate j, output the OR of e_q over q with psi(delta(q))_j=1, using O(m) binary OR gates. On input psi(q), injectivity makes exactly e_q true, so output is psi(delta(q)); formulas define a total map on all strings. Total size is O(mS). For m=1, S=0, the unique code is empty and the unique transition is the zero-gate identity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757899.9310374,
+  "session": "pnp-desk/research/R4646",
+  "model": "gpt-6-luna",
+  "evidence": "General proof is explicit and independent of computational evidence. A finite exhaustive verification was requested for all pairings through 10 states; its result is pending and will be reported separately.",
+  "id": "S0860",
+  "proved_step": "statement: PAIR-INDEX/TAG-BIT INVOLUTION LEMMA. For every fixed-point-free involution \u03b4 on a set Q of size m=2p\u22652, there is an injective encoding \u03c8:Q\u2192{0,1}^S, S=ceil(log2 m), under which \u03b4 extends to a total Boolean map on {0,1}^S computed by one NOT gate. Proof: The orbits of \u03b4 are p disjoint unordered pairs; enumerate them as {a_i,b_i}, i=0,...,p\u22121. Encode a_i as the S-bit representation of 2i and b_i as the S-bit representation of 2i+1. The values are distinct and lie in [0,2p\u22121]\u2286[0,2^S\u22121], so \u03c8 is injective. Define F on every S-bit string by toggling its least significant bit. This is one NOT gate on that bit, with all other output bits wired through. Since \u03c8(a_i) and \u03c8(b_i) differ exactly in the least significant bit, F(\u03c8(q))=\u03c8(\u03b4(q)) for every q\u2208Q. Thus F is the required total extension. This construction uses the full minimal code width S because 2^S\u2265m and S=ceil(log2 m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758080.7435396,
+  "session": "pnp-desk/research/R4646",
+  "model": "gpt-6-luna",
+  "id": "S0861",
+  "proved_step": "statement: ARBITRARY INVOLUTION THRESHOLD-TAG LEMMA. Let Q have m>=1 elements and let delta:Q->Q satisfy delta(delta(q))=q for every q. Write p for the number of two-element orbits, f for the number of fixed points, so m=2p+f, and S=ceil(log2 m) (with S=0 when m=1). There is an injection psi:Q->{0,1}^S whose transition extends to a total S-bit Boolean map using O(S) fan-in-two AND/NOT gates. Proof: Enumerate the two-element orbits {a_i,b_i}, i=0,...,p-1, and fixed points c_j, j=0,...,f-1. Encode a_i by binary 2i, b_i by 2i+1, and c_j by 2p+j. These codes are distinct and less than m, hence fit in S bits. On any S-bit input x, define F to toggle the least significant bit if x<2p, and to leave x unchanged otherwise. The predicate x<2p is a comparison with a fixed S-bit constant and is computed by O(S) fan-in-two AND/NOT gates; conditionally toggling the low bit is also O(1) gates, with other bits wired through. On pair codes, toggling swaps the two members; on fixed-point codes (all at least 2p), F is identity. Thus F(psi(q))=psi(delta(q)) for every q and F is total. For S=0 the sole possible state is fixed, and the empty-bit map suffices.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758258.9563313,
+  "session": "pnp-desk/research/R4646",
+  "model": "gpt-6-luna",
+  "id": "S0862",
+  "proved_step": "statement: ARBITRARY TRANSITION TABLE EXTENSION. For every finite set Q of size m>=1 and every map delta:Q->Q, put S=ceil(log2 m), with S=0 for m=1. There is an injective encoding psi:Q->{0,1}^S whose encoded transition extends to a total map F:{0,1}^S->{0,1}^S computed by O(mS) fan-in-two AND/NOT gates. Proof: Enumerate Q as q_0,...,q_{m-1} and encode q_i by the S-bit binary representation of i. For each i, compute e_i(x)=[x=i] by ANDing the S literals matching i, sharing input negations. For output coordinate j, set F_j(x)=OR of e_i(x) over those i for which bit j of psi(delta(q_i)) is 1; an empty OR is 0. Each equality test costs O(S) gates and all output ORs cost O(mS), so total size is O(mS). At x=psi(q_i), exactly e_i is 1, hence F(x)=psi(delta(q_i)). This defines F on every input. When m=1, S=0 and the unique map is implemented with no gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795759000.3805542,
+  "session": "pnp-desk/research/R4654",
+  "model": "gpt-6-luna",
+  "id": "S0863",
+  "proved_step": "statement: EXACT EXTREMAL PREFIX-TRIE SIZE. For integers S>=0 and 0<=t<=2^S, the maximum number of non-root nodes in the prefix trie of t distinct binary strings of length S is M(S,t)=sum_{d=1}^S min(t,2^d). Proof: The depth-d level has at most min(t,2^d) nodes, so every such trie has at most M(S,t) non-root nodes. To attain all these bounds at once, index the 2^S strings by integers x in [0,2^S), with x's bits written least-significant first. Let A be the strings for x=0,...,t-1. A length-d prefix is determined by x mod 2^d. Among 0,...,t-1 there are exactly min(t,2^d) distinct residues modulo 2^d: if t<=2^d they are all distinct, and if t>=2^d they include every residue. Thus A has exactly min(t,2^d) trie nodes at every depth d, proving equality. The t=0 and S=0 cases give an empty sum and are immediate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

@@ -359,5 +359,87 @@
   "evidence": "After independent restriction and constant/identity simplification, the residual is either a constant (size 1 by the stated convention) or a read-once binary tree R on a subset of the live variables. Simplification by substitution, folding and identity removal never duplicates a subtree, so R has k <= X leaves, X = number of live variables. A full binary tree with k>=1 leaves has k-1 internal gates (count edges: 2I = I+k), hence size(R)=2k-1 <= 2X; in the constant case size=1 <= 2X+1. Thus size(Phi|rho) <= 2X+1 pointwise, and E[X]=pL by linearity of expectation (independence is more than needed), giving E[size] <= 2pL+1. Edge cases checked: X=0 (all variables dead, residual constant, size 1 = 2*0+1, equality); X=1 (size 1 <= 3); k=1 tree (2k-1=1). The only structural premise used is that folding/identity simplification does not duplicate leaves, which holds for the stated read-once binary formula setting. No false line; no counterexample can refute it under the stated premises.",
   "review_of": "S0008",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795755813.830756,
+  "session": "pnp-desk/research/R4635",
+  "model": "gpt-6-luna",
+  "evidence": "Derived from the residual-leaf charging model in S0010 and the full-binary size identity in S0009; contract convention not yet verified in this transcript.",
+  "id": "S0024",
+  "proved_step": "statement: Let Phi be a finite full binary De Morgan formula tree with input-variable leaf occurrences and designated gate-leaf occurrences. Under a restriction, substitute constants for leaves whose predicates become constant and simplify by the usual constant-folding identities, without introducing or duplicating leaves. Let X be the number of original leaf occurrences that remain nonconstant before folding, with E[X]=pL+sum_g f_g q_g, where L is the number of input-variable occurrences and f_g is the number of occurrences of gate g. If residual size counts leaves plus internal vertices, then |Phi|_res <= 2X+1 pointwise, and hence E[|Phi|_res] <= 1+2(pL+sum_g f_g q_g). Proof: Folding only deletes subtrees or retains one child, so the residual leaf count Y is at most X. If the residual is nonconstant, it is a finite full binary tree, so its number of internal vertices is Y-1 and its total size is 2Y-1 <= 2X+1. If it is constant, its size is 1 <= 2X+1. Taking expectations yields the claimed bound by linearity of expectation for X; no independence is required.\nproof: See complete derivation in statement: pointwise leaf nonincrease under constant folding; full-binary tree identity edges=2I=I+Y-1 implies I=Y-1; handle constant residual separately; take expectation using the specified occurrence marginals.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "GAP-residual-size-bridge",
+  "closes_valid": false
+ },
+ {
+  "at": 1795756677.2948842,
+  "session": "pnp-desk/research/R4637",
+  "model": "gpt-6-luna",
+  "id": "S0025",
+  "proved_step": "statement: Heterogeneous pair bound: Let U be finite, let (I_v)_{v in U} be pairwise-independent {0,1}-valued indicators with Pr[I_v=1]=p_v, and let each Boolean function g depend only on S_g subseteq U. Define g to survive nontrivially when at least two variables in S_g are live. Then Pr[g survives nontrivially] <= min(1, sum_{ {u,v} subseteq S_g } p_u p_v). Hence for nonnegative occurrence weights f_g, E[sum_g f_g 1(g survives nontrivially)] <= sum_g f_g min(1, sum_{ {u,v} subseteq S_g } p_u p_v). Proof: the event of at least two live support variables is contained in the union of pair-live events; pairwise independence gives each event probability p_u p_v; apply the union bound and cap by one. Multiply by f_g and sum by linearity of expectation.\nevidence: Proof from pairwise independence and the union bound; finite arithmetic check cm-8b1e7db7bd32486c passed for nine (p,q) pairs but is not needed for the proof.\ngap: Do not claim closure of P2\u2032 unless the exact recorded obligation is shown to match this at-least-two-live-support definition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795756797.5682907,
+  "session": "pnp-desk/research/R4639",
+  "model": "gpt-6-luna",
+  "evidence": "Exact derivation in session; the one-leaf boundary experiment cm-d7b85d6ce8274a5e motivated this restricted-family analysis. Scope is independent restrictions on a conjunction of distinct variables; no implication to general P2' is claimed.",
+  "id": "S0026",
+  "proved_step": "Let Phi_L=x_1 AND ... AND x_L be a binary AND formula on distinct variables. Independently, each variable is left live with probability p and otherwise fixed uniformly to 0 or 1. Simplify constants recursively; count a constant as size 1 and a nonconstant full binary formula by leaves plus internal vertices. Put A=(1+p)/2. Then E[|Phi_L|_res]=1+2Lp A^(L-1)-2(A^L-2^(-L)). Proof: If any fixed variable is 0, the residual is constant 0 of size 1. If exactly k>=1 variables are live and all other variables are fixed to 1, the residual conjunction has size 2k-1. If no variables are live and all are fixed to 1, it is constant 1 of size 1. Thus the expectation is 1 + sum_{k=1}^L (2k-2) binom(L,k) p^k 2^(-(L-k)). With A=(1+p)/2, the sums of k binom(L,k) p^k 2^(-(L-k)) and binom(L,k) p^k 2^(-(L-k)) over k>=1 are respectively Lp A^(L-1) and A^L-2^(-L), yielding the formula.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795756828.589163,
+  "session": "pnp-desk/research/R4637",
+  "model": "gpt-6-luna",
+  "evidence": "Exact derivation from the pointwise indicator inequality and pairwise independence. Discovery boundary computation cm-8649dead02614078 used d=3 and the uniform distribution over all 2-subsets: each marginal is 2/3, each pair joint probability is 1/3, and K=2 always. It agrees with the r=2 bound; the general proof does not depend on this finite check.",
+  "id": "S0027",
+  "proved_step": "statement: Let U be a finite set and (I_v)_{v in U} be pairwise-independent {0,1}-valued random variables with Pr[I_v=1]=p_v. For K=sum_{v in U} I_v and every integer r>=2, Pr[K>=r] <= (sum_{unordered {u,v} subset U} p_u p_v)/binom(r,2). In particular, if p_v=p for all v and |U|=d, then Pr[K>=r] <= binom(d,2)p^2/binom(r,2). Proof: Pointwise, if K>=r then binom(K,2)>=binom(r,2); otherwise binom(K,2)>=0. Thus 1_{K>=r} <= binom(K,2)/binom(r,2). Taking expectations gives Pr[K>=r] <= E[binom(K,2)]/binom(r,2). Expand binom(K,2)=sum_{u<v} I_u I_v. Pairwise independence yields E[I_u I_v]=p_u p_v for every distinct pair, so E[binom(K,2)]=sum_{u<v}p_u p_v. The equal-marginal form follows by counting the binom(d,2) pairs. No higher-order independence is required. Consequence for a reused gate g depending on support S_g: under pairwise-independent live indicators, for any r>=2, Pr[at least r variables of S_g are live] <= min(1, sum_{u<v in S_g}p_u p_v / binom(r,2)); hence the pair bound in S0025 admits a 1/binom(r,2) tail refinement. This can bound gate-substitution costs only after a separate argument aggregates the cost over r; it does not establish P2' or D6''.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795757050.5746992,
+  "session": "pnp-desk/research/R4637",
+  "model": "gpt-6-luna",
+  "refuted_approach": "The proposed bound E[2^K 1_{K>=2}] <= (2^d/binom(d,2)) A is false for d=3,4,5: at k=2, 2^k/binom(k,2)=4 exceeds 2^d/binom(d,2). The exact check cm-563e08fe37c54e16 found these violations.",
+  "evidence": "The proof is the pointwise ratio argument above and the second factorial moment identity under pairwise independence. The finite discovery check cm-563e08fe37c54e16 checked d=2,...,100 and found precisely the small counterexamples to the earlier endpoint-only coefficient at (3,2),(4,2),(5,2).",
+  "id": "S0028",
+  "proved_step": "statement: Let d>=2 and let I_1,...,I_d be pairwise-independent Bernoulli random variables with Pr[I_i=1]=p_i. Put K=sum_i I_i and A=sum_{1<=i<j<=d} p_i p_j. Then E[2^K 1_{K>=2}] <= max{4, 2^d/binom(d,2)} A. Proof: For each integer k with 2<=k<=d, 2^k <= c_d binom(k,2), where c_d=max_{2<=j<=d} 2^j/binom(j,2). The ratio r_j=2^j/binom(j,2) satisfies r_2=r_3=4 and r_{j+1}/r_j=2(j-1)/(j+1)>1 for j>=3, so c_d=max{4,2^d/binom(d,2)}. Thus pointwise 2^K 1_{K>=2}<=c_d binom(K,2). Also binom(K,2)=sum_{i<j}I_i I_j, so pairwise independence gives E binom(K,2)=sum_{i<j}p_i p_j=A. Taking expectations proves the claim. This bound still has an exponential coefficient in d and does not establish P2' or D6''.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758104.3303106,
+  "session": "pnp-desk/research/R4647",
+  "model": "gpt-6-luna",
+  "id": "S0029",
+  "proved_step": "statement: Residual-leaf charging lemma (linear form). Let Phi be a finite binary De Morgan formula tree. Its leaves are either input-variable occurrences or designated gate occurrences indexed by g; let L be the number of input-variable occurrences and f_g the number of occurrences of gate g. Apply a restriction rho, replace each restricted leaf by its resulting constant when it becomes constant, and recursively simplify by constant propagation, suppressing unary nodes and never duplicating a subtree. Let R(Phi,rho) be the resulting formula and count its leaves, including a single leaf if it is constant. Suppose each input-variable occurrence is nonconstant after substitution with probability p, and each occurrence of gate g is nonconstant with probability q_g. Then E[leaves(R(Phi,rho))] <= pL + sum_g f_g q_g. No independence assumption is required.\nProof. For a fixed rho, mark each original leaf occurrence that remains nonconstant after substitution, and let X(rho) be the number of marked leaves. Recursive simplification only deletes subtrees, replaces a parent by one of its existing children, or returns a constant; by hypothesis it never duplicates a subtree. Thus every nonconstant leaf of the simplified formula is an original marked leaf. If simplification returns a constant, its one leaf is also bounded by X unless X=0; in that case the original formula has no nonconstant leaves, so the simplified constant has one leaf. To avoid this exceptional additive constant, use the stated convention that a constant output has zero residual leaves for this lemma. Under that convention, pointwise leaves(R) <= X. By linearity of expectation, E[X] is the sum of the survival probabilities over occurrences, namely pL + sum_g f_g q_g. Taking expectations proves the bound.\nScope. This is a linear bound for residual leaves under the zero-leaf convention for constants. It does not prove a quadratic P2' bound. If constants are instead counted as one leaf, the same proof gives E[leaves(R)] <= pL + sum_g f_g q_g + Pr[R is constant].",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795758897.0521681,
+  "session": "pnp-desk/research/R4651",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive read-once subcase proof using residual-leaf ancestry and the full-binary-tree identity; no computation is required for this finite-tree argument.",
+  "id": "S0030",
+  "proved_step": "statement: Read-once residual-size lemma (Boolean De Morgan formulas). Let T be a finite binary De Morgan formula tree whose leaves are distinct input variables, with no designated reused-gate leaves. Let rho be any random restriction; each variable v is live with marginal probability p_v. Define T|rho by substituting fixed bits and recursively simplifying constants, counting a constant output as size 1 and otherwise counting all leaves and internal nodes. Then E[size(T|rho)] <= 2 sum_v p_v + 1. In the common-marginal case p_v=p with L leaves, E[size(T|rho)] <= 2pL+1.\nproof: For each restriction outcome, let X be the number of original variable leaves that are live. Recursive constant folding and unary-node suppression never creates or duplicates leaves. Thus each nonconstant residual leaf descends from a distinct live original leaf, so the residual leaf count Y is at most X. If the residual output is nonconstant, it is a full binary tree; with Y leaves it has Y-1 internal nodes, hence size 2Y-1. If the output is constant, its size is 1. In either case size(T|rho) <= 2Y+1 <= 2X+1. Taking expectations and using linearity, E[size] <= 2E[X]+1 = 2 sum_v p_v+1. No independence assumption is needed. This proves a linear-in-survival-probability residual-size bound for read-once formulas; it does not prove quadratic heterogeneous P2' for formulas with reused gate leaves.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-7828a2a6e1",
+  "closes_valid": true
+ },
+ {
+  "at": 1795759110.1341093,
+  "session": "pnp-desk/research/R4651",
+  "model": "gpt-6-luna",
+  "id": "S0031",
+  "proved_step": "statement: Let Phi be a finite binary formula tree whose leaves are input-variable occurrences or designated gate-leaf occurrences. Let L be the number of input-variable occurrences and f_g the number of occurrences of each designated gate g. Under a random restriction, suppose each input occurrence remains nonconstant with probability p and each occurrence of g remains nonconstant with probability q_g. Define residual size after constant folding and unary-node suppression as the number of leaves plus internal nodes, with a constant output having size 1. Then E[size(Phi|rho)] <= 2(p L + sum_g f_g q_g)+1. Proof: mark each original leaf occurrence that remains nonconstant. Constant folding and unary-node suppression do not create or duplicate leaves, so if Y is the residual leaf count, pointwise Y <= X, where X is the number of marked original leaves. A nonconstant binary residual tree with Y leaves has 2Y-1 nodes; a constant residual has size 1. Thus pointwise size(Phi|rho) <= 2X+1. By linearity, E[X]=pL+sum_g f_g q_g, with no independence assumption. Taking expectations proves the bound. For Phi=x and p=N^-a, a>0, the proposed P2' quadratic input term N^{o(1)}p^2 is o(p), whereas expected residual leaf count is p, so this repaired linear bound does not imply P2'.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

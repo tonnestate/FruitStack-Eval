@@ -9050,5 +9050,59 @@
   "kind": "LEMMA",
   "closes": "Q-156fa9c912",
   "closes_valid": true
+ },
+ {
+  "at": 1795756439.1718419,
+  "session": "pnp-desk/research/R4636",
+  "model": "gpt-6-luna",
+  "id": "S1029",
+  "proved_step": "statement: EXPLICIT-CANDIDATE PREFIX FILTER CIRCUIT LEMMA. Let N,k>=0 and W=(w_1,...,w_k) be an explicit list in {0,1}^N. At layer t encode prefix p by v_i=1 iff p=w_i[0:t]. On bit b, set v_i'=v_i AND [w_i[t]=b]. With W hardwired, this uses at most k fan-in-two AND gates per layer, Nk total across N layers, and masks are constructible in O(Nk) time and bits. At t=N, OR_i v_i accepts exactly the listed words. This gives no polynomial-in-(n,s) bound for W=Im(Eval_{n,s}) unless that image is explicitly listed at polynomial cost.\nderivation: Induct on t. At t=0 every word matches the empty prefix. If v_i indicates agreement through positions <t, then AND with [w_i[t]=b] indicates agreement through positions <t+1, exactly the prefix pb. At t=N some coordinate is 1 iff p is listed. Each update is one AND with a fixed bit; there are k coordinates per layer. Constructing all masks by scanning W takes O(Nk) time and bits.\nscope: All finite N,k and explicit ordered lists W of N-bit strings; stage-dependent constants and fan-in-two AND/OR/NOT circuits. Repetitions allowed. No succinct-family bound is implied.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795756614.56911,
+  "session": "pnp-desk/research/R4636",
+  "model": "gpt-6-luna",
+  "id": "S1030",
+  "proved_step": "statement: PREFIX-REGISTER CIRCUIT UPDATE / ENDPOINT-SEPARATION LEMMA. Let N>=1 and L be any subset of {0,1}^N. At layer t, 0<=t<=N, represent the observed prefix p in an N-bit register P, with P_i=p_i for i<t and P_i=0 for i>=t; the layer index t is supplied by the layered machine. Given next input bit b, copy P_0,...,P_{t-1}, write b into coordinate t, and zero coordinates t+1,...,N-1. This update has O(N) fan-in-two circuit cost (in fact it is only wires and constants, if those are free). After N inputs, acceptance is exactly the predicate P in L. Thus transition cost is O(N) for every L, independently of endpoint-membership complexity; the lemma does not bound the acceptance circuit for L or give an efficient uniform decider for L.\nderivation: Induct on t. Initially P is all zero and encodes the empty prefix. If P_i=p_i for i<t and P_i=0 for i>=t, the described update encodes pb at layer t+1. At t=N, P is the complete input word x, so testing P in L is precisely membership x in L. The update only routes old register wires, the new input bit, and constants; it performs no membership computation.\nscope: All finite length-N languages in a layered model with the layer index available; transition circuit cost only, with endpoint acceptance cost excluded.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795756730.2817526,
+  "session": "pnp-desk/research/R4636",
+  "model": "gpt-6-luna",
+  "id": "S1031",
+  "proved_step": "statement: NONDETERMINISTIC CIRCUIT-IMAGE STREAM RECOGNIZER. Fix n,s>=0, N=2^n, and a fixed encoding of fan-in-two Boolean circuits on n input bits of at most s gates using O(s log(s+n+2)) bits, with invalid encodings rejected. Let L_{n,s} be the N-bit truth tables of these circuits in lexicographic input order. There is a nondeterministic layered streaming recognizer for L_{n,s} whose state stores one circuit encoding D and an n-bit index i, whose per-symbol transition checks the next truth-table bit by evaluating D on x_i, and whose state description and transition computation use poly(s+n) resources. It accepts exactly L_{n,s}. This does not give a deterministic small-state/update recognizer: the initial nondeterministic choice ranges over circuit descriptions, and determinizing can require a set of descriptions.\nderivation: At layer 0 nondeterministically choose a valid encoding D of a circuit of size at most s and store i=0. On incoming bit b at layer i, evaluate D(x_i) and permit the transition to (D,i+1) exactly if D(x_i)=b. At layer N accept. If the input word is the truth table of a valid circuit D, the branch choosing D passes every transition and accepts. Conversely, every accepting branch carries one fixed valid D and passed all N checks, so every input bit equals D(x_i); hence the word is in L_{n,s}. A circuit evaluation can be performed in O(s) gate operations from its encoding; the index uses n bits. Thus each branch uses polynomial description and update resources. No bound on the number of simultaneous branches or on deterministic subset-state representation follows.\nscope: Nondeterministic layered streaming model; fixed conventional circuit encoding with polynomial-time validity and evaluation. Distinguishes succinct witness tracking from deterministic exact prefix-state complexity; makes no lower-bound or P-vs-NP claim.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795756891.9609575,
+  "session": "pnp-desk/research/R4636",
+  "model": "gpt-6-luna",
+  "id": "S1032",
+  "proved_step": "statement: EXACT CANDIDATE-SET PREFIX UPDATE. Fix n,s and a finite encoding set D of all valid size-at-most-s circuits on n input bits. For each D in this set let Eval(D) be its N=2^n-bit truth table. After reading a prefix p of length t, define A_p={D in D: Eval(D) has prefix p}. The deterministic state A_p is exact: after reading bit b, A_{pb}={D in A_p: Eval(D)_t=b}; acceptance after N bits is equivalent to A_p being nonempty. If |D|=K and each candidate\u2019s next output can be evaluated in at most q real Boolean gates, a direct update uses O(Kq) gates and K state bits. Proof: The initial set is D. The update retains precisely those candidates agreeing with the new symbol, so induction on t gives the displayed invariant. At t=N, a candidate remains exactly when its truth table equals the input word, proving the acceptance criterion. Evaluating each candidate\u2019s output and conditionally retaining its membership bit gives the stated direct gate bound. This construction proves neither that residual states have a cheaper representation nor that transitions of an arbitrary MCSP decision circuit H_C implement this update at bounded cost.\nderivation: Initialize A_empty=D. For each t, filter A_p by the candidate output at coordinate t. Induction establishes A_p={D: Eval(D) begins with p}. At full length, nonemptiness is precisely membership in the circuit-image language. A literal implementation tests at most K candidate outputs, each costing q gates, hence O(Kq) gates per update.\nscope: Finite circuit family with fixed encoding and deterministic exact prefix recognition. The bound is in real Boolean gates for the explicit candidate-set implementation; it makes no claim about minimal transition cost, representation conversion, or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795756965.3127167,
+  "session": "pnp-desk/research/R4636",
+  "model": "gpt-6-luna",
+  "id": "S1033",
+  "proved_step": "statement: SURVIVING-DESCRIPTION RESIDUAL CHARACTERIZATION. Let D be any finite set of descriptions, each describing a word Eval(d) in {0,1}^N. For a prefix p of length t, let A_p={d in D: Eval(d) begins with p}, and let R_p={z in {0,1}^{N-t}: pz is in {Eval(d):d in D}}. Then R_p={suffix_{N-t}(Eval(d)):d in A_p}. Consequently, two prefixes p,q of the same length have identical residual languages iff the sets of suffix words produced by their surviving descriptions are equal; the surviving-description sets themselves need not be equal. Proof: If z in R_p, then pz=Eval(d) for some d, so d belongs to A_p and its remaining suffix is z. Conversely, if d belongs to A_p, Eval(d)=pz for its unique remaining suffix z, so pz is in the image and z belongs to R_p. Equality of residual languages is therefore exactly equality of these projected suffix-image sets, and does not imply equality of A_p and A_q.\nderivation: Both inclusions follow directly from the definitions: a suffix in the residual is witnessed by a description whose word has prefix p; every surviving description's word factors uniquely as p followed by its suffix. Thus residual equivalence quotients surviving descriptions by equality of their suffix-image sets.\nscope: All finite description families and each fixed prefix length t. This is a semantic characterization; it gives no efficient representation, update algorithm, or bound for transitions of arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795759216.3403192,
+  "session": "pnp-desk/research/R4652",
+  "model": "gpt-6-luna",
+  "id": "S1034",
+  "proved_step": "statement: TOTAL PREFIX-RESIDUAL COUNT LEMMA. Let L be a finite subset of {0,1}^N. For each depth t in {0,...,N}, and each prefix p in {0,1}^t, define R_p={z in {0,1}^{N-t}: pz is in L}. Let d_t be the number of distinct nonempty sets R_p at depth t. Then sum_{t=0}^N d_t <= (N+1)|L|. If the empty residual is counted at each depth, the total number of distinct residual states over all depths is at most (N+1)(|L|+1). Proof: For each depth t, let P_t={p in {0,1}^t:R_p is nonempty}. For each p in P_t choose one word w_p in L extending p. Distinct prefixes at the same depth yield distinct chosen words, so |P_t|<=|L|. Since every distinct nonempty residual at depth t is realized by at least one p in P_t, d_t<=|P_t|<=|L|. Summing over the N+1 depths gives the first bound. At each depth there is at most one empty residual, so adding at most N+1 gives the second bound.\nderivation: At each fixed depth, choose one extending word for each nonempty prefix. The chosen words are distinct because their length-t prefixes differ. Thus the number of nonempty prefixes, and hence distinct nonempty residuals, is at most |L|. Sum over depths; add at most one empty residual per depth.\nscope: Every finite N>=0 and every L subset of {0,1}^N. This counts states in the depth-layered prefix residual representation and asserts no bound on transition computation cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
