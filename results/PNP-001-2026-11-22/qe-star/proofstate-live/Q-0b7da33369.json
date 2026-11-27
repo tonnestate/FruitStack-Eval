@@ -7736,5 +7736,42 @@
   "proved_step": "statement: For every finite set Q of size m>=2 and every involution \u03b4:Q\u2192Q with p transpositions and f fixed points, there is an injective stationary encoding \u03c8:Q\u2192{0,1}^S, S=ceil(log2 m), such that \u03c8\u03b4\u03c8^{-1} extends to a total Boolean map computable with O(S) fan-in-two gates. Let h=S-1 and B=2^h. If p>0, assign the p transpositions distinct indices i=0,...,p-1 and encode their endpoints as (i,0),(i,1). Since m=2p+f<=2^S=2B, p<=B and f<=2(B-p), so the remaining codes (i,b) with p<=i<B and b\u2208{0,1} suffice for all fixed points; assign them injectively. Define the total map on every S-bit string (i,b) to be (i,b XOR [i<p]). A comparison of the h-bit index with constant p and one XOR are computable with O(S) fan-in-two gates. On pair codes this swaps the two endpoints; on fixed-point codes i>=p it leaves the code unchanged. If p=0, choose any injection and the identity total map. Therefore the claimed encoding and gate bound hold for all involutions.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795774638.365782,
+  "session": "pnp-desk/research/R4710",
+  "model": "gpt-6-luna",
+  "id": "S0873",
+  "proved_step": "statement: SINGLE-CYCLE SUCCESSOR CIRCUIT. Let Q be a set of m>=2 states and let delta be one cycle on Q. Put S=ceil(log2 m). There is an injective stationary encoding psi:Q->{0,1}^S for which psi delta psi^{-1} extends to a total S-bit Boolean map using O(S) fan-in-two AND/NOT gates. Proof: Order the cycle as q_0,...,q_{m-1}, with delta(q_i)=q_{i+1 mod m}, and encode q_i by the S-bit binary representation of i. Let I(x)=x+1 mod 2^S. Its output bits are computed with O(S) gates: the carry into bit j is the conjunction of the lower j input bits, and bit j is XORed with that carry; each conjunction is shared, and XOR has a constant-size AND/NOT implementation. Let e(x)=[x=m-1], computed by an S-literal conjunction using O(S) gates. Define each output bit F_j(x)=I_j(x) AND NOT e(x). At valid codes i<m-1, F(i)=i+1; at i=m-1, I(i)=m and m<2^S unless m=2^S, in which case I(i)=0. Thus this formula only yields the required wraparound when m=2^S; for general m it is incorrect. Correct the incrementer instead: use ordinary x+1 (not modulo 2^S), and define F_j(x)=I_j(x) AND NOT e(x), which still fails because binary m is not generally zero. Therefore use a selector: F_j(x)=(I_j(x) AND NOT e(x)) OR (0 AND e(x)), which also fails for non-power-of-two m. The stated O(S) construction is not proved for arbitrary m by this argument. Restrict the lemma to m a power of two. For m=2^S, the increment modulo 2^S maps every valid non-final code to its successor and maps the final code to 0, exactly the cycle transition. It is total on all S-bit strings and has O(S) gates.\nproof: For m=2^S, the encoding uses every S-bit string. In binary increment modulo 2^S, bit j toggles exactly when all lower j bits are 1; compute these prefix conjunctions once and implement each XOR with a constant number of AND/NOT gates. This gives O(S) gates and maps each code i to i+1 modulo m, the required successor. This establishes only the power-of-two single-cycle subclass.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795774684.67447,
+  "session": "pnp-desk/research/R4710",
+  "model": "gpt-6-luna",
+  "id": "S0874",
+  "proved_step": "statement: SINGLE-CYCLE SUCCESSOR FOR ALL SIZES. For every m>=2 and every m-cycle delta on Q, with S=ceil(log2 m), there is an injection psi:Q->{0,1}^S such that psi delta psi^{-1} extends to a total S-bit Boolean map using O(S) fan-in-two AND/NOT gates. Proof: Order the cycle q_0,...,q_{m-1} in successor order and encode q_i by the S-bit binary expansion of i. Let I(x)=x+1 modulo 2^S, implemented with O(S) gates by shared carry conjunctions and constant-size AND/NOT circuits for XOR. Let e(x)=[x=m-1], computed by an S-literal conjunction using O(S) gates. For each coordinate j, define F_j(x)=I_j(x) AND NOT e(x) if bit j of m is 1, and F_j(x)=I_j(x) otherwise. For valid nonfinal code i<m-1, e(i)=0 and I(i)=i+1, so F(i)=i+1. At i=m-1, if m<2^S, I(i)=m and the selected coordinates clear exactly the 1-bits of m, yielding 0. If m=2^S, I(i)=0 already and no coordinates are selected, so the result remains 0. Thus F is correct on every encoded state and defines a total map on all S-bit strings. The incrementer, equality test and at most S correction gates use O(S) fan-in-two AND/NOT gates.\nproof: The binary incrementer uses S shared prefix conjunctions and S constant-size XOR circuits, hence O(S) fan-in-two AND/NOT gates. Equality to the fixed word m-1 uses S literals combined in a binary conjunction, also O(S). Each output coordinate adds at most one AND gate to mask a bit. Correctness on valid codes follows because every nonfinal code increments to its successor; at the final code, increment yields m when m<2^S, whose 1-bits are all masked, or yields 0 modulo 2^S when m=2^S. Therefore the output is exactly the cyclic successor on every encoded state.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795775533.89616,
+  "session": "pnp-desk/research/R4718",
+  "model": "gpt-6-luna",
+  "evidence": "For cycle lengths 3 and 3, the direct encoding needs ceil(log2 2)+ceil(log2 3)=4 bits, but S=ceil(log2 6)=3. This exposes the gap in this attempted construction; it does not refute the broader possibility of a Hamming-sensitive cycle encoding.",
+  "id": "S0875",
+  "proved_step": "statement: Attempted strengthening: encode each cycle as a Gray-code path so that only the wraparound edge requires correction, aiming for an O(S + sum_i ceil(log2 l_i)) transition circuit. This attempt is not proved: the direct product encoding of a cycle tag and a local Gray code can require more than S bits, and no S-bit packing preserving the needed path structure has been constructed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795777241.0076852,
+  "session": "pnp-desk/research/R4726",
+  "model": "gpt-6-luna",
+  "id": "S0876",
+  "proved_step": "LEMMA (fixed point free involutions). For every even m=2p\u22652 and every fixed point free involution \u03b4 on a set Q of size m, there is an injection \u03c8:Q\u2192{0,1}^{ceil(log2 m)} for which \u03c8\u2218\u03b4\u2218\u03c8^{-1} on \u03c8(Q) extends to a total Boolean map using one NOT gate. Proof: The orbits of \u03b4 are p disjoint pairs. Choose a bijection from the pairs to {0,\u2026,p\u22121}, and choose one representative in each pair. Let k=ceil(log2 p). Encode the representative from pair i as (bin_k(i),0), and its partner as (bin_k(i),1). These codes are distinct. Since ceil(log2(2p))=k+1 (including p=1), they have exactly the required length. On every encoded state \u03b4 preserves the first k bits and flips the last bit. The total map F(u,b)=(u,\u00acb) therefore extends the transition to all bit strings and has one NOT gate, with the other output bits wires. This is an exact constructive special case; it makes no claim about arbitrary permutations or paired transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

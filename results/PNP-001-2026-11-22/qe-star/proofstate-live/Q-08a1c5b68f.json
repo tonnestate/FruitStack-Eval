@@ -8079,5 +8079,54 @@
   "proved_step": "statement: Let F be any finite binary language contained in {0,1}^N, let P_t be its live length-t prefixes, M=max_t |P_t|, and S=ceil(log2(M+1)). For every choice of injective S-bit codes for the live prefixes at each layer and one code for a dead state, there are deterministic layered transitions on S state bits and one input bit that correctly update every reachable live or dead state, with a per-layer Boolean DNF implementation using at most 2|P_t| minterms per output bit. If each minterm is built as an AND of S+1 literals and ORed, each output uses at most 2|P_t|(S+1) AND gates and 2|P_t| OR gates, so the S outputs use at most 2|P_t|S(S+3) fan-in-2 AND/OR gates. Proof: the number of codes needed is |P_t|+1 <= M+1 <= 2^S. Assign distinct codes to P_t and a separate code d_t to dead. For each reachable pair (c_t(p),b), set its target to c_{t+1}(pb) when pb is live and d_{t+1} otherwise; set each pair starting from d_t to d_{t+1}. For output coordinate j, form one minterm for each reachable pair whose target coordinate is 1, testing all S state bits and the input bit, then OR these minterms. There are at most 2|P_t|+2 reachable pairs including the dead code, so the stated bound omits up to two dead-code minterms and is not justified as written. Corrected bound: at most 2|P_t|+2 minterms per output; hence at most (2|P_t|+2)S(S+3) gates. The outputs match the defined transition on all reachable pairs, and behavior on other codes can be arbitrary. This is an upper bound for a chosen encoding, not the minimum G_max.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795773676.7382345,
+  "session": "pnp-desk/research/R4705",
+  "model": "gpt-6-luna",
+  "id": "S0903",
+  "proved_step": "statement: For every finite search language F subseteq {0,1}^N with a specified valid witness w(x) for each x in F, a deterministic layered transducer can recognize F and output w(x) using N state bits and zero fan-in-2 update gates per input step, if arbitrary final decoding is allowed. The state after t bits is the length-N register containing the read prefix in positions 1..t and zeros elsewhere. On input bit b at step t+1, the next-state function wires b into position t+1 and copies all other positions, requiring no gates. At t=N, the decoder interprets the register as x, rejects if x not in F, and outputs w(x) otherwise. Thus the achievable resource point is (S,G,D)=(N,0,D_F), where D_F is the size/cost of this final decoder and is not bounded here.\nscope: All finite F subseteq {0,1}^N with a fixed witness selector w:F->{0,1}^*; layered deterministic model, free wires, final decoding permitted, and no bound asserted on decoder cost.\nproof: The register invariant holds initially for the empty prefix. If it holds after t bits, the prescribed wiring fills exactly position t+1 with the next bit and preserves all earlier positions and zeroes in later positions; induction gives the invariant through t=N. The final register is therefore exactly the input x. The stated decoder is correct by its definition on F and its reject branch outside F. Each update consists only of wires and constants, so uses zero fan-in-2 gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-08a1c5b68f",
+  "closes_valid": true
+ },
+ {
+  "at": 1795774942.9571881,
+  "session": "pnp-desk/research/R4714",
+  "model": "gpt-6-luna",
+  "id": "S0904",
+  "proved_step": "statement: For every finite language F subseteq {0,1}^N, let R_t(p) = {z in {0,1}^{N-t}: pz in F} for each prefix p of length t. The layered machine whose layer-t states are the distinct residuals R_t(p), plus the empty residual when it occurs, recognizes F exactly and has at most sum_{t=0}^N |{R_t(p): p in {0,1}^t}| states across its layers.\nproof: The initial state is R_0(empty). On bit b at layer t, map residual R_t(p) to {z: bz in R_t(p)}. If R_t(p)=R_t(q), these sections are equal, so the transition is well-defined on residual states. By definition, this section equals R_{t+1}(pb). Inductively, after reading prefix p the machine is in R_t(p). At layer N the residual is {empty} exactly when p is in F, and is empty otherwise, so accepting precisely in the former case recognizes F. The layer-t state count is the number of distinct residuals at that layer; summing gives the stated total.\nscope: All finite binary languages F subseteq {0,1}^N. This is a state-count construction only: it provides no upper bound on Boolean update-gate cost or decoder cost, and therefore does not resolve the Lemma M Pareto frontier.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795775234.841643,
+  "session": "pnp-desk/research/R4714",
+  "model": "gpt-6-luna",
+  "id": "S0905",
+  "proved_step": "statement: Let a deterministic transition map k source states to l destination states on one input bit. Assign distinct binary codes of width a=ceil(log2 k) to source states and width b=ceil(log2 l) to destination states. There is an exact fan-in-two Boolean circuit for the next code using O(k a + k b) gates.\nproof: For each source state i, compute its equality indicator e_i by ANDing the a literals specifying its code; this costs O(a) gates per state. For each destination-code bit r, OR the indicators e_i over source states whose transition (for the given input bit) leads to a destination with bit r equal to 1. Each of the k indicators occurs in at most b such ORs, so all OR trees cost O(kb). The next-code bits are exactly these ORs because exactly one source code is valid. Hence the total is O(ka+kb). Constant-width and empty-OR cases can be handled with constants.\nscope: One transition on one input bit, with valid binary source codes and fan-in-two AND/OR/NOT gates. The bound is O(k log(k+1)+k log(l+1)); it does not establish a useful fixed-S Pareto point for SC_{n,s} or bound decoder cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795775450.8539581,
+  "session": "pnp-desk/research/R4714",
+  "model": "gpt-6-luna",
+  "id": "S0906",
+  "proved_step": "statement: Let u=(u_1,...,u_r) be the primary input wires of a Boolean circuit over AND, XOR, NOT, and constants, with every nonconstant gate counted and fan-out free. A zero-gate circuit output computes exactly 0, 1, or one of the input projections u_i. For a multi-output map required only on R subseteq {0,1}^r, a zero-gate implementation exists iff each output coordinate restricted to R agrees with a constant or an input projection.\nproof: With zero counted gates, there are no gate outputs. Each output must therefore be connected directly to a primary input or a permitted constant. This proves necessity. Conversely, if each output coordinate agrees on R with one such source, connect it directly to that source. Fan-out permits reuse, so this implements all coordinates simultaneously. Behavior outside R is unrestricted.\nscope: All finite r>=0, arbitrary finite output dimension, and arbitrary reachable input set R. NOT is counted as a nonconstant gate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795776089.8766649,
+  "session": "pnp-desk/research/R4722",
+  "model": "gpt-6-luna",
+  "id": "S0907",
+  "proved_step": "statement: Let N>=1 and F be any subset of {0,1}^N. For a prefix p of length t define R_t(p)={v in {0,1}^{N-t}: pv in F}. For b in {0,1}, define the section operator D_b(R)={v in {0,1}^{N-t-1}: bv in R}. Then R_{t+1}(pb)=D_b(R_t(p)). Moreover, if p and q satisfy R_t(p)=R_t(q), their one-bit successors pb and qb have equal residuals and therefore may be assigned the same next-layer state in the exact residual-state automaton. Proof: For every suffix v of length N-t-1, v belongs to R_{t+1}(pb) iff (pb)v belongs to F iff p(bv) belongs to F iff bv belongs to R_t(p) iff v belongs to D_b(R_t(p)). This proves set equality. If R_t(p)=R_t(q), applying the same set map D_b gives D_b(R_t(p))=D_b(R_t(q)); by the first equality these are the residuals of pb and qb. Thus the successor-state map is well-defined on residual classes. This is a constructive exact transition rule for every finite language; it makes no bound on Boolean gate complexity of D_b or the decoder. Scope: all finite F subseteq {0,1}^N and 0<=t<N. Status: VERIFIED MATHEMATICS candidate; not a bound on Lemma M's (S,G_max,D) frontier.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": true
  }
 ]
