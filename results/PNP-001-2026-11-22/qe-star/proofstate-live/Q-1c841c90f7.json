@@ -143,5 +143,79 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795737711.22012,
+  "session": "pnp-desk/research/R4543",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: Black-box prefix-query lower bound. For every b>=0, consider hidden z in {0,1}^b and the oracle E_z(p)=1 iff p is a prefix of z. Any deterministic algorithm that identifies z for every hidden z requires at least b oracle queries in the worst case. Proof: each query returns one bit, so a decision tree of depth q has at most 2^q leaves. Correct identification of all 2^b possible hidden strings requires at least 2^b distinct leaves; hence 2^q >= 2^b and q >= b. The bound is attained by querying the successive prefixes along the hidden string, as in prefix self-reduction. Scope: black-box query complexity only; it gives no lower bound on the cost of computing a QE* extension predicate.\nproof: Fix b and suppose a deterministic algorithm identifies every hidden z using at most q queries. Its interaction tree has branching factor at most two and depth at most q, hence at most 2^q leaves. Two different hidden strings cannot reach the same leaf, because the algorithm would then output the same string on both and be wrong on at least one. Therefore the tree has at least 2^b leaves, so q>=b. Querying prefixes incrementally identifies z in b queries, proving tightness.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795737996.9260318,
+  "session": "pnp-desk/research/R4543",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "statement: Layered-DAG witness search. Let G=(V,E) be an explicitly supplied directed acyclic graph with layers V_0,...,V_b, edges only from V_i to V_{i+1}, source s in V_0, and accepting set A subseteq V_b. Backward marking decides whether s reaches A in O(|V|+|E|) time; if so, following marked successors outputs a path in O(b) additional time. Proof: mark A; for i=b-1 down to 0 mark v in V_i iff it has an edge to a marked vertex in V_{i+1}. By backward induction a vertex is marked exactly when it has a path to A. Hence s is marked iff a witness path exists. At each marked vertex before V_b choose a marked successor, which yields an accepting path. Each vertex and edge is scanned at most constantly many times. Scope: explicit layered-DAG representation only; no such representation is established for the QE* witness relation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795738971.3772027,
+  "session": "pnp-desk/research/R4551",
+  "model": "gpt-6-luna",
+  "evidence": "A direct induction on prefix length proves correctness, including the b=0 boundary; the running time sums the per-depth exact query costs. This is conditional on efficient E and does not establish those costs for QE*.",
+  "id": "S0015",
+  "proved_step": "statement: Depth-sensitive prefix selector lemma. Let Y be a finite set, b\u22650, and W\u2286Y\u00d7{0,1}^b. For each y and prefix p of length i\u2264b, define E(y,p)=1 iff some z\u2208{0,1}^b extending p satisfies (y,z)\u2208W. Suppose an exact deterministic procedure answers every E(y,p) query at depth i in time at most q_i. Then for every y having a W-witness, a deterministic algorithm outputs such a witness in at most b queries and time at most \u03a3_{i=0}^{b-1}q_i+O(b), plus output handling. Proof: initialize p=\u03b5; by hypothesis E(y,\u03b5)=1. At depth i<b query E(y,p0). If it is 1, replace p by p0. Otherwise replace p by p1. The invariant E(y,p)=1 is preserved: in the second case some witness extends p, and none extends p0, so every witness extending p must extend p1. After b iterations p has length b and E(y,p)=1, which by definition means (y,p)\u2208W. The time bound is the sum of the b query bounds and O(1) per query/update. If b=0, the premise E(y,\u03b5)=1 directly gives (y,\u03b5)\u2208W and the empty sum applies.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795739097.4561207,
+  "session": "pnp-desk/research/R4551",
+  "model": "gpt-6-luna",
+  "id": "S0016",
+  "proved_step": "statement: Exhaustive suffix implementation of prefix extension. Let Y be finite, b\u22650, W\u2286Y\u00d7{0,1}^b, and let V(y,z) decide membership in W in time at most v for every y,z. At a prefix p of length i<b, E(y,p) can be computed by enumerating all 2^(b\u2212i) suffixes and applying V, in time at most 2^(b\u2212i)v plus enumeration overhead. Consequently, the prefix selector that tests E(y,p0) at depths i=0,\u2026,b\u22121 finds a witness whenever one exists, using at most (2^b\u22121)v verifier time plus enumeration and selector overhead. Proof: For each tested p0 at depth i, exactly 2^(b\u2212i\u22121) strings extend p0, so the verifier work summed over depths is v\u00b7\u03a3_{i=0}^{b\u22121}2^(b\u2212i\u22121)=v(2^b\u22121). Each query is exact by exhaustive enumeration. The selector preserves the invariant that its current prefix has a W-witness extension: if p0 has one, append 0; otherwise, since p has one, a witness extends p1. After b choices the full string is a witness. For b=0, no suffix queries are needed and the initial empty prefix is already a witness under the premise. Scope: this is conditional on the stated verifier and gives an exponential exhaustive implementation; it establishes no useful QE* resource bound and closes no QE* reduction obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740164.4401953,
+  "session": "pnp-desk/research/R4557",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive direct-list algorithm and induction proof; a finite verification was requested independently on all nonempty witness relations through b=4. This bound depends on the explicit witness-list size L and therefore does not establish the required QE* resource bound.",
+  "id": "S0017",
+  "proved_step": "statement: Explicit-witness-list selector bound. Let b be a nonnegative integer and let W be a nonempty explicitly listed subset of {0,1}^b, with L=|W|. A deterministic algorithm returns a member of W using at most b prefix-extension queries, each answered by scanning the list, in O(b^2 L) bit comparisons and O(b) extension queries. Proof: initialize the empty prefix p. For each i=0,...,b-1, scan W to determine whether some w in W has prefix p0. If so set p:=p0; otherwise set p:=p1. Inductively p is a prefix of some member of W: this holds initially; if the scan finds an extension by 0 it remains true, and if not, the maintained witness must extend by 1. After b iterations p is a length-b member of W. Each iteration compares at most L strings against a prefix of length at most b, costing O(bL), hence the total O(b^2L). The algorithm is correct for all nonempty W, including b=0, where W={empty string} and no scans are needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795740202.5986745,
+  "session": "pnp-desk/research/R4557",
+  "model": "gpt-6-luna",
+  "evidence": "Complete induction proof is included in the statement. This is a constructive selector using exact prefix counts rather than explicit witness-list scans or Boolean extension queries; it isolates exact counting as a sufficient implementation target, without asserting that QE* admits an efficient counter.",
+  "id": "S0018",
+  "proved_step": "statement: Prefix-count selector lemma. Let Y be finite, b\u22650, and W\u2286Y\u00d7{0,1}^b. Define the prefix-count oracle C(y,p)=|{z\u2208{0,1}^b : W(y,z) and p is a prefix of z}|. For any y with C(y,\u03b5)>0, a deterministic algorithm finds z with W(y,z) using at most b oracle queries: at each step, query C(y,p0), append 0 if the answer is positive, and otherwise append 1. Proof: maintain C(y,p)>0, true initially by hypothesis. If C(y,p0)>0, the invariant holds after appending 0. Otherwise, since every extension of p begins with either 0 or 1 and C(y,p)>0, C(y,p1)=C(y,p)>0, so it holds after appending 1. After b steps p has length b; its only length-b extension is itself, hence C(y,p)>0 implies W(y,p). This includes b=0, where the initial positive count already certifies the empty string. The lemma reduces witness selection to exact prefix counting; it gives no resource bound for implementing that counting oracle for QE* witnesses.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740738.6260152,
+  "session": "pnp-desk/research/R4561",
+  "model": "gpt-6-luna",
+  "id": "S0019",
+  "proved_step": "statement: Prefix-extension selector interface lemma. Let b be a nonnegative integer, Y any set, W a subset of Y \u00d7 {0,1}^b, and E(y,p)=1 exactly when there exists z\u2208{0,1}^b extending p with (y,z)\u2208W. For each fixed y with a W-witness, the following deterministic procedure outputs z with (y,z)\u2208W using at most b calls to E and O(b) additional bit operations: start with p=\u03b5; for i=1,\u2026,b query E(y,p0); if the answer is 1 set p\u2190p0, otherwise set p\u2190p1; output p. Proof: inductively, before iteration i, p is a length-(i\u22121) prefix having at least one W-extension. Initially this holds by the assumed witness. If E(y,p0)=1 then p0 has an extension; if it is 0, the maintained existence of an extension of p implies that every such extension begins with 1, so p1 has an extension. Thus the invariant holds after each iteration. At i=b, the length-b string p is its own only extension, hence (y,p)\u2208W. There is one E query per bit and only linear work to append/read bits. Scope: exact deterministic search conditional on an exact extension predicate; it does not bound E's computation time/space or prove that QE* supplies E within its resource limits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

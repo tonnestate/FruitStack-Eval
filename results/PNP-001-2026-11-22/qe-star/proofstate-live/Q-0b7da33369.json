@@ -7211,5 +7211,90 @@
   "kind": "LEMMA",
   "closes": "G0001",
   "closes_valid": true
+ },
+ {
+  "at": 1795738041.257446,
+  "session": "pnp-desk/research/R4542",
+  "model": "gpt-6-luna",
+  "id": "S0825",
+  "proved_step": "statement: CUT-WIRE COMMUNICATION LEMMA. Let C be a fan-in-2 Boolean circuit computing f(X,Y), with X,Y disjoint input sets. Partition all circuit nodes into L and R, with all X-inputs in L, all Y-inputs in R, and the output in R. Let W be all directed wires from L to gates in R and w=|W|. Then f has a deterministic one-way protocol from Alice holding X to Bob holding Y using w bits.\nproof: Alice evaluates every node in L from X and constants and sends, in a fixed order, the values on W. Bob evaluates gates in R in topological order using Y and the received values for incoming wires from L. Induction over the R gate order shows each gate receives exactly its value in the original circuit on (X,Y), so Bob outputs f(X,Y). The message has w bits. This lemma applies to every partition satisfying the stated conditions; it does not assert existence of a small-w partition for an arbitrary prescribed input order.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795738818.502798,
+  "session": "pnp-desk/research/R4550",
+  "model": "gpt-6-luna",
+  "id": "S0826",
+  "proved_step": "statement: FIXED-POINT-FREE INVOLUTION RECODING. For every set Q of size m=2p>=2 and every fixed-point-free involution delta:Q->Q, there exists an injective stationary encoding psi:Q->{0,1}^S, S=ceil(log2 m), such that the encoded transition extends to a total Boolean map with one NOT gate. Proof: Partition Q into the p two-element orbits {q_i,delta(q_i)}. Encode q_i by (bin(i),0) and delta(q_i) by (bin(i),1), where bin(i) is the ceil(log2 p)-bit binary representation of i. The identity ceil(log2 p)+1=ceil(log2(2p)) gives exactly S bits. The encoding is injective. Define the total map on every S-bit string by preserving the first S-1 bits and negating the last bit. On each encoded state this implements delta, and on unused codes it remains a well-defined total Boolean map. Its circuit uses one NOT gate and wires. Barrier diagnostic: this is a direct combinatorial representation lemma; no lower-bound claim is made, so it supplies no natural-proofs, relativization, algebrization, or localization barrier argument for P!=NP. Scope is only fixed-point-free involutions under stationary injective encoding.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795739041.1577234,
+  "session": "pnp-desk/research/R4550",
+  "model": "gpt-6-luna",
+  "id": "S0827",
+  "proved_step": "statement: ONE-FIXED-POINT INVOLUTION RECODING. Let Q have odd size m=2p+1>=3 and let delta:Q->Q be an involution with exactly one fixed point. Put S=ceil(log2 m). There is an injective stationary encoding psi:Q->{0,1}^S such that the encoded transition extends to a total Boolean map of O(S) fan-in-two gates. Proof: Write delta's p two-element orbits as {a_i,b_i}, for 0<=i<p, and let z be its unique fixed point. Since m<=2^S, p+1=(m+1)/2<=2^(S-1); hence S-1-bit indices suffice for 0,...,p. Encode a_i as (bin(i),0), b_i as (bin(i),1), and z as (bin(p),0), where bin(i) has S-1 bits. These codes are distinct, so psi is injective. On input (u,t), define F(u,t)=(u,t XOR [u<p]). The constant comparison [u<p] has an O(S)-gate fan-in-two circuit by a lexicographic scan of the bits; XOR with t costs O(1), and the index wires are copied. For each pair index i<p this flips the tag and swaps the two orbit codes; for u=p it preserves (bin(p),0), implementing the fixed point. On all other codes the same formula defines a total map. Thus the claim holds, with no lower-bound or P-vs-NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795739211.9019744,
+  "session": "pnp-desk/research/R4550",
+  "model": "gpt-6-luna",
+  "id": "S0828",
+  "proved_step": "statement: GENERAL INVOLUTION RECODING BY ADJACENT PAIRS. For every finite set Q of size m>=2 and every involution delta:Q->Q, let S=ceil(log2 m). There is an injective stationary encoding psi:Q->{0,1}^S such that delta is realized on encoded states by a total fan-in-two Boolean map with O(S) gates. Proof: Let p be the number of two-element orbits and f the number of fixed points, so m=2p+f. Enumerate the two-element orbits as {a_i,b_i}, i=0,...,p-1, and encode a_i by the S-bit binary representation of 2i and b_i by that of 2i+1. Encode the fixed points injectively by 2p,...,2p+f-1. These are distinct integers in [0,m), hence fit in S bits. Define F on every S-bit string x (viewed as an integer in [0,2^S)) by F(x)=x XOR 1 if x<2p, and F(x)=x otherwise. Since 2p is even, each x<2p belongs to exactly one adjacent pair (2i,2i+1), and XOR with 1 swaps the pair. Every fixed-point code is at least 2p, so F fixes it. Thus F(psi(q))=psi(delta(q)) for all q; the formula defines F on unused codes too. A constant-threshold comparator x<2p has an O(S)-gate fan-in-two circuit by the standard most-significant-bit lexicographic recurrence, and conditionally toggling the low bit costs O(1) additional gates while other bits are copied. Therefore the total circuit size is O(S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740124.3385482,
+  "session": "pnp-desk/research/R4558",
+  "model": "gpt-6-luna",
+  "id": "S0829",
+  "proved_step": "GENERAL PHASE-DECODER DISTINCTNESS. Let Q be finite, delta:Q->Q a permutation, and let L be the maximum cycle length of delta. Let psi:Q->{0,1}^S be injective. Suppose for each integer t there is a decoder D_t on the code set such that D_t(psi(q))=delta^t(q) for every q, and D_t=H(z_t) for one fixed map H from phase states to decoders. Then the phase states z_0,...,z_{L-1} are pairwise distinct. Proof: choose q on a cycle of length L. For any 0<=a<b<L, delta^a(q) != delta^b(q), since otherwise applying delta^{-a} gives q=delta^{b-a}(q), contradicting that the cycle length is L. Thus D_a(psi(q)) != D_b(psi(q)), so D_a != D_b. Since D_t=H(z_t), equality z_a=z_b would imply D_a=D_b, impossible. Hence there are at least L phase states, requiring at least ceil(log2 L) binary phase bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795740311.3404264,
+  "session": "pnp-desk/research/R4558",
+  "model": "gpt-6-luna",
+  "evidence": "The endpoint predicate as stated uses an absolute offset, but the cycles of length l begin at a block start a_l that need not be 0 modulo l. Thus it can miss actual cycle endpoints. For example, if a length-2 block starts at offset 1, its first cycle ends at offset 2, while the stated test on offset+1 gives 3, not divisible by 2. The argument does not establish the claimed transition map as written.",
+  "review_of": "S0701",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795740311.3828237,
+  "session": "pnp-desk/research/R4558",
+  "model": "gpt-6-luna",
+  "id": "S0830",
+  "proved_step": "REPAIRED LENGTH-BLOCK ENCODING. Let \u03b4 be any permutation of a set Q of size m\u22652, let S=ceil(log\u2082m), and use codes 0,\u2026,m\u22121. For each distinct cycle length l, concatenate all cycles of length l into one block [a_l,a_l+u_l\u22121], where u_l is the total number of states in those cycles; order each cycle consecutively within the block. Define F on S-bit words as follows: on a valid code x in the l-block, set F(x)=x+1 unless x is the final code of one of the length-l cycles, in which case set F(x)=x\u2212(l\u22121); define F arbitrarily on unused codes. Then F extends the encoded permutation on all valid codes. Moreover F has a fan-in-two Boolean circuit of O(d S\u00b2) gates, where d is the number of distinct cycle lengths, hence O(\u221am S\u00b2). Proof: A cycle endpoint in the l-block is exactly a code x for which x\u2212a_l+1 is divisible by l. For each length l, compute membership in [a_l,a_l+u_l\u22121] by two S-bit comparisons and compute the remainder of x\u2212a_l+1 modulo l by scanning its S bits with an O(log l)-bit remainder register; this uses O(S log l) fan-in-two gates. The endpoint predicate is block membership AND remainder zero. The default increment x+1 uses O(S) gates. The endpoint output x\u2212(l\u22121) uses O(S) gates, and a Boolean mux selects it exactly at endpoints. Combining the d disjoint block predicates and their selected outputs costs O(dS) additional gates per output-bit family, within O(dS\u00b2). At a non-endpoint, the next code is the next state of the same cycle; at an endpoint, the subtraction returns to that cycle\u2019s first code. Thus F agrees with \u03b4 on every encoded state. Finally, if the distinct lengths are l\u2081<\u22ef<l_d, then l_i\u2265i and \u2211l_i\u2264m, so d(d+1)/2\u2264m and d\u2264\u221a(2m).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740533.3514874,
+  "session": "pnp-desk/research/R4558",
+  "model": "gpt-6-luna",
+  "evidence": "The recurrence and invariant give correctness on every S-bit input. The finite check cm-c02ae8e4489b4d90 separately checked 40,318 encoded transitions through m=7, but does not establish this general circuit lemma or the full permutation bound.",
+  "id": "S0831",
+  "proved_step": "statement: OFFSET-RESIDUE CIRCUIT LEMMA. Let S\u22651, 1\u2264l\u22642^S, and c be any fixed integer. There is a fan-in-two Boolean circuit with O(S\u2308log\u2082(l+1)\u2309) gates that, on every S-bit input x interpreted as an integer in [0,2^S\u22121], outputs 1 exactly when x+c\u22610 (mod l). Proof: Initialize r\u2080=c mod l. Read x's bits from most to least significant, updating r\u2190(2r+b) mod l for each bit b. Inductively, after i bits r is congruent to c plus the integer represented by those i bits, modulo l. Thus the final r equals (c+x) mod l. Each update is implemented by a binary comparator and conditional subtractor using O(log(l+1)) fan-in-two gates; testing the final remainder for zero has the same cost. For l=1 the output is constant true. This handles negative c by using its least nonnegative residue; the S0830 endpoint predicate uses c=1\u2212a_l.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740714.320976,
+  "session": "pnp-desk/research/R4558",
+  "model": "gpt-6-luna",
+  "id": "S0832",
+  "proved_step": "statement: CONDITIONAL CYCLE-BLOCK IMPLEMENTATION COST. Let \u03b4 be a permutation of an m-element set, m\u22652, and let S=ceil(log\u2082m). Form one consecutive interval of codes for each cycle length l occurring in \u03b4, placing all cycles of length l consecutively in that interval. On each assigned code x in the interval for l, define the successor as x+1 except at each cycle endpoint, where it is x\u2212(l\u22121), equivalently (x+1)\u2212l. There is a fan-in-two AND/NOT circuit on S bits extending this assigned transition to a total map with O(\u221am\u00b7S\u00b2) gates. Proof: For each occurring length l, let its interval start at a_l and contain q_l cycles, so its endpoint predicate on valid codes is E_l(x)=[a_l\u2264x<a_l+q_l l] AND [(x\u2212a_l+1) mod l=0]. The interval test has O(S) gates; the modular test has O(S log(l+1)) gates by the residue recurrence. Let B(x)=x+1 mod 2^S. Compute Y_l(x)=B(x)\u2212l mod 2^S with an O(S)-gate constant subtractor. Since the E_l are mutually exclusive on all inputs (their interval tests are disjoint), define each output bit by selecting Y_l when E_l holds and B otherwise, using a fan-in-two mux and an OR aggregation over lengths. This costs O(S) per length beyond predicate computation. The number k of distinct occurring lengths satisfies k(k+1)/2\u2264m, hence k\u2264\u221a(2m). As log(l+1)\u2264S+1, total size is O(kS\u00b2)=O(\u221am\u00b7S\u00b2). For a non-endpoint code, B is the next code in its cycle; at an endpoint, B\u2212l is the first code of that same cycle. Thus the circuit agrees with \u03b4 on every assigned code. This is an implementation lemma conditional on the stated block assignment; it is not a lower bound or a P\u2260NP result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

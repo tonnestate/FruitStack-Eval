@@ -8703,5 +8703,86 @@
   "proved_step": "statement: COMPATIBLE-CIRCUIT SET UPDATE LEMMA. Let F be any finite indexed family of Boolean circuits C_i:{0,1}^N->{0,1}, i in I, and let L_F={x in {0,1}^N: C_i(x)=1 for some i in I}. For each prefix p of length t define I_p={i in I: C_i(pz)=1 for some z in {0,1}^{N-t}}. Then for every bit b, I_{pb}={i in I_p: there exists z' in {0,1}^{N-t-1} with C_i(pb z')=1}; in particular I_{pb} is computable from I_p by filtering each surviving index according to whether its circuit has an accepting completion under the extended prefix. Moreover p has an accepting completion in L_F iff I_p is nonempty. Proof: If i\u2208I_{pb}, then pbz' is an accepting completion for C_i, hence p(bz') witnesses i\u2208I_p; also its first suffix bit is b, so i passes the stated filter. Conversely, if i\u2208I_p and C_i has an accepting completion with next bit b, write that completion uniquely as bz'; then i\u2208I_{pb}. The final equivalence follows directly from the existential definitions and finiteness of I. This yields an exact streaming representation using a subset of I as its semantic state, with at most 2^{|I|} raw states; it does not give a bounded fan-in circuit cost for the filtering predicate from H_C, nor a bound for arbitrary MCSP decision circuits.\nderivation: Expand the existential quantifier over the suffix into its first bit and remaining suffix. Both inclusions follow by concatenation/decomposition of that suffix. Nonemptiness is equivalent to the existential choice of a family index and accepting completion.\nscope: Every finite indexed circuit family and every prefix length t<N; arbitrary Boolean circuits, with no resource bound asserted for computing the update.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795737802.1988046,
+  "session": "pnp-desk/research/R4540",
+  "model": "gpt-6-luna",
+  "gap": "G0004 remains open: no representation-independent lower bound is known for exact total Search-MCSP^A transition update cost; the finite residual-mask identity does not constrain arbitrary encodings, shared computation, or deferred work.",
+  "evidence": "Awaiting exact finite verification result for the existential branch partition identity. This identity is a semantic fact only and does not close G0004.",
+  "gap_note_on": [
+   "G0004"
+  ]
+ },
+ {
+  "at": 1795737903.0411334,
+  "session": "pnp-desk/research/R4540",
+  "model": "gpt-6-luna",
+  "gap": "G0004 remains open. This lemma bounds transitions only for an explicit candidate-bitset representation with precomputed compatibility masks; it does not address arbitrary encodings, mask construction, sharing, or deferred computation.",
+  "evidence": "Complete coordinatewise proof is included in the step statement. No computational claim or representation-independent lower bound is made.",
+  "gap_note_on": [
+   "G0004"
+  ],
+  "id": "S1002",
+  "proved_step": "statement: EXPLICIT-CANDIDATE BITSET UPDATE LEMMA. Let C={c_1,...,c_M} be an explicitly listed family of strings in {0,1}^N. For a prefix p, let A_p be the M-bit vector whose jth bit is 1 iff c_j begins with p. For each coordinate i and b in {0,1}, let B_{i,b} be the M-bit vector whose jth bit is 1 iff c_j[i]=b. Then A_{pb}=A_p AND B_{|p|+1,b}. With packed words of width w, each transition takes ceil(M/w) wordwise AND operations. Proof: For each j, the jth output bit is 1 iff c_j begins with p and c_j[|p|+1]=b, which is equivalent to c_j beginning with pb. Applying this coordinatewise gives the vector identity. Partition the M coordinates into ceil(M/w) words; one AND per word computes the result. The statement assumes the family and masks are explicitly available; it makes no bound on their construction and no claim about arbitrary representations.\nderivation: Coordinatewise set intersection of the current candidate set with the candidates whose next symbol is b; pack the M coordinates into words.\nscope: All finite explicitly listed C subseteq {0,1}^N, all prefixes p of length less than N, both b, and positive word width w.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795738418.411132,
+  "session": "pnp-desk/research/R4548",
+  "model": "gpt-6-luna",
+  "id": "S1003",
+  "proved_step": "statement: EXACT PREFIX-COFACTOR IDENTITY FOR EXISTENTIAL WITNESS RELATIONS. Let D,Y,Z be finite sets, let H:D\u00d7{0,1}^N\u00d7Y\u2192{0,1}, and define E(p)=1 iff there exist d\u2208D, y\u2208Y, and z\u2208{0,1}^{N-|p|} such that H(d,pz,y)=1, for every prefix p of length at most N. If |p|<N and b\u2208{0,1}, then E(pb)=1 iff there exist d\u2208D, y\u2208Y, and z'\u2208{0,1}^{N-|p|-1} such that H(d,pbz',y)=1. Proof: By definition, E(pb)=1 exactly when there exist d,y and a suffix w of length N-|p|-1 with H(d,(pb)w,y)=1. Concatenation is associative, so (pb)w=p(bw), where bw has length N-|p|. Thus this condition is exactly the defining condition E(p)=1 witnessed by the suffix bw whose first bit is b. Conversely, any suffix z of length N-|p| witnessing E(p)=1 and beginning with b has the form bz', and then H(d,pbz',y)=1 witnesses the right-hand side. This is an exact identity for the semantic prefix projection. It gives no Boolean-circuit size bound for computing E or its transitions.\nderivation: Expand both sides using the existential definition of E; split a suffix of length N\u2212|p| into its first bit b and the remaining suffix, and use associativity of concatenation. The reverse implication uses the same decomposition in reverse.\nscope: All finite D,Y, all N\u22651, all H:D\u00d7{0,1}^N\u00d7Y\u2192{0,1}, and all prefixes p with |p|<N. No circuit-complexity claim is made.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795738574.16103,
+  "session": "pnp-desk/research/R4548",
+  "model": "gpt-6-luna",
+  "id": "S1004",
+  "proved_step": "statement: RESIDUAL-LANGUAGE DISTINGUISHABILITY LOWER BOUND FOR EXACT STREAMING. Let F be any subset of {0,1}^N and L_F={p in {0,1}^{<=N}: p is a prefix of some x in F}. For each prefix p with |p|<=N define R_p={z in {0,1}^{N-|p|}: pz in F}. In any deterministic streaming machine that reads the N bits left-to-right and at each position retains a state such that its final acceptance decides membership in F, if two same-length prefixes p,q have R_p != R_q, then the machine must be in different states after p and q. Consequently, at depth t it needs at least |{R_p: p in {0,1}^t}| states (and at least the maximum of these quantities over t). Proof: Since R_p and R_q differ, choose z in their symmetric difference. Then exactly one of pz,qz belongs to F. If the machine had the same state after p and q, determinism implies that processing the common continuation z leads to the same final state and acceptance in both cases, contradicting exact decision. Thus distinct residual sets force distinct states. Counting the equivalence classes gives the stated lower bound.\nderivation: For same-length prefixes with different residual sets, choose a suffix in their symmetric difference. Determinism makes equal states remain equal under that shared suffix, contradicting exact acceptance. Counting residual classes gives the lower bound.\nscope: Every finite N and every F subset of {0,1}^N; deterministic one-pass left-to-right exact streaming. The bound concerns state count only; it says nothing about transition circuit cost or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795738802.7819796,
+  "session": "pnp-desk/research/R4548",
+  "model": "gpt-6-luna",
+  "id": "S1005",
+  "proved_step": "statement: GENERIC CIRCUIT IMPLEMENTATION OF FINITE-STATE TRANSITIONS. Let Q be a state set of size m>=2, encode its states injectively in k=ceil(log2 m) bits, and let delta:Q x {0,1}->Q be any deterministic transition function. There is a fan-in-two Boolean circuit on the k state bits and one input bit that agrees with delta on every valid encoded state, with O(k^2 m) gates. Proof: For each output bit j, take the disjunction over all pairs (q,b) whose next state has bit j equal to 1, of the conjunction testing that the state input equals the code of q and that the input bit equals b. Each test uses O(k) fan-in-two gates, there are at most 2m terms, and the disjunction uses O(m) gates. Thus each output bit costs O(km), and all k output bits cost O(k^2m). Values on invalid state codes may be arbitrary. This is an upper bound for a fixed transition table, not a lower bound and not a polynomial-in-log(m) bound.\nderivation: Explicit DNF for each output bit: enumerate the at most 2m valid state/input pairs yielding 1, test each pair with O(k) fan-in-two gates, OR the terms, and repeat for k outputs.\nscope: Every finite deterministic state transition system with m>=2 states, binary input alphabet, injective k-bit state encoding. Does not address how EXT's transition table is computed, nor arbitrary algorithms' representations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795738982.510686,
+  "session": "pnp-desk/research/R4548",
+  "model": "gpt-6-luna",
+  "id": "S1006",
+  "proved_step": "statement: WIRING-ONLY TRANSITION FOR CHARACTERISTIC-VECTOR RESIDUALS. Let N\u22651 and F\u2286{0,1}^N. At level t, for each prefix p\u2208{0,1}^t encode its residual R_p={z\u2208{0,1}^{N\u2212t}:pz\u2208F} by the characteristic vector v_p indexed by {0,1}^{N\u2212t}. For b\u2208{0,1}, the vector v_pb is obtained from v_p by selecting coordinates bz, for z\u2208{0,1}^{N\u2212t\u22121}, and deleting the initial b from each coordinate label. Thus the transition from v_p on input b to v_pb is a coordinate-selection wiring map with zero Boolean gates. The encoding uses 2^{N\u2212t} bits at level t; consequently this is an exact but generally noncompact representation and gives no compact-state transition-cost bound for EXT.\nderivation: For every suffix z of length N\u2212t\u22121, the coordinate of v_pb indexed by z equals 1 iff pbz\u2208F. The coordinate of v_p indexed by bz equals 1 iff p(bz)\u2208F. Since pbz=p(bz), these bits agree. Hence all child coordinates are obtained by selecting the indicated parent coordinates; selection and relabeling require only wires. The vector length is the number 2^{N\u2212t} of suffixes at the parent level.\nscope: All finite binary languages F\u2286{0,1}^N, N\u22651, all levels t<N and all prefixes p of length t. Exactness is unconditional. The transition is gate-free only in the explicit characteristic-vector representation, whose width is exponential in remaining suffix length; no bound for the compact EXT state representation is asserted.\nbarrier_diagnostic: Relativizing: this wiring identity is representation-level and makes no oracle separation claim. Natural: it is not a lower-bound measure or a constructive property against all circuits. Algebrizing: no algebraic oracle or polynomial method is used. Localizing: it is an exact one-step coordinate operation, but no local proof-system conclusion follows. Circumvention tests: no claimed P\u2260NP progress; compactness, real-gate transition cost, arbitrary MCSP decision circuits, and transfer to the target remain open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740143.7623508,
+  "session": "pnp-desk/research/R4556",
+  "model": "gpt-6-luna",
+  "lemma": "For every fixed acyclic fan-in-at-most-two Boolean circuit C with N inputs and g gates, let H_C(x,y) be the conjunction of its local gate equations and the condition that its output is 1, with one tableau bit per gate. Then # {(x,y): H_C(x,y)=1} = # {x: C(x)=1}. Proof: For each x, induction through the topological gate order shows that the local equations force exactly one y, namely the evaluation tableau of C on x. This y satisfies the output condition iff C(x)=1. Thus each accepting x contributes exactly one satisfying pair and each rejecting x contributes none. The construction uses O(g) fan-in-two Boolean gates under free constants and wiring. This is a counting-preserving tableau encoding for one fixed circuit; it gives no bound for existentially eliminating tableau variables or quantifying over candidate circuit descriptions.",
+  "evidence": "Direct topological induction on gate equations; no prior claimed proof-state steps used."
+ },
+ {
+  "at": 1795740196.283949,
+  "session": "pnp-desk/research/R4556",
+  "model": "gpt-6-luna",
+  "evidence": "Complete proof by induction over the topological gate order; it uses no unreviewed claimed proof-state steps.",
+  "id": "S1007",
+  "proved_step": "statement: COUNTING-PRESERVING TABLEAU ENCODING FOR A FIXED CIRCUIT. Let C be a fixed acyclic Boolean circuit with N inputs and g fan-in-at-most-two gates in topological order. Introduce one Boolean variable y_i for each gate output. Let H_C(x,y) be the conjunction of the local gate equations and the condition that C's output is 1. Then H_C has O(g) fan-in-two Boolean gates (with constants and wiring free), and # {(x,y) in {0,1}^{N+g}: H_C(x,y)=1} = # {x in {0,1}^N: C(x)=1}.\nderivation: For each input x, induct through the gates in topological order. Once the input bits and earlier gate outputs are fixed, the local equation for gate i uniquely forces y_i to the value of that gate. Thus exactly one y satisfies all local gate equations: C's evaluation tableau on x. This tableau satisfies the output condition iff C(x)=1. Consequently, each accepting x contributes exactly one satisfying pair (x,y), and each rejecting x contributes none, proving the counting identity. A gate's local equation involves at most three bits and has a constant-size Boolean implementation; combining the g equations and the output condition with a binary AND tree uses O(g) gates.\nscope: All finite N and g, for one fixed acyclic fan-in-at-most-two Boolean circuit. This does not bound existential elimination of y or quantification over candidate circuit descriptions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
