@@ -7773,5 +7773,53 @@
   "proved_step": "LEMMA (fixed point free involutions). For every even m=2p\u22652 and every fixed point free involution \u03b4 on a set Q of size m, there is an injection \u03c8:Q\u2192{0,1}^{ceil(log2 m)} for which \u03c8\u2218\u03b4\u2218\u03c8^{-1} on \u03c8(Q) extends to a total Boolean map using one NOT gate. Proof: The orbits of \u03b4 are p disjoint pairs. Choose a bijection from the pairs to {0,\u2026,p\u22121}, and choose one representative in each pair. Let k=ceil(log2 p). Encode the representative from pair i as (bin_k(i),0), and its partner as (bin_k(i),1). These codes are distinct. Since ceil(log2(2p))=k+1 (including p=1), they have exactly the required length. On every encoded state \u03b4 preserves the first k bits and flips the last bit. The total map F(u,b)=(u,\u00acb) therefore extends the transition to all bit strings and has one NOT gate, with the other output bits wires. This is an exact constructive special case; it makes no claim about arbitrary permutations or paired transitions.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795777471.1916447,
+  "session": "pnp-desk/research/R4726",
+  "model": "gpt-6-luna",
+  "id": "S0877",
+  "proved_step": "LEMMA (single-cycle recoding). For every m\u22652 and every m-cycle \u03b4 on a finite set Q, there is an injection \u03c8:Q\u2192{0,1}^S, S=ceil(log2 m), such that \u03c8\u03b4\u03c8^{-1} extends to a total Boolean map with O(S) fan-in-two AND/NOT gates. Proof: Enumerate Q in cycle order as q_0,\u2026,q_{m\u22121}, so \u03b4(q_i)=q_{i+1 mod m}, and encode q_i by the S-bit binary representation of i. Define F on all S-bit strings by incrementing codes below m\u22121, mapping m\u22121 to 0, and assigning any output on unused codes. A ripple-carry incrementer computes each output bit using the input bit and the conjunction of lower input bits; shared prefix conjunctions and constant-size AND/NOT implementations of XOR give O(S) gates. Detect m\u22121 with an S-literal equality test using O(S) gates and gate each output bit to zero at this endpoint. Hence F agrees with the encoded cycle on every valid code, is total, and uses O(S) gates. This is an exact single-cycle construction, not a claim for multiple cycles.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795777577.116349,
+  "session": "pnp-desk/research/R4726",
+  "model": "gpt-6-luna",
+  "id": "S0878",
+  "proved_step": "CONSTRUCTIVE LEMMA (arbitrary cycle count). Let Q have m\u22652 elements, \u03b4 be a permutation with c cycles, and S=ceil(log2 m). There is an injection \u03c8:Q\u2192{0,1}^S such that \u03c8\u03b4\u03c8^{-1} extends to a total S-bit map computed by O((c+1)S) fan-in-two AND/NOT gates. Proof: List the cycles consecutively, preserving successor order within each, as q_0,\u2026,q_{m\u22121}; write \u03b4(q_i)=q_{b_i}. Encode q_i by the S-bit binary representation of i. For every non-endpoint index i, b_i=i+1. Let E be the c endpoint indices. Let B(x)=x+1 modulo 2^S. For endpoint e, let a_e=b_e be the start index of its cycle. For each output coordinate j set F_j(x)=B_j(x) XOR OR_{e\u2208E}( [x=e] AND (B_j(x) XOR bit_j(a_e)) ). Binary increment B is computed with S\u22121 shared prefix-ANDs and O(S) further gates, since output bit j is x_j XOR the conjunction of lower bits. Each equality [x=e] costs O(S) gates; form all c endpoint indicators in O(cS), and form all c correction terms for each of S coordinates in O(cS). Balanced or sequential binary ORs and constant-size AND/NOT implementations of XOR preserve O((c+1)S) total size. At an encoded non-endpoint i, all endpoint indicators vanish and B(i)=i+1=b_i. At encoded endpoint e, exactly its indicator is one by injectivity, so the corresponding output bit is B_j(e) XOR (B_j(e) XOR bit_j(a_e))=bit_j(a_e), while all other corrections vanish; hence F(e)=a_e=b_e. The formula defines F on every S-bit string, so it is a total extension. This is a constructive upper bound and makes no lower-bound or P-vs-NP claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795778024.4615774,
+  "session": "pnp-desk/research/R4734",
+  "model": "gpt-6-luna",
+  "evidence": "Complete direct construction and proof supplied in the step. Prior independent finite check cm-cfdbcda7587a4855 checked all injective encodings and transitions for m=2,3; it is not used as proof. The claimed new step includes the construction and trie counting argument explicitly.",
+  "id": "S0879",
+  "proved_step": "statement: SPARSE TRANSITION EXTENSION WITH HAMMING-SENSITIVE COST. Let Q be finite, |Q|=m>=1, S=ceil(log2 m), psi:Q->{0,1}^S injective, and delta:Q->Q. Let D={q:delta(q)!=q}, and for j in [S] let D_j={q in D: psi(q)_j != psi(delta(q))_j}. Let T be the number of non-root vertices in the prefix trie of the distinct strings psi(D). Then the restriction x=psi(q) -> psi(delta(q)) has a total extension F:{0,1}^S->{0,1}^S computed with O(S+T+sum_j max(0,|D_j|-1)) fan-in-two AND/NOT gates. Consequently, for t=|D|>=1, the gate count is O(S+t(S-floor(log2 t))+t+H), where H=sum_{q in D} dist_H(psi(q),psi(delta(q))); for t=0 the identity extension has zero gates. Proof: Share negations of input bits (at most S gates). For each non-root trie vertex v, form its prefix indicator by ANDing the parent indicator with the literal specifying v's last bit; at depth one use the corresponding input literal. The root indicator is 1. This uses at most T additional gates and computes at each leaf q the equality indicator e_q(x)=[x=psi(q)]. For each coordinate j define A_j(x)=OR_{q in D_j} e_q(x), with A_j=0 if D_j is empty; binary OR trees need at most max(0,|D_j|-1) gates. Define F_j(x)=x_j XOR A_j(x), implementing XOR with a constant number of AND/NOT gates. If q is unchanged, no leaf indicator is true at psi(q), so F(psi(q))=psi(q)=psi(delta(q)). If q in D, injectivity implies exactly its leaf indicator is true, and A_j toggles precisely the coordinates where psi(q) differs from psi(delta(q)); hence F(psi(q))=psi(delta(q)). The formulas define F on every input, including unused codes. Since sum_j |D_j|=H, the first bound is at most O(S+T+H). For the stated corollary, at depth d the trie has at most min(t,2^d) vertices, so T<=sum_{d=1}^S min(t,2^d). With k=floor(log2 t), depths 1..k contribute at most 2^(k+1)-2<=2t-2 and the remaining S-k depths contribute at most t each. Thus T<=t(S-k)+2t-2, proving the corollary.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795778486.4152737,
+  "session": "pnp-desk/research/R4734",
+  "model": "gpt-6-luna",
+  "id": "S0880",
+  "proved_step": "statement: FIXED-POINT-FREE INVOLUTION RECODING. Let Q be a set of size m=2p, p>=1, and let \u03b4:Q\u2192Q satisfy \u03b4(\u03b4(q))=q and \u03b4(q)\u2260q for every q\u2208Q. Put S=ceil(log\u2082m). There is an injection \u03c8:Q\u2192{0,1}^S such that the encoded transition has a total extension on {0,1}^S computable with one NOT gate and wires. Proof: The relation q~\u03b4(q) partitions Q into p disjoint pairs; choose an ordering of these pairs. Since ceil(log\u2082p)+1=ceil(log\u2082(2p))=S, encode each pair by a distinct binary index of length S\u22121 and encode its two elements with tag bits 0 and 1. This is injective. Define F on every S-bit string by preserving its first S\u22121 bits and negating its final bit. On each valid code, F preserves the pair index and exchanges the two tags, so F(\u03c8(q))=\u03c8(\u03b4(q)). The same formula defines F on unused codes, hence is a total extension. Its only non-wire operation is one NOT gate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795780027.063899,
+  "session": "pnp-desk/research/R4742",
+  "model": "gpt-6-luna",
+  "id": "S0881",
+  "proved_step": "statement: FIXED-POINT-FREE INVOLUTION ENCODING. Let Q be a set of size m=2p, p>=1, and let delta:Q->Q be a fixed-point-free involution. Put S=ceil(log2 m). There is an injective encoding psi:Q->{0,1}^S such that the encoded transition extends to a total S-bit Boolean map computed with one NOT gate. Proof: Partition Q into the p unordered pairs {q,delta(q)} and choose an ordering of the pairs. Let k=ceil(log2 p). Encode the i-th pair by the k-bit binary representation of i, and distinguish its two members by a tag bit 0 or 1. Since k+1=ceil(log2 p)+1 <= ceil(log2(2p))=S, pad these codes with S-k-1 fixed zero bits. The codes are distinct, so psi is injective. Define the total map on every S-bit string to preserve the first k pair-index bits and all padding bits, and toggle the tag bit. This is computed by a single NOT gate on the tag bit, with all other output bits wired through. On each valid code it sends q to delta(q), because delta exchanges the two members of each pair. Thus the construction works for every fixed-point-free involution and every even m.\nproof: Pair each state with its unique distinct image under the fixed-point-free involution. There are p pairs. The pair index uses k=ceil(log2 p) bits and one additional tag bit. The inequality k+1<=ceil(log2(2p)) ensures the encoding fits in S bits; append zero bits if necessary. Pair indices distinguish different pairs, and the tag distinguishes the two states within one pair, proving injectivity. Toggling only the tag exchanges the two members within each pair, which is exactly delta. Toggling one coordinate is one NOT gate; the other coordinates are wires. Defining this same toggle on unused codes supplies a total Boolean map.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

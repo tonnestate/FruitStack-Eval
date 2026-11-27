@@ -8128,5 +8128,43 @@
   "kind": "LEMMA",
   "closes": "G0188",
   "closes_valid": true
+ },
+ {
+  "at": 1795778180.5002909,
+  "session": "pnp-desk/research/R4730",
+  "model": "gpt-6-luna",
+  "id": "S0908",
+  "proved_step": "For every finite language F subseteq {0,1}^N, every 0 <= t < N, every length-t prefix p, and bit b, define R_t(p)={z in {0,1}^{N-t}: pz in F}. Then R_{t+1}(pb)={v in {0,1}^{N-t-1}: bv in R_t(p)}. Consequently, equality of residuals is preserved by the deterministic one-bit derivative transition. Proof: For any v of length N-t-1, v belongs to R_{t+1}(pb) iff (pb)v belongs to F, iff p(bv) belongs to F, iff bv belongs to R_t(p), which is exactly membership in the right-hand set. Thus the derivative depends only on R_t(p), not on the representative prefix. This gives a well-defined canonical layered recognizer whose states are residual sets; at t=N it accepts precisely when the empty string belongs to the residual. Scope: all finite binary languages and all cuts.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795779428.1043632,
+  "session": "pnp-desk/research/R4741",
+  "model": "gpt-6-luna",
+  "id": "S0909",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, every 0<=t<N, every length-t prefix p, and b in {0,1}, define R_t(p)={v in {0,1}^{N-t}:pv in F}. Then R_{t+1}(pb)={v in {0,1}^{N-t-1}:bv in R_t(p)}. Consequently storing R_t(p) gives an exact layered deterministic recognizer for F: update by deleting the first bit b from each residual word beginning with b; accept at t=N iff the stored residual contains the empty word.\nproof: For any v of length N-t-1, v belongs to R_{t+1}(pb) iff (pb)v belongs to F by definition. Concatenation gives (pb)v=p(bv), so this is equivalent to bv belonging to R_t(p), which is exactly membership in the set on the right. Thus the update computes the exact next residual. At t=N, R_N(w) is {empty word} if w is in F and the empty set otherwise, so checking whether it contains the empty word decides membership.\nscope: All finite binary languages F subseteq {0,1}^N and all cuts, prefixes, and next bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d25720b26b",
+  "closes_valid": true
+ },
+ {
+  "at": 1795779851.357967,
+  "session": "pnp-desk/research/R4741",
+  "model": "gpt-6-luna",
+  "id": "S0910",
+  "proved_step": "statement: For every finite language F subseteq {0,1}^N, let K=max_{0<=t<=N} |{R_t(p): p in {0,1}^t}|, where R_t(p)={z in {0,1}^{N-t}: pz in F}. There is a deterministic layered membership recognizer for F with S=ceil(log2(K+1)) state bits and at most S(S+2)2^(S+1) AND/XOR/NOT/constant gates in each transition circuit.\nproof: At each layer t, assign distinct S-bit codes to its distinct residual sets and reserve one additional code for the empty residual if it is not already represented. At most K+1 codes are needed, and 2^S>=K+1. For a represented residual R and next bit b, transition to the code of R_b={z: bz in R} at layer t+1. If R=R_t(p), then z is in R_b iff bz is in R_t(p), iff pbz is in F; hence R_b=R_{t+1}(pb), so the transition is well-defined. Define it arbitrarily on unused state/input pairs. Each next-state bit is a Boolean function of S state bits and b. Its DNF has at most 2^(S+1) terms; each term costs at most S gates and combining terms costs at most 2^(S+1) gates. Thus each output bit costs at most (S+2)2^(S+1), and all S bits meet the stated bound. At layer N the residual is {epsilon} exactly for accepted inputs and empty otherwise, so the final state decides membership.\nscope: Finite binary languages and deterministic layered membership recognizers, with layer-dependent state codes. This does not cover witness-output decoders or prove an update-cost lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795779941.9376745,
+  "session": "pnp-desk/research/R4741",
+  "model": "gpt-6-luna",
+  "id": "S0911",
+  "proved_step": "statement: For every finite F subseteq {0,1}^N, let K=max_{0<=t<=N}|{R_t(p):p in {0,1}^t}|, where R_t(p)={z in {0,1}^{N-t}:pz in F}. There is a deterministic layered membership recognizer with S=ceil(log2(K+1)) state bits and at most S(S+3)2^(S+1) gates per transition, over AND, XOR, NOT, and constants.\nproof: At each layer assign distinct S-bit codes to its residuals, using at most K codes, and reserve one further code for the empty residual if needed. Since 2^S>=K+1 this is possible. For a represented residual R and next bit b, transition to the code for R_b={z:bz in R}. If R=R_t(p), then z in R_b iff bz in R_t(p), iff pbz in F; hence R_b=R_{t+1}(pb), so the transition is well-defined. Define unused state/input transitions arbitrarily. Each output bit is a Boolean function of d=S+1 inputs. If its DNF has T<=2^d terms, form complemented input literals using at most d NOT gates, each conjunction with at most d-1=S AND gates, and combine terms by repeated OR using at most 2(T-1) AND/NOT gates. Total <= d+TS+2(T-1) <= d+T(S+2) <= (S+3)2^d, since d=S+1<=2^d. Thus all S output bits use at most S(S+3)2^(S+1) gates. At layer N the residual is {epsilon} exactly for accepted words and empty otherwise; the final state decides membership.\nscope: Finite binary languages; layered membership recognition with layer-dependent state codes and transition circuits over the stated basis. Upper bound only; no witness-output guarantee or SC_{n,s} lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

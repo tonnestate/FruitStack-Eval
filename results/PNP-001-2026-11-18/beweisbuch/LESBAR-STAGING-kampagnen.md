@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 18171 entries from 5930 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 18238 entries from 5949 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Let Q be any set and let f,g:Q→Q be commuting maps, meaning f∘g=g∘f. For every q∈Q, the words 01 and 10 induce the same terminal state when symbol 0 applies f and symbol 1 applies g.
 proof: Reading 01 applies f then g, so its terminal state is g(f(q
@@ -25,12 +25,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For admissible streaming machine families in which the two transition maps commute on reachable states, fixed AC0-uniform collision families can be obtained from short words with equal symbol counts; the two-letter pair 01 and 10 is the first case.
   - The actual CLOSURE-B restriction may admit a two-stage representation of each relevant leaf-survival event, with independent within-occurrence stages whose probabilities yield the squared terms in P2'.
   - For EXT_{n,s}, the semantic identity R_{p b}(z')=R_p(bz') holds for the union of truth tables of all size-at-most-s circuits, but a representation containing only the current residual function does not by itself specify a bounded-real-gate method for producing
   - For every finite binary language F, an N-bit prefix register plus one live/dead bit gives a correct layered recognizer with per-layer fan-in-2 AND/OR update cost at most 2|P_t|(N+2), with free constants and input literals.
   - For every finite binary language F, the canonical residual automaton at cut t admits a one-hot fan-in-2 AND/OR update circuit with at most 4|R_t| gates when literals and constants are free and correctness is required only on one-hot state encodings.
   - For each fixed finite transition system, the pair, preperiod, and period in the arithmetic-progression collision lemma can be extracted by an AC0 selector whose constants depend on that transition system. Test by constructing the selector from its finite orbit
-  - For the prefix language EXT_{n,s}, the minimum number of states after depth t in any deterministic one-pass exact recognizer equals the number of distinct residual sets at depth t.
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
@@ -39,13 +39,13 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3449 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: TURN_LIMIT
+NUMERICAL EVIDENCE on file: 3453 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve
