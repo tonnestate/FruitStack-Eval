@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 17918 entries from 5851 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 17947 entries from 5857 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Let Q be any set and let f,g:Q→Q be commuting maps, meaning f∘g=g∘f. For every q∈Q, the words 01 and 10 induce the same terminal state when symbol 0 applies f and symbol 1 applies g.
 proof: Reading 01 applies f then g, so its terminal state is g(f(q
@@ -42,10 +42,10 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
-NUMERICAL EVIDENCE on file: 3423 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3426 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve

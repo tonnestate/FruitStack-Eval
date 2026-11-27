@@ -279,5 +279,38 @@
   "proved_step": "statement: Hidden-singleton prefix-query complexity. For every integer b>=1, let an unknown witness w range over {0,1}^b, and let the only allowed query be E(p)=1 iff p is a prefix of w, for any binary string p of length at most b. Any deterministic adaptive algorithm that identifies w for every possible w requires at least b queries in the worst case; querying the prefixes of lengths 1,...,b achieves b queries.\nproof: For the lower bound, consider the binary decision tree of a deterministic algorithm. Each query has two possible answers, so a depth-d tree has at most 2^d leaves. Correct identification of each of the 2^b possible witnesses requires at least 2^b distinct leaves, hence d>=b. For the upper bound, query the length-i prefix of the bits already recovered followed by 0, for i=1,...,b. A yes answer sets bit i to 0; a no answer sets it to 1, since the hidden witness is known to exist and its preceding bits have already been recovered. After b queries all bits are determined.\nscope: Exact deterministic worst-case query complexity in the hidden-singleton prefix-membership oracle model. It does not establish that a QE* witness relation is hidden, singleton-valued, or inaccessible by other computations, so it does not close the QE* obligation.\ndiagnostic: The oracle property is relativizing and localizing; the argument is combinatorial and does not yield a natural property or algebraic circuit lower bound. No P!=NP progress is claimed.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795765839.487189,
+  "session": "pnp-desk/research/R4669",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Depth-sensitive prefix-extension selector. Let Y be finite, b>=0, W subseteq Y x {0,1}^b. Suppose for every relevant y and every prefix p of length i<b, E(y,p)=1 iff p extends to z with W(y,z) can be computed in time at most q_i. Given y with a W-witness, a deterministic algorithm finds one using at most b extension queries and time O(b + sum_{i=0}^{b-1} q_i). Proof: begin with empty prefix p, which has a witness extension by assumption. At depth i, query E(y,p0). If true, replace p by p0; otherwise replace p by p1. In the latter case the invariant supplies an extension of p and the failed query rules out p0, so p1 has an extension. Thus after each query the invariant holds. At depth b, p is a full-length string with W(y,p), and the sum of query costs plus O(b) bookkeeping gives the stated bound. Scope: conditional selector bound only; it does not prove the QE* extension predicate has these costs.\nproof: The invariant is that the current prefix p has some extension z with W(y,z). Initially this follows from the assumed existence of a witness. If E(y,p0)=1, choose p0 and preserve the invariant. If E(y,p0)=0, an extension of p exists by the invariant, and none extends p0; since the next bit is binary, an extension must extend p1. After b iterations the prefix has length b, so its only extension is itself and it satisfies W. There is one query at each depth i, costing at most q_i, plus O(b) prefix-management time.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795766179.4556835,
+  "session": "pnp-desk/research/R4669",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: Verifier-to-extension bound for fixed-length witnesses. Let Y be a finite input set, b>=0, and W subseteq Y x {0,1}^b. Suppose a deterministic verifier V(y,z) decides membership in W and runs in at most T(y,b) time on every z of length b. For each prefix p of length i<=b define E(y,p)=1 iff some z in {0,1}^b extending p satisfies V(y,z)=1. Then E is computable in at most 2^(b-i) (T(y,b)+O(b)) time, up to polynomial overhead for enumerating and supplying suffixes. Consequently, on any y having a W-witness, the binary prefix selector finds one in at most b queries and total time O(b + sum_{i=0}^{b-1} 2^(b-i-1)(T(y,b)+b)); in particular this is O(2^b(T(y,b)+b)). If b <= c log_2 s and T(y,b) <= s^d for fixed constants c,d, the selector runs in polynomial time in s. Proof: for fixed (y,p), enumerate all 2^(b-i) suffixes u of length b-i and run V(y,pu); return 1 upon the first acceptance and 0 if all reject. This is exactly E by its definition and uses at most 2^(b-i) verifier calls, each costing T(y,b), plus O(b) per candidate to form or manage the string, yielding the stated bound. Apply the prefix-selector invariant: initially the empty prefix has a witness; at depth i query E(y,p0), retain p0 if true, otherwise retain p1, which must have an extension because p has one and p0 has none. After b stages the prefix is itself a verified witness. Summing the query bounds gives O(b + (T+b) sum_{i=0}^{b-1}2^(b-i-1)) = O(b+ (T+b)(2^b-1)) = O(2^b(T+b)). Finally, if b<=c log_2 s, then 2^b<=s^c, so the bound is polynomial in s. Scope: this supplies a sufficient condition for a polynomial-time witness selector, conditional on a polynomial-time verifier and logarithmic witness length; it does not establish that QE* has logarithmic-length witnesses or a QE*-specific verifier bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795766179.4786963,
+  "session": "pnp-desk/research/R4669",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Verifier-to-extension bound for fixed-length witnesses. Let Y be a finite input set, b>=0, and W subseteq Y x {0,1}^b. Suppose a deterministic verifier V(y,z) decides membership in W and runs in at most T(y,b) time on every z of length b. For each prefix p of length i<=b define E(y,p)=1 iff some z in {0,1}^b extending p satisfies V(y,z)=1. Then E is computable in at most 2^(b-i) (T(y,b)+O(b)) time, up to polynomial overhead for enumerating and supplying suffixes. Consequently, on any y having a W-witness, the binary prefix selector finds one in at most b queries and total time O(b + sum_{i=0}^{b-1} 2^(b-i-1)(T(y,b)+b)); in particular this is O(2^b(T(y,b)+b)). If b <= c log_2 s and T(y,b) <= s^d for fixed constants c,d, the selector runs in polynomial time in s. Proof: for fixed (y,p), enumerate all 2^(b-i) suffixes u of length b-i and run V(y,pu); return 1 upon the first acceptance and 0 if all reject. This is exactly E by its definition and uses at most 2^(b-i) verifier calls, each costing T(y,b), plus O(b) per candidate to form or manage the string, yielding the stated bound. Apply the prefix-selector invariant: initially the empty prefix has a witness; at depth i query E(y,p0), retain p0 if true, otherwise retain p1, which must have an extension because p has one and p0 has none. After b stages the prefix is itself a verified witness. Summing the query bounds gives O(b + (T+b) sum_{i=0}^{b-1}2^(b-i-1)) = O(b+ (T+b)(2^b-1)) = O(2^b(T+b)). Finally, if b<=c log_2 s, then 2^b<=s^c, so the bound is polynomial in s. Scope: this supplies a sufficient condition for a polynomial-time witness selector, conditional on a polynomial-time verifier and logarithmic witness length; it does not establish that QE* has logarithmic-length witnesses or a QE*-specific verifier bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]
