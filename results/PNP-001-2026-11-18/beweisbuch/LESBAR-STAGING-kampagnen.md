@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 17359 entries from 5678 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 17449 entries from 5706 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - The threshold function 'at most m of n variables are 0' depends only on the numbers of zeros on the two sides of a cut
 PREMISES: 
@@ -25,12 +25,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For pairwise-independent live indicators with common marginal p, the occurrence-weighted number of reused gates retaining at least two live support variables has expectation at most sum_g f_g min(1, binom(d_g,2)p^2), by the pair-count lemma S0022. The remainin
+  - For a De Morgan formula tree with no shared gate references, every restriction and constant-propagation simplification has residual variable-leaf count bounded pointwise by the number of live original variable leaves; hence under marginal live probability p it
   - A useful witness-sensitive QE* reduction may be possible if the admissible-witness relation has a uniformly computable prefix-extension predicate, within the target resource bound, on every prefix queried for promised outputs.
   - Under marginal-survival assumptions alone, no universal bound E[L(Phi|rho)] <= C(N)(p^2 L(Phi)+sum_g f_g q_g^2) can hold with C(N)=N^{o(1)} uniformly for single-leaf formulas if p may equal N^{-alpha} for fixed alpha>0 and there are no gate leaves.
   - For every finite truth-table family F subseteq {0,1}^N, the exact prefix automaton has at most |F|+1 residual states at each fixed depth.
   - For any F subseteq {0,1}^N, the zero-update-gate endpoint at S=N can be implemented with states equal to zero-padded raw prefixes; for every S<N, obtaining zero update gates may require moving information into the final decoder or a different encoding.
-  - Under recursive De Morgan simplification that evaluates constants, removes neutral constants, folds absorbing constants, and suppresses unary nodes without duplicating subtrees, residual size is at most twice the number X of active leaf occurrences plus one. F
-  - For a fixed recognition language F, the zero-gate condition forces every computed function to have essential-variable count at most the state width S, independently of decoder complexity; on structured stream families this may yield stronger meaningful lower b
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
@@ -39,13 +39,13 @@ REFUTED:
 APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
-  - None -> EXHAUSTED: TURN_LIMIT
-  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
+  - None -> None
+  - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-NUMERICAL EVIDENCE on file: 3366 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3375 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve

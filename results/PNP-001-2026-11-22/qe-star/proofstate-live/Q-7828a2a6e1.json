@@ -178,5 +178,57 @@
   "kind": "LEMMA",
   "closes": "Q-7828a2a6e1",
   "closes_valid": true
+ },
+ {
+  "at": 1795734602.3617737,
+  "session": "pnp-desk/research/R4525",
+  "model": "gpt-6-luna",
+  "id": "S0018",
+  "proved_step": "statement: Let Phi be a finite De Morgan formula with L input-leaf occurrences, and let rho be any distribution of restrictions such that every input variable is live with marginal probability p. Form Phi|rho by substituting constants for fixed variables and simplifying constants by De Morgan constant folding, without duplicating subformulas. Count only nonconstant variable-leaf occurrences in the simplified residual. Then E[L_var(Phi|rho)] <= pL.\nproof: For each original input-leaf occurrence i, let I_i be 1 if its variable is live under rho. Before simplification the number of nonconstant variable-leaf occurrences is exactly X=sum_i I_i. Constant folding at AND/OR/NOT nodes deletes or retains subtrees and never duplicates a leaf occurrence, so L_var(Phi|rho)<=X for every restriction. Taking expectations and using E[I_i]=p gives E[L_var(Phi|rho)]<=E[X]=sum_i p=pL. No independence assumption is needed. This repairs only the input-leaf term under the stated simplification semantics; it does not bound residual gate-leaves or establish P2'.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795735732.547945,
+  "session": "pnp-desk/research/R4531",
+  "model": "gpt-6-luna",
+  "id": "S0019",
+  "proved_step": "statement: Let T be a finite rooted Boolean formula tree whose leaves are input variables, and let rho be any partial assignment to those variables. Define T|rho recursively by substituting fixed leaves by constants and simplifying each AND/OR node by the identities 0 AND A=0, 1 AND A=A, 0 OR A=A, 1 OR A=1; whenever a gate becomes a constant or has one surviving child, replace that subtree by its resulting constant or child. Then the number of variable-leaf occurrences in T|rho is at most the number of leaves of T whose variables are left unassigned by rho.\nProof: Induct on T. For a variable leaf, its restricted residual has zero variable leaves if fixed and one if live, matching the live-leaf count. Suppose T is an AND or OR node with children T1,T2. By induction, each simplified child has at most as many variable leaves as the live leaves in its original child. Before final gate simplification, the combined tree therefore has at most the sum of those bounds, which is the live-leaf count in T. Each listed simplification either replaces a subtree by a constant or deletes a gate while retaining a child; neither increases variable-leaf count. Thus the final residual obeys the bound. This result concerns only tree syntax with variable leaves; it does not cover shared/reused gate leaves or arbitrary residual-size measures.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-7828a2a6e1",
+  "closes_valid": true
+ },
+ {
+  "at": 1795736595.558623,
+  "session": "pnp-desk/research/R4535",
+  "model": "gpt-6-luna",
+  "id": "S0020",
+  "proved_step": "statement: For every sufficiently large N, set p=N^{-1/3} and let Phi be the one-leaf De Morgan formula x. Under the restriction that leaves x live with probability p, E[L(Phi|rho)] is at least p, so no bound E[L(Phi|rho)] <= N^{o(1)} p^2 can hold uniformly over such formulas and restrictions, when N^{o(1)} denotes a subpolynomial factor.\nproof: There are no gate leaves, so the proposed right side is N^{o(1)}p^2. If x is live, Phi|rho=x and has one input leaf; otherwise its residual is constant and has nonnegative size. Therefore E[L(Phi|rho)] >= Pr[x is live]=p=N^{-1/3}. For every subpolynomial factor N^{o(1)}=N^{epsilon(N)} with epsilon(N)->0, the proposed upper bound is N^{-2/3+epsilon(N)}, which is strictly less than N^{-1/3} for all sufficiently large N. The one-coordinate survival family is pairwise independent vacuously. Hence the universal P2' inequality is refuted in this model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-7828a2a6e1",
+  "closes_valid": true
+ },
+ {
+  "at": 1795736648.9872236,
+  "session": "pnp-desk/research/R4535",
+  "model": "gpt-6-luna",
+  "id": "S0021",
+  "proved_step": "statement: Let \u03a6 be a finite De Morgan formula with input-variable leaf occurrences of total count L and gate-leaf occurrences grouped by gates g, with f_g occurrences of g. Apply any restriction under which each input variable is live with marginal probability p and each gate g is nonconstant with probability q_g. Form \u03a6|\u03c1 by substituting constants for restricted inputs and constant gates, then only applying constant folding that never duplicates nodes. If L(\u00b7) counts leaf occurrences, then E[L(\u03a6|\u03c1)] \u2264 pL + \u03a3_g f_g q_g. No independence assumptions are required.\nproof: For each original input-leaf occurrence i, let I_i indicate that its variable is live. For each original gate-leaf occurrence j labelled g, let J_j indicate that g is nonconstant. Before constant folding, the restricted syntax has exactly \u03a3_i I_i + \u03a3_g \u03a3_{j=1}^{f_g} J_j surviving leaf occurrences. Constant folding that never duplicates nodes cannot increase this count, so pointwise L(\u03a6|\u03c1) \u2264 \u03a3_i I_i + \u03a3_g \u03a3_j J_j. Taking expectations and using linearity gives E[L(\u03a6|\u03c1)] \u2264 \u03a3_i Pr(I_i=1) + \u03a3_g \u03a3_j Pr(J_j=1) = pL + \u03a3_g f_g q_g. Correlations among survival events do not affect this calculation. This repairs the input contribution in P2\u2032, but does not establish the proposed squared-probability gate contribution or any stronger shrinkage bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-7828a2a6e1",
+  "closes_valid": true
+ },
+ {
+  "at": 1795737464.4409506,
+  "session": "pnp-desk/research/R4539",
+  "model": "gpt-6-luna",
+  "evidence": "The proof uses pairwise independence gate-by-gate: a surviving-nontrivial gate requires at least one live pair in its support, and each such pair is live with probability p^2. Experiment cm-72d0e7a1a7a54563 finitely corroborated the bound on unbiased linear-form families over F2 for d<=8. The experiment is not the proof. Scope: common marginal p and the explicit >=2-live-support definition.",
+  "id": "S0022",
+  "proved_step": "statement: Let U be a finite set of variables and let I_v in {0,1} indicate whether v remains live under a random restriction. Assume E[I_v]=p for all v and the indicators are pairwise independent. For any finite family G of Boolean functions g, let supp(g) subseteq U have size d_g and assume g depends only on supp(g). Define g to survive nontrivially when at least two variables in supp(g) remain live. Then Pr[g survives nontrivially] <= min(1, binom(d_g,2)p^2). Consequently, for any nonnegative occurrence weights f_g, E[sum_{g in G} f_g 1(g survives nontrivially)] <= sum_{g in G} f_g min(1, binom(d_g,2)p^2). Proof: If g has fewer than two live support variables, its restricted function depends on at most one variable and is therefore constant or a literal (possibly negated), so it is not nontrivial by definition. Thus the event that g survives nontrivially is contained in the union over unordered pairs {u,v} subseteq supp(g) of events {I_u=I_v=1}. Pairwise independence and the common marginal give Pr[I_u=I_v=1]=p^2 for each pair. The union bound gives Pr[g survives] <= binom(d_g,2)p^2, and every probability is at most 1, yielding the minimum. Multiply by f_g and sum; linearity of expectation yields the consequence without independence between different gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

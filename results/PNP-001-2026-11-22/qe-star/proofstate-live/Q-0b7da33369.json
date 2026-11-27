@@ -7143,5 +7143,73 @@
   "proved_step": "statement: PHASE/DATA CYCLE ADVANCE. For every integer m>=2, let the state space be Z_m x Z_m, define D(z,x)=z+x mod m and U(z,x)=(z+1 mod m,x). Then for every (z,x), D(U(z,x))=D(z,x)+1 mod m. The state space has m^2 states and can be represented by 2 ceil(log2 m) bits using fixed-width binary registers restricted to values below m. Proof: U(z,x)=(z+1 mod m,x), hence D(U(z,x))=(z+1+x) mod m=(D(z,x)+1) mod m by associativity of addition modulo m. There are m choices for each coordinate, so m^2 states; each coordinate requires ceil(log2 m) bits. This is an enriched phase/data representation with explicit phase z; it asserts no lower bound for stationary encodings on m states and no P-vs-NP consequence.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795734829.5772667,
+  "session": "pnp-desk/research/R4526",
+  "model": "gpt-6-luna",
+  "lemma": "For a map differing from the cyclic successor at k specified states, the natural binary-index encoding admits a total fan-in-two update circuit of O((k+1)S) gates, with S=ceil(log2 m). This is an exception-sensitive upper bound; it does not establish a worst-case lower or upper bound for arbitrary maps.",
+  "id": "S0818",
+  "proved_step": "statement: Exception-sensitive update lemma. Let Q={q_0,...,q_{m-1}} with m>=2, let S=ceil(log_2 m), and let delta:Q->Q agree with the cyclic successor sigma(q_i)=q_{i+1 mod m} except on a set E of k states. Under an injective stationary encoding psi(q_i)=the S-bit binary representation of i, delta has a total Boolean extension on {0,1}^S computable with O((k+1)S^2) fan-in-two gates over any fixed complete basis. Proof: Let B be the total S-bit map that increments modulo 2^S. For each exceptional index i in E, form the equality indicator e_i(x)=[x=i] using O(S) fan-in-two gates. For each output bit j, set F_j(x)=B_j(x) XOR OR_{i in E}( e_i(x) AND ( B_j(x) XOR enc(delta(q_i))_j ) ). The e_i are mutually exclusive, so for a valid nonexceptional code i<m all corrections vanish and B(x)=enc(q_{i+1 mod m})=enc(delta(q_i)); for an exceptional valid code i, exactly its correction is active and the output becomes enc(delta(q_i)). Thus the extension is correct on every encoded state; on unused codes its values are unrestricted. B costs O(S) gates, all equality tests O(kS), and all bitwise correction/aggregation gates O(kS), giving O((k+1)S) gates (hence the stated weaker O((k+1)S^2) bound).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795734880.49249,
+  "session": "pnp-desk/research/R4526",
+  "model": "gpt-6-luna",
+  "refuted_approach": "S0818 uses S-bit increment modulo 2^S as the default, but when m<2^S it sends valid code m-1 to m rather than to the cyclic successor code 0. If delta agrees with the cyclic successor there and m-1 is not in E, the circuit is incorrect on q_{m-1}.",
+  "evidence": "Counterexample: m=3, S=2, E empty, x=2. The proposed default gives 3 (binary 11), but delta(q_2)=q_0 has code 0. When m=2^S increment wraps correctly; the defect is the non-power-of-two case.",
+  "id": "S0819",
+  "proved_step": "statement: Repaired exception-sensitive update lemma. Let Q={q_0,...,q_{m-1}}, m>=2, S=ceil(log_2 m), and let delta:Q->Q agree with sigma(q_i)=q_{i+1 mod m} outside an exceptional set E of size k. Under the stationary encoding psi(q_i)=the S-bit binary representation of i, delta has a total Boolean extension using O((k+1)S) fan-in-two gates over any fixed complete basis. Proof: Let B(x)=x+1 modulo 2^S, implemented with O(S) fan-in-two gates. Set C=E union {m-1}, so |C|<=k+1. For every i in C compute e_i(x)=[x=i] with O(S) gates. For each output bit j define F_j(x)=B_j(x) XOR OR_{i in C}(e_i(x) AND (B_j(x) XOR enc(delta(q_i))_j)). The indicators are mutually exclusive. At any valid code i outside C, i<m-1 and delta(q_i)=q_{i+1}, so B gives the correct code. At i in C, exactly e_i is true, so the correction replaces B(x) by enc(delta(q_i)); this handles the cyclic wrap at m-1 even if m-1 is not exceptional. These formulas define a total map on all S-bit strings, with unrestricted behavior on unused codes. B costs O(S), equality tests O((k+1)S), and correction products and per-bit OR/XOR aggregation O((k+1)S), for total O((k+1)S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795735085.3561206,
+  "session": "pnp-desk/research/R4526",
+  "model": "gpt-6-luna",
+  "id": "S0820",
+  "proved_step": "statement: Sparse-exception correction lemma. Let D={0,1}^S, V\u2286D, and let g:D\u2192D have a fan-in-two circuit of G gates. If f:V\u2192D differs from g on at most k inputs, then f extends to a total F:D\u2192D using G+O((k+1)S) fan-in-two gates. Proof: list the r\u2264k exceptional inputs a_i and desired outputs b_i=f(a_i). Compute e_i(x)=[x=a_i] with O(S) gates. For each output bit j set F_j(x)=g_j(x) XOR OR_{i=1}^r(e_i(x) AND (g_j(x) XOR (b_i)_j)). The indicators are mutually exclusive, so F=g away from the listed inputs and F(a_i)=b_i. Equality tests cost O(rS); correction products, per-bit ORs, and output XORs cost O(rS) total. Behavior outside V is unrestricted. The added cost is O((k+1)S), including the r=0 case.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736310.5149062,
+  "session": "pnp-desk/research/R4534",
+  "model": "gpt-6-luna",
+  "id": "S0821",
+  "proved_step": "statement: For every permutation on m>=2 states with c cycles, there is a stationary injective encoding into S=ceil(log2 m) bits whose transition extends to a total Boolean map of O((c+1)S) fan-in-two gates. Proof: list each cycle in successor order and assign its states consecutive codes in [0,m-1], giving each cycle an interval [a_i,e_i]. Let B(x)=x+1 mod 2^S. For each endpoint e_i compute E_i(x)=[x=e_i] using O(S) gates. For each output bit r set F_r(x)=B_r(x) XOR OR_i(E_i(x) AND (B_r(x) XOR (a_i)_r)). Endpoint tests are mutually exclusive. Off endpoints F(x)=B(x), the next code in the interval; at e_i the correction gives a_i, the correct cycle successor. The incrementer costs O(S), endpoint tests O(cS), and corrections and aggregation O(cS). These formulas define F on all S-bit inputs, including unused codes. Total O((c+1)S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736490.738626,
+  "session": "pnp-desk/research/R4534",
+  "model": "gpt-6-luna",
+  "id": "S0822",
+  "proved_step": "statement: For every fixed-point-free involution \u03b4 on a set Q of size 2p, p\u22651, there is a stationary injective encoding \u03c8:Q\u2192{0,1}^S, S=ceil(log2(2p)), such that the encoded transition extends to a total Boolean map computed by one fan-in-two-basis NOT gate. Proof: partition Q into its p unordered pairs {q,\u03b4(q)} and assign the pairs distinct indices in {0,...,p\u22121}. For each pair choose an ordering (q_i^0,q_i^1) with \u03b4(q_i^0)=q_i^1. Let k=ceil(log2 p); encode q_i^b by the k-bit binary representation of i followed by tag b. Since k+1=ceil(log2(2p)), this uses exactly S bits (with the empty index when p=1). The encoding is injective. The total map that leaves the first k bits unchanged and complements the final bit is one NOT gate and sends each valid code \u03c8(q) to \u03c8(\u03b4(q)). Its behavior on unused codes is also defined by the same map.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736533.5562322,
+  "session": "pnp-desk/research/R4534",
+  "model": "gpt-6-luna",
+  "id": "S0823",
+  "proved_step": "statement: Let \u03b4 be an involution on an m-element set, with p two-cycles and f fixed points, where m=2p+f. There is a stationary injective encoding \u03c8 into S=ceil(log2 m) bits whose transition extends to a total fan-in-two Boolean map of O((p+1)S) gates. Proof: assign the states in each two-cycle distinct codes u_i,v_i in {0,1}^S, and assign each fixed point a distinct code w_j, with all assigned codes distinct; this is possible since there are m available codes. Define F(x)=x XOR OR_{i=1}^p (([x=u_i] OR [x=v_i]) AND (u_i XOR v_i)), where the vector OR and AND are coordinatewise and each equality test is implemented by an S-bit comparison and an AND tree. At x=u_i or v_i, exactly its pair predicate is true, and XOR with u_i XOR v_i maps it to its partner. At every fixed-point code and every other code, all pair predicates vanish, so F(x)=x. Thus F agrees with \u03b4 on all encoded states and defines a total map. The p equality-pair tests cost O(pS), and forming and applying the corrections across S output bits costs O(pS); total O((p+1)S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795737656.4420743,
+  "session": "pnp-desk/research/R4542",
+  "model": "gpt-6-luna",
+  "id": "S0824",
+  "proved_step": "LEMMA (general transition-table upper bound). For every finite state set Q of size m>=2 and every map delta:Q->Q, with S=ceil(log2 m), there is an injective stationary encoding psi:Q->{0,1}^S such that the encoded transition extends to a total Boolean map computable by O(mS) fan-in-two gates. Proof: choose any injection and enumerate Q={q_1,...,q_m}. For each i construct E_i(x)=[x=psi(q_i)] using O(S) fan-in-two Boolean gates by comparing each coordinate to its fixed bit and ANDing the results. For each output coordinate j set F_j(x)=OR_{i: psi(delta(q_i))_j=1} E_i(x), with empty OR equal to 0; this uses at most m-1 additional OR gates per coordinate. Thus all E_i and F_j together have O(mS) gates. At x=psi(q_i), injectivity makes E_i=1 and every other indicator 0, so F(x)=psi(delta(q_i)); on invalid codes the same formulas still define a total Boolean map. This proves the stated bound, with no claim that it is asymptotically optimal.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
  }
 ]

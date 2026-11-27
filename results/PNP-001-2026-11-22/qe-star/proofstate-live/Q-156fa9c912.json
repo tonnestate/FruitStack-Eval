@@ -8627,5 +8627,81 @@
   "kind": "LEMMA",
   "closes": "Q-156fa9c912",
   "closes_valid": true
+ },
+ {
+  "at": 1795734761.2178504,
+  "session": "pnp-desk/research/R4524",
+  "model": "gpt-6-luna",
+  "id": "S0994",
+  "proved_step": "statement: RESIDUAL-SET CHARACTERIZATION OF EXACT ONE-PASS STATES. Let L be any subset of {0,1}^N. For a prefix p define R_p={z in {0,1}^{N-|p|}: pz in L}. In any deterministic one-pass machine recognizing L exactly, prefixes p,q with R_p != R_q reach different states. Thus the machine has at least as many states as there are distinct residual sets. Conversely, the machine whose states are the distinct residual sets (with level/remaining-length implicit) and whose transition on b maps R_p to R_{pb}={z: bz in R_p} recognizes L exactly. Proof: if R_p and R_q differ, choose z in their symmetric difference; exactly one of pz,qz lies in L, so equal machine states would imply equal outcomes after the common continuation z, contradiction. For the converse, maintain the current residual set; its update is exactly the displayed restriction, and at length N accept iff the empty continuation belongs to it. This is a semantic state characterization only and provides no real-gate bound for updating the representation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-156fa9c912",
+  "closes_valid": true
+ },
+ {
+  "at": 1795735183.0703845,
+  "session": "pnp-desk/research/R4524",
+  "model": "gpt-6-luna",
+  "id": "S0995",
+  "proved_step": "statement: BOUNDED-WITNESS PROJECTION CIRCUIT. Let H(x,w) be computed by a fan-in-two Boolean circuit with h gates, where x has N bits and w has r bits. Define G(x)=OR_{w in {0,1}^r} H(x,w). Then G has a fan-in-two circuit of at most 2^r(h+1)-1 gates. For any fixed prefix p of x, the cofactor G_p has a circuit of no greater size, and the child cofactor G_{pb} is obtained by fixing the next visible input bit without increasing size. Consequently, if r <= c log_2(h+1) for a fixed constant c, G has polynomial size at most (h+1)^{c+1}. Proof: For every witness w, copy H and hardwire w, using h gates. Combine the 2^r outputs by a binary OR tree using 2^r-1 gates. The sum is 2^r h+2^r-1. Fixing visible input bits only substitutes constants into this circuit, so cannot increase gate count. Finally 2^r <= (h+1)^c under the hypothesis, yielding the stated polynomial bound. This applies to a fixed verifier with logarithmically many witness bits relative to its gate count; for H_C, tableau witnesses have g bits and the bound remains exponential in g, so it does not solve the arbitrary-MCSP transition-cost bridge.\nderivation: Expand existential quantification over all 2^r assignments to w by a disjunction of 2^r independently hardwired copies of H; cofactoring preserves gate count. Under r<=c log2(h+1), the explicit bound is polynomial.\nscope: All finite Boolean circuits with constants and wiring free; fan-in-two gates. The polynomial conclusion requires the stated witness-width condition and does not apply to arbitrary H_C tableaux.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795735493.101874,
+  "session": "pnp-desk/research/R4524",
+  "model": "gpt-6-luna",
+  "id": "S0996",
+  "proved_step": "statement: DESCRIPTION-ONLY EXISTENTIAL WITNESS FOR EXT. Fix a canonical encoding d of fan-in-at-most-two Boolean circuits with at most s gates on n inputs, with encoding length L=O(s log(n+s)); invalid encodings are rejected. For each valid d and input x, let y list one output bit per gate, and let H(d,x,y) assert all gate equations and that the output is 1. Then for every x, exists d exists y H(d,x,y) iff exists valid d such that C_d(x)=1. Consequently, for every prefix p, exists z exists d exists y H(d,pz,y) iff exists z exists valid d such that C_d(pz)=1. Proof: Fix valid d and x. Induct through the gates in topological order: each local equation uniquely forces the next gate-output bit, so exactly one tableau y satisfies all gate equations, namely the evaluation of C_d(x). The output condition accepts this tableau iff C_d(x)=1. Taking the existential quantifiers over d and z preserves the equivalence. Thus the tableau contributes no independent witness choice; the remaining existential choice is the circuit description. This does not provide a polynomial-size ordinary Boolean circuit for projecting over all descriptions d or for updating EXT residuals.\nderivation: For each fixed valid description d and input x, gate equations uniquely determine the tableau by topological induction. Therefore existentially quantifying y is exactly evaluation of C_d(x); then quantify over d and, for prefix predicates, over suffix z.\nscope: Finite fan-in-at-most-two Boolean circuits under the stated canonical encoding, with gate outputs represented explicitly; applies to every input and fixed prefix. No gate bound for projection over descriptions is claimed.\nobstacle: The remaining existential projection over all circuit descriptions and suffixes has no polynomial ordinary-gate implementation bound established here.\nattack: Use this witness reduction to isolate the circuit-description projection; seek either a compact representation/update for that projection or a lower bound for this specific residual representation.\ntarget_relevance: Shrinks the EXT tableau-witness formulation by showing that gate tableau bits are functionally determined, while identifying the unresolved cost as projection over candidate circuit descriptions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795735900.1902559,
+  "session": "pnp-desk/research/R4532",
+  "model": "gpt-6-luna",
+  "id": "S0997",
+  "proved_step": "statement: PREFIX-FEASIBILITY OR RECURRENCE FOR A FIXED VERIFIER. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be any Boolean relation, and define E(p)=1 iff there exist a suffix z of length N\u2212|p| and witness w\u2208{0,1}^r such that H(pz,w)=1. For every prefix p with |p|<N, E(p)=E(p0)\u2228E(p1). At length N, E(p)=1 iff some w satisfies H(p,w)=1. Proof: Every suffix z of positive length has a unique first bit b\u2208{0,1} and a remaining suffix z\u2032. Thus a pair (z,w) witnessing E(p) yields a witness for E(pb), where b is that first bit. Conversely, a witness (z\u2032,w) for E(pb) gives the suffix bz\u2032 witnessing E(p). Taking the disjunction over the two possible first bits proves the recurrence. When |p|=N there is no suffix variable, leaving exactly the stated witness condition. This is an exact semantic recurrence; it supplies neither a small ordinary circuit for E nor a bound on the cost of computing either child from a representation of H.\nderivation: Partition the existential suffix assignments by their first bit. Each assignment belongs to exactly one part; the witness variable is unchanged in either part. The full-length boundary case has an empty suffix, so only the witness remains.\nscope: All finite N,r, Boolean relations H and prefixes p. Gate complexity of the projected predicate and transition cost are not asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736298.4463758,
+  "session": "pnp-desk/research/R4532",
+  "model": "gpt-6-luna",
+  "evidence": "The finite recurrence check cm-d1d0c95223694b26 found no counterexample on all enumerated Boolean relations with truth-table length at most 12 bits; it is only a sanity check. The lemma\u2019s general proof is the lexicographic partition argument given in the step itself.",
+  "id": "S0998",
+  "proved_step": "statement: TRUTH-TABLE RESIDUAL ENCODING AND HALVING UPDATE. Let G:{0,1}^N\u2192{0,1} be any Boolean predicate and, for a prefix p of length t, let R_p:{0,1}^{N-t}\u2192{0,1} be R_p(z)=G(pz). Store R_p by its truth vector in lexicographic suffix order, using exactly 2^{N-t} bits. For t<N, the vectors for R_{p0} and R_{p1} are respectively the first and second halves of the vector for R_p; thus either one-child update is obtained by selecting a half, with zero Boolean gates and O(2^{N-t}) bit reads/copies in an explicit bit-array representation. At t=N, the vector has one bit and equals G(p). Proof: list suffixes z of length N-t in lexicographic order. The suffixes of R_{p0} are exactly the strings 0z in the first half of the parent\u2019s ordered suffix list, and those of R_{p1} are exactly the strings 1z in the second half. Evaluating R_p on each listed suffix gives G(pz), which is precisely the child vector entries in order. At full length the only suffix is the empty string, so the sole entry is G(p). This representation is exact and has exponential worst-case storage; it gives no polynomial transition or construction bound from a succinct circuit for G or from H_C.\nderivation: Explicitly encode each residual function by all of its suffix values; lexicographic suffix order partitions by first suffix bit into two equal contiguous blocks, which are the child residual truth vectors.\nscope: All N\u22650, all Boolean predicates G, and all prefixes p of length 0..N. Update cost is stated as bit-array access/copy cost, not Boolean gate complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736438.9524572,
+  "session": "pnp-desk/research/R4532",
+  "model": "gpt-6-luna",
+  "evidence": "The proof is an injection/counting argument. The prior finite recurrence experiment cm-d1d0c95223694b26 is not used as a premise.",
+  "id": "S0999",
+  "proved_step": "statement: LIVE-PREFIX COUNT BOUND FOR A FINITE LANGUAGE. Let N be a nonnegative integer and L be a subset of {0,1}^N. For 0<=t<=N, let T_t={p in {0,1}^t : there exists z in {0,1}^{N-t} with pz in L}. Then |T_t|<=min(2^t,|L|), and the total number of live-prefix nodes in the trie of L is at most sum_{t=0}^N min(2^t,|L|). Proof: The ambient set {0,1}^t has size 2^t. For each p in T_t choose one extension w_p in L. If p and q are distinct length-t strings, no length-N string can extend both, so w_p != w_q. Thus p -> w_p is an injection T_t -> L, proving |T_t|<=|L| as well. Summing the level bounds proves the total bound. For L equal to the set of truth tables of circuits in any fixed finite description class, this yields an upper bound by replacing |L| with the number of circuit descriptions. It gives no bound on ordinary Boolean-gate cost for updating a succinct representation.\nderivation: At each depth t, count prefixes both by the full binary level and by an injection that sends each live prefix to one distinct accepted string extending it; sum over depths.\nscope: All finite N and all L subset {0,1}^N, including L empty. Counts trie nodes only; no circuit transition complexity is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795737293.5316825,
+  "session": "pnp-desk/research/R4540",
+  "model": "gpt-6-luna",
+  "id": "S1000",
+  "proved_step": "statement: EXT CONTINUATION-EQUIVALENCE LEMMA. Let L be any language of finite binary strings and let A be a deterministic streaming automaton that reads strings left to right and decides L at end of input. For each prefix p, define its residual language R_p={z in {0,1}*: pz in L}. If A reaches the same state after prefixes p and q, then R_p=R_q. Conversely, if R_p=R_q for all prefixes p,q that reach one given state partition, the quotient whose states are the distinct residual languages R_p, with transition delta(R_p,b)=R_{pb}, is well-defined and recognizes L. Proof: If A(p)=A(q) as states, determinism implies that for each suffix z, processing z from that state yields the same final decision; hence pz is in L iff qz is in L, so R_p=R_q. For the converse, if R_p=R_q then for each bit b and suffix z, pbz in L iff p(bz) in L iff q(bz) in L iff qbz in L; thus R_{pb}=R_{qb}, so delta is independent of the representative. The initial state is R_empty. After reading p the quotient state is R_p by induction on |p|, and at end it accepts exactly when the empty string belongs to R_p, equivalently p in L. Therefore every correct deterministic streaming implementation of EXT must distinguish any pair of prefixes p,q for which there exists a suffix z with EXT(pz) != EXT(qz); these residual languages are the exact semantic information in its state. This makes no assertion about the number of residuals or the Boolean circuit/gate complexity of computing delta.\nderivation: Use determinism to show equal reached states give equal outcomes on every common continuation. For the quotient construction, verify that appending one bit preserves residual equality, then induct over the input and use epsilon membership as the accepting condition.\nscope: All languages L subseteq {0,1}* and deterministic streaming automata; applies to EXT_{n,s} on its fixed-length truth-table prefixes by restricting suffixes to the remaining length. It characterizes semantic state only; it gives no real-gate transition bound and no lower bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795737465.4551957,
+  "session": "pnp-desk/research/R4540",
+  "model": "gpt-6-luna",
+  "id": "S1001",
+  "proved_step": "statement: COMPATIBLE-CIRCUIT SET UPDATE LEMMA. Let F be any finite indexed family of Boolean circuits C_i:{0,1}^N->{0,1}, i in I, and let L_F={x in {0,1}^N: C_i(x)=1 for some i in I}. For each prefix p of length t define I_p={i in I: C_i(pz)=1 for some z in {0,1}^{N-t}}. Then for every bit b, I_{pb}={i in I_p: there exists z' in {0,1}^{N-t-1} with C_i(pb z')=1}; in particular I_{pb} is computable from I_p by filtering each surviving index according to whether its circuit has an accepting completion under the extended prefix. Moreover p has an accepting completion in L_F iff I_p is nonempty. Proof: If i\u2208I_{pb}, then pbz' is an accepting completion for C_i, hence p(bz') witnesses i\u2208I_p; also its first suffix bit is b, so i passes the stated filter. Conversely, if i\u2208I_p and C_i has an accepting completion with next bit b, write that completion uniquely as bz'; then i\u2208I_{pb}. The final equivalence follows directly from the existential definitions and finiteness of I. This yields an exact streaming representation using a subset of I as its semantic state, with at most 2^{|I|} raw states; it does not give a bounded fan-in circuit cost for the filtering predicate from H_C, nor a bound for arbitrary MCSP decision circuits.\nderivation: Expand the existential quantifier over the suffix into its first bit and remaining suffix. Both inclusions follow by concatenation/decomposition of that suffix. Nonemptiness is equivalent to the existential choice of a family index and accepting completion.\nscope: Every finite indexed circuit family and every prefix length t<N; arbitrary Boolean circuits, with no resource bound asserted for computing the update.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
