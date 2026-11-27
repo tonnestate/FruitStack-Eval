@@ -152,5 +152,118 @@
   "proved_step": "statement: For m>r>=0, q=m-r>=1, c>=1, and f:{0,1}^m->{0,1} with support t<=2^r q^(c-1), there is a restriction of exactly r coordinates whose q-variable cofactor has a fan-in-2 DNF of at most q^c-1 gates.\nderivation: For a current nonempty support A of size u, if u=1 any nonempty cofactor has size 1=ceil(u/2). If u>1, some coordinate is nonconstant on A (otherwise A is a singleton); its two nonempty cofactor sizes sum to u, so the smaller is at most floor(u/2). Thus each restriction leaves nonempty support at most ceil(u/2). Iterating r times gives support at most ceil(t/2^r)<=q^(c-1). Fix further coordinates as needed, retaining a nonempty cofactor. If its support has size v, express it as v satisfying minterms: each costs at most q-1 fan-in-2 AND gates and their OR costs v-1, totaling vq-1<=q^c-1. Empty support is constant zero.\nevidence: Direct averaging proof and binary gate count; cm-6e9531fadf71479f is finite sanity evidence only.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795745288.8986855,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the partition argument directly: for t>=2 pick distinct x,y in A and a coordinate i on which they differ; then A_{i=0},A_{i=1} are both nonempty and their sizes sum to t, so the smaller is at most floor(t/2) (the larger is at least ceil(t/2)). For t=1, fixing coordinate i to the unique point's bit leaves a singleton fiber. No hidden hypothesis (the coordinate is free, since it separates two support points). Scope is support reduction only; it does not itself give any MCSP threshold-preservation statement.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745288.9151573,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Re-derived the induction: after k admissible restrictions the surviving support size is at most floor(t/2^k), so after k=ceil(log2 t) it is exactly 1 (nonempty at every stage). I additionally checked the implicit count bound: a coordinate chosen at some step separates two points of the current support, hence cannot have been fixed earlier, so the k restrictions use distinct coordinates and k<=m; since t<=2^m this is consistent with k=ceil(log2 t). Statement is correct as a support-halving lemma; it says nothing about MCSP thresholds.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745288.931006,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Cofactor part is S0001's partition argument with t<=2T, T=(m-1)^(c-1): the smaller nonempty fiber has size <= floor(t/2) <= T. Circuit part: a support of size u on q variables has DNF with u minterms of q literals; with input negations free each minterm costs q-1 binary AND gates and the disjunction costs u-1 binary OR gates, total u(q-1)+(u-1)=u*q-1. Hence t*m-1<m^c gives a circuit of size <m^c, and |A_{i=b}|(m-1)-1 <= T(m-1)-1 = (m-1)^c-1 < (m-1)^c gives the cofactor circuit of size <(m-1)^c. The premise |A|<=2(m-1)^(c-1) is an explicit extra hypothesis, not inferred from YES status, as the evidence field correctly states.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745288.9465876,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is S0003 with the threshold premise made explicit twice (t*m-1<m^c for f, |A_{i=b}|<=T for the cofactor). I rechecked the gate count u*q-1 including the degenerate u=1 case (q-1 gates, matching u*q-1) and u=0 (size 0, consistent). The strict inequalities are used correctly: u*q-1 < m^c and u*(m-1)-1 <= (m-1)^c-1 < (m-1)^c. Statement is correct but the strong support premise |A|<=2(m-1)^(c-1) remains an extra hypothesis; it is not derived for arbitrary MCSP[m^c] YES instances.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.8806744,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct union bound argument: {sum X_i >= 2} subseteq union_{i<j} {X_i=X_j=1}; pairwise independence gives Pr[X_i=X_j=1]=p^2; sum over binom(d,2) pairs gives the bound. No independence beyond pairwise needed.",
+  "review_of": "S0005",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.9046085,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct inductive construction: at each step with |A_j|>=2, pick distinct x,y differing on an unfixed coordinate, restrict to smaller fiber (size <= floor(|A_j|/2) <= ceil(t/2^{j+1})); singleton case preserves support size 1. DNF construction on q=m-r variables gives ur-1 gates, bounded by m*ceil(t/2^r)-1. Condition is sufficient, not necessary.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.9291675,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: size(R) <= 2X+1 pointwise where X = #live leaf occurrences; E[X]=pL by linearity (marginal p, no independence needed); bound holds for any dependence among variable-live events.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.953339,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: same pointwise bound size(R) <= 2X+1, so E[size(R)] <= 2pL+1; Markov gives Pr[size(R)>=a] <= E[size(R)]/a <= (2pL+1)/a. The finite check cm-e42d28af87614660 is independent verification, not part of proof.",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745791.222061,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct density preservation: at each step with q free coordinates, the two fibers have densities averaging to current density, so at least one has density >= current. Induction over r coordinates preserves nonemptiness and density.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745791.2370393,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct for full cube: every 1-coordinate cofactor has size 2^{m-1}. The condition 2^{m-1} <= (m-1)^{c-1} is necessary and sufficient. At (m,c)=(2,3): T=1, 2^{1}=2 > 1, so no such cofactor. Discovery run cm-98221c45f8e14953 confirms boundary.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795747028.7716818,
+  "session": "pnp-desk/research/R4585",
+  "model": "gpt-6-luna",
+  "id": "S0016",
+  "proved_step": "statement: Let f:{0,1}^m->{0,1}, and fix k input coordinates. If every one of the 2^k cofactors has a fan-in-2 circuit of at most s gates, then f has a fan-in-2 circuit of at most 2^k s + 3(2^k-1)+k gates, counting NOT gates. Proof: Use disjoint circuits for all cofactors, at total cost at most 2^k s. Combine their outputs in a binary decision tree using Shannon selectors; each selector costs at most three gates, and the k selector negations can be shared. The tree computes f by the cofactor identity. Contrapositively, if f requires more than T gates, some cofactor requires more than (T-3(2^k-1)-k)/2^k gates. This does not establish the dimension-dependent MCSP threshold.\nproof: Build disjoint cofactor circuits and combine the outputs with a binary Shannon decision tree. Each internal selector uses at most three fan-in-2 gates; share at most k negations. The resulting circuit computes f exactly. Contraposition gives the stated consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795747280.8430572,
+  "session": "pnp-desk/research/R4585",
+  "model": "gpt-6-luna",
+  "id": "S0017",
+  "proved_step": "Let m>k>=0 and c>=1 be integers, and set r=m-k>=1. Suppose f:{0,1}^m->{0,1} has fan-in-2 Boolean circuit complexity greater than m^c, with NOT gates counted. If m^c > 2^k r^c + 3(2^k-1)+k, then some restriction rho fixing k input coordinates has residual function f|rho of circuit complexity greater than r^c. Proof: Suppose every k-coordinate cofactor had complexity at most r^c. There are 2^k such cofactors. Implement each with a separate circuit, using at most 2^k r^c gates total. Combine their outputs by a complete binary Shannon decision tree on the k fixed coordinates. The tree has 2^k-1 internal selectors; each selector is a 3-gate fan-in-2 mux, and the k negated selector variables can be shared. This gives a circuit for f of size at most 2^k r^c+3(2^k-1)+k, contradicting complexity(f)>m^c and the assumed strict inequality. Hence at least one cofactor has complexity >r^c. The conclusion is only a conditional NO-instance preservation statement in the displayed parameter range; it establishes neither AF P1/P2 nor preservation for arbitrary k,m,c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795748439.2540941,
+  "session": "pnp-desk/research/R4591",
+  "model": "gpt-6-luna",
+  "id": "S0018",
+  "proved_step": "For every Boolean function f on m variables with support size t>=1 and every k<=m, there exists a sequence of k coordinate restrictions retaining nonempty support of size at most ceil(t/2^k), provided k<=ceil(log2 t); after the support becomes a singleton, remaining restrictions fix coordinates consistently with that point. Proof: At any stage with at least two support points, select two that differ on an unfixed coordinate and retain the smaller nonempty fiber, reducing support by at least a factor of two. At singleton support, any further coordinate can be fixed consistently without changing support. Induction gives the bound ceil(t/2^k). This is a support-only lemma and does not imply survival of a dimension-dependent MCSP threshold.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
  }
 ]

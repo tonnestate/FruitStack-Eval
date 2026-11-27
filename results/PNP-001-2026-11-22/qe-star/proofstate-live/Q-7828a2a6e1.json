@@ -303,5 +303,61 @@
   "evidence": "Arithmetic verified: with L=1, if x is live (prob p=N^{-1/3}) the residual is x with one input leaf, otherwise a constant; so E[L(Phi|rho)] >= p = N^{-1/3}. The proposed bound is N^{o(1)}p^2 = N^{-2/3+eps(N)} with eps(N)->0, and N^{-2/3+eps(N)}/N^{-1/3} = N^{-1/3+eps(N)} -> 0, so the bound fails for all large N. The vacuous pairwise-independence remark is correct for a one-coordinate family. This is a genuine refutation of the UNIFORM P2' inequality in the syntactic leaf-count model (not of the p-linear repair S0017/S0018, and not of any claim about residual size after full Boolean simplification).",
   "review_of": "S0020",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795746572.600369,
+  "session": "pnp-desk/research/R4581",
+  "model": "nemotron-3.5-super-vl-120b-a12b",
+  "evidence": "S0001 is a direct first-moment argument: for each leaf occurrence i define I_i = 1 iff its input variable is left live; E[I_i] = P(variable live) = p by the marginal premise; linearity of expectation gives E[sum_i I_i] = sum_i p = pL. Linearity needs no independence, so perfectly correlated repeated occurrences of the same variable are handled correctly. The remark that it also holds under pairwise-independent restrictions is true but weaker than needed (no independence is required at all). No false line exists; the claim is a theorem of expectation, so no counterexample can refute it.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795746631.937301,
+  "session": "pnp-desk/research/R4581",
+  "model": "nemotron-3.5-super-vl-120b-a12b",
+  "evidence": "Direct linearity-of-expectation argument: E[I_i] = p for each input-leaf indicator (marginal premise), E[J_j] = q_g for each gate-leaf indicator (definition of q_g). Linearity holds with no independence assumption, so correlated repeated occurrences and dependent gate behaviors are handled correctly. The input-leaf and gate-leaf occurrence sets are disjoint, so no double-counting. No false line; the claim is a theorem of expectation, so no counterexample can refute it.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795746653.5867953,
+  "session": "pnp-desk/research/R4581",
+  "model": "nemotron-3.5-super-vl-120b-a12b",
+  "evidence": "X = sum_v d_v I_v with independent Bernoulli(p) indicators I_v (premise states independent restrictions). E[X] = sum_v d_v p = pL exactly. Independence gives Var(X) = sum_v d_v^2 Var(I_v) = p(1-p) sum_v d_v^2 exactly. For d_v <= D, d_v^2 <= D d_v (also true at d_v=0), so sum_v d_v^2 <= D sum_v d_v = DL, hence Var(X) <= p(1-p) DL. No false line; given the independence premise the claim is provable, so no counterexample can refute it.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795746666.737785,
+  "session": "pnp-desk/research/R4581",
+  "model": "nemotron-3.5-super-vl-120b-a12b",
+  "evidence": "Paley-Zygmund: (EX)^2 = (E[X 1_{X>0}])^2 <= E[X^2] Pr(X>0) by Cauchy-Schwarz since X=0 outside {X>0}. E[X]=pL by linearity. Pairwise independence gives Var(X)=p(1-p) sum_v d_v^2, so E[X^2]=p^2L^2+p(1-p)sum_v d_v^2. Hence Pr(X>0) >= p^2 L^2/(p^2 L^2+p(1-p)sum_v d_v^2). With d_v<=D, sum_v d_v^2 <= D sum_v d_v = DL, so Pr(X>0) >= p^2 L^2/(p^2 L^2+p(1-p)DL) = pL/(pL+(1-p)D) after cancelling pL>0. Every line follows from the stated premises; no false line, no counterexample possible.",
+  "review_of": "S0005",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795747493.296139,
+  "session": "pnp-desk/research/R4581",
+  "model": "minimax-m3.1-flash",
+  "evidence": "Pointwise identity verified: for every assignment x, 1[x satisfies F] = prod_{i in C}(1-1_{A_i}(x)); expanding the finite product gives sum_{S subseteq C} (-1)^|S| 1[intersection_{i in S} A_i](x); summing over the 2^n assignments and interchanging the two finite sums yields #F = sum_S (-1)^|S| N(S), with N(empty)=2^n. Clause structure: falsifying a literal fixes its variable to one value, so two conflicting requirements on any variable in V(S) make the intersection empty; otherwise each of the |V(S)| variables is fixed uniquely and the remaining n-|V(S)| variables are free, giving 2^(n-|V(S)|). Degenerate cases checked explicitly: S=empty (2^n); a clause containing both x and not-x has an empty falsification set and is handled by the 'inconsistent' branch (N=0); repeated literals impose no extra constraint and still fix one value. No false line; no counterexample can refute it under the stated premises.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795747493.310921,
+  "session": "pnp-desk/research/R4581",
+  "model": "minimax-m3.1-flash",
+  "evidence": "X decomposes into one indicator per retained occurrence: E[X]=pL+sum_g f_g q_g by linearity of expectation, with no independence hypothesis used. The stated hypothesis (constant folding does not increase leaf count) together with size counting only residual leaves gives the pointwise inequality size(Phi|rho) <= X: after restriction the residual contains at most the retained occurrences, and folding only deletes occurrences. Hence E[size(Phi|rho)] <= E[X] = pL+sum_g f_g q_g. Since size >= 0, Markov gives Pr(size>=t) <= E[size]/t <= (pL+sum_g f_g q_g)/t for t>0. Degenerate case q_g=0 or p=0 is covered (bound reduces to sum_g f_g q_g/t or 0). Direction of every inequality checked; no false line. Caveat recorded for downstream use: the proof's X counts retained input AND gate occurrences, which only weakens the bound, so it is safe.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795747493.3260143,
+  "session": "pnp-desk/research/R4581",
+  "model": "minimax-m3.1-flash",
+  "evidence": "After independent restriction and constant/identity simplification, the residual is either a constant (size 1 by the stated convention) or a read-once binary tree R on a subset of the live variables. Simplification by substitution, folding and identity removal never duplicates a subtree, so R has k <= X leaves, X = number of live variables. A full binary tree with k>=1 leaves has k-1 internal gates (count edges: 2I = I+k), hence size(R)=2k-1 <= 2X; in the constant case size=1 <= 2X+1. Thus size(Phi|rho) <= 2X+1 pointwise, and E[X]=pL by linearity of expectation (independence is more than needed), giving E[size] <= 2pL+1. Edge cases checked: X=0 (all variables dead, residual constant, size 1 = 2*0+1, equality); X=1 (size 1 <= 3); k=1 tree (2k-1=1). The only structural premise used is that folding/identity simplification does not duplicate leaves, which holds for the stated read-once binary formula setting. No false line; no counterexample can refute it under the stated premises.",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
  }
 ]

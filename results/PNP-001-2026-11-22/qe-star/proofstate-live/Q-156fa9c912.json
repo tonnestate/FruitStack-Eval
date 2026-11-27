@@ -8830,5 +8830,47 @@
   "proved_step": "statement: BOUNDED-WITNESS PROJECTION CONSTRUCTION. Let H:{0,1}^u x {0,1}^r -> {0,1} be computed by a fan-in-two Boolean circuit of h gates, with constants and wiring free. Define G(x)=1 iff there exists w in {0,1}^r with H(x,w)=1. Then G has a fan-in-two circuit with at most 2^r(h+1)-1 gates. For each fixed prefix p of x, the cofactor G_p has a circuit with no more gates, and either child cofactor G_{pb} can be obtained by hardwiring b with no added gates. Proof: For each w, copy the h-gate circuit H and hardwire its witness inputs to w. OR the 2^r outputs using a binary tree of 2^r-1 OR gates. This constructs G with 2^r h + 2^r-1 gates. Hardwiring visible input bits preserves the function and cannot add gates; applying it to the child bit proves the cofactor assertion. This is a constructive cost bound for bounded witness length r, with an explicit exponential dependence on r.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795745041.1955705,
+  "session": "pnp-desk/research/R4580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Claim is explicitly a finite verification for n=2 inputs, r=1 witness bit: 256 Boolean relations \u00d7 all prefix/bit/suffix cases. The identity L(pbz) = \u2203w H(pbz,w) holds by definition of L and concatenation semantics. No general circuit claim is made. Finite enumeration, if correctly implemented, validates the claim for the stated domain. No argument gap within its declared scope.",
+  "review_of": "S0819",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745041.2609353,
+  "session": "pnp-desk/research/R4580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard tableau construction: for acyclic circuit, gate equations in topological order uniquely determine each y_i given x and previous y's. Exactly one y satisfies all equations; \u2203y H_C(x,y)=1 iff that tableau has output 1, i.e. C(x)=1. Each gate equation has constant-size implementation; binary AND tree over g equations + output gives O(g) gates. Finite verification cm-d5bf8a16f70c460a (164 circuits \u22642 gates) independently confirms the encoding. No claim about EXT or MCSP search. Argument is sound.",
+  "review_of": "S0821",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745060.6999416,
+  "session": "pnp-desk/research/R4580",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction: 2^r copies of H with witness inputs hardwired to each w (2^r\u00b7h gates), combined by a binary OR tree (2^r\u22121 gates). Total = 2^r\u00b7h + 2^r \u2212 1 = 2^r(h+1)\u22121. Hardwiring a prefix p or p+b into this circuit preserves function on remaining inputs and cannot increase gate count. Bound is explicit and exponential in r; no polynomial claim when r grows. Construction is correct.",
+  "review_of": "S0820",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795746900.9454954,
+  "session": "pnp-desk/research/R4580",
+  "model": "gpt-6-luna",
+  "id": "S1010",
+  "proved_step": "statement: BOUNDED-FRONTIER EXISTENTIAL-PROJECTION UPDATE LEMMA. Let R(x_1,...,x_N,y_1,...,y_r) be a Boolean relation represented by a layered constraint network with layers 0,...,N, each having at most w boundary bits. Assume input bit x_i is consumed only by the transition from layer i-1 to i, every witness bit is assigned in exactly one layer, and each transition relation T_i(u,x_i,v) is explicitly tabulated on at most 2w+1 bits. Define E(p)=1 iff the network has an accepting completion extending prefix p. E can be maintained exactly after each input bit using state S subseteq {0,1}^w of reachable boundary assignments: on reading b at layer i, update S to {v : exists u in S, T_i(u,b,v)=1}. The state uses at most 2^w bits; an update can be implemented with at most 2^{2w} table-bit tests and Boolean conjunction/disjunction operations. Proof: Initially S is the set of allowed initial boundary assignments. Inductively, after i input bits, S contains exactly the boundary assignments reachable by assignments to processed input and witness variables consistent with the network. The displayed update is existential composition with the next transition relation, so preserves this invariant. At the final layer, acceptance is equivalent to S intersecting the designated accepting boundary set. There are at most 2^w choices each for u and v, so enumerating pairs gives the stated update bound. This applies only to the specified aligned bounded-frontier representation; it does not show arbitrary H_C has such a representation or yield polynomial update cost for growing w.\nderivation: Represent the processed-prefix information by the set of reachable boundary assignments. Induction on layers proves this set is exact. Updating performs existential composition with the next local relation, and final acceptance checks intersection with accepting assignments. Enumerating boundary pairs yields the resource bound.\nscope: All finite N,r,w and explicitly tabulated layered Boolean constraint networks satisfying the stated one-pass input and witness-placement conditions.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795747040.0061362,
+  "session": "pnp-desk/research/R4580",
+  "model": "gpt-6-luna",
+  "id": "S1011",
+  "proved_step": "statement: EXPLICIT BOOLEAN-CIRCUIT IMPLEMENTATION OF A FRONTIER UPDATE. Let a layered network have q states at each boundary and layer relation T_i(u,b,v), with the relation supplied as a Boolean table. For each fixed input bit b, the map from the q membership bits of S to those of S' defined by S'[v]=OR_{u=1}^q(S[u] AND T_i(u,b,v)) has a fan-in-two Boolean circuit of at most q^2(2q-1) gates, using AND gates for the q products per output and a binary OR tree. Thus the update is an ordinary circuit of O(q^3) gates; if q<=2^w this is O(2^{3w}). Proof: For each ordered pair (u,v), form one AND gate with inputs S[u] and the fixed table bit T_i(u,b,v), using no gate if the table bit is 0 and a wire if it is 1. For each v, OR its q resulting terms with q-1 binary OR gates. This uses at most q^2 AND gates and q(q-1) OR gates, hence at most q^2+q(q-1) <= 2q^2 gates (for q>=1), and is equivalent by distributivity to the existential update. If table bits must be treated as input variables rather than fixed constants, the same q^2 AND gates suffice. This implementation makes explicit that the prior 2^{2w} bound counted pair evaluations, not Boolean gates; the gate upper bound proved here is O(2^{2w}), since q^2+q(q-1)<2q^2. The statement applies only to the given explicit table and does not represent arbitrary H_C.\nderivation: For each boundary pair, compute the conjunction of reachability and the transition-table bit. For each destination boundary, OR the q conjunctions. Direct truth-table evaluation proves equality with existential composition; gate counting gives q^2+q(q-1)<2q^2, hence at most 2^(2w+1) gates when q<=2^w.\nscope: Every finite layered Boolean constraint network with q boundary states and explicitly supplied Boolean transition tables; per fixed input bit, with fan-in-two AND/OR gates.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
  }
 ]

@@ -7393,5 +7393,41 @@
   "evidence": "The construction is valid: (1) a binary prefix trie over the t changed codewords uses T non-root nodes, giving O(T) AND gates for shared prefixes plus O(S) shared negated literals; (2) per output bit j, an OR tree over |D_j| indicators costs max(0,|D_j|-1) gates; (3) output bit j = x_j XOR (OR of indicators for D_j) uses constant-size AND/NOT. On valid unchanged states all indicators are 0 (by injectivity, no \u03c8(q) for q\u2208D matches), so output = input. On valid changed state \u03c8(q), exactly its indicator is 1 (injectivity), toggling exactly the bits where \u03c8(q) and \u03c8(\u03b4(q)) differ, yielding \u03c8(\u03b4(q)). The formulas are total. Gate count O(S + T + \u03a3_j max(0,|D_j|-1)) is correct. This is an upper bound construction; it does not close a superlinear lower-bound gap. Step survives review.",
   "review_of": "S0708",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795746901.471929,
+  "session": "pnp-desk/research/R4582",
+  "model": "gpt-6-luna",
+  "id": "S0838",
+  "proved_step": "ONE-CYCLE MODULAR-INCREMENT RECODING. For every m\u22652 and every permutation \u03b4 of an m-element set Q consisting of one cycle, with S=ceil(log2 m), there is an injective stationary encoding \u03c8:Q\u2192{0,1}^S for which \u03c8\u2218\u03b4\u2218\u03c8\u207b\u00b9 extends to a total S-bit Boolean map using O(S) fan-in-two AND/NOT gates (constants and wires free). Proof: enumerate the cycle as q\u2080,\u2026,q_{m\u22121} with \u03b4(q\u1d62)=q\u1d62\u208a\u2081 mod m, and encode q\u1d62 by the S-bit binary representation of i. Define a total map g on S-bit strings by g(x)=x+1 mod m for 0\u2264x<m and g(x)=0 for x\u2265m. To implement it, first compute y=x+1 mod 2^S using a prefix carry recurrence, requiring O(S) AND gates; each output bit is x\u2c7c XOR its carry, realizable with a constant number of AND/NOT gates. Compute v=[x<m] and w=[x=m\u22121] by comparison with constants using O(S) gates each. Output bit j is y\u2c7c AND v AND NOT w, costing O(1) further gates per bit. This equals i+1 for i<m\u22121 and zero for i=m\u22121 or any unused code. The total is O(S). This proves an upper bound only for one-cycle permutations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795747310.0710387,
+  "session": "pnp-desk/research/R4582",
+  "model": "gpt-6-luna",
+  "id": "S0839",
+  "proved_step": "statement: PAIR-AND-TAG INVOLUTION RECODING. For every integer p>=1 and every fixed-point-free involution delta on a set Q of size 2p, there is an injection psi:Q->{0,1}^S, S=ceil(log2(2p)), such that the encoded transition psi(delta(q)) is the restriction of a total S-bit Boolean map computed with one NOT gate and wires (hence at most one fan-in-two AND/NOT gate). Proof: The involution partitions Q into p disjoint unordered pairs; choose an ordering of those pairs and, in each pair, designate one element tag 0 and the other tag 1. Put r=ceil(log2 p). Encode a state in pair i with the r-bit binary encoding of i (using indices 0,...,p-1) followed by its tag. These encodings are distinct and have length r+1. Since ceil(log2(2p))=ceil(log2 p)+1, r+1=S. Define the total map F on all S-bit strings by copying the first r coordinates and complementing the final coordinate. It is computed by wires and one NOT gate. On every encoded state this exchanges the two members of its pair, exactly delta. Thus F extends the encoded transition. This also handles p=1, where r=0 and F is just bit negation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795748341.0991127,
+  "session": "pnp-desk/research/R4590",
+  "model": "gpt-6-luna",
+  "id": "S0840",
+  "proved_step": "statement: Sparse-update extension lemma: For S>=1, X={0,1}^S, any D subset X and any f:D->X, the partial map f extends to a total map F:X->X equal to identity off D, with a fan-in-two AND/NOT circuit of O(S(|D|+1)) gates. Proof: For every q in D form e_q(x)=AND of the S literals specifying q, sharing input negations; this costs O(S|D|). For output coordinate j, define A_j={q in D:q_j differs from f(q)_j}, and let F_j(x)=x_j XOR OR_{q in A_j}e_q(x), with empty OR equal to 0. AND/NOT circuits implement OR and XOR with constant overhead. On any x in D exactly e_x is active, so precisely the differing coordinates toggle and F(x)=f(x). Off D no indicator is active, so F(x)=x. Summed OR work is O(sum_j |A_j|)<=O(S|D|), yielding O(S(|D|+1)) total gates.\nproof: The minterms for distinct q are pairwise disjoint. Thus at an input in D exactly one selected indicator is true, and at an input outside D all selected indicators are false. The output formula toggles bit j exactly when the selected q has a different prescribed jth bit. This proves agreement on D and identity elsewhere. There are at most S|D| selected coordinate incidences, each handled with constant gate overhead; constructing all minterms costs O(S|D|), with the additive allowance covering D empty and wire-only identity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795748396.135049,
+  "session": "pnp-desk/research/R4590",
+  "model": "gpt-6-luna",
+  "id": "S0841",
+  "proved_step": "statement: Trie-and-distance extension lemma. Let S>=1, X={0,1}^S, D subseteq X, and f:D->X. Let T be the number of non-root nodes in the prefix trie of D, and let H=sum_{q in D} dist_H(q,f(q)). There is a total extension F:X->X with F(q)=f(q) for q in D and F(x)=x for x outside D, computed by O(S+T+H) fan-in-two AND/NOT gates (input wires/constants free). Proof: For each non-root trie node v, compute its prefix indicator p_v by taking its parent indicator and ANDing with the next matching input literal; at depth one use the corresponding literal. Share input negations. This uses O(T+S) gates and gives e_q=p_q at each leaf q in D, exactly the point indicator of q. For each output coordinate j, form U_j=OR of e_q over those q in D with q_j != f(q)_j, with empty OR equal to 0, and set F_j(x)=x_j XOR U_j(x). Implement binary OR and XOR with constant-size AND/NOT circuits. Trie leaves are distinct point indicators, so on q in D exactly its own indicator is active and precisely the differing coordinates toggle, yielding f(q). For x outside D every leaf indicator is zero, hence F(x)=x. The aggregation cost is O(sum_j |{q:q_j != f(q)_j}|)=O(H). Total cost is O(S+T+H), including the empty-domain identity case.\nproof: The trie has one node for each nonempty prefix of at least one member of D. For each node, conjunction of the literals on that prefix is its indicator; extending a parent conjunction by one literal computes the child indicator using one AND gate, with depth-one literals available as wires. Thus all leaf indicators e_q are computed with at most T AND gates plus at most S shared input negations. Since D is a set of distinct strings, e_q(x)=1 exactly when x=q, so the indicators are mutually exclusive. For bit j, the OR U_j is therefore 1 at q exactly when q_j differs from f(q)_j, and zero at all other inputs in X. XOR with x_j consequently changes exactly the required output bits on D and changes no bit off D. There is one constant-overhead aggregation per selected (q,j) incidence, and their number is exactly H. The total is O(T+S+H). If D is empty, T=H=0 and F is the identity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
