@@ -7765,5 +7765,83 @@
   "model": "gpt-6-luna",
   "refuted_approach": "S0870's original gate bound omitted NOT gates for negated state bits; its purported finite check compared transition-table entries instead of evaluating the constructed circuit. Do not rely on S0870 as support for its stated bound.",
   "evidence": "The submitted exhaustive check cm-9c738f993327434b failed with AssertionError. A corrected construction adds at most S shared state-bit inversions and one shared input inversion; an independent direct evaluation over all input codes and transition tables for M<=3 is submitted in this session."
+ },
+ {
+  "at": 1795752426.8611379,
+  "session": "pnp-desk/research/R4610",
+  "model": "gpt-6-luna",
+  "id": "S0872",
+  "proved_step": "statement: For F subseteq {0,1}^N and cut t, let R_t(p)={z in {0,1}^{N-t}: pz in F}. Every deterministic streaming recognizer for F has at least |{R_t(p): |p|=t}| states at layer t, and a recognizer with exactly this many states exists at that layer.\nproof: If R_t(p) and R_t(q) differ, choose z in their symmetric difference. Exactly one of pz,qz is in F. Equal machine states after p and q would, by determinism on suffix z, force the same acceptance result, contradiction. For the upper bound, take distinct residual sets as states and transition R to {v: bv in R} on bit b. This derivative is well-defined because equal sets have equal derivatives. At the last layer accept precisely those residuals containing the empty string. Thus the layer state count is exactly the number of distinct residuals.\nscope: All finite binary languages F subseteq {0,1}^N, all cuts 0<=t<=N; deterministic layered membership recognizers. This concerns state count, not transition gate cost or the search-output decoder.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795753558.5446548,
+  "session": "pnp-desk/research/R4618",
+  "model": "gpt-6-luna",
+  "id": "S0873",
+  "proved_step": "statement: For n=3, let B be the eight truth tables of constants and literals, and let F=B union {g(a,b): a,b in B and g:{0,1}^2->{0,1}}. Then |F|=38, and the counts of distinct length-t prefixes of functions in F for t=0,...,8 are (1,2,4,8,16,22,30,38,38). Proof: Encode each input x=(x0,x1,x2) by its three-bit binary index, so the variable truth tables are the masks whose bit at index x is xi, with complements for negated literals. This gives |B|=8. For every ordered pair (a,b) in B^2 and each of the 16 Boolean maps g, evaluate g pointwise on the eight rows, and take the union with B. Duplicate outputs are identified as bitmasks. Direct exhaustive enumeration of these finite sets yields 38 distinct masks. For each t, project each mask to its first t bits and count distinct projections; exhaustive projection gives the stated tuple. This constructs and proves the finite enumeration claim by exhaustive finite definition; the independent lab computation cm-b1f4580dbbb3411f reproduces it. This is only a finite class characterization and establishes no update-gate lower bound.\nscope: Exact finite statement for n=3, constants/literals, and at most one binary Boolean gate in the truth-table circuit model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795753731.7567463,
+  "session": "pnp-desk/research/R4618",
+  "model": "gpt-6-luna",
+  "id": "S0874",
+  "proved_step": "statement: For the finite SC_{3,1} truth-table family F of size 38, any deterministic streaming system that must output, from its final state alone, a circuit computing each accepted table and reject every table outside F requires at least 39 final states, hence at least 6 state bits.\nproof: For each f in F, choose an input reaching a final state q_f. If distinct f,g shared a final state, the final-state-only decoder would produce the same output on both, which cannot compute both distinct truth tables. Thus the 38 accepted tables require distinct final states. Since F is a proper subset of the 256 Boolean tables on three bits, choose h outside F. Its final state cannot equal any q_f, because the decoder would then both accept with a valid circuit and reject. There are therefore at least 39 final states. Since 2^5 < 39 <= 2^6, at least 6 bits are necessary. The count |F|=38 is the corrected finite enumeration recorded with experiment cm-b1f4580dbbb3411f; the implication from that count is the argument above. This says nothing about per-step update-gate cost.\nscope: SC_{3,1} with the corrected 38-function family; deterministic system, final-state-only decoder, output circuit required on accepted tables and rejection required outside the family.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795754647.6005151,
+  "session": "pnp-desk/research/R4626",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive equivalence by the two implications above. The exact discovery computation cm-1bd480506e604c91 found F={001,010}, N=3, t=2 as a counterexample to the stronger shortcut that distinct prefixes alone suffice: prefixes 00 and 01 have no common accepted suffix.",
+  "id": "S0875",
+  "proved_step": "statement: Let F be any subset of {0,1}^N, and define W(x)={x} for each x in F. At cut t, for distinct p,q in P_t (the length-t prefixes of words in F), there exists a suffix z of length N-t with pz,qz in F and W(pz) intersect W(qz)=empty if and only if there exists a suffix z with pz,qz in F. Proof: If both completions lie in F, then they are distinct because their length-t prefixes p and q differ. Hence their singleton witness sets {pz} and {qz} are disjoint. Conversely, the S0674 condition itself includes the requirement that both completions lie in F, giving the common accepted suffix. Therefore, for singleton witnesses, the incompatibility graph H_t from S0673 has an edge exactly between prefix pairs with at least one common accepted suffix. Its chromatic number is consequently a state lower bound for any deterministic layered transducer with a final-state-only sound decoder, by S0673. Scope: arbitrary finite binary languages with singleton witnesses; this does not show any numerical bound for SC_{n,s} or for update-gate cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-d25720b26b",
+  "closes_valid": true
+ },
+ {
+  "at": 1795755013.8784282,
+  "session": "pnp-desk/research/R4626",
+  "model": "gpt-6-luna",
+  "evidence": "Explicit shared-minterm construction and gate count in the recorded statement; no experiment is needed for this general finite Boolean-function construction.",
+  "id": "S0876",
+  "proved_step": "statement: For every integer S>=1 and every total transition function F:{0,1}^{S+1}->{0,1}^S, there is a circuit over AND, XOR, NOT, and constants computing F with at most (S+1)+2^{S+1}S+3S(2^{S+1}-1) nonconstant gates, with fan-out free and shared gates counted once. Proof: Put k=S+1 and regard the state and input bit as k Boolean inputs. First compute the negation of each input, costing at most k NOT gates. For every a in {0,1}^k compute its indicator minterm m_a, the conjunction of the k literals specifying a, with k-1 AND gates. This costs at most 2^k(k-1) gates total, and these minterms are shared among all output coordinates. For output coordinate i, let A_i={a:F(a)_i=1}. Compute the disjunction of the minterms m_a for a in A_i. Starting from one term and adjoining each further term with OR(u,v)=NOT(AND(NOT u,NOT v)) costs at most 3 gates per added term; the empty or singleton cases require at most one constant or no combining gates. Thus each output costs at most 3(2^k-1) gates for combining terms. The total is at most k+2^k(k-1)+3S(2^k-1), which equals the stated bound since k-1=S. The circuit agrees with F on every input because exactly one minterm is true at each input, namely its own assignment; the corresponding output disjunction is true exactly when F assigns that output bit 1. This is an upper bound for arbitrary total transitions, not a lower bound or a measurement of the minimum G_max for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0188",
+  "closes_valid": true
+ },
+ {
+  "at": 1795755052.1042562,
+  "session": "pnp-desk/research/R4627",
+  "model": "gpt-6-luna",
+  "id": "S0877",
+  "proved_step": "statement: For a fixed deterministic streaming transition layer with inputs q_1,...,q_S,b and reachable set R subseteq {0,1}^{S+1}, the required map T:R\u2192{0,1}^S is implementable with zero nonconstant gates in the AND/XOR/NOT/constants basis with free fan-out if and only if each output coordinate agrees on R with a constant or an input wire.\nproof: If the circuit has zero nonconstant gates, every output is a constant or a wire copied from an input, so each coordinate has the stated form on R. Conversely, for each coordinate, wire its output to the input it agrees with on R, or to the matching constant. This implements T on every reachable input pair; values outside R are unconstrained. The claim also holds when R is empty, vacuously.\nscope: One fixed encoding and transition layer, with transitions constrained only on reachable state/input pairs. This does not give a lower bound over all encodings or a Pareto trade-off.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795755105.670604,
+  "session": "pnp-desk/research/R4627",
+  "model": "gpt-6-luna",
+  "id": "S0878",
+  "proved_step": "statement: For any N-bit language F and S-bit deterministic layered transducer with a final-state-only decoder, zero nonconstant update gates at every layer suffice to recognize F if and only if membership in F depends on at most S input coordinates. Here dependence on I subseteq [N] means that any two words agreeing on I have the same membership status.\nproof: If every update gate is absent, each state coordinate at layer t is either a constant or a copy of one of the first t input bits. Induct on t: the initial state is fixed, and a zero-gate update can only connect an output to a constant, a previous state wire, or the newly read input wire. Thus the final state is a function only of the input coordinates appearing among its at most S state wires. The decoder therefore makes membership depend on at most S coordinates. Conversely, if membership depends on I with |I|<=S, assign one state bit to each coordinate in I, retain its value when read by wiring the current input to that state bit, and wire all other state bits to constants. At all other layers, copy retained bits and constants. This uses zero nonconstant gates and leaves the decoder to apply the membership function to the retained bits.\nscope: Exact characterization for deterministic layered transducers over a fixed N-bit input, with fixed initial state, final-state-only decoder, free fan-out, and AND/XOR/NOT/constants gate basis. It does not establish the coordinate-dependence number of SC_{n,s} or a Pareto trade-off.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795755325.9673197,
+  "session": "pnp-desk/research/R4627",
+  "model": "gpt-6-luna",
+  "id": "S0879",
+  "proved_step": "statement: Let F subseteq {0,1}^N be recognized by a deterministic layered transducer with fixed initial state, final-state-only decoder, and zero nonconstant update gates at every layer. If every input coordinate is essential for membership in F, then the transducer has at least N state bits.\nproof: With zero nonconstant gates, each state coordinate at each layer is either constant or a copy of one input wire available so far: this holds initially, and each transition output is a constant or a wire from a previous state bit or the new input bit. Thus the final state is determined by at most S input coordinates, where S is its number of bits. The decoder's acceptance value is consequently invariant under changing any coordinate not represented among those at most S positions. If all N coordinates are essential, no coordinate can be omitted, so S>=N.\nscope: General deterministic layered transducers with a final-state-only decoder and the AND/XOR/NOT/constants basis, when all update gates are absent. The finite computation cm-f41de484c8df47a0 supplies evidence, not a premise, for applying this lemma to its explicitly generated SC_{3,1} language.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

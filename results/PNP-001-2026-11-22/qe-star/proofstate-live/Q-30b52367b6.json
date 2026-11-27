@@ -2684,5 +2684,37 @@
   "evidence": "Reviewed the tree-decomposition dynamic programming algorithm. The bipartite incidence graph (variables vs bottom gates) has a supplied tree decomposition of width w. Converting to a nice edge-processing decomposition is standard. State at each bag: assignments to boundary variables (2^{w+1} possibilities), partial weighted sums for boundary gates ((2Bn+1)^{w+1} since each sum is in [-Bn, Bn]), and accumulated top score (2mV+1 values in [-mV, mV]). Transitions: process edge (j,i) adding W_{ji}x_i to gate j's partial sum; forget gate j after all incident edges processed, evaluating its threshold and adding v_j \u00b7 gate_output to top score; forget variable by summing over x_i \u2208 {0,1}. Induction invariant: state count equals number of assignments to processed variables realizing the boundary data. State count per bag \u2264 2^{w+1}(2Bn+1)^{w+1}(2mV+1); each transition costs poly(n,m,B,V). Total time 2^{O(w)}(2Bn+1)^{O(w)}(2mV+1) poly(n,m,B,V,L). Correct for the supplied-decomposition subclass with bounded weights. No claim for general circuits without such a decomposition.",
   "review_of": "S0303",
   "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795752909.7186003,
+  "session": "pnp-desk/research/R4599",
+  "model": "ernie-5.5-flash-preview",
+  "evidence": "Independent exact enumeration (cm-88e3a01d1d364aaa, V2): singleton gates [x_i >= 1] under the 1/3-1/3-1/3 product restriction for n=m=4,5,6 give E[RC] = 4/3, 5/3, 2 = m/3 exactly, and the Hoeffding tail Pr[RC >= m/3+u] <= exp(-2u^2/m) had 0 violations for u in {0.5,1,2}. Proof checked: a one-variable Boolean threshold is constant, x_i, or 1-x_i; in the nonconstant case the restricted gate is nonconstant iff x_i is free (prob 1/3), so E[I_j] <= 1/3 and linearity gives the mean bound even for repeated variables; pairwise distinct variables make the indicators independent Bernoulli(1/3), so Hoeffding applies. Scope: singleton supports only; correct but does not discharge G0001 (a #SAT running-time obligation), so no closure is confirmed.",
+  "review_of": "S0304",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795752909.741093,
+  "session": "pnp-desk/research/R4599",
+  "model": "ernie-5.5-flash-preview",
+  "evidence": "Exact check (cm-88e3a01d1d364aaa, V1): one full-support gate (k=n, weights 1, t=1) gives subset-enumeration E[RC] equal to 1-(2/3)^n within 1e-16 for n=1..7, matching sum_j(1-(2/3)^{k_j}); V3/V4 on full1/cycle2/disj2 (n=4,5,6) give E[RC] <= p*K with p=1/sqrt(n) and 0 bounded-difference/tail violations. Proof checked: I_j=1 implies at least one support variable of gate j is free; independence gives Pr[I_j=1] <= 1-(2/3)^{k_j}; linearity of expectation. Correct for arbitrary supports and weights (support-size only). Scope: structural expectation bound, not a #SAT algorithm; does not by itself close G0001.",
+  "review_of": "S0305",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795753002.329505,
+  "session": "pnp-desk/research/R4599",
+  "model": "glyph-cluster",
+  "evidence": "STATEMENT. Bottom layer: m threshold gates g_j(x)=[w_j.x>=t_j], supports S_j, k_j=|S_j|, K=sum_j k_j, d_i=#{j:i in S_j}, sum_i d_i=K. Product restriction: each variable independently free with prob p in (0,1], else fixed to 0/1 with prob (1-p)/2 each. RC = number of non-constant restricted gates. (1) E[RC] <= sum_j(1-(1-p)^{k_j}) <= p*K. Proof: j constant when all S_j fixed, prob (1-p)^{k_j}; I_j non-constant indicator has E[I_j]<=1-(1-p)^{k_j}<=p*k_j; linearity. (2) Pr[RC >= pK+u] <= exp(-2u^2/sum_i d_i^2) <= exp(-2u^2/(K*d_max)), u>0. Proof: RC is function of independent X_i in {free,0,1}; changing X_i affects only gates containing i, so |RC(X)-RC(X')|<=d_i; McDiarmid bounded differences. (3) p=1/sqrt(n): E[RC]<=K/sqrt(n), Pr[RC>=2K/sqrt(n)]<=exp(-2K/(n*d_max)). Checked by cm-88e3a01d1d364aaa: 0 difference violations, E<=pK, 0 McDiarmid tail violations on full1/cycle2/disj2 n=4..6. SCOPE: tail vacuous for dense layers at u=pK; does not close G0001; replaces S0058's false m/sqrt(n) expectation with support-explicit p*K.",
+  "id": "S0306",
+  "proved_step": "statement_start: REPAIR of S0058 (CLAIMED, for review): product restriction\nstatement_end: Scope: expectation plus bounded-difference tail; no Littlewood-Offord input, no claim about G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795753386.0569742,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0306: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: S0058\u2019s exact mathematical statement and quantifiers were not available in the supplied transcript. The targeted knowledge searches did not retrieve them, so I cannot write a self-contained L (not a refutation; a model review is still needed)"
  }
 ]

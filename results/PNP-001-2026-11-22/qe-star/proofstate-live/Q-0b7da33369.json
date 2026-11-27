@@ -7536,5 +7536,23 @@
   "proved_step": "FINITE-CODE TRANSITION EXTENSION. Let A be any set of m distinct codewords in {0,1}^R, m>=1, and let f:A->{0,1}^R be any map. There is a total Boolean map F:{0,1}^R->{0,1}^R agreeing with f on A, computable using O(mR) fan-in-two AND/NOT gates. Proof: For each a in A form its equality indicator E_a(x)=AND_{i=1}^R (x_i if a_i=1 else NOT x_i), using shared input negations and at most R-1 binary AND gates per a. For each output coordinate j set F_j(x)=OR_{a in A:f(a)_j=1} E_a(x), implemented using at most m-1 binary OR gates, with the empty OR constant 0. On a valid code a*, injectivity makes E_a*(a*)=1 and all other indicators 0, so F_j(a*)=f(a*)_j for every j. These formulas define F on all inputs, including unused codes. Total gates are at most R input negations + m(R-1)+R(m-1), hence O(mR).",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795753279.0258405,
+  "session": "pnp-desk/research/R4614",
+  "model": "gpt-6-luna",
+  "id": "S0852",
+  "proved_step": "statement: SPARSE TRANSITION EXTENSION FROM PREFIX SHARING. Let Q have m>=2 elements, S=ceil(log2 m), psi:Q->{0,1}^S be injective, and delta:Q->Q. Set D={q:delta(q)!=q}, H=sum_{q in D} d_H(psi(q),psi(delta(q))), and let T be the number of non-root nodes in the prefix trie of {psi(q):q in D}. Then the transition on psi(Q) has a total fan-in-two AND/NOT circuit extension of size O(S+T+H). Proof: For each non-root trie node compute its prefix conjunction from its parent conjunction and the next matching input literal, sharing input negations; this yields each moved-state equality indicator e_q(x)=[x=psi(q)] using O(S+T) gates. For each coordinate j, OR the indicators e_q for which psi(q)_j differs from psi(delta(q))_j, then XOR the resulting bit with x_j. OR and XOR each have constant-size implementations over AND/NOT gates, and the total number of indicators across all coordinates is exactly H, so the output logic uses O(S+H) gates. At an unchanged encoded state all indicators vanish; at a moved encoded state injectivity makes exactly its own indicator true, yielding precisely psi(delta(q)). These formulas define outputs on every input string, hence a total extension. The total size is O(S+T+H).\nproof: The proof is included in the statement and derives the construction from the definitions; it uses no prior claimed step as a premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795755291.1337824,
+  "session": "pnp-desk/research/R4630",
+  "model": "gpt-6-luna",
+  "id": "S0853",
+  "proved_step": "statement: SPARSE-TRANSITION TRIE REFINEMENT. Let Q be a finite set of size m>=1, S=ceil(log2 m), psi:Q->{0,1}^S injective, and delta:Q->Q. Let D={q:delta(q)!=q}, t=|D|, H=sum_{q in D} dist_H(psi(q),psi(delta(q))), and let T be the number of non-root nodes in the prefix trie of {psi(q):q in D}. The encoded transition has a total fan-in-two AND/NOT circuit extension of size O(S + H + sum_{d=1}^S min(t,2^d)). In particular, for t>=1 this is O(S+H+t(S-floor(log2 t)+2)); for t=0 it is O(S). Proof: For each non-root trie node, compute the conjunction testing its prefix by extending its parent conjunction by the matching input literal; shared input negations cost O(S), and each trie node costs O(1). The leaf indicators are therefore exactly [x=psi(q)] for q in D. For output coordinate j, OR together the leaf indicators for q in D whose encoded image differs in coordinate j, using at most max(0,|D_j|-1) binary OR gates, where D_j={q in D:psi(q)_j!=psi(delta(q))_j}. XOR this OR with input bit x_j, using a constant-size AND/NOT circuit for XOR. On an unchanged valid state all indicators vanish; on a changed valid state injectivity makes only its own leaf indicator true, so the output is exactly psi(delta(q)). The circuit defines outputs on every input string, hence is a total extension. Summing over coordinates, the OR costs are at most sum_j |D_j|=H. At trie depth d there are at most t nodes, since each is a prefix of some changed-state code, and at most 2^d nodes, since there are only 2^d binary strings of length d. Thus T<=sum_{d=1}^S min(t,2^d). For t>=1, set k=floor(log2 t). The levels d<=k contribute at most sum_{d=1}^k 2^d=2^(k+1)-2<2t, and the remaining S-k levels contribute at most t each. Hence T<=t(S-k+2). If t=0, the identity map is an extension using wires alone. Combining the trie, aggregation, and coordinate-toggle costs proves the stated bounds.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
