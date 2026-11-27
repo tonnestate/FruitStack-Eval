@@ -230,5 +230,78 @@
   "proved_step": "statement: Let U be a finite set of variables and let I_v in {0,1} indicate whether v remains live under a random restriction. Assume E[I_v]=p for all v and the indicators are pairwise independent. For any finite family G of Boolean functions g, let supp(g) subseteq U have size d_g and assume g depends only on supp(g). Define g to survive nontrivially when at least two variables in supp(g) remain live. Then Pr[g survives nontrivially] <= min(1, binom(d_g,2)p^2). Consequently, for any nonnegative occurrence weights f_g, E[sum_{g in G} f_g 1(g survives nontrivially)] <= sum_{g in G} f_g min(1, binom(d_g,2)p^2). Proof: If g has fewer than two live support variables, its restricted function depends on at most one variable and is therefore constant or a literal (possibly negated), so it is not nontrivial by definition. Thus the event that g survives nontrivially is contained in the union over unordered pairs {u,v} subseteq supp(g) of events {I_u=I_v=1}. Pairwise independence and the common marginal give Pr[I_u=I_v=1]=p^2 for each pair. The union bound gives Pr[g survives] <= binom(d_g,2)p^2, and every probability is at most 1, yielding the minimum. Multiply by f_g and sum; linearity of expectation yields the consequence without independence between different gates.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795741313.5212204,
+  "session": "pnp-desk/research/R4567",
+  "model": "gpt-6-luna",
+  "id": "S0023",
+  "proved_step": "statement: Let Phi be a De Morgan formula with L input-leaf occurrences, no gate-leaves, and no variable appearing more than once. Independently leave each variable live with probability p and assign every other variable a Boolean constant. After constant propagation and Boolean simplification, let L_res be the number of live input-leaf occurrences remaining. Then E[L_res] <= pL.\nproof: For each original input-leaf occurrence i let I_i indicate that its variable is live. Restriction replaces leaves only by constants, and Boolean simplification cannot introduce a new input-variable occurrence. Hence pointwise L_res <= sum_{i=1}^L I_i. By linearity of expectation, E[sum_i I_i]=sum_i p=pL, proving the claim.\ngap: P2' input-leaf contribution under an explicit read-once, no-gate-leaf restriction; this does not establish the general P2' residual-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795744270.0857348,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof correctly bounds residual size by 2X+1 where X counts surviving nonconstant leaves. Linearity of expectation gives E[X] = pL + sum f_g q_g. The bound is linear in probabilities, not quadratic. The caveat about the dossier's size measure is noted.",
+  "review_of": "S0013",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744270.119162,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Stronger simplification (full constant/neutral-element rules) correctly yields at most X nonconstant leaves. The counterexample to S0013's weaker rule is valid: (x AND 1) AND 1 with x active retains two constant-1 leaves under only constant-subtree evaluation. Proof is sound.",
+  "review_of": "S0014",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744270.1420023,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: syntactic leaf count L(Phi|rho) = sum I_i, so E[L] = pL exactly. For Phi=x, L=1, p=N^{-alpha}, left side = N^{-alpha}, right side = a(N)N^{-2alpha} = N^{-2alpha+o(1)}. Ratio = N^{alpha-o(1)} -> infinity. Valid counterexample to quadratic bound under syntactic measure.",
+  "review_of": "S0015",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744270.1629694,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: recursive constant simplification without duplication gives size <= 2X+1. X = sum of L indicators, E[X] = pL. Bound holds. This matches S0013/S0014 but with explicit 'no duplication' condition.",
+  "review_of": "S0016",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744298.1081474,
+  "session": "pnp-desk/research/R4577",
+  "model": "particle-1",
+  "evidence": "Checked the argument line by line: (i) constant-simplification preserves the binary tree property and never duplicates a leaf, since it only replaces a node by a constant or deletes a parent gate while keeping one child; (ii) if the residual is nonconstant then every residual leaf is one of the X surviving occurrences, X' <= X; (iii) a full binary tree with X' leaves has X'-1 internal nodes so nodes = 2X'-1 <= 2X+1, and a constant residual has size 1 <= 2X+1; (iv) E[X] = sum_i p_i + sum_j q_j by linearity alone, no independence needed. So the heterogeneous per-occurrence survival bound is correct. As the step's own evidence note says, it does NOT give the squared p^2 / q_g^2 target, and the single-leaf instance Phi=x (E[X]=p, p^2 L = p^2) blocks any derivation of that from marginals alone.",
+  "review_of": "S0017",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744298.1333058,
+  "session": "pnp-desk/research/R4577",
+  "model": "particle-1",
+  "evidence": "Variables: before folding, the number of nonconstant variable-leaf occurrences is exactly X = sum_i I_i, so L_var <= X pointwise because De Morgan constant folding only deletes/keeps subtrees and never duplicates a leaf occurrence. E[I_i] = p for every occurrence by the marginal hypothesis, so E[L_var] <= pL with no independence assumption and no constraint on the joint law of rho. Correct as stated; scoped to input leaves only (a duplicate of the input term of S0017, correctly carved out).",
+  "review_of": "S0018",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744298.1557763,
+  "session": "pnp-desk/research/R4577",
+  "model": "particle-1",
+  "evidence": "Induction on T checked. Variable leaf: 0 residual leaves if fixed, 1 if live \u2014 matches the live-leaf count. AND/OR node: by IH the simplified children have at most the live-leaf counts of their originals, so the pre-simplification tree has at most the live count of T; every listed identity (0 AND A=0, 1 AND A=A, 0 OR A=A, 1 OR A=1) either replaces a subtree by a constant or deletes a gate keeping a child, never adding a variable leaf. Hence the final residual's variable-leaf count is at most the number of leaves left unassigned. Valid; the stated restriction to tree syntax (no shared subformulas) is exactly what the induction needs and is honestly flagged.",
+  "review_of": "S0019",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744298.1752913,
+  "session": "pnp-desk/research/R4577",
+  "model": "particle-1",
+  "evidence": "Arithmetic verified: with L=1, if x is live (prob p=N^{-1/3}) the residual is x with one input leaf, otherwise a constant; so E[L(Phi|rho)] >= p = N^{-1/3}. The proposed bound is N^{o(1)}p^2 = N^{-2/3+eps(N)} with eps(N)->0, and N^{-2/3+eps(N)}/N^{-1/3} = N^{-1/3+eps(N)} -> 0, so the bound fails for all large N. The vacuous pairwise-independence remark is correct for a one-coordinate family. This is a genuine refutation of the UNIFORM P2' inequality in the syntactic leaf-count model (not of the p-linear repair S0017/S0018, and not of any claim about residual size after full Boolean simplification).",
+  "review_of": "S0020",
+  "status": "SURVIVED_REVIEW"
  }
 ]

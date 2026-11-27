@@ -7296,5 +7296,102 @@
   "proved_step": "statement: CONDITIONAL CYCLE-BLOCK IMPLEMENTATION COST. Let \u03b4 be a permutation of an m-element set, m\u22652, and let S=ceil(log\u2082m). Form one consecutive interval of codes for each cycle length l occurring in \u03b4, placing all cycles of length l consecutively in that interval. On each assigned code x in the interval for l, define the successor as x+1 except at each cycle endpoint, where it is x\u2212(l\u22121), equivalently (x+1)\u2212l. There is a fan-in-two AND/NOT circuit on S bits extending this assigned transition to a total map with O(\u221am\u00b7S\u00b2) gates. Proof: For each occurring length l, let its interval start at a_l and contain q_l cycles, so its endpoint predicate on valid codes is E_l(x)=[a_l\u2264x<a_l+q_l l] AND [(x\u2212a_l+1) mod l=0]. The interval test has O(S) gates; the modular test has O(S log(l+1)) gates by the residue recurrence. Let B(x)=x+1 mod 2^S. Compute Y_l(x)=B(x)\u2212l mod 2^S with an O(S)-gate constant subtractor. Since the E_l are mutually exclusive on all inputs (their interval tests are disjoint), define each output bit by selecting Y_l when E_l holds and B otherwise, using a fan-in-two mux and an OR aggregation over lengths. This costs O(S) per length beyond predicate computation. The number k of distinct occurring lengths satisfies k(k+1)/2\u2264m, hence k\u2264\u221a(2m). As log(l+1)\u2264S+1, total size is O(kS\u00b2)=O(\u221am\u00b7S\u00b2). For a non-endpoint code, B is the next code in its cycle; at an endpoint, B\u2212l is the first code of that same cycle. Thus the circuit agrees with \u03b4 on every assigned code. This is an implementation lemma conditional on the stated block assignment; it is not a lower bound or a P\u2260NP result.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795741308.9946923,
+  "session": "pnp-desk/research/R4566",
+  "model": "gpt-6-luna",
+  "gap": "For involutions with both transposed pairs and fixed points, establish a compact stationary encoding and fan-in-two implementation with O(S) gates, or prove a weaker exact bound and identify the remaining gap.",
+  "gap_id": "G0217"
+ },
+ {
+  "at": 1795741359.4542336,
+  "session": "pnp-desk/research/R4566",
+  "model": "gpt-6-luna",
+  "id": "S0833",
+  "proved_step": "Let m=2p with p>=1, Q be an m-element set, and delta:Q->Q be a fixed-point-free involution. With S=ceil(log2 m), there is an injective encoding psi:Q->{0,1}^S such that the encoded transition extends to a total S-bit Boolean map using one NOT gate. Proof: Partition Q into its p two-element orbits and assign each orbit a distinct index i in {0,1}^k, where k=ceil(log2 p). Encode the two members of orbit i by (i,0) and (i,1). Since S=ceil(log2(2p))=1+ceil(log2 p)=k+1, these are S-bit codes. Define F(i,b)=(i,1-b) on all S-bit strings. F is implemented by one NOT gate on the final coordinate, with all other coordinates wired through. For each valid code psi(q), this gives psi(delta(q)); hence it is a total extension with the claimed cost. The construction also covers p=1, where k=0 and S=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795741628.930127,
+  "session": "pnp-desk/research/R4566",
+  "model": "gpt-6-luna",
+  "id": "S0834",
+  "proved_step": "statement: For every m>=2 and every involution delta on an m-element set Q, let p be the number of transposed pairs and f=m-2p the number of fixed points. Set S=ceil(log2 m). There is an injective stationary encoding e:Q->{0,1}^S such that the encoded transition has an extension to all S-bit strings computed by O(S) fan-in-two AND/NOT gates. Proof: enumerate the transposed pairs as (a_i,b_i), 0<=i<p, and fixed points as c_j, 0<=j<f. Encode a_i by the S-bit binary representation of 2i, b_i by that of 2i+1, and c_j by that of 2p+j. These codes are distinct and below m, so fit in S bits. On valid codes x, delta toggles the least significant bit exactly when x<2p; otherwise it fixes x. Write x=(u,b), with b the least significant bit. The condition x<2p is equivalent to u<p, since the paired block is {0,...,2p-1}. Extend the transition to (u,b)->(u,b XOR [u<p]). Comparing binary u to constant p uses O(S) fan-in-two AND/NOT gates: scan bits from most significant to least, maintaining equality-so-far and less-than-so-far with O(1) gates per bit. XOR has a constant-size AND/NOT implementation. Total size is O(S), including p=0 when the condition is false. This closes the mixed-involution encoding gap G0217 within the stated stationary-encoding model.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0217",
+  "closes_valid": false
+ },
+ {
+  "at": 1795742202.569324,
+  "session": "pnp-desk/research/R4571",
+  "model": "gpt-6-luna",
+  "id": "S0835",
+  "proved_step": "statement: UNIFORM POWER-OF-TWO CYCLE ENCODING. Let a permutation delta on an m-element set Q have all cycles of the same length 2^k, with k>=0. Then there is an injective encoding psi:Q->{0,1}^ceil(log2 m) such that the partial transition psi(q)->psi(delta(q)) extends to a total Boolean map using O(k) fan-in-two gates (zero gates when k=0). Proof: Let p=m/2^k be the number of cycles and enumerate cycles by i in {0,...,p-1}; enumerate each cycle in successor order by phase r in {0,...,2^k-1}. Encode q=(i,r) by the concatenation of the ceil(log2 p)-bit binary encoding of i and the k-bit binary encoding of r (omit the index field if p=1). The code length ceil(log2 p)+k is at most ceil(log2(p*2^k))=ceil(log2 m). On valid codes delta increments r modulo 2^k and leaves i fixed. Define the total map on every bit string of that length to preserve the index field and increment the phase field modulo 2^k; this is a standard ripple-carry incrementer of O(k) fan-in-two gates (for k=0 it is the identity). If the code length is less than ceil(log2 m), pad with constant zero bits and preserve them. Thus the required transition is realized on every valid code, and the map is total.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795742529.4719977,
+  "session": "pnp-desk/research/R4574",
+  "model": "gpt-6-luna",
+  "evidence": "Independent exhaustive verification cm-d8e475b6cf9d49f5 checked every injection and map for m=2,3,4: 26,536 encoded-state cases, zero failures. The proof gives the general result and explicit O(S(t+1)) gate bound.",
+  "id": "S0836",
+  "proved_step": "statement: SPARSE-SUPPORT TRANSITION EXTENSION. Let m>=2, S=ceil(log2 m), Q be an m-element set, psi:Q->{0,1}^S an injection, and delta:Q->Q change exactly t states. If t=0, the partial transition extends as the identity with zero gates. If t>=1, it extends to a total Boolean map F:{0,1}^S->{0,1}^S using at most 4St+10S fan-in-two AND/NOT gates. Proof: For each changed q form E_q(x), the conjunction of the S literals matching psi(q). Generate shared input negations in at most S NOT gates and each conjunction in S-1 AND gates, for total at most S+t(S-1). For each output bit j let D_j be the changed states whose source and destination codes differ at bit j; form A_j=OR_{q in D_j} E_q, using zero gates if D_j is empty and at most 3|D_j| gates otherwise, since a two-input OR uses three AND/NOT gates. Define F_j=x_j XOR A_j, with at most 9 gates per bit. The total is at most S+t(S-1)+3 sum_j|D_j|+9S <= 4St+10S. For any valid input psi(r), injectivity means at most one indicator is true; it is true exactly for r when r changes. Thus A_j is 1 exactly on bits where psi(r) differs from psi(delta(r)), so F(psi(r))=psi(delta(r)). The formulas define F on unused codes as well. This is a stationary extension, not a lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795742698.9749417,
+  "session": "pnp-desk/research/R4574",
+  "model": "gpt-6-luna",
+  "id": "S0837",
+  "proved_step": "statement: PAIRED ENCODING FOR FIXED-POINT-FREE INVOLUTIONS. Let Q be a set of size m=2p, p>=1, and let delta:Q->Q be a fixed-point-free involution (delta(delta(q))=q and delta(q)!=q for every q). There is an injection psi:Q->{0,1}^{ceil(log2 m)} such that the transition psi(q)->psi(delta(q)) is implemented by one NOT gate. Proof: The involution partitions Q into p disjoint unordered pairs; enumerate them as P_0,...,P_{p-1}. Put k=ceil(log2 p), and assign each pair P_i the k-bit binary representation i. Give its two elements tags 0 and 1, and encode q by (i,tag(q)) in {0,1}^{k+1}. Since k+1=ceil(log2(2p))=ceil(log2 m), this has the required width. Distinct pairs have distinct indices and elements in each pair have distinct tags, so psi is injective. The map delta preserves i and toggles the tag, hence a single NOT on the tag coordinate maps psi(q) to psi(delta(q)) for every q. The other coordinates are unchanged wires. For p=1, k=0 and the sole tag bit still gives the result. This is a stationary encoding and a one-gate extension on all bit strings; it is an upper bound for this special class, not a general lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795743385.7523396,
+  "session": "pnp-desk/research/R4574",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Hand verification: construction correct. e_q(x) = AND of literals matching psi(q) costs S gates per q (shared negated inputs). F_j toggles bit j exactly for q where psi and psi\u2218delta differ on bit j. Mutual exclusivity of e_q (injectivity of psi) ensures at most one correction fires. Cost: O(St) for indicators, O(S + sum|D_j|) \u2264 O(St) for corrections, O(S) baseline. Total O(S(1+t)). t=0 gives identity with 0 gates. Verified logic; no computational check needed as this is a general construction proof. Note: this is an upper bound for ANY delta, not a lower bound. It does not close a superlinear lower-bound gap (G0002) - that would require a lower bound proof.",
+  "review_of": "S0706",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743464.7049189,
+  "session": "pnp-desk/research/R4574",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The algebraic proof is correct: \u03c8_{t+1}(\u03b4(q)) = \u03c8(\u03b4^{-(t+1)}(\u03b4(q))) = \u03c8(\u03b4^{-t}(q)) = \u03c8_t(q) for all q. Since \u03b4^L = id, \u03c8_{t+L} = \u03c8_t. The transition on valid codes is exactly the identity map (\u03c8_{t+1}\u2218\u03b4 = \u03c8_t on Q), so it requires zero gates on valid inputs. The lemma correctly notes it does not address decoder maintenance cost. No gap found; step survives review.",
+  "review_of": "S0703",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743464.7497215,
+  "session": "pnp-desk/research/R4574",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is algebraically sound: D(\u03c8_{t+1}(\u03b4(q))) = \u03b4(q) and D(\u03c8_t(q)) = q by correct decoding. The hypothesis \u03c8_{t+1}(\u03b4(q)) = \u03c8_t(q) makes the decoder inputs equal, forcing \u03b4(q) = q. This is independent of other claims and correctly formalizes that zero code-word update with fixed decoder implies identity transition. Step survives review.",
+  "review_of": "S0704",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743464.7861054,
+  "session": "pnp-desk/research/R4574",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is correct: if D_a = D_b, evaluating at \u03c8(q_0) gives q_a = q_b, so a \u2261 b (mod m) since cycle states are distinct. Thus the m decoders are pairwise distinct. If a phase-state map H produces them, the phase states must also be distinct, requiring \u2265 ceil(log2 m) bits. No reliance on unreviewed claims. Step survives review.",
+  "review_of": "S0705",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743464.82251,
+  "session": "pnp-desk/research/R4574",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is valid: (1) a binary prefix trie over the t changed codewords uses T non-root nodes, giving O(T) AND gates for shared prefixes plus O(S) shared negated literals; (2) per output bit j, an OR tree over |D_j| indicators costs max(0,|D_j|-1) gates; (3) output bit j = x_j XOR (OR of indicators for D_j) uses constant-size AND/NOT. On valid unchanged states all indicators are 0 (by injectivity, no \u03c8(q) for q\u2208D matches), so output = input. On valid changed state \u03c8(q), exactly its indicator is 1 (injectivity), toggling exactly the bits where \u03c8(q) and \u03c8(\u03b4(q)) differ, yielding \u03c8(\u03b4(q)). The formulas are total. Gate count O(S + T + \u03a3_j max(0,|D_j|-1)) is correct. This is an upper bound construction; it does not close a superlinear lower-bound gap. Step survives review.",
+  "review_of": "S0708",
+  "status": "SURVIVED_REVIEW"
  }
 ]

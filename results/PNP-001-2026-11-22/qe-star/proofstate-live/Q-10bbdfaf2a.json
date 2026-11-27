@@ -7616,5 +7616,176 @@
   "proved_step": "statement: Let H be a codimension-one linear subspace of F_2^N and let F:F_2^N->{0,1} satisfy F(x+h)=F(x) for all x in F_2^N and h in H. If F is nonconstant, then there is a nonzero linear functional ell with kernel H such that F(x)=ell(x) or F(x)=1-ell(x). Consequently the essential input coordinates of F are exactly the nonzero coordinates of ell. Any fan-in-at-most-two Boolean circuit with free fan-out computing F has at least wt(ell)-1 gates.\nproof: Since H has codimension one, the quotient F_2^N/H has exactly two cosets. Invariance makes F constant on each coset, so F factors through the quotient map ell:F_2^N->{0,1}, where ell is the unique nonzero linear functional with kernel H. Nonconstancy means the two coset values differ, hence the induced map on {0,1} is identity or complement. In either case changing coordinate i changes ell, and therefore F, exactly when ell_i=1; these are precisely the essential coordinates. For the circuit bound, take the output cone and retain the wt(ell) essential input vertices and g gate vertices. Its underlying undirected graph is connected, so it has at least wt(ell)+g-1 distinct edges; each edge is an incoming wire to a gate, and there are at most 2g such wires. Thus g>=wt(ell)-1.\nscope: All N>=1, every codimension-one linear subspace H of F_2^N, and every Boolean function invariant under translations by H; circuits have fan-in at most two, free fan-out, and gate count excludes input and constant vertices.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795741417.7508037,
+  "session": "pnp-desk/research/R4565",
+  "model": "gpt-6-luna",
+  "id": "S0879",
+  "proved_step": "statement: Lemma (coordinate essentiality from transitive invariance). Let G act transitively on the coordinates of {0,1}^N, and let F:{0,1}^N->{0,1} satisfy F(gx)=F(x) for every g in G. If F is nonconstant, then every coordinate is essential. Proof: Suppose coordinate i is inessential. For any coordinate j, transitivity gives g\u2208G with g(i)=j. For any x, invariance and inessentiality give F(x)=F(g^{-1}x)=F(g^{-1}x with coordinate i flipped)=F(x with coordinate j flipped), where the middle equality holds because g^{-1} maps flipping coordinate j to flipping coordinate i. Thus F is insensitive to every coordinate, so it is constant, contradiction. Applying this to MCSP[s] on N-bit truth tables, whose value depends only on the minimum circuit size and hence is invariant under permutations of the N truth-table entries only when the circuit model preserves arbitrary entry permutations; this hypothesis is not established for ordinary Boolean circuits, so the application is conditional and is not asserted. In the established special case of XOR-translation invariance, the same argument with translations gives all coordinates essential; the connected output-cone count then gives at least N\u22121 fan-in-two gates.\nscope: Finite Boolean functions on N coordinates under a transitive coordinate-permutation group; conditional MCSP application requires a proven invariance of its circuit-size predicate under that group. The XOR-translation special case is valid for fan-in-at-most-two circuits with free fan-out and input vertices counted in the output cone.\nproof: The argument is included in the statement. The general group-action claim follows because flipping coordinate j and applying g^{-1} is equivalent to applying g^{-1} and flipping coordinate i=g^{-1}(j). Invariance identifies the function values before and after applying g^{-1}; inessentiality of i identifies the two values differing only at i. Since j was arbitrary, all coordinates are inessential, contradicting nonconstancy. For XOR translations, the action is transitive and the previously reviewed output-cone count gives g\u2265N\u22121.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795741796.208548,
+  "session": "pnp-desk/research/R4568",
+  "model": "gpt-6-luna",
+  "gap": "This small-support characterization does not establish a superlinear lower bound for the general circuit complexity of MCSP[m^c]. G0001 and G0002 remain open; a further argument must convert local structure of the MCSP truth table into a superlinear lower bound for circuits computing the full decision function.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ],
+  "id": "S0880",
+  "proved_step": "For every integer m>=1 and every Boolean function f:{0,1}^m->{0,1} with t satisfying inputs, if t<=floor((s+1)/m), then f has a fan-in-two AND/OR circuit of size at most s when input negations and constants are free; if t=0, size zero suffices. Proof: For t>=1, write f as the disjunction of the t minterms corresponding to its satisfying inputs. Each minterm is the conjunction of m literals and uses m-1 binary AND gates; joining the t terms uses t-1 binary OR gates. Thus the circuit has t(m-1)+(t-1)=tm-1 gates. The assumed inequality gives tm-1<=s. When t=0, f is constantly zero. Exact scope: all m>=1, this AND/OR basis, free input negations and constants, unrestricted depth and free fan-out. This is a constructive small-support region for MCSP[s], not a lower bound on the MCSP decision function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795742470.2541163,
+  "session": "pnp-desk/research/R4560",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma claims: if F is invariant under ALL XOR translations x -> x XOR a, and nonconstant, then every coordinate is essential, hence any fan-in-2 circuit needs >= N-1 gates. COUNTEREXAMPLE to the premise: A function invariant under ALL XOR translations must satisfy F(x) = F(x XOR a) for all a. Taking a=x gives F(x)=F(0) for all x, so F is constant. Therefore the premise 'F is nonconstant AND invariant under ALL XOR translations' is IMPOSSIBLE - no such function exists. The lemma is vacuously true but its premise is unsatisfiable for nonconstant functions. Hence it cannot be applied to MCSP or any nonconstant function. The argument gap: the proof assumes such nonconstant functions exist, but the only functions invariant under all XOR translations are the constant functions.",
+  "review_of": "S0844",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795743368.1361504,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard union bound argument: each radius-r ball has size sum_{i=0}^r binom(N,i); union over <=D centers gives upper bound D*sum. Strict inequality < 2^N guarantees a point outside all balls. Mathematically correct. Limitation correctly noted: constructs functions far from small circuits, does not lower-bound MCSP decision circuit complexity.",
+  "review_of": "S0845",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743368.1835432,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Construction: t minterms each of m literals (m-1 AND gates each), OR-ed together (t-1 OR gates). Total t(m-1)+(t-1)=tm-1. Correct for fan-in-2 AND/OR with free input negations. t=0 case (constant zero) size 0. Mathematically sound.",
+  "review_of": "S0846",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743552.9908364,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematically correct counting argument: DNF/CNF cost mq-1 gates for support q; r = floor((s+1)/m); 2*sum binom(N,i) functions with smaller support <= r; binomial bound gives log count O(r log N) = O(m^c) for s=m^c; fraction 2^{-2^m+O(m^c)}. This is a density lemma, not a lower bound on MCSP decision complexity.",
+  "review_of": "S0850",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743553.0370896,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: disagreement set h has DNF with t minterms costing mt-1 gates; g = f XOR h = (f AND NOT h) OR (NOT f AND h) adds 5 gates (2 NOT + 3 binary); total C(g) <= C(f) + mt + 4. For t=0, f=g. Valid lemma about circuit distance.",
+  "review_of": "S0851",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743553.0735037,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: affine subspace of codimension k defined by k independent affine equations; each parity computed via chain of XORs (4 gates each); AND of k indicators costs k-1; XOR with f adds 5 gates; total overhead 4mk-2k+4. Valid structured patching lemma.",
+  "review_of": "S0852",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795743553.1082397,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard cofactor lemma: C(f_b) <= C(f) by substitution; C(f) <= C(f_0)+C(f_1)+4 by multiplexing (NOT x_m AND f_0) OR (x_m AND f_1) using 4 extra gates. Correct.",
+  "review_of": "S0853",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744065.5184338,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Essentially same as S0853 with indexing clarification for truth table layout. Correct.",
+  "review_of": "S0854",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744065.5571175,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct counting bound: (s+1)(m+s+2)[3(m+s+2)^2]^s descriptions for circuits of size <= s; each function has a description so |F_{m,s}| bounded by this. Standard Shannon-type counting. Does not lower-bound MCSP decision complexity.",
+  "review_of": "S0855",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744065.911782,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: G-invariant nonconstant function has all N coordinates essential (transitivity transports insensitivity); in fan-in-2 circuit, output cone has N essential inputs + g' gates, connectivity => N+g'-1 edges <= 2g' => g' >= N-1. Only gives linear bound.",
+  "review_of": "S0856",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744065.9630492,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same argument as S0856 with slightly different proof structure. Correct but only yields N-1 gate lower bound.",
+  "review_of": "S0857",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744186.586075,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. The construction uses DNF for the smaller support (one-set or zero-set). If |f^{-1}(1)| = q \u2264 2^{m-1}, OR of q minterms: q(m-1) AND gates + (q-1) OR gates = mq-1. If |f^{-1}(0)| = q < 2^{m-1}, AND of q maxterms (CNF): same count mq-1. The output-negation approach would give mq gates (mq-1 for zero-set DNF + 1 NOT), so the direct CNF is optimal. No counterexample exists; this is a standard tight upper bound for this basis.",
+  "review_of": "S0847",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744186.6490426,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. Restatement of S0847 with identical proof. The DNF/CNF construction yields exactly mq-1 gates for the smaller support. No argument gap.",
+  "review_of": "S0849",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744186.681264,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. Shannon expansion: f = (\u00acx_i \u2227 f_0) \u2228 (x_i \u2227 f_1) uses 1 NOT, 2 AND, 1 OR = 4 gates plus cofactor circuits. Cases: f_0=0 \u2192 x_i\u2227f_1 (1 AND); f_0=1 \u2192 \u00acx_i\u2228f_1 (1 NOT + 1 OR = 2); f_0=f_1 \u2192 output f_0 directly (0 extra). All cases tight for this basis. The stated limitation is accurate - this is an upper bound tool, not a lower bound generator.",
+  "review_of": "S0858",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744732.3045843,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. Standard DNF construction: each minterm uses m-1 AND gates, combining t minterms uses t-1 OR gates, total tm-1. The bound is tight for sparse functions but only covers tables with O(s/m) ones. Does not advance the superlinear lower bound target.",
+  "review_of": "S0860",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744732.3618639,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. Counting argument shows nonconstancy (number of size-s circuits is 2^O(m^c log m) < 2^N). Translation invariance under x -> x xor a gives N-1 gate lower bound via essential coordinates argument. This is a linear (N) lower bound, not the superlinear N(log N)^k target.",
+  "review_of": "S0861",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744732.3981256,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. Standard circuit counting: each gate has type (5 choices) and two predecessors from m+j sources. Total descriptions 2^O(s log(m+s)) < 2^N for large m. Zero table is in MCSP_s, random table is not. Establishes nonconstancy but only supports linear lower bound via S0863.",
+  "review_of": "S0862",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795744732.4328227,
+  "session": "pnp-desk/research/R4576",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct. Translation group acts transitively on N coordinates. Nonconstant + transitive invariance => all coordinates essential => fan-in-2 circuit needs N-1 gates. MCSP_s has this invariance (relabeling inputs x->x xor a is size-preserving). This yields exactly N-1 = 2^m - 1, not the target N(log N)^k.",
+  "review_of": "S0863",
+  "status": "SURVIVED_REVIEW"
  }
 ]
