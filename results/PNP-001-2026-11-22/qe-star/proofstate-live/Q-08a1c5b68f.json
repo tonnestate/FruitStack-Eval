@@ -8006,5 +8006,78 @@
   "proved_step": "statement: Let a deterministic layered streaming transducer have a fixed initial S-bit state. Suppose every update uses zero nonconstant gates, with free wires and constants, and has one new input bit. At cut t, each state coordinate is either constant or a copy of one of the t bits already read. Consequently the number of possible states at that cut is at most (t+2)^S. If the encoding is injective on the live prefix set P_t, then |P_t| <= (t+2)^S.\nproof: Induct on t. At t=0, the initial state is fixed, so each coordinate is constant. For the induction step, a zero-nonconstant-gate update in the stated wire-and-constant model can set each output coordinate only to a constant, a current state coordinate, or the new input bit. By the induction hypothesis a current state coordinate is constant or copies one of the first t input bits. Hence after the update each output coordinate is constant or copies one of the first t+1 input bits. At cut t, each of the S coordinates therefore has at most t+2 possible descriptions: either constant 0, constant 1, or one of the t input coordinates. The entire state vector has at most (t+2)^S possible values. Injectivity on P_t implies |P_t| cannot exceed this number.\nscope: All fixed-initial-state layered transducers whose per-step updates use only free wires and constants (the zero-nonconstant-gate case); any finite live-prefix set P_t; S state bits. This is a necessary capacity condition, not a bound for positive gate cost or for unrestricted transition circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795770161.605761,
+  "session": "pnp-desk/research/R4690",
+  "model": "gpt-6-luna",
+  "id": "S0896",
+  "proved_step": "statement: For any finite F\u2286{0,1}^N and cut t, let P_t={f[0:t): f\u2208F}. A zero-nonconstant-gate S-bit encoding of P_t by free wires and constants exists if and only if there is a set I\u2286{0,\u2026,t\u22121} with |I|\u2264S such that projection p\u21a6p|_I is injective on P_t.\nproof: (\u21d2) Starting from a fixed initial state, each output coordinate after t zero-gate updates is either a constant or a copy of one of the t input bits: induction on the updates, since each new coordinate can only copy an old coordinate, the current input bit, or a constant. Let I be the set of input positions copied by at least one coordinate. If two prefixes agree on I, all state coordinates agree, so injectivity of the state encoding forces the prefixes equal. Also |I|\u2264S. (\u21d0) Given such an I, assign one state coordinate to copy each selected input bit as it arrives, retaining those bits by free wires; use constants in any remaining coordinates. At cut t the state contains p|_I, which is injective on P_t. Thus this is an encoding using at most S coordinates and zero nonconstant gates.\nscope: Finite F\u2286{0,1}^N; fixed initial state; one input bit per layer; update coordinates may be constants or free copies of prior state coordinates/current input; injectivity required only on P_t at the specified cut. This is a per-cut characterization and does not assert a single encoding works at every cut or address dead-prefix separation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771009.9075453,
+  "session": "pnp-desk/research/R4698",
+  "model": "gpt-6-luna",
+  "id": "S0897",
+  "proved_step": "statement: Let a deterministic layered transducer have S state bits, one input bit per update, and fan-in-2 AND/OR/NOT gates. If each of its S next-state bits is an arbitrary Boolean function of the current state and input, then every next-state bit has a circuit with at most (S+1)2^(S+1)+S gates, and the whole update has at most S((S+1)2^(S+1)+S) gates. Proof: Put k=S+1. For any Boolean function f on k inputs, write its disjunctive normal form using at most 2^k minterms. Form each minterm with at most k-1 binary AND gates; form the disjunction with at most 2^k-1 binary OR gates; and provide the k negated input literals with k NOT gates. Thus the total is at most 2^k(k-1)+(2^k-1)+k = k2^k+k-1 = (S+1)2^(S+1)+S. Applying this separately to all S next-state bits gives the stated update bound. This constructs an exact update circuit for every transition map; it makes no lower-bound claim and does not bound decoder size D.\nscope: All finite deterministic layered transducers with S-bit states, one Boolean input per update, and fan-in-2 AND/OR/NOT update circuits; bound is per update and counts NOT gates separately, without cross-output sharing.\nevidence: Independent finite VERIFICATION of Shannon-tree synthesis for all Boolean functions on 0, 1, 2, and 3 inputs: cm-c1062280d5e042fc. The general bound is proved by the DNF construction in the step, not inferred from finite enumeration.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-46cebdbccc",
+  "closes_valid": true
+ },
+ {
+  "at": 1795771578.848623,
+  "session": "pnp-desk/research/R4698",
+  "model": "gpt-6-luna",
+  "id": "S0898",
+  "proved_step": "statement: Let F be any finite subset of {0,1}^N. At each layer t, let R_t be the set of distinct nonempty residual languages of F after prefixes of length t. Add one empty residual state. Put S=ceil(log2(max_t |R_t|+1)). Then a layered deterministic membership automaton exists using S state bits and at most S(S+2)2^(S+1) AND/NOT gates per update. Proof: Assign distinct S-bit codes at each layer to its residuals and the empty residual. For a residual r and next bit b, define its derivative r_b={v: bv in r}; this is the residual after extending any prefix represented by r with b. Map the empty residual to itself and unused codes arbitrarily. Each output state bit is now a Boolean function of the S old code bits and b, hence of k=S+1 inputs. For each output bit, implement its truth table in disjunctive normal form: at most 2^k minterms, each with at most k literals, using at most k2^k literal negations/wires and (k-1)2^k AND gates, plus at most 2^k-1 OR gates. OR can be implemented using AND and NOT, costing at most two gates per OR. Thus the per-output cost is at most (k+2)2^k, and all S outputs cost at most S(S+3)2^(S+1); using a binary decision tree implementation instead gives at most S(2^(S+1)-2) gates. At layer N, the residual is {epsilon} exactly for accepted words and empty otherwise, so a final lookup decoder decides membership. Scope: finite binary languages, membership only; decoder size is unrestricted. This gives an explicit upper bound, not an optimal Pareto point or a Lemma M lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795771658.8311832,
+  "session": "pnp-desk/research/R4698",
+  "model": "gpt-6-luna",
+  "id": "S0899",
+  "proved_step": "statement: Repair of earlier gate-count claim S0898: For every finite F subseteq {0,1}^N, let R_t be the distinct nonempty residuals after length-t prefixes and M=max_t |R_t|. With S=ceil(log2(M+1)) state bits, layer-dependent transitions over fan-in-2 AND and NOT gates, free wires, and unrestricted final decoder, there is an exact membership automaton whose per-update gate count is at most S((S+1)+(S+2)2^(S+1)). At each layer encode each residual and the empty residual distinctly. Derivatives map represented residuals to next-layer residuals, and empty to empty. Each next-state bit is a Boolean function of k=S+1 bits. Its DNF uses at most 2^k terms: at most k shared literal negations, (k-1)2^k AND gates to form terms, and at most 2*2^k AND/NOT gates for the OR via De Morgan. Thus each output costs at most k+(k+1)2^k, giving the stated bound over S outputs. Induction verifies residual tracking; the length-N residual distinguishes membership. This repairs S0898's understated gate arithmetic. The bound is constructive but not an optimal Pareto result.\nscope: All finite binary languages; layer-dependent encodings; fan-in-2 AND and NOT gates; free wires; unrestricted final lookup decoder. At S=0 the unique state suffices and there are no output bits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795773037.165701,
+  "session": "pnp-desk/research/R4706",
+  "model": "gpt-6-luna",
+  "id": "S0900",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, let R_t be its set of distinct residuals after prefixes of length t. The canonical residual automaton, encoded by one-hot state bits, has a deterministic layer-t transition circuit of at most 4|R_t| fan-in-2 AND/OR gates, assuming input literals and constants are free. Proof: for each residual state q and input bit b, form q_q AND [x=b], using at most 2|R_t| gates. Route each term to the one-hot bit for its unique derivative state \u03b4(q,b). For each destination state, OR its incoming terms. If it receives k terms, this takes at most max(k-1,0) gates; summed over destinations, the OR cost is at most the total number of terms, 2|R_t|. On one-hot inputs, the outputs are exactly the next residual state. Behavior on invalid encodings can be arbitrary. This is an upper bound for this encoding, not a minimum over encodings or a lower bound for SC_{n,s}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0015",
+  "closes_valid": true
+ },
+ {
+  "at": 1795773362.0613263,
+  "session": "pnp-desk/research/R4706",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction and proof; independent exhaustive check for N<=3 requested in experiment cm pending.",
+  "id": "S0901",
+  "proved_step": "statement: For every finite binary language F subseteq {0,1}^N, there is a deterministic layered streaming recognizer using N+1 state bits whose reachable transitions can be implemented with at most 2|P_t|(N+2) fan-in-2 AND/OR gates at layer t, assuming constants and input literals are free. Here P_t is the set of length-t prefixes that extend to a word in F; the state stores the N-bit prefix register and one live bit. The register shifts left and appends the new bit. The live bit remains 0 from a dead state; from a live prefix p it is set to 1 exactly when pb is in P_{t+1}. Implement this bit by one conjunction term for each p in P_t and b in {0,1}, testing the old live bit, the stored prefix bits equal p, and the input equal b; OR the terms for which pb is in P_{t+1}. There are at most 2|P_t| terms, each with at most N+2 literals and hence at most N+1 fan-in-2 AND gates; the OR costs at most 2|P_t| gates. Thus the total is at most 2|P_t|(N+2). Acceptance after N bits is the live bit. This is a coarse upper bound at N+1 bits, not a minimum-cost result at the assigned logarithmic state budget.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773414.6925821,
+  "session": "pnp-desk/research/R4706",
+  "model": "gpt-6-luna",
+  "evidence": "Direct finite construction. The stated bound includes live-prefix transitions only; the dead-state transitions add at most two state/input minterms per output, so the corrected bound is (2|P_t|+2)S(S+3). No experiment is cited; this step is a general proof claim awaiting independent review.",
+  "id": "S0902",
+  "proved_step": "statement: Let F be any finite binary language contained in {0,1}^N, let P_t be its live length-t prefixes, M=max_t |P_t|, and S=ceil(log2(M+1)). For every choice of injective S-bit codes for the live prefixes at each layer and one code for a dead state, there are deterministic layered transitions on S state bits and one input bit that correctly update every reachable live or dead state, with a per-layer Boolean DNF implementation using at most 2|P_t| minterms per output bit. If each minterm is built as an AND of S+1 literals and ORed, each output uses at most 2|P_t|(S+1) AND gates and 2|P_t| OR gates, so the S outputs use at most 2|P_t|S(S+3) fan-in-2 AND/OR gates. Proof: the number of codes needed is |P_t|+1 <= M+1 <= 2^S. Assign distinct codes to P_t and a separate code d_t to dead. For each reachable pair (c_t(p),b), set its target to c_{t+1}(pb) when pb is live and d_{t+1} otherwise; set each pair starting from d_t to d_{t+1}. For output coordinate j, form one minterm for each reachable pair whose target coordinate is 1, testing all S state bits and the input bit, then OR these minterms. There are at most 2|P_t|+2 reachable pairs including the dead code, so the stated bound omits up to two dead-code minterms and is not justified as written. Corrected bound: at most 2|P_t|+2 minterms per output; hence at most (2|P_t|+2)S(S+3) gates. The outputs match the defined transition on all reachable pairs, and behavior on other codes can be arbitrary. This is an upper bound for a chosen encoding, not the minimum G_max.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

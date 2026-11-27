@@ -7862,5 +7862,65 @@
   "evidence": "Independent argument review: the claimant of S0013 was claude-haiku-5-5, a different model family. The stated linear promise bound is valid. In the output cone, with g gates and r distinct input nodes, connectivity gives at least r+g-1 edges, while fan-in two gives at most 2g; hence r<=g+1<=S+1. The random table T agrees with the zero YES-table T0 on the read set, so C accepts T. On the other u=N-r positions, its distance from any fixed small circuit is Bin(u,1/2). For u>=4D, Hoeffding bounds the probability of distance at most D by exp(-u/8); the union bound over the encoded small circuits is below 1 when u>8 ln M. Thus a NO-table T would also be accepted, a contradiction. Therefore u<max(4D,8 ln M), yielding S>N-1-max(4D,8 ln M). The conflicting review establishes that this is insufficient for the superlinear target, not that the lemma is false. This review validates only S0013\u2019s linear promise bound; it does not close G0001 or G0002.",
   "dispute_of": "S0013",
   "status": "DISPUTED"
+ },
+ {
+  "at": 1795770442.5916765,
+  "session": "pnp-desk/research/R4693",
+  "model": "gpt-6-luna",
+  "id": "S0886",
+  "proved_step": "statement: For every finite fan-in-at-most-two Boolean circuit DAG with one designated output, let g be the number of gate vertices in the output cone and r the number of distinct input vertices in that cone. Then r <= g+1.\nproof: Take the subgraph induced by all vertices that can reach the designated output, including its gate and input vertices. Every vertex in this subgraph has a directed path to the output, so its underlying undirected graph is connected. A connected graph on r+g vertices has at least r+g-1 distinct edges. Each edge is a wire entering a gate in the cone, and each of the g gates has at most two incoming wires, so there are at most 2g distinct edges. Therefore r+g-1 <= 2g, and r <= g+1. Repeated wires or shared subcomputations do not invalidate the upper bound on distinct edges.\nscope: All finite acyclic Boolean circuit DAGs with fan-in at most two; free fan-out; one output; counts distinct primary input vertices and gate vertices in its output cone.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795771144.1510947,
+  "session": "pnp-desk/research/R4696",
+  "model": "gpt-6-luna",
+  "evidence": "Direct circuit transformation and gate-count argument in the stated model.",
+  "id": "S0887",
+  "proved_step": "statement: Local AND-gate elimination lemma. Let C be a fan-in-at-most-two Boolean circuit with free fan-out and constants. Suppose input x feeds exactly one gate, a binary AND gate g, and has no other uses. Fixing x=0 yields a circuit for C|x=0 with at most |C|-1 gates.\nproof: After fixing x=0, g outputs 0. Replace g by constant 0, propagate constants through downstream gates, and delete gates no longer reachable from the output. Each operation preserves the restricted function and adds no gates; deleting g reduces the count by at least one.\nscope: This applies only when the designated input has a unique AND-gate use. It does not show such an input exists in arbitrary MCSP decision circuits or that the MCSP promise remains hard after fixing it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771144.2153785,
+  "session": "pnp-desk/research/R4696",
+  "model": "gpt-6-luna",
+  "gap": "The local elimination lemma does not establish that enough variables of an arbitrary MCSP decision circuit have unique AND-gate uses, or preserve the MCSP promise under those restrictions. G0001/G0002 remain open; a general restriction invariant is still needed.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ]
+ },
+ {
+  "at": 1795771288.6759074,
+  "session": "pnp-desk/research/R4696",
+  "model": "gpt-6-luna",
+  "evidence": "Direct simultaneous constant substitution in the stated acyclic circuit model; each of k distinct AND gates becomes constant under the simultaneous restriction.",
+  "id": "S0888",
+  "proved_step": "statement: Simultaneous private-AND elimination lemma. Let C be a finite acyclic fan-in-at-most-two Boolean circuit over AND, OR, NOT, and constants, with free fan-out and one output. Let X be a set of k distinct input variables. Suppose each x in X has exactly one outgoing use in C, that use is one input pin of a binary AND gate g_x, and the gates g_x are pairwise distinct. Let C_0 be obtained by fixing every x in X to 0. Then C_0 computes the corresponding restriction of C and has a circuit of size at most |C|-k.\nproof: For each x in X, its unique use is at g_x, so after fixing x=0 the output of g_x is identically 0, regardless of its other input. Replace all k distinct gates g_x by constant 0. The resulting directed circuit computes C_0: this follows by topological induction, since every replaced gate has the same value it had under the restriction, and every unreplaced gate receives the same restricted predecessor values and applies the same Boolean operation. Constant propagation and deletion of gates that do not reach the output preserve the computed function and cannot increase size. The k gates g_x were distinct and are removed, so the final size is at most |C|-k.\nscope: The lemma assumes the stated private-use wiring pattern in the original circuit. It makes no claim that an arbitrary MCSP decision circuit has k such inputs, or that the restricted MCSP promise retains its hardness.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771434.3624737,
+  "session": "pnp-desk/research/R4696",
+  "model": "gpt-6-luna",
+  "evidence": "For a connected output cone with g gates and r distinct input nodes, at least r+g-1 incoming edges are needed to connect these nodes, while fan-in at most two gives at most 2g, hence r<=g+1<=S+1. T and the YES table T0 agree on R, so C(T)=C(T0)=1; on U, distance to each fixed g in Y is Bin(u,1/2); Hoeffding and a union bound over |Y|<=M give a positive-probability NO table when u>=4D and u>8 ln M, contradicting correctness. Thus u<max(4D, 8 ln M) and the displayed lower bound follows. The disputed review's stated objection is only target insufficiency.",
+  "review_of": "S0013",
+  "status": "SURVIVED_REVIEW",
+  "reconciles_dispute": "The reviewed claim is the explicit linear inequality S >= N - 1 - max(4D, 8 ln M). The dissenting review says this inequality is insufficient for the separate superlinear target; it does not give a counterexample to the inequality or identify a false proof step. I accept the inequality with exactly its stated linear scope and do not treat it as closing G0001/G0002."
+ },
+ {
+  "at": 1795772116.794362,
+  "session": "pnp-desk/research/R4704",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive corollary of S0848 after independent review. Exact scope and gate basis are stated. It does not close the general superlinear lower-bound gap or imply P!=NP.",
+  "id": "S0889",
+  "proved_step": "For every m>=1, every Boolean function f on m input bits with q=min(|f^{-1}(1)|,|f^{-1}(0)|), and every integer s>=mq+m-1 when q>=1 (or s>=0 when q=0), the truth table of f is a YES instance of MCSP[s] in the fan-in-two AND/OR/NOT/constant circuit basis with charged NOT gates and free fan-out. Proof: By the support-sensitive DNF/CNF construction in S0848, C(f)<=mq+m-1; for q=0, f is constant and C(f)=0. Hence C(f)<=s. The construction is explicit: enumerate the smaller truth-table side, build its minterms or falsifying clauses, share the at most m input complements, and output the resulting circuit. This classifies a sparse-support subfamily as YES; it gives no general MCSP decision-circuit lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

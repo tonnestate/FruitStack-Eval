@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 18022 entries from 5883 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 18104 entries from 5904 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - statement: Let Q be any set and let f,g:Q→Q be commuting maps, meaning f∘g=g∘f. For every q∈Q, the words 01 and 10 induce the same terminal state when symbol 0 applies f and symbol 1 applies g.
 proof: Reading 01 applies f then g, so its terminal state is g(f(q
@@ -25,27 +25,27 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For every finite binary language F, an N-bit prefix register plus one live/dead bit gives a correct layered recognizer with per-layer fan-in-2 AND/OR update cost at most 2|P_t|(N+2), with free constants and input literals.
+  - For every finite binary language F, the canonical residual automaton at cut t admits a one-hot fan-in-2 AND/OR update circuit with at most 4|R_t| gates when literals and constants are free and correctness is required only on one-hot state encodings.
+  - For each fixed finite transition system, the pair, preperiod, and period in the arithmetic-progression collision lemma can be extracted by an AC0 selector whose constants depend on that transition system. Test by constructing the selector from its finite orbit
+  - For the prefix language EXT_{n,s}, the minimum number of states after depth t in any deterministic one-pass exact recognizer equals the number of distinct residual sets at depth t.
   - A potential P2′ repair may follow if a formula/restriction encoding supplies, for every counted surviving input-leaf occurrence, a distinct witness variable whose survival is necessary. Pairwise independence would then yield a p² expectation bound for that sub
   - For a fixed family of M candidate truth tables, the viability mask update from prefix p to pb costs O(M) fan-in-two gates once the vector of each candidate's next table bit is supplied; any stronger transition-cost claim must account separately for constructin
-  - For EXT_{n,s}, the generic circuit-count bound K_t≤2^{O(s log(n+s+2))} does not by itself imply polynomial residual width for polynomially growing s; a polynomial bound would require additional structure.
-  - For a fixed pair of distinct words a,b of the same length k, a sufficient transition-algebra condition for an explicit uniform collision is delta_a(q)=delta_b(q) for all reachable q, where delta_w is the transition map induced by w. The equal-square lemma is t
-  - A broader potential subclass is given by powers r(n)>=1 such that delta_0^(r+1)=delta_0^r and delta_1 delta_0^r=delta_0^r on reachable states. Then the collision candidates 0^(2r) and 0^r1^r are equal-state by the same proof. The testable question is whether a
-  - For every involution on m states, the explicit paired-code/fixed-code assignment with transition F(x)=x XOR 1 on x<2p and F(x)=x otherwise yields an exact transition extension with O(ceil(log2 m)) fan-in-two gates.
 REFUTED:
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
   - MECHANISM: for every De Morgan circuit of size N^{1+eps}, the CJW20 pseudorandom restriction satisfies r(C|rho)+log2(2S(C|rho)+1) <= (3beta-eta)log2 N w.h.p.
   - Lemma D1 (one-step drop, bookkeeping, not progress): C fan-in-2 B_2 circuit of size s computing f; x_i has fan-out 1 into gate g = op(x_i, y), y != x_i; some b in {0,1} makes op(b, .) in {0, 1, y, not y}. Then f|x_i=b has a B_2 circuit of size <= s-1. Proof: d
   - Conjecture: every minimally GF(3)-blind family of positive 1-in-3 clauses has cov = rank3 + 1. REFUTED: F = {012, 013, 045, 145, 236} on 7 variables is GF(3)-blind (no 0/1 assignment with exactly one 1 per clause; A x = 1 solvable over GF(3)), minimal (no 4-cl
 APPROACHES already examined (do not repeat one without a new idea):
-  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
+  - None -> None
   - None -> None
   - None -> None
   - None -> EXHAUSTED: TURN_LIMIT
-  - None -> None
-  - None -> None
-  - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-NUMERICAL EVIDENCE on file: 3434 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3445 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-14b6e4c248 [MISSING_PROOF, OPEN] NORM: does the existence of a De Morgan circuit of size S for Gap-MCSP[N^beta] imply a circuit of size <= N^{1+eps} with W(C) <= N^{beta-2eta} (W from D6', seq 16840) for the same promise problem? Any candidate must fail
   - Q-1c841c90f7 [MISSING_PROOF, PURSUED] UNIFORM-QE (owner 2026-11-26) WITNESS-SENSITIVE SEARCH ONLY (supersedes Q-4c4127e83e). EXCLUDED - do not pursue: local many-one DECISION reductions to MCSP^A with s,t=M^{o(1)} for ANY oracle A, any uniformity, any gap ve

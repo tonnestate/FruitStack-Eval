@@ -9214,5 +9214,69 @@
   "proved_step": "statement: MINIMAL PREFIX-RESIDUAL STATE COUNT. Let L be any subset of {0,1}^N and let a deterministic streaming recognizer read exactly N bits, with fixed initial state, deterministic transitions, and final acceptance determined by its state after N bits. For each t and p in {0,1}^t define R_p={z in {0,1}^{N-t}: pz in L}. At depth t every recognizer for L has at least |{R_p:p in {0,1}^t}| distinct reachable states. There exists a layered deterministic recognizer with exactly that many states at every depth, whose state after p is R_p and whose transition on b maps R_p to R_{pb}. Proof: If R_p differs from R_q, choose z in their symmetric difference. If the states after p and q were equal, determinism would give the same final acceptance after processing z, although exactly one of pz and qz belongs to L, contradiction. Conversely, use residual sets as states and define the b-transition R_p to R_{pb}. This is well-defined: for every suffix z of length N-t-1, z is in R_{pb} iff bz is in R_p; hence R_p=R_q implies R_{pb}=R_{qb}. At depth N accept precisely residuals containing the empty string. Induction shows the state after p is R_p, so the recognizer accepts exactly L. This is an exact state-count result only; it gives no Boolean gate bound for implementing transitions.\nderivation: A suffix in the symmetric difference distinguishes prefixes, forcing separate states. Residual transitions are well-defined because child membership is parent membership after prepending b; induction proves the constructed recognizer is exact.\nscope: All finite binary languages L subset {0,1}^N and N>=0; deterministic layered streaming recognizers with transitions allowed to depend on depth. Exact state counts per depth; no circuit transition cost asserted.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795770159.5155048,
+  "session": "pnp-desk/research/R4692",
+  "model": "gpt-6-luna",
+  "id": "S1047",
+  "proved_step": "statement: LINEAR ONE-HOT RESIDUAL TRANSITION LEMMA. Let L be a finite subset of {0,1}^N. At depths t and t+1, let A_t and A_{t+1} be the sets of distinct residuals R_p={z:pz in L} over prefixes p of the respective lengths, including the empty residual if it occurs, and put K_t=|A_t|, K_{t+1}=|A_{t+1}|. The deterministic transition R_p --b--> R_{pb} of the layered residual automaton can be implemented by a fan-in-two Boolean circuit of O(K_t+K_{t+1}) gates under one-hot state encodings. Proof: For each source residual R in A_t, choose a representative prefix p with R_p=R. The child residual R_{pb} depends only on R and b: for every suffix z of length N-t-1, z in R_{pb} iff bz in R_p, so equal parent residuals have equal b-children. Thus the transition is a well-defined function \u03b4:A_t\u00d7{0,1}\u2192A_{t+1}. For each source R and bit b, form the edge signal e_{R,b}=q_R AND literal_b, where q_R is the one-hot source-state bit and literal_b is b or NOT b. These are 2K_t signals and require O(K_t) gates, including at most one shared NOT for the input literal. For each destination S, define its output bit as the OR of all edge signals e_{R,b} with \u03b4(R,b)=S; if there are none, use constant 0. Across all destinations, the total number of incoming edge occurrences is exactly 2K_t, so binary OR trees require at most 2K_t gates in total. Supplying the K_{t+1} output wires and constants costs at most O(K_{t+1}) in the standard circuit description. On a valid one-hot source encoding, exactly one edge signal is active and its destination bit is the unique active output. Hence the circuit implements \u03b4 and has O(K_t+K_{t+1}) gates. This is a layered-automaton compilation bound; it does not bound K_t in terms of H_C or imply anything about arbitrary MCSP decision circuits.\nderivation: Equal residuals have equal children because child membership is parent membership after prefixing b. The transition graph has exactly two outgoing labelled arcs per source; create each arc as a one-hot-state/input conjunction and OR incoming arcs at each destination. Total arcs and OR terms are 2K_t, giving the stated linear gate bound.\nscope: Every finite binary language L subset {0,1}^N and every 0<=t<N; fan-in-two Boolean circuits on valid one-hot state encodings. No assertion about succinct state encoding, residual-count bounds from H_C, or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771168.6706817,
+  "session": "pnp-desk/research/R4700",
+  "model": "gpt-6-luna",
+  "id": "S1048",
+  "proved_step": "statement: RESIDUAL DISTINGUISHABILITY STATE LOWER BOUND. Let L be any subset of {0,1}^N, let 0<=t<=N, and define R_p={z in {0,1}^{N-t}: pz in L} for p in {0,1}^t. Any deterministic one-pass automaton that reads its input left-to-right and decides membership in L must have at least K_t distinct internal states reachable after t input bits, where K_t is the number of distinct sets R_p. Proof: Suppose prefixes p,q of length t reach the same internal state but R_p != R_q. Then their symmetric difference is nonempty, so choose z in it. The automaton starts from the same state after p and q and receives the same remaining suffix z, hence produces the same accept/reject result on pz and qz. But exactly one of pz,qz lies in L by the choice of z, contradiction. Thus distinct residuals require distinct reached states, yielding at least K_t states. With fixed-width binary state encodings, at least ceil(log2 K_t) bits are required when K_t>=1. This is a storage lower bound only; it gives no lower bound on update computation or arbitrary MCSP decision circuits.\nderivation: Distinct residuals have a distinguishing suffix by set inequality. Determinism makes equal states indistinguishable under every common continuation, contradicting language membership on the distinguishing suffix.\nscope: Finite binary languages of fixed length N; deterministic left-to-right recognizers with a well-defined state after each prefix. No update-time or unrestricted-circuit consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771362.9401176,
+  "session": "pnp-desk/research/R4700",
+  "model": "gpt-6-luna",
+  "id": "S1049",
+  "proved_step": "statement: BINARY-ENCODING RESIDUAL TRANSITION UPPER BOUND. Let L be a finite subset of {0,1}^N and 0<=t<N. Let A_t and A_{t+1} be the sets of distinct residuals R_p={z:pz in L} at depths t and t+1, including the empty residual if present, and put K_t=|A_t|>=1 and K_{t+1}=|A_{t+1}|>=1. Assign each layer's states distinct binary codes of widths w_t=ceil(log2 K_t) and w_{t+1}=ceil(log2 K_{t+1}), with width zero for a singleton. On valid source codes, the transition (state,b)->child state is computed by a fan-in-two Boolean circuit of O(K_t log(K_t+1)+K_t log(K_{t+1}+1)) gates. Proof: Equal parent residuals have equal b-children, since z is in R_{pb} exactly when bz is in R_p; hence the layered transition is well-defined. For each source code i, compute its equality indicator e_i using O(w_t+1) gates, for total O(K_t(w_t+1)). For each destination output bit j, OR the terms e_i AND literal_b for source indices i whose b-child has code bit j equal to 1. There are at most 2K_t terms per output bit and w_{t+1} output bits, so this takes O(K_t(w_{t+1}+1)) gates. On a valid source code exactly one e_i is 1, and the output bits equal the code of that state's child. Singleton layers use constants. Combining the counts proves the bound. No correctness is claimed on invalid source codes, and no arbitrary-representation lower bound follows.\nderivation: Equal residuals have equal children because child membership is parent membership after prefixing b. Decode the binary source code into equality indicators; each destination bit is the OR of the source-and-input terms selecting a child code with that bit set. Exactly one source indicator is active on valid codes, yielding the transition. Count the decoder and output logic as O(K_t(w_t+1)+K_t(w_{t+1}+1)).\nscope: Every finite binary language L subset {0,1}^N and layer 0<=t<N; fan-in-two circuits on valid source codes under fixed enumerative binary encodings; upper bound only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773044.4873421,
+  "session": "pnp-desk/research/R4708",
+  "model": "gpt-6-luna",
+  "id": "S1050",
+  "proved_step": "statement: LEFT-QUOTIENT RESIDUAL TRANSITION LEMMA. Let N be a nonnegative integer, L be any subset of {0,1}^N, t<N, p in {0,1}^t, and b in {0,1}. Define R_p={z in {0,1}^{N-t}: pz in L}. Then R_{pb}={z in {0,1}^{N-t-1}: bz in R_p}. Proof: For each z of length N-t-1, z is in R_{pb} iff pbz is in L, by definition. This is equivalent to bz being in R_p, since bz has length N-t and p(bz)=pbz. Thus the two sets are equal. Consequently the exact semantic child residual is the left quotient of the parent residual by b. This identity alone gives no bound on the circuit or operation cost of computing a canonical encoding of that quotient.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773082.6236217,
+  "session": "pnp-desk/research/R4708",
+  "model": "gpt-6-luna",
+  "id": "S1051",
+  "proved_step": "statement: RESIDUAL DISTINGUISHABILITY STATE LOWER BOUND. Let L be a subset of {0,1}^N and let a deterministic streaming machine read one bit per step and decide membership in L after N bits. At a fixed depth t, define R_p={z in {0,1}^{N-t}: pz in L} for each p in {0,1}^t. If the machine has q possible states at depth t and is correct on every length-N input, then q is at least the number K_t of distinct sets R_p; hence its state encoding requires at least ceil(log2 K_t) bits. Proof: Suppose p and p' lead to the same state. Determinism implies that for every suffix z, continuing from that same state on z gives the same final decision. Correctness therefore gives [pz in L]=[p'z in L] for every z of length N-t, so R_p=R_p'. Thus prefixes with distinct residuals must lead to distinct states, proving q>=K_t. This is an information lower bound for exact deterministic streaming representations; it makes no claim about update time or arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773226.785728,
+  "session": "pnp-desk/research/R4708",
+  "model": "gpt-6-luna",
+  "id": "S1052",
+  "proved_step": "statement: STREAMING-TO-CIRCUIT UNROLLING LEMMA. Let N,w,g,d be nonnegative integers. Suppose a deterministic one-pass machine on length-N binary inputs has a fixed w-bit initial state, transition circuits T_i:{0,1}^w\u00d7{0,1}->{0,1}^w with at most g fan-in-two gates each, and a final decision circuit D with d gates. With wiring, constants, and fan-out free, the language recognized by the machine has a fan-in-two circuit of at most Ng+d gates. Proof: Compose N copies of T_1,...,T_N in temporal order, wiring each state output to the next state input and x_i to the i-th transition. At stage zero the wires encode the fixed initial state. Inductively, if stage i-1 encodes the machine state after i-1 input bits, T_i computes its state after i bits. Applying D to the last state therefore gives exactly the machine's decision. The composed circuit has at most the sum of the N transition sizes plus d, hence Ng+d gates. This is conditional: it neither constructs bounded-size transitions for EXT nor yields a lower bound for arbitrary MCSP decision circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773449.5012305,
+  "session": "pnp-desk/research/R4708",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive explicit representation and induction on prefix length; applies to every finite L of fixed length N. The output predicate may be arbitrarily costly and is not claimed to be a circuit of bounded size.",
+  "id": "S1053",
+  "proved_step": "statement: LITERAL-PREFIX CONSTANT-UPDATE TRADEOFF. Fix N and any language L subseteq {0,1}^N, including Im(Eval_{n,s}). A deterministic one-pass machine can recognize whether the current prefix p has an extension in L while using N bits of state and at most O(1) fan-in-two Boolean gates per update (with time-position-dependent transition circuits and wire copies free): store p padded to N bits; at position t, write incoming b into coordinate t+1 and leave all other coordinates unchanged; the output predicate is the fixed function [exists z in {0,1}^{N-t}: pz in L]. This proves an exact O(1)-gate transition upper bound only with N-bit workspace and a possibly nonuniform output predicate; it gives no poly(s,log N)-space representation or transition bound for EXT.\nproof: At position t the invariant is that the first t state coordinates equal the observed prefix p and all remaining coordinates are zero. The next transition copies the existing coordinates, writes b at coordinate t+1, and leaves later coordinates zero, so the invariant holds at t+1. At each position the machine's output can be defined as 1 exactly when some z of length N-t extends the stored prefix to a word in L; this is precisely the EXT residual predicate. The update uses only copying wires and the incoming bit (or one constant-size gate per updated coordinate under a gate-count convention that charges coordinate selection). The state has N bits. Thus the construction trades workspace for update simplicity and does not imply a small real-gate transition for the compressed automaton.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

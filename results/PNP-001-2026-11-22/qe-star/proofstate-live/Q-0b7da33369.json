@@ -7674,5 +7674,67 @@
   "proved_step": "statement: INVOLUTIVE TOTAL EXTENSION. In the construction of S0865, the total map F on S-bit codes can be chosen to satisfy F(F(x))=x for every code x, including unused codes. Let p be the number of 2-cycles, encode their states by 0,...,2p\u22121 in consecutive even/odd pairs, and encode fixed points by 2p,...,m\u22121. Define F to toggle the least significant bit exactly when x<2p, leaving all other bits unchanged. Since 2p is even, x<2p is invariant under toggling the least significant bit: x and x XOR 1 lie in the same pair {2i,2i+1}, and each such pair is wholly below or wholly at/above 2p. Thus F(F(x))=x for all x. On encoded states F agrees with the given involution, and F has an O(S)-gate AND/NOT implementation. This is a constructive strengthening of the total-extension property, not a lower bound or P\u2260NP progress. Barrier diagnostic: direct construction; no lower-bound barrier circumvention is claimed.\nproof: Put P(x)=1 iff the unsigned value of x is below 2p. The paired values {2i,2i+1} have identical comparison outcome against the even threshold 2p. F changes only the low bit when P(x)=1, so P(F(x))=P(x). Applying F twice therefore toggles the low bit twice when P=1, and toggles it zero times when P=0. Hence F\u00b2(x)=x for every S-bit x. The O(S) gate bound and agreement on encoded states are as in S0865.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795771789.685911,
+  "session": "pnp-desk/research/R4702",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive mux-tree proof gives exact lookup for all m-entry tables, with explicit gate bound; finite discovery run requested separately to tabulate the count. This is an upper-bound lemma only and does not close the open amortized lower-bound obligation.",
+  "id": "S0867",
+  "proved_step": "statement: BOUNDED TABLE LOOKUP UPPER BOUND. Let m>=1 and let T:[m]->{0,1}^r be an arbitrary table, with k=ceil(log2 m). There is a fan-in-two AND/NOT circuit with k address inputs and r output bits that returns T(i) for every i in [m], using at most 3r(2^k-1) gates. Proof: Pad T to length 2^k arbitrarily. For each output coordinate independently, place the padded table bits at the leaves of a complete binary tree of depth k. At each internal node, use its corresponding address bit to select between the two child values. The Boolean mux Sel(s,a,b)=(NOT s AND a) OR (s AND b) is implementable with two AND gates, one OR (implemented as NOT/AND/NOT), and shared input negations; a fan-in-two AND/NOT implementation uses at most three gates when the OR is De Morgan expanded and literals are available. Thus each of the 2^k-1 internal nodes costs at most three gates per output bit. Induction on subtree depth proves that the root equals the selected leaf T(i). Concatenating the r independently computed output bits gives the stated bound. Since 2^k<2m for m>1 (and the m=1 case is constant), the bound is less than 6rm for m>1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771836.400528,
+  "session": "pnp-desk/research/R4702",
+  "model": "gpt-6-luna",
+  "evidence": "Repairs the three-gate mux assertion in S0867: a direct AND/NOT realization uses five gates. The proof gives an exact construction and bound; this remains an upper bound only and does not discharge the open amortized lower-bound obligation.",
+  "id": "S0868",
+  "proved_step": "statement: BOUNDED TABLE LOOKUP UPPER BOUND (corrected gate count). Let m>=1 and r>=1, let T:[m]->{0,1}^r be any table, and set k=ceil(log2 m). There is a fan-in-two AND/NOT circuit on k address bits with r output bits that returns T(i) for every i in [m], using at most 5r(2^k-1) gates. Proof: Pad T to length 2^k with arbitrary constants. For each output coordinate separately, arrange the table bits as leaves of a complete binary tree. A node selected by address bit s and children a,b computes mux(s,a,b)=((NOT s) AND a) OR (s AND b). Implement it as t1=AND(NOT s,a), t2=AND(s,b), z=NOT(AND(NOT t1,NOT t2)); this uses five gates (the NOT s literal may be shared among nodes at its level, so counting it separately only increases the upper bound). By induction from the leaves, each node computes the table bit selected by the corresponding lower-order address suffix; thus the root at address i equals the padded table's i-th bit, hence T(i) for i<m. Across r coordinates the cost is at most 5r(2^k-1). For m>1, 2^k<2m, so this is less than 10rm; for m=1 the output is constant and needs zero gates. This proves an explicit O(rm) lookup upper bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795771932.0650477,
+  "session": "pnp-desk/research/R4702",
+  "model": "gpt-6-luna",
+  "evidence": "Repairs S0868's remaining gate-count gap: its displayed AND/NOT implementation omitted NOT(t1) and NOT(t2). The corrected six-gate mux proof gives a valid explicit upper bound; this does not close the amortized lower-bound obligation.",
+  "id": "S0869",
+  "proved_step": "statement: BOUNDED TABLE LOOKUP UPPER BOUND (corrected AND/NOT count). For m>=1 and r>=1, every table T:[m]->{0,1}^r has a fan-in-two AND/NOT circuit on k=ceil(log2 m) address bits with r output bits returning T(i) for each i in [m], using at most 6r(2^k-1) gates. Proof: Pad T to 2^k entries by constants and build one complete selection tree for each output coordinate, with table values at its leaves. At each internal node with selector s and child values a,b, compute t1=(NOT s) AND a, t2=s AND b, then z=NOT((NOT t1) AND (NOT t2)). This equals t1 OR t2, hence selects a when s=0 and b when s=1. It uses two AND gates, two NOT gates for NOT t1 and NOT t2, one AND, and one final NOT, for six gates; the selector literal NOT s can be shared among all nodes at that level. Induction up the tree shows the root returns the table bit addressed by the k-bit index. Restricting to i<m gives T(i). There are 2^k-1 internal nodes per output, so the total is at most 6r(2^k-1). Since 2^k<2m for m>1, this is <12rm; for m=1 the output is constant. Thus lookup has O(rm) gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795772382.2072802,
+  "session": "pnp-desk/research/R4702",
+  "model": "gpt-6-luna",
+  "gap": "This is a one-update upper bound only. It does not establish an amortized lower bound for time-dependent or one-to-many encodings, and closes neither G0001 nor G0002.",
+  "gap_note_on": [
+   "G0001",
+   "G0002"
+  ],
+  "id": "S0870",
+  "proved_step": "ONE-UPDATE SPARSE ENCODING TRANSLATION. Let Q be finite, R>=1, and let psi_0, psi_1: Q -> {0,1}^R be injective. Define D={q in Q: psi_0(q) != psi_1(q)}, let T be the number of non-root nodes in the prefix trie of {psi_0(q): q in D}, and let H=sum_{q in D} dist_H(psi_0(q),psi_1(q)). The partial map psi_0(q) -> psi_1(q) on psi_0(Q) has a total extension computable with O(R+T+H) fan-in-two AND/NOT gates. Proof: Share input literals and compute, for each trie node, the conjunction testing its prefix by adding one literal to its parent conjunction; this uses O(R+T) gates and gives an equality indicator e_q(x) for each q in D at its leaf. For each output coordinate j, OR the e_q indicators over q in D with psi_0(q)_j != psi_1(q)_j, using at most max(0,k_j-1) binary OR gates when there are k_j such q. Set output bit j to x_j XOR that OR (constant-size AND/NOT implementation). For any q with psi_0(q)=psi_1(q), no changed-source indicator is active at x=psi_0(q), so the output is psi_0(q). For q in D, injectivity of psi_0 makes precisely e_q active at x=psi_0(q), so exactly the differing output bits toggle and the output is psi_1(q). The formulas define outputs on every R-bit input. Finally sum_j k_j=H, so the aggregation costs at most H; adding trie, literals, and coordinate logic gives O(R+T+H).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773331.5400918,
+  "session": "pnp-desk/research/R4707",
+  "model": "gpt-6-luna",
+  "id": "S0871",
+  "proved_step": "statement: INVOLUTION WITH FIXED POINTS, LOGARITHMIC TRANSITION CIRCUIT. For every finite set Q of size m>=2 and every involution \u03b4:Q\u2192Q, there is an injective stationary encoding \u03c8:Q\u2192{0,1}^S, S=ceil(log2 m), such that a total extension of \u03c8\u03b4\u03c8^{-1} is computed by O(S) fan-in-two Boolean gates. Proof: Let p be the number of 2-cycles and f the number of fixed points, so m=2p+f. Put w=ceil(log2 m) and r=w-1 (for m>=2, w>=1). If p>0, then p+f=m-p<=ceil(m/2)<=2^r. Assign distinct r-bit indices 0,...,p+f-1 to the p pairs and f fixed points. Encode the two members of pair i as (i,0),(i,1), and encode each fixed point with its own index i>=p and tag 0. Define the total map on all w-bit strings by toggling the final tag exactly when the index is less than p. The comparison against constant p and the tag toggle require O(r+1)=O(S) fan-in-two Boolean gates, and on valid codes this map swaps each pair and fixes every fixed point. If p=0, encode the m fixed points by any m distinct w-bit strings and use the identity map, which costs zero gates. Thus the bound holds in all cases.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795773531.4417288,
+  "session": "pnp-desk/research/R4707",
+  "model": "gpt-6-luna",
+  "id": "S0872",
+  "proved_step": "statement: For every finite set Q of size m>=2 and every involution \u03b4:Q\u2192Q with p transpositions and f fixed points, there is an injective stationary encoding \u03c8:Q\u2192{0,1}^S, S=ceil(log2 m), such that \u03c8\u03b4\u03c8^{-1} extends to a total Boolean map computable with O(S) fan-in-two gates. Let h=S-1 and B=2^h. If p>0, assign the p transpositions distinct indices i=0,...,p-1 and encode their endpoints as (i,0),(i,1). Since m=2p+f<=2^S=2B, p<=B and f<=2(B-p), so the remaining codes (i,b) with p<=i<B and b\u2208{0,1} suffice for all fixed points; assign them injectively. Define the total map on every S-bit string (i,b) to be (i,b XOR [i<p]). A comparison of the h-bit index with constant p and one XOR are computable with O(S) fan-in-two gates. On pair codes this swaps the two endpoints; on fixed-point codes i>=p it leaves the code unchanged. If p=0, choose any injection and the identity total map. Therefore the claimed encoding and gate bound hold for all involutions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
