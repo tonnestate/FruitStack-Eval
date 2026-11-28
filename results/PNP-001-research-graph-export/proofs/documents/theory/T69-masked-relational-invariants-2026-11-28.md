@@ -31,3 +31,6 @@ In a Boolean circuit every XOR gate is an affine relation z_g = z_a ⊕ z_b; eve
 
 ## 7. Comparison [R, recalled, not re-verified]
 Karr 1976: k = 1, hull per program point (the special case with the control point as mask; exact affine invariants for affine programs). Abstract interpretation: Thm 1 is the least fixpoint in the partitioned (disjunctive) affine domain, an instance of Kleene iteration on a finite-height lattice (height k(n+1)); trace partitioning (Rival–Mauborgne) chooses masks by trace/control history; predicate abstraction (Graf–Saidi) uses cube masks over predicates, CEGAR (Clarke et al.) refines them from spurious counterexamples. Novel here only the combination: poly-size alternating-computation certificates T68, SAT-oracle counterexamples under H, gate-level masks, dyadic composition; the algorithm itself is not new. No novelty check against the literature has been done.
+
+## 8. Addendum 2026-11-28 (review + owner): the mask class decides everything
+See T70 §1: arbitrary circuit masks = COMPRESS; affine masks/cubes have a proved ≥ 2^n bound for the inner-product graph (T70 Prop 1); the Phi-chart class removes it by moving the nonlinearity into the chart (T70 Prop 3). Provenance: fixed-partition lemma = Karr + trace partitioning [R], relativizing; composable block synopses idea from Fable, affine-relation transfer by the owner.
