@@ -1,6 +1,6 @@
 # PNP-001 research-graph export
 
-Snapshot of the PNP-001 research graph (DuckDB) and the append-only proofbook, exported verbatim. Proofbook up to seq 18815; graph ingested up to seq 18815.
+Snapshot of the PNP-001 research graph (DuckDB) and the append-only proofbook, exported verbatim. Proofbook up to seq 18816; graph ingested up to seq 18816.
 Nothing here claims P != NP. Status fields are copied as stored: CLAIMED != proved; edges are CANDIDATE unless a review in `reviews/` says otherwise.
 
 Retrieval:
