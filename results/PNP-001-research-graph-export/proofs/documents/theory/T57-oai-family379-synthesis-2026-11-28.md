@@ -103,3 +103,6 @@ Equivalent statement in T49/T55 language: for every poly-size Boolean W satisfyi
 Read Thm 2.2, case "finite field with ports", with k = F_2 (Boolean circuits live there), and decide whether it gives a superlinear UNRESTRICTED Boolean circuit lower bound n·(log n)^σ for AND_t of element distinctness. If it does, that is a stand-alone result far beyond the known ~3.1 n bounds
 and must be checked by independent experts and Lean (the Comparator statement covers the exponent, not the volume theorem) before any use; even then it is log-scale and does not yet touch P vs NP.
 If it does not (F_2 excluded), record that explicitly. Only after that, test whether a SEARCH-type tensor (U_G coloured-state sum with ⊕P-contraction replaced by NP-decision) admits any volume lower bound in the same price system.
+
+## Correction (2026-11-28)
+See T58: T57 searched theory/*.md only. Proofbook 17584/17585/17879 already contain the projection/transfer; HC_h=rho_h(U_G) derived there.
