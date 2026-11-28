@@ -106,3 +106,6 @@ If it does not (F_2 excluded), record that explicitly. Only after that, test whe
 
 ## Correction (2026-11-28)
 See T58: T57 searched theory/*.md only. Proofbook 17584/17585/17879 already contain the projection/transfer; HC_h=rho_h(U_G) derived there.
+
+## Correction 2 (2026-11-28, T58 v2)
+Superseded statements: (1) any use of the unpinned polynomial U in char 2 (vanishes; use pinned/fully weighted W); (2) "formal upper bound ⇒ Boolean-semiring/finite-field computation" (false; only F⇒E⇒B(F_p)); (3) HC gadget size O(h⁴ log h) (now O(h² log h)); (4) 17584 AND gadget computes XNOR (erratum, Proofbook 18279); (5) bound L ≥ exp((c/4−o(1))(log n)²/(loglog n)²) is an arithmetic bound on the pinned polynomial, no Boolean bound. §9 'next decisive step': Thm 2.2 with k=F_2 gives only n·polylog-type volume bounds in the Boolean-input F_2-sum model; no unrestricted Boolean circuit bound is claimed. See T58 v2 §D–E.
