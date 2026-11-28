@@ -1,11 +1,11 @@
-PROOF LEDGER of this problem (kept across missions; 18442 entries from 5997 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 18785 entries from 6005 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
+  - T66 sec.10 Thm 10.1: for u'=Au, v'=Bv+h(Au)-Bh(u) with arbitrary h, w=v-h(u) satisfies w'=Bw, v_T=B^T(v_0-h(u_0))+h(A^T u_0) (also time-dependent A_t,B_t and towers). Thm 10.4: pulse h(u)=[u=e] on a primitive n-bit LFSR has Hankel rank exactly 2^n-1 over every
+  - T66 sec.9 Thm 9.3: the absorbing halting observation a_t=[t>=tau] has infinite Hankel rank exactly tau+1 over every field (anti-triangular submatrix, determinant +-1; Kronecker for the eventually-constant generalisation: rank tau+1 iff c != 0 and a_{tau-1} != 
+  - T66 sec.9 Thm 9.1 (O(rC+M(r)(log r+log T)) for scalar observations with promised Hankel rank r via BM on 2r terms + Bostan-Mori, promise/field/uniformity audited) and Thm 9.2: if the promise r is computed in time t_rho then for the diagonal language t_rho + rC
+  - T66 sec.8 Thm 8.1 (symmetric-square lift): V K-invariant of dim r over F_3 (any field), W=span({1} u {fg:f,g in V}); then dim W<=1+r(r+1)/2, K W<=W (K ring homomorphism), every h in W has h(F^t x) satisfying the order-dim W recurrence of char poly of K|_W (Cay
+  - T66 sec.7 CORRECTION (owner order): Thm 7.1 holds for the GLOBAL nilpotency index r_g (period of the function-valued sequence, lcm over x), not per trajectory. Thm 7.1a (trajectory): a_T=g(F^T x) is purely periodic with p-power period iff Newton coefficients D
   - T66 sec.7 (comp:koopman-lucas-period-duality, discovery mode): Thm 7.1 minimal period of T->g(F^T x) is exactly p^ceil(log_p r) for nilpotency index r (proof via Thm 6.2 + Lucas; 60 random unipotent systems + counters m=2..4 exact); Thm 7.2 K unipotent iff all
-  - T66 sec.6 Thm 6.2: if (K-I)^r g=0 then g(F^T x)=sum_{j<r} C(T,j)((K-I)^j g)(x) in any ring (binomial theorem for commuting operators); exact check: owner system (T<30, 16 states) and 200 random unipotent triangular Boolean 5-variable systems, 0 violations. Bin
-  - T66 sec.1-4: (U) composition algebras Phi(F2 o F1)=Phi(F2)Phi(F1) compress iterated affine/low-Hankel-rank dynamics to O(d^omega log T); (U) for hierarchy-hard L in DTIME(T)\DTIME(o(T/log T)) setup + d^omega log T = Omega(T/log T), so linear compression alone 
-  - T52 §10 (owner derivation, PI-proved/checked): for tight J with D_J nonzero mod 3 the signed first moment gives L=c^-1 M affine (v-degree<=1), L(v)=z* on unique fibres, A_J L=id on all Im, L_i(v+a_i)-L_i(v)=-1, A_J H=I, diag(HA_J)=-1 (checked 594 blocks, 0 vio
-  - T52 §9 (owner algorithm, PI-proved): J* (largest tight set inside non-designated E') = {e: M_e = columns + parallel copy of e not 2-partitionable}; proof by Edmonds partition criterion (violation iff tight T containing e); verified non-circularly on 113 random
-  - T52 §8 (owner derivation, PI-checked): signed fibre count D_J(v)=sum_{A_J z=v}(-1)^|z| has v-degree <= 2h-|J| (top multilinear coefficient). With a unique reference solution: |J|<=2 rank(A_J) for all J (Edmonds 2-partition); tight J (|J|=2h) => D_J constant no
 CONDITIONAL (verified steps resting on open assumptions):
   - NONLINEAR/BOOLEAN FORM OF THE QUOTIENT IDENTITY (owner derivation, checked). (i) S=F[x], R=S[z], ideals I_i of R: the module theorem of 18308 applies with pi:R->R/S (S-linear, kernel S); (sum I_i)∩S / sum(I_i∩S) = A/B, i.e. it compares the elimination ideal of
   - CORRECTION to 18312 (2): over F2 a valid certificate sum a_i f_i=1 has, at every point, an ODD number of active summands (a_i f_i=1); exactly one active summand is the special case of a choice function. Choice functions embed injectively into certificates (sig
@@ -35,18 +35,18 @@ REFUTED:
   - ERRATUM to Proofbook 17584 (construction text, not the representation theorem). The AND gadget as written there, EO(t,u,~a), EO(t,v,~b), EO(u,v,w) with fresh Boolean t,u,v,w, has a unique internal extension for every input (4/4) but computes XNOR(a,b), not AND
   - D6 (seq 16770) counting claim: 'reused gates with d_g <= N^{1-beta-eta} contribute <= N^{-2eta}, so only wide reused gates survive the restriction' - REFUTED. The per-gate bound Pr <= p^2 d_g^2/2 is right; the number of narrow reused gates is not bounded. Coun
 APPROACHES already examined (do not repeat one without a new idea):
+  - None -> EXHAUSTED: TURN_LIMIT
   - None -> None
   - None -> None
   - None -> None
   - None -> None
   - None -> None
   - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3465 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> EXHAUSTED: TURN_LIMIT
+NUMERICAL EVIDENCE on file: 3467 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
+  - Q-57d9097b9e [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) VERIFY (independent, other model family than the proposer; derive and compute yourself, do not read the proposer's scripts first) theory/T66 sec.7-10. (1) Sec.9 Thm 9.3: the i
   - Q-13aa491b30 [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) Combine these mathematical mechanisms: [mech:rank-product-bound-for-entrywise-hadamard-product-of-matrice] rank-product bound for entrywise (Hadamard) product of matrices: ran
-  - Q-c2979e1c2b [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) Combine these mathematical mechanisms: [comp:koopman-lucas-period-duality] Koopman-Lucas period duality: Thm 7.1 (T66 sec.7): minimal period of T->g(F^T x) is exactly p^ceil(l
   - Q-65a7d49a7a [MISSING_PROOF, OPEN] BINGO2-C (owner 2026-11-28) AMPLIFICATION OF THM 6.2: unipotent filtration/lower central series of the group generated by F; tensor and recursive composition of (F,g) pairs with index r1*r2; quantify when index stays pol
   - Q-96e2ebbfb6 [MISSING_PROOF, OPEN] BINGO2-B (owner 2026-11-28) CROSS-GRAPH CONSTRUCTION SEARCH: search the research graph (T4/SOSA, T38, T52, T55/T60, S0127/S0096 rank compression + dominance counting + component folding, matroid elimination, ocean/phase-
   - Q-622981fa71 [MISSING_PROOF, OPEN] BINGO2-A (owner 2026-11-28) DIMENSION OF OBSERVATION SPACES: lower-bound dim V_g (or Hankel rank over the reachable family) for the universal step map; characterise classes (F,g) with r = T^o(1) that remain hierarchy-har
