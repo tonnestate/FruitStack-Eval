@@ -4,7 +4,7 @@ Status: CLAIMED (Claude family only).
 - §1 is the owner's construction, checked by the PI.
 - §2–§4 are by the PI.
 
-Symbolic only. Prerequisites: T41 §6/§7, T48 §3 and 9.4, T49, T50 §4, T51 (C1, T-B), T52 (+§6), 17590.
+Symbolic only. Prerequisites: T41 §6/§7, T48 §3 and 9.4, T49, T50 §4, T51 (C1, T-B), T52 (§2–§5 rewritten 2026-11-28), 17590.
 
 ## 1. Formal functional QE is VNP-complete (owner; checked step by step)
 Setting:
@@ -47,14 +47,26 @@ For a relation R(x,z) given by a functional or general 1-in-3/F3 encoding:
 - **Existential QE:** E(x) = ∨_z R(x,z) ∈ {0,1}.
 
 Relations:
-- **(i) Functional case.** On the Boolean domain, Φ(R) = ±E, so existential = formal mod the Boolean ideal. The whole VNP-hardness in §1 lies in
-  the ideal component.
-- **(ii) General case.** Φ(R)|_{Boolean} = ±#fib mod 3, which is counting (T51 T-A).
+- **(i) Functional case.** On the Boolean domain, Φ(R) = ±E, so existential = formal mod the Boolean ideal. *(2026-11-28: the earlier sentence "the whole VNP-hardness of §1 lies in the ideal component" is withdrawn; see §2a.)*
+- **(i′) See §2a:** the multilinear representative itself (the component off the ideal) is VNP-hard, so hardness cannot be located only in the ideal part.
+- **(ii) General case (corrected 2026-11-28).** With the unnormalized domain factor Q = Π(y_i − 2) the weight of an extension is (−1)^{#internal ones}. Hence
+  Φ(R)(x) = N_even(x) − N_odd(x) (mod 3), N_even/N_odd = numbers of Boolean extensions with an even/odd number of internal ones. It is NOT ±#fib mod 3.
+  Example: one free Boolean y: Σ_{y∈F3}(y − 2) = 1 − 1 + 0 = 0 although two admissible extensions exist (2 ≢ 0 mod 3). The reading as a modular counting function needs
+  unified weights (e.g. the complement-pair normalization used in §1); only then does Φ count mod 3 (T51 T-A).
 - **(iii) Proposition E1 (proved).** As a function of the 2^d values v_z = R(x,z), existential projection is OR_{2^d}. Over every field its unique
   multilinear representative is 1 − Π_z(1 − v_z), of degree 2^d. Every polynomial that agrees with it on {0,1}^{2^d} has degree ≥ 2^d.
   *Proof.* Multilinear reduction does not raise degree, and the representative is unique. ∎
   - Summation (counting) has degree 1 in the values; existence has degree 2^d.
   - With C1 (T51): ∨ is linear only in idempotent semirings, and there no polynomial computes NOT.
+
+## 2a. Theorem (owner's stronger statement; verified 2026-11-28): the multilinear representative of the Hamiltonian-cycle indicator is VNP-hard
+Let C_h : {0,1}^{h²} → {0,1} be the indicator of directed Hamiltonian cycles on h vertices (variables x_e, e ∈ directed edges), M_h its unique multilinear representative M_h = Σ_S c_S x^S, c_S = Σ_{T⊆S}(−1)^{|S|−|T|}C_h(T) (Möbius inversion, integer coefficients, any field).
+- C_h(T) = 1 ⇒ |T| = h (a Hamiltonian cycle uses exactly h edges). For |S| < h every term vanishes, so c_S = 0. For |S| = h only T = S can contribute, so c_S = C_h(S).
+- Hence the degree-h homogeneous component of M_h is Σ_{H Ham. cycle} Π_{e∈H} x_e = HC_h, the directed Hamiltonian cycle polynomial.
+- **Hardness.** From an arithmetic circuit of size s for M_h (over a field with ≥ h+1 elements, via x ↦ t·x and interpolation, or Strassen homogenization) one gets a circuit of size poly(s,h) for HC_h. HC is VNP-complete under p-projections in every characteristic ≠ 2 (Valiant; in char 2 the T50 route via ⊕#HC and Hrubeš TR15-067 applies, cited). So M_h is VNP-hard under polynomial-time arithmetic-circuit reductions (c-reductions/ projections of the homogeneous part).
+- **Membership.** M_h(x) = Σ_{y∈{0,1}^{h²}} C_h(y) Π_e (x_e y_e + (1−x_e)(1−y_e)); C_h(y) is a poly-size Boolean circuit, hence an arithmetic circuit; so M_h ∈ VNP. Consequently M_h is VNP-complete (hard + member), nonuniformly.
+- **Consequence for T53 §2(i):** M_h is the representative modulo the Boolean ideal, i.e. the component off the ideal; its formal hardness is the full VNP-hardness of the multilinearization question (this is MT of T50 §2: MT ⇔ VP = VNP). The hardness therefore cannot generally be attributed to the ideal component alone. (What is true: for the *functional QE polynomial* F of §1, F_C|_{Boolean} = ±Π(−1−X_i)C(X) is a poly-time function while the formal F_C is VNP-hard; both parts of F are involved.)
+- **Propagation:** T50 (MT ⇔ VP = VNP, B2) already uses exactly this computation (f_m minimal degree m) and is unchanged. T51 (MT removed) unchanged. T59 (§1 "VP=VNP not forced") unchanged; T59 §5/(a) formulation "VP-membership of the multilinear extension" is consistent with M_h ∈ VNP and not known in VP. T60 (MT excluded) unchanged. Only the T53 §2(i) sentence was wrong.
 
 ## 3. Owner's item 7: the external geometry directly on existential projection
 - The external mechanisms work with **linear** contraction: sums over shared bits of products of field tables.

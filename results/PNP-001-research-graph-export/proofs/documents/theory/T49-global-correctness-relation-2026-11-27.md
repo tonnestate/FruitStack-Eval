@@ -24,10 +24,11 @@ So (*) is an equivalent formulation and is not presented as a solution. It is th
 solutions and one computation" that the owner asked about.
 
 ## 4. Lemma 3 (correctness is never a formal identity)
-Over every field F and for every polynomial map W, Φ_W ≠ 0 in F[G,x].
-*Proof.* F[G,x] is an integral domain and R ≠ 0. Take any Boolean G ∉ L. Then R(G, W(G)) = 0 there, so 1 − R(G, W(G)) is not the zero polynomial.
+**Corrected statement (2026-11-28).** Over every field F and for every polynomial map W that is *Boolean-valued on Boolean inputs* (W(G) ∈ {0,1}^n for all G ∈ {0,1}^N; automatic over F_2), Φ_W ≠ 0 in F[G,x]. Without this hypothesis the lemma is FALSE for |F| > 2: over F_3 let q(u) = (u² − u)/2, so q(0) = q(1) = 0 and q(2) = 1; with R(G,x,u) = q(u) + (1 − q(u))R_0(G,x) the verifier is unchanged on the Boolean cube, but the constant witness map u = 2 gives R(G,W(G)) = 1 and hence Φ_W = 0.
+*Original text:* Over every field F and for every polynomial map W, Φ_W ≠ 0 in F[G,x].
+*Proof.* F[G,x] is an integral domain and R ≠ 0. Take any Boolean G ∉ L. Then (W(G) being Boolean) R(G, W(G)) = 0 there, so 1 − R(G, W(G)) is not the zero polynomial.
 A product of two nonzero polynomials is nonzero. ∎
-Consequence (with T48 §3 and §9):
+Consequence (with T48 §3 and §9; all dependent statements — T49 §5–§6, T54 §5, T59 §5, T61 §5 — are to be read with W Boolean-valued on Boolean inputs):
 - Every correct W satisfies Φ_W ∈ I \ {0}, where I is the Boolean ideal. Correctness is necessarily Boolean cancellation, never formal cancellation.
 - Checking (*) for a given circuit W is coNP-complete (T48 Thm 3b).
 - The IPS certificate size of (*) equals, up to an additive O(s), that of the gate system of Φ_W and of its Lemma-B/GF(3) images (T48 9.3/9.4).

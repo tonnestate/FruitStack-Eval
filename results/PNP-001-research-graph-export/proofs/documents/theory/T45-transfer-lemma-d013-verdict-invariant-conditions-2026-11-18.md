@@ -46,8 +46,7 @@ a = (~x0 | ~x1), b = (~x0 | x1), c = (~x0 | ~x2), d = (~x0 | x2). Then UNSAT = a
 x0 = 1, so a,b,c,d become ~x1, x1, ~x2, x2 with x1 -> x2; ab, bc, cd are contradictory, ac, ad, bd are satisfiable). By the D-013
 Lemma 1 argument (restriction to a variable subset), 2-SAT's UNSAT clutter is not a matroid port for every n >= 3. Calibrations of the
 same search: 1-in-3 n=5 no P4 (D-012 GF(3) port), XOR-SAT n=4 no P4 (binary port for all n), P4 found in P4.
-VERDICT. "Not a matroid port" holds for an NL-complete problem with linear-size circuits; so it cannot imply any superpolynomial - or
-even super-linear - circuit lower bound. D-013 is a correct theorem about ideal secret sharing / ideal monotone span programs and is
+VERDICT. "Not a matroid port" holds for an NL-complete problem (2-SAT ∈ P, polynomial-size circuits); so it cannot imply any superpolynomial circuit lower bound. **[Correction 2026-11-28: "linear-size circuits" for 2-SAT is not derived here (a linear-time graph algorithm is not a linear-size Boolean circuit). The control refutes the implication to superpolynomial hardness; the sentence "not even super-linear" is not supported by it.]** D-013 is a correct theorem about ideal secret sharing / ideal monotone span programs and is
 NOT a route to a general lower bound. Its specificity is only versus XOR-SAT (a GF(2) port), i.e. it measures field-linearity, not
 hardness. D-013 is retired as a proof route (kept as a theorem).
 (f) Survival under NOT/AND/OR/sharing: the only property that survives arbitrary gates is restriction-monotonicity of S (c); all

@@ -65,7 +65,7 @@ Verified (onein3.py, exact):
    No general state reduction.
 3. Do the identities survive arbitrary composition? YES. D1, D3 and D4 hold instance-wise for every m.
 4. Which modular information is preserved exactly? C mod 3 for every instance (D3). C mod 2 for read-twice instances (D4).
-5. CRT? For n-variable formulas one needs C mod p for primes with product > 2^n: about n/ln n primes ≤ O(n).
+5. CRT? For n-variable formulas one needs C mod p for primes with product > 2^n: about n/ln n primes ≤ O(n). **[Uniformity condition added 2026-11-28: "for every fixed p a polynomial algorithm A_p" (∀p ∃A_p) does not give one algorithm A for primes growing with n (∃A ∀p); running-time exponents and constants may depend on p. CRT needs a uniform bound T(n,p) = poly(n, log p) (or poly(n,p)) valid for all ≈ n/ln n primes p ≤ O(n), and primes whose product exceeds the maximal count.]**
    - Read-twice instances: mod 2 is easy, but every odd p asks for #PM mod p of a general graph, which contains the permanent
      mod p. That is hard for odd p (Valiant 1979; from memory, check at source).
    - The decision for read-twice is perfect matching, already in P (Edmonds), so this class is no route to NP-hard SAT.

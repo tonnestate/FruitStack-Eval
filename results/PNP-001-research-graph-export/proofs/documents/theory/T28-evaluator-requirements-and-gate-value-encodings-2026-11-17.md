@@ -33,8 +33,8 @@ C' (acyclic). Every Boolean function of <= w−1 inputs has a circuit of size < 
 for f of size < (|S| + 1)·2^w. Hence CircuitSize(f) < (|S|+1)·2^w. ∎
 (Reviewed earlier form: with C' minimal, every cone has <= 2^{2^{w−1}} gates, |S| >= (size(C') − 2^{2^{w−1}})/(2^{2^{w−1}}+1).)
 Consequence. For every fixed w and every f with CircuitSize(f) >= n^{1+ε}, every gate-value encoding has N − n = Ω_w(n^{1+ε}) auxiliary
-variables, violating (R2): T_evaluate = 2^{Ω(n^{1+ε}/sqrt(log n))} > 2^n. This excludes Tseitin and every grouped/clustered variant
-of it (any choice of which gate values to guess, any constant width) — for all functions of superlinear circuit complexity.
+variables, for which the KNOWN evaluator guarantee (an UPPER bound) T_evaluate ≤ 2^{O(N/sqrt(log N))} is 2^{Ω(n^{1+ε}/sqrt(log n))} > 2^n, i.e. it does not give the required gain (R2).
+**Correction 2026-11-28:** Lemma G is a lower bound on the NUMBER of auxiliary variables only. The step to "T_evaluate = 2^{Ω(...)}" used an upper-bound guarantee as if it were a lower bound on the running time. Proved: for these encodings the general guarantee is insufficient. NOT proved: that every evaluator needs that time, nor the exclusion of Tseitin and its grouped/clustered variants as routes (the true evaluation time on such encodings is not bounded below here).
 Functions of circuit complexity between n^{1+ε}/2 and n^{1+ε} exist (counting), so the exclusion is not vacuous at size n^{1+ε}.
 
 ## §3 What remains open (the precise class not covered)

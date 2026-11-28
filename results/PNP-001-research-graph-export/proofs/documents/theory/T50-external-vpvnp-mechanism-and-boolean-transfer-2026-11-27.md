@@ -32,8 +32,10 @@ Both papers have the same skeleton.
 - This is exactly T49 Lemma 3 (correctness is never formal) and T48 §3 (Boolean vs. formal cancellation).
 - The ring F[x]/I has only a filtration, not a grading: x² ↦ x lowers the degree. Graded parts are not invariant mod I.
   Anthropic's example: (x_{1,1}² − x_{1,1})·x_{2,1}⋯x_{k,1} ∈ I, yet its block-linear part is −x_{1,1}⋯x_{k,1}.
-- Our defect/deviation propagation (T48 8.1/9.1) makes the h_i explicit with size O(s). That does not help: it fixes g, and the graded
-  parts of g are not those of f.
+- Our defect/deviation propagation (T48 8.1/9.1) does NOT construct g − f = Σ h_i(x_i² − x_i) for two circuits (correction 2026-11-28).
+  T48 Thm 8.1 gives a compact representation of g² − g = Σ Q_i(x_i² − x_i), i.e. Booleanness of ONE circuit function; T48 Thm 9.1 relates a circuit to its OWN
+  gate equations. Neither yields an equivalence certificate for two different circuits g, f computing the same Boolean function (that is an IPS/ideal-membership certificate,
+  its existence and size are open, T48 9.5(c), and its verification is PIT/coNP-type). Even if such h_i were given, the graded parts of g are not those of f.
 
 **What a Boolean transfer would need (precisely).** Call it MT, the multilinearization transfer:
 "every Boolean circuit of size s for a multilinear f ∈ F2[x] (correct on {0,1}^n) yields an arithmetic F2-circuit of size poly(s) for f itself."

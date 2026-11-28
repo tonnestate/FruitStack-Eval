@@ -122,7 +122,9 @@ contradicting consequence K of 17920/17929. This confirms the owner's remark.
 
 ## 6. Transfer to P ≠ NP: result
 - What P = NP forces in this algebra:
-  - r_* and minimal layer covers become computable in polynomial time, because they are NP predicates.
+  - The rank r_* becomes computable in polynomial time (binary search on the NP predicate "r_* ≤ k"), and a *compact description* of an optimal cover
+    (an optimal choice of ℓ_i, hence a basis λ_1..λ_{r_*}) can be found by self-reduction. (Correction 2026-11-28: the explicit minimal cover is NOT computable in polynomial time:
+    for the pairwise products x_jx_k, r_* = d−1 (Remark (iii)), the optimal cover has 2^{d−1} cosets, so merely listing it is exponential. Only the description and per-coset queries are polynomial.)
   - Boolean ideal membership (Thm 3b) becomes polynomial.
 
   All of these follow from P = NP through NP-predicates only, so they relativize. In the AW world (17590) they all hold, and no contradiction is possible.
@@ -254,3 +256,8 @@ The p-equivalence U_G ↔ U_H (17913) concerns generating functions, not certifi
 
 Every consequence of P = NP here goes through NP predicates. They relativize and hold in the AW world (17590). So there is no candidate for K.
 The first unproved implication is unchanged (17920/17929).
+
+**9.6 Correction (2026-11-28): transfer of an existing certificate ≠ construction of a formal certificate.**
+- *Transfer (Props 9.1–9.4, unconditional):* given an IPS/NS certificate for one representation (circuit f ∈ I, or the gate system), produce one for the other in additive O(s) (O(#gadgets)). Input: a certificate. Output: a certificate. Cost: size + O(s), verification by PIT (poly under P = NP).
+- *Construction (not provided):* obtain a certificate for an unsatisfiable instance (or f ∈ I) from an algorithm that merely decides unsatisfiability. 9.5(a) gives it only through the NP predicate "certificate of size ≤ k exists" and then only when such a certificate exists; (c) existence of poly-size certificates is not implied by P = NP. A decision procedure A with time n^κ is not a certificate: unrolling its tableau as a formal refutation is the missing algorithm → formal-certificate link, and its size is not controlled.
+- So every statement above that says "certificate size agrees" is conditional on a certificate being given; nothing here constructs one. (Dependents: T49 §6, T59 §5–§6, T61 §5/§7 read the transfer in this sense.)

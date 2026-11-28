@@ -59,8 +59,7 @@ Consequences:
 - C2 (relations of characteristic 0). Z-linear relations (A, B disjoint: S_{A∪B} = S_A + S_B) bind in every group.
 - C3 (torsion relations). In exponent 2, S_A + S_B = S_{A△B} always: three sums are deterministic. For A, B, C = {1,2}, {2,3}, {1,3}
   (det = 2) the three sums are dependent exactly when 2 | exp(G), and independent uniform in groups of odd order.
-- So the correlation structure of random subset sums is EXACTLY the family of 𝔽_p-matroids of the 0/1 indicator vectors, for the
-  primes p | exp(G). Invariant factors enter only through their prime supports.
+- *(Retracted 2026-11-28, counterexample.)* The claim that the full correlation structure depends only on the primes dividing exp(G) is FALSE. G1 = Z/4, G2 = (Z/2)²; S12+S23−S13 = 2g_2: this is identically 0 in G2 and has probability 1/2 of being 0 in G1, although both have exponent supported on {2}. Higher prime powers matter. The joint-uniformity criterion proved earlier is unaffected; C3's "dependent exactly when 2 | exp(G)" holds only for elementary abelian 2-groups (Z/2)^r.
 - C4 (generic primes). If p exceeds every minor of every 0/1 matrix with k columns (Hadamard: p > (k+1)^{(k+1)/2}/2^k suffices),
   the 𝔽_p-matroid equals the ℚ-matroid. All such primes then have the same correlation structure. In the threshold regime
   k ≈ log₂p this condition FAILS (k^{k/2} ≫ p), so C4 gives no Poisson theorem there. Recorded as a precise gap.

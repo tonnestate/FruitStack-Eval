@@ -55,7 +55,7 @@ initial state — the original computation.
 Lemma O4 (alias tags: exactness forces Nerode information at EVERY step). Let h : X → Y be any abstraction and τ : X → Tags a tag such
 that the pair (h, τ) satisfies the exact-quotient criterion of Finding D (equal pairs ⇒ equal F and equal pairs after every action).
 Then (h, τ) refines ~, so |(h,τ)(X)| ≥ N and some h-fibre carries ≥ N/|h(X)| distinct tags: tags need ≥ log2(N/|h(X)|) bits. The
-bound is attained by τ = behavioural class. 
+bound is attained by τ = behavioural class. **[Correction 2026-11-28: the lower bound is right for static distinguishability. "Attained by τ = behavioural class" is not established: the bound log2(N/|h(X)|) uses the AVERAGE fibre; counterexample 4 classes with fibres {1,2,3},{4}: bound 1 bit, but separating 3 classes inside one fibre needs ⌈log2 3⌉ = 2 bits. Static distinguishability inside a fibre (≥ log2 of the maximum number of classes in a fibre is a valid lower bound) is a different question from a transition-compatible abstraction, i.e. a pair (h,τ) whose combined state has well-defined dynamics under all actions; the additional information that this closure needs is not characterized by either quantity and is not proved here.]**  
 Proof. By induction on |w|, (h,τ)(x) = (h,τ)(x') ⇒ (h,τ)(δ_w x) = (h,τ)(δ_w x') ⇒ F(δ_w x) = F(δ_w x'). ∎
 Without tags at intermediate steps a final checksum cannot restore exactness: the existential quotient (y →_a y' iff some x ∈ h^{−1}(y)
 has h(δ_a x) = y') over-approximates. Counterexample (explicit): X = {0,1,2,3}, δ: 0↦1, 1↦1, 2↦3, 3↦3, F = [x = 3], h merges 1 and 2.
@@ -88,7 +88,8 @@ independent in 𝒫_D. (iv) g_i ∈ V_F and K_a g_i ∈ V_F give the coefficient
 agrees on x, x' (it is spanned by the g_i), so F and h∘δ_a agree: this is the Finding-D criterion (and O1: h(x) = h(x') ⇔ x ~ x'). ∎
 Resource accounting (bit operations, all polynomial in n, |A|, s for constant D and r; no 2^n term anywhere):
 - Construction: per substitution ≤ M_D monomials × D products of polynomials with ≤ s and ≤ M_{rD} monomials ⇒ O(M_D·D·s·M_{rD}).
-  Reduction O(M_D²). Total O(|A|·M_D·(D·s·M_{rD} + M_D²)).
+  Reduction O(M_D²). Total (corrected 2026-11-28): at most 1 + |A|·M_D substitutions (F itself, then each of ≤ M_D basis polynomials under each of |A| actions), each costing O(M_D·D·s·M_{rD}) for the construction plus O(M_D²) for the reduction, so
+  **Total O((1 + |A|·M_D)·(M_D·D·s·M_{rD} + M_D²)).** The exported total O(|A|·M_D·(D·s·M_{rD} + M_D²)) is inconsistent with the per-substitution cost stated one line above it: it drops one factor M_D in the construction term (and the "1+"). Polynomial for constant D, r; the quantitative comparison of procedures must use the corrected formula. (An earlier note of this session calling the finding "not confirmed" was wrong: it compared the text with the audit statement instead of recomputing the product.)
 - Representation: d ≤ M_D basis polynomials of ≤ M_D coefficients each, plus |A| matrices of size d×d.
 - Transition: one matrix-vector product, O(d²). A word w costs O(|w|·d²) (or O(d^ω log|w|) by squaring for powers).
 - Extraction: evaluate h at the input, O(d·M_D·D), then the inner product λ^T(·).

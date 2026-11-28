@@ -24,8 +24,7 @@ No new computation; this document is a proof-structure analysis.
   occurrences, then ⊕P = P. Hence NP ⊆ RP (Valiant–Vazirani) and PH ⊆ BPP (Toda).
 - C2 (Theorem P, exact counting version). If it computes the count, then FP = #P.
 - C3 (D5 / Björklund Lemma 4.2). The boundary between occurrence 2 (polynomial) and occurrence 3 (complete) is sharp.
-  A polynomial algorithm must therefore fail exactly on what the read-3 gadgets create: variables shared by three clauses that are
-  functionally determined by others.
+  ~~A polynomial algorithm must therefore fail exactly on what the read-3 gadgets create: variables shared by three clauses that are functionally determined by others.~~ **[Withdrawn 2026-11-28: only the different complexity classification of read-2 and read-3 families is proved. It does not localize the algorithmic difficulty on particular variables; a structural correlation was read as a causal statement.]**
 These are statements about all polynomial-time algorithms, but only relative to the collapse of a class.
 
 ## 3. The only known theorem-type bridge from ALGORITHMS to LOWER BOUNDS: Williams' algorithmic method

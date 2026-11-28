@@ -11,7 +11,7 @@ Hierarchy (immediate): EXACT ⇒ JOINT ⇒ SEP.
 
 ## 2. Theorems
 Theorem J (exact threshold for JOINT). If M > max(t, Σw − t), then JOINT ⇔ EXACT; in particular whenever M > Σw.
-For every instance: a JOINT false positive exists iff some subset sum s ≠ t satisfies M | (s − t).
+For every instance: JOINT accepts iff some subset sum s satisfies M | (s − t). *(Corrected 2026-11-28:)* a JOINT false positive (accepts although no exact solution exists) exists iff t is not a subset sum AND some subset sum s ≠ t satisfies M | (s − t). A modular collision alone is not a wrong decision: w = (1,2), t = 1, M = 2 has sums {0,1,2,3}, the collision 3 ≡ 1 (mod 2), yet the answer is correct because the exact sum 1 exists.
 Proof. s − t ∈ [−t, Σw − t]. A nonzero multiple of M in that range needs M ≤ max(t, Σw − t). ∎
 Theorem I (SEP = solvability over the idempotents). Let E = {e ∈ ℤ/M : e² = e}. Since M is squarefree, E ≅ {0,1}^s, and e
 corresponds to the set {j : e ≡ 1 mod p_j}; |E| = 2^s. Then

@@ -21,7 +21,9 @@ otherwise. The proof is the usual sieve: N(S) counts the assignments that falsif
 For a bipartition (L, R) of the variables, M_{L,R}(F) is the 0/1 matrix with rows = assignments of L, columns = assignments of R,
 entry f_F. For an order x_1..x_n, cut i is L = {x_1..x_i}, and r_i(F) = rank_K M_i(F).
 
-## 1. Why the cut rank IS the compression of the sum
+## 1. Why the cut rank is the compression of the EXACT TENSOR REPRESENTATION of the sum (scope corrected 2026-11-28)
+**Scope:** r_i is the minimal inner dimension of an exact representation of the whole function f_F (the tensor/automaton). It is NOT a lower bound for computing the scalar #F. Example: F = Π_{i≤m}(x_i ∨ y_i): the cut matrix across {x}|{y} is the m-fold Kronecker product of [[0,1],[1,1]] (rank 2 each), rank 2^m, while #F = 3^m. Statements below about 'needing' r_i classes refer to grouping the inclusion–exclusion terms into function-valued classes, not to the scalar value.
+
 
     f_F(x) = prod_j (1 - φ_j(x)),   φ_j(x) = prod over literals l in C_j of [l false under x].
 

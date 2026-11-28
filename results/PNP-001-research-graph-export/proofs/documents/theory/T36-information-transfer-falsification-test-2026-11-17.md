@@ -30,6 +30,7 @@ boundaries), boundary set E (|E| = K), transcript τ_e(M, x) = everything crossi
 Theorem F (falsification, PI). No measure of the forms μ1–μ4, and no measure bounded by a function of the variety maps {x ↦ τ_e(M,x)}
 over polynomially many boundaries, yields a lower bound above O(K·n); measures that are not so bounded and satisfy (i)–(ii) are
 length-type and equal time up to the normal-form overhead (B1). Proof: E1, C1, B1. ∎
+**Scope correction 2026-11-28:** what is proved is the exclusion of the four concrete measures μ1–μ4 in their stated form (V_e ≤ n, E1). "Bounded by a function of the variety maps" must mean a function that is itself O(poly)·V_e-type; a function such as 2^{V_e} is not bounded by K·n (V_e ≤ n gives only 2^{V_e} ≤ 2^n), and whether such a measure yields an algorithmic bound is a separate unproved question. The classification of ALL other measures as length-type/time-equal is NOT proved by E1, C1, B1; no general exclusion of information-based methods follows.
 
 ## The owner's reformulated obligation (a lower-bound theorem whose premises capture every poly-time SAT algorithm)
 Lemma N (normal forms are free and therefore neutral). For each normal form 𝒩 ∈ {b-block-respecting (HPV 1977), oblivious (Pippenger–

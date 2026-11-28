@@ -2,7 +2,7 @@
 
 Status: CLAIMED (Claude family only); cross-family review pending.
 Scope: symbolic work only; no enumeration, no runs, the Lean build was not touched.
-Prerequisites: T48 §3/§9, T49 Lemmas 2–4, T50 B1/§4 (MT ⇔ VP=VNP), T51 T-D/E2, T52 (+§6), T53.
+Prerequisites: T48 §3/§9, T49 Lemmas 2–4, T50 B1/§4 (MT ⇔ VP=VNP), T51 T-D/E2, T52 (§2–§5 rewritten 2026-11-28), T53.
 Proofbook check: no earlier entry on Rees algebras, homogenization of I, or the Frobenius form. The grep hits were the substring "degrees".
 External sources read for task 4:
 - `ant_paper/ant.txt`, Lemma E.4 (lines 1885–1910) and Lemma K.2 (lines 3213–3240), plus §2.5 (lines 550–575);
@@ -38,14 +38,18 @@ So the sum is independent of the representative, and the canonical representativ
 **Properties.**
 - (i) Grading. If Q is homogeneous of degree D, then the sum is homogeneous of degree D, and C_Q is homogeneous of degree D − 2d. T52(b) is exactly this degree statement:
   - Q^h = Π_{i≤m} (y_i^h − 2t) is homogeneous of degree m;
-  - F = (−1)^d C_{Q^h}|_{t=1};
-  - hence deg F ≤ e = m − 2d.
+  - F_red = (−1)^d C_{Q^h}|_{t=1} where F_red is the *reduced* representative of F in F3[x]/(x³ − x) (functions on F3^n); (corrected 2026-11-28)
+  - hence deg F_red ≤ m − 2d (the bound for the formal F is T52(b), proved directly). With input-only rows the satisfiability polynomial is F_corr of T52 §1′, degree ≤ m − 2d + 2r; Theorem 2.2 applies to Q_corr = Π(1 − r_j²)·Q.
 - (ii) Specialization.
   - t = 1: the sum is T52's F.
   - t = 0: the sum vanishes identically (d ≥ 1), so the QE sum itself carries no information at t = 0. Only the "divided" coefficient C_Q carries information there.
-- **Corollary 2.3.** C_{Q^h}|_{t=0} = (−1)^d·(degree-e component of F) = [z^{2…2}] Π_i (L_i(x) + ℓ_i(z)) in F3[X,z]/(x³, z³). Here L_i is the linear part of a_i; the constants are multiples of t and vanish. So **C|_{t=0} ≠ 0 ⇔ the T52 bound deg F ≤ e is tight.**
+- **Corollary 2.3.** C_{Q^h}|_{t=0} = (−1)^d·(degree-e component of F) = [z^{2…2}] Π_i (L_i(x) + ℓ_i(z)) in F3[X,z]/(x³, z³). Here L_i is the linear part of a_i; the constants are multiples of t and vanish. So **C|_{t=0} ≠ 0 ⇒ the T52 bound deg F ≤ e is tight; the converse is FALSE** (correction 2026-11-28).
+  - Reason: in R the relation x³ = t²x holds, so a monomial of F with an exponent ≥ 3 (e.g. x³, arising when one variable occurs in ≥ 3 factors L_i) is replaced by t²x and vanishes at t = 0. C|_{t=0} sees only the *cube-free* part (all exponents ≤ 2) of the degree-e component of F, i.e. the degree of the reduced representative, not of the formal polynomial.
+  - Counterexample: Q = x³z², d = 1: formal F = Σ_z x³z² = −x³ has formal degree 3 = e (tight), but C_Q = x³ = t²x ≡ 0 at t = 0. Reduced F = −x (modulo x³ − x), degree 1.
+  - Likewise "F = (−1)^d C|_{t=1}" holds for the *reduced* F in F3[x]/(x³ − x) (a function on F3^n), so "hence deg F ≤ e" via this route is a statement about the reduced degree; T52(b) for the formal polynomial rests on its own direct proof.
+  - Tightness of the *formal* bound is NOT detected by the t = 0 fibre.
 - (iii) Multiplication. C is not multiplicative. It is multiplicative only when the eliminated variables are disjoint (C_{Q1Q2} = C_{Q1}C_{Q2}, the tensor case). With shared z there is no product rule.
-- (iv) Composition. T52 §6 applies unchanged: the factor is (−t²)^d with d = d1 + d2 − c, so the degree drops by 2d and e = e1 + e2 + 2c.
+- (iv) Composition (corrected 2026-11-28). The factor is (−t²)^d with d = d1 + d2 − c, but the degree of the satisfiability polynomial is governed by e* = m − 2d + 2r, which is subadditive and has the ±2c terms cancelling (T52 Prop 2.1*). The earlier "e = e1 + e2 + 2c" concerns m − 2d only.
 - (v) Cost. C has no smaller circuits than F, since C|_{t=1} = ±F. The formal QE is VNP-complete (T53), so the graded QE is no cheaper. The division by t^{2d} is free on coefficients but not on circuits.
 
 ## 3. Frobenius pairing (owner task 3): verified; it is an instance of a known structure
@@ -106,7 +110,7 @@ Complexity: evaluating T_n on circuit-given elements at t = 1 is ⊕P-hard (p = 
 - §1–§4 are unconditional statements about representations; P = NP is used nowhere.
 - With P = NP: by Lemma 1.2, correctness (*) of T49 becomes **Φ_W^h ∈ J, i.e. Φ_W^h = 0 in R**, an exact graded identity. This contrasts with T49 Lemma 3, which shows that correctness is never formal in F[G,x].
   - But Φ_W ∈ I ⇔ Φ_W^h ∈ J (I^h = J), so this is an equivalent reformulation, not a new consequence.
-  - Certificates are the homogenized certificates of T48 §9, of size O(s²).
+  - *Correction (2026-11-28).* Homogenizing f = Σ a_i g_i to a common degree D gives only t^{D−deg f} f^h = Σ t^{D−deg(a_i g_i)} a_i^h g_i^h, a certificate for t^k f^h, not for f^h. Membership f^h ∈ J = I^h holds by saturation ((g_i^h) : t^∞), but an explicit certificate without the factor t^k, and its size, are NOT obtained by homogenization. The O(s²) size applies to the t^k-form only (and also depends on D). Existence after saturation and efficient construction of the multipliers are different statements.
   - Black-box use of W algebrizes (T49 Lemma 4).
   - A white-box law would be an E.4-type statement about W, and that breaks at saturation (Theorem 4.1).
 - Saturation = coefficients of NF = ⊕P-type quantities. P = NP is not known to imply ⊕P ⊆ P/poly (T50 B2). F1–F3 (T53) are unchanged.
