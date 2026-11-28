@@ -7,5 +7,45 @@
   "proved_step": "For fixed constants k>0 and alpha>0 with alpha*k<1, suppose a deterministic uniform reduction R maps every length-T input x of L to a SAT instance phi_x of length N(T)=T^{alpha+o(1)}, runs in time o(T/log T), and has decoding and all other simulation overhead o(T/log T). If SAT is decidable in O(N^k), then L is decidable in o(T/log T). Proof: compute R(x), run the SAT algorithm on phi_x, and decode the answer. The total time is o(T/log T)+O((T^{alpha+o(1)})^k)=o(T/log T)+T^{alpha*k+o(1)}. Since alpha*k<1, choose epsilon>0 with alpha*k+epsilon<1; eventually the SAT term is at most T^{alpha*k+epsilon}=o(T/log T), because T^{1-alpha*k-epsilon}/log T tends to infinity. The sum is therefore o(T/log T), contradicting L in DTIME(T)\\DTIME(o(T/log T)). At alpha*k=1 this conclusion does not follow: a T^{1+o(1)} upper bound need not be o(T/log T), and even an O(T) SAT-call bound is too large. For a fixed k, a fixed alpha<1/k is admissible only if the corresponding R_alpha is uniformly constructible with all selection, construction, auxiliary-variable, certificate, decoding, and simulation costs covered by the assumed reduction/overhead bounds. Merely having a family indexed by alpha does not handle a nonuniform or unknown choice of k.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795874878.1121747,
+  "session": "pnp-desk/research/R4855",
+  "model": "gpt-6-luna",
+  "evidence": "Direct asymptotic derivation: substitute N=T^alpha, use alpha*k=1, and compare the resulting bound with T/log T. The prior proof state has no recorded open-obligation ID, so this is recorded as a scoped lemma without a closes field.",
+  "id": "S0002",
+  "proved_step": "Let T tend to infinity, let alpha,k>0 be fixed with alpha*k=1, and let N(T)=T^alpha exactly. Suppose a deterministic SAT algorithm runs in O(N^k/(log N)^q) for a fixed real q. Its call time is O(T/(log T)^q), since N^k=T and log N=alpha log T. Therefore the SAT call is o(T/log T) when q>1. For q=1, this upper bound is only O(T/log T), which does not imply little-o; for q<1, it is not o(T/log T). If the reduction, decoding, and every other simulation overhead together take o(T/log T), then the full simulation takes o(T/log T) when q>1. Proof: divide the SAT call bound by T/log T to obtain O((log T)^(1-q)); this tends to zero exactly when q>1. Adding the assumed little-o overhead preserves little-o. This lemma is only for exact N=T^alpha; it does not assert the same boundary for N=T^(alpha+o(1)).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795874949.2834036,
+  "session": "pnp-desk/research/R4855",
+  "model": "gpt-6-luna",
+  "evidence": "Direct asymptotic derivation: substitute N=T^alpha*g and alpha*k=1, then normalize the solver upper bound by T/log T. No open-obligation ID was present in the proof state, so no closes field is claimed.",
+  "id": "S0003",
+  "proved_step": "Let alpha,k>0 be fixed with alpha*k=1, let g(T)>0 satisfy log g(T)=o(log T), and set N(T)=T^alpha*g(T). For fixed real q and a deterministic SAT solver running in O(N(T)^k/(log N(T))^q), its normalized call-time upper bound relative to T/log T is O(g(T)^k*log T/(log N(T))^q)=O(g(T)^k/(log T)^(q-1)), since log N(T)~alpha log T. Hence if g(T)^k=o((log T)^(q-1)), the SAT call is o(T/log T). If reduction, decoding, and all other overhead are also o(T/log T), the full simulation is o(T/log T). Proof: N^k=T*g^k; divide the solver upper bound by T/log T and use log N~alpha log T. This is a sufficient condition from the stated upper bound, not a lower bound when the condition fails.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795875191.507284,
+  "session": "pnp-desk/research/R4855",
+  "model": "gpt-6-luna",
+  "evidence": "Exact asymptotic derivation; finite boundary check experiment cm-689148cbb3b643a5. No pre-existing open-obligation ID was available to close.",
+  "id": "S0004",
+  "proved_step": "Let alpha,k>0 be fixed with alpha*k=1, and let q,r be fixed real numbers. Set N(T)=T^alpha (log T)^r for all sufficiently large T, so log N(T)~alpha log T>0. Suppose a deterministic SAT algorithm has running time O(N(T)^k/(log N(T))^q). Then its normalized running-time upper bound relative to T/log T is Theta((log T)^(kr-(q-1))). Consequently this upper bound guarantees a SAT call of o(T/log T) if kr<q-1. At equality it gives only O(T/log T), and above equality it does not guarantee little-o; these are limitations of the upper bound, not lower bounds on the actual algorithm. If all reduction, decoding, and other overhead is o(T/log T), the full simulation is o(T/log T) under the strict inequality. Proof: N^k=T(log T)^(kr), and log N=alpha log T+r log log T=Theta(log T). Dividing N^k/(log N)^q by T/log T gives Theta((log T)^(kr+1-q)). This tends to zero exactly when kr<q-1. Adding o(T/log T) overhead preserves little-o.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795875323.7739499,
+  "session": "pnp-desk/research/R4855",
+  "model": "gpt-6-luna",
+  "evidence": "Exact asymptotic derivation; it sharpens the sufficient bound in S0003 by stating an iff for the benchmark function and separating it from the actual solver's runtime.",
+  "id": "S0005",
+  "proved_step": "Let alpha,k>0 be fixed with alpha*k=1, let q be any fixed real, and let g(T)>0 satisfy log g(T)=o(log T). Define the benchmark B(T)=N(T)^k/(log N(T))^q for N(T)=T^alpha*g(T), for sufficiently large T. Then B(T)=o(T/log T) if and only if g(T)^k/(log T)^(q-1) tends to zero as T tends to infinity. Proof: log N=alpha log T+log g=(alpha+o(1))log T, hence log N/(log T) tends to alpha>0. Also N^k=T*g^k. Thus B(T)/(T/log T)=[g(T)^k/(log T)^(q-1)]*[(log T)/(log N(T))]^q. The second factor tends to alpha^(-q), a positive finite constant for every fixed real q. Therefore the ratio tends to zero exactly when the first factor does. If an actual solver has runtime O(B(T)), the condition remains sufficient for its runtime to be o(T/log T), but failure of the condition says nothing necessary about that solver's actual runtime.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]

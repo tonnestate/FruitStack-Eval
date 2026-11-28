@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 18818 entries from 6015 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 18873 entries from 6028 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - T66 sec.10 Thm 10.1: for u'=Au, v'=Bv+h(Au)-Bh(u) with arbitrary h, w=v-h(u) satisfies w'=Bw, v_T=B^T(v_0-h(u_0))+h(A^T u_0) (also time-dependent A_t,B_t and towers). Thm 10.4: pulse h(u)=[u=e] on a primitive n-bit LFSR has Hankel rank exactly 2^n-1 over every
   - T66 sec.9 Thm 9.3: the absorbing halting observation a_t=[t>=tau] has infinite Hankel rank exactly tau+1 over every field (anti-triangular submatrix, determinant +-1; Kronecker for the eventually-constant generalisation: rank tau+1 iff c != 0 and a_{tau-1} != 
@@ -23,12 +23,12 @@ CITED from the literature (not machine-checked here):
   - Kabanets-Koroth-Lu-Myrisiotis-Oliveira CCC 2020 (arXiv 2002.08533, ECCC TR20-018) Thm 34: if MCSP (threshold l as input) is in FORMULA[s] o XOR then s = Omega~(N^2); proof needs l = n^{Omega(1)}; fixed-threshold MCSP[N^beta] version not stated. (arXiv 2002.085
   - Chen-Jin-Williams, Sharp Threshold Results for Computational Complexity, ECCC TR20-065 / STOC 2020 (local copy literature/sources/eccc-TR20-065), Thm 1.6: for every alpha in (0,1) and eps > 0, MCSP[n^alpha] has no probabilistic n^{2+alpha-eps}-size formulas (f
 HYPOTHESES on file, not proved:
+  - For a reduction family with N(T)=T^alpha times a subpolynomial factor, the exact boundary alpha*k=1 is governed by the combined logarithmic and subpolynomial factors; a solver bound O(N^k/(log N)^q) alone implies o(T/log T) only when those factors jointly yiel
   - For some explicit non-affine computation model with T-step trajectories, there may exist an exact fingerprint with description size o(T), efficient local verification of its update rule, and a decoding algorithm for the final state.
   - For fixed encodings, transitions changing t states with total codeword Hamming movement H admit extensions controlled by changed-state prefix geometry plus H; the explicit bound in S0888 may be asymptotically tight for some code/support geometries.
   - For every finite transition system with injective S-bit state encoding, the prefix-trie construction extends the transition to a total Boolean map with fan-in-two AND/NOT size O(S+T+H), where T is the changed-state prefix-trie size and H is the sum of Hamming 
   - For support A of size t under the same product restriction, if t*((1+p)/2)^m is small, Markov's inequality gives a small upper bound on the probability that any satisfying point survives. This may support a YES-side elimination bound only if the restriction al
   - For fixed c>=1, if every cofactor after fixing k coordinates has circuit size below (m-k)^c, this reconstruction method preserves the original threshold only when 2^k((m-k)^c)+3(2^k-1)+k < m^c. Determine whether this inequality admits a growing k in the AF/P1/
-  - For admissible streaming machine families in which the two transition maps commute on reachable states, fixed AC0-uniform collision families can be obtained from short words with equal symbol counts; the two-letter pair 01 and 10 is the first case.
 REFUTED:
   - Proposed coupling 'gate-ideal saturation / canonical selector structure forces small space for the selector' is refuted as a route.
   - T59 s7 R3 'no bound better than s*N'; T59 s10(1) 'affine selector => cost-free projection'; T59 s5 'equivalent forms MT/E.4/kappa~1'; T59 s10(4) 'single term'.
@@ -40,16 +40,16 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
+  - None -> EXHAUSTED: TURN_LIMIT
+  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
   - None -> None
-  - None -> None
-  - None -> None
-NUMERICAL EVIDENCE on file: 3471 entries (finite cases; they prove nothing about all cases). Latest: None
+NUMERICAL EVIDENCE on file: 3474 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
-  - Q-6357ab8895 [MISSING_PROOF, OPEN] AUDIT (director) RECONCILE a contradictory review (mathematical error search, dependency-ranked). Step Q-0b7da33369:S0084 carries both REFUTED and SURVIVED_REVIEW verdicts ([['SURVIVED_REVIEW', 'pnp-desk/research/R1310',
-  - Q-76a85ec807 [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) CONSTRUCT for Thm 10.6 of T66 (theory/T66-compression-by-composition-algebras-2026-11-28.md section 10): a family of computations that is hierarchy-hard in its direct form but
-  - Q-57d9097b9e [MISSING_PROOF, PURSUED] COMPOSE (owner 2026-11-28, pure composition) VERIFY (independent, other model family than the proposer; derive and compute yourself, do not read the proposer's scripts first) theory/T66 sec.7-10. (1) Sec.9 Thm 9.3: the i
-  - Q-13aa491b30 [MISSING_PROOF, PURSUED] COMPOSE (owner 2026-11-28, pure composition) Combine these mathematical mechanisms: [mech:rank-product-bound-for-entrywise-hadamard-product-of-matrice] rank-product bound for entrywise (Hadamard) product of matrices: ran
-  - Q-65a7d49a7a [MISSING_PROOF, OPEN] BINGO2-C (owner 2026-11-28) AMPLIFICATION OF THM 6.2: unipotent filtration/lower central series of the group generated by F; tensor and recursive composition of (F,g) pairs with index r1*r2; quantify when index stays pol
+  - Q-a8685241cd [MISSING_PROOF, OPEN] COMPRESS-O (owner 2026-11-28) OUTER-CONTROL INVARIANT after SAT discharge (T71). SAT subroutines are certified uniformly (Prop 2) and compose exactly (Thm 3/4), but this relativizes and removes no obstruction. Isolate th
+  - Q-c9e6185770 [MISSING_PROOF, OPEN] COMPRESS-N (owner 2026-11-28) ALGEBRAIC RESIDUAL CONSERVATION (T70). Inner-product obstruction is chart-dependent (Prop 1) and removed by Phi (Prop 3); residual transport q_{i+1}(F_i z)=M_i(z)q_i(z) exists iff inductive 
+  - Q-f549967f29 [MISSING_PROOF, OPEN] COMPRESS-M (owner 2026-11-28) MASKED RELATIONAL INVARIANTS (T69). Fixed-partition fixpoint is settled (Thm 1/Prop 2); Prop 3 shows the class equals all circuit invariants, so the open object is the MASK PARTITION. CONSTR
+  - Q-d5f6aa74be [MISSING_PROOF, OPEN] COMPRESS-L (owner 2026-11-28) DOMAIN-RESTRICTED CLOSURE for the diagonal machine (T67 sec.7). Prop 7.1 shows the global observable dimension of any universal step function is exponential (halting observation, T66 Thm 9.3
+  - Q-2aad0fa1df [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) CONSTRUCT local-certificate composition for T68 O2: combine mechanisms from the research, knowledge and transfer graphs (affine reconstruction, signed cancellation, functional
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
   - RECON-REMAINDER Case E (owner 2026-11-23, target (8)): recover proofs left unextracted in FINAL outputs (research R*.json, proofbook FINAL entries); list statem -> reopen if: None
   - RECON-REMAINDER Route G (owner 2026-11-23, target (8)): PIT, GCT, permanent/determinant, algebraic natural proofs, Williams-type transfers, algebraic vs Boolean -> reopen if: A source-checked polynomial-size conversion preserving the Boolean-cube identity predicate, together with a transfer theorem matching its ex
