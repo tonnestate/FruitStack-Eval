@@ -9489,5 +9489,33 @@
   "kind": "LEMMA",
   "closes": "Q-156fa9c912",
   "closes_valid": true
+ },
+ {
+  "at": 1795870182.9156854,
+  "session": "pnp-desk/research/R4844",
+  "model": "gpt-6-luna",
+  "lemma": "One-hot successor transitions for any finite binary language have a linear gate bound in the number of residual states on adjacent levels. This does not imply the needed EXT_{n,s} uniform polynomial bound; it isolates the remaining quantity.",
+  "id": "S1075",
+  "proved_step": "statement: ONE-HOT RESIDUAL SUCCESSOR CIRCUIT LEMMA. Let L be any subset of {0,1}^N. For each 0<=t<N, let A_t be the set of distinct residuals R_p={z in {0,1}^{N-t}:pz in L} over prefixes p of length t, including the empty residual, and let d_t=|A_t|. For each fixed b in {0,1}, there is a fan-in-two Boolean circuit with d_t input indicator bits (one-hot state encoding) and d_{t+1} output indicator bits that maps the indicator of R_p to the indicator of R_{pb}; on the valid one-hot inputs its size is at most d_t+d_{t+1}+O(1). Proof: For every R in A_t, define its b-successor \u03c3_b(R)={z:bz\u2208R}. This is well-defined as a residual in A_{t+1}: if R=R_p then \u03c3_b(R)=R_{pb}; if R_p=R_q, membership of every bz agrees, hence R_{pb}=R_{qb}. For each target S\u2208A_{t+1}, let P_S={R\u2208A_t:\u03c3_b(R)=S}. Set output bit y_S=OR_{R\u2208P_S}x_R. These predecessor sets partition A_t, so each valid one-hot input x_R produces exactly the unique successor indicator. Implement each nonempty OR with |P_S|-1 binary OR gates; the total is d_t - r gates, where r is the number of nonempty predecessor groups, hence at most d_t. Add only constant overhead for the empty/singleton OR conventions. This gives the stated bound. No bound on d_t for EXT_{n,s}, no encoding/decoding cost for arbitrary MCSP circuits, and no consequence for arbitrary decision circuits is asserted.\nderivation: Define \u03c3_b on residual equivalence classes by suffix restriction. Equality of residual sets guarantees well-definedness. Route each one-hot source bit to its unique target class; each target output is the OR of its predecessor indicators. The predecessor sets partition the source states, so total OR gates are at most d_t (plus constant wiring/convention overhead).\nscope: All finite L\u2286{0,1}^N and each level t<N and bit b; transition is required only on valid one-hot encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795870337.13012,
+  "session": "pnp-desk/research/R4844",
+  "model": "gpt-6-luna",
+  "id": "S1076",
+  "proved_step": "statement: PADDED TRUTH-TABLE RESIDUAL UPDATE LEMMA. Let N\u22651 and L\u2286{0,1}^N. After reading a prefix p of length t\u2264N, define a state B_p indexed by q\u2208{0,1}^N by B_p(q)=1 iff p followed by the first N\u2212t bits of q belongs to L. For t<N and next bit b, the exact next state satisfies B_{pb}(q)=B_p(b q_1\u2026q_{N\u2212t\u22121}) for every q. Thus, given t and b, the next 2^N-bit state is obtained from the current state by selecting and duplicating wires, with no Boolean gates in the usual circuit model with unrestricted fanout. The representation uses 2^N state bits (plus a depth counter if t is not externally known). Proof: By definition, B_{pb}(q)=1 exactly when pb q_1\u2026q_{N\u2212t\u22121} belongs to L. Applying the definition of B_p to the N-bit index b q_1\u2026q_{N\u2212t\u22121} followed by t arbitrary padding bits gives the same membership test; the padding is irrelevant because B_p uses only the first N\u2212t index bits. Hence the stated identity holds for every q. The next state\u2019s coordinates can therefore be connected directly to the indicated current-state coordinates. This proves exactness and zero-gate transition cost for this explicit exponential-size representation; it gives no compact representation or bound for arbitrary MCSP decision circuits.\nderivation: Coordinatewise, both sides test membership of the same length-N string pb q_1\u2026q_{N\u2212t\u22121} in L; the remaining index bits are ignored by the residual encoding. Implement each output coordinate as a wire from its specified input coordinate.\nscope: Finite binary languages L\u2286{0,1}^N, all prefix lengths t<N, both next-bit values. State width 2^N; unrestricted wire fanout. No claim about compact state, construction cost for L=Im(Eval), or arbitrary MCSP circuits.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795870388.1768346,
+  "session": "pnp-desk/research/R4844",
+  "model": "gpt-6-luna",
+  "id": "S1077",
+  "proved_step": "statement: PADDED TRUTH-TABLE RESIDUAL UPDATE LEMMA (corrected indexing). Let N>=1, L subseteq {0,1}^N, 0<=t<N, p in {0,1}^t, and b in {0,1}. For every q in {0,1}^N define B_p(q)=1 iff p concatenated with the first N-t bits of q lies in L. Define u to be the N-bit string whose first N-t bits are b followed by the first N-t-1 bits of q, and whose final t bits are zero. Then B_{pb}(q)=B_p(u). Consequently each coordinate of B_{pb} is a wire selected from the 2^N coordinates of B_p (with unrestricted fanout), so the transition uses no Boolean gates; the state has 2^N bits. Proof: The first N-(t+1) bits of q are exactly the suffix following pb in the definition of B_{pb}(q). The first N-t bits of u are b followed by those same bits. Hence both B_{pb}(q) and B_p(u) test membership in L of the identical N-bit string pb q_1...q_{N-t-1}. Since u is a fixed function of (q,t,b), every output coordinate is copied from one input coordinate. This is an exact update for the explicit exponential-width representation only; it asserts no compactness or MCSP transition bound.\nderivation: As stated in the step. Coordinatewise, the strings tested for membership are both pb followed by q_1...q_{N-t-1}; the last t bits of u do not affect B_p(u).\nscope: All finite binary languages L subseteq {0,1}^N, all N>=1, 0<=t<N, prefixes p, bits b, and q in {0,1}^N. State width 2^N; unrestricted fanout. No compactness or P vs NP implication.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
