@@ -1,4 +1,4 @@
-PROOF LEDGER of this problem (kept across missions; 18421 entries from 5992 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
+PROOF LEDGER of this problem (kept across missions; 18442 entries from 5997 missions). It records what is PROVED, what is only observed and what is open. RULE: a statement that is not PROVED or CITED here must never be used as an established premise. You may use it as an explicitly named OPEN ASSUMPTION - your result is then conditional on it.
 PROVED (the proof tool supported them over their whole domain):
   - T66 sec.7 (comp:koopman-lucas-period-duality, discovery mode): Thm 7.1 minimal period of T->g(F^T x) is exactly p^ceil(log_p r) for nilpotency index r (proof via Thm 6.2 + Lucas; 60 random unipotent systems + counters m=2..4 exact); Thm 7.2 K unipotent iff all
   - T66 sec.6 Thm 6.2: if (K-I)^r g=0 then g(F^T x)=sum_{j<r} C(T,j)((K-I)^j g)(x) in any ring (binomial theorem for commuting operators); exact check: owner system (T<30, 16 states) and 200 random unipotent triangular Boolean 5-variable systems, 0 violations. Bin
@@ -42,8 +42,8 @@ APPROACHES already examined (do not repeat one without a new idea):
   - None -> None
   - None -> None
   - None -> None
-  - None -> EXHAUSTED: MODEL_SUPPLY_SILENT
-NUMERICAL EVIDENCE on file: 3462 entries (finite cases; they prove nothing about all cases). Latest: None
+  - None -> None
+NUMERICAL EVIDENCE on file: 3465 entries (finite cases; they prove nothing about all cases). Latest: None
 OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-13aa491b30 [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) Combine these mathematical mechanisms: [mech:rank-product-bound-for-entrywise-hadamard-product-of-matrice] rank-product bound for entrywise (Hadamard) product of matrices: ran
   - Q-c2979e1c2b [MISSING_PROOF, OPEN] COMPOSE (owner 2026-11-28, pure composition) Combine these mathematical mechanisms: [comp:koopman-lucas-period-duality] Koopman-Lucas period duality: Thm 7.1 (T66 sec.7): minimal period of T->g(F^T x) is exactly p^ceil(l
@@ -51,8 +51,8 @@ OPEN RESEARCH QUESTIONS (derived from this ledger; questions, not facts):
   - Q-96e2ebbfb6 [MISSING_PROOF, OPEN] BINGO2-B (owner 2026-11-28) CROSS-GRAPH CONSTRUCTION SEARCH: search the research graph (T4/SOSA, T38, T52, T55/T60, S0127/S0096 rank compression + dominance counting + component folding, matroid elimination, ocean/phase-
   - Q-622981fa71 [MISSING_PROOF, OPEN] BINGO2-A (owner 2026-11-28) DIMENSION OF OBSERVATION SPACES: lower-bound dim V_g (or Hankel rank over the reachable family) for the universal step map; characterise classes (F,g) with r = T^o(1) that remain hierarchy-har
 STOPPED BRANCHES (no new information after a bounded escalation; reopen only under the stated condition):
-  - Q-2d7c6a77bf follow-up: can a non-prefix partition family, or weighted cut costs, beat the (N-1)+Lambda_pi bound of L-K1-PREFIX? Note: gates with P(u)=0 (consta -> reopen if: A non-prefix partition family or weighted cut cost is shown to be O(polylog(N)*s) on bounded-fan-out expander circuits, or a cross-family re
   - RECON-REMAINDER Case E (owner 2026-11-23, target (8)): recover proofs left unextracted in FINAL outputs (research R*.json, proofbook FINAL entries); list statem -> reopen if: None
   - RECON-REMAINDER Route G (owner 2026-11-23, target (8)): PIT, GCT, permanent/determinant, algebraic natural proofs, Williams-type transfers, algebraic vs Boolean -> reopen if: A source-checked polynomial-size conversion preserving the Boolean-cube identity predicate, together with a transfer theorem matching its ex
   - CLOSURE (owner 2026-11-26) O*-CE: Core obligation O* of route M (results/PNP-001-2026-11-26/closure/PNP-001-PROOF-CLOSURE-REPORT.md (FruitStack-Eval branch cc/p -> reopen if: None
+  - COMPRESS-D (owner 2026-11-28) TIME-BOXED EXCESS QUESTION (subordinate): does f(J)=2r(J)-|J|>=0 with unique S(x) force e* >= c*s for circuit-evaluation systems?  -> reopen if: Obtain exact definitions of J, r(J), S(x), e*, s and a circuit-specific derivation of a surplus-to-overlap bound strong enough to apply S000
 NEXT PROOF GAP: Prove or refute this open assumption: 18308  (a verified step rests on it: proving it turns a conditional result into a proved one)
