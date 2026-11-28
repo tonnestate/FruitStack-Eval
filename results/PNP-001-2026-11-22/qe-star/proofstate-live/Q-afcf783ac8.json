@@ -22,5 +22,23 @@
   "proved_step": "statement: For every d>=0, A in F_2^{d\u00d7d}, b,x_0 in F_2^d, set M=[[A,b],[0,1]] and z_t=M^t(x_0,1). There are coefficients a_0,...,a_d in F_2 computable in time polynomial in d such that for every t>=0, z_{t+d+1}=sum_{i=0}^d a_i z_{t+i}. Proof: write the characteristic polynomial as det(XI\u2212M)=X^{d+1}+sum_{i=0}^d a_i X^i (minus equals plus in F_2). The coefficients are computable by determinant computation over F_2. The Cayley\u2013Hamilton theorem gives M^{d+1}+sum_i a_i M^i=0, equivalently M^{d+1}=sum_i a_i M^i. Multiplying by M^t z_0 gives the recurrence. Thus the certificate consisting of the coefficients and initial vectors z_0,...,z_d has O(d^2) bits, is constructible in polynomial time, and supports recurrence-based generation of each next state using O(d^2) bit operations. It does not give sublinear-in-T total decoding time for T states.\nproof: Included in the statement; argument uses Cayley\u2013Hamilton over F_2 and multiplication by M^t z_0.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795872900.8740175,
+  "session": "pnp-desk/research/R4853",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: For every d>=0, A in F_2^{dxd}, b,x_0 in F_2^d, M=[[A,b],[0,1]], and integer t>=0, z_t=M^t(x_0,1) can be computed exactly using O(d^3 log(t+2)) field operations and O(d^2+log(t+1)) stored bits, without generating z_1,...,z_{t-1}. Proof: initialize R=I_{d+1}, B=M, e=t. While e>0, if e is odd replace R by RB; replace B by B^2; replace e by floor(e/2). The loop invariant R B^e=M^t holds, so at termination R=M^t. Multiply R by (x_0,1). There are O(log(t+2)) iterations, each using O((d+1)^3) field operations. The stored inputs and matrices use O(d^2+log(t+1)) bits. This is exact including t=0. It gives random access to one state, not sublinear-time output of all T states and not a hierarchy-hard fingerprint.\nDiagnostic barriers: relativizing=unclear; natural=not established; algebrizing=plausible (linear algebra over F2); localizing=unclear. Circumvention tests: reversible computing\u2014can add reversible workspace; Strassen\u2014not claiming optimal matrix multiplication; Barrington\u2014no lower-bound inference; catalytic space\u2014not used; mass production\u2014not used.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795872951.8847518,
+  "session": "pnp-desk/research/R4853",
+  "model": "gpt-6-luna",
+  "id": "S0004",
+  "proved_step": "statement: Let d,q>=0, let F(x)=Ax+b be an affine map on F_2^d, and let t_1,...,t_q be nonnegative integers given in binary. There is an exact algorithm that outputs F^{t_j}(x_0) for every j using O(q d^3 log(T+2)) field operations, where T=max_j t_j (take T=0 when q=0), and O(d^2+log(T+1)+q d) working and output bits, without generating any states at unrequested times. Proof: form the augmented matrix M=[[A,b],[0,1]]. For each t_j, compute M^{t_j} by binary exponentiation: initialize R=I and B=M, and process the binary digits of t_j, multiplying R by B for each set bit and squaring B between digits. The loop invariant is R B^e=M^{t_j} for the unprocessed exponent e; hence after the last digit R=M^{t_j}. Multiplication by (x_0,1) yields (F^{t_j}(x_0),1). Each exponent uses at most O(log(T+2)) matrix multiplications of dimension d+1, each costing O(d^3) field operations. Process queries sequentially, reusing the matrix workspace; store the input matrices and vectors, one exponent/workspace, and q output vectors, giving the stated space bound. The algorithm is exact, including t_j=0. This gives a sparse-query decoding guarantee in the affine toy model only; it does not supply a sublinear-time algorithm for emitting all T states or a certificate for a hierarchy-hard computation, so it shrinks but does not close G0001. Diagnostic labels: relativizing=unclear; natural=not established; algebrizing=plausible; localizing=unclear. Circumvention tests: reversible computing\u2014no lower-bound inference; Strassen\u2014not an operation lower bound; Barrington\u2014not used to infer hardness; catalytic space\u2014not used; mass production\u2014queries are processed independently and no amortized lower bound is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
