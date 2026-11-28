@@ -94,6 +94,15 @@ size 5 have dimension 2. What survives is C3/C4 (independence, dim = n - |S|), w
   (ideal, size N), and the remaining object (M_n: independent cores, affine spaces avoiding two-valued vectors) is the specific,
   non-large structure that S5 says a successful method must exploit. No reduction of the asymptotic difficulty is claimed.
 
+**Analytic re-derivation 2026-11-28 (no new enumeration) [DED].** Re-proved by hand, each step against its stated hypotheses: S1 (needs n >= n'+3m,
+fresh single clauses are satisfiable, UNSAT preserved); S3 (theta_i = 1 - x_i on |x| = m checked for x_i = 1 -> m-1 < m and x_i = 0 -> m;
+cost s*T counts every row occurrence; Shamir needs |F| > N, GF(3) uses monotone threshold formulas, size poly(N)); S4 follows from S3 by
+rearrangement; C1 (shift y - a j keeps clause sums, 0/1 values force sum exactly 1 since sums <= 3); C2 (a Boolean-UNSAT, GF(3)-consistent set contains a
+minimal such subset, and subsets of consistent sets are consistent); C3/C4 (rank <= n-1 because j is in the kernel; dim Sol = n - |S|).
+Arithmetic of the table: 360+360+180 = 900; 8,190+54,180 = 62,370. The counts 1350 / 988,837 / 62,370 are STORED enumeration values
+(lab/slice, previously verified), not recomputed in this round. No premise of T44 depended on the corrected e*, T6, T29 or T52 statements:
+nothing stale. Scope reminder: S3's corollary gives only coNP not in Mod_pL/poly, strictly weaker than P != NP (Mod_pL is inside P).
+
 ## 5. Next decisive mathematical question (commissioned to the D-014 campaign via the proofbook)
 Q-T44: Does a Gal matrix with columns = minimal GAP cores (M_n minterms) and rows = maxterms of M_n (or of the slice g_{n,m} restricted to
 the M part) reach ratio > N at n = 6, 7, and how does the best ratio grow from n=6 to n=7? Why decisive: D-014f caps every

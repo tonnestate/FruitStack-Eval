@@ -15,11 +15,12 @@ form of dc O(m³) has I >= I(per_m), the argument is capped at O(m³).
 (P) padding robust: comparable between z^{n-m} per_m and det_n in degree n (e.g. depends only on multiplicity-one components);
 (M) controlled on all of D_n (bound B(n) valid for limits, not only for the orbit);
 (F) not (nearly) maximised by any form of determinantal complexity O(m³) of degree m in m² variables (Lemma above).
+ **[Quantified 2026-11-28]** "(nearly) maximised" is replaced by: (F_θ) there is a form g of dc ≤ D with I(g) ≥ θ·I(per_m), θ ∈ (0,1]. For B(n) = C·n^c the cap lemma gives the certified threshold n* < D·θ^{−1/c} (from B(n*) < I(per_m) ≤ I(g)/θ ≤ B(D)/θ). So exact domination (θ = 1) caps at D; a constant θ caps up to the constant factor θ^{−1/c}; a θ → 0 gives no cap. An invariant escapes the cap only if I(g)/I(per_m) → 0 for every g of dc ≤ D, quantitatively: sup_g I(g)/I(per_m) < (n*/D)^c.
 
 | Family | P | M | F | Status / evidence |
 |---|---|---|---|---|
 | Polar degrees, Chern–Mather / CSM / Milnor classes, read through corank-1 kernel systems (cubic preprint, Sheshadri) | yes | yes | NO — Fermat attains the maximum d(d-1)^(N-2) | capped O(m³): arXiv:2606.15970 Thm 7.7 / Cor 7.11; T15 Bezout cap ~0.11 m³ |
-| Second-order point counts (Hessian minor conditions) | yes | not established | NO — Fermat attains Bezout in 4 tested cases (`checks/t15/fermat_filter.m2`) | T15 H1 refuted as a route |
+| Second-order point counts (Hessian minor conditions) | yes | not established | UNPROVED asymptotically — Fermat attains Bezout in 4 tested cases (`checks/t15/fermat_filter.m2`): finite control data, not a domination theorem for all (m,N) | T15 H1: no asymptotic exclusion established (corrected 2026-11-28); needs a family-wise statement I(Fermat) ≥ θ·I(per_m) |
 | Hilbert function of the dual variety | yes | yes (T16 Lemma D) | — | capped at (m²+1)/2: T16 Theorem C (review pending) |
 | Regularity of the dual | ? | no relation known | ? | T16 §4: unresolved, nothing may be inferred |
 | Hessian rank / dual dimension (Mignon–Ressayre, LMR) | yes | yes | — | quadratic m²/2 |

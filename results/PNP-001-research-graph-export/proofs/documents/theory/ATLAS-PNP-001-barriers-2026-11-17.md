@@ -83,8 +83,7 @@ and verified exactly on base cases.
   matching-covered ("nice") even subdivision of K_{3,3} (Little, *A characterization of convertible (0,1)-matrices*, JCTB 1975).
 - **Mignon–Ressayre 2004:** dc(perm_n) ≥ n²/2 (char 0, Hessian-rank); Cai–Chen–Li extend to char ≠ 2; Yabe (n−1)²+1 over ℝ. **These
   quadratic bounds are NO LONGER the frontier (corrected 2026-11-17, §1a).** superpolynomial dc(perm) is open and is
-  **VP_ws ≠ VNP** (dc ↔ determinant ↔ VP_ws = algebraic branching programs; Valiant, Toda, Mahajan–Vinay), a necessary milestone toward
-  VP ≠ VNP, not literally VP ≠ VNP.
+  **VP_ws ≠ VNP** (dc ↔ determinant ↔ VP_ws = algebraic branching programs; Valiant, Toda, Mahajan–Vinay), implied by VP ≠ VNP but not implying it (VP_ws ⊆ VP; corrected 2026-11-28, see T7).
 - **Cai–Chen (Holant dichotomy, JACM 2017):** #CSP/Holant is tractable iff affine, product-type, or (planar) matchgate-realizable;
   else #P-hard. Matchgates = exactly the Pfaffian-computable local gadgets.
 
@@ -174,8 +173,7 @@ surface the counting world does not already have. The only non-vacuous escape is
   quantity. There the cost is genuine: a superpolynomial size lower bound is not excluded by any #P-hardness obstruction — it is
   VP ≠ VNP.
 - **S3 (real room).** The only lever with upside is **(S): dc(perm_n) / pc(perm_n)**. Proven bounds are now **cubic** (OpenAI/Sheshadri,
-  §1a), for exact, border and Pfaffian representations and all characteristics; the target is superpolynomial (= VP_ws ≠ VNP, hence
-  VP ≠ VNP). The known barriers are representation-theoretic (GCT **occurrence** obstructions — not multiplicity obstructions — were ruled
+  §1a), for exact, border and Pfaffian representations in char 0 and odd characteristic (not char 2, where perm = det); the target is superpolynomial (= VP_ws ≠ VNP, implied by VP ≠ VNP, not implying it). The known barriers are representation-theoretic (GCT **occurrence** obstructions — not multiplicity obstructions — were ruled
   out by Bürgisser–Ikenmeyer–Panova, JAMS 32 (2019)), not #P-hardness.
 
 ## 4a. My own result: the smooth-restriction / polar-intersection method is capped at n³ for the permanent (Proposition O1-E)
@@ -223,7 +221,7 @@ otherwise.
   bound is explicitly flagged as a known limit of current techniques, not an impossibility.
 - *Representation vs computation?* Central here and kept distinct: (I) is a computation claim (collapses), (S) is a representation-size
   claim (open).
-- *What would change the conclusion?* A superpolynomial lower bound on dc(perm) (= VP_ws ≠ VNP, hence VP ≠ VNP); or a poly-constructible (I) on a
+- *What would change the conclusion?* A superpolynomial lower bound on dc(perm) (char ≠ 2; = VP_ws ≠ VNP, which is implied by VP ≠ VNP but does not imply it); or a poly-constructible (I) on a
   #P-hard family (would give FP = #P). Either is a major theorem.
 - *Still P vs NP?* Via the algebraic analogue, with the honest caveat above.
 

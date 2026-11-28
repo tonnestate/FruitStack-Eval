@@ -34,7 +34,11 @@ Across cut i, a term S factorises as (left part) x (right part). The left part d
 the cut). Grouping the terms by the pattern on the clauses that cross the cut gives at most 2^{c_i} groups (c_i = number of crossing
 clauses). The linear dependencies among the groups' left vectors reduce them to r_i independent ones. So:
 
-**Grouping the inclusion–exclusion terms along cut i cannot use fewer than r_i(F) independent classes, and r_i classes suffice** (Satz 1).
+**[CORRECTED 2026-11-28 — three different operations.]** (1) *Partition* of the original summands into groups, each group sharing a left factor (up to scalar); (2) *linear basis reduction*: rewriting the left vectors u_S in a basis, which splits and recombines summands; (3) evaluating the scalar #F.
+**Proved (Satz 1): the minimal inner dimension of an exact linear representation across cut i is r_i(F); any grouping needs at least r_i independent left vectors.** What is NOT implied: that r_i *groups of the original summands* suffice. A partition needs one group per distinct (non-proportional) left vector, which can exceed r_i.
+Example: F = (a ∨ y1)(¬a ∨ y2), cut {a}|{y1,y2}. Summands: ∅ ↦ 1⊗1; {C1} ↦ −[a=0]⊗[y1=0]; {C2} ↦ −[a=1]⊗[y2=0]; {C1,C2} ↦ 0 (inconsistent). Left vectors 1, [a=0], [a=1]: pairwise non-proportional, so any partition has **3 groups**, but r = 2 because 1 = [a=0]+[a=1]. The compressed form
+[a=0]⊗(1 − [y1=0]) + [a=1]⊗(1 − [y2=0]) is reached only by *splitting* the summand ∅ over two groups — a linear transformation, not a partition (exact check: f = (a∨y1)(¬a∨y2) has the 2×4 cut matrix of rank 2).
+**Cost of the transformation.** The left vectors u_S depend on S only through the pattern on the c_i crossing clauses, so the span can be found by Gaussian elimination on at most 2^{c_i} vectors: time 2^{O(c_i)}·poly, hence r_i ≤ 2^{c_i} and the reduction is constructive in time exponential in the number of crossing clauses (not in m). Without a bound on c_i the construction is not polynomial; the rank theorem alone gives existence and size, not construction. Valid and preserved: Satz 1 (minimal tensor representation = cut rank), the factorisation 1−φ_j of rank ≤ 2 per cut, r_i ≤ 2^{c_i}. Open (constructive question, not a rank question): which elimination order / which structured basis (e.g. through the rank-2 clause factors) yields the r_i-dimensional basis without enumerating 2^{c_i} patterns.
 
 ## Satz 1 (representation, minimal) — known
 

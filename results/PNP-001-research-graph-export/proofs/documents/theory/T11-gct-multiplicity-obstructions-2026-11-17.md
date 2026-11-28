@@ -8,7 +8,7 @@ certified obstruction (which would be a breakthrough). char 0.
 ## The two sides — orbit vs CLOSURE (the critical distinction; owner-sharpened 2026-11-17)
 Write Y_{m,n} = closure of GL·(ℓ^{n−m}perm_m), D_n = closure of GL·det_n. For λ ⊢ nd set γ_λ = mult_λ ℂ[Y_{m,n}]_d (closure, padded
 perm) and δ_λ = mult_λ ℂ[D_n]_d (closure, det). The OPEN-orbit multiplicities are a_λ (padded perm) and k_n(λ) = g(λ,(dⁿ),(dⁿ)) (det,
-Kronecker; plethysm p_{λ,m,d} = ⟨s_λ, h_d[h_m]⟩ is a_λ). **Direction (verified, standard AG):** the orbit O is open dense in its closure
+Kronecker; plethysm p_{λ,m,d} = ⟨s_λ, h_d[h_m]⟩ is a_λ). **[Definitions fixed 2026-11-28: |λ| = nd, so ⟨s_λ,h_d[h_m]⟩ cannot be the padded multiplicity. Three distinct upper bounds for γ_λ: A^amb = ⟨s_λ, h_d[h_n]⟩ (whole coordinate ring of Sym^n W; this is the ledger's 'p' in T11-J/L/P), A^par = ⟨s_λ, h_{d(n−m)}·h_d[h_m]⟩ (parametrization ℓ^{n−m}g, T11-O), and the open-orbit multiplicity a_λ = dim(S_λ)^{Stab} (not computed here). γ_λ ≤ min(A^amb, A^par, a_λ); δ_λ ≤ min(A^amb, k_n(λ)). Exact values (rational arithmetic): (3,4,4): A^amb = 2 for (12,4),(10,6),(10,4,2),(8,6,2),(8,4,4); A^par = 4,4,7,6,4; (3,4,6) λ=(6,6,6,4,2): A^amb = A^par = 1; (2,3,6) λ=(8,2,2,2,2,2): A^amb = 1, A^par = 2 while γ = 0 (both bounds positive, not sharp: essential-variable bound).]** **Direction (verified, standard AG):** the orbit O is open dense in its closure
 Ȳ, so ℂ[Ȳ] ↪ ℂ[O] (a regular function vanishing on the dense O vanishes), hence **closure multiplicity ≤ orbit multiplicity**:
     **γ_λ ≤ a_λ   and   δ_λ ≤ k_n(λ)  — both are UPPER bounds.**
 A certified multiplicity obstruction is **γ_λ > δ_λ**. Therefore a_λ > k_n(λ) (comparing the two UPPER bounds) is **NOT** a certified

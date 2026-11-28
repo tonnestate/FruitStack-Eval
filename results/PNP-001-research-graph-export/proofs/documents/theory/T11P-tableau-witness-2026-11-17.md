@@ -92,7 +92,7 @@ The paper's algorithm expands (dagger) into monomials; the merged-state contract
   1,4,6 -> 1,2,3; 2,5 -> 4,5; 3 -> 6), so it defines the SAME polynomial: ratio exactly 1 at two random tensors, two det_4 sections and
   one l*perm_3 section; it vanishes on l^4. The owner's value 519 mod 1009 could not be reproduced here because the embedding matrices of
   that run are not on this machine.
-- Regression: for the five p=2 partitions of T11-J/L at degree 4, (12,4), (10,6), (10,4,2), (8,6,2), (8,4,4), the tableau engine
+- Regression: for the five p=2 partitions of T11-J/L at degree 4, (12,4), (10,6), (10,4,2), (8,6,2), (8,4,4), the tableau engine [Note 2026-11-28: these five have A^amb = ⟨s_λ,h_4[h_4]⟩ = 2 (= ledger p) and A^par = 7,6,4,4,4; engine values unchanged; g-deficit interpretation withdrawn; (6,6,6,4,2) at (3,4,6): A^amb = A^par = 1 = γ = δ.]
   evaluates all semistandard tableaux (15, 16, 27, 24, 15) and finds rank 2 on generic tensors, rank 2 on det_4 sections and rank 2
   on l*perm_3 sections — the same gamma = delta = p = 2 as the earlier raising-kernel engine.
 

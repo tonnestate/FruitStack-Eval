@@ -25,8 +25,14 @@ P_a(z^{n-m}ψ) = ⊕_j z^{n-m-a+j} P_j(ψ) (j between max(0, a-n+m) and min(a, m
 dim P_a(z^{n-m}ψ) = Σ_j dim P_j(ψ). Reznick's forms φ_m = (Σ x_i²)^{m/2} (m even) or (Σ x_i)(Σ x_i²)^{(m-1)/2} (m odd) have maximal
 dim P_j for every j (Gesmundo–Landsberg, Thms 2.2/2.5), hence dim P_a(z^{n-m}φ_m) >= dim P_a(z^{n-m}per_m) for all a, n.
 dc(φ_m) <= 1 + ((m-1)/2 or m/2) · dc(Σ_{i<=m²} x_i²) = O(m³) (block-diagonal powers). By the cap lemma, any argument that uses only
-the dimensions of the partial-derivative spaces of the padded permanent certifies at most dc(φ_m) = O(m³). (Shifted partials are
-already capped at O(m²) by ELSW; this covers all invariants that are functions of the sequence dim P_a.)
+the dimensions dim P_a of the partial-derivative spaces of the padded permanent certifies at most dc(φ_m) = O(m³). **Scope (corrected 2026-11-28):** the coordinatewise
+domination dim P_a(z^{n-m}φ_m) ≥ dim P_a(z^{n-m}per_m) (all a) caps exactly those invariants Φ that are *monotone nondecreasing in each coordinate of the dimension vector*
+(and non-increasing under linear substitution, so that Φ(g) ≤ Φ(det) for g ∈ D_n): then Φ(per) ≤ Φ(φ_m) ≤ Φ(det_{dc(φ_m)}). A non-monotone function of the dimensions is not covered, and
+nothing is claimed about invariants that use the *relations* between the spaces P_a(f) (inclusions, products P_a·S^b as in shifted partials, de Rham/Koszul structure, intersections P_a ∩ P_b·S^c):
+the construction (Reznick form with maximal dim P_a) is preserved and Section 3 shows by explicit numbers (1155 vs 1120) that the relational invariant "Koszul rank" is NOT dominated
+by φ_3. The invariant family is therefore not exhausted: the open part is exactly which relational invariants of (P_a(f))_a, beyond dimension sequences, are monotone-capped by some
+cheap form (Section 4 data: det_3 dominates per_3 in all 66 computed slots) or separate per_m from D_n. (Shifted partials are capped at O(m²) by ELSW; that result is separate and is a
+statement about the shifted-partials measure, not derived from the dimension-vector cap.)
 
 ## Section 3 — FALSIFIED route: the Reznick form does not cap Koszul flattenings
 m = 3, e = 10, n = 4, a = 1, q = 3: r_q(z·per_3) = 1155 = r_q(z·generic cubic) > r_q(z·φ_3) = 1120 (`checks/t19/compare_m3.py`,

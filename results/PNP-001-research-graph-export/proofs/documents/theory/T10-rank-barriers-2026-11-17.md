@@ -15,7 +15,9 @@ rank((ℓ^{n−m} perm_m)_{(k,n−k)[τ]}) < rank((det_n)_{(k,n−k)[τ]})." Pro
   degree n−k, hence (Macaulay) in all higher degrees.
 - **C3 (k<2m, τ > 3n²m/2):** compare the padded ideal with the 2-generated ideal from det → ℓ₁ⁿ+ℓ₂ⁿ (complete intersection).
 - **C4 (k<2m, τ < 6n³/m):** GKKS lower bound for det vs. a crude upper bound for the padded permanent (leading-monomial count).
-C1,C2 overlap for n>2m²+2m and C3,C4 for n>m⁴, so n>2m²+2m suffices.
+C1,C2 overlap for n>2m²+2m and C3,C4 overlap for **n>m²/4** (3n²m/2 < 6n³/m ⇔ m² < 4n), so n>2m²+2m suffices. [CORRECTED 2026-11-28: our summary said "n>m⁴"; arithmetic error in our reconstruction, not in the source —
+ELSW (arXiv:1609.02103, HTML v1 §1.3, read 2026-11-28) state verbatim "C1,C2 overlap when n>2m²+2m and C3,C4 overlap when n>m²/4, so it suffices to take n>2m²+2m"; Theorem 1.5 condition n>2m²+2m confirmed.]
+**Open check on the external proof (not an error claim):** the case C4 is stated with τ<6n³/m (LaTeX source \frac{6n^3}{m}), but the subcase text in §6.1/§6.2 (rendered HTML) says the worst case needs "τ<n³/(6m)". If the proven range is n³/(6m), the C3/C4 overlap needs 3n²m/2 < n³/(6m), i.e. n>9m², and the conclusion for 2m²+2m<n≤9m² would need re-derivation. Unresolved: the HTML rendering of "n^3/(6m)" versus the stated "6n³/m" must be checked against the TeX/PDF; the PDF was unreadable in this session.
 **Precise scope (owner-sharpened, confirmed in the source):** (i) holds for **m > M** (sufficiently large, NOT all m); (ii) for the SPD
 measure (k-th Jacobian ideal) of the **padded** permanent ℓ^{n−m}perm_m vs det_n. The paper EXPLICITLY leaves open (line 133): "a more
 general Young flattening [may] prove a ω(m²) lower bound" (companion paper on minimal free resolutions of Jacobian ideals). So SPD cannot

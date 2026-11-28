@@ -14,8 +14,10 @@ and verified exactly on base cases.
   matching-covered ("nice") even subdivision of K_{3,3} (Little, *A characterization of convertible (0,1)-matrices*, JCTB 1975).
 - **Mignon–Ressayre 2004:** dc(perm_n) ≥ n²/2 (char 0, Hessian-rank); Cai–Chen–Li extend to char ≠ 2; Yabe (n−1)²+1 over ℝ. **These
   quadratic bounds are NO LONGER the frontier (corrected 2026-11-17, §1a).** superpolynomial dc(perm) is open and is
-  **VP_ws ≠ VNP** (dc ↔ determinant ↔ VP_ws = algebraic branching programs; Valiant, Toda, Mahajan–Vinay), a necessary milestone toward
-  VP ≠ VNP, not literally VP ≠ VNP.
+  **VP_ws ≠ VNP** (dc ↔ determinant ↔ VP_ws = algebraic branching programs; Valiant, Toda, Mahajan–Vinay), **implied by** VP ≠ VNP
+  (VP_ws ⊆ VP) but **not implying it**: a superpolynomial dc(perm) bound separates VNP from VP_ws only; VP_ws ≠ VP-type separations are a different open question
+  (corrected 2026-11-28; earlier text in §S2/S3 and the conclusions wrongly read "VP_ws ≠ VNP, hence VP ≠ VNP"). **Characteristic:** in char 2 perm_n = det_n, so dc(perm_n) ≤ n and no
+  dc/pc lower bound of any growth exists there; all bounds on perm quoted in this file are for char 0 (Mignon–Ressayre) / char ≠ 2 (Cai–Chen–Li) / odd char (Sheshadri).
 - **Cai–Chen (Holant dichotomy, JACM 2017):** #CSP/Holant is tractable iff affine, product-type, or (planar) matchgate-realizable;
   else #P-hard. Matchgates = exactly the Pfaffian-computable local gadgets.
 
@@ -70,8 +72,8 @@ So (L) cannot reach general perm — this is what motivates asking about (H), (S
 **Lemma O1-A (PROVEN — Pfaffian affine ⟹ determinantal affine of the square; exact base case cm-d55440f1d9d84caf).** If Pf(M(x)) =
 perm_n(x) for a skew-symmetric M of affine forms of size 2m, then det(M(x)) = Pf(M(x))² = perm_n(x)² — an affine determinantal
 representation of perm_n² of size 2m, so pf-dc(perm_n) ≥ ½·dc(perm_n²). *Verified:* K_{2,2}, signing (+,+,+,−): Pf(M)=ad+bc=perm,
-det(M)=(ad+bc)²=perm². Moreover dc and pf-dc are **polynomially equivalent** (determinant and Pfaffian are both VP_ws-complete), so a
-superpolynomial lower bound for one transfers to the other — though the polynomial blow-up does not preserve the exact quadratic constant.
+det(M)=(ad+bc)²=perm². Moreover dc and pf-dc are **polynomially equivalent** (determinant and Pfaffian are both VP_ws-complete [R, not re-verified here: the direction pc ≤ 2·dc is the elementary det = Pf([[0,M],[−Mᵀ,0]]); the converse needs a polynomial-size ABP for Pfaffians]), so a
+superpolynomial lower bound for one transfers to the other (same class VP_ws, not VP) — though the polynomial blow-up does not preserve the exact quadratic constant.
 
 **[RESOLVED by the literature, 2026-11-17 — my Ω(n²) conjecture is superseded by a proven cubic bound.]**
 - My earlier "pf-dc(perm_n) = Ω(n²) via Mignon–Ressayre on perm²" route was already **withdrawn as unproven** (the MR method needs a
@@ -103,10 +105,10 @@ surface the counting world does not already have. The only non-vacuous escape is
   side. (I) collapses to FP = #P (O1-B). None reaches general perm without proving FP = #P.
 - **S2 (computation vs representation).** (S) is the only model where the instance-independent **representation size** is the open
   quantity. There the cost is genuine: a superpolynomial size lower bound is not excluded by any #P-hardness obstruction — it is
-  VP ≠ VNP.
+  a superpolynomial size lower bound for dc(perm_n) (char ≠ 2) is equivalent to **VP_ws ≠ VNP** (perm is VNP-complete in char ≠ 2 [R]; dc ~ VP_ws), which is
+  implied by VP ≠ VNP but weaker; it is NOT literally VP ≠ VNP.
 - **S3 (real room).** The only lever with upside is **(S): dc(perm_n) / pc(perm_n)**. Proven bounds are now **cubic** (OpenAI/Sheshadri,
-  §1a), for exact, border and Pfaffian representations and all characteristics; the target is superpolynomial (= VP_ws ≠ VNP, hence
-  VP ≠ VNP). The known barriers are representation-theoretic (GCT **occurrence** obstructions — not multiplicity obstructions — were ruled
+  §1a), for exact, border and Pfaffian representations in char 0 and odd characteristic (NOT char 2, where perm = det; the generic smooth-hypersurface Thm 3.1 holds in every characteristic but is not applicable to perm there); the target is superpolynomial (= VP_ws ≠ VNP, a consequence of VP ≠ VNP, not a proof of it). The known barriers are representation-theoretic (GCT **occurrence** obstructions — not multiplicity obstructions — were ruled
   out by Bürgisser–Ikenmeyer–Panova, JAMS 32 (2019)), not #P-hardness.
 
 ## 4a. My own result: the smooth-restriction / polar-intersection method is capped at n³ for the permanent (Proposition O1-E)
@@ -154,7 +156,7 @@ otherwise.
   bound is explicitly flagged as a known limit of current techniques, not an impossibility.
 - *Representation vs computation?* Central here and kept distinct: (I) is a computation claim (collapses), (S) is a representation-size
   claim (open).
-- *What would change the conclusion?* A superpolynomial lower bound on dc(perm) (= VP_ws ≠ VNP, hence VP ≠ VNP); or a poly-constructible (I) on a
+- *What would change the conclusion?* A superpolynomial lower bound on dc(perm) in char ≠ 2 (= VP_ws ≠ VNP; this separates VNP from VP_ws and by itself does not give VP ≠ VNP); or a poly-constructible (I) on a
   #P-hard family (would give FP = #P). Either is a major theorem.
 - *Still P vs NP?* Via the algebraic analogue, with the honest caveat above.
 

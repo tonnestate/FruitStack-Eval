@@ -7,7 +7,7 @@ No refutation among the 32 is a general impossibility theorem of a research dire
 | seq | what | class | remark |
 |---|---|---|---|
 | 46 | "#F even ⇔ all models monochromatic" (weak-model hypothesis) | [T] | valid counterexamples (x1; x1∧x2); no direction closed |
-| 91 | SOSA paired reduction gives a sign-free survivor core ⇒ cancellation decides SAT | [C]+[E] | one concrete pairing fails (mixed signs 6/11); review noted "circular, all-+1 unproven". NOT an impossibility of signed cancellation (cf. T4 finding) |
+| 91 | SOSA paired reduction gives a sign-free survivor core ⇒ cancellation decides SAT | [C]+[E] | [REPAIRED 2026-11-28, see T4: the claim 'survivors all +1 after the first cancellation' is false (11/6) but a second involution ι(x,S)=(x,S△{min V(x)}) leaves exactly SAT(φ) with sign +1 (5/0); sign-free core exists and equals SAT(φ); per-assignment identity N+−N−=[x⊨φ] verified] one concrete pairing fails (mixed signs 6/11); review noted "circular, all-+1 unproven". NOT an impossibility of signed cancellation (cf. T4 finding) |
 | 103 | T6 "intrinsic padding obstruction" | [S] | withdrawn by the row itself; precision-vs-normalization cost still to be combined (T6 finding of the owner) |
 | 139,146,151 | permanent Hessian rank claims (c ≤ ⌊n/2⌋, c=2 structure, rank-2 family) | [T] on intermediate claims | Satz T9-B unaffected (row 146) |
 | 172–212 (rows 7–16) | T11/T13 GCT multiplicity framings, padding-floor equivalence, null-cone extension | [S]/[T] | corrections of overclaims; the padding-floor *equivalence* is refuted by a certified counterexample, the ≤ direction retained |

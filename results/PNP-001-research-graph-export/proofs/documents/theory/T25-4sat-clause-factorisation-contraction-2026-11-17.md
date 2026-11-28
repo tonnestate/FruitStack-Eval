@@ -18,15 +18,30 @@ enough that the technique transfers to circuits with high fan-out?
   Cost 2^{Θ(tw_inc)}. Standard relations (Kolaitis–Vardi; Szeider): tw_inc <= tw_primal + 1 and, for clause width k,
   tw_primal <= k(tw_inc + 1) − 1. For 4-SAT: the factorisation lowers the exponent by at most a constant factor ≈ 4, never more.
 - Summing all clause bonds first is inclusion–exclusion: #F = Σ_{S ⊆ clauses} (−1)^{|S|} #{x falsifying all of S}, cost 2^m.
-- For random 4-CNF at constant clause density the incidence graph is an expander w.h.p., so tw_inc and tw_primal are Θ(n):
-  every contraction-order method (factorised or not) is 2^{Θ(n)} on such instances.
+- **[CORRECTED 2026-11-28 — three graphs, not one.]** (i) tw_primal (variables adjacent iff they share a clause) bounds variable elimination on the hypergraph network;
+  (ii) tw_inc (variable–clause incidence graph) bounds elimination after the rank-2 clause factorisation; (iii) the Markov–Shi theorem is stated for networks whose indices join two
+  tensors and gives cost 2^{tw(L(G))} with the **line graph** L(G) of the network graph G; a variable of occurrence degree D is a tensor of degree D, so L(G) contains a clique K_D and
+  tw(L(G)) ≥ D−1. The statements "cost 2^{Θ(tw)}" are upper bounds for the stated elimination orders; matching lower bounds hold for generic tensors only, **not** for COPY (δ) tensors or
+  clause tensors of CP rank 2, which are far from generic. Explicit family: F_m = ⋀_{i≤m} (x ∨ a_i ∨ b_i ∨ c_i). Incidence graph = tree (tw 1); primal graph: x joined to all 3m
+  other variables, each clause a K_4 ⇒ tw_primal = 3; line graph of the incidence graph ⊇ K_m ⇒ tw ≥ m−1. Exact count: x = 1 satisfies every clause (8^m assignments of the a,b,c),
+  x = 0 leaves 7 assignments per triple ⇒ **#F_m = 8^m + 7^m** (poly time by conditioning on the single high-degree variable, i.e. cutset size 1). Hence a width parameter of the *line graph*
+  does not measure the cost; a high-degree variable has the COPY tensor δ_D (CP rank 2): splitting it into its two basis terms (a cutset of size 1) removes the degree. The cost-relevant graph is the one
+  **after** COPY decomposition: tw_inc (here 1), or more precisely the cutset-conditioned width (tw of the incidence graph after deleting a conditioning set C, plus |C|). Not rejected: the COPY rank-2
+  decomposition (still valid and is what makes tw_inc ≤ tw_primal+1 and the cutset reading possible); recomputed: which graph governs the exponent.
+- **[CORRECTED 2026-11-28 — random 4-CNF.]** The previous claim "incidence graph is an expander w.h.p." is false for the whole graph: for m = αn clauses of 4 uniform variables a given variable is absent with
+  probability (1−4/n)^{αn} → e^{−4α}, so ≈ n·e^{−4α} variables are isolated (linear number for every fixed α), and the graph has isolated vertices, hence is not connected, hence not an expander.
+  Correct scope: (a) α below the giant-component threshold of the random 4-uniform hypergraph (α_c = 1/(4·3) = 1/12 [R]) all components have size O(log n): tw = O(log n) and contraction is poly;
+  (b) above it there is a giant component and a 2-core (variables of degree ≥ 2 after iterated removal of degree-1 variables and pendant clauses); a linear-treewidth/expansion statement can be
+  asserted for that **core** only, for densities where known results apply [R: not re-read in this session]; the exponential contraction exponent is then Θ(|core|), i.e. proportional to the core fraction,
+  which is a function of α. The general sentence "2^{Θ(n)} for every contraction-order method on random 4-CNF at constant density" is therefore **not established**; established: it holds with n replaced by the
+  core size once core expansion is available, and not below the threshold.
 
 ## 3. What the new algorithms actually exploit (OpenAI manuscript, §2.1–2.2, read in source)
 - Start: #F = Σ_x Π_e Φ_e(x), Φ_e = 1 − Π_{v∈e}(1 − L_{e,v}(X_v)) — the same rank-2 clause factorisation.
 - The lever: after disjoint sparsification and variable copying, every variable occurs in <= 3 clauses, so the product has total
   degree <= 3n (linear); interpolation in an auxiliary parameter then recovers the exact count from sums over small variable groups.
   Appendix D implements the bounds by tensor contraction — of the TRANSFORMED (interpolated) network, not of the original one.
-- Consequence: the algorithms beat every contraction-order method on expander instances (2^{o(n)} vs 2^{Θ(n)}). Their gain is
+- Consequence (scope corrected: on the expanding **core** of instances where core expansion is known, see §2): the algorithms beat every contraction-order method there (2^{o(n)} vs 2^{Θ(n)}). Their gain is
   not contraction width; it is low total degree under bounded occurrence plus interpolation.
 
 ## 4. Transfer to circuits with high fan-out

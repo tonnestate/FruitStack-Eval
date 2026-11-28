@@ -78,6 +78,18 @@ precise form in which "information that must be re-transported under bounded spa
 into a simulation theorem (a) and a space lower bound (b). Both are at least as hard as known open separations; D1 is a reduction of the
 proof obligation to two named statements, not progress on either.
 
+**Analytic repair of D1 (2026-11-28) [DED].** (i) Exponent bookkeeping. W25 gives, unconditionally, SAT ∈ DTIME(n^k) ⇒ SAT ∈ DSPACE(n^{k/2+o(1)}).
+But SAT ∈ DSPACE(n) already (enumerate assignments), so this is vacuous for every k ≥ 2: a transfer theorem helps only if the compressed exponent
+falls below the TRUE space exponent of SAT. Hence the premise (a) cannot be weakened to a fixed ε (W25: ε = 1/2): since k is unknown, ε must be
+≤ δ/k for arbitrarily large k, i.e. ε → 0. The precise necessary-and-sufficient form is: for each k there is ε_k with
+DTIME(n^k) ⊆ DSPACE(n^{ε_k}) and SAT ∉ DSPACE(n^{max_k ε_k}) — D1 is the case ε_k = δ/(2k). (ii) Consequences of (a) re-derived: (a) ⇒
+P ⊆ ∩_ε DSPACE(n^ε) (t = n^k, ε/k) ⇒ P ≠ PSPACE (space hierarchy: DSPACE(n²) ⊄ DSPACE(n); if P = PSPACE then DSPACE(n²) ⊆ DSPACE(n^ε)).
+Correct. (b) ⇒ NP ⊄ L (SAT ∈ L ⊆ DSPACE(n^δ)). Correct. (iii) Recovered component: the unconditional statement that survives is the
+CONTRAPOSITIVE-with-W25: any SAT algorithm of time n^k has an n^{k/2+o(1)}-space version; for k < 2 this would beat linear space, so
+SAT ∈ DTIME(n^{2−ε}) ⇒ SAT ∈ DSPACE(n^{1−ε/2+o(1)}), i.e. a subquadratic-time SAT algorithm is automatically sublinear-space. This is
+consistent with known time–space lower bounds for SAT (n^{1.8} time with n^{o(1)} space is ruled out; the unrestricted subquadratic-time case is open).
+Not a new theorem: it records exactly which part of D1 is proved (the W25 step) and which is the open premise.
+
 ## 5. WP5 — status of earlier PNP-001 hypotheses
 | hypothesis | status |
 |---|---|

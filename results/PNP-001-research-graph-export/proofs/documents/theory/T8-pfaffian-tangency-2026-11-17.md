@@ -74,6 +74,7 @@ representation**:
   (i) pinning the Hessian rank of perm at its singular locus, and (ii) deciding whether a representation can force all high-rank singular
   points to corank ≥ 4 (codim-6, a strong simultaneous constraint) — would turn Lemma T8-B into a quadratic Pfaffian bound or prove it
   cannot exceed linear. This is the next proof obligation.
+  **[RESOLVED 2026-11-28, see T9 §1′ and §4]:** (i) rank 2kℓ+2 at X=diag(B_k,B_ℓ) is proved for all k,ℓ (T9 Theorem T9-C), giving R ≥ ⌊n²/2⌋+2 > 6 at singular points of perm_n; (ii) by §8 corollary any such point is forced to corank 2. Hence the quadratic Pfaffian bound pc(perm_n) ≥ ⌈(⌊n²/2⌋+6)/2⌉ holds (modulo this file's §3/§8 proofs). The "linear only" alternative is excluded.
 
 ## 5. n = 4 (established reference, status)
 
