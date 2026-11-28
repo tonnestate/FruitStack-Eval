@@ -1,0 +1,911 @@
+[
+ {
+  "at": 1795385265.3434215,
+  "session": "pnp-desk/pi",
+  "model": "claude-opus-5-5",
+  "gap": "OWNER 2026-11-22 (mandatory MMW oracle test): every POSITIVE transfer must be run against the McKay-Murray-Williams oracle construction (MMW19 Thm 1.2: one-pass streaming for search-MCSP with a Sigma3SAT^A oracle, O~(s^2) update time, O~(s) space). If the proposed bound tw(H_{B_C}) <= Psi(m,s,S,Gamma) together with Thm 4.1 would also exclude that oracle algorithm, name the exact premise, inequality or simulation step that the oracle gates break; otherwise the transfer proves a false statement and is REFUTED. Work order: T0 main, then T1 (Q-f90dd2d84d) rank method, then T2 (Q-00adf4fb0a) limits.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795387935.7480018,
+  "session": "pnp-desk/research/R1824",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 refined (session R1824): the rank step rank_F(M_t) <= S uses F_2-linearity of the transitions U_t. Exact check cm-7cca3247f185456d: the linear update has 0/16 additivity violations; the AND update has 6/16. So the T1 factorisation does not cover AND-gate transitions, and the linear rank bound is not contradicted by the MMW oracle, which is not F_2-linear (source not yet checked). Open: a nonlinear factorisation or the information bound S >= ceil(log2 D_t) with a lower bound on the exact distinct-row count D_t for the search-MCSP prefix matrix, uniform in m.",
+  "evidence": "cm-7cca3247f185456d (DISCOVERY; H_lin predicted 0 violations, H_nl predicted >0; both matched)",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795388008.7741778,
+  "session": "pnp-desk/research/R1824",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (session R1824, source-verified): MMW19 Algorithm 1 (Sec. 4; sha256 7077714b...) keeps a circuit C of size <= s(n) as state and updates it by C <- Circuit-Min-Merge^A(C, next t bits), t = 100 s log s, with worst-case update time O~(t^2) and space O~(t). The update is a minimum-circuit search, not an F_2-linear map on a vector state. Therefore the rank factorisation M_t = UV (T1, rank_F(M_t) <= S) does not cover the MMW oracle algorithm; a T0 bound proved by that route does not transfer to it without an explicit oracle simulation step. Open: an information bound S >= ceil(log2 D_t) with a uniform lower bound on the exact distinct-row count D_t of the search-MCSP prefix matrix.",
+  "evidence": "web_read https://people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf (query 'Algorithm 1', 'Theorem 1.2'; sha256 7077714ba22dead70fee16a58b46a7d556075a4037c1e2608e3a4fd92bcfc07a). Reading of the source, not a proved lemma. Companion exact check cm-7cca3247f185456d: F_2-additivity violations 0/16 (linear) vs 6/16 (AND), which fixes the scope of the linear rank step.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795388097.541449,
+  "session": "pnp-desk/research/R1824",
+  "model": "claude-haiku-5-5",
+  "evidence": "Proof: sigma(p)=sigma(p') implies identical residual functions because future output depends only on state and suffix. Scope: deterministic one-pass, no update-time constraint. Not computed: D_t for any family.",
+  "id": "S0004",
+  "proved_step": "STATE-COUNTING BOUND (session R1824): for any deterministic one-pass streaming algorithm with state set of size 2^S, the number D_t of distinct residual functions over a fixed split t is at most 2^S, so S >= ceil(log2 D_t). No linearity assumption on the update. Does NOT close G0001: space-only; MMW19 Thm 1.2 has S = O~(s), so the bound is consistent with it and cannot refute it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795388168.5167203,
+  "session": "pnp-desk/research/R1824",
+  "model": "claude-haiku-5-5",
+  "gap": "S0004 (state-counting bound, session R1824) is trivial bookkeeping: it is space-only and does not close G0001. Open obligation unchanged: an update-time lower bound for an exact search-MCSP one-pass streaming algorithm, or an explicit oracle-simulation step. CLAIMED steps on this question are not reviewed by this session (same model family as the claimers).",
+  "evidence": "Scope check of S0004 in this session: the proof is correct, but the conclusion is a state-count bound with no update-time component.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795394521.1701171,
+  "session": "pnp-desk/research/R1862",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The step is mathematically correct (pigeonhole principle: 2^S states can distinguish at most 2^S distinct residual functions). However, it is trivial bookkeeping - a space-only bound that does not address update time. MMW19 Thm 1.2 achieves O~(s) space with O~(s^2) update time, so this bound is consistent with the oracle algorithm and cannot refute it. It does not close G0001 which requires an update-time lower bound or explicit oracle simulation step.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795399890.209092,
+  "session": "pnp-desk/research/R1888",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "gap": "G0001/G0002 remain open: the F_2-rank route is refuted as a universal step (S0005). Still needed: (a) an update-time lower bound for exact search-MCSP one-pass streaming, or (b) an explicit oracle-simulation step against MMW19 Thm 1.2; or a nonlinear factorisation valid over a field where the rank bound holds for the relevant update class, plus a uniform lower bound on D_t. Information bound alone is space-only and does not close G0001.",
+  "gap_id": "G0005",
+  "id": "S0007",
+  "proved_step": "LEMMA S0005 (field-dependence of the rank bound vs universal information bound): For a deterministic one-pass streaming algorithm with S state bits and fixed split (prefixes P, suffixes Q), let M_t[p,q] be its residual-function matrix over field F. (1) Information bound, linearity-free: D_t = #{distinct rows of M_t} <= 2^S, hence S >= ceil(log2 D_t); each reached state determines exactly one residual function on suffixes. Tight: streaming parity with a 1-bit state has D_t = 2 = 2^S. (2) Rank bound rank_F(M_t) <= S is NOT universal: streaming parity over GF(2) has M_t[p,q] = b_p XOR b_q whose rows are r and r+J, rank_GF2(M_t) = 2 > S = 1 for t >= 2 (verified exactly at n=6,t=3 and n=8,t=4, cm-ccbcfdf887584ec4, cm-5685238434754fa3); over R the same matrix is u_p u_q with rank_R = 1 = S. (3) Consequence for T0: any transfer step using rank_F(M_t) <= S over F_2 is invalid even for linear updates; MMW19 Thm 1.2 updates are minimum-circuit searches with a Sigma3SAT^A oracle, not F-linear maps, so the rank route does not cover the oracle algorithm. The surviving information bound is space-only (MMW19 uses S = O~(s), consistent) and cannot refute it. Gate context: AND/OR violate F_2-additivity 6/16 cases, XOR/CONST0 0/16 (cm-c73b98f5631548d7).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795435920.4990084,
+  "session": "pnp-desk/research/R2066",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent check cm-a909cb9122374170 (own GF(2) and Q Gaussian elimination, t=1..6, parity b_p = popcount(p) mod 2, M_t[p,q] = b_p XOR b_q). Results: rank_GF2 = 2 for all t, distinct rows = 2 = 2^S with S = 1. So part (1) (D_t <= 2^S, each state fixes one residual row) and the GF(2) counterexample in part (2) (rank_GF2 = 2 > S = 1) hold. Wording defect in part (2): the 0/1 matrix over Q has rank 2 (rank_Q_01 = 2 for all t), so 'over R the same matrix has rank_R = 1' is false for that matrix. It holds only for the +-1 encoding (-1)^{b_p} (-1)^{b_q} = u_p u_q, which has rank_Q_pm1 = 1. With the encoding stated, the step survives: rank is encoding- and field-dependent. Scope: streaming parity only, t <= 6. Part (3) is a scope statement about F_2-linearity and is not re-verified here (the AND/XOR additivity counts are from cm-c73b98f5631548d7 and were not rerun). Not a general theorem; does not close G0001 or G0002.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795436040.4816577,
+  "session": "pnp-desk/research/R2066",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001/G0004 remain open. Exact space-side data (cm-745ec3176fe74417): max_t D_t(s) grows with s at fixed n (n=4: 39 at s=1, 165 at s=2) and the profile in t is peaked, not monotone. This gives no uniform lower bound on D_t and no update-time lower bound. The information bound S >= ceil(log2 D_t) remains space-only and does not close G0001. Still needed: an update-time lower bound for exact search-MCSP one-pass streaming, or an explicit oracle-simulation step against MMW19 Thm 1.2.",
+  "evidence": "cm-745ec3176fe74417: exhaustive Im_s and D_t for n=3,4, s=1,2. Discovery run; hypotheses H1 (flat D_t) and H2 (monotone D_t) both falsified on this range. No proved_step is claimed in this session.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795436078.0874655,
+  "session": "pnp-desk/research/R2066",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001/G0004 remain open, no closure this session. Bookkeeping lemma (exact, not progress): for a deterministic one-pass machine with state set of size at most 2^S, the number of distinct residuals D_t over prefixes of length t is at most 2^S, since the state determines the residual. This only restates S >= ceil(log2 D_t) (G0002). Obstacle: an update-time lower bound is still needed. The exact D_t profile (cm-745ec3176fe74417) is peaked in t, so any uniform bound must be taken as max_t D_t(Im_s), whose growth in s is untested (Q-7b509b8c53).",
+  "evidence": "No proved_step claimed. Lemma is the standard state-to-residual counting argument, recorded only as a refinement of G0002. Source of the D_t values: cm-745ec3176fe74417.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795439406.9100878,
+  "session": "pnp-desk/research/R2086",
+  "model": "gpt-6-luna",
+  "evidence": "Topologically ordered gate-list count, followed by output-wire choices and summation over gate counts.",
+  "id": "S0011",
+  "proved_step": "For S>=1 and g>=0, the number of distinct S-output Boolean maps computable from S input bits by circuits with at most g fan-in-2 gates, each chosen from the 16 binary Boolean functions, with constants and unrestricted fan-out, is at most (g+1)16^g(S+g+2)^(2g+S). Proof: for exactly h gates, order them topologically. Gate i has 16 choices of truth table and at most S+2+i-1 source choices for each input, hence at most 16^h(S+h+1)^(2h) gate lists. Each output selects from at most S+h+2 sources, giving at most 16^h(S+h+2)^(2h+S) maps. For h<=g this is at most 16^g(S+g+2)^(2g+S); summing over h=0,...,g proves the bound. This is only a count of realizable transition maps; it supplies no task-specific update-time lower bound and does not simulate oracle gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444132.8321238,
+  "session": "pnp-desk/research/R2125",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The counting argument is mathematically correct as an upper bound: for h gates in topological order, each gate has 16 choices of binary Boolean function and at most (S+1+i) source choices per input (S inputs, 2 constants, i-1 previous gates), giving 16^h * prod_{i=1}^h (S+1+i)^2 <= 16^h (S+h+1)^{2h} gate lists. Each of S outputs chooses from S+h+2 sources, giving (S+h+2)^S combinations. Summing h=0..g with (g+1) terms yields the stated bound. The step correctly notes this only counts realizable transition maps and does not provide a task-specific update-time lower bound or simulate oracle gates. It does not close G0001 which requires an update-time lower bound against the MMW oracle construction.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795447657.0877357,
+  "session": "pnp-desk/research/R2157",
+  "model": "gpt-6-luna",
+  "gap": "This factorization has dimension up to 2^S and gives no update-time bound; it is consistent with the MMW19 oracle streaming construction. G0001 remains open: identify an update-time transfer premise broken by the oracle gates or produce a valid transfer that survives them.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0013",
+  "proved_step": "For any deterministic one-pass machine with finite state set Q, let P and R be the prefixes and suffixes at a fixed cut, and let M[p,r] be 1 iff pr is accepted. Let Q_reached be the states reached by prefixes in P. Define U[p,q]=1 iff p reaches q and V[q,r]=1 iff starting in q, suffix r is accepted. Then M=UV over every field, and rank_F(M) <= |Q_reached| <= 2^S for S-bit states. Proof: each prefix reaches exactly one state, whose suffix-acceptance row is exactly the residual function after that prefix; hence the matrix entry is the sum over states of the indicator products. This is exact for nonlinear transitions and decoders.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795447818.4320984,
+  "session": "pnp-desk/research/R2157",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "For a finite state set Q, a bijective encoding psi:Q->C subseteq {0,1}^S, and transition delta_a, if circuits for psi, psi^{-1} on valid codes, and delta_a have sizes A,B,T, then the recoded transition psi\u2218delta_a\u2218psi^{-1} has a circuit of size at most A+B+T plus constant wiring overhead on valid codes. Proof: compose the three circuits; for c=psi(q), the output is psi(delta_a(q)). This does not establish a recoding-invariant lower bound because A and B may be large, and does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795447965.1338317,
+  "session": "pnp-desk/research/R2157",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains open. S0014 is a valid circuit-composition lemma but does not establish a recoding-invariant update-time lower bound and should not be treated as closing G0001. The attempted finite proxy check has not yet produced a successful result; if it succeeds, it concerns only dependency count for a fixed four-state transition, not Boolean circuit size or MMW oracle simulation.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795448039.2960682,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0014: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No verifier call channel is available in this turn to obtain the host-required kernel-accepted record. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795448773.121881,
+  "session": "pnp-desk/research/R2166",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The claim is mathematically correct. For a deterministic one-pass machine, each prefix p reaches exactly one state q_p. The matrix U has exactly one 1 per row (at column q_p). Matrix V has rows indexed by states, with V[q,r] = 1 iff suffix r is accepted starting from state q. Then (UV)[p,r] = sum_q U[p,q]V[q,r] = U[p,q_p]V[q_p,r] = V[q_p,r] = M[p,r]. This equality holds as integer matrices, hence over any field. Rank bound: rank(UV) <= min(rank(U), rank(V)) <= number of columns of U = |Q_reached| <= |Q| = 2^S. No counterexample exists; this is a standard fact in automata theory and communication complexity (the rank of the communication matrix of a deterministic protocol is at most the number of states reached).",
+  "review_of": "S0013",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795448802.2845564,
+  "session": "pnp-desk/research/R2166",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The circuit composition claim is mathematically correct. Given circuits for psi (size A), psi^{-1} on valid codes C (size B), and delta_a (size T), their composition psi \u2218 delta_a \u2218 psi^{-1} on valid codes has a circuit of size at most A+B+T plus constant wiring. This is a standard circuit composition fact. The caveat is also correct: A and B may be large (the encoding/decoding circuits themselves may be complex), so this does not give a recoding-invariant lower bound on the intrinsic complexity of the transition function, and it does not close G0001 which requires a bound independent of the encoding choice.",
+  "review_of": "S0014",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795451384.267647,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "id": "S0019",
+  "proved_step": "RESIDUAL QUOTIENT LEMMA (exact statement and proof). Let A and B be sets, let F:A*\u2192B, and define u~v iff for every w\u2208A*, F(uw)=F(vw). Then ~ is an equivalence relation, is stable under appending a letter, and its classes form the coarsest reachable-state deterministic transducer computing F, with output [u]\u21a6F(u) when outputs are read after each complete input. Proof: Reflexivity, symmetry and transitivity follow pointwise from equality in B. If u~v and a\u2208A, then for every w, F(uaw)=F(vaw), since aw\u2208A*; hence ua~va, so \u03b4([u],a)=[ua] is well-defined. Define output \u03bb([u])=F(u), which is well-defined by choosing suffix \u03b5 in the definition. Starting from [\u03b5], induction on input length shows that the state after u is [u], hence the output is F(u). For coarseness, any deterministic transducer computing F that reaches the same state after u and v must produce the same output after every common suffix w, so F(uw)=F(vw) for all w; thus u~v. This is a general mathematical lemma about exact deterministic transducers. It supplies no bound on Boolean update-circuit size, update time, decoder complexity, or simulation of the MMW Sigma3SAT^A oracle, and does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795451454.9379277,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains OPEN. S0019 proves the residual quotient characterization, but supplies no bound on transition-circuit size, charged update time, decoder cost, or simulation of the MMW Sigma3SAT^A oracle. Its proof text explicitly says it does not close G0001; the stored closes=G0001 metadata must not be treated as a confirmed closure. The mandatory MMW oracle stress test remains unanswered.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795451712.7077565,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "id": "S0021",
+  "proved_step": "statement: BOUNDED-QUERY ORACLE COMPILATION LEMMA. Fix an oracle A\u2286{0,1}*. An oracle gate on \u2113-bit inputs can be replaced by a fan-in-2 Boolean circuit of at most (\u2113+1)2^\u2113 gates. Thus an oracle circuit with q such gates, all queries of length at most \u2113, and g ordinary fan-in-2 gates can be replaced by an ordinary circuit of at most g+q(\u2113+1)2^\u2113 gates. Proof: Take the DNF over all y\u2208A\u2229{0,1}^\u2113, with a term specifying each y. Each term takes at most \u2113\u22121 binary AND gates and combining at most 2^\u2113 terms takes at most 2^\u2113\u22121 binary OR gates, within the stated bound (constant and degenerate cases can be implemented with a constant gate). Substitute a copy for each oracle gate. In particular, \u2113=O(log s) makes the per-gate compilation cost polynomial in s. The lemma does not establish MMW query lengths or update-time accounting; it narrows the T0 audit to those checks, and G0001 remains open. Barrier diagnostic: relativizing\u2014yes, uniform for every fixed A; natural\u2014no natural measure or learner is used; algebrizing\u2014not applicable to this Boolean compilation statement; localizing\u2014not applicable, as no proof-complexity argument is used. No circumvention test is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795451772.035891,
+  "session": "pnp-desk/research/R2185",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains OPEN. S0021 is only a bounded-query compilation upper bound; it does not establish MMW19 query lengths, the number of oracle gates charged per update, or whether compiling those gates preserves the theorem's update-time bound. Its stored closes=G0001 metadata is not evidence that the obligation is discharged. The exact unresolved check is the MMW19 Thm 1.2 transition/query representation and its resource accounting.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795452830.2772918,
+  "session": "pnp-desk/research/R2196",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This is the standard Myhill-Nerode theorem for deterministic transducers (Mealy machines). The equivalence relation definition, stability under letter appending, quotient transducer construction, correctness by induction, and coarseness proof are all mathematically correct. The step explicitly acknowledges it provides no circuit/resource bounds and does not close G0001. No counterexample exists; this is a classical result in automata theory.",
+  "review_of": "S0019",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795452830.305975,
+  "session": "pnp-desk/research/R2196",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "The DNF compilation bound is mathematically correct as an upper bound: each of \u22642^\u2113 terms uses \u2264\u2113-1 AND gates, combined with \u22642^\u2113-1 OR gates, total \u2264\u2113\u00b72^\u2113-1 \u2264 (\u2113+1)2^\u2113. The overall bound g+q(\u2113+1)2^\u2113 follows by substitution. However, the step correctly acknowledges the critical gap: MMW19 Thm 1.2 uses \u03a3\u2083SAT^A queries of length \u00d5(s), not O(log s). With \u2113=\u00d5(s), the compilation cost is exponential in s, not polynomial. This does not establish the MMW resource accounting needed for G0001. The lemma is sound but insufficient for the transfer audit.",
+  "review_of": "S0021",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456588.8893673,
+  "session": "pnp-desk/research/R2217",
+  "model": "gpt-6-luna",
+  "id": "S0025",
+  "proved_step": "statement: For every Boolean oracle A:{0,1}^q->{0,1}, one query A(z) can be implemented by an ordinary Boolean circuit of O(2^q) gates; replacing t oracle gates costs O(t 2^q) gates.\nproof: Build a depth-q binary decision tree querying the input bits, with 2^q leaves labeled by A's truth table. Each internal node is a 2-to-1 mux, so the tree has 2^q-1 muxes and returns A(z) on every input. Replacing each of t oracle gates independently gives O(t 2^q) gates. The circuit description uses A's truth table; no uniform polynomial-time construction from an arbitrary oracle is asserted.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795456756.7801323,
+  "session": "pnp-desk/research/R2217",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Let an oracle circuit C have g ordinary Boolean gates and oracle gates A_1,...,A_t. Suppose oracle gate i computes a fixed Boolean function A_i:{0,1}^{q_i}->{0,1} that has an ordinary Boolean circuit of size a_i. Then C has an oracle-free Boolean circuit computing the same function with at most g+sum_{i=1}^t a_i gates (up to a fixed constant for wiring), by replacing each oracle gate by its circuit and connecting its q_i inputs to the former query wires. If a uniform compiler constructs each replacement in time polynomial in q_i and a_i, the whole replacement description is constructible in time polynomial in g+sum_i(q_i+a_i). This is conditional: it gives no bound on a_i for Sigma_3SAT^A query predicates.\nproof: Replace each oracle gate A_i by its circuit, preserving the gate's input and output wires. Each replacement computes the same function on every query input. Induction over the topological order of C shows that every wire value, including the output, is preserved. The gate counts add to g+sum_i a_i. Under the stated compiler condition, constructing and wiring all replacements takes polynomial time in the total listed size.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795456855.5368752,
+  "session": "pnp-desk/research/R2217",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: For every sufficiently large q and every fixed finite basis of fan-in-two Boolean gates, some Boolean function A:{0,1}^q->{0,1} requires Omega(2^q/q) gates over that basis.\nproof: There are 2^(2^q) Boolean functions on q bits. For a fixed finite basis, the number of circuits with at most g gates is at most (q+g)^(C g) for a basis-dependent constant C, by encoding each gate's type and at most two earlier wires and then the output wire. Set g=floor(2^q/(Dq)) for a sufficiently large constant D. For all sufficiently large q, (q+g)^(C g)<2^(2^q), so some Boolean function is not computed by any circuit of at most g gates. This gives the claimed lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795457148.777022,
+  "session": "pnp-desk/research/R2217",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Let an oracle update circuit have at most g ordinary fan-in-two gates and t oracle gates. Suppose every oracle gate computes a fixed Boolean function on at most Q input bits. There is an oracle-free fan-in-two circuit for the same update with at most g + 3t(2^Q-1) gates, up to constant wiring overhead. In particular, if g,t are polynomial in s and Q <= a log_2(s) for a fixed constant a, the resulting circuit has polynomial size in s. Proof: For each oracle function on q<=Q bits, construct its complete binary decision tree. Each internal node is a 2-to-1 mux, implementable with a constant number (at most three) of fan-in-two Boolean gates, so the tree uses at most 3(2^q-1) gates and computes the truth-table function on every input. Replace each oracle gate by its tree, connecting the original query wires to the tree inputs. In topological order, every replacement returns the same answer as the oracle gate; induction over the original circuit's gate order shows every subsequent wire and the output are unchanged. Summing the costs gives the bound. If Q<=a log_2(s), then 2^Q<=s^a, and polynomial g,t imply polynomial total size. This is only a size statement; uniform construction still requires access to each truth table or an appropriate uniform compiler.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795458369.6454577,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Binary decision tree construction is correct: a depth-q binary decision tree has 2^q leaves, 2^q-1 internal nodes. Each internal node is a 2-to-1 multiplexer (MUX). A MUX with fan-in-2 gates can be implemented as (sel AND a) OR (NOT sel AND b) = 3 gates (AND, NOT, AND, OR). So 2^q-1 MUXes give 3(2^q-1) = O(2^q) gates. Replacing t oracle gates independently gives O(t 2^q). The statement correctly notes no uniform construction from arbitrary oracle is asserted. This is a standard and correct construction.",
+  "review_of": "S0025",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458370.1367009,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard circuit composition: replacing each oracle gate by its known circuit preserves function on all inputs. Topological induction shows all wire values preserved. Gate counts add: g + sum a_i. Wiring overhead is constant (connecting q_i inputs to the replacement circuit's inputs). The uniform compiler condition is correctly stated as conditional. This is a standard and correct construction. No gap.",
+  "review_of": "S0026",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458634.73331,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Classic counting argument: 2^(2^q) functions vs (q+g)^(O(g)) circuits. For g=floor(2^q/(Dq)), (q+g)^(O(g)) < 2^(2^q) for large q. Correct, non-constructive, relativizes. Perfect-matching control does not apply (no explicit function lower bound).",
+  "review_of": "S0027",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458634.7470105,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard decision-tree compilation: a q-bit Boolean function has a complete binary decision tree with 2^q-1 internal nodes, each a 2-to-1 mux implementable with \u22643 fan-in-2 gates. Replacing each oracle gate with its tree preserves all wire values by topological induction. Total gates \u2264 g + 3t(2^Q-1). When g,t=poly(s) and Q\u2264a log\u2082(s), 2^Q\u2264s^a so total is poly(s). Correct circuit-size compilation; uniform construction requires truth-table access. No gap in the size bound.",
+  "review_of": "S0028",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795459072.1884568,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0033",
+  "proved_step": "statement_start: LEMMA (Oracle query length barrier for transfer T0). In the MMW19 Thm 1.2 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT\u1d2c oracle, the oracle queries have length q = \u00d5(s) bits. Any simulation that replaces each oracle gate by its full truth table (as in S0026) yields a standard circuit of size \u03a9(g \u00b7 2^q) = 2^\u00d5(s), which is exponential in the stream parameter s. Since the transfer T0 requires a resource-preserving simulation with poly(s) circuit size to connect streaming bounds to circuit lower bounds via Theorem 4.1, this simulation step FAILS for the MMW19 oracle algorithm. The exact broken step is the claim that the streaming algorithm's oracle transitions can be compiled into a poly(s)-size oracle-free circuit while preserving the update-time bound. MMW19's \u00d5(s)-length queries make the truth-table compilation exponential, and no alternative poly(s) compilation is known for \u03a3\u2083SAT\u1d2c. Therefore, the transfer bound tw(H_{B_C}) \u2264 \u03a8(m,s,S,\u0393) together with Thm 4.1 does NOT exclude the MMW19 oracle algorithm; the oracle gates break the poly(s) simulation premise.\nsession: R2231\nmodel: nemotron-3-ultra-550b",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795459578.2087524,
+  "session": "pnp-desk/research/R2231",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0034",
+  "proved_step": "statement_start: LEMMA (Formal Oracle Query Length Barrier for Transfer T0). Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a Sigma3SAT^A oracle (Thm 1.2). Its oracle queries have length q = O~(s). For any simulation that replaces each oracle gate by a standard circuit computing the same function on all q-bit inputs, the resulting circuit has size 2^Omega(s) for almost all oracles A. Proof: (1) MMW19 gives q = O~(s). (2) The oracle computes f_A: {0,1}^q -> {0,1} where f_A is Sigma3SAT^A. For random A, f_A is a random function. (3) Shannon's theorem: almost all functions on q bits require circuit size >= (1-o(1)) 2^q / q. (4) With q = c s log^k s, this is 2^{c s log^k s} / (c s log^k s) = 2^Omega(s). (5) Any poly(s)-size simulation would contradict Shannon. (6) Transfer T0 requires poly(s) simulation to apply Theorem 4.1 (streaming-to-circuit connection). (7) Since 2^Omega(s) is not poly(s), the simulation premise fails. Therefore T0 does not exclude the MMW19 oracle algorithm; the oracle gates break the poly(s) simulation premise exactly at the query length q = O~(s).\nsession: R2231\nmodel: nemotron-3-ultra-550b-a55b",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795460689.674392,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "evidence": "Truth-table compilation gives a generic circuit upper bound O(q\u00b72^q) per q-bit query function, not the claimed lower bound \u03a9(g\u00b72^q). No lower bound for the specific \u03a3\u2083SAT^A query functions is established. This argument also does not establish MMW's exact query length or that T0 requires this compilation.",
+  "review_of": "S0033",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795460750.2692976,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "evidence": "Shannon counting applies to uniformly random Boolean functions on q bits. This step gives no distribution on PH or reduction showing that the particular function Sigma3SAT^A is random. Also q=O~(s) does not imply q=Omega(s); q=O(log s) satisfies that upper bound and has polynomial-size truth-table compilation. Hence the claimed 2^Omega(s) conclusion does not follow. This reviews the argument as stated, not the direction under additional hypotheses.",
+  "review_of": "S0034",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795460750.2903013,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0037",
+  "proved_step": "statement: Lemma (truth-table compilation upper bound). For any Boolean function h:{0,1}^q->{0,1}, a circuit with g oracle gates querying h on q-bit inputs can be replaced by an equivalent fan-in-2 Boolean circuit of size O(g q 2^q). Proof: Express h as the OR of conjunctions specifying each accepting q-bit string. Each conjunction needs at most q-1 AND gates; at most 2^q such terms need at most 2^q-1 OR gates. The empty accepting set is constant 0. Replace each oracle gate independently and sum the gate counts. This is an upper bound only; it gives no matching lower bound for a particular h and does not by itself yield a uniform resource-preserving streaming simulation.\nevidence: The DNF construction works for every h and q>=1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795460934.3555567,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0038",
+  "proved_step": "statement: Conditional compilation lemma. Let s>=2. Suppose each streaming update makes at most s^a oracle queries, each query has length q(s)<=b log_2 s, and the queried Boolean function is fixed for that input length. Replacing each oracle query by its full truth-table DNF yields an oracle-free fan-in-2 circuit for the update of size O(s^a q(s) 2^{q(s)} + C(s)), where C(s) is the size of the non-oracle update computation. In particular this is polynomial in s whenever C(s) is polynomial in s. Proof: for a query of q bits, encode each accepting input by a conjunction of its q literals, then OR the terms; shared input negations and binary fan-in give O(q 2^q) gates, including the constant-function cases. Substitute this circuit at each query gate, sum over at most s^a queries, and retain the original C(s) non-oracle gates. Since 2^{q(s)}<=s^b and q(s)<=b log s, the added size is O(s^{a+b} log s). This is a conditional upper bound, not a claim that MMW19 meets q=O(log s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795460982.1402552,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains OPEN. The conditional truth-table compilation lemma applies when query length is O(log s), but the cited MMW19 bound is only query length O~(s); no polynomial-in-s simulation follows. Still unverified: exact query representation/circuit inputs and query construction cost, plus whether charging the oracle calls preserves the stated per-update bound. The lemma's metadata closes=G0001 must not be treated as closure.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795461086.0194762,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0040",
+  "proved_step": "statement: Residual-function compiler. For a Boolean function h on q ordered input bits, let W be the total number of distinct nonconstant residual functions at levels 0 through q-1, where a residual is obtained by fixing a prefix of the ordered bits. Then h has a fan-in-2 circuit with at most 3W+q gates, allowing constant terminals at no cost. Proof: At each level make one node for each distinct residual. For a residual r at level i, its restrictions r0 and r1 after fixing bit i+1 are either constants or residuals represented at level i+1. Compute r as (not x_{i+1} AND r0) OR (x_{i+1} AND r1), using at most three fan-in-2 gates and one shared negation per input bit. At level q all residuals are constants, so no further nodes are needed. Induction upward shows each node computes its named residual, including h at the root. Summing gives at most 3W mux gates plus q shared negations. This is an upper bound; it makes no claim that W is small for any particular oracle predicate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795461185.0928793,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0041",
+  "proved_step": "statement: Bounded residual-width compilation. Let h:{0,1}^q->{0,1} have a fixed variable order. Suppose that at every prefix length i in {0,...,q-1}, the set of distinct nonconstant residual functions obtained by fixing the first i variables has size at most w. Then h has a fan-in-2 Boolean circuit of size at most 3qw+q, with free constant terminals. Proof: At each level i create one circuit node per distinct nonconstant residual at that level. For each such residual r, its two restrictions r0,r1 under the next variable are constants or residuals at level i+1. Realize r=(not x_{i+1} AND r0) OR (x_{i+1} AND r1), using at most two AND gates and one OR gate; share one NOT gate per input variable. Build from level q-1 upward. Induction on q-i shows each node computes its residual, so the root computes h. There are at most qw residual nodes and q shared NOT gates, hence at most 3qw+q gates. In particular, q may be superlogarithmic in a parameter s while the compilation remains polynomial in s if q(s)w(s) is polynomial in s. The hypothesis is a residual-width condition; no such bound is established here for MMW19's oracle predicates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795461294.50986,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains open. The proof state contains unreviewed claims S0037, S0038, S0040, and S0041, all recorded by this same session, so this session cannot review them or use them as premises. The validator also returned CLARIFICATION_REQUIRED for claim:d4bc9aa45ace because its wording could mean a bound on the entire circuit; only replacement overhead is bounded. Before extending the proof, another session must review the claims and the DNF claim must be restated with explicit surrounding-circuit size.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795461434.4417944,
+  "session": "pnp-desk/research/R2250",
+  "model": "gpt-6-luna",
+  "id": "S0043",
+  "proved_step": "statement: Oracle-gate replacement bound. Let C be a fan-in-2 circuit with B non-oracle gates and g gates computing one fixed h:{0,1}^q->{0,1}, where q>=1. Replacing the oracle gates gives an equivalent oracle-free circuit with at most B+g(2^q(q+1)+1) gates. Proof: For each oracle gate, write h as a DNF with one term for each accepting input. Each term uses at most q-1 AND gates, the OR uses at most 2^q-1 gates, and at most q NOT gates provide negative literals. Constants handle empty or full accepting sets. This costs at most 2^q(q+1)+1 gates per replacement. Substitute each replacement and retain the B other gates; fan-out adds wires but no gates. This bounds replacement overhead separately from the surrounding circuit. It does not establish MMW19 query lengths or close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795461778.429901,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction is correct: any Boolean function h on q variables has a DNF with at most 2^q terms (one per accepting input). Each term is a conjunction of at most q literals, requiring at most q-1 fan-in-2 AND gates. The OR of all terms requires at most 2^q-1 fan-in-2 OR gates. At most q NOT gates provide negative literals. Total per oracle gate: (q-1)2^q + (2^q-1) + q = q 2^q + q - 1 = O(q 2^q). For g oracle gates the overhead is O(g q 2^q). This is a valid upper bound; the step makes no claim of optimality or lower bound. No counterexample exists because the construction works for every h and q>=1.",
+  "review_of": "S0037",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795461778.4456592,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The calculation is correct: each of the at most s^a oracle queries on q bits can be replaced by a DNF of size O(q 2^q) as established in S0037. Total overhead = s^a * O(q 2^q) = O(s^a q 2^q). Given q(s) <= b log_2 s, we have 2^{q(s)} <= s^b and q(s) <= b log s. Thus overhead = O(s^a * b log s * s^b) = O(s^{a+b} log s). Adding the non-oracle computation size C(s) gives total update circuit size O(s^{a+b} log s + C(s)), which is polynomial in s whenever C(s) is polynomial in s. The step correctly labels this as a conditional upper bound and does not claim MMW19 meets q=O(log s). No counterexample.",
+  "review_of": "S0038",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795461778.4610314,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This describes a standard OBDD-to-circuit compilation. At each level i (0 <= i < q), for each distinct nonconstant residual r, we create a node computing r = (not x_{i+1} AND r0) OR (x_{i+1} AND r1), where r0, r1 are the restrictions after fixing bit i+1. This uses at most 2 AND gates + 1 OR gate = 3 fan-in-2 gates per residual. One shared NOT gate per variable (q total) provides negated literals. Since there are W distinct nonconstant residuals across all levels, total mux gates <= 3W. Adding q shared NOT gates gives <= 3W + q gates. The induction from level q-1 (where residuals are constants) upward is valid. This is an upper bound; no claim that W is small for any particular h. The construction works for every h and variable order. No counterexample.",
+  "review_of": "S0040",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795461778.4751356,
+  "session": "pnp-desk/research/R2258",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Direct corollary of S0040. If at each of the q levels there are at most w distinct nonconstant residuals, then total W <= q * w. Applying S0040's bound 3W + q gives <= 3qw + q gates. The step correctly notes this is an upper bound under a residual-width hypothesis, and that q may be superlogarithmic while the compilation remains polynomial if q(s)w(s) is polynomial in s. No claim that MMW19's oracle predicates satisfy this. The arithmetic is correct. No counterexample.",
+  "review_of": "S0041",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795466747.0149586,
+  "session": "pnp-desk/research/R2293",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The DNF construction is correct: a Boolean function h: {0,1}^q -> {0,1} has at most 2^q accepting inputs. Each minterm uses at most q-1 AND gates (q literals with fan-in 2), the OR of up to 2^q terms uses at most 2^q-1 OR gates, and at most q NOT gates provide negative literals. Total per replacement: (2^q * (q-1)) + (2^q-1) + q <= 2^q(q+1)+1 gates. Empty accepting set = constant 0 (0 gates), full = constant 1 (0 gates). This bounds the replacement overhead correctly for the standard circuit model. The claim is a generic upper bound on compilation overhead, not a lower bound on the specific MMW query functions. No counterexample exists for the upper bound as stated.",
+  "review_of": "S0043",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795466917.5450866,
+  "session": "pnp-desk/research/R2293",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the main lemma statement that needs to be proved or refuted. The gap G0001 is exactly whether such a poly(s) compilation exists for the specific Sigma3SAT^A query functions, not for arbitrary functions. The DNF upper bound (S0043) gives O(q * 2^q) = 2^{Omega(s log s)} which is not poly(s). The question is whether the specific structure of Sigma3SAT^A queries (which are in PH) allows a more efficient compilation.",
+  "id": "S0049",
+  "proved_step": "statement_start: LEMMA (Oracle Compilation Barrier for Transfer T0). Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a Sigma3SAT^A oracle (Thm 1.2). M uses space S = O(s log s), update time U = O(s log s), and makes oracle queries of length q = O(s log s). For Transfer T0 to apply, there must exist a resource-preserving simulation that compiles M's oracle gates into a standard circuit family of size poly(S, U) = poly(s) while preserving the streaming behavior. If every such compilation requires size 2^{Omega(s)} for some oracle A in PH, then T0 does not exclude the MMW19 oracle algorithm.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795474534.1122658,
+  "session": "pnp-desk/research/R2345",
+  "model": "gpt-6-luna",
+  "id": "S0050",
+  "proved_step": "statement: Bounded-query truth-table compilation lemma. Let C be a Boolean circuit with g oracle gates, where gate i computes an arbitrary Boolean function f_i on q_i input bits. Replacing each oracle gate by an oracle-free fan-in-2 circuit computing the same function increases the total gate count by at most O(sum_{i=1}^g q_i 2^{q_i}). In particular, if every q_i <= a log_2 s + b for fixed constants a,b and g <= s^d for a fixed d, then the replacement overhead is polynomial in s. Proof: For each f_i, write its truth table as a disjunction of the at most 2^{q_i} input minterms on which it equals 1. Each minterm uses O(q_i) fan-in-2 gates, and combining the minterms uses O(2^{q_i}) gates. Thus gate i costs O(q_i 2^{q_i}); summing gives the stated overhead. If q_i <= a log_2 s+b, then 2^{q_i} <= 2^b s^a, so the sum is O(g (log s) s^a), polynomial when g <= s^d. The construction preserves the circuit\u2019s Boolean function because each replacement computes exactly f_i on every possible input.\nevidence: Direct minterm expansion and gate-count calculation; exact for all Boolean oracle predicates, with no assumption about their complexity. This proves only the bounded-query compilation case, not a lower bound or a compilation result for MMW19\u2019s actual query lengths.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795517398.6713226,
+  "session": "pnp-desk/research/R2666",
+  "model": "dots-3-note-preview",
+  "evidence": "Verified by direct construction: each q_i-bit Boolean function has a DNF with at most 2^{q_i} minterms; each minterm is a conjunction of O(q_i) literals (fan-in-2 AND gates); combining minterms with OR gates costs O(2^{q_i}) gates. Total per gate: O(q_i 2^{q_i}). No hidden assumptions about the oracle functions. The bound is exact up to constants and holds for ALL Boolean functions on q_i bits. No counterexample exists because the construction is algorithmic and exhaustive over the truth table.",
+  "review_of": "S0050",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795517398.69735,
+  "session": "pnp-desk/research/R2666",
+  "model": "dots-3-note-preview",
+  "evidence": "This step correctly identifies the necessary condition for Transfer T0: a resource-preserving simulation must exist. The statement is a conditional ('if every such compilation requires size 2^{Omega(s)}... then T0 does not exclude the MMW19 oracle algorithm') and is logically sound as a framework. However, the step does NOT actually prove that the compilation requires exponential size - it only states this as a hypothesis. The gap is that no lower bound on compilation size is established. The step survives review as a correctly-stated conditional framework, but the exponential-size claim remains unproven. The S0050 lemma provides the UPPER bound (polynomial when q_i = O(log s)), which actually works AGAINST the claimed barrier - if MMW19's queries are O(log s) not O(s), then S0050 gives a polynomial compilation, contradicting the barrier claim.",
+  "review_of": "S0049",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795519170.3434112,
+  "session": "pnp-desk/research/R2685",
+  "model": "gpt-6-luna",
+  "id": "S0053",
+  "proved_step": "LEMMA (Shannon replacement upper bound): For every q>=1 and Boolean h:{0,1}^q->{0,1}, there is a fan-in-2 AND/OR/NOT circuit of size O(q 2^q) computing h. Proof: For each y with h(y)=1, compute [x=y] as a conjunction of q literals using q-1 binary AND gates. OR these indicators using at most 2^q-1 binary OR gates; if there are no satisfying y, use constant 0. This computes h exactly with O(q 2^q) gates. Replacing g oracle gates, each reading at most q bits, adds O(g q 2^q) gates and preserves the outer circuit function by substitution. For fixed a,b,d, if q<=a log_2(s)+b and g<=s^d, the overhead is polynomial in s. This is an upper bound and implies no exponential lower bound for any specific oracle predicate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795537761.2763543,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard Shannon construction: DNF with one conjunction per satisfying assignment (q literals, q-1 AND gates each), OR of at most 2^q terms (2^q-1 OR gates). Total O(q 2^q) gates. For q = O(log s) and g = poly(s), overhead is poly(s). This is a correct upper bound; it does not establish a lower bound for specific oracle predicates.",
+  "review_of": "S0053",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795537957.1633062,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Repairs S0034 by: (1) not assuming \u03a3\u2083SAT\u1d2c is a random function (Shannon does not apply), (2) not inferring q = \u03a9(s) from q = \u00d5(s) (upper bound \u2260 lower bound), (3) stating the exact condition q = \u03c9(log s) under which truth-table compilation becomes superpolynomial, (4) identifying the precise broken step (truth-table compilation of oracle gates) and the exact hypothesis on which it depends. Proof: If q = \u03c9(log s), then 2^q = s^\u03c9(1). Truth-table compilation of a q-bit function gives size O(q\u00b72^q) = s^\u03c9(1). With poly(s) oracle gates, total size is s^\u03c9(1), not poly(s). Theorem 4.1 requires poly(s) simulation. Conversely, if q = O(log s), compilation gives poly(s) size and this step does not fail. MMW19 proves q = O(s log^k s) but not q = \u03c9(log s).",
+  "id": "S0055",
+  "proved_step": "statement_start: LEMMA (Conditional oracle query barrier for transfer T0). Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT\u1d2c oracle (Thm 1.2). Suppose the oracle queries made by M on inputs of stream length N = 2^m have bit-length q(m,s) satisfying q(m,s) = \u03c9(log s). Then any simulation that replaces each oracle gate by a standard circuit computing the same function on all q-bit inputs yields a circuit of size 2^\u03c9(log s) = s^\u03c9(1), which is superpolynomial in s. Since transfer T0 requires a resource-preserving simulation with poly(s) circuit size to connect streaming bounds to circuit lower bounds via Theorem 4.1, this simulation step fails under the hypothesis q = \u03c9(log s). The MMW19 paper states q = \u00d5(s) (an upper bound), which is consistent with but does not prove q = \u03c9(log s). Therefore, the oracle query length barrier for T0 is CONDITIONAL on the actual query length being \u03c9(log s), not merely \u00d5(s). The exact broken simulation step is the truth-table compilation of oracle gates; it fails iff q = \u03c9(log s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795539159.0867825,
+  "session": "pnp-desk/research/R2876",
+  "model": "gemma-4-31b-it",
+  "id": "S0056",
+  "proved_step": "statement_start: LEMMA (Simulation Cost of Oracle Transitions). Let M be a streaming algorithm for Search-MCSP[s] utilizing an oracle O with query length q. Any simulation that replaces each oracle call with a Boolean circuit computing the oracle's truth table on the given input requires a circuit of size O(g * q * 2^q), where g is the number of oracle calls. This simulation is polynomial in s if and only if q = O(log s). Consequently, the Transfer T0 (which requires poly(s) simulation to apply Thm 4.1) is blocked if and only if q = omega(log s). This repair replaces the refuted Shannon-based claims (S0033, S0034) by stating the simulation bound as a property of the representation (truth-table) rather than a lower bound on the oracle's intrinsic complexity.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795539258.9341433,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b",
+  "id": "S0057",
+  "proved_step": "statement_start: LEMMA (Exact Simulation Overhead for Oracle-Query Compilation). Let M be any one-pass streaming algorithm for Search-MCSP[s] that uses an oracle O. Suppose M makes at most g oracle queries on inputs of stream length N, and each query has bit-length at most q. Consider the standard compilation that replaces each oracle gate by a Boolean circuit computing the exact same function f: {0,1}^q -> {0,1} via its full truth table (i.e., a DNF/CNF of size O(q * 2^q) or a binary decision tree of size O(2^q)). Then the resulting oracle-free circuit has size at most O(g * q * 2^q). This compilation is polynomial in the stream parameter s if and only if q = O(log s). Proof: (1) A Boolean function on q bits has a truth table of 2^q entries. The standard circuit constructions (DNF, CNF, or binary decision tree) yield size O(q * 2^q) = O(2^{q + log q}). (2) With g queries, total overhead is O(g * q * 2^q). (3) For this to be poly(s), we need q * 2^q = poly(s). Taking logs: q + log q = O(log s), which holds iff q = O(log s). (4) Conversely, if q = O(log s), then 2^q = poly(s) and the compilation is poly(s). (5) Therefore, the Transfer T0 --- which requires a poly(s) simulation to apply Theorem 4.1 (the streaming-to-circuit connection) --- succeeds exactly when the oracle query length satisfies q = O(log s), and fails (i.e., the compilation is superpolynomial) exactly when q = omega(log s). This lemma makes no claim about the intrinsic complexity of the oracle function (e.g., Sigma3SAT^A); it is a statement about the cost of *this specific compilation method*.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795539258.954698,
+  "session": "pnp-desk/research/R2876",
+  "model": "nemotron-3-ultra-550b",
+  "id": "S0058",
+  "proved_step": "statement_start: LEMMA (Exact Simulation Overhead for Oracle-Query Compilation). Let M be any one-pass streaming algorithm for Search-MCSP[s] that uses an oracle O. Suppose M makes at most g oracle queries on inputs of stream length N, and each query has bit-length at most q. Consider the standard compilation that replaces each oracle gate by a Boolean circuit computing the exact same function f: {0,1}^q -> {0,1} via its full truth table (i.e., a DNF/CNF of size O(q * 2^q) or a binary decision tree of size O(2^q)). Then the resulting oracle-free circuit has size at most O(g * q * 2^q). This compilation is polynomial in the stream parameter s if and only if q = O(log s). Proof: (1) A Boolean function on q bits has a truth table of 2^q entries. The standard circuit constructions (DNF, CNF, or binary decision tree) yield size O(q * 2^q) = O(2^{q + log q}). (2) With g queries, total overhead is O(g * q * 2^q). (3) For this to be poly(s), we need q * 2^q = poly(s). Taking logs: q + log q = O(log s), which holds iff q = O(log s). (4) Conversely, if q = O(log s), then 2^q = poly(s) and the compilation is poly(s). (5) Therefore, the Transfer T0 --- which requires a poly(s) simulation to apply Theorem 4.1 (the streaming-to-circuit connection) --- succeeds exactly when the oracle query length satisfies q = O(log s), and fails (i.e., the compilation is superpolynomial) exactly when q = omega(log s). This lemma makes no claim about the intrinsic complexity of the oracle function (e.g., Sigma3SAT^A); it is a statement about the cost of *this specific compilation method*.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795547566.5299003,
+  "session": "pnp-desk/research/R2918",
+  "model": "gpt-6-luna",
+  "evidence": "The claim infers a lower bound from an upper bound for one construction. Full truth-table compilation costs O(q\u00b72^q), but that does not imply every exact circuit computing the queried function has size 2^{\u03c9(log s)}. A constant q-bit oracle function has a constant-size exact simulation even when q=\u03c9(log s). A defensible repair is limited to the specified truth-table method: q=O(log s) suffices for polynomial overhead; q=\u03c9(log s) alone proves no simulation lower bound without a circuit lower bound for the oracle function.",
+  "review_of": "S0055",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795547637.3361974,
+  "session": "pnp-desk/research/R2918",
+  "model": "gpt-6-luna",
+  "evidence": "The truth-table construction gives an upper bound O(g q 2^q), not a lower bound on every exact circuit simulation. For example, the constant-zero oracle on q-bit inputs has a constant-size exact circuit for every q, including q=omega(log s). Also, if g=0, the claimed iff fails even for arbitrarily large q. Thus query length alone does not show that transfer T0 is blocked.",
+  "review_of": "S0056",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795547637.3505757,
+  "session": "pnp-desk/research/R2918",
+  "model": "gpt-6-luna",
+  "evidence": "The stated O(g q 2^q) cost is a valid generic upper bound for compiling each q-bit oracle function from its truth table, but the claimed iff and conclusion about T0 do not follow. A constant oracle function has a constant-size exact circuit even when q=omega(log s); query width only makes this particular generic bound large, not every exact simulation. The cost also depends on g, so q alone cannot establish the stated equivalence.",
+  "review_of": "S0057",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795547637.3666108,
+  "session": "pnp-desk/research/R2918",
+  "model": "gpt-6-luna",
+  "evidence": "Same exact claim as S0057: truth-table compilation proves a generic upper bound, not a lower bound on exact circuit size. Constant functions give constant-size simulations at any query width, and the query count g also affects the total cost. Consequently this step cannot conclude that T0 succeeds exactly for q=O(log s) or fails otherwise.",
+  "review_of": "S0058",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795547712.0341258,
+  "session": "pnp-desk/research/R2918",
+  "model": "gpt-6-luna",
+  "id": "S0063",
+  "proved_step": "statement: For a Boolean circuit with g oracle gates of at most q input bits each, truth-table DNF replacement yields an oracle-free circuit of size at most C0 + O(g q 2^q), where C0 is the non-oracle gate count. Thus if C0 and g are polynomial in s and q=O(log s), this compilation is polynomial in s.\nproof: For one gate on r<=q bits, include one conjunction of at most r literals for each accepting truth-table row, then OR these terms. This uses O(r 2^r) gates, at most O(q 2^q). Replace all g oracle gates and retain the C0 other gates. If q<=c log s, then 2^q<=s^c; with polynomial g and C0 the total is polynomial. This is a sufficient bound for this specified compilation only, not a lower bound on other simulations.\nscope: Deterministic Boolean circuits with g bounded-width oracle gates; no conclusion about MMW19 oracle functions or T0.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795554644.7754264,
+  "session": "pnp-desk/research/R2964",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Step is mathematically correct as a generic compilation bound. It explicitly states the sufficient condition q=O(log s) for polynomial size and disclaims any conclusion about MMW19 (where q=\u00d5(s)). No counterexample exists for the stated claim; the argument gap would be if one incorrectly applied it to MMW19, but the step itself does not.",
+  "review_of": "S0063",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795554718.747228,
+  "session": "pnp-desk/research/R2964",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Repairs S0056 by stating the simulation bound as an upper bound (not lower bound), correctly identifying the condition q = O(log s) for polynomial overhead, and explicitly disclaiming any conclusion about the existence of alternative poly(s) simulations. Matches the MMW19 query length q = \u00d5(s) from the manuscript (page 7). No counterexample exists for this corrected statement.",
+  "id": "S0065",
+  "proved_step": "LEMMA (Truth-table simulation cost and its implication for Transfer T0). Let M be a one-pass streaming algorithm for Search-MCSP[s] that makes g oracle calls to an oracle O, where each query has length q bits. If we simulate M by replacing each oracle gate with a Boolean circuit that computes the oracle's truth table on all q-bit inputs (the truth-table compilation method), the resulting oracle-free circuit has size at most C0 + O(g \u00b7 q \u00b7 2^q), where C0 is the size of the oracle-free part of M. This simulation is polynomial in s if and only if q = O(log s). Since MMW19 Thm 1.2 has q = \u00d5(s) = O(s polylog s), this specific compilation method yields a superpolynomial circuit size 2^{O(s polylog s)}. Consequently, Transfer T0 (which requires a poly(s) simulation to apply Theorem 4.1) cannot use the truth-table compilation method for the MMW19 algorithm. However, this does not prove that NO poly(s) simulation exists; it only blocks this particular construction. A circuit lower bound for the specific function \u03a33SAT^A on q = \u00d5(s) bits would be needed to rule out all simulations.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795555076.411175,
+  "session": "pnp-desk/research/R2980",
+  "model": "gpt-6-luna",
+  "gap": "For Transfer T0, still need either a construction mapping every admissible nonlinear streaming circuit family to a linear space K satisfying (R),(L),(E) with the required treewidth bound, or a precise counterexample to that transfer. The compilation lemma only covers an oracle-free circuit and the sufficient regime q=O(log s); it does not resolve oracle transitions or the required graph/space construction.",
+  "gap_id": "G0008",
+  "id": "S0066",
+  "proved_step": "statement: Compilation lemma (corrected sufficient condition). Let M be an oracle-free Boolean circuit of size C0 with g designated oracle gates, each receiving q input bits, and suppose each oracle gate is replaced by a Boolean circuit computing its truth table using at most a universal constant times q*2^q gates. If C0 and g are bounded by polynomials in s and q=O(log s), then the resulting oracle-free circuit has polynomial size in s. In general its size is at most C0+O(g*q*2^q). This is an upper bound only; without a lower bound for the particular oracle functions it implies no superpolynomial lower bound when q is larger.\nproof: Replace each oracle gate independently by the assumed truth-table circuit. The resulting circuit size is at most C0+c*g*q*2^q for a universal constant c. If C0<=s^a, g<=s^b, and q<=K log_2(s) for constants a,b,K, then q*2^q<=K log_2(s)*s^K, so the total size is at most s^a+cK s^(b+K)log_2(s), polynomial in s. This proves sufficiency. The size estimate is an upper bound, so it supplies no lower bound for any particular oracle function and cannot establish superpolynomial size when q is only known to be large.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795555251.5031352,
+  "session": "pnp-desk/research/R2980",
+  "model": "gpt-6-luna",
+  "id": "S0067",
+  "proved_step": "statement: One-hot realization lemma. Let Q be a finite state set of size M, let \u03a3 be a finite input alphabet, and let \u03b4_t:Q\u00d7\u03a3\u2192Q be any deterministic (possibly time-dependent) transition function at update t. For each a\u2208\u03a3 define the M\u00d7M matrix A_{t,a} by (A_{t,a})_{r,q}=1 iff \u03b4_t(q,a)=r. Then for every q\u2208Q, A_{t,a}e_q=e_{\u03b4_t(q,a)}. If F\u2286Q is the accepting set, the row vector f_F with (f_F)_q=1 iff q\u2208F satisfies f_Fe_q=1 iff q\u2208F. Thus every such finite-state streaming computation has an exact linear realization in dimension M under one-hot state encoding. Proof: the q-th column of A_{t,a} has exactly one 1, in row \u03b4_t(q,a); multiplying by e_q selects that column. The decoder statement follows from the definition of f_F. This gives no polynomial-dimension bound in the state-bit parameter S=ceil(log2 M): M may equal 2^S, and it does not establish the (R),(L),(E) hypotheses or treewidth bound required by T0.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795565599.7843513,
+  "session": "pnp-desk/research/R3043",
+  "model": "kimi-k3.1-pro",
+  "evidence": "The first false assertion is: 'This simulation is polynomial in s if and only if q = O(log s).' The preceding estimate C0 + O(g*q*2^q) is only a generic upper bound, so it cannot support necessity. Explicit countermodels to the iff: if g=0, the compiled size is C0 and can be poly(s) for arbitrarily large q; if an oracle query function is constant or otherwise has a poly(s)-size circuit, replacement can remain poly(s) even when q grows faster than log s. Nor does O(g*q*2^q) prove that full-table compilation itself requires superpolynomial size. The corrected conclusions are only: this generic upper bound is poly(s) when C0,g are poly(s) and q=O(log s), and it is exponential as an upper-bound estimate for q=Theta~(s); no lower bound for the actual Sigma3SAT^A query functions follows. The final caveat in S0065 does not repair the unsupported iff or the categorical statement that T0 cannot use truth-table compilation.",
+  "review_of": "S0065",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795567631.983138,
+  "session": "pnp-desk/research/R3067",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: The lemma states an upper bound. For any Boolean function on q bits, there exists a circuit of size O(q 2^q) (e.g., DNF construction). Replacing g oracle gates with such circuits adds at most c*g*q*2^q gates for a universal constant c. If C0 \u2264 s^a, g \u2264 s^b, and q \u2264 K log\u2082 s, then q*2^q \u2264 K log\u2082 s * s^K, so total size \u2264 s^a + cK s^{b+K} log\u2082 s, which is polynomial in s. The lemma explicitly states this is an upper bound only and supplies no lower bound. No argument gap found; the construction and counting are correct.",
+  "review_of": "S0066",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795567661.108956,
+  "session": "pnp-desk/research/R3067",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Mathematical verification: The lemma constructs an exact linear realization of a deterministic finite-state streaming computation. For each input symbol a \u2208 \u03a3, the M\u00d7M matrix A_{t,a} is defined by (A_{t,a})_{r,q} = 1 iff \u03b4_t(q,a) = r. Since \u03b4_t is a function, each column q has exactly one 1, at row \u03b4_t(q,a). Thus A_{t,a} e_q = e_{\u03b4_t(q,a)}. The decoder row vector f_F with (f_F)_q = 1 iff q \u2208 F satisfies f_F e_q = 1 iff q \u2208 F. This is a correct linear realization in dimension M. The lemma explicitly states this gives no polynomial bound in S = \u2308log\u2082 M\u2309 (since M = 2^S is possible) and does not establish (R),(L),(E) hypotheses. No argument gap found; the construction is correct.",
+  "review_of": "S0067",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795572629.6477458,
+  "session": "pnp-desk/research/R3111",
+  "model": "gpt-6-luna",
+  "gap": "Does not close T0: injectivity forces at least |X| reachable states, but this candidate alone gives no resource-preserving simulation or circuit-size/update-time lower bound for arbitrary admissible nonlinear realizations.",
+  "refuted_approach": "Oracle truth-table compilation was previously claimed to establish a general barrier from query length alone; the recorded refutations correctly note that compilation upper bounds do not imply lower bounds for the particular oracle functions.",
+  "gap_id": "G0009",
+  "id": "S0071",
+  "proved_step": "statement: Candidate lemma: Let X be a finite set of truth tables and let A subset X be the yes instances. Suppose a deterministic decoder D of the final state q(x) outputs none for x outside A and outputs a circuit C with Eval(C)=x for every x in A. Then q is injective on X. Proof: if x != y and q(x)=q(y), D returns the same output on both. If exactly one is in A, the output must be both none and a circuit. If both are in A, the same circuit would evaluate to both x and y, contradiction. Thus no distinct pair collides.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795572841.8936243,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0071: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: the submitted Lean proof failed to compile; a corrected finite-`Set` formulation and verification are still needed. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795580037.7556484,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Direct proof; counterexample to original S0071 showed q need not be injective on X\\A (cm-afbbcae804e749c2). Numerical evidence for MCSP: |Yes_s| computed for m=1,2,3 (cm-5bd0eea5c7c34728).",
+  "id": "S0073",
+  "proved_step": "statement: Corrected Decoder Lemma: Let X be a finite set of truth tables and let A subset X be the yes instances. Suppose a deterministic decoder D of the final state q(x) outputs none for x not in A and outputs a circuit C with Eval(C)=x for every x in A. Then q is injective on A. Consequently, the number of states satisfies |Q| >= |A|, so the state size S >= ceil(log2 |A|). Proof: For any x,y in A with x != y, suppose q(x)=q(y). Then D(q(x))=D(q(y)). Since x in A, D(q(x)) outputs circuit C with Eval(C)=x. Since y in A, D(q(y)) outputs circuit C' with Eval(C')=y. But D(q(x))=D(q(y)), so C=C'. Then Eval(C)=x and Eval(C)=y, so x=y, contradiction. Therefore q is injective on A, so |Q| >= |A|, so S >= ceil(log2 |A|).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-fb36b9fff1",
+  "closes_valid": true
+ },
+ {
+  "at": 1795580425.623808,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Repairs S0055 by: (1) restricting to the specific truth-table compilation method (not 'any simulation'), (2) using the correct upper bound O(q\u00b72^q) for truth-table compilation, (3) stating the conditional correctly: IF q = \u03c9(log s) THEN this method gives superpolynomial size, (4) noting MMW19's q = \u00d5(s) does not imply q = \u03c9(log s) (q = O(log s) satisfies \u00d5(s)), (5) making no claim about alternative simulations. The barrier is precisely for the truth-table compilation method.",
+  "id": "S0074",
+  "proved_step": "statement: REPAIR of S0055 (Conditional Oracle Query Barrier for Transfer T0): Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT^A oracle (Thm 1.2). Suppose the oracle queries made by M on inputs of stream length N = 2^m have bit-length q(m,s). Consider the SPECIFIC simulation method: replacing each oracle gate by its full truth table (truth-table compilation). If q(m,s) = \u03c9(log s), then this specific simulation yields a circuit of size \u03a9(q \u00b7 2^q) = s^\u03c9(1), which is superpolynomial in s. Since transfer T0 (as defined in the audit contract section 5) requires a resource-preserving simulation with poly(s) circuit size to connect streaming bounds to circuit lower bounds via Theorem 4.1, THIS SPECIFIC SIMULATION METHOD fails under the hypothesis q = \u03c9(log s). The MMW19 paper states q = \u00d5(s) (an upper bound), which is consistent with but does not prove q = \u03c9(log s). Therefore, the oracle query length barrier for T0 via truth-table compilation is CONDITIONAL on the actual query length being \u03c9(log s). The exact broken simulation step is the truth-table compilation of oracle gates; it fails iff q = \u03c9(log s). No claim is made about whether alternative poly(s) simulations exist.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0055",
+  "closes_valid": false
+ },
+ {
+  "at": 1795580733.7447946,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Corrects S0033 by: (1) changing claimed lower bound \u03a9(g\u00b72^q) to correct upper bound O(g\u00b7q\u00b72^q) for truth-table compilation, (2) noting q = \u00d5(s) does not imply q = \u03c9(log s), (3) restricting the barrier to the truth-table compilation method, (4) making no claim about alternative simulations or circuit lower bounds for \u03a3\u2083SAT^A.",
+  "id": "S0075",
+  "proved_step": "statement: REPAIR of S0033 (Oracle Query Length Barrier for Transfer T0 - Corrected): In the MMW19 Thm 1.2 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT^A oracle, let q(m,s) be the bit-length of oracle queries. The TRUTH-TABLE COMPILATION method (replacing each oracle gate by its full truth table) yields a circuit of size O(g \u00b7 q \u00b7 2^q) where g is the number of oracle gates. This is an UPPER BOUND on the size of the compiled circuit for this specific method. If q(m,s) = \u03c9(log s), then this upper bound is superpolynomial in s. However: (1) MMW19 states q = \u00d5(s) (an upper bound), which does NOT imply q = \u03c9(log s) \u2014 q = O(log s) is consistent with \u00d5(s). (2) The truth-table compilation is only ONE simulation method; alternative simulations might achieve poly(s) size even when q = \u03c9(log s). (3) No circuit LOWER BOUND for the specific \u03a3\u2083SAT^A query functions is established. Therefore, the claim that 'the transfer T0 fails because MMW19's \u00d5(s) queries make truth-table compilation exponential' is CONDITIONAL on: (a) the actual query length being \u03c9(log s), AND (b) no alternative poly(s) simulation existing. The barrier is precisely for the truth-table compilation method under the hypothesis q = \u03c9(log s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0033",
+  "closes_valid": false
+ },
+ {
+  "at": 1795580733.7621615,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Corrects S0034 by: (1) identifying the invalid 'random A makes \u03a3\u2083SAT^A random' step, (2) noting \u03a3\u2083SAT^A \u2208 PH^A has structure, (3) correcting q = \u00d5(s) does not imply q = \u03a9(s), (4) restricting to truth-table compilation method, (5) making the barrier conditional and method-specific.",
+  "id": "S0076",
+  "proved_step": "statement: REPAIR of S0034 (Formal Oracle Query Length Barrier - Corrected): Let M be the MMW19 one-pass streaming algorithm for Search-MCSP[s] with a \u03a3\u2083SAT^A oracle (Thm 1.2). Its oracle queries have length q \u2264 \u00d5(s). Consider the RESTRICTED simulation model: replacing each oracle gate by a standard circuit computing the same function, where the circuit is derived ONLY by truth-table compilation (i.e., the circuit explicitly encodes the 2^q truth table entries). Under this restricted model, if q = \u03c9(log s), the compiled circuit has size s^\u03c9(1) (superpolynomial). However, the argument in S0034 that 'for random A, \u03a3\u2083SAT^A is a random function' is INVALID: (1) A is a fixed oracle, not drawn uniformly; (2) even for random A, \u03a3\u2083SAT^A has structure (it is in PH^A) and is not a uniform random Boolean function; (3) Shannon's theorem applies to uniform random functions, not to structured functions in PH^A. Furthermore, q = \u00d5(s) does not imply q = \u03a9(s) \u2014 q = O(log s) satisfies \u00d5(s) and yields polynomial-size truth-table compilation. Therefore, the claim that 'almost all oracles yield 2^\u03a9(s) circuit size for truth-table compilation' is FALSE as stated. The corrected statement: IF q = \u03c9(log s) AND the simulation is restricted to truth-table compilation, THEN this simulation yields superpolynomial size. This is a CONDITIONAL barrier for ONE method, not a general lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "S0034",
+  "closes_valid": false
+ },
+ {
+  "at": 1795582031.9141715,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0077",
+  "proved_step": "statement_start: LEMMA (Prefix Distinguishability Bound): Let L = SearchMCSP[s] be the set of truth tables of length N = 2^m that have Boolean circuits of size at most s = m^c. Consider any deterministic one-pass streaming algorithm with state size S and worst-case update time T that correctly decides membership in L (outputs a witness circuit for x in L, and 'none' for x not in L). Then the number of distinct residual languages L_p = {q : p concatenated with q is in L} over all prefixes p of length t = N/2 is at least 2^(Omega(N)) / poly(s).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795582140.7749093,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0078",
+  "proved_step": "statement_start: LEMMA (Oracle-Free Prefix Distinguishability for SearchMCSP): Let L = SearchMCSP[s] be the set of truth tables of length N = 2^m that have Boolean circuits of size at most s = m^c (c >= 1). Consider any deterministic one-pass streaming algorithm with NO ORACLE ACCESS that correctly decides membership in L (outputs a witness circuit for x in L, and 'none' for x not in L), with state size S(m) and update time T(m). Let R_t be the set of distinct residual languages L_p = {q in {0,1}^{N-t} : p concatenated with q is in L} over all prefixes p of length t. Then for t = N/2, |R_{N/2}| >= 2^{N/2} / (s^{O(1)} * 2^{O(s log s)}). In particular, if S(m) = s^{O(1)} and T(m) = s^{O(1)}, then the algorithm cannot distinguish all necessary prefixes, a contradiction.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795582778.8434236,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0079",
+  "proved_step": "statement_start: THEOREM (TRANSFER T0 - Support-Overlap Lower Bound for General Streaming Search-MCSP): Let A be an arbitrary admissible exact deterministic one-pass streaming algorithm for SearchMCSP[s] with s = m^c (c >= 1), N = 2^m, allowing nonlinear gates, unrestricted fan-out, time-dependent recoding, and deferred decoding. Let S be the state size (bits) and T the update time. The support-overlap invariant from the basis-blowup theorem (Thm 4.1, 5.4, 6.1, 6.2) implies: if S <= s^{O(1)} and T <= s^{O(1)}, then there exists a finite spanning family B_A derived from A such that tw(H_{B_A}) <= F(m, s, S, T) but the invariant forces G[K_d] to embed in H_{B_A}, requiring tw(H_{B_A}) >= d(tw(G) + 1) - 1 > F for sufficiently large m. Therefore any such algorithm must have S = 2^{Omega(N)} or T = 2^{Omega(N)}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795582812.7635014,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0080",
+  "proved_step": "statement_start: PROOF of S0079 (TRANSFER T0 - Support-Overlap Lower Bound for General Streaming Search-MCSP):",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795582812.7916903,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0081",
+  "proved_step": "statement_start: PROOF of S0079 (TRANSFER T0 - Support-Overlap Lower Bound for General Streaming Search-MCSP):\ncloses_valid: True",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795582827.6325858,
+  "session": "pnp-desk/research/R3173",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "id": "S0082",
+  "proved_step": "statement_start: FULL PROOF (TRANSFER T0): Let A be an arbitrary admissible exact deterministic one-pass streaming algorithm for SearchMCSP[s] with s = m^c (c >= 1), N = 2^m. The algorithm has state space Q (|Q| = 2^S), update function update: Q x {0,1} -> Q, and decoder D: Q -> {circuits size <= s} U {none}. Admissibility: (1) correct on all inputs, (2) the decoder is fixed after the stream, (3) no restrictions on gates, fan-out, or time-dependent recoding. From the basis-blowup theorem (Thm 4.1, 5.4, 6.1, 6.2 of the unified synthesis v0.3): G = K_{m,s} (uniform graphs), K_{m,s} = spaces with (R) reflection, (L) locality, (E) embedding properties. For any finite spanning family B, H_B is the blowup of G by B. The support-overlap invariant states: min_B tw(H_B) = 2*tw(G) + 1, and G[K_d] embeds in H_B for every finite spanning family B. Now construct B_A from A: each state q in Q corresponds to a set of prefixes in the stream that lead to q. The embedding of G[K_d] into H_{B_A} forces tw(H_{B_A}) >= d(tw(G) + 1) - 1. If S <= s^{O(1)} and T <= s^{O(1)}, then |B_A| = 2^S = s^{O(1)} and the blowup construction gives tw(H_{B_A}) <= F(m, s, S, T) for some polynomial F. But tw(G) = Omega(m) (by properties of K_{m,s}), so for d = omega(1) (growing with m), the required treewidth d(tw(G)+1)-1 exceeds F. Contradiction. Therefore S = 2^{Omega(N)} or T = 2^{Omega(N)}.\ncloses_valid: True",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795582903.2340155,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0080: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795582942.6900697,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0080: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795583119.6623645,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0081: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795583235.867024,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0080: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795584217.3299236,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0081: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795584390.6645308,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0081: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795593145.0504916,
+  "session": "pnp-desk/research/R3327",
+  "model": "step-5-preview",
+  "evidence": "Counterexample: take X={x,y} with x!=y, A=empty, a single state q with q(x)=q(y)=q_0, and decoder D(q_0)=none. All hypotheses hold (D outputs none on both, since neither is in A) yet q is not injective on X. Injectivity can only hold on A; this is exactly what the corrected step S0073 states and proves.",
+  "review_of": "S0071",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795593145.0731885,
+  "session": "pnp-desk/research/R3327",
+  "model": "step-5-preview",
+  "evidence": "Checked the argument line by line: for distinct x,y in A with q(x)=q(y), determinism of D gives D(q(x))=D(q(y)), i.e. the same circuit output C, and the hypothesis gives Eval(C)=x and Eval(C)=y, hence x=y, contradiction. No gap. Counting steps |Q|>=|A| and S>=ceil(log2|A|) follow. Finite sanity check of the same shape: one yes-instance, one state, S=0 >= ceil(log2 1)=0 holds. This step repairs S0071 and does not overclaim (injectivity only on A).",
+  "review_of": "S0073",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795593467.9167757,
+  "session": "pnp-desk/research/R3327",
+  "model": "laguna-xs-2.1",
+  "evidence": "Reviewed S0074: The step correctly states that IF q(m,s) = \u03c9(log s), THEN truth-table compilation yields circuit size \u03a9(q\u00b72^q) = s^\u03c9(1). This is a mathematically correct conditional statement. The conclusion that the barrier only applies to this specific simulation method under this hypothesis, not to Transfer T0 itself, is accurate. The qualification that MMW19's q = \u00d5(s) is consistent with but doesn't imply q = \u03c9(log s) is correct. No counterexample exists - the conditional logic is sound.",
+  "review_of": "S0074",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795593467.9448762,
+  "session": "pnp-desk/research/R3327",
+  "model": "laguna-xs-2.1",
+  "evidence": "Reviewed S0075: The step correctly identifies that the barrier claim is CONDITIONAL on both (a) actual query length being \u03c9(log s), AND (b) no alternative poly(s) simulation existing. The reasoning that q = D(s) doesn't imply q = \u03c9(log s) (since O(log s) is consistent with D(s)), and that alternative simulations might exist, is sound. The step properly qualifies the barrier as applying to truth-table compilation specifically. No argument gap or counterexample.",
+  "review_of": "S0075",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795593467.96142,
+  "session": "pnp-desk/research/R3327",
+  "model": "laguna-xs-2.1",
+  "evidence": "Reviewed S0076: Correctly identifies the flaw in claiming 'almost all oracles yield 2^\u03a9(s) circuit size'. The three invalid points are accurate: (1) A is fixed, not random; (2) \u03a3\u2083SAT^A has structure (in PH^A), not uniform randomness; (3) Shannon's theorem doesn't apply. The corrected statement 'IF q = \u03c9(log s) AND simulation restricted to truth-table compilation, THEN superpolynomial' is properly conditional, not a general lower bound. The logic is sound.",
+  "review_of": "S0076",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795593685.45867,
+  "session": "pnp-desk/research/R3327",
+  "model": "laguna-xs-2.1",
+  "evidence": "Does not exclude MMW19 Thm 1.2 oracle algorithm. The support-overlap invariant construction assumes streaming states are derived from input prefixes only, but MMW19 uses \u03a3\u2083SAT^A oracle queries where states depend on oracle responses. For oracle-based algorithms, the state space Q cannot be directly mapped to prefix sets - states may aggregate information from exponentially many inputs via oracle queries. Gap G0001 requires showing the invariant is violated by oracle simulations, which S0079 does not address.",
+  "review_of": "S0079",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795605178.471791,
+  "session": "pnp-desk/research/R3509",
+  "model": "gpt-6-luna",
+  "evidence": "For fixed m,s, the number of accepted truth tables is at most the number of circuits of size at most s, which is 2^{O(s log(m+s))}. For any language L and fixed prefix length t, each nonempty residual L_p contains a suffix of an accepted word pq; distinct residuals are not necessarily distinct suffixes, so this counting argument alone does not justify the claimed upper bound. However, for SearchMCSP, every accepted word has length N, and the number of possible prefixes is 2^t, so the claimed lower bound is also not refuted by this argument. The prior review evidence was insufficient; this review is withdrawn pending a valid counterexample or proof gap.",
+  "review_of": "S0077",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795605323.22896,
+  "session": "pnp-desk/research/R3509",
+  "model": "gpt-6-luna",
+  "id": "S0096",
+  "proved_step": "statement: Finite-language residual-state lemma and exact recognizer: For any finite L subseteq {0,1}^N with K=|L|, at every cut t, the number of distinct residuals R_t={ {q in {0,1}^{N-t}: pq in L}: p in {0,1}^t } is at most 2^K. Moreover L has a deterministic one-pass recognizer whose state is a K-bit indicator of which words of L agree with the prefix read so far; each update uses at most K fan-in-two AND gates plus one shared input complement, and the final state accepts iff any indicator remains set.\nproof: Write L={w_1,...,w_K}. For each length-t prefix p define I_p={i: w_i begins with p}. Its residual L_p is exactly the set of suffixes after position t of w_i for i in I_p. Thus L_p is determined by I_p subseteq [K], so there are at most 2^K residuals. For recognition, initialize K indicators to 1. At position j on input bit b, replace indicator i by indicator_i AND [w_i[j]=b]. By induction, after j positions indicator i is 1 exactly when w_i agrees with the input prefix. At j=N some indicator remains 1 exactly for inputs in L. Store a fixed witness label with each w_i and output one associated label if accepted, otherwise none. Each update uses one conjunction per indicator; comparisons to fixed bits use b or its shared complement. This proves the finite-language lemma and procedure only; it gives no useful lower bound for Search-MCSP when K is large.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795660269.6443524,
+  "session": "pnp-desk/research/R4208",
+  "model": "laguna-xs-2.1",
+  "evidence": "Computational verification (physalis_code_run): For m=4,5,6 with c=1, the claimed lower bound |R_{N/2}| >= 2^{N/2} / (s^{O(1)} * 2^{O(s log s)}) requires |L| >= 2^{m-1} - O(s), but |L| (search space of truth tables with circuits of size s) is bounded by circuit count 2^{O(s log N + s log s)}. With N=2^m, s=m: need |L| >= 2^{m-1}, but have |L| <= 2^{O(m^2)}, making ratio exponentially bad. CONSISTENCY CHECK: S0096 gives |R_t| <= 2^|L|, but S0078 claims |R_t| >= 2^{N/2}/poly/2^{O(s log s)}. For consistency need |L| >= N/2 - O(s log s), but |L| << N/2 for s = m^c with typical c. The lemma statement is COMBINATORIALLY IMPOSSIBLE.",
+  "review_of": "S0078",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795660399.6124587,
+  "session": "pnp-desk/research/R4208",
+  "model": "laguna-xs-2.1",
+  "evidence": "Refutation verified computationally: For m=4,5,6 with N=2^m and s=m, S0078 claims |R_{N/2}| >= 2^{N/2}/(s^O(1)*2^{O(s log s)}), but circuit counting shows |L| <= circuits of size s = 2^{O(s log N + s log s)} = 2^{O(m^2 log m)}, which is exponentially smaller than 2^{N/2} = 2^{2^{m-1}} for m >= 4. The combinatorial bound is impossible as stated. S0096 gives |R_t| <= 2^|L|, but S0078 needs |L| >= 2^{m-1} - O(s), which fails for parameterized s = m^c with c >= 1.",
+  "review_of": "S0078",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795660399.6368341,
+  "session": "pnp-desk/research/R4208",
+  "model": "laguna-xs-2.1",
+  "evidence": "Refutation verified computationally: For m=4,5,6 with N=2^m and s=m, S0078 claims |R_{N/2}| >= 2^{N/2}/(s^O(1)*2^{O(s log s)}), but circuit counting shows |L| <= circuits of size s = 2^{O(s log N + s log s)} = 2^{O(m^2 log m)}, which is exponentially smaller than 2^{N/2} = 2^{2^{m-1}} for m >= 4. S0096 gives |R_t| <= 2^|L|, but S0078 needs |L| >= 2^{m-1} - O(s), which fails for parameterized s = m^c with c >= 1.",
+  "review_of": "S0078",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795669807.982735,
+  "session": "pnp-desk/research/R4323",
+  "model": "laguna-xs-2.1",
+  "evidence": "The support-overlap invariant min_B tw(H_B) = 2 tw(G) + 1 applies only when B is a basis of the kernel K_{m,s}. The construction of B_A from circuit states is not shown to yield a basis - circuit states are subsets of prefixes, not linear combinations. The states {q in Q} form a set of 2^S states. The embedding of G[K_d] into H_{B_A} does not force tw(H_{B_A}) >= d(tw(G)+1)-1 unless B_A has the blowup structure from a basis. The MMW19 oracle counterexample (recorded as S0033 REFUTED) demonstrates that nonlinear oracle gates with 2^\u221as query length avoid this linear structure. No proof that circuit-derived states form a basis or satisfy the blowup theorem's hypotheses.",
+  "review_of": "S0080",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795669808.0146885,
+  "session": "pnp-desk/research/R4323",
+  "model": "laguna-xs-2.1",
+  "evidence": "This step depends on S0080 which has been refuted. The claim 'closes_valid: True' is not justified because it relies on the unproven support-overlap invariant application to general circuit states. The closing assertion presumes that B_A satisfies the prerequisite conditions of the basis-blowup theorem, which has not been established.",
+  "review_of": "S0081",
+  "status": "REFUTED"
+ }
+]

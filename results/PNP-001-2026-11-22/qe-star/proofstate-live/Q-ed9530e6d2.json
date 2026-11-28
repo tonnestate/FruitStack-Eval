@@ -1,0 +1,261 @@
+[
+ {
+  "at": 1795304466.755553,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "Novelty not yet settled. Kashyap 0711.1383 (read to p.~15 of 40k chars) relates code treewidth (min constraint complexity over tree realizations on a given coordinate tree decomposition) to graph treewidth. Still unchecked: whether min over bases B of tw(G_B) for the homogeneous GF(3) kernel, with G_B the coefficient graph of the basis rows, is stated or implied there or in Hlineny-Whittle matroid treewidth (arXiv/fi.muni.cz matr-tw-final.pdf). Exact statement to test: w*(A) = min_B tw(G_B) = 2 tw(G)+1 for F(G) (Lean WStarLower.lean, not visible from lab sandbox).",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795304523.9072902,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "Novelty still open (G0001 narrowed). Verified from retrieved text: (1) Hlineny-Whittle matr-tw-final.pdf (sha256 0cd3e9f9..., 33860 chars) states its main result, Thm 3.2, only for graphic matroids: tw(G) = tw(M(G)). The abstract mentions no represented-matroid statement, so the Lemma W direction (rows with supports as cliques of the coefficient graph) is not in that paper's main text and is only a generalisation of its argument. (2) Kashyap arXiv:0711.1383 (sha256 aa2891e0..., read to about p.15) defines code treewidth as the minimum constraint complexity over tree realizations of a coordinate tree decomposition and relates it to graph treewidth via Forney's conjecture. The portion read gives no min-over-bases identity for the homogeneous GF(3) kernel. Still unchecked: the exact coefficient-graph definition in WStarLower.lean (not visible from the lab sandbox), and Kashyap Sections 4-5 for any equality of the form min over bases = a graph-treewidth quantity.",
+  "evidence": "web_read of both PDFs as above; knowledge records de9398401de7d665 and 9165f1b5d300982a.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795305247.820673,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "Novelty (G0002) still open. Literature sub-question is Q-2d37e28dc7. Exact F(G) and coefficient-graph definitions are in WStarLower.lean, which the sandbox cannot read.",
+  "evidence": "cm-28982046be8a4098: exhaustive minimum over invertible d x d basis changes M of the treewidth of the coefficient graph, for 60 random 8x6 GF(3) systems (seed 7). Dimension 2 gives min tw 0 (6 cases) and 1 (45); dimension 3 gives 1 (2) and 2 (7). This checks the enumeration only. It does not test w*(F(G)) = 2tw(G)+1, which needs F(G) on graphs of known treewidth.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795305999.8152792,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "Novelty still open (G0003). No source in the retrieved texts (Kashyap 0711.1383; Hlineny-Whittle matr-tw) states min over bases of coefficient-graph treewidth for GF(3) kernels. The tw=0 dim-2 slice reduces to matroid disconnection (lemma above). Open: tw>=1 values and dim>=3. Lean file not visible from lab sandbox: kernel status taken from the ledger record only.",
+  "evidence": "cm-0faac04d7ab44bf4 (n=4: 84 full-support 2-dim codes, min_tw0 28, matroid_disconnected 28, mismatches 0); cm-17685c0c10f84074 (n=5: 680/120/120, mismatches 0). Exploratory computation; the proof above is the evidence that matters.",
+  "gap_id": "G0004",
+  "id": "S0004",
+  "proved_step": "LEMMA (dim-2 slice, tw=0): Let C subset GF(3)^n be a 2-dim code with no zero coordinate, G a 2 x n generator matrix with columns c_j. Then min over bases of tw(coefficient graph) = 0 iff the column matroid of G is disconnected. PROOF: edgeless coefficient graph for basis (u,v) iff supports of u,v are disjoint, i.e. each column has u_j=0 or v_j=0, so columns lie on the two points <e2>,<e1> of PG(1,3) and the matroid is a direct sum of two parallel classes (disconnected). Conversely, if nonzero columns use distinct points p,q of PG(1,3), a GL_2 change of basis maps p,q to e1,e2, giving disjoint supports. A simple rank-2 matroid with >=3 points is connected, so disconnection forces exactly two points. Scope: dim 2, no zero coordinate, tw=0 only. Closure class if novel: NEW_THEOREM pending novelty check; likely KNOWN basic matroid fact.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795306216.6089828,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "Repair recorded in the next update. Open: tw>=1 values for dim>=3, novelty (G0003).",
+  "refuted_approach": "Naive extension of the dim-2 lemma: 'min over bases tw(coefficient graph) = 0 iff the column matroid is disconnected' is FALSE for dim 3. Counterexample: columns {(1,0,0),(0,1,0),(1,1,0),(0,0,1)} give a matroid U_{2,3} + U_{1,1} (disconnected), but the exhaustive enumeration over all rank-3 point sets of PG(2,3) shows min-tw 0 only for exactly 3 non-collinear points (234 sets, all of size 3), so this 4-point set has min-tw >= 1.",
+  "evidence": "cm-87ba1e5be1ac4039: dim 3, all 2^13 point subsets of PG(2,3) of rank 3, minimum over the 5616 projective GL_3 changes of basis; min-tw counts {0:234, 1:2613, 2:5188}; violations of 'tw0 iff 3 points' = 0; tw2 occurs for sizes 6..13.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795306216.6459255,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (a) tw >= 1 values for dim >= 3 (tw 2 first appears at 6 points in PG(2,3)); (b) novelty against Hlineny-Whittle / Kashyap (G0003); (c) the equality w* = 2tw+1 corollary is presentation only, per the owner's Lean audit.",
+  "evidence": "Consistent with cm-0faac04d7ab44bf4, cm-17685c0c10f84074 (dim 2, n=4,5) and cm-87ba1e5be1ac4039 (dim 3, exhaustive: tw0 sets = 234 = number of non-collinear triples of PG(2,3), all of size 3). Exploratory computations support the lemma; the proof is the evidence.",
+  "gap_id": "G0006",
+  "id": "S0006",
+  "proved_step": "REPAIRED LEMMA (any dimension k): Let C subset GF(3)^n be a k-dim code with no zero coordinate, with columns c_1..c_n of a generator matrix G (k x n). Then min over bases of C of tw(coefficient graph) = 0 iff the set of projective points {<c_j>} consists of exactly k points that form a basis of GF(3)^k (the matroid is a direct sum of k rank-1 parts). PROOF: For a basis, the coefficient graph is edgeless iff no coordinate j has two nonzero entries in the new basis, i.e. every column is a multiple of a basis vector e_r. Changing to such a basis is possible iff the columns' points are among k independent points p_1..p_k (take the change of basis g with g p_r = e_r). Rank k forces all k points to occur and to be independent. Conversely an edgeless graph on k vertices has tw 0 and any tw-0 graph is edgeless. Dim 2 case is the earlier lemma restated (2 independent points = disconnected rank-2 matroid with 2 points). Scope: all k, tw=0 only, GF(3). Closure: DERIVED from the definitions, elementary; novelty check still needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795306327.6176684,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 novelty, partial answer. (1) The repaired tw=0 lemma (any k, GF(3)) is elementary: edgeless coefficient graph iff every column is a multiple of a basis vector, so tw=0 iff the column points are k independent points. Expected class DERIVED_COROLLARY / KNOWN_BASIC, not NEW_THEOREM. (2) The link between coefficient-graph treewidth and matroid treewidth is the easy direction of Hlineny-Whittle Thm 3.2 (Lemma W), restated for represented matroids; the width theorem w* = 2tw+1 still needs its own novelty check against that source. (3) Open: tw>=1 values for dim>=3 (tw 2 first appears at 6 points of PG(2,3)).",
+  "evidence": "cm-0faac04d7ab44bf4 (dim 2, n=4: 84/28/28, 0 mismatches); cm-17685c0c10f84074 (dim 2, n=5: 680/120/120, 0 mismatches); cm-87ba1e5be1ac4039 (dim 3, PG(2,3), all 2^13 rank-3 subsets, min over 5616 PGL(3,3) elements: tw0 counts 234 = non-collinear triples, 0 violations). Claim claim:8337a483d4aa is PENDING with the validator.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795306602.6768928,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (novelty) still open. Dim-3 tw=0 characterization verified exhaustively (cm-69a2887a94f745dc), so the tw=0 part is settled computationally at k=3 and by the repaired lemma for all k. Still open: (a) literature novelty of the min-over-bases coefficient-graph treewidth; (b) tw>=1 values for dim>=4; (c) the width-theorem link to graph treewidth, which rests on the Lean kernel check and the Hlinen\u00fd-Whittle easy direction, not on this computation.",
+  "evidence": "cm-69a2887a94f745dc (exhaustive, GF(3), PG(2,3) = 13 points, 234 frames): for every spanning point set S, min over frames of tw(coefficient graph) is 0 only for |S|=3 (234 sets, exactly the independent triples); |S|=4 and |S|=5 give min tw 1 only; min tw 2 first appears at |S|=6 (example [[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0]]). This is consistent with the repaired any-k tw=0 lemma at k=3. It does NOT test w*(F(G)) = 2 tw(G)+1 (that needs the exact F(G) and K_G from WStarLower.lean, which the sandbox cannot read).",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795306727.8626902,
+  "session": "pnp-desk/research/R1225",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003 (novelty) still open; Lemmas A and B are elementary and expected to be KNOWN_BASIC (not NEW_THEOREM). Open: whether min_A max_j |supp(A c_j)| - 1 equals min_B tw(G_B) (tested on PG(2,3) in the next run); tw >= 1 values for dim >= 4.",
+  "gap_id": "G0009",
+  "id": "S0009",
+  "proved_step": "LEMMA A (tw=0 characterisation, any k, GF(3)): for a code C of dimension k with no zero coordinate and generator columns c_j, min over bases B of tw(G_B) = 0 iff the projective points of the c_j are exactly k points forming a basis of GF(3)^k. PROOF: for a basis change A (rows of A G), column j has support T_j = supp(A c_j) and G_B is the union of cliques on the T_j. So G_B is edgeless iff |T_j| <= 1 for all j, i.e. every A c_j is a nonzero multiple of a unit vector; full rank k forces the k unit vectors to occur, so the points are k independent points. Conversely, such points are sent to unit vectors by A. LEMMA B (clique lower bound, any k): for every basis B, tw(G_B) >= max_j |T_j| - 1, since each T_j is a clique and tw(K_s) = s - 1 with tw monotone under subgraphs; hence min_B tw(G_B) >= min_A max_j |supp(A c_j)| - 1. Scope: GF(3), no zero coordinate, coefficient graph = rows adjacent iff supports share a coordinate.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795307379.1250117,
+  "session": "pnp-desk/research/R1239",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by R1239. Basis change A gives coefficient graph = union of cliques on T_j = supp(A c_j). Edgeless iff |T_j| <= 1 for all j, i.e. each A c_j is a nonzero multiple of a unit vector (c_j nonzero by no-zero-coordinate). Rank k forces all k unit vectors to occur, so the projective points are k independent points. Converse: independent points p_r, take A with A p_r proportional to e_r. Argument uses no GF(3)-specific fact. No gap found.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795307379.1378565,
+  "session": "pnp-desk/research/R1239",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by R1239. Special case k=2 of S0006. For a loopless rank-2 matroid (no zero column), disconnected iff exactly two parallel classes, and then it is the direct sum of the two classes. Wording 'disconnected' is correct but equivalent to 'exactly two points'. No gap found.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795307379.1501427,
+  "session": "pnp-desk/research/R1239",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by R1239. Lemma A: same characterisation as S0006, verified. Lemma B: each T_j is a clique in G_B, so tw(G_B) >= max_j |T_j| - 1 (treewidth is monotone under subgraphs and tw(K_s) = s-1); minimising over bases gives min_B tw >= min_A max_j |supp(A c_j)| - 1. Valid as an inequality only; equality is not claimed. Novelty (G0003) still open.",
+  "review_of": "S0009",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795307504.4517858,
+  "session": "pnp-desk/research/R1239",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Equality min_B tw(G_B) = min_A max_j |supp(A c_j)| - 1 for GF(3)^3 (k=3). Refuted by exact enumeration over 11232 bases x 8035 rank-3 point sets of PG(2,3): equality on 3823 sets; on 4212 sets tw exceeds the clique bound by exactly 1 (e.g. points {001,010,011,100,101,110}: lb 1, tw 2). Lemma B (clique lower bound) remains valid as an inequality only. Repair not yet constructed: a sharper bound must use overlap of cliques across columns.",
+  "evidence": "cm-03845c324aee4b26 (EXPLORATORY_COMPUTATION, agent-authored; needs independent recomputation). Session R1239."
+ },
+ {
+  "at": 1795307712.3330495,
+  "session": "pnp-desk/research/R1239",
+  "model": "claude-haiku-5-5",
+  "evidence": "Exact checks: cm-03845c324aee4b26 (min tw distribution over 8035 rank-3 point sets: 234/2613/4212/976) and cm-82eee185063f4308 (two-line cover = tw<=1 on all 8192 subsets, 0 mismatches, 3004 each). The (0,0) count 234 matches 13*12*9/6. The proof is by hand; the exact checks are EXPLORATORY_COMPUTATION. Session R1239.",
+  "id": "S0014",
+  "proved_step": "LEMMA T3 (k=3, GF(3)): Let G be a 3 x n generator matrix over GF(3) with no zero column and rank 3, S the set of projective points of its columns, and G_A the coefficient graph of rows of AG for A in GL(3,3) (rows adjacent iff supports share a coordinate). Then min_A tw(G_A) <= 1 iff S lies in the union of two distinct lines of PG(2,3). Proof: tw<=1 iff G_A not K3; a column with support size 3 forces K3; support size <=2 for all columns iff S lies in H_1 u H_2 u H_3 (the non-concurrent lines with normals = rows of A); the pair {r,s} occurs iff some point of S is private to H_t; so K3 iff every H_t has a private point. Two-line covers give tw<=1 via a third line M not through L cap L'; conversely no private point on H_t forces S in H_r u H_s. Consequence: min tw = 0 iff S is 3 independent points (234 sets), = 1 iff two-line cover, else = 2. Scope: k=3, GF(3). Does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795307917.64986,
+  "session": "pnp-desk/research/R1239",
+  "model": "claude-haiku-5-5",
+  "gap": "Open for k>=4: whether the clique lower bound is tight. Exact k=4 test needs orbit reduction (row scaling by 2^4, column permutations) to reduce GL(4,3) to about 1.5 million classes per point set, run as a desk job. Sampled k=4 data is not evidence about the equality. Novelty (G0003) and the k=3 lemma S0014 (CLAIMED, unreviewed) are unchanged.",
+  "evidence": "cm-9daa5bc624894a4e (EXPLORATORY_COMPUTATION, k=4 over GF(3)): 150 random point sets of PG(3,3) with 6-9 points each and rank 4, 300 random bases per set (|GL(4,3)| = 24,261,120). Distribution of sampled min tw minus sampled min clique bound: 0 on 116 sets, 1 on 34 sets. This is NOT an equality test: sampled minima are upper bounds on the true minima of both quantities, and the base sample is about 1e-5 of GL(4,3). The 34 positive gaps neither refute nor confirm min_B tw(G_B) = min_A max_j |supp(A c_j)| - 1 for k=4. No proof step is made.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795308487.1298912,
+  "session": "pnp-desk/research/R1245",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review by this session (not the author R1239). (1) Computation cm-04def5c5ede1486d enumerates all 2^13 point subsets of PG(2,3) that span rank 3 (8035 sets) and all 11232 GL(3,3) matrices, computes min_A tw(G_A) by edge patterns, and tests the two-line-cover predicate. Result: min-tw counts 0:234, 1:2613, 2:5188; two-line-cover sets 2847 = 234+2613; mismatches 0. The method differs from the earlier matrix enumeration cm-50574e67f6a740f5, which also gives 0 mismatches. (2) Proof read step by step: a column of full support gives a triangle; support <=2 means the point lies on a line H_t of the triangle given by the rows of A; the pair {r,s} occurs iff a point of S is private to H_t; so K3 iff every H_t has a private point. The two-line converse holds because the third line M has no private point; the forward direction holds because a line with no private point puts S in the other two lines. The tw=0 clause holds because edgeless means S lies on the triangle vertices, which are 3 independent points. Scope: k=3, GF(3), spanning S. This does not close G0001 or G0002 (no general k).",
+  "review_of": "S0014",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795324832.6823628,
+  "session": "pnp-desk/research/R1335",
+  "model": "claude-haiku-5-5",
+  "gap": "Session R1335 (lane QW) has not yet computed or proved anything. Target for this session: (a) an exact k=4 tw bound on a restricted subclass (e.g. point sets with a fixed number of distinct columns) that closes or shrinks G0010 (tightness of the clique lower bound for k>=4), or (b) a proved repair of the failed min-over-A formula from G0009. Next step after earlier-session data is read: exact or orbit-reduced enumeration as a desk job, with a DISCOVERY label stating which outcome would refute the clique bound.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795335226.6029623,
+  "session": "pnp-desk/research/R1381",
+  "model": "claude-haiku-5-5",
+  "evidence": "Derived by hand from the owner text S0009; verification run pending in this session (physalis_code_run, five graphs K3 C4 P4 K4 K13, exact tw by subset DP).",
+  "id": "S0018",
+  "proved_step": "LEMMA U (upper bound, width theorem). Setting as in the owner lower-bound text (steps i-iv, S0009). Let (T,beta) be a tree decomposition of G of width k = tw(G). Let tau1 = (1,2,0) and tau2 = (0,1,2) in T (both sum to 0 mod 3; independent; their supports {1,2} and {2,3} meet in colour 2). For v in V and i in {1,2}, let b(v,i) in K_G be the element whose vertex part is tau_i at v and 0 elsewhere; its edge part is forced by k(e,c) = -(k(u,c)+k(w,c)). Restriction to vertex coordinates is an isomorphism K_G -> T^V, and the vertex parts of the b(v,i) form a basis of T^V, so B_T = (b(v,i)) is a basis of K_G. Support of b(v,i): coordinates (v,c) and (e,c) for edges e at v, with c in supp tau_i. Two basis vectors share a coordinate iff (a) they have the same vertex v (they share (v,2)), or (b) their vertices u,v are adjacent in G (they share (uv,c) for c in supp tau_i meet supp tau_j, nonempty by L2); nonadjacent distinct vertices share nothing. Hence H_{B_T} = G x K2 (strong product: each vertex blown up to a 2-clique, adjacent blocks fully joined). Tree decomposition of H_{B_T}: replace each bag beta(t) by beta(t) x {1,2}. Each (v,i) lies in exactly the nodes containing v (connected). An in-block edge lies in the bag of v. A cross edge (u,i)(v,j) with uv in E lies in some beta(t) containing u and v, hence in beta(t) x {1,2}. The width is at most 2(k+1)-1 = 2k+1. So min over bases of tw(H_B) <= 2tw(G)+1. With the owner lower bound (every basis has tw(H_B) >= 2tw(G)+1), w*(F(G)) = min_B tw(H_B) = 2tw(G)+1 exactly, relative to the spec's definition of tw(H_B). Status: CLAIMED, needs review by a session of a different model family. No barrier claim is made: this is a width fact about coefficient graphs of kernel bases; it is not a circuit or proof-size lower bound and does not transfer to P vs NP. Open: the earlier local-search note (tw(H_B) <= 2 when tw(G)=2) contradicts the lower bound and is being re-run with an independent encoding (see the verification experiment in this session).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-12c883308e",
+  "closes_valid": true
+ },
+ {
+  "at": 1795339134.7686934,
+  "session": "pnp-desk/research/R1405",
+  "model": "claude-haiku-5-5",
+  "gap": "S0018 is still CLAIMED. Its upper bound is already kernel-checked in WStarLower.lean (NUMERICAL_EVIDENCE 6060359b206ad7e5), which I have not opened myself, so this session adds no new lemma. Open: min over ALL bases (lower direction) rests on owner step (iv), sampled only on P3 and K3; Test A (K_n), Test C (alternative encodings), Test D (short proofs despite large overlap width) untouched.",
+  "evidence": "cm-365806ebf91348b7: canonical basis b(v,i) from S0018 lies in K_G, has rank 2|V|, and coefficient-graph width 1/3/5 on K1/P3/K3, equal to 2tw(G)+1. Numerical replication only; no review verdict is recorded because the reviewer must be of a different model family.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795339212.792236,
+  "session": "pnp-desk/research/R1405",
+  "model": "claude-haiku-5-5",
+  "lemma": "For every finite simple graph G and every basis B of the homogeneous GF(3) kernel K_G of the positive 1-in-3 encoding F(G): tw(H_B) >= 2*tw(G)+1. Argument: owner steps (i)-(iv) of LOWER_BOUND_PROOF.md, re-derived by hand: (i) S_v is a clique (L1+L2, coordinate (v,c)); (ii) S_u union S_w is a clique (exhaustive case split; coordinate (e,c) with b_j(e,.) = -b_j(u,.)); (iii) |union_{v in X} S_v| >= 2|X| (surjective restriction K_G -> T^X); (iv) beta_G(t) = {v : S_v subset beta(t)} is a tree decomposition of G (clique-in-connected-bags fact via Helly), and 2|beta_G(t)| <= |beta(t)| <= w+1 gives w >= 2 tw(G)+1.",
+  "gap": "None beyond the owner's text. Open for this lane: Test A (K_n), Test C (alternative encodings), Test D (short proofs despite large overlap width), and the q>=4 case Q-ec2af04fc8.",
+  "evidence": "Hand derivation. Computational replication on K1, P3, K3 in cm-365806ebf91348b7 (canonical-basis width 1/3/5 = 2tw+1; random local search minima 1/4/5, none below the floor; the search does not reach the canonical basis on P3, so it is a weak test).",
+  "gap_id": "G0013",
+  "id": "S0020",
+  "proved_step": "CLAIMED (self-derived, session R1405, claude-haiku-5-5). Not reviewed: a reviewer must be of a different model family. Re-derives the bound already kernel-checked in WStarLower.lean (NUMERICAL_EVIDENCE 6060359b206ad7e5, not opened this session). Closes no open obligation; not progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795340324.9372385,
+  "session": "pnp-desk/research/R1415",
+  "model": "claude-haiku-5-5",
+  "id": "S0021",
+  "proved_step": "LEMMA H (upper bound, basis coefficient graph). Let G be a finite graph, k = tw(G), tau_1=(1,2,0), tau_2=(0,1,2) over GF(3)^3, and B_T = {b(v,i)} as in S0018 (vertex part tau_i at v; edge part -tau_i on edges at v). (a) The coefficient graph H_{B_T} equals the lexicographic product G[K_2]: vertex coordinates (v,c) are shared only by b(v,1),b(v,2), which share colour 1 since supp tau_1 and supp tau_2 both contain 1; edge coordinates (uv,c) are shared by b(u,i),b(v,j) iff c in supp tau_i and c in supp tau_j, which is nonempty for all i,j; no other shared coordinates. (b) Bag doubling: for an optimal tree decomposition (T,beta) of G of width k, beta'(x) = beta(x) x {1,2} is a tree decomposition of G[K_2]: bag size <= 2(k+1); the pairs (v,1),(v,2) lie together in any bag containing v; for uv in E the four pairs lie together in any bag containing u and v; for each (v,i) the bags containing it form the same subtree as for v. Hence tw(H_{B_T}) <= 2tw(G)+1. Scope: upper bound only, for the specific basis B_T; the equality min_B tw(H_B) = 2tw(G)+1 still needs the owner's lower bound (steps i-iv), which is not checked here. Status CLAIMED; closes G0001 only if a non-Claude, non-Haiku session reviews it and sets confirms_closure.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795350301.8862855,
+  "session": "pnp-desk/research/R1467",
+  "model": "claude-haiku-5-5",
+  "id": "S0022",
+  "proved_step": "statement: For every finite simple graph G, tw(G[K_2]) = 2*tw(G)+1, where G[K_2] has vertex set V x {0,1} and (a,i)~(b,j) iff ab in E(G) or (a=b and i!=j). SCOPE: this is a statement about the fixed graph G[K_2] only. It does NOT bound min over bases of the coefficient graph of K_G, so it does not close G0001 or S0018.\nderivation: UPPER BOUND: let (T,beta) be a tree decomposition of G of width k=tw(G). Set beta'(t)=beta(t) x {0,1}. Every edge (a,i)(b,j) of H has a=b (then a in beta(t) for some t, so both ends lie in beta'(t)) or ab in E (then a,b lie in a common bag). For each a, {t : (a,i) in beta'(t)} = {t : a in beta(t)} is connected, so beta' is a tree decomposition of H with bags of size at most 2(k+1), i.e. width at most 2k+1. LOWER BOUND: by Seymour-Thomas take a bramble B of G of order k+1. Let F = {B x {i} : B in B, i in {0,1}}. Each B x {i} is connected in H (edges (a,i)(b,i) for ab in E). Two members touch: if B, B' share a vertex a, then (a,i) and (a,j) lie in them and are equal or adjacent; if B, B' are joined by an edge ab of G with a in B, b in B', then (a,i) ~ (b,j) in H for any i,j. So F is a bramble of H. If X hits every member of F, then X_i = {v : (v,i) in X} hits every B in B for i=0 and i=1, so |X_i| >= k+1 and |X| >= 2(k+1). Hence the bramble order of H is at least 2k+2, and by Seymour-Thomas tw(H) >= 2k+1. Both bounds together give tw(G[K_2]) = 2 tw(G) + 1. The same argument gives tw(G[K_n]) >= n(tw(G)+1)-1 with the matching upper bound by n-fold bag blow-up. STATUS: CLAIMED; the author is claude-haiku-5-5 and cannot review its own step. Finite evidence: cm-7cde1dde06454301 (n<=5, 1099 graphs, exact) and cm-1a3bfa59750945e3 (8 graphs, n=6).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795357957.5512147,
+  "session": "pnp-desk/research/R1521",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand derivation above; spec PNP-001-WIDTH-THEOREM-SOURCES-2026-11-22.md sec. 1 (owner lower bound text). No computation run. Review by a non-Haiku model family is needed before any closure.",
+  "id": "S0023",
+  "proved_step": "LEMMA W-F (width theorem over an arbitrary field F). Let G=(V,E) be a finite simple graph, V nonempty, and let K_G^F subset F^I be the homogeneous kernel: (V) k(v,1)+k(v,2)+k(v,3)=0 for all v; (E) k(e,c)=-(k(u,c)+k(w,c)) for e={u,w}, all c. Then min over all bases B of K_G^F of tw(H_B) = 2 tw(G)+1, where H_B is the coefficient graph (j~k iff some coordinate is nonzero in both b_j and b_k). PROOF. Lower bound: the owner's Steps (i)-(iv) (LOWER_BOUND_PROOF.md, sec. 1) go through verbatim over F. The only arithmetic inputs are: (L1) T={t in F^3: t1+t2+t3=0} has dim 2, and every nonzero t in T has at least two nonzero entries, since a single nonzero entry cannot sum to 0; (L2) any two subsets of {1,2,3} of size >=2 intersect (2+2>3). Steps (i)-(iv) use only these, linear algebra, and Fact (C). Hence tw(H_B) >= 2 tw(G)+1 for every basis B. Upper bound: put tau1=(1,-1,0), tau2=(0,1,-1) in T. Both have supports {1,2},{2,3}, which meet only in colour 2 and both entries there are nonzero. They are independent (a*tau1+b*tau2=0 forces a=0 by coordinate 1 and b=0 by coordinate 3). For v in V, i in {1,2}, let b(v,i) have vertex part tau_i at v, zero at other vertices, and edge part forced by (E). Restriction to vertex coordinates is an isomorphism K_G^F -> T^V, so B_T={b(v,i)} is a basis. Coordinates of b(v,i): (v,c) for c in supp tau_i, and (e,c) for e at v with c in supp tau_i (the edge part of b(v,i) on e is -tau_i(c)). Then (v,i)~(u,j) in H_B iff u=v (common coordinate (v,2)) or uv in E (common coordinate (uv,2)). Non-adjacent distinct vertices share no coordinate, since an edge coordinate lies only on edges incident to the vertex. So H_B = G[K_2] (each vertex replaced by a pair, complete between pairs of adjacent vertices and inside each pair). For a tree decomposition (T,beta) of G of width k, the bags beta(t) x {1,2} form a tree decomposition of H_B of width 2(k+1)-1 = 2k+1. So min_B tw(H_B) <= 2 tw(G)+1. Together with the lower bound: min_B tw(H_B) = 2 tw(G)+1. SCOPE: any field F, finite simple G, the homogeneous 3-colour kernel only (not the affine solution set, not the non-linear two-value condition). ORIGIN: generalises the owner's GF(3) proof; the 'arbitrary-field version' of Q-fbfe10bfb3 is addressed here by hand. BARRIER CHECK: not a circuit or proof-system lower bound for P vs NP; no barrier analysis required. STATUS: CLAIMED, hand-checked by the claimant only (same family as the reviewers); novelty against Kashyap (0711.1383) and Hlinen\u00fd-Whittle still open (Q-f0f8a3a9f1).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795359966.9253495,
+  "session": "pnp-desk/research/R1539",
+  "model": "claude-haiku-5-5",
+  "lemma": "Lemma F (full-point code, any k>=1, GF(3)): let C be a k-dim code whose generator columns are one representative of each projective point of PG(k-1,3), with no zero column. Then min over bases B of tw(G_B) = k-1.",
+  "gap": "Lemma F does not shrink the open obligation G0001. It gives an exact value for a single family, not a general bound. The repair needs a bounded-width basis construction for general codes, which is not yet found.",
+  "evidence": "cm-9ebff54337f34817: k=2 tw histogram {1:48}, k=3 {2:11232}, both match prediction. Depends on S0009 Lemma B (CLAIMED, unreviewed). Claimant and reviewer are both claude-haiku-5-5, so no self-review.",
+  "gap_id": "G0014",
+  "id": "S0024",
+  "proved_step": "Lemma F: min_B tw(G_B) = k-1 for the full projective point set. Upper bound: G_B has k vertices. Lower bound: column supports T_j are cliques (S0009 Lemma B), so tw >= max_j|T_j|-1. The point set is GL-invariant, so every basis has a full-support point; the k coordinate hyperplanes cover only points with a zero coordinate, and full-support points number 2^(k-1) >= 1. Hence some |T_j|=k, G_B contains K_k, and tw >= k-1. Scope: GF(3), one code family only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795361491.5131192,
+  "session": "pnp-desk/research/R1553",
+  "model": "claude-haiku-5-5",
+  "gap": "No gap in the upper bound as stated. Not a new result: probably duplicates wstar_le_two_tw_add_one (WStarLower.lean), not checked. The matching lower bound (LOWER_BOUND_PROOF.md steps i-iv) is cited from the owner text and NOT re-derived or re-read in this session, so min over bases = 2tw(G)+1 is not established here. Numerical support: cm-07de4f3b9e264b6a, cm-16178b3804fc43cb (9 small graphs only). Not P vs NP progress.",
+  "evidence": "cm-07de4f3b9e264b6a (tw(H_B)=2tw+1 on K3,C4,P4,K4,K_{1,3},K5); cm-16178b3804fc43cb (kernel membership, dim=2|V|, independence on K1,K2,P3,K3,C4,P4,K4,K_{1,3},K5)",
+  "gap_id": "G0015",
+  "id": "S0025",
+  "proved_step": "UPPER BOUND (claimed by claude-haiku-5-5 session, unreviewed). Setting: G=(V,E) finite simple, V nonempty, GF(3) homogeneous kernel K_G of the positive exact-one encoding with coordinates (v,c) and (e,c), c in {1,2,3}. Let tau_1=(1,2,0), tau_2=(0,1,2) in T (sum-zero vectors). Canonical basis B*: for v in V, i in {1,2}, b(v,i) has vertex entries tau_i(c) at (v,c), and edge entries -tau_i(c) at (e,c) for each edge e containing v, zero elsewhere. CLAIM: (1) each b(v,i) lies in K_G; (2) B* is a basis of K_G; (3) the coefficient graph H_{B*} equals G[K_2] (vertices (v,i), adjacent iff v=u with i!=j, or uv in E); (4) hence min over bases of tw(H_B) <= tw(G[K_2]) <= 2 tw(G)+1. PROOF. (1) Vertex sums of tau_i are 0. For e={v,w}: b(v,i)(e,c) = -tau_i(c) = -(b(v,i)(v,c)+b(v,i)(w,c)) since b(v,i)(w,c)=0; edges not containing v are zero on both sides. (2) Restriction to vertex coordinates is an isomorphism K_G -> T^V because edge entries are forced; dim K_G = 2|V|. Restrictions of b(v,1), b(v,2) are tau_1, tau_2 at v and 0 elsewhere; tau_1, tau_2 are independent in T (dim 2), so the 2|V| vectors span T^V and form a basis. (3) supp tau_1={1,2}, supp tau_2={2,3}; both contain colour 2. Same vertex v: share (v,2), adjacent. uv in E: b(v,i) and b(u,j) are both nonzero at (e,2), adjacent. Otherwise no coordinate is shared (vertex coordinates are only nonzero at their own vertex; edge coordinates only at endpoints). So H_{B*} = G[K_2]. (4) Take a width-tw(G) tree decomposition (T,beta); set beta'(t)=beta(t) x {1,2}. Edges (v,1)(v,2) lie in a bag containing v; edges (v,i)(u,j) with uv in E lie in a bag containing u and v. For each (v,i), the nodes containing it form a subtree (they are the nodes whose bags contain v). Max bag size is 2(tw(G)+1), so width <= 2tw(G)+1. QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795428870.4924805,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0020: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795429324.8663216,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0020: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795429446.9545217,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0020: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795442063.4977589,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0024: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: I could not obtain kernel verification. The available interface did not expose `physalis_math_verify`, and I did not produce a Lean file proving the stated treewidth claim. The claim remains  (not a refutation; a model review is still needed)"
+ }
+]

@@ -1,0 +1,293 @@
+[
+ {
+  "at": 1795327933.7214339,
+  "session": "pnp-desk/research/R1339",
+  "model": "claude-haiku-5-5",
+  "gap": "K1 (deterministic one-pass search-MCSP) vs CJSW Thm 1.3: need the exact exponent f(n) of Thm 1.3 and whether Lemma 3.2's conditional algorithm (NP subset BPP or NP=P, time O(N s^c), space O(s^c)) shows the hypothesis of Thm 1.3 is met. A deterministic one-pass K1 lower bound is not implied by Thm 1.3 as read so far.",
+  "evidence": "arXiv 2203.14379 read windows: Thm 1.3 opening, Lemma 3.2, Thm 1.4, Prop 4.3, Prop 4.4, Thm 1.7 item 3. Correction to cm-e16c25c5f72d4459: bound omitted gate-type factor.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795327979.5279381,
+  "session": "pnp-desk/research/R1339",
+  "model": "nemotron-3-ultra-550b",
+  "id": "S0002",
+  "proved_step": "Lemma (Corrected Sparseness Bound): For every constant c >= 1, the number of truth tables on N = 2^n inputs computable by fan-in-2 circuits of size s = n^c is at most 2^{o(N)}. Proof: description length s*(4 + 2*log2(n+s)) + log2 s = 2s*log2(n+s) + O(s) = O(n^{c+1} log n) = o(2^n) = o(N).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": false
+ },
+ {
+  "at": 1795363290.9805238,
+  "session": "pnp-desk/research/R1569",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a Haiku session (different family from nemotron). Checked the description-length count: each of the s gates needs 4 bits for its type and 2*log2(n+s) bits for its two inputs, and the output needs log2 s bits. Total s(4+2log2(n+s)) + log2 s = O(n^{c+1} log n) = o(2^n) = o(N) for s = n^c. Worked instance n=10, c=1, s=10 gives about 130 bits against N=1024, consistent with the bound. The step is a correct counting fact. It does not close G0001 (the Thm 1.3 exponent question), so it is a review only, not progress.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795456956.924924,
+  "session": "pnp-desk/research/R2223",
+  "model": "gpt-6-luna",
+  "gap": "G0001 narrowed by the reported source audit: CJSW Theorem 1.3 has a constructive-separation premise for uniform randomized streaming algorithms at time O(n(log n)^{f(n)}) and space O((log n)^{f(n)}), f(n) >= omega(1); the reported Lemma 3.2 conditional algorithm matches this resource scale under the paper's assumption. Still open: prove every admissible deterministic one-pass K1 Search/Decision-MCSP algorithm yields the exact constructive-separation premise with uniformity and resources preserved, or prove a K1-specific constructive refuter. Theorem 1.7's uniform AC^0 scope does not itself supply that reduction.",
+  "gap_note_on": [
+   "G0001"
+  ]
+ },
+ {
+  "at": 1795457062.2825918,
+  "session": "pnp-desk/research/R2223",
+  "model": "gpt-6-luna",
+  "gap": "This conditional subclass lemma does not close G0001: the unresolved premise is whether every admissible K1 family satisfies CJSW's time/space bounds at matching lengths and whether the needed uniform constructive refuter exists. The resource match of Lemma 3.2 under its complexity assumption is not a K1 refuter.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0005",
+  "proved_step": "statement: Lemma (conditional deterministic-to-randomized inclusion). Fix an input length N and resource bounds T(N), S(N). Let K_det be a class of deterministic one-pass streaming machines for a fixed language L whose machines use at most T(N) time and S(N) space on every length-N input. Let K_rand contain randomized one-pass streaming machines under the same resource bounds, where deterministic behavior is allowed by ignoring the random tape. If a refuter R outputs, for every machine A in K_rand, an input y on which A errs (under the stipulated refuter quantifiers), then R also refutes every machine in K_det. Proof: For each A in K_det, define A' in K_rand with the same transition function and output, independent of its random tape. It uses the same resources and has identical output on every input, so any y witnessing error of A' witnesses error of A. This implication preserves the refuter's own uniformity and resources because R is unchanged. It applies only when K_det embeds with the same input-length indexing and resource bounds; it does not construct R or establish that K1 is contained in CJSW's resource-bounded class.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795457556.660643,
+  "session": "pnp-desk/research/R2223",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "statement: Residual-state lower bound. Let L be any language over {0,1}, let k be a cut position, and let R_k be the set of distinct suffix languages L_p={z : |z|=N-k and pz in L}, as p ranges over {0,1}^k. Every deterministic one-pass machine that decides L on length-N inputs must have at least |R_k| distinct states after reading k bits, and therefore at least ceil(log2 |R_k|) state bits. Proof: If prefixes p,p' with distinct residual languages reached the same state, there would be a suffix z accepted after one prefix and rejected after the other. Starting from the same state, the deterministic transition/output behavior on z is identical, contradicting correctness. Thus distinct residual languages require distinct states; taking logarithms gives the bit bound.\nevidence: Direct proof by indistinguishable-state contradiction; applies to exact deterministic one-pass decision at a fixed length and cut. No K1-specific value of |R_k| is established, so this lemma does not prove the K1/CJSW resource match or close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795498070.9115155,
+  "session": "pnp-desk/research/R2515",
+  "model": "gpt-6-luna",
+  "gap": "This narrows the search-versus-decision issue: any K1 search lower bound follows from a decision lower bound when search has the stated exact success/failure contract. G0001 remains open; next required work is checking the K1 length/resource parameterization against CJSW and establishing its refuter premise.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0007",
+  "proved_step": "statement: Search-to-decision implication for fixed-length MCSP streams. Fix a truth-table input length N and a circuit-size threshold s. Suppose a deterministic one-pass streaming algorithm A, on every N-bit truth table x, outputs either (i) a circuit C of size at most s whose truth table equals x, or (ii) a distinguished failure symbol; suppose it outputs a circuit in case x has one of size at most s, and outputs failure otherwise. Then there is a deterministic one-pass decision algorithm D for MCSP[N,s] with the same state set, transition function, input order, and update-time bound as A, and with no greater working space: D runs A and accepts exactly when A's final output is a circuit. Proof: By the two output guarantees, A outputs a circuit exactly on members of MCSP[N,s]. D can use A's final output tag as its answer, without inspecting or retaining the input stream. Hence its streaming resources are unchanged. This implication does not establish that K1's algorithm satisfies these output guarantees in CJSW's precise parameterized model, nor does it provide the CJSW constructive refuter.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795500680.2967079,
+  "session": "pnp-desk/research/R2537",
+  "model": "gpt-6-luna",
+  "id": "S0008",
+  "proved_step": "Lemma (bounded-query deterministic simulation). Let M be a deterministic one-pass streaming machine whose per-input-symbol update performs at most q(N) adaptive oracle queries, each of length at most L(N), with non-oracle work at most T(N) per update and working space at most S(N), including the state used to generate each query. Let D be a deterministic decider for the oracle language, running in time U(L) and space V(L) on queries of length L. Then M can be simulated as a deterministic one-pass machine with per-symbol update time at most T(N)+q(N)(cL(N)+U(L(N))) and working space at most S(N)+cL(N)+V(L(N))+O(log(q(N)+1)), for an absolute constant c, plus the unchanged output storage of M. Proof: On each input symbol, simulate M's non-oracle instructions. Whenever it issues a query y, copy y into a buffer of at most L bits, run D on that buffer using V(L) scratch bits, feed the answer to M, erase/reuse the scratch and buffer, and continue. Adaptivity causes no extra storage because queries are processed sequentially and each next query is generated from M's current simulated configuration and the preceding answers. Each query costs O(L)+U(L) time, and the buffer and D workspace are reused, giving the stated bounds. Input is consumed only by M's original one-pass updates, so no rereading is introduced. This lemma does not imply that a Sigma_3SAT oracle is in P under P=NP, nor that CJSW's refuter premise applies to K1; it isolates the cost once a suitable deterministic oracle decider is actually available.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795501000.317223,
+  "session": "pnp-desk/research/R2537",
+  "model": "gpt-6-luna",
+  "gap": "G0001 remains open: this characterization gives no parameter-preserving embedding of deterministic K1 MCSP streams into CJSW's theorem and no constructive refuter.",
+  "evidence": "Direct indistinguishable-suffix argument and well-defined residual update; full proof included in the step.",
+  "gap_note_on": [
+   "G0001"
+  ],
+  "id": "S0009",
+  "proved_step": "Finite residual-row characterization (constructive). Let A be any subset of {0,1}^N and 0<=k<=N. For each prefix p in {0,1}^k define its residual row r_p in {0,1}^{2^(N-k)} by r_p(z)=1 iff pz is in A. Then a deterministic one-pass machine deciding membership in A has at least |{r_p}| states after k input bits, and a machine with exactly |{r_p}| states at that cut suffices for the remaining suffix decision if its state stores the row index. Proof: For the lower bound, if p,p' have different rows, some suffix z has r_p(z) != r_p'(z); a deterministic machine in the same state after p and p' would behave identically on z, contradiction. For sufficiency, map each prefix to its row class; on the next bit b, update row r_p to the class of r_{pb}, which is well-defined because equal rows imply for every b and suffix z that r_p(bz)=r_p'(bz), hence r_{pb}=r_{p'b}. At k=N the row is the single membership bit, so these transitions decide A exactly. This proves the residual-state characterization directly and does not use any earlier claimed step or give a K1-specific asymptotic bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795547780.2033932,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0010",
+  "proved_step": "For each N>=1, let L_N={0^N} over {0,1}^N. At a cut k, the number r_k of distinct residual suffix languages is r_0=1 and r_k=2 for every 1<=k<=N. Proof: At k=0 there is only the empty prefix, whose residual is {0^N}. Fix k>=1. The prefix 0^k has residual {0^(N-k)} (the singleton containing the empty string when k=N). Every other length-k prefix has empty residual, since it already disagrees with 0^N. Both residuals occur, so there are exactly two. Consequently every exact deterministic one-pass decider for L_N has at least one state bit after every nonempty prefix cut: distinct residuals must reach distinct states, since a suffix distinguishing the residuals would otherwise receive the same deterministic continuation from the shared state. This is an exact residual-state result for the singleton language only; it supplies no growing lower bound and does not establish a resource match to CJSW for general MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548011.4022617,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "Explicit-candidate residual tracker. Let F be any fixed, explicitly listed subset of {0,1}^N with M=|F|, and let the stream be x_1,...,x_N in order. There is a deterministic one-pass machine with M state bits whose state after t bits is exactly the indicator vector v_t indexed by F, where v_t(f)=1 iff f[1..t]=x_1...x_t. Initialize v_0 to the all-ones vector. On bit b at position t+1, update each coordinate by v_{t+1}(f)=v_t(f) AND [f[t+1]=b]. By induction on t, this is precisely the set of listed strings extending the observed prefix. At the end, the stream belongs to F iff the state has at least one 1. The update takes O(M) Boolean operations and the description stores F in O(MN) bits (or read-only program constants); the machine uses M mutable state bits. Moreover, two prefixes induce the same state iff they have the same intersection of F with their extension cylinder, so this construction explicitly represents the residual candidate set for F. It gives a finite-list construction only: if F is the set of size-at-most-s circuit truth tables, its explicit listing can be exponentially larger than an MCSP decision circuit, and this lemma does not provide a polynomial-in-|H_C| update rule.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548100.2594552,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "Residual-count bound for a fixed-length candidate family. Let N>=0 and F be any finite subset of {0,1}^N. For 0<=k<=N and each prefix p in {0,1}^k, define R_p={z in {0,1}^{N-k}: pz in F}, and let r_k be the number of distinct sets R_p (including the empty set). Then r_k<=min(2^k, 2^{|F|}). Proof: there are exactly 2^k possible prefixes, so there are at most 2^k residual sets. Each residual is a subset of F under the bijection z -> pz, hence there are at most 2^{|F|} possible residuals. Taking the smaller bound proves the claim. Moreover, the candidate-subset tracker is exact: after prefix p it stores V=F intersect {pz:z in {0,1}^{N-k}}, identified with its suffixes; on next bit b it replaces V by {z: bz in V}. Induction on k proves the invariant, and at k=N, V is nonempty iff the input belongs to F. This is only a state-count upper bound and an explicit-list procedure; it gives no succinct update bound for circuit-defined F or CJSW resource match.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548159.6538544,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "Residual-count bound by family size, with a trie consequence. Let N>=0 and F be a fixed subset of {0,1}^N of size M. For 0<=k<=N define R_p={z in {0,1}^{N-k}: pz in F} for each p in {0,1}^k, and let r_k count distinct such sets, including the empty set. Then r_k<=min(2^k,M+1). Proof: There are 2^k prefixes. For the second bound, each distinct nonempty residual R has at least one witness word x=pz in F whose prefix p induces R. Choose one such witness for each distinct nonempty residual. Witnesses chosen for different residuals are distinct, because a word x has a unique length-k prefix and hence belongs to only that prefix's residual; if the same x witnessed two residuals, those residuals would both equal R_p. Thus there are at most M distinct nonempty residuals, plus at most one empty residual. For the constructive consequence, build the prefix trie of F, with a rejecting sink for prefixes outside the trie. It has at most 1+NM nodes, recognizes F exactly, and each input-bit transition follows one child pointer or enters the sink, so after construction transitions take O(1) pointer operations. This does not bound construction, storage, or transition cost polynomially in a succinct circuit description of F, so it does not close the CJSW/MCSP bridge.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548177.6996331,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "Corrected explicit-trie bound. Let N>=0 and F be an explicitly listed subset of {0,1}^N with |F|=M. Its prefix trie has at most 1+NM nodes: the root contributes one, and each of the M words adds at most N nodes. Add one rejecting sink, if needed, for every missing child transition. The resulting deterministic automaton has at most NM+2 nodes, recognizes F exactly, and each transition takes O(1) pointer operations after construction. Proof: a word reaches its terminal trie node exactly when all its bits follow trie edges; any missing edge enters the rejecting sink, which loops on both symbols. The node bound follows by charging each non-root trie node to a word having that prefix, with at most N charged nodes per word, then adding the root and at most one sink. This is an explicit-list construction and gives no polynomial resource bound from a succinct circuit description of F.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548269.4220676,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "Disjoint-residual bound. Let N>=0, F be a finite subset of {0,1}^N, and 0<=k<=N. For each length-k prefix p define R_p={z in {0,1}^{N-k}: pz in F}, and let r_k be the number of distinct R_p, including the empty set if it occurs. Then r_k<=min(2^k, |F|+1). Proof: There are 2^k prefixes, so r_k<=2^k. For distinct prefixes p,p' of equal length, R_p and R_p' are disjoint: a suffix z in both would make the same string have two different length-k prefixes. Thus the nonempty distinct residuals are pairwise disjoint subsets of F. Each contains at least one element of F, so there are at most |F| nonempty residuals. There is at most one additional empty residual, proving r_k<=|F|+1. This sharpens the generic 2^{|F|} subset bound. It is a structural state-count bound only; for succinctly specified MCSP candidate families it gives no polynomial bound unless |F| itself is polynomial.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795548384.9443405,
+  "session": "pnp-desk/research/R2925",
+  "model": "gpt-6-luna",
+  "id": "S0016",
+  "proved_step": "Layered one-hot residual transition circuit. Let N>=0 and L be any subset of {0,1}^N. For 0<=k<=N, let R_k be the set of distinct residual languages R_p={z in {0,1}^{N-k}: pz in L} over prefixes p of length k, and put r_k=|R_k|. There is a deterministic layered one-pass automaton with one-hot state at each level k, recognizing L exactly, whose transition circuit for input position k has fan-in-2 Boolean circuit size O(r_k+r_{k+1}). Proof: At level k use one bit x_R for each R in R_k, with exactly the current residual bit set. For b in {0,1}, define R_b={z:bz in R}; this is a member of R_{k+1}. For each R' in R_{k+1}, set its next-state bit y_{R'} = OR over all (R,b) with R_b=R' of (x_R AND [input=b]). There are exactly 2r_k source/input pairs; forming the gated terms costs O(r_k), and ORing the terms by destination costs O(r_k+r_{k+1}) total including empty destinations. The initial state is the unique residual at k=0. At level N accept iff the active residual contains the empty string. Induction on k proves that the active state is the residual of the read prefix, hence the automaton accepts exactly L. The circuits may depend on k and L; the claim makes no uniform construction-cost assertion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795550542.1906796,
+  "session": "pnp-desk/research/R2941",
+  "model": "gpt-6-luna",
+  "evidence": "The PH-collapse induction removes the Sigma_3SAT oracle from polynomially bounded updates under P=NP. Sequential simulation reuses query storage and decider workspace. This only narrows the oracle-cost component; the CJSW refuter and exact K1 parameter match remain open.",
+  "id": "S0017",
+  "proved_step": "statement: Lemma (oracle elimination under P=NP). Let O be any language in PH and suppose P=NP. Then O is decidable by a deterministic polynomial-time machine. Consequently, a deterministic one-pass streaming machine with polynomial per-symbol work apart from at most polynomially many adaptive O-queries of polynomial length can be simulated by a deterministic one-pass machine with polynomial per-symbol update time and polynomial space, provided its own non-oracle update and query-generation work and space are polynomially bounded. Proof: P=NP implies coNP=NP=P. Inductively, if Sigma_i^P=Pi_i^P=P, then Sigma_{i+1}^P=NP^{Sigma_i^P}=NP^P=NP=P, and likewise Pi_{i+1}^P=P; thus PH=P and O has a deterministic polynomial-time decider. For an input stream of total length N, process each query sequentially using that decider, erase and reuse its query buffer and workspace, and return its answer before continuing the adaptive update. If the decider uses time polynomial in query length L and space polynomial in L, then each update takes T(N)+q(N)\u00b7poly(L(N)) time and S(N)+poly(L(N))+O(log(q(N)+1)) space, which remain polynomial. This preserves one-pass input access and determinism. The statement is conditional on P=NP; it supplies no constructive refuter and does not by itself imply K1 lies in a CJSW class.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795550742.3589933,
+  "session": "pnp-desk/research/R2941",
+  "model": "gpt-6-luna",
+  "evidence": "This is conditional oracle-cost elimination only. It gives no K1 resource embedding or CJSW refuter; G0001 remains open.",
+  "id": "S0018",
+  "proved_step": "statement: Conditional oracle elimination under P=NP. For each fixed language O in PH, O has a deterministic polynomial-time decider. A deterministic one-pass machine with polynomial per-symbol non-oracle work and space, making polynomially many adaptive polynomial-length queries to O per update, can replace those queries with that decider and retain polynomial update time and space. Proof: P=NP implies PH=P by induction on hierarchy level. Simulate each update, answering queries sequentially and reusing query storage and decider workspace. The update time and maximum live workspace remain polynomial; input order is unchanged. This conditional simulation supplies neither the K1/CJSW parameter match nor a constructive refuter, so it does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795550810.4086003,
+  "session": "pnp-desk/research/R2941",
+  "model": "gpt-6-luna",
+  "evidence": "Direct sequential simulation argument; the bound accounts for each actual query length and reuses scratch space. No claim that this closes G0001.",
+  "id": "S0019",
+  "proved_step": "statement: Length-sensitive sequential oracle simulation. Let M be a deterministic one-pass machine with S(N) working bits and at most T(N) non-oracle update steps per input symbol. If an update adaptively issues queries y_1,...,y_r to a fixed oracle language O, and O has a deterministic decider using time U(ell) and space V(ell) on inputs of length ell, then the update can be simulated with time T(N)+sum_i(O(|y_i|)+U(|y_i|)) and space S(N)+max_i(O(|y_i|)+V(|y_i|))+O(log(r+1)). Proof: simulate M until it issues a query; copy that query to a buffer, run the decider, return its answer, and reuse the buffer and decider workspace for the next query. Adaptivity is preserved because each answer is returned before the next query is generated. Summing per-query running times proves the time bound. Sequential reuse means only the largest query buffer and decider workspace are simultaneously live, proving the space bound. M consumes the input in its original one-pass order. This resource lemma supplies neither the K1/CJSW parameter embedding nor a constructive refuter; G0001 remains open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795593237.2343023,
+  "session": "pnp-desk/research/R3331",
+  "model": "gpt-6-luna",
+  "evidence": "The time bound uses U(L(N)) and V(L(N)) for queries of length at most L(N), but the lemma does not assume U and V are nondecreasing. A decider may have much larger time or space on a shorter query than at length L, so the claimed resource bound need not hold. Repair: replace U(L(N)),V(L(N)) with max_{0<=ell<=L(N)}U(ell), max_{0<=ell<=L(N)}V(ell), or assume monotone resource bounds explicitly.",
+  "review_of": "S0008",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795593280.4899802,
+  "session": "pnp-desk/research/R3331",
+  "model": "gpt-6-luna",
+  "id": "S0021",
+  "proved_step": "Repair of the bounded-query deterministic simulation lemma. Let M be a deterministic one-pass streaming machine whose per-symbol update makes at most q(N) adaptive oracle queries, each of length at most L(N), with non-oracle update time at most T(N) and working space at most S(N), including query-generation state. Let D decide the oracle language, and let U(ell), V(ell) bound its time and space on every query of length exactly ell. Define U_<=L(N)=max_{0<=ell<=L(N)} U(ell) and V_<=L(N)=max_{0<=ell<=L(N)} V(ell). Then M can be simulated with per-symbol update time at most T(N)+q(N)(cL(N)+U_<=L(N)) and working space at most S(N)+cL(N)+V_<=L(N)+O(log(q(N)+1)), for an absolute constant c, plus unchanged output storage. Proof: Simulate M's ordinary instructions and process each generated query sequentially. Store each query in an L(N)-bit buffer and run D on it using at most V_<=L(N) scratch bits and U_<=L(N) time; reuse both buffer and scratch for subsequent adaptive queries. Query generation uses M's current simulated configuration and previous answers already retained in M's state, so adaptivity adds no query-sized accumulation. At most q(N) queries occur, giving the time bound; the reusable buffer and decider workspace give the space bound. M still consumes each input symbol once. This corrects S0008's missing monotonicity hypothesis. It is a generic simulation lemma and does not close the K1/CJSW resource-match gap.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613245.0586133,
+  "session": "pnp-desk/research/R3593",
+  "model": "gpt-6-luna",
+  "id": "S0022",
+  "proved_step": "statement: For every finite L subset of {0,1}^N and cut k, the minimum number of deterministic one-pass recognizer states after k bits is exactly the number of distinct residual rows r_p(z)=1 iff pz is in L. The upper bound is realized by storing the residual-row class; transitions are well-defined because equal rows have equal restrictions to either next bit. The lower bound follows because distinct rows have a suffix on which they differ, so they cannot reach the same state.\nproof: For the upper bound, use one state per residual-row equivalence class at each level. On reading bit b, send class [r_p] to [r_{pb}]. If r_p=r_q, then for every suffix z, r_{pb}(z)=r_p(bz)=r_q(bz)=r_{qb}(z), hence the target class is independent of the representative. At level N the residual row is the single membership bit, which determines acceptance. For the lower bound, if p and q have different rows, choose z with r_p(z) != r_q(z). If the machine reached the same state after p and q, deterministic processing of z would give the same outcome, contradicting correct recognition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795613285.820922,
+  "session": "pnp-desk/research/R3593",
+  "model": "gpt-6-luna",
+  "id": "S0023",
+  "proved_step": "statement: Let C be a finite subset of {0,1}^N and L=C. At every cut k, the number of distinct residual rows r_p(z)=1 iff pz is in L is at most |C|+1. Hence the residual-class recognizer uses at most ceil(log2(|C|+1)) state bits at every cut.\nproof: For a prefix p, its row is nonzero exactly when some x in C extends p. If two distinct nonzero rows r_p and r_q contained the same x, then x would have both p and q as its length-k prefix, impossible. Thus the number of nonzero rows is at most |C|. All zero rows coincide, so there is at most one additional row. The residual-class recognizer stores one class index and has one state per distinct row, giving the stated bit bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613453.786857,
+  "session": "pnp-desk/research/R3593",
+  "model": "gpt-6-luna",
+  "id": "S0024",
+  "proved_step": "statement: Residual-state upper bound for circuit MCSP. Fix n>=1, s>=0, N=2^n. Use topologically ordered circuits with constants, input literals, fan-in-two AND/OR/NOT gates, and size equal to gate count. Let L_{n,s} be the length-N truth tables computed by circuits of size at most s, and B=4(n+s+2)^2. At every cut k, the number of distinct residual suffix languages of L_{n,s} is at most min(2^k, 2^(2^(N-k)), 1+(s+1)B^s). Proof: A j-gate circuit description has at most four gate types and at most (n+j+2)^2 ordered source pairs per gate, so there are at most B^j descriptions. Thus |L_{n,s}|<=sum_{j=0}^s B^j<=(s+1)B^s. For each length-k prefix p, let R_p={z:pz in L_{n,s}}. There are at most 2^k prefixes and at most 2^(2^(N-k)) possible residual subsets. Also, the nonempty residuals are at most |L_{n,s}|: choose one accepted full string from each nonempty residual; strings chosen for distinct prefixes are distinct because their length-k prefixes differ. This proves the bound. Residual languages give a deterministic automaton: the transition on bit b maps R_p to R_{pb}, which is well-defined because equal residuals agree on every suffix beginning with b. Therefore the bound also upper-bounds the minimal state count. It does not bound the time to compute or update a residual class, so it does not establish the CJSW resource match or close G0001.\nevidence: Direct circuit-description count and residual-language argument given in the statement. The conclusion is an upper bound on state count only; efficient transition computation remains open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613562.5410812,
+  "session": "pnp-desk/research/R3593",
+  "model": "gpt-6-luna",
+  "id": "S0025",
+  "proved_step": "statement: Explicit residual automaton for a listed finite language. Let N>=0 and let A be an explicitly listed subset of {0,1}^N, with M=|A|. For each k=0,...,N, define R_{k,p}={z in {0,1}^{N-k}: pz in A} for p in {0,1}^k. At each cut k there are at most M+1 distinct residual sets, and a deterministic layered automaton deciding A can be constructed from the list using O(N(M+1)) states and O(N(M+1)) transitions, with O(1) transition lookup time after construction. Proof: At a fixed cut, every nonempty residual R_{k,p} contains at least one word x in A with prefix p. Choose one such x for each distinct nonempty residual. Words chosen for different residuals have different length-k prefixes: a word x has only one such prefix, and therefore can be assigned to only one residual. Hence the number of nonempty residuals is at most M; include the empty residual to get at most M+1. For transitions, if R_{k,p}=R_{k,p'}, then for each bit b and suffix z of length N-k-1, bz belongs to R_{k,p} iff p'bz belongs to A, equivalently z belongs to R_{k+1,pb}; the same equivalence holds for p', so R_{k+1,pb}=R_{k+1,p'b}. Thus the transition from a residual class on b is well-defined. Enumerate prefixes at each level, compute their residuals by scanning the listed words, merge equal residuals, and store each class's two successor class identifiers. This gives the stated state and transition counts and constant-time table lookup. Construction time is polynomial in N and M (for example O(N^2 M) with direct prefix comparisons). The lemma does not imply an efficient uniform construction for MCSP because its accepted truth-table list may be too large to enumerate.\nevidence: Complete finite-language proof and explicit construction given in the statement; the construction-time bound is in terms of the explicit list size M, not a succinct MCSP description.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625340.6741002,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Lemma (MCSP completion-profile state bound). Fix n,s and let E_{n,s} be the set of length-2^n truth tables computed by Boolean circuits of size at most s. For 0<=k<=2^n and each prefix p in {0,1}^k define R_p={z in {0,1}^{2^n-k}: pz is in E_{n,s}}, and let w_k be the number of distinct sets R_p. Every deterministic one-pass machine that decides MCSP[n,s] on length-2^n truth-table inputs has at least w_k states after k bits. Proof: if p,p' have different residual sets, choose z in their symmetric difference. Then exactly one of pz,p'z is in E_{n,s}. If the machine reached the same state after p and p', its deterministic behavior on the common suffix z and final decision would agree, contradicting correctness. Hence distinct residual sets require distinct states.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625451.8630807,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: Fix N>=1, A subseteq {0,1}^N, and 0<=k<=N. For each p in {0,1}^k let R_p={z in {0,1}^{N-k}: pz in A}, and let w_k be the number of distinct R_p. Then w_k<=min(2^k,|A|+1). Moreover, the distinct residual sets at all levels form states of an exact deterministic one-pass machine deciding A. Proof: There are 2^k prefixes. Every nonempty R_p contains a suffix z with pz in A, and each element of A has a unique k-bit prefix, so at most |A| distinct residual sets are nonempty; at most one additional residual set is empty. After prefix p, store R_p. On reading bit b, replace it by {z:bz in R_p}=R_pb. This depends only on the stored set. At level N accept iff the stored residual contains the empty string. This proves the bound and exact decision procedure.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625559.817544,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Let A be any subset of {0,1}^N. For 0<=k<=N, let w_k be the number of distinct residual sets R_p={z in {0,1}^{N-k}: pz in A}, over prefixes p of length k. For 0<=k<N, ceil(w_{k+1}/2) <= w_k <= w_{k+1}^2. Proof: Each residual R_p at cut k has at most two restrictions R_{p0},R_{p1}, so the w_k parent residuals generate at most 2w_k distinct child residuals; hence w_{k+1}<=2w_k. Conversely, R_p is uniquely reconstructed from its ordered pair of child restrictions as {0z:z in R_{p0}} union {1z:z in R_{p1}}. Thus distinct parent residuals correspond to distinct ordered pairs drawn from at most w_{k+1} child types, giving w_k<=w_{k+1}^2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795625657.048114,
+  "session": "pnp-desk/research/R3751",
+  "model": "gpt-6-luna",
+  "id": "S0029",
+  "proved_step": "statement: Let A be a subset of {0,1}^N. For each prefix p of length k, define R_p={z in {0,1}^{N-k}: pz in A}. For 0<=k<N, the map R_p -> (R_{p0},R_{p1}), where R_{pb}={z: pbz in A}, is well-defined and injective on the distinct residuals realized at level k; its image is exactly the set of ordered child-residual pairs realized by prefixes p. Hence w_k equals the number of distinct realized ordered pairs of level-(k+1) residuals. Proof: If R_p=R_q then for every b and z, pbz in A iff p(bz) in A iff q(bz) in A iff qbz in A, so R_{pb}=R_{qb}. Thus the map is well-defined. If both child residuals agree for p and q, every suffix begins with one of the two bits b, and membership in R_p and R_q agrees on bz by equality of R_{pb} and R_{qb}; hence R_p=R_q, proving injectivity. Every realized pair comes from its defining prefix, so the image is exactly the realized pairs.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795672499.273337,
+  "session": "pnp-desk/research/R4349",
+  "model": "gpt-6-luna",
+  "id": "S0030",
+  "proved_step": "Constructive residual-row automaton lemma (general finite-language form). For any N>=0 and A subset {0,1}^N, define r_p(z)=1 iff pz in A for each prefix p of length k, with z of length N-k. At each cut k, the equivalence classes of prefixes under equality of r_p are exactly the residual classes. The induced transition on a bit b maps [p] to [pb], which is well-defined because equality of r_p and r_q implies equality after restricting both rows to suffixes beginning with b. At k=N, each row is the membership bit, so the layered residual-class automaton decides A exactly. Proof: If r_p=r_q, then for every suffix z, pz\u2208A iff qz\u2208A, so their residual languages agree; conversely, distinct rows differ at some suffix and therefore have different residual languages. For well-definedness, if r_p=r_q, then for every remaining suffix z, r_{pb}(z)=r_p(bz)=r_q(bz)=r_{qb}(z), hence r_{pb}=r_{qb}. The final one-bit rows give acceptance. This is a constructive structural lemma only; it gives no K1-specific lower bound and does not close the CJSW bridge.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

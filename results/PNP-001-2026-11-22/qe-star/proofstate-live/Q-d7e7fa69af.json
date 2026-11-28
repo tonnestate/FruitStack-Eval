@@ -1,0 +1,119 @@
+[
+ {
+  "at": 1795351870.4123354,
+  "session": "pnp-desk/research/R1479",
+  "model": "claude-haiku-5-5",
+  "lemma": "Let L = ceil(log2(n+s)) and m = s(2L+2)+L. If m < 2^n, then some Boolean function on n inputs has circuit size > s over {AND, OR, XOR, NOT} (NOT counted as a gate). Proof: a circuit of size <= s is determined by an m-bit description (per gate: 2-bit op code and two operand indices of L bits each, plus an L-bit output index). The map from descriptions to truth tables therefore has image of size <= 2^m. There are 2^(2^n) n-variable functions, and 2^m < 2^(2^n) when m < 2^n, so by pigeonhole some function is not in the image. Folklore counting; not a new theorem.",
+  "gap": "No reduction yet from a one-pass deterministic Search-MCSP algorithm to a total avoidance search for Eval_{n,s}. The counting step gives existence only. A witness must be produced within the one-pass update-time budget, and space bounds alone do not control that cost (spec note: only an update-time lower bound can establish the hypothesis). Next step: state a witness-construction procedure with an explicit update-time bound, or a restricted one-pass model in which the counting argument itself yields a bound on update time.",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "Counting lemma: if m = s(2*ceil(log2(n+s))+2)+ceil(log2(n+s)) < 2^n then some n-input Boolean function has circuit size > s over {AND,OR,XOR,NOT}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795384101.8691506,
+  "session": "pnp-desk/research/R1781",
+  "model": "claude-haiku-5-5",
+  "id": "S0002",
+  "proved_step": "statement: For m = s(2L+2)+L, L = ceil(log2(n+s)), and m < 2^n: the least integer v* whose truth table is not computed by a circuit of size <= s over {AND,OR,XOR,NOT} satisfies v* <= 2^m, and is found by exhaustive search in time 2^m * poly(s) * 2^n. Does not close G0001 (no one-pass update-time bound).\nproof: Surjection {0,1}^m -> realised set (opcode 2 bits, two L-bit operands per gate, L-bit output index, dummy-gate padding, fixed default for invalid references). So |R| <= 2^m. Among {0..2^m} (2^m+1 values) some value is unrealised, so v* <= 2^m < 2^N. Enumerate 2^m descriptions, evaluate bit-parallel, scan a bitset for the first unmarked index.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795384181.683616,
+  "session": "pnp-desk/research/R1781",
+  "model": "claude-haiku-5-5",
+  "id": "S0003",
+  "proved_step": "statement: Let N=2^n, L=ceil(log2(n+s)), m=s(2L+2)+L, and assume m < 2^n. Let R be the set of truth tables on n inputs of circuit size <= s over {AND,OR,XOR,NOT}, and let R_p be the set of length-p prefixes (fixed input order) of tables in R. Then (a) |R_p| <= 2^m for every p <= N; (b) some w in {0,1}^(m+1) is not in R_(m+1), and every table with prefix w has circuit size > s. Hence the minimal dead depth p* = min{p : R_p != {0,1}^p} satisfies p* <= m+1 = O(s log(n+s)).\nproof: (a) R_p is the image of R under the prefix map pi_p, so |R_p| <= |R| <= 2^m by the encoding in S0001/S0002: each circuit of size <= s is described by s(2L+2)+L bits (2-bit opcode and two L-bit operands per gate, L-bit output index), and L = ceil(log2(n+s)) indexes all n+s nodes; dummy gates pad smaller circuits, so the description map is onto R. (b) m < 2^n gives m+1 <= N, so pi_(m+1) is defined. |{0,1}^(m+1)| = 2^(m+1) > 2^m >= |R_(m+1)|, so some w is missing. If f had prefix w and C(f) <= s, then f in R and w = pi_(m+1)(f) in R_(m+1), a contradiction. Scope: shrinks G0001 by locating the witness within m+1 stream positions; does NOT close G0001, since no update-time bound on deciding membership in R_p follows. Trivial counting bookkeeping, not progress toward P vs NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795437006.32349,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - no counterexample found; formal proof attempt TIME_CAP: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795534536.951793,
+  "session": "pnp-desk/research/R2849",
+  "model": "gpt-6-luna",
+  "evidence": "The counting implication is valid under the standard fan-in-2, single-output model with n input wires, no uncounted constants, gate types AND/OR/XOR/NOT, and NOT counted as a gate. Topologically order an s-gate circuit; encode each gate by a 2-bit type and two L-bit predecessor indices (the unused second input is ignored for NOT), and encode the output by L bits, with L=ceil(log2(n+s)). Pad shorter circuits by a gate computing x AND x while retaining the output index. Thus all size<=s circuits are represented among 2^m strings, so fewer than 2^(2^n) functions are represented when m<2^n. No counterexample or counting gap remains under these explicit model conventions.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795534536.983535,
+  "session": "pnp-desk/research/R2849",
+  "model": "gpt-6-luna",
+  "evidence": "Given S0001's encoding model, |R|<=2^m. Among indices 0,...,2^m there must be an unrealized truth table, since this set has 2^m+1 members. The index is in the full truth-table range because m<2^n=N implies 2^m<2^N. Enumerating 2^m descriptions, evaluating each on all N inputs, and scanning a bitset takes O(2^m poly(s) N), matching the claimed bound. This is an exhaustive global procedure, not a one-pass update-time algorithm; the step explicitly does not close G0001.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795534537.0245528,
+  "session": "pnp-desk/research/R2849",
+  "model": "gpt-6-luna",
+  "evidence": "Under the same explicit circuit encoding model as S0001, the prefix map cannot increase cardinality, so |R_p|<=2^m. Since m<N, p=m+1<=N and 2^(m+1)>2^m, hence some length-(m+1) word is absent from R_(m+1). Any truth table with that prefix is outside R, so its circuit size exceeds s. This proves only the finite-depth existence assertion; no online construction or update-time bound follows.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795534583.2861514,
+  "session": "pnp-desk/research/R2849",
+  "model": "gpt-6-luna",
+  "evidence": "Direct proof by counting the two live subsets at each coordinate. For D the circuit-description universe from reviewed S0001-S0003, |D|<=2^m and circuit evaluation at a fixed truth-table coordinate takes poly(s) time. The argument is constructive and works for every finite description family; it does not use an MCSP streaming algorithm.",
+  "id": "S0008",
+  "proved_step": "Lemma (constructive halving for finite image prefixes). Let D be a finite set of descriptions, |D|<=2^m, each specifying a Boolean string in a fixed coordinate order. There is a deterministic sequential procedure that outputs a length-(m+1) string outside the set of length-(m+1) prefixes specified by D. Proof: maintain the descriptions agreeing with the prefix so far. At coordinate i, partition the live set by output bit 0 or 1, choose a bit whose part has smaller cardinality (tie-break 0), and retain only that part. Each step halves the live set, so after m+1 steps its size is at most 2^m/2^(m+1)<1. The output prefix is therefore specified by no description. If each description is an s-gate circuit encoding and its i-th output can be evaluated in poly(s) time, scanning all descriptions at each step gives O(2^m poly(s)) time per update and O(2^m) bits of storage. This constructs an avoidance witness but does not give a polynomial update bound or a reduction from bounded one-pass Search-MCSP.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795534667.0378346,
+  "session": "pnp-desk/research/R2849",
+  "model": "gpt-6-luna",
+  "evidence": "Direct smaller-branch argument with the exact circuit description length inherited from the reviewed S0001-S0003 model. For fixed s0, 2^m=2^(O(log n))=poly(n), and every described circuit can be evaluated at one truth-table coordinate in poly(n) time. Barrier diagnostic: counting/enumeration argument; relativizing in the ordinary oracle-access version; natural/useful only against this fixed constant-size class, not a P-vs-NP useful property; no algebrizing or localizing lower-bound implication. Five circumvention tests do not affect the stated enumeration procedure.",
+  "id": "S0009",
+  "proved_step": "Fix s0 >= 0. In the fan-in-2, single-output circuit model over {AND,OR,XOR,NOT}, with NOT counted as a gate and no uncounted constants, there is a uniform deterministic procedure which, for all sufficiently large n, constructs a length-(m+1) prefix absent from every n-input truth table computed by a circuit of size at most s0, where L=ceil(log2(n+s0)) and m=s0(2L+2)+L. It takes polynomial time per output bit and polynomial space in n. Proof: enumerate all 2^m encodings; at each coordinate retain the smaller of the live descriptions producing 0 and 1, ties to 0. After m+1 coordinates the live set has size at most 2^m/2^(m+1)<1. Since s0 is fixed, m=O(log n), so 2^m is polynomial in n; evaluating each encoding at a coordinate and maintaining the live set costs polynomial time and space. This is a uniform constructive range-avoidance procedure for the fixed constant-size class; it does not reduce one-pass Search-MCSP to range avoidance and does not address growing s.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795534763.7001972,
+  "session": "pnp-desk/research/R2849",
+  "model": "gpt-6-luna",
+  "evidence": "The invariant and time bound follow directly by induction and one full scan per coordinate. The bound m=o(n) implies s=O(n) and circuit-coordinate evaluation is polynomial in n. Barrier diagnostic: explicit exhaustive enumeration; it relativizes in the ordinary oracle-access model, and does not establish a natural, algebrizing, or localizing lower bound. This does not close G0001.",
+  "id": "S0010",
+  "proved_step": "Let n,s be positive integers, L=ceil(log2(n+s)), m=s(2L+2)+L, and assume m<2^n. For the standard fan-in-2, single-output circuit model over {AND,OR,XOR,NOT}, with NOT counted as a gate and no uncounted constants, a length-(m+1) truth-table prefix absent from every size-at-most-s circuit can be constructed deterministically in O(2^m poly(n,s)) time per output bit and O(2^m) space. Proof: enumerate the m-bit circuit descriptions, initially all live. For each next coordinate, partition the live descriptions by their output bit and retain the smaller part (ties to 0). If L_i is the live set after i choices, |L_i|<=2^(m-i), by induction since the retained part has size at most |L_(i-1)|/2. Thus L_(m+1) is empty, and the emitted prefix is absent from every described circuit. Each split is computed by scanning descriptions and evaluating one circuit coordinate. In particular, if m=o(n), then the per-bit time is 2^o(n) poly(n), but this does not imply polynomial update time or a Search-MCSP reduction.",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795536199.6775932,
+  "session": "pnp-desk/research/R2861",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "Lemma (preprocessed trie range avoidance). Let D be a finite multiset of Boolean strings of common length N, with |D|<=2^m. Given the complete binary prefix trie of D annotated at each node by the number of D-strings extending its prefix, one can deterministically output a length-(m+1) prefix not extended by any member of D using O(m) node inspections and O(m) working bits. Proof: start at the root. At each level i<=m+1, if either child has count zero, choose that child and stop; its prefix has no extension in D. Otherwise choose a child with minimum count (ties to 0). If no zero child was encountered, induction gives count at depth i at most |D|/2^i<=2^(m-i). At depth m+1 this is <1, and as an integer the count is zero. Each step inspects at most two child counts and emits one bit, so there are O(m) inspections and O(m) output/work storage. This proves fast construction only after the trie and counts are supplied; forming and storing them is not bounded by the lemma and may cost Theta(|D|N).",
+  "status": "CLAIMED",
+  "kind": "PROCEDURE"
+ },
+ {
+  "at": 1795551292.7409244,
+  "session": "pnp-desk/research/R2947",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement: Lemma (sorted-list prefix avoidance with logarithmic probes). Let D be a multiset of d Boolean strings of common length N, stored in lexicographically sorted order and available by random access. Put m=ceil(log2(max(1,d))). If N>=m+1, a prefix of length m+1 that is extended by no member of D can be constructed using O((m+1) log(d+1)) string probes and O(m+1) working bits. At each stage the strings matching the current prefix form a contiguous interval [a,b) in the sorted list. The two next-bit classes are contiguous subintervals; their sizes can be found by binary searching the boundary between 0 and 1. Choose the smaller class, ties to 0. After i choices, the live interval has size at most d/2^i by induction. At i=m+1 this is strictly less than 1, hence zero. Each boundary search uses O(log(d+1)) random-access probes, proving the stated bound.\nevidence: Proof by interval contiguity of lexicographic order, binary search for the transition to next bit 1, and induction on live-interval size. This is a restricted data-access lemma; it does not close G0001 because circuit descriptions are not supplied as a sorted list with cheap random access.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795551507.575095,
+  "session": "pnp-desk/research/R2947",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: Lemma (dynamic trie costs for prefix avoidance). Let D be a multiset of d Boolean strings of common length N, stored in a binary trie with a count at each node equal to the number of strings extending that node's prefix. Inserting or deleting one string takes O(N) time by changing the counts on its root-to-leaf path. Given this trie, an absent prefix of length m+1 can be found in O(m) time, where m=ceil(log2(max(1,d))), provided N>=m+1: at each level choose a child of minimum count, ties to 0. After i choices the live count is at most d/2^i by induction, so after m+1 choices it is less than 1 and hence zero. A trie for d strings of length N has O(dN) nodes in the worst case. Proof: each insertion/deletion visits exactly N+1 nodes; each query visits at most m+1 nodes and uses the stored exact counts; the halving induction proves the selected leaf prefix has count zero.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

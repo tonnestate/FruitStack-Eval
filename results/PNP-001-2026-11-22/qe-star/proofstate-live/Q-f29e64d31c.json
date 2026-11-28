@@ -1,0 +1,368 @@
+[
+ {
+  "at": 1795714410.1062799,
+  "session": "pnp-desk/research/R4413",
+  "model": "gpt-6-luna",
+  "id": "S0001",
+  "proved_step": "statement: For every integer m>=2 and every nonempty A subset {0,1}^m of size t, if t>=2 some one-coordinate cofactor A_{i=b} is nonempty and has size at most floor(t/2); if t=1, some cofactor has size 1.\nproof: If t=1, choose any coordinate and fix it to the unique point's bit. If t>=2, choose distinct x,y in A and a coordinate i where they differ. Both fibers A_{i=0} and A_{i=1} are nonempty and their sizes sum to t, so the smaller has size at most floor(t/2).\nevidence: Direct partition proof. The lemma does not imply the MCSP threshold-survival claim.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714577.245161,
+  "session": "pnp-desk/research/R4413",
+  "model": "gpt-6-luna",
+  "id": "S0002",
+  "proved_step": "statement: For every m>=1 and every nonempty A subset {0,1}^m of size t, there is a sequence of at most ceil(log2 t) coordinate restrictions, each chosen to leave a nonempty fiber of size at most half the current size, whose final restricted support has size 1.\nproof: While the current support has size u>=2, choose distinct points in it and a coordinate where they differ. Both coordinate fibers are nonempty; choose the smaller one, of size at most floor(u/2) <= u/2. After k such steps, the support size is at most t/2^k. For k=ceil(log2 t), this is at most 1; since every chosen fiber is nonempty, its integer size is exactly 1. The number of restrictions cannot exceed m because each step fixes a previously free coordinate.\nevidence: Induction on the number of restrictions; each step applies the cofactor-halving partition argument. The conclusion concerns support reduction only, not MCSP threshold preservation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714689.8438647,
+  "session": "pnp-desk/research/R4413",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: Let m>=2, c>=2 be integers and let A be a nonempty subset of {0,1}^m with t=|A| <= 2(m-1)^(c-1). Then there is a coordinate i and a bit b such that the cofactor A_{i=b} is nonempty and |A_{i=b}| <= (m-1)^(c-1). In particular this gives a nonempty-support restriction satisfying the next-dimension support threshold. If, in addition, A is the support of a Boolean function f with t*m-1 < m^c, then f is a YES instance under the free-input-negation fan-in-2 circuit basis, and the restricted function is also a YES instance at dimension m-1.\nproof: If t=1, select any coordinate and choose b equal to the unique point's value there; the cofactor has size 1 <= (m-1)^(c-1). If t>=2, choose distinct points x,y in A and a coordinate i on which they differ. Both fibers A_{i=0}, A_{i=1} are nonempty and their sizes sum to t, so the smaller has size at most floor(t/2) <= (m-1)^(c-1), using t <= 2(m-1)^(c-1). For the circuit consequence, a support of size u on q variables has a DNF with u minterms, using at most u*q-1 fan-in-2 gates when input negations are free. Apply this with (u,q)=(t,m) and then with (u,q)=(|A_{i=b}|,m-1). Under the extra stated inequalities each is below its corresponding threshold.\nevidence: Direct cofactor partition argument and DNF gate count. This repairs the failed threshold inference by making explicit the stronger support premise t <= 2(m-1)^(c-1); it does not establish that every YES instance for MCSP[m^c] satisfies this premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795714742.2387037,
+  "session": "pnp-desk/research/R4413",
+  "model": "gpt-6-luna",
+  "id": "S0004",
+  "proved_step": "statement: For integers m>=2 and c>=2, put T=(m-1)^(c-1). For every nonempty A subseteq {0,1}^m with |A|<=2T, there exist a coordinate i and bit b for which A_{i=b}={x in A:x_i=b} is nonempty and has size at most T. Consequently, if A=supp(f) and |A|*m-1<m^c, then f has a fan-in-2 DNF of size <m^c and the chosen restriction has a fan-in-2 DNF of size <(m-1)^c, with free input negations.\nproof: Write t=|A|. If t=1, choose any coordinate i and let b be the bit of the unique point in A; then |A_{i=b}|=1<=T, since T>=1. If t>=2, choose distinct x,y in A and a coordinate i on which they differ. Both fibers A_{i=0}, A_{i=1} are nonempty, and their sizes sum to t. The smaller fiber therefore has size at most floor(t/2)<=T because t<=2T. This proves the cofactor assertion. For the circuit consequence, a Boolean function on q variables with u accepting assignments is represented by the disjunction of u minterms, each using q-1 binary AND gates, with u-1 binary OR gates; with input negations free the total is u*q-1 (and the zero-support function uses size zero). Applying this with (u,q)=(t,m), then with (u,q)=(|A_{i=b}|,m-1), gives the stated strict threshold bounds by the two explicit hypotheses t*m-1<m^c and |A_{i=b}|<=T.\nevidence: The cofactor bound follows from a partition into the two fibers of a coordinate separating two support points. The DNF counts follow by summing binary gates for the minterms and their disjunction. The hypothesis |A|<=2(m-1)^(c-1) is explicit and is not inferred from MCSP YES status.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795716942.4758205,
+  "session": "pnp-desk/research/R4429",
+  "model": "gpt-6-luna",
+  "evidence": "Complete union-bound proof above. Intended finite verification call was not executed in this turn; no computational evidence is claimed.",
+  "id": "S0005",
+  "proved_step": "Let X_1,...,X_d be pairwise-independent Bernoulli random variables with common marginal p. Then Pr[sum_i X_i >= 2] <= binom(d,2)p^2. Proof: the event {sum_i X_i >= 2} is contained in the union over i<j of {X_i=X_j=1}; by the union bound its probability is at most sum_{i<j} E[X_iX_j]. Pairwise independence gives E[X_iX_j]=p^2 for each pair, yielding binom(d,2)p^2. This establishes the gate-level pair-event estimate under the stated pairwise-independence hypothesis only; it does not establish the AF restriction premises or MCSP threshold preservation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795720396.2695677,
+  "session": "pnp-desk/research/R4453",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "statement: Let m>=1, r be an integer with 0<=r<=m, and A be a nonempty subset of {0,1}^m with |A|=t. There exists a sequence of r coordinate restrictions, fixing distinct coordinates, for which the restricted support A' is nonempty and |A'|<=ceil(t/2^r). Consequently, for every integer c>=2, if m-r>=1 and m*ceil(t/2^r)-1 < (m-r)^c, then the restricted Boolean function 1_{A'} on m-r remaining variables has a fan-in-2 circuit of size below (m-r)^c, assuming free input negations.\nproof: Construct restrictions inductively. Let A_0=A. At stage j<r, if |A_j|>=2, choose distinct x,y in A_j. Since x and y differ on at least one coordinate not fixed earlier, choose such a coordinate i. The two fibers of A_j under x_i=0 and x_i=1 are both nonempty and partition A_j. Fix i to the bit defining the smaller fiber, obtaining nonempty A_{j+1} with |A_{j+1}|<=floor(|A_j|/2). If |A_j|=1, choose any still-unfixed coordinate and fix it to the unique point's value; this preserves singleton support. Such an unfixed coordinate exists because j<r<=m. Induction gives |A_j|<=ceil(t/2^j): for the halving case, floor(ceil(t/2^j)/2)<=ceil(t/2^(j+1)); the singleton case also obeys the bound since the support remains nonempty and the upper bound is at least one. Thus |A_r|<=ceil(t/2^r). For support size u on q=m-r variables, represent each accepting assignment by its q-literal minterm. With free negations, each minterm uses at most q-1 binary AND gates and the OR of u minterms uses u-1 binary OR gates, totaling at most uq-1 gates (and the empty-support function uses zero). Hence the restricted function has size at most |A_r|(m-r)-1 <= m*ceil(t/2^r)-1; the stated strict inequality places it below (m-r)^c.\nevidence: Direct inductive proof from coordinate fibers and an explicit fan-in-2 DNF construction; no computational evidence needed. The lemma applies only when the displayed numerical condition holds and does not imply that an arbitrary MCSP YES instance meets it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795720660.7132564,
+  "session": "pnp-desk/research/R4451",
+  "model": "gpt-6-luna",
+  "id": "S0007",
+  "proved_step": "statement: Let Phi be a finite binary formula with L input-leaf occurrences, where repeated occurrences of a variable are counted separately. Under any random restriction that independently of the formula leaves each distinct input variable live with marginal probability p and substitutes a constant for each non-live variable, let R be obtained by structural simplification that substitutes constants and collapses constant and identity gates, but does not require semantic tautology detection. Let size count leaves plus binary gates and assign a constant formula size 1. Then E[size(R)] <= 2pL+1. The distribution on different variables may have arbitrary dependence.\nproof: Let X be the number of input-leaf occurrences whose variable is live. Pointwise, if X=0, all leaves are constants and structural simplification leaves a constant, of size 1. If X>=1, after constant substitution and collapsing unary identity gates, the output is either constant, of size 1, or a binary formula with k leaves for some 1<=k<=X. A full binary tree with k leaves has k-1 internal gates, so its size is 2k-1<=2X-1<=2X+1. Thus in all cases size(R)<=2X+1. For each of the L leaf occurrences, its variable is live with marginal p, so by linearity of expectation E[X]=pL; no independence among the variable-live events is needed. Taking expectations gives E[size(R)]<=2pL+1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795722106.0599005,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean submissions were not accepted. The latest verifier result still reports an unsolved goal in the singleton branch, and I did not obtain a kernel-checked proof. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795722147.0303524,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0005: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I did not formalize the probability space, union bound, and pairwise-independence assumptions into a complete Lean theorem. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795727404.2615473,
+  "session": "pnp-desk/research/R4483",
+  "model": "gpt-6-luna",
+  "id": "S0008",
+  "proved_step": "statement: Let Phi be a finite binary formula with L input-leaf occurrences, counting repeated occurrences separately. Under any distribution on restrictions that substitutes constants for non-live variables, leaves each distinct variable live with marginal probability p, and simplifies constants and identity gates without semantic tautology detection, let R be the resulting formula. Count leaves and binary gates in size(R), with a constant formula having size 1. Then E[size(R)] <= 2pL+1, and for every real a>0, Pr[size(R)>=a] <= (2pL+1)/a.\nproof: Let X count input-leaf occurrences whose variable is live. By linearity of expectation, E[X]=pL; no independence is needed. For each restriction, if no live occurrences remain, structural simplification leaves a constant of size 1. Otherwise the simplified formula is either a constant of size 1 or a binary formula with k leaves, where k<=X because simplification only deletes leaves or collapses gates. A binary formula with k leaves has k-1 gates, hence size 2k-1<=2X+1. Thus pointwise size(R)<=2X+1. Taking expectations proves E[size(R)]<=2pL+1. Markov's inequality applied to the nonnegative random variable size(R) gives Pr[size(R)>=a]<=E[size(R)]/a<=(2pL+1)/a.\nevidence: Complete argument from leaf-occurrence indicators, the full-binary-tree gate count, and Markov's inequality. The finite independent check cm-e42d28af87614660 found no counterexample in 62,980 enumerated cases, but is not used as proof.\nscope: The claim concerns syntactic simplification of binary formulas under arbitrary dependence among variable-live events, with only their common marginal p specified. It does not establish forest shrinkage, MCSP threshold preservation, or an AF premise.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728209.6732225,
+  "session": "pnp-desk/research/R4487",
+  "model": "gpt-6-luna",
+  "id": "S0009",
+  "proved_step": "statement: For every integer m>=1, every nonempty A subseteq {0,1}^m of size t, and every integer q with 1<=q<=t, there is a sequence of at most ceil(log2(t/q)) coordinate restrictions whose final restricted support is nonempty and has size at most q. Proof: While the current support has size u>q, select distinct x,y in it and a free coordinate i on which they differ. Both fibers are nonempty and their sizes sum to u, so restricting to the smaller fiber leaves a nonempty support of size at most u/2. After j restrictions its size is at most t/2^j. For j=ceil(log2(t/q)), this is at most q. The process cannot run out of free coordinates while the support has size greater than q>=1: if all coordinates were fixed, the remaining support would have size at most one. This is a support-size lemma only; it does not establish MCSP threshold preservation or AF premises P1/P2.\nproof: At each iteration with u>q>=1, u>=2, so two distinct support strings exist. They differ on a coordinate not yet fixed; otherwise they would coincide on all coordinates. The two fibers on that coordinate are nonempty and partition the support, hence the smaller has size at most u/2. Thus the support remains nonempty and after j iterations has size at most t/2^j. For j=ceil(log2(t/q)), 2^j>=t/q, giving t/2^j<=q. The process terminates within that many steps, or earlier if its support is already at most q.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795728248.9988372,
+  "session": "pnp-desk/research/R4487",
+  "model": "gpt-6-luna",
+  "id": "S0010",
+  "proved_step": "statement: Let m>=1, c>=1, and let f:{0,1}^m->{0,1} have support A of size t>=1. There is a sequence of k coordinate restrictions, for any integer 0<=k<=min(m,ceil(log2 t)), leaving a nonempty residual support A' of size u<=ceil(t/2^k). The residual function on r=m-k free variables has a fan-in-2 DNF of size at most max(0,ur-1). Consequently, if ceil(t/2^j)*(m-j)-1 < (m-j)^c for every integer j in [0,k] with m-j>=1, then every residual function along the sequence, including the original f, has circuit size below its corresponding dimension-c threshold. Proof: Starting from A_0=A, while restrictions remain and |A_i|>=2, choose two distinct strings in A_i and an unfixed coordinate on which they differ. The two fibers are nonempty and partition A_i; choose the smaller, so |A_{i+1}|<=|A_i|/2. If |A_i|=1, fix any remaining coordinate to its unique string's bit; this preserves support size one, which is at most ceil(t/2^(i+1)) whenever the process has reached that stage. Induction gives |A_j|<=ceil(t/2^j) for each j<=k, with nonemptiness preserved. On r free variables, represent each of the u satisfying assignments by its minterm, using r-1 binary AND gates per minterm, then OR the minterms with u-1 binary OR gates. For u>=1 and r>=1 this uses u(r-1)+(u-1)=ur-1 gates; the zero-variable residual is a constant and uses zero gates. The stated inequalities therefore give the claimed threshold control at every listed level. This is a sufficient condition depending on support size and restriction depth; it does not prove that every MCSP YES instance meets it or establish AF premises P1/P2.\nproof: The restriction construction and size bound follow by induction. At a stage with at least two points, distinct points differ on some unfixed coordinate, since they agree on all fixed coordinates; the two corresponding fibers are both nonempty, and the smaller has at most half the points. At a singleton stage, fixing any remaining coordinate consistently keeps one point. Since integer support size is nonempty, the half-step estimate yields the ceiling bound. The DNF is exact because its minterms correspond one-to-one with the satisfying assignments. Its gate count is u(r-1)+(u-1)=ur-1 for r>=1; for r=0 the residual is constant. Applying the explicit inequalities at each level proves threshold preservation under the stated sufficient condition.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736220.2489023,
+  "session": "pnp-desk/research/R4533",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "statement: For every nonempty A subseteq {0,1}^m and every integer r with 0<=r<=m, there is a sequence of r restrictions on distinct coordinates yielding A' subseteq {0,1}^{m-r} with |A'|/2^{m-r} >= |A|/2^m. proof: At any stage with q>0 free coordinates, choose any free coordinate. Its two fibers A_0,A_1 satisfy |A_0|+|A_1|=|A|, so their densities have average (|A_0|/2^{q-1}+|A_1|/2^{q-1})/2=|A|/2^q. At least one fiber has density at least the current density. Restrict to that fiber. Repeating for r distinct coordinates preserves density and nonemptiness, proving the result. evidence: Direct averaging identity and induction on r. This does not imply MCSP threshold survival or establish AF premises P1/P2/D6.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795736566.9173086,
+  "session": "pnp-desk/research/R4533",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement: Let m>=1, c>=1 be integers, T=(m-1)^(c-1) when m>=2, and A={0,1}^m. Every nonempty one-coordinate cofactor A_{i=b} has size 2^(m-1). Hence a one-coordinate cofactor of A is nonempty and has size at most T if and only if 2^(m-1)<=T. Proof: Fix any coordinate i and bit b. The remaining m-1 coordinates are free, giving exactly 2^(m-1) points. This count is independent of i and b, so every nonempty one-coordinate cofactor has that size. The claimed existence is therefore equivalent to the stated inequality. At (m,c)=(2,3), T=1<2, so no such cofactor exists. Evidence: direct counting; the boundary instance also appears in discovery run cm-98221c45f8e14953. Scope: full-cube supports only; this gives no AF P1/P2/D6 result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795739873.694705,
+  "session": "pnp-desk/research/R4555",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: For integers m>r>=0, T>=1, and nonempty A subseteq {0,1}^m with |A|<=2^r T, there is a sequence of at most r coordinate restrictions whose final support is nonempty and has size at most T. At every restriction before the support is a singleton, choose two support points differing in a free coordinate and retain the smaller nonempty fiber; its size is at most half the current size. If a singleton is reached early, fix any remaining coordinates consistently with that point. After j halving steps the support size is at most |A|/2^j, so after at most r such steps it is at most T; all restrictions retain a nonempty support. This is a support-size statement only and gives no circuit-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795740394.3328607,
+  "session": "pnp-desk/research/R4555",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "statement: For every fan-in-2 Boolean circuit C of size s and every partial assignment rho to a subset of its input variables, the restricted function C|rho has a fan-in-2 Boolean circuit of size at most s. Proof: Replace each fixed input wire by its assigned constant. Process the circuit in topological order, evaluating any gate whose inputs are now constants and retaining every other gate with its current inputs. This uses no more than the original s gates. For each assignment y to the free inputs, evaluation of the resulting circuit is exactly evaluation of C on the unique full input extending y and rho, so it computes C|rho. Thus restrictions do not increase circuit size; this alone does not imply survival of a dimension-dependent MCSP threshold.\nevidence: Direct circuit construction and semantic equivalence under the fixed partial assignment; no experiment is needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795740707.930536,
+  "session": "pnp-desk/research/R4555",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "statement: For m>r>=0, q=m-r>=1, c>=1, and f:{0,1}^m->{0,1} with support t<=2^r q^(c-1), there is a restriction of exactly r coordinates whose q-variable cofactor has a fan-in-2 DNF of at most q^c-1 gates.\nderivation: For a current nonempty support A of size u, if u=1 any nonempty cofactor has size 1=ceil(u/2). If u>1, some coordinate is nonconstant on A (otherwise A is a singleton); its two nonempty cofactor sizes sum to u, so the smaller is at most floor(u/2). Thus each restriction leaves nonempty support at most ceil(u/2). Iterating r times gives support at most ceil(t/2^r)<=q^(c-1). Fix further coordinates as needed, retaining a nonempty cofactor. If its support has size v, express it as v satisfying minterms: each costs at most q-1 fan-in-2 AND gates and their OR costs v-1, totaling vq-1<=q^c-1. Empty support is constant zero.\nevidence: Direct averaging proof and binary gate count; cm-6e9531fadf71479f is finite sanity evidence only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795745288.8986855,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the partition argument directly: for t>=2 pick distinct x,y in A and a coordinate i on which they differ; then A_{i=0},A_{i=1} are both nonempty and their sizes sum to t, so the smaller is at most floor(t/2) (the larger is at least ceil(t/2)). For t=1, fixing coordinate i to the unique point's bit leaves a singleton fiber. No hidden hypothesis (the coordinate is free, since it separates two support points). Scope is support reduction only; it does not itself give any MCSP threshold-preservation statement.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745288.9151573,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Re-derived the induction: after k admissible restrictions the surviving support size is at most floor(t/2^k), so after k=ceil(log2 t) it is exactly 1 (nonempty at every stage). I additionally checked the implicit count bound: a coordinate chosen at some step separates two points of the current support, hence cannot have been fixed earlier, so the k restrictions use distinct coordinates and k<=m; since t<=2^m this is consistent with k=ceil(log2 t). Statement is correct as a support-halving lemma; it says nothing about MCSP thresholds.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745288.931006,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Cofactor part is S0001's partition argument with t<=2T, T=(m-1)^(c-1): the smaller nonempty fiber has size <= floor(t/2) <= T. Circuit part: a support of size u on q variables has DNF with u minterms of q literals; with input negations free each minterm costs q-1 binary AND gates and the disjunction costs u-1 binary OR gates, total u(q-1)+(u-1)=u*q-1. Hence t*m-1<m^c gives a circuit of size <m^c, and |A_{i=b}|(m-1)-1 <= T(m-1)-1 = (m-1)^c-1 < (m-1)^c gives the cofactor circuit of size <(m-1)^c. The premise |A|<=2(m-1)^(c-1) is an explicit extra hypothesis, not inferred from YES status, as the evidence field correctly states.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745288.9465876,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is S0003 with the threshold premise made explicit twice (t*m-1<m^c for f, |A_{i=b}|<=T for the cofactor). I rechecked the gate count u*q-1 including the degenerate u=1 case (q-1 gates, matching u*q-1) and u=0 (size 0, consistent). The strict inequalities are used correctly: u*q-1 < m^c and u*(m-1)-1 <= (m-1)^c-1 < (m-1)^c. Statement is correct but the strong support premise |A|<=2(m-1)^(c-1) remains an extra hypothesis; it is not derived for arbitrary MCSP[m^c] YES instances.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.8806744,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct union bound argument: {sum X_i >= 2} subseteq union_{i<j} {X_i=X_j=1}; pairwise independence gives Pr[X_i=X_j=1]=p^2; sum over binom(d,2) pairs gives the bound. No independence beyond pairwise needed.",
+  "review_of": "S0005",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.9046085,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct inductive construction: at each step with |A_j|>=2, pick distinct x,y differing on an unfixed coordinate, restrict to smaller fiber (size <= floor(|A_j|/2) <= ceil(t/2^{j+1})); singleton case preserves support size 1. DNF construction on q=m-r variables gives ur-1 gates, bounded by m*ceil(t/2^r)-1. Condition is sufficient, not necessary.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.9291675,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: size(R) <= 2X+1 pointwise where X = #live leaf occurrences; E[X]=pL by linearity (marginal p, no independence needed); bound holds for any dependence among variable-live events.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745541.953339,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct: same pointwise bound size(R) <= 2X+1, so E[size(R)] <= 2pL+1; Markov gives Pr[size(R)>=a] <= E[size(R)]/a <= (2pL+1)/a. The finite check cm-e42d28af87614660 is independent verification, not part of proof.",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745791.222061,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct density preservation: at each step with q free coordinates, the two fibers have densities averaging to current density, so at least one has density >= current. Induction over r coordinates preserves nonemptiness and density.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795745791.2370393,
+  "session": "pnp-desk/research/R4577",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correct for full cube: every 1-coordinate cofactor has size 2^{m-1}. The condition 2^{m-1} <= (m-1)^{c-1} is necessary and sufficient. At (m,c)=(2,3): T=1, 2^{1}=2 > 1, so no such cofactor. Discovery run cm-98221c45f8e14953 confirms boundary.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795747028.7716818,
+  "session": "pnp-desk/research/R4585",
+  "model": "gpt-6-luna",
+  "id": "S0016",
+  "proved_step": "statement: Let f:{0,1}^m->{0,1}, and fix k input coordinates. If every one of the 2^k cofactors has a fan-in-2 circuit of at most s gates, then f has a fan-in-2 circuit of at most 2^k s + 3(2^k-1)+k gates, counting NOT gates. Proof: Use disjoint circuits for all cofactors, at total cost at most 2^k s. Combine their outputs in a binary decision tree using Shannon selectors; each selector costs at most three gates, and the k selector negations can be shared. The tree computes f by the cofactor identity. Contrapositively, if f requires more than T gates, some cofactor requires more than (T-3(2^k-1)-k)/2^k gates. This does not establish the dimension-dependent MCSP threshold.\nproof: Build disjoint cofactor circuits and combine the outputs with a binary Shannon decision tree. Each internal selector uses at most three fan-in-2 gates; share at most k negations. The resulting circuit computes f exactly. Contraposition gives the stated consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795747280.8430572,
+  "session": "pnp-desk/research/R4585",
+  "model": "gpt-6-luna",
+  "id": "S0017",
+  "proved_step": "Let m>k>=0 and c>=1 be integers, and set r=m-k>=1. Suppose f:{0,1}^m->{0,1} has fan-in-2 Boolean circuit complexity greater than m^c, with NOT gates counted. If m^c > 2^k r^c + 3(2^k-1)+k, then some restriction rho fixing k input coordinates has residual function f|rho of circuit complexity greater than r^c. Proof: Suppose every k-coordinate cofactor had complexity at most r^c. There are 2^k such cofactors. Implement each with a separate circuit, using at most 2^k r^c gates total. Combine their outputs by a complete binary Shannon decision tree on the k fixed coordinates. The tree has 2^k-1 internal selectors; each selector is a 3-gate fan-in-2 mux, and the k negated selector variables can be shared. This gives a circuit for f of size at most 2^k r^c+3(2^k-1)+k, contradicting complexity(f)>m^c and the assumed strict inequality. Hence at least one cofactor has complexity >r^c. The conclusion is only a conditional NO-instance preservation statement in the displayed parameter range; it establishes neither AF P1/P2 nor preservation for arbitrary k,m,c.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795748439.2540941,
+  "session": "pnp-desk/research/R4591",
+  "model": "gpt-6-luna",
+  "id": "S0018",
+  "proved_step": "For every Boolean function f on m variables with support size t>=1 and every k<=m, there exists a sequence of k coordinate restrictions retaining nonempty support of size at most ceil(t/2^k), provided k<=ceil(log2 t); after the support becomes a singleton, remaining restrictions fix coordinates consistently with that point. Proof: At any stage with at least two support points, select two that differ on an unfixed coordinate and retain the smaller nonempty fiber, reducing support by at least a factor of two. At singleton support, any further coordinate can be fixed consistently without changing support. Induction gives the bound ceil(t/2^k). This is a support-only lemma and does not imply survival of a dimension-dependent MCSP threshold.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795758169.0496068,
+  "session": "pnp-desk/research/R4643",
+  "model": "gpt-6-luna",
+  "id": "S0019",
+  "proved_step": "statement: Let C be a fan-in-2 Boolean circuit on m inputs with size s, let c>=1, and let 0<=k<m satisfy s<(m-k)^c. After any assignment to any k inputs, C restricted by that assignment has a fan-in-2 circuit of size below (m-k)^c. Proof: replace fixed input wires by their assigned constants, process gates in topological order, evaluate each gate whose inputs are constants, and retain every other gate with its current inputs. This circuit computes the restricted function and uses at most s gates. Since s<(m-k)^c, its size is below the restricted dimension threshold. Consequently, if s<m^c then all restrictions fixing k<=m-ceil(s^(1/c)) variables, with at least one variable left, preserve the YES-side threshold. This does not preserve NO instances or establish AF P1/P2/D6.\nproof: The topological substitution construction preserves the value on every assignment to the free inputs, because extending such an assignment by the fixed bits recovers the original input to C. No gate is added, so the resulting size is at most s. The displayed hypothesis then places that size below (m-k)^c. If k<=m-ceil(s^(1/c)), then m-k>=ceil(s^(1/c)), hence (m-k)^c>=s; for strict threshold preservation use s<(m-k)^c as stated, noting equality cases must be excluded.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795767618.549361,
+  "session": "pnp-desk/research/R4679",
+  "model": "gpt-6-luna",
+  "id": "S0020",
+  "proved_step": "statement: For integers m>k>=0 and c>=1, let T_j=(m-j)^c for 0<=j<=k. A fan-in-2 circuit of size s remains strictly below T_j after every sequence of j coordinate restrictions, for every j<=k, under the sufficient condition s<T_k.\nproof: Restricting a fan-in-2 circuit by fixing inputs replaces those inputs by constants and simplifies any gates made constant, so the restricted circuit has size at most s. Since x^c is increasing for positive x, T_j=(m-j)^c is nonincreasing in j; hence T_k is the smallest threshold. If s<T_k, then every restricted circuit has size at most s<T_k<=T_j. This condition is sharp for a guarantee based only on the bound that circuit size does not increase: if s>=T_k, that bound alone cannot ensure the strict inequality at j=k. This does not establish AF premises P1/P2 or cover starting sizes between (m-k)^c and m^c.\nevidence: Direct proof from monotonicity and the restriction construction in S0014. Boundary enumeration experiment cm-b1c1f61174174d0c checked 1,276 parameter tuples; all intermediate inequalities were equivalent to the final one. The computation is corroborative only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795775841.0744314,
+  "session": "pnp-desk/research/R4719",
+  "model": "gpt-6-luna",
+  "evidence": "Directly follows from circuit-size monotonicity under restriction. It isolates the threshold condition needed to infer survival from S0014; it does not establish AF premises P1/P2.",
+  "id": "S0021",
+  "proved_step": "Lemma (conditional threshold survival under restriction). Let C be a fan-in-2 Boolean circuit on m inputs, let rho fix k inputs, and let T(d) be a circuit-size threshold for dimension d. If size(C)<T(m) and T(m-k)>=T(m), then size(C|rho)<T(m-k). Proof: restricting inputs gives a circuit for C|rho of size at most size(C); hence size(C|rho)<T(m)<=T(m-k). The condition on T is necessary for this inference from size monotonicity alone: if T(m-k)<T(m), the bound size(C|rho)<=size(C)<T(m) need not imply size(C|rho)<T(m-k). This is a sufficient transfer condition, not a claim that AF restrictions satisfy it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795775943.8743644,
+  "session": "pnp-desk/research/R4719",
+  "model": "gpt-6-luna",
+  "evidence": "Direct construction of a restricted circuit by constant substitution gives size(C|rho)<=s. For every integer d>floor(s^(1/c)), d>s^(1/c), so d^c>s. The result is a margin-dependent sufficient condition; it does not claim the repaired AF route supplies such a margin.",
+  "id": "S0022",
+  "proved_step": "Lemma (margin-aware survival for polynomial thresholds). Fix an integer c>=1 and a fan-in-2 Boolean circuit C on m inputs of size s. Let d0=floor(s^(1/c))+1. For every partial assignment rho leaving d>=d0 inputs free, size(C|rho)<d^c. Proof: restricting inputs gives size(C|rho)<=s. By the definition of d0, d>s^(1/c), hence d^c>s, so size(C|rho)<=s<d^c. Consequently, every restriction fixing at most m-d0 variables preserves the strict size bound against the residual threshold d^c. This bound depends on the circuit\u2019s actual size s; it gives no guarantee after more restrictions and does not establish AF premises P1/P2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795776249.8907263,
+  "session": "pnp-desk/research/R4719",
+  "model": "gpt-6-luna",
+  "evidence": "Complete adaptive construction and explicit DNF gate count given in the proof; the AF restriction compatibility and P1/P2 remain open.",
+  "id": "S0023",
+  "proved_step": "Lemma (sparse-support restriction tradeoff). Let f:{0,1}^m->{0,1} have nonempty support of size t, and let 0<=k<=m. There is a partial assignment fixing exactly k coordinates such that the residual support is nonempty and has size u<=ceil(t/2^k). Consequently the residual function on r=m-k variables has a fan-in-2 circuit of size at most max(0,ur-1), hence at most max(0,(m-k)*ceil(t/2^k)-1). Proof: At each step, if the current support has at least two points, choose two differing on an unfixed coordinate and fix that coordinate to the less-populated nonempty fiber. If the support is a singleton, fix any unfixed coordinate consistently with that point. Thus support remains nonempty and after k steps is at most ceil(t/2^k). For r>=1, implement each of the u satisfying assignments by an r-literal minterm using r-1 binary AND gates each, then OR the minterms using u-1 binary OR gates, totaling ur-1 gates. For r=0, the residual is constant and has size zero. This does not show AF restrictions can realize this adaptive support reduction or satisfy P1/P2.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795780924.5999722,
+  "session": "pnp-desk/research/R4747",
+  "model": "gpt-6-luna",
+  "evidence": "Direct circuit construction and exact gate count in the fan-in-2 AND/OR/NOT basis.",
+  "id": "S0024",
+  "proved_step": "statement: COFACTOR RECONSTRUCTION BOUND: Let f:{0,1}^m->{0,1} have fan-in-2 circuit size s, and fix a set I of k input coordinates. For each assignment a in {0,1}^I, let f_a be the residual function on the other m-k inputs and let s_a be the size of a circuit computing f_a. Then f has a fan-in-2 circuit of size at most sum_a s_a + 3(2^k-1)+k. Proof: Compute each f_a with its given circuit. Combine their outputs by a full binary decision tree on the k fixed coordinates. At each internal node testing coordinate i, implement mux(x,u,v)=(NOT x AND u) OR (x AND v), using two AND gates and one OR gate; share the k coordinate negations across the tree. The tree has 2^k leaves and 2^k-1 internal nodes, so selector cost is 3(2^k-1)+k. On each input the path reaches the cofactor selected by its I-coordinate assignment, hence the resulting circuit computes f exactly.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795781088.349471,
+  "session": "pnp-desk/research/R4747",
+  "model": "gpt-6-luna",
+  "id": "S0025",
+  "proved_step": "statement: COFACTOR-SUPPORT SUM BOUND. Let f:{0,1}^m->{0,1} have support A of size t, and fix k<m coordinates I. For each a in {0,1}^I let u_a be the support size of residual f_a on r=m-k variables. Then sum_a u_a=t, and f has a fan-in-2 circuit of size at most t r + 3(2^k-1)+k by computing each residual as a DNF and combining them with a mux tree. More sharply, if u_a>0, its DNF costs u_a r-1 gates, so the total is at most t r-h+3(2^k-1)+k, where h=|{a:u_a>0}|; empty residuals are constants. Proof: Every satisfying assignment x of f has a unique restriction a=x|I and a unique remaining assignment y, so the satisfying assignments are partitioned across the cofactor supports and sum_a u_a=t. For each nonempty residual, list its u_a satisfying r-bit strings and form their minterms with r-1 binary AND gates each, then OR them with u_a-1 binary OR gates, totaling u_a r-1 for r>=1. Use a constant for an empty residual. A full binary mux tree selects the residual indexed by a, using 3(2^k-1) gates and at most k shared negations. Summing gives the stated bound. This establishes a support-sensitive SUM-of-cofactors upper bound; it does not bound arbitrary residual circuit sizes by t or imply a sub-m^c circuit for every YES instance, so the arbitrary-circuit MCSP gap remains open.\nevidence: Exact partition of f's satisfying assignments by their fixed-coordinate pattern; explicit minterm circuit and mux-tree gate count. The inequality is constructive and holds for every finite Boolean function in the stated fan-in-2 basis.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-f29e64d31c",
+  "closes_valid": true
+ },
+ {
+  "at": 1795782390.4780097,
+  "session": "pnp-desk/research/R4757",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Let m>=1 and let rho be a random product restriction on {0,1}^m in which each coordinate is left free with probability p, and otherwise is fixed to a uniformly random bit, independently across coordinates. For every fixed x in {0,1}^m, the probability that x is consistent with rho is ((1+p)/2)^m. Consequently, for every support A subseteq {0,1}^m, the expected number of points of A consistent with rho is |A|((1+p)/2)^m. Proof: At one coordinate x_i remains consistent if the coordinate is free, probability p, or if fixed to x_i, probability (1-p)/2. Their sum is (1+p)/2. Independence across coordinates gives ((1+p)/2)^m for x. The expected surviving support size is the sum over x in A of the consistency indicators; linearity of expectation yields |A|((1+p)/2)^m without requiring independence between different points. This identity alone gives no high-probability bound, circuit-size control, forest shrinkage P2, or local PRG premise P1.\ndiagnostic: Relativizing: no oracle separation or simulation argument; Natural: not a lower-bound property or learner; Algebrizing: no algebraic-oracle technique; Localizing: no circuit lower-bound localization. No barrier circumvention is claimed; this elementary product-measure identity does not address those barriers.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795782455.131403,
+  "session": "pnp-desk/research/R4757",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: Let m>=1, p in [0,1], and A be any subset of {0,1}^m of size t. Under the independent product restriction that leaves each coordinate free with probability p and otherwise fixes it to a uniformly random bit, the probability that the restricted support A is nonempty is at most min(1,t((1+p)/2)^m). Proof: For each x in A, let I_x be 1 if x is consistent with the restriction. Coordinate independence gives E[I_x]=((1+p)/2)^m, since one coordinate is consistent with probability p+(1-p)/2. Thus E[sum_{x in A} I_x]=t((1+p)/2)^m by linearity. The event that the restricted support is nonempty is exactly {sum I_x>=1}; Markov's inequality gives probability at most E[sum I_x]. Probabilities are also at most 1. This bound concerns support survival only and implies no circuit-size or MCSP-threshold bound.\ndiagnostic: Relativizing: none claimed; Natural: not a lower-bound property or learner; Algebrizing: none claimed; Localizing: none claimed. No barrier circumvention is claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

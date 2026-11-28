@@ -1,0 +1,53 @@
+[
+ {
+  "at": 1795368763.83947,
+  "session": "pnp-desk/research/R1617",
+  "model": "claude-haiku-5-5",
+  "id": "S0001",
+  "proved_step": "LEMMA (S-blowup-tw-identity, re-derivation, closes no obligation). For every finite graph G and integer d >= 1, let G[K_d] be the lexicographic product of G with K_d. Then tw(G[K_d]) = d(tw(G)+1) - 1. PROOF. Upper bound: take an optimal tree decomposition (T, {B_t}) of G of width k. Then (T, {B_t x [d]}) is a tree decomposition of G[K_d]: each bag has size d|B_t| <= d(k+1), every edge of G[K_d] lies inside some B_t x [d] because the copies of an adjacent pair are fully joined, and for each vertex (v, i) the nodes containing it form the same subtree T_v. Hence tw(G[K_d]) <= d(k+1) - 1. Lower bound: let (T, {B_t}) be any decomposition of G[K_d] of width w. For each vertex v of G let T_{v,i} (i in [d]) be the subtree of nodes containing copy (v,i). Copies of one vertex, and copies of two adjacent vertices, are pairwise adjacent in G[K_d], so every pair of their subtrees intersects. Subtrees of a tree have the Helly property, so all copies of v, and all copies of u and v for each edge uv, lie in a common node. Define B'_t = {v : all d copies of v lie in B_t}. Then (i) every edge uv of G lies in some B'_t, since u and v have all copies in a common bag; (ii) {t : v in B'_t} is the intersection of the d subtrees T_{v,i}, which is a nonempty subtree; so (T, {B'_t}) is a tree decomposition of G. Since the d copies of each vertex in B'_t are distinct vertices of B_t, d|B'_t| <= |B_t| <= w+1. So tw(G)+1 <= max_t |B'_t| <= (w+1)/d, i.e. w >= d(tw(G)+1) - 1. Both bounds together give equality. NOTE: this is the known fact that treewidth is multiplicative under clique blow-up; it is recorded for the manuscript's Lemma 10 check only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795368791.305765,
+  "session": "pnp-desk/research/R1617",
+  "model": "claude-haiku-5-5",
+  "gap": "Open obligation for the width route to target (8). (i) Oracle-free case: Thm 8 (eq. 22) and Lemma 10 (eq. 26) identify tw of a fixed linear kernel with a graph's treewidth, but do not bound the circuit state size S(C_m) by tw(H_B). (ii) Oracle gates: the linear-overlap structure is absent, so no identity transfers. (iii) Barrier test: the locality statement (CHOPRS, arXiv:1911.08297) is unread beyond the abstract, so whether the locality barrier applies is undecided, not YES or NO. Page 6 (Sec. 7-8) states that the bounded-time simulation and stage-cut arguments establish neither a lower bound on Gamma nor a linear overlap representation.",
+  "evidence": "Read: manuscript pages 2-6 (page 6 = Sec. 7 Lemmas 11-12, scope note). Not read: CHOPRS full text, page 5 Sec. 5.2 content beyond headings. The S-blowup-tw-identity step (S0001, CLAIMED, own session, not reviewable by me) is a known fact and closes no obligation.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795370163.147001,
+  "session": "pnp-desk/research/R1623",
+  "model": "nemotron-3.5-super-vl",
+  "evidence": "Checked S0001 (tw(G[K_d]) = d(tw(G)+1)-1) line by line. Upper bound: bag blow-up B_t x [d] preserves the three tree-decomposition axioms for G[K_d]; width <= d(k+1)-1. Lower bound: copies of one vertex form a clique, so the d subtrees T_{v,i} pairwise intersect => Helly property gives a common node; for edge uv, copies of u and v are pairwise adjacent, so all 2d subtrees share a bag. B'_t = {v : all d copies of v lie in B_t} covers every edge of G; for each v, {t : v in B'_t} = intersection of the d subtrees T_{v,i}, a nonempty subtree. Distinct copies are distinct bag members, so d|B'_t| <= |B_t| <= w+1, i.e. w >= d(tw(G)+1)-1. Both bounds match; valid for every finite graph and d >= 1. It is the standard clique-blow-up treewidth identity re-derived here; it closes no obligation by itself.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795374140.4625936,
+  "session": "pnp-desk/research/R1683",
+  "model": "claude-haiku-5-5",
+  "id": "S0004",
+  "proved_step": "statement: LEMMA (wiring-invariance of oracle circuits, sub-gap (iii)). Let C be a Boolean circuit with gates of fan-in at most beta, each gate either a fixed gate or an oracle gate with an arbitrary function of its inputs. Let W(C) be its wiring: the set of input-to-gate arcs and the input/output labels, with no gate functions. Let D(C) be the dependency digraph (vertices = inputs and gates, arc u->g iff u is an input of g). Then (a) D(C) depends only on W(C); (b) for any two oracle assignments O, O' on the same wiring, D(C_O) = D(C_O') as labelled digraphs; (c) any property P of digraphs closed under isomorphism satisfies P(D(C_O)) = P(D(C_O')) for all O, O'.\nproof: (a) D(C) is defined from the arc set and the labels only; gate functions are not used. (b) Follows from (a), since equal wirings give equal labelled digraphs. (c) Equal labelled digraphs are isomorphic, so P agrees on them. QED. Consequence (the barrier test): if the width route proves a bound of the form S(C) >= phi(D(C)) for a function phi of the dependency digraph, then the bound holds for every oracle assignment on that wiring, which is the robustness property used by CHOPRS Thm 2 (B3-O). A bound that uses gate truth tables cannot be written as phi(D(C)). The identity of Thm 8 eq.22 and Lemma 10 eq.26 is a statement about the wiring of a fixed linear kernel: tw(D(K)) = tw(H_B). Replacing linear gates by oracle gates of fan-in <= N^eps changes the wiring (it removes the linear-overlap arcs), so the identity does not transfer by (a)-(c); this matches gap (ii).\nscope: Pure definitional statement about wirings and dependency digraphs; no assumption on the kernel, on beta, or on the target (8). Holds for every finite circuit.\ngap_left: G0001 (i) and (ii) remain open: the lemma does not bound S(C_m) by tw(H_B), and it does not decide whether the magnification upper-bound circuits share the kernel's wiring. The barrier status stays OPEN. Perfect-matching control and natural-measure test are still NOT CHECKED. This is a diagnostic reduction, not progress toward P vs NP; a reviewer should judge whether it discharges the barrier-test part of G0001.\nrefuted_approach_repair: none (no prior step refuted in this session)\nstatus_note: CLAIMED until reviewed by a different model family; the closes field is claimed only for the barrier-test sub-item (iii)",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795377487.5585926,
+  "session": "pnp-desk/research/R1696",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Review of S0004 (wiring-invariance lemma): The lemma is a correct definitional statement. (a) D(C) is defined from the arc set and labels only - gate functions are not used. (b) Follows from (a) since equal wirings give equal labelled digraphs. (c) Equal labelled digraphs are isomorphic, so any isomorphism-closed property agrees. The lemma SURVIVES REVIEW as a pure graph-theoretic fact. However, its claimed consequence for the barrier test is incomplete: CHOPRS Definition 3 defines a locality argument as using BOTH (1) gate truth tables AND (2) wiring. The lemma only shows wiring-invariance; it does not address whether the width route's bound phi depends on gate truth tables. If phi depends only on D(C) (wiring), then by the lemma it is oracle-robust, which CHOPRS Thm 2 would rule out for superpolynomial bounds against classes containing P. But the width route uses treewidth of H_B (overlap graph of the LINEAR KERNEL), which is derived from the linear structure of affine transitions, not from arbitrary gate truth tables. The lemma does not decide whether this constitutes a 'locality argument' in the CHOPRS sense. Barrier status remains OPEN. The perfect-matching control and natural-measure test are still NOT CHECKED.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795377889.9499602,
+  "session": "pnp-desk/research/R1696",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "refuted_approach": "Width-based lower bound for (40a)/(8) using fixed variable order. The fixed-order width measure K_l fails the perfect matching control: perfect matching is in P but has exponential fixed-order OBDD width (experiment cm-f8ec3fb39cab47bd). Any lower bound proof using this measure would also 'prove' a false lower bound for perfect matching. The oracle-assisted version of Search-MCSP has polynomial width (MMW19 Thm 1.2 trie construction), so the 'hard property' (large width) does not even hold for the oracle version. The CHOPRS locality barrier is secondary - it only applies if width IS large but only locally so. The primary question is whether oracle-free Search-MCSP has large MINIMUM width over all orders (OBDD width).",
+  "evidence": "cm-f8ec3fb39cab47bd (perfect matching control), MMW19 Thm 1.2 (oracle algorithm with poly width), CHOPRS arXiv:1911.08297 (locality barrier definition)"
+ }
+]

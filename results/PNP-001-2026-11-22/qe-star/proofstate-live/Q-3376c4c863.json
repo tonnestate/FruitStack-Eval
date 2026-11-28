@@ -1,0 +1,256 @@
+[
+ {
+  "at": 1795302296.9047942,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "lemma": "BOUNDARY-RANK LEMMA. G finite graph, no isolated vertex (else PM=0, count:=0). E = A disjoint-union B. D = vertices incident to both A and B. a subset of A is A-valid iff a is a matching and every A-only vertex is covered by a; sigma(a) in {0,1}^D, sigma(a)_v = |a cap delta(v)|. B-valid b, tau(b) symmetric. Sigma = {sigma : exists A-valid a with sigma(a)=sigma and exists B-valid b with tau(b)=1-sigma}. Claim: for every field F, rank_F M = |Sigma| for M[a,b] = PM(a u b). Proof: (1) PM(a u b)=1 iff a A-valid, b B-valid, sigma(a)+tau(b)=1 on D (forward: a u b PM gives matching and A-only coverage, boundary cov_a+cov_b=1 with terms in {0,1}; backward: A-only covered by a, B-only by b, boundary by sigma+tau=1, disjointness gives counts add). (2) M = sum over sigma of 1_{R_sigma} 1_{C_{1-sigma}}^T, R_sigma={A-valid a: sigma(a)=sigma}, C_tau={B-valid b: tau(b)=tau}; R_sigma pairwise disjoint, C_tau pairwise disjoint. (3) Block diagonal after permutation: one all-ones block per sigma with R_sigma and C_{1-sigma} nonempty. (4) all-ones p x q block, p,q>=1, has rank 1 over every field, so rank_F M = #{sigma: R_sigma and C_{1-sigma} nonempty} = |Sigma|. Corollary: rank_F M <= 2^{|D|}. Edge cases: A or B empty (D empty, Sigma={empty} iff G has a PM); no PM (M=0); disconnected graphs and parallel edges need no hypothesis. Owner sketch step 'deg_A + deg_B = 1' is false with graph degrees; correct condition is cov_a(v)+cov_b(v)=1 on selected edges.",
+  "gap": "Open: all-vtree bound (first missing implication: bounding |D| for every vtree cut of a prism C_m x K_2 and checking the Berkholz-Micun Thm 13 / Thm 21 / Lemma 22 hypotheses, not done this session). Literature check not done (no web_search this session).",
+  "evidence": "cm-d0a5dd66ddd849a6 (EXPLORATORY): 3078 partitions, 0 entrywise prediction mismatches, 0 rank-vs-count mismatches on any field tested, labelled graphs n<=4 and 40 random n=5 (seed 1).",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "Boundary-rank lemma as stated in the lemma field: rank_F M_{A,B} = |Sigma| for every field F; proof steps 1-4 as written; corollary rank <= 2^{|D|}. CLAIMED: needs independent review. Novelty not checked; closure class DERIVED (elementary communication-matrix decomposition), not NEW_THEOREM.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-3376c4c863",
+  "closes_valid": true
+ },
+ {
+  "at": 1795302476.0120215,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-d8057f5810ee4955: exact GF(1000003) rank of M[a,b]=PM(a u b) over all 2^E partitions of C_3 x K_2 (E=9, 512 partitions) and C_4 x K_2 (E=12, 4096 partitions). For every partition, rank equals |Sigma| as defined in the BOUNDARY-RANK LEMMA (rank_vs_sigma_mismatches = 0 for m=3 and m=4). rank <= 2^|D| held in all cases (violations = 0; max_D = 6 and 8; max rank 4 and 9). Scope: prisms only, one prime, EXPLORATORY_COMPUTATION; it does not replace the lemma's proof."
+ },
+ {
+  "at": 1795303170.1423762,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: the all-vtree bound. Need |D| (or |Sigma|) bounded for every vtree node of C_m x K_2, not only one linear sweep order; the sweep bound covers only path-like vtrees. Berkholz-Micun hypotheses not checked. No literature check. Earlier |D| = 2m claim (turns 8-10) is RETRACTED: |D| depends on the partition and is only bounded by n.",
+  "gap_id": "G0002",
+  "id": "S0003",
+  "proved_step": "SWEEP-PREFIX BOUND: for C_m x K_2 (m >= 3) with edges ordered by sweep (for i=0..m-1: rung_i, top_i-top_{i+1}, bottom_i-bottom_{i+1}, indices mod m), every prefix cut {first i+1 steps} / {rest} with 0 <= i <= m-2 has |D| <= 4, hence by BOUNDARY-RANK LEMMA rank_F M <= 16 over every field. Proof: a vertex top_j has edges only in steps j-1 and j (wrap edges at step m-1 for j=0), so it can straddle the cut only if j = i+1, or j = 0 (wrap), similarly for bottom. CLAIMED: needs independent review.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795303209.9673386,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (1) vtrees not induced by a bounded-width tree decomposition (arbitrary partitions, |D| up to n); prism data max rank 4 (m=3) and 9 (m=4) over all partitions is finite evidence only. (2) Berkholz-Micun hypotheses Thm 13 / Thm 21 / Lemma 22 unchecked. (3) BOUNDARY-RANK LEMMA still CLAIMED, not reviewed. Sweep-prefix step S0003 is a special case of this lemma (treewidth 3 bound 16).",
+  "gap_id": "G0003",
+  "id": "S0004",
+  "proved_step": "TREE-DECOMPOSITION CUT LEMMA: G with tree decomposition (T,{X_t}) of width w; each edge e assigned to a bag B(e) containing both endpoints. For a tree edge tt' with components T1, T2 of T minus tt', let A = {e : B(e) in T1}, B = {e : B(e) in T2}. Then D(A,B) is contained in X_t intersect X_t', so |D| <= w+1 and rank_F M_{A,B} <= 2^{w+1} for every field F (by BOUNDARY-RANK LEMMA). Proof: a vertex v in D lies in a T1-bag and a T2-bag; bags containing v are connected in T, so v is in X_t and X_t'. CLAIMED: needs independent review.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": false
+ },
+ {
+  "at": 1795303319.3134155,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (1) the lemma S0001 is still CLAIMED and unreviewed; (2) an all-vtree bound must be replaced by a statement that selects a vtree (e.g. a tree-decomposition-induced cut, S0004, which is correct: a vertex in D lies in bags on both sides, so D is in X_t cap X_t'); (3) GF(p) rank of the rung cut for m up to 8 not computed; (4) Berkholz-Micun hypotheses unchecked.",
+  "refuted_approach": "UNIFORM ALL-VTREE BOUND for C_m x K_2: refuted as a uniform statement. For the rung partition (A = rungs, B = both m-cycles, so D = all 2m vertices), rank of M[a,b] = PM(a u b) grows exponentially: m=3..8 gives ranks 4, 6, 11, 17, 29, 46 (cm-91374c0554234f23, float rank over R). Any vtree that contains this cut has width growing with m. A bound must therefore choose the vtree; it cannot hold for every vtree node. The earlier hypothesis rank = L_m (Lucas) is wrong for even m: L_m = 4, 7, 11, 18, 29, 47 for m=3..8, so rank = L_m for odd m and L_m - 1 for even m (pattern on m=3..8 only).",
+  "evidence": "cm-91374c0554234f23: rung-partition cut of C_m x K_2, m=3..8 (real-field rank, numpy). Not a GF(p) rank: rank over GF(p) is at most the real rank for integer matrices, so the exponential growth claim still needs an exact GF(p) check. Finite evidence on m=3..8 only.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795303440.7065613,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (1) independent review of BOUNDARY-RANK LEMMA and VTREE-EXISTENCE LEMMA by a different session; (2) the all-vtree form is refuted (rung cut has D = all 2m vertices and real rank 4,6,11,17,29,46 for m=3..8; exact GF(p) rank is being computed); (3) Berkholz-Micun hypotheses (Thm 13 / Thm 21 / Lemma 22) not checked; (4) treewidth of C_m x K_2 not used, only the explicit width-5 sweep decomposition.",
+  "gap_id": "G0005",
+  "id": "S0006",
+  "proved_step": "VTREE-EXISTENCE LEMMA (repair of the refuted all-vtree form). Statement: let G be a finite simple graph with a tree decomposition of width w. Then there is a vtree on E(G) such that for every vtree node with edge set A and complement B, rank_F M_{A,B} <= 2^(w+1) for every field F, where M_{A,B}[a,b] = PM(a union b). Proof: (1) Normalise the decomposition: give each edge e its own leaf bag {u,v} attached to a bag containing u and v; delete edge-free leaf bags; copy bags so every node has at most two children (edge leaves count as children). Validity and width w are preserved, since new bags are subsets of existing bags or copies of them. (2) Root the normalised tree T at r. For a node t let E_t be the set of edges whose leaf bag lies in the subtree of t. Build the vtree recursively: the vtree node for t has the vtree nodes of t's children as children, with a single child giving the same set. Every vtree node then has edge set E_t for some t. (3) For non-root t with parent p, the partition A = E_t, B = E minus E_t is induced by the tree edge tp, because subtree(t) is one component of T minus tp. By the tree-decomposition cut argument, every v in D(A,B) lies in X_t and X_p, so |D| <= w+1. By BOUNDARY-RANK LEMMA, rank_F M <= |Sigma| <= 2^|D| <= 2^(w+1). (4) Root node: B is empty, so rank <= 1. Corollary: the sweep bags of C_m x K_2 (width 5) give a vtree with all node ranks <= 64 over every field. Separately, the sweep step-boundary cuts have |D| <= 4 and rank <= 16 (S0003).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795303756.1437197,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "gap": "Narrowed open obligation (supersedes G0001-G0005 wording): the upper bound rank_F M_{A,B} <= 2^(w+1) for tree-decomposition cuts (S0006) and the sweep bound (S0003) are DERIVED / likely KNOWN (branch-decomposition fact, source not checked) and do not close any lower-bound obligation. The remaining obligation is a LOWER bound: exhibit for a cubic expander family and some vtree a balanced cut with |Sigma| >= 2^(c|D|) or superpolynomial. Parity constraints apply: |A-only| + |sigma| even and |B-only| + |1-sigma| even, so Sigma lies in a parity coset and any lower-bound construction must realise sigma patterns inside it. Barrier control (T-C): PM is in P, so a bound that holds for PM cannot separate hard functions; the Berkholz-Micun hypotheses (Thm 13 / Thm 21 / Lemma 22) remain unchecked against the primary source.",
+  "evidence": "Re-read of S0001 (block-diagonal argument) and S0006 (bag-connectedness argument): both correct as written, author = same session, not a review. Rung-cut ranks over GF(1000003) (cm-75c15271325e4ade): m=3..8 give 4,6,11,17,29,46, agreeing with the float run cm-91374c0554234f23. Rank = L_m for odd m and L_m - 1 for even m on m=3..8 (pattern on finite data only).",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795303884.9146745,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "lemma": "EXACT RANK IDENTITY (cut form of S0001). Setup: finite simple graph G=(V,E), edge partition E=A\u2294B. D=V(A)\u2229V(B), Ao=V(A)\\V(B), Bo=V(B)\\V(A). Valid row a\u2286A: a matching covering all of Ao. Valid column b\u2286B: matching covering all of Bo. Signature \u03c3(a)\u2208{0,1}^D, \u03c3(a)_v = number of edges of a at v. M[a,b]=1 iff a\u222ab is a perfect matching of G. Claim: for every field F, rank_F M = |\u03a3|, where \u03a3 = {\u03c3(a): a valid, some valid b has \u03c3(b)=1\u2212\u03c3(a)}. Proof: (i) For valid a,b: a\u222ab is a PM iff every v\u2208D has \u03c3(a)_v+\u03c3(b)_v=1 (vertices of Ao,Bo are covered exactly once automatically, since a and b are matchings and do not share vertices outside D). So M[a,b]=[\u03c3(b)=1\u2212\u03c3(a)], and zero rows/columns for invalid a/b. (ii) Hence row a equals the indicator \u03c7_{1\u2212\u03c3(a)} of the column set {b valid: \u03c3(b)=1\u2212\u03c3(a)}. Distinct signatures give disjoint column supports, so the distinct nonzero rows have disjoint supports and are linearly independent over any F; all other rows are zero or repeat these. So rank_F M = |\u03a3|. Corollary: rank_F M \u2264 2^{|D|}, and rank is field-independent. Parity: 2|a| = |Ao| + \u03a3_v \u03c3(a)_v, so |Ao|+|\u03c3| is even on valid rows.",
+  "gap": "G0006 is NOT closed: this lemma (a) makes the rank exactly |\u03a3| (over every field), so any lower bound on the GF(p) rank of the cut is exactly a lower bound on the number of realisable boundary signatures; (b) the open obligation becomes purely combinatorial: exhibit, for a cubic expander family and some vtree, a balanced cut whose valid-signature set \u03a3 has |\u03a3| >= 2^{c|D|} (or superpolynomial). Barrier diagnostic (T-C): the identity holds for perfect matching, a function in P, so a rank-based bound from it cannot by itself transfer to a non-P function (perfect-matching control fails). Berkholz-Micun Thm 13 / Lemma 22 still unchecked against the primary PDF (only the intro of arXiv 2605.12378 read; the theorem text is beyond the 12000-char read).",
+  "evidence": "cm-7b99987b36c04f11 (EXPLORATORY_COMPUTATION, not a proof): 1500 trials on prism3, prism4, K4, K3,3 and 6 random graphs (4 to 9 vertices), GF(1000003) rank of M vs |\u03a3|: 0 violations, 0 parity violations, max rank 9 = max |\u03a3| 9, 1050 nonzero matrices. Consistent with the exact identity above. Author of S0001 is this session, so this is not an independent review of S0001.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795303925.8633819,
+  "session": "pnp-desk/research/R1215",
+  "model": "claude-haiku-5-5",
+  "lemma": "CORRECTED EXACT RANK IDENTITY (supersedes the lemma recorded in G0007 by adding one hypothesis). Setup: finite simple graph G=(V,E) with NO isolated vertices, i.e. V = V(A) \u222a V(B), and edge partition E = A \u2294 B. D = V(A) \u2229 V(B), Ao = V(A) \\ V(B), Bo = V(B) \\ V(A). Valid row a \u2286 A: a matching covering all of Ao. Valid column b \u2286 B: a matching covering all of Bo. Signature \u03c3(a) \u2208 {0,1}^D, \u03c3(a)_v = number of edges of a at v. M[a,b] = 1 iff a \u222a b is a perfect matching of G. Claim: for every field F, rank_F M = |\u03a3|, where \u03a3 = {\u03c3(a) : a valid and some valid b has \u03c3(b) = 1 \u2212 \u03c3(a)}. Proof as in G0007: for valid a, b, a \u222a b is a PM iff \u03c3(a)_v + \u03c3(b)_v = 1 for all v \u2208 D; rows with the same signature coincide; distinct signatures give disjoint column supports, hence independent rows. Without the no-isolated-vertices hypothesis, M = 0 can occur with \u03a3 non-empty, so the hypothesis is needed.",
+  "gap": "G0007 is corrected, not extended. The open obligation is unchanged: a lower bound |\u03a3| \u2265 2^{c|D|} (or superpolynomial) for a cubic expander family and some vtree. Barrier diagnostic (T-C): PM is in P, so this rank identity does not by itself transfer to a non-P function. The Berkholz-Micun Thm 13 / Lemma 22 hypotheses are still unchecked against the primary text.",
+  "evidence": "Correction is by re-reading the lemma; cm-7b99987b36c04f11 did not test isolated vertices and so does not support the corrected statement beyond the no-isolated-vertex case. Author is this session; this is not an independent review.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795306000.9316351,
+  "session": "pnp-desk/research/R1229",
+  "model": "claude-haiku-5-5",
+  "gap": "Open obligation G0007/G0006 unchanged: exhibit for a cubic expander family and some vtree a balanced cut with |Sigma| >= 2^(c|D|) or superpolynomial. This review closes only the rank identity, not the lower bound.",
+  "evidence": "Independent re-proof (session R1229): valid rows a with equal signature sigma(a) are identical rows of M, since M[a,b]=1 iff sigma(b)=1-sigma(a) on D; rows with distinct signatures have disjoint column supports (support of sigma is {b: sigma(b)=1-sigma}); each class row is nonzero because sigma in Sigma has a witness b; hence rank_F M = |Sigma| over every field F. Lab check cm-8ec2d29bf8d249a5 (exact ranks over Q, GF2, GF3, GF5): 191 graphs n<=4, 45444 partitions, rank_fail empty, lemma_entry_fail 0, 606 nonzero cases, max rank over Q 3. Barrier diagnostic: the identity holds for perfect matching (in P), so it cannot by itself transfer to a non-P function; no LOWER_BOUND is claimed. Berkholz-Micun hypotheses still unchecked.",
+  "gap_id": "G0009",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795306040.3658242,
+  "session": "pnp-desk/research/R1229",
+  "model": "claude-haiku-5-5",
+  "gap": "The lower-bound obligation (|Sigma| >= 2^(c|D|) or superpolynomial for a cubic expander family and some vtree) is untouched by this lemma. Barrier control (T-C) applied: the cut matrix of this lemma IS the perfect-matching cut matrix, so any lower bound on |Sigma| is a lower bound that PM satisfies. PM is in P, hence the perfect-matching control applies: such a bound cannot separate a non-P function, and the rank route is not a P vs NP route as stated. Enrichment needed (not yet attempted): a cut matrix for a function NOT in P, with the same signature structure.",
+  "gap_id": "G0010",
+  "id": "S0011",
+  "proved_step": "LEMMA (parity coset, session R1229). Setup as S0001: G=(V,E) with no isolated vertices, E = A disjoint-union B, D = V(A) cap V(B), Ao = V(A)\\V(B). For every valid row a (a matching in A covering all of Ao) with signature sigma(a) in {0,1}^D: |sigma(a)| (number of D-vertices covered by a) = |Ao| mod 2. Proof: every vertex of Ao has degree exactly 1 in a, and every vertex of D has degree sigma(a)_v in {0,1}; a uses no other vertices. So 2|a| = sum of degrees = |Ao| + |sigma(a)|, hence |sigma(a)| = |Ao| mod 2 (mod 2 reduction of 2|a| = |Ao| + |sigma(a)|). Consequence: Sigma is contained in the affine hyperplane {sigma in {0,1}^D : |sigma| = |Ao| mod 2}, so |Sigma| <= 2^(|D|-1) for D nonempty, and rank_F M <= 2^(|D|-1). Scope: any partition satisfying the no-isolated-vertices hypothesis. This is an UPPER bound and does NOT lower-bound |Sigma|; it is recorded as a bookkeeping fact, not as progress toward G0006.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0006",
+  "closes_valid": true
+ },
+ {
+  "at": 1795306139.5202215,
+  "session": "pnp-desk/research/R1229",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to S0011 (session R1229): S0011 is an UPPER bound |Sigma| <= 2^(|D|-1) and does NOT discharge G0006. Its closes=G0006 field was set in error and should be ignored; it is bookkeeping only. The open obligation G0006/G0007 remains: a LOWER bound |Sigma| >= 2^(c|D|) (or superpolynomial) for a cubic expander family and some vtree. Barrier (T-C): the cut matrix is the perfect-matching cut matrix, and PM is in P, so a bound on |Sigma| transfers no P vs NP progress. The obligation is not workable as a P vs NP route until a non-P function with the same signature structure is named.",
+  "evidence": "Re-read of the S0011 statement in session R1229: the proof uses only degree counting 2|a| = |Ao| + |sigma(a)| over valid rows, which yields only the parity constraint and an upper bound.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795307644.3770013,
+  "session": "pnp-desk/research/R1237",
+  "model": "claude-haiku-5-5",
+  "gap": "G0006 unchanged: the lower bound for a cubic expander family and some vtree is still missing. Barrier (T-C): PM is in P, so a signature lower bound for perfect matchings transfers to no non-P function; it can only serve the proof-complexity route in contract K6 sec. 7-8 (SAT-to-UNSAT lifting), not P vs NP directly. Next: exhaustive check on small cubic expanders (e.g. Petersen, K_{3,3} variants, 12-18 edges) to test whether the max grows faster than the prism values.",
+  "evidence": "cm-b589de6de93a4536: exhaustive over all edge partitions of C_m x K_2, m=3,4,5: exact max |Sigma| = 4, 9, 11; parity bound |Sigma| <= 2^(|D|-1) held with 0 violations. Exploratory computation, not a proof. The lower-bound obligation G0006 (|Sigma| >= 2^(c|D|) for a cubic expander family and some vtree) is still OPEN and is not touched by this run.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795307850.484644,
+  "session": "pnp-desk/research/R1237",
+  "model": "claude-haiku-5-5",
+  "gap": "S0011 reviewed: the bound is correct under |D| >= 1. It does not touch the lower-bound obligation G0006.",
+  "evidence": "Independent review (session R1237, not the claiming session). Derivation: let sigma in Sigma, with valid row a (a matching inside A covering every vertex of Ao) and sigma = sigma(a). The vertices covered by a are exactly Ao together with {v in D : sigma_v = 1}, because V(A) = Ao union D. A matching covers an even number of vertices, so |Ao| + |sigma| is even. Hence Sigma lies inside the parity coset {sigma in {0,1}^D : |sigma| = |Ao| mod 2}, which has exactly 2^(|D|-1) elements when |D| >= 1. Therefore |Sigma| <= 2^(|D|-1). Only the A-side parity is needed. SCOPE RESTRICTION (required): |D| >= 1. For D empty the statement is false as written (if a PM exists, Sigma = {()} has size 1 > 2^(-1)), so S0011 holds only with |D| >= 1 or with the bound stated as max(1, 2^(|D|-1)). Exact check cm-b589de6de93a4536: exhaustive over all edge partitions of C_m x K_2 for m = 3,4,5 (510, 4094, 32766 partitions), 0 violations of |Sigma| <= 2^(|D|-1); prisms are connected so D is never empty there. Exact check supports the derivation; the derivation carries the proof.",
+  "gap_id": "G0013",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795307873.9560816,
+  "session": "pnp-desk/research/R1237",
+  "model": "claude-haiku-5-5",
+  "gap": "G0006 is REDUCED, not closed: for a cubic expander family and some vtree-induced balanced cut it suffices to exhibit a PM M0 with c|V| vertex-disjoint M0-alternating cycles each containing a crossing vertex. Not shown for any expander family; the existence of such a packing is the open combinatorial step. Barrier (T-C): fails the perfect-matching control, so no P vs NP progress by itself.",
+  "evidence": "Exact check cm-5cff9d38e9e047da: m=3 exhaustive (510 partitions), m=4,5 sampled (1000 each): lemma1 identity violations 0, switching violations 0, min ratio |Sigma|/2^r = 1.0. Exploratory computation; the proof above carries the claim.",
+  "gap_id": "G0014",
+  "id": "S0015",
+  "proved_step": "SWITCHING LOWER BOUND (CLAIMED, session R1237). Setting: finite simple graph G=(V,E) with no isolated vertices; E = A disjoint-union B; D = V(A) cap V(B) (assumed nonempty); Ao = V(A)\\V(B); Bo = V(B)\\V(A). Valid row a: a matching inside A covering Ao. Valid column b: a matching inside B covering Bo. sigma(a) in {0,1}^D is the indicator of vertices of D covered by a. Sigma = {sigma(a): a valid and some valid b has sigma(b) = 1 - sigma(a)}. Claim: if G has a perfect matching M0 and r pairwise vertex-disjoint M0-alternating cycles C_1..C_r exist, each containing a vertex v_i in D whose two C_i-edges lie on different sides of the partition, then |Sigma| >= 2^r (hence rank_F M_{A,B} >= 2^r for every field F, by the rank identity S0001). PROOF. Step 1 (every PM splits): for a PM M, put a = M cap A and b = M cap B. Each v in Ao has all its G-edges in A, so a covers Ao, and b covers Bo likewise. For v in D exactly one M-edge meets v, and it lies in A or in B, so sigma(b) = 1 - sigma(a) on D. Hence sigma(M cap A) in Sigma for every PM M. Step 2 (flips): for S subset of [r], M_S = M0 symmetric-difference (union of E(C_i), i in S) is a PM: each vertex of C_i has one M0-edge and one non-M0 cycle edge, and flipping swaps them; vertices off the cycles are untouched. Step 3 (independent bits): v_i lies only on C_i, so the M_S-edge at v_i is the M0-edge e_i^0 if i not in S, and the non-M0 cycle edge e_i^1 if i in S. These two edges lie on different sides, so sigma(M_S cap A)_{v_i} = c_i XOR [i in S], where c_i = [e_i^0 in A]. Hence S -> sigma(M_S cap A) is injective (S and S' differ at v_i for any i in the symmetric difference), and by Step 1 its image lies in Sigma. So |Sigma| >= 2^r. QED. Consistency: each crossing vertex is in D, and |D| >= 2r, compatible with the parity bound |Sigma| <= 2^(|D|-1) (S0011, SURVIVED_REVIEW). Scope: uses only PERFECT MATCHINGS (a function in P), so the perfect-matching control applies and the lemma transfers to no non-P function.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795307947.1767979,
+  "session": "pnp-desk/research/R1237",
+  "model": "claude-haiku-5-5",
+  "gap": "G0014 stays OPEN. Exact packing data cm-35544936987d45fa (random cubic, n=8..14, all PMs) gives maximum disjoint M-alternating cycle packings with mean 1.25 to 2.25. This does not establish a linear packing for any expander family, and the crossing-vertex condition is not checked there.",
+  "evidence": "cm-35544936987d45fa: exploratory, 12 random cubic graphs per n in {8,10,12,14}, all perfect matchings enumerated, no crossing-vertex constraint.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795309249.0589755,
+  "session": "pnp-desk/research/R1247",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a session that did not claim S0015 (same model family as R1237, so not an independent-family review). Attempted refutation failed. Step 1: for a PM M, M cap A covers Ao and M cap B covers Bo; on D, sigma(M cap B) = 1 - sigma(M cap A), so sigma(M cap A) in Sigma. Step 2: flipping vertex-disjoint M0-alternating cycles C_i for i in S gives a PM M_S. Step 3: v_i lies only on C_i, so sigma_{v_i}(M_S cap A) = c_i XOR [i in S]; distinct S give distinct signatures, so |Sigma| >= 2^r for r >= 1. Experiments cm-bf3dc3da997c4d43 (r<=1), cm-5ea7746060d84662 (r<=2, n=8) and cm-d06cdde9e0964d4c (r=0 repair refuted, sharp bound |Sigma|>=1) are consistent but are not the proof. Scope: all r >= 1, perfect matchings only (in P).",
+  "review_of": "S0015",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795309378.1662433,
+  "session": "pnp-desk/research/R1247",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review by a session that did not claim S0003. For i in 0..m-2 the prefix cut has crossing vertices only top_{i+1}, bottom_{i+1} (steps i, i+1) and top_0, bottom_0 (wrap edge at step m-1, which lies in the rest). Rungs stay within one side, so |D| <= 4 and rank <= 2^4 = 16 by the recorded BOUNDARY-RANK LEMMA. No lab computation; the BOUNDARY-RANK LEMMA source text was not re-read.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795309378.187183,
+  "session": "pnp-desk/research/R1247",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review by a session that did not claim S0004. A vertex in D(A,B) lies in a bag on each side of tree edge tt'; bags containing it form a connected subtree, which must cross tt', so it lies in X_t and X_t'. Hence |D| <= |X_t \u2229 X_t'| <= w+1. No lab computation; the BOUNDARY-RANK LEMMA source text was not re-read.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795309378.2068639,
+  "session": "pnp-desk/research/R1247",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review by a session that did not claim S0006. Normalisation (own leaf bag per edge, deletion of edge-free leaves, copying bags to get at most two children) preserves validity and width. Each vtree node's edge set is E_t for a subtree; non-root partitions are induced by tree edges, so |D| <= w+1 by S0004 and rank <= 2^(w+1) by the BOUNDARY-RANK LEMMA. Root gives rank <= 1. No lab computation; the vtree construction was checked by reading, not by running code.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795309430.6922631,
+  "session": "pnp-desk/research/R1247",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION to the hand reviews of S0003, S0004, S0006 (recorded earlier in this session): each uses the BOUNDARY-RANK LEMMA as a premise, and that lemma is still CLAIMED and unreviewed (G0003, G0005). Per protocol, CLAIMED steps are not premises, so these reviews are conditional and must be re-checked once the BOUNDARY-RANK LEMMA is SURVIVED_REVIEW. Rank identity (CORRECTED EXACT RANK IDENTITY) re-checked by hand: M[a,b] = [sigma(a)+sigma(b)=1 on D], so M is a partial permutation matrix and rank_F M = |Sigma| for every field. Open obligation unchanged: lower bound |Sigma| >= 2^{c|D|} (or superpolynomial) for a cubic expander family and some vtree (G0006-G0009). Barrier: PM is in P, so this identity alone does not transfer to a non-P function.",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795309517.928996,
+  "session": "pnp-desk/research/R1247",
+  "model": "claude-haiku-5-5",
+  "gap": "G0006 remains OPEN. No proved_step this session. The S0015 route gives |Sigma| >= 2^r, where r is the number of vertex-disjoint M0-alternating cycles that each contain a D-vertex whose two cycle edges lie on different sides. A linear lower bound on Sigma for a balanced cut of a cubic expander would need r = Omega(n) for some perfect matching M0, with every cycle side-changing. That packing statement is not established. The exact packing data (cm-35544936987d45fa, n=8..14, mean 1.25 to 2.25) is finite and small-n only and does not establish it. Parity gives |Sigma| <= 2^(|D|-1). Barrier control (T-C): the identity and the S0015 argument use only perfect matchings, which are in P, so they cannot transfer to a non-P function. S0003, S0004 and S0006 stay conditional on the unreviewed BOUNDARY-RANK LEMMA (S0001). S0015 has only a same-family check (claude-haiku-5-5), not an independent review.",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795317674.418388,
+  "session": "pnp-desk/research/R1287",
+  "model": "claude-haiku-5-5",
+  "evidence": "R1287 (claude-haiku-5-5, same family as R1237/R1247, so not an independent review): own-code brute-force check cm-f4bb37887d0c4b7d of S0015 finds zero violations (not-PM, not-in-Sigma, collision, bound) over 33062 packings of K4, prism C3xK2, K3,3 and sampled prism C4xK2, max r=2. This is a finite verification of S0015, not a proof for general r. Gap: no general argument yet for the toggling claim beyond the hand derivation; an independent-family reviewer should confirm the hand proof (perfect matching covers every vertex; signature toggles exactly at side-changing vertices of flipped cycles) and check r>=3 cases."
+ },
+ {
+  "at": 1795317703.3715217,
+  "session": "pnp-desk/research/R1287",
+  "model": "claude-haiku-5-5",
+  "gap": "Reviewer must (a) confirm that the signature is the side pattern of D-vertices and that Sigma membership is exactly the row/column condition used in (i); (b) confirm the argument uses nothing about r. Finite data cover r<=2 only (cm-f4bb37887d0c4b7d). Independent-family review still required before this step counts as SURVIVED_REVIEW.",
+  "gap_id": "G0018",
+  "id": "S0024",
+  "proved_step": "CLAIMED (R1287, claude-haiku-5-5). Restatement of S0015 for arbitrary r. Setting: G bipartite with parts A and B; M0 a perfect matching; C_1..C_r pairwise vertex-disjoint M0-alternating cycles; for each i a D-vertex v_i on C_i whose two C_i-edges go to different sides (one in A, one in B). For S subset of [r] let M_S = M0 xor (union of E(C_i) for i in S). Claims: (i) M_S is a perfect matching; (ii) the side of v_i under M_S is the side under M0 flipped iff i in S; (iii) the 2^r matchings M_S have pairwise distinct signatures, so |Sigma| >= 2^r. Proof of (i): a vertex outside the union of the C_i keeps its M0 edge. A vertex u on C_i has exactly one M0 edge and one non-M0 edge inside C_i (alternation), and the flip exchanges them, so u stays matched exactly once; vertex-disjointness means no vertex is affected by two cycles. Proof of (ii): v_i's M0 partner lies across one of its two cycle edges; after the flip its partner lies across the other, which is on the opposite side; cycles C_j, j != i, do not touch v_i. Proof of (iii): by (ii), the bits at v_1..v_r of the signature determine S, so the map S -> signature is injective. Membership of each signature in Sigma follows from (i): the A-part of M_S covers A-side vertices and the B-part covers the B side, as in the finite check cm-f4bb37887d0c4b7d. Assumption carried over from S0015: the signature records the side of each D-vertex. Not re-verified in this turn: the exact definition of Sigma as written in Q-3376c4c863.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795336043.3065162,
+  "session": "pnp-desk/research/R1389",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Affine-subspace description of the boundary signature Sigma (Sigma closed under XOR, |Sigma| a power of 2) as a route to computing rank_F M_{A,B}. REFUTED by K4 partition A={01,02}, B={03,12,13,23}: Sigma={0,3,5}, |Sigma|=3. Repair direction (not yet proved): Sigma is a union of cosets of a flip subspace, or an orbit under cycle flips (H_union / H_orbit). S0001 (rank = |Sigma|) and S0015 (|Sigma| >= 2^r) are not affected.",
+  "evidence": "cm-ef92d723ebf34e49 (exploratory, own code); hand check of the K4 partition above."
+ },
+ {
+  "at": 1795389860.901206,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0003: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Lean file for the |D| \u2264 4 sub-bound compiled with exit 0 and no errors, but the host reports `kernel_accepted: false` / `INCONCLUSIVE` on three runs, so no accepted proof. The rank-16 consequ (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795390437.794433,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795390942.4403596,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0004: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: no kernel-accepted proof of `cut_lemma` after four attempts. Every run returned `kernel_accepted: false`, and no run produced a FINAL-eligible result.\n\nWhat failed:\n- **Attempt 1:** `hT.IsAcy (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795392842.8225193,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - no counterexample found; formal proof attempt TIME_CAP: no FINAL (not a refutation; a model review is still needed)"
+ }
+]

@@ -1,0 +1,289 @@
+[
+ {
+  "at": 1795467948.315951,
+  "session": "pnp-desk/research/R2305",
+  "model": "gpt-6-luna",
+  "id": "S0001",
+  "proved_step": "statement: For every integer N>=1, every language F subset {0,1}^N, every prefix u of length t<N, and each b in {0,1}, if R_u={z in {0,1}^{N-t}: uz in F}, then R_{ub}={z in {0,1}^{N-t-1}: bz in R_u}.\nproof: Fix any suffix z of length N-t-1. By definition, z belongs to R_{ub} iff ubz belongs to F. Also by definition, bz belongs to R_u iff ubz belongs to F. Thus z belongs to R_{ub} iff z belongs to {z': bz' in R_u}. This holds for every suffix z, so the sets are equal.\nevidence: Direct general proof; finite independent verification at N=4 checked 65,536 languages and 1,966,080 reachable transitions (cm-b0ec472e8e0648d7).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468133.9703667,
+  "session": "pnp-desk/research/R2305",
+  "model": "gpt-6-luna",
+  "id": "S0002",
+  "proved_step": "statement: For every N>=1, every language F subset {0,1}^N, and every 0<=t<N, if D_t is the number of distinct residual languages R_u={z in {0,1}^{N-t}: uz in F} over prefixes u of length t, then D_{t+1}<=2D_t. Proof: each residual R at cut t has at most two derivatives R_b={z: bz in R}, one for each b in {0,1}; every residual at cut t+1 equals one of these derivatives, so the set of distinct residuals at t+1 has size at most twice the number at t.\nproof: Each distinct residual R at cut t has at most two one-bit derivatives R_b={z:bz in R}, for b in {0,1}. By the residual transition identity, every residual at cut t+1 is one of those derivatives. Taking the union over the D_t residuals gives at most 2D_t distinct residuals.\nscope: All finite Boolean languages of fixed length N; no computational hypothesis.\nevidence: Complete direct proof; finite discovery check requested separately.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795468226.2522578,
+  "session": "pnp-desk/research/R2305",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: For integers N>=1 and 0<=t<=N, the maximum over languages F subset {0,1}^N of D_t(F), the number of distinct residual rows indexed by prefixes u of length t, is min(2^t, 2^(2^(N-t))).\nproof: There are 2^t prefixes and exactly 2^(2^(N-t)) Boolean functions on the suffix set {0,1}^{N-t}, so D_t(F) is at most their minimum. Let r be that minimum. Choose r distinct Boolean rows on the suffix set and assign them to r distinct prefixes; assign any one chosen row to each remaining prefix. Define F to contain exactly those concatenated prefix-suffix pairs whose row entry is 1. The residual rows of this F are exactly the assigned rows, so D_t(F)=r. This also covers t=0 and t=N.\nscope: All fixed-length Boolean languages, every cut 0<=t<=N; no computational hypothesis.\nevidence: General construction and counting proof. Discovery check at N=4 reported widths [1,2,4,4,2] (cm-5b7abd5dbef54896); finite check is corroboration only.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795506732.100086,
+  "session": "pnp-desk/research/R2585",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The proof is a direct extensional equality: for any suffix z of length N-t-1, z \u2208 R_{ub} \u21d4 ubz \u2208 F \u21d4 bz \u2208 R_u \u21d4 z \u2208 {z' : bz' \u2208 R_u}. This holds for all z, so the sets are equal. The finite verification at N=4 (cm-b0ec472e8e0648d7) checked 65,536 languages and 1,966,080 transitions with no violation. No argument gap exists; the statement is a basic definitional identity in the algebra of residual languages.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506741.999381,
+  "session": "pnp-desk/research/R2585",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Each distinct residual R at cut t has at most two one-bit derivatives R_b={z:bz in R} for b in {0,1}. By S0001 (residual transition identity), every residual at cut t+1 is exactly one of these derivatives. Taking the union over the D_t distinct residuals at cut t gives at most 2D_t distinct residuals at cut t+1. This is a direct consequence of the definition and S0001. No counterexample exists; the finite check requested separately would only corroborate this logical consequence.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795506742.0246224,
+  "session": "pnp-desk/research/R2585",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Upper bound: there are only 2^t prefixes and 2^(2^(N-t)) Boolean functions on suffixes, so D_t(F) \u2264 min(2^t, 2^(2^(N-t))). Lower bound (achievability): let r = min(2^t, 2^(N-t)). Choose r distinct Boolean functions on {0,1}^{N-t} and assign them to r distinct prefixes of length t; assign an arbitrary chosen function to remaining prefixes. Define F as the set of prefix-suffix pairs where the assigned function evaluates to 1. Then F has exactly r distinct residual rows at cut t. The construction works for all t including t=0 and t=N. The finite check at N=4 (cm-5b7abd5dbef54896) reported widths [1,2,4,4,2] matching the formula. This is a complete combinatorial characterization.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795509525.0029995,
+  "session": "pnp-desk/research/R2591",
+  "model": "gpt-6-luna",
+  "id": "S0007",
+  "proved_step": "statement: For every N>=1, language F subseteq {0,1}^N, cut t in {0,...,N}, and deterministic one-pass streaming decider whose state after reading a prefix depends only on that prefix, the number of distinct states reached after length-t prefixes is at least D_t(F), the number of distinct residual languages R_u={z in {0,1}^{N-t}: uz in F}. A layered residual-state machine attains D_t(F) states at cut t.\nproof: If length-t prefixes u and v have distinct residuals, some suffix z belongs to exactly one of R_u,R_v. Exactly one of uz,vz is in F. If the machine reached the same state after u and v, determinism would give the same acceptance result on continuation z, a contradiction. So distinct residuals require distinct states. For attainability, store R_u after reading u; on bit b update R to R_b={z: bz in R}. At length N accept iff the empty suffix belongs to the current residual. The residual definition ensures correctness, and there is exactly one state per distinct residual at each layer.\nscope: Finite Boolean languages of fixed length; deterministic exact one-pass machines, with state interpreted at a fixed cut. This gives no time or circuit-size lower bound without an additional encoding/update-cost theorem.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509669.711884,
+  "session": "pnp-desk/research/R2591",
+  "model": "gpt-6-luna",
+  "id": "S0008",
+  "proved_step": "statement: For every finite Boolean language F subseteq {0,1}^N with k=|F| and every cut t in {0,...,N}, the number D_t(F) of distinct residuals R_u={z in {0,1}^{N-t}: uz in F} over length-t prefixes satisfies D_t(F) <= k+1. Proof: A nonempty residual R_u contains some suffix z, and then uz is an element of F whose length-t prefix is u. Thus every prefix u with nonempty residual is a length-t prefix of at least one word of F. There are at most k such prefixes, hence at most k distinct nonempty residuals. There is at most one additional residual, the empty set, so D_t(F)<=k+1. This includes F=empty and cuts t=0,N. Scope: fixed-length finite Boolean languages; state-count bound only, with no circuit/update-time implication.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509741.0235095,
+  "session": "pnp-desk/research/R2591",
+  "model": "gpt-6-luna",
+  "id": "S0009",
+  "proved_step": "statement: For every N>=1, F subseteq {0,1}^N, and cut 0<=t<=N, let D_t(F) be the number of distinct residuals R_u={z in {0,1}^{N-t}: uz in F}. Then D_t(F)<=min(2^t, 2^{N-t}, |F|+1). Proof: There are 2^t length-t prefixes, so at most 2^t residuals. Every residual is a subset of the 2^{N-t} suffixes, but this alone gives 2^{2^{N-t}} possible sets; instead, each nonempty residual contains a suffix and therefore corresponds to at least one word uz in F. Distinct nonempty residuals must arise from distinct prefixes, and each such prefix contains at least one distinct word of F, so there are at most min(2^t,|F|) nonempty residuals. There is at most one empty residual. Thus D_t(F)<=min(2^t,|F|)+1. Also, each residual is a subset of F's suffix set, whose size is at most |F|, so this does not establish the stated 2^{N-t} term; the valid conclusion is D_t(F)<=min(2^t,|F|)+1. Scope: fixed-length finite Boolean languages; this is a state-count upper bound and implies no update-time or circuit-size bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795518931.0103347,
+  "session": "pnp-desk/research/R2679",
+  "model": "gpt-6-luna",
+  "lemma": "Residual count bound with proof: Let N>=1, F subseteq {0,1}^N, and 0<=t<=N. For each length-t prefix u let R_u={z in {0,1}^{N-t}: uz in F}, and let D_t(F) count distinct residuals. Then D_t(F)<=min(2^t,|F|)+1. Proof: There are at most 2^t residuals because there are that many prefixes. For each distinct nonempty residual choose one inducing prefix u and one suffix z in it. The word uz belongs to F. Distinct residuals have distinct chosen prefixes, because a prefix determines a unique residual; therefore the chosen words are distinct and the number of nonempty residuals is at most |F|. There is at most one empty residual. The bound follows. Scope is fixed-length finite Boolean languages; no update-cost implication."
+ },
+ {
+  "at": 1795567676.4852297,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "statement_start: For every finite Boolean language F subseteq {0,1}^N and every deterministic exact one-pass decider M, the layered quotient by equal continuation behavior is a well-defined exact machine with D_t(F) states at cut t; its transitions are well-defined and it is minimal at each cut.\nproof: For each t-prefix u define R_u={z in {0,1}^{N-t}: uz in F}. At layer t identify u,v iff R_u=R_v. If R_u=R_v, then for either next bit b and every suffix z of length N-t-1, z\u2208R_{ub} iff bz\u2208R_u iff bz\u2208R_v iff z\u2208R_{vb}; hence R_{ub}=R_{vb}, so the transition on b is well-defined on equivalence classes. The initial class is R_empty=F. At layer N, the sole suffix is empty and acceptance is its membership in R_u, which equals the definition of F, proving exactness. If a deterministic exact machine merges u,v at layer t, every common continuation must receive the same decision, so R_u=R_v; therefore distinct residual classes cannot be merged, proving per-layer minimality and exactly D_t(F) quotient states.\nscope: Finite fixed-length Boolean languages; this canonicalization proves an abstract state-count characterization only. It gives no circuit/update-time bound for implementing quotient transitions, and no map into the paper's linear kernel (R,L,E).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567834.6266503,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement_start: Let M be a deterministic exact one-pass decider for F subseteq {0,1}^N with state sets Q_t, transitions \u03b4_t, and residual map \u03c0_t(q) equal to the continuation language after any prefix reaching q. If \u03c0_t and \u03c0_{t+1} have Boolean circuit implementations, then the canonical residual transition \u03c4_t satisfies \u03c0_{t+1}\u2218\u03b4_t(\u00b7,b)=\u03c4_t(\u03c0_t(\u00b7),b), and has circuit size at most size(\u03c0_{t+1})+size(\u03b4_t)+size(\u03c0_t) plus wire overhead.\nproof: For any reachable state q after prefix u of length t, define \u03c0_t(q)=R_u={z\u2208{0,1}^{N-t}:uz\u2208F}. This is well-defined: if two prefixes u,v reach the same state q, determinism gives identical accept/reject outcomes on every common continuation z, so R_u=R_v. Define \u03c4_t(R,b) by \u03c4_t(R,b)={z:bz\u2208R}. Then for every such q and every suffix z, z\u2208\u03c0_{t+1}(\u03b4_t(q,b)) iff the machine accepts after prefix ub followed by z iff bz\u2208\u03c0_t(q), iff z\u2208\u03c4_t(\u03c0_t(q),b). Thus the function identity holds on every reachable q. To implement the induced update on encoded residual labels, compute \u03c0_t(q), apply the original \u03b4_t(q,b) while retaining q, then compute \u03c0_{t+1} of the resulting state; alternatively a circuit for \u03c4_t can be composed directly with \u03c0_t. Circuit composition gives an implementation size at most size(\u03c0_t)+size(\u03c4_t)+O(1), while \u03c4_t equals the stated \u03c0_{t+1}\u2218\u03b4_t factorization on reachable states and therefore can be implemented by that composition with size at most size(\u03c0_{t+1})+size(\u03b4_t)+O(1). This is a conditional simulation theorem; without circuit bounds for \u03c0_t and \u03c0_{t+1}, it implies no small update cost.\nscope: Finite-horizon exact deterministic streaming machines. State encodings may be nonlinear and time-dependent, but the result assumes Boolean circuits for the residual extraction maps on reachable states. It gives no lower bound and no representation of arbitrary machines as a GF(p)-linear kernel.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567933.9824276,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement_start: For a deterministic exact one-pass machine M for F\u2286{0,1}^N, the residual transition T_t(R,b)={z:bz\u2208R} is well-defined on reachable residuals and agrees with the residual of the successor machine state.\nproof: Let Q_t be machine states reachable after t bits, \u03b4_t its transition, and let \u03c0_t(q) be the set of suffixes accepted from q. First, \u03c0_t is well-defined: if prefixes u,v reach the same q, determinism implies identical acceptance on every common suffix z, so R_u=R_v. For any reachable q and bit b, define R=\u03c0_t(q). For each z\u2208{0,1}^{N-t-1}, z\u2208\u03c0_{t+1}(\u03b4_t(q,b)) iff the machine accepts from q on input bz iff bz\u2208R iff z\u2208T_t(R,b), where T_t(R,b):={z:bz\u2208R}. Thus \u03c0_{t+1}(\u03b4_t(q,b))=T_t(\u03c0_t(q),b). In particular, if two reachable states q,q\u2032 have the same residual R, their successor states under b have the same residual T_t(R,b); hence T_t is a well-defined function on the set of reachable residuals.\nscope: Finite-horizon deterministic exact streaming machines. This proves existence and correctness of the induced transition on reachable residuals. It makes no circuit-size or update-time claim: implementations of \u03c0_t on machine-state inputs do not supply an inverse encoding or circuit on residual encodings. No general lower bound or P vs NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795567986.9927542,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "statement_start: For every N\u22651, every F\u2286{0,1}^N, and every cut 0\u2264t<N, encode each residual R\u2286{0,1}^{N\u2212t} by its incidence vector v_R\u2208{0,1}^{2^{N\u2212t}}, indexed lexicographically by suffixes. The residual transition T_t(R,b)={z:bz\u2208R} is implemented by a coordinate projection using no Boolean gates, with output width 2^{N\u2212t\u22121}.\nproof: Let input coordinates be indexed by all suffixes w\u2208{0,1}^{N\u2212t}, and set (v_R)_w=1 iff w\u2208R. For each z\u2208{0,1}^{N\u2212t\u22121}, define y_z=(v_R)_{bz}. Then y_z=1 iff bz\u2208R, iff z\u2208T_t(R,b), so y is exactly the incidence vector of the successor residual. Each output bit copies one input bit, hence the update is a coordinate projection and uses zero Boolean gates when wires and coordinate selection are free. The encoding width is 2^{N\u2212t}; this gives no succinct streaming machine or polynomial-resource algorithm.\nscope: Finite Boolean languages and cuts; full residual truth-table encoding. This bounds transition-gate cost only, not encoding width or construction cost, and implies no lower bound for other encodings.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568333.7198548,
+  "session": "pnp-desk/research/R3063",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "For every N>=1, F subseteq {0,1}^N, prefix u of length t<N, and bit b in {0,1}, let R_u={z in {0,1}^{N-t}: uz in F}. Then R_{ub}={z in {0,1}^{N-t-1}: bz in R_u}. Hence the residual indicator after reading b is the coordinate restriction g -> (z -> g(bz)), a linear map over every field. Proof: for each z, z in R_{ub} iff ubz in F iff bz in R_u. This is an exact layered representation, without any circuit-cost or update-time guarantee.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795568823.5069783,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0015: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: Lean accepted the proof artifact, but the host repeatedly reported that it had not registered an accepted Lean file. I can\u2019t claim successful completion under that host requirement. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795575552.4451559,
+  "session": "pnp-desk/research/R3135",
+  "model": "gpt-6-luna",
+  "evidence": "Counterexample: N=5,t=3. Assign residuals to the eight 3-bit prefixes: empty; {00},{01},{10},{11}; {00,01},{00,10},{00,11}. Let F contain exactly the concatenations represented by these residual sets. The eight residuals are distinct, so D_3(F)=8, but 2^(N-t)=4. The corrected general subset-count bound uses 2^(2^(N-t)); the |F|+1 bound remains valid.",
+  "review_of": "S0009",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795578221.7909663,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the fixed-length Myhill-Nerode theorem. The proof is correct: distinct residuals R_u \u2260 R_v imply \u2203z such that exactly one of uz, vz \u2208 F. A deterministic one-pass machine reaching the same state after u and v would give identical acceptance on continuation z, contradiction. The layered residual-state machine construction (state = R_u, update R_b = {z: bz \u2208 R}) attains exactly D_t(F) states per layer and is correct by definition of residuals. No counterexample exists; this is a standard exact characterization of minimal streaming states for fixed-length languages.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795578312.1209352,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified with exact computation on F={00,11} (N=2) and F=even parity on 3 bits. The construction defines R_u = {z: uz in F}, identifies prefixes with equal residuals, and defines transitions T_t(R,b) = {z: bz in R}. This is well-defined because if R_u = R_v then {z: bz in R_u} = {z: bz in R_v}. The initial state is R_empty = F. At layer N, acceptance is epsilon in R_u. Minimality holds: any deterministic exact machine merging u,v at layer t would give identical acceptance on all continuations, implying R_u = R_v. This is the fixed-length Myhill-Nerode theorem; no counterexample exists.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795578502.5377488,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by exhaustive computation: every nonempty residual R_u contains some suffix z, so uz is an element of F whose length-t prefix is u. Thus each nonempty residual corresponds to a distinct length-t prefix of some word in F, giving at most k such prefixes. There is at most one additional residual (the empty set). Tested on all families up to N=4 and 200 random families per N; no counterexample found. The bound is tight (e.g., F={00,11} at t=1 gives D_1=2 with k=2, k+1=3).",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795579388.724185,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent verification (cm-943132ee69234e72) exhaustively checked N=0..3 (all 2, 4, 16, 256 families) and sampled 154 families each for N=4,5. The identity pi_{t+1}(delta_t(q,b)) = tau_t(pi_t(q), b) holds on all reachable states; the circuit composition bound is a standard result. No counterexample found.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795579388.7370872,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent verification (cm-943132ee69234e72) exhaustively checked N=0..3 and sampled N=4,5 (154 families each). For every family F, every cut t, every reachable residual R, and both bits b, T_t(R,b) equals the residual of the successor state; well-definedness (same R gives same T_t(R,b)) holds. Zero violations.",
+  "review_of": "S0013",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795579388.7497861,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent verification (cm-943132ee69234e72) exhaustively checked N=0..3 and sampled N=4,5. For every residual R and bit b, the incidence vector of T_t(R,b) exactly equals the coordinate projection of v_R selecting indices b||z. Zero Boolean gates needed (wire routing only). Zero violations.",
+  "review_of": "S0014",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795579388.7620318,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Independent verification (cm-943132ee69234e72) exhaustively checked N=0..3 and sampled N=4,5. For every family F, every prefix u, every bit b, the identity R_{ub} = {z: bz in R_u} holds exactly. This is the direct prefix-level statement of the residual transition. Zero violations.",
+  "review_of": "S0015",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795579767.1867466,
+  "session": "pnp-desk/research/R3151",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Repair of refuted step S0009. The original claim D_t(F) <= min(2^t, 2^{N-t}, |F|+1) was refuted by counterexample N=5,t=3 where D_3(F)=8 but 2^{N-t}=4. Corrected proof: At most 2^t prefixes exist. For each distinct nonempty residual choose one inducing prefix u and one suffix z in it; the word uz belongs to F. Distinct residuals have distinct chosen prefixes, so chosen words are distinct; thus nonempty residuals <= |F|. At most one empty residual. Therefore D_t(F) <= min(2^t, |F|) + 1. The 2^{2^{N-t}} bound from subset counting is vacuous; the |F|+1 bound is the nontrivial one.",
+  "id": "S0025",
+  "proved_step": "statement_start: Residual count bound with proof: Let N>=1, F subseteq {0,1}^N, and 0<=t<=N. For each length-t prefix u let R_u={z in {0,1}^{N-t}: uz in F}, and let D_t(F) count distinct residuals. Then D_t(F)<=min(2^t,|F|)+1.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795580038.732276,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795580244.4526827,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795580498.4837263,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0025: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795590189.0367966,
+  "session": "pnp-desk/research/R3305",
+  "model": "gpt-6-luna",
+  "evidence": "Direct general proof for fixed-length Boolean languages. Scope is state count only; it gives no transition circuit-size or update-time lower bound.",
+  "id": "S0029",
+  "proved_step": "For every N>=1, F subseteq {0,1}^N, and 0<=t<=N, consider a deterministic layered machine that reads N bits and decides membership in F. If two length-t prefixes u,v have distinct residuals R_u={z in {0,1}^{N-t}:uz in F} and R_v={z in {0,1}^{N-t}:vz in F}, then the machine reaches different states after u and v. Proof: Since the residuals differ, choose a suffix z in their symmetric difference. If the machine reached the same state after u and v, determinism would make its future computation on the common suffix z identical, hence its final acceptance decisions on uz and vz would agree. But exactly one of uz,vz belongs to F, contradicting that the machine decides F. Therefore the number of reachable states at layer t is at least D_t(F). Conversely, a machine with one state per distinct residual is obtained by transitioning R to R_b={z:bz in R} on bit b, and accepting at the final layer iff the residual contains the empty string; induction shows it decides F. Thus the minimum number of reachable states at layer t is exactly D_t(F).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795590221.5087688,
+  "session": "pnp-desk/research/R3305",
+  "model": "gpt-6-luna",
+  "evidence": "For each distinct nonempty residual, choose an inducing prefix u and a suffix z in that residual. The resulting word uz lies in F. Distinct residuals cannot use the same prefix, so these chosen words are distinct; hence there are at most min(2^t,|F|) nonempty residuals. There is at most one empty residual, giving the stated bound. This review confirms only the state-count bound; it gives no transition-circuit or update-time bound.",
+  "review_of": "S0025",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795613750.8471732,
+  "session": "pnp-desk/research/R3603",
+  "model": "gpt-6-luna",
+  "id": "S0031",
+  "proved_step": "Let N>=1, F\u2286{0,1}^N, and 0\u2264t<N. For each residual R at layer t define T_b(R)={z\u2208{0,1}^{N\u2212t\u22121}: bz\u2208R}, for b\u2208{0,1}. Then T_0(R) and T_1(R) are disjoint and their union is {z: 0z\u2208R or 1z\u2208R}; each is uniquely determined by R and b. Proof: Every y\u2208R has a unique decomposition y=bz by its first bit and remaining suffix, so z belongs to exactly one of the two sets. Conversely, membership z\u2208T_b(R) means bz\u2208R by definition. Thus the successor residuals partition the tails represented in R and do not depend on which prefix induced R. This proves the canonical residual automaton has well-defined transitions. It gives no Boolean gate bound for implementing those transitions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795613848.0922852,
+  "session": "pnp-desk/research/R3603",
+  "model": "gpt-6-luna",
+  "id": "S0032",
+  "proved_step": "Let F={w_1,...,w_B} be a list of distinct words in {0,1}^N. There is a layered deterministic machine deciding membership in F with B survivor bits and at most B+1 fan-in-two gates per transition layer. Initialize s_j=1. At layer t, on input b, set s'_j=s_j AND [b=w_j[t]]. Accept after N bits iff some s_j=1. Proof: Inductively, after prefix u, s_j=1 iff u agrees with the first |u| bits of w_j. This is true initially; the update preserves the invariant exactly when the next bit matches. Thus after N bits a survivor exists iff the input is in F. Each coordinate update takes one AND with a shared literal b or NOT b; computing NOT b once gives at most B+1 gates. For B>=1 the final OR takes at most B-1 gates. Scope: explicit listed languages, with layer-specific nonuniform transitions; no compact representation or MCSP bound follows.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795628077.4664087,
+  "session": "pnp-desk/research/R3783",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the Myhill-Nerode theorem for finite languages restricted to layer t. The proof correctly shows: (1) any deterministic machine deciding F needs >= D_t(F) states at layer t because distinct residuals R_u, R_v have a separating suffix z, forcing different states; (2) the canonical residual automaton with states = residuals and transitions R -> R_b achieves exactly D_t(F) states. No counterexample exists; the argument is mathematically sound for fixed-length Boolean languages.",
+  "review_of": "S0029",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628077.480573,
+  "session": "pnp-desk/research/R3783",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This correctly formalizes the transition function of the canonical residual automaton. Every suffix y in R decomposes uniquely as y=bz by its first bit b and remainder z, so z belongs to exactly one of T_0(R) or T_1(R). The sets are disjoint, their union is the set of all tails represented in R, and they depend only on R and b, not on the inducing prefix. This is a definitional fact, not a theorem with argument gaps.",
+  "review_of": "S0031",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795628077.493505,
+  "session": "pnp-desk/research/R3783",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The construction is correct: maintain B survivor bits s_j initialized to 1; on bit b at position t, update s'_j = s_j AND [b = w_j[t]]. Inductively, s_j=1 iff the input prefix matches the first t bits of w_j. Each update uses one AND gate per j with shared literals b and NOT b (computed once), totaling B+1 fan-in-2 gates per layer. Final OR uses B-1 gates. This is an explicit automaton for listed languages, not claiming minimality (which would be D_t(F) <= |F|+1 from S0029/S0009). No logical error.",
+  "review_of": "S0032",
+  "status": "SURVIVED_REVIEW"
+ }
+]

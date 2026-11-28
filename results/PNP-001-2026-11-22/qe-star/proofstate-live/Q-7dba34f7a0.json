@@ -1,0 +1,58 @@
+[
+ {
+  "at": 1795295613.3399744,
+  "session": "pnp-desk/research/R1171",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Naive circuit-elimination test on minimal UNSAT clutters: positive 1-in-3 at n=5 gives 1140 violations in 7050 checks, and the tractable 2-CNF calibration gives 11629 sampled violations at n=4. The test does not separate tractable from hard languages, so it is not a port criterion as formalized. Repair to test next: affine XOR-3 constraints, where circuit elimination must hold for binary-matroid circuits.",
+  "evidence": "cm-a830288dfe5b4201"
+ },
+ {
+  "at": 1795295648.7738097,
+  "session": "pnp-desk/research/R1171",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Circuit-elimination test on the minimal UNSAT clutter is refuted as a port criterion in its current form. Affine XOR-3 (both parities on every triple) gives 3183 violations in 33338 sampled checks at n=5, while the tractable 2-CNF calibration gives 11629 sampled violations at n=4. Design flaw found on review: each run builds ONE universal instance (all constraints of the language on all triples), not a family of instances, so the test does not measure the clutter of CSP(Gamma) instances as the lane requires. The test must be re-run over random instance families (a sampled set of clauses per instance) before any conclusion about the dichotomy.",
+  "evidence": "cm-a830288dfe5b4201 cm-28a065ba7a6d447d"
+ },
+ {
+  "at": 1795295758.6514833,
+  "session": "pnp-desk/research/R1171",
+  "model": "claude-haiku-5-5",
+  "lemma": "Lemma A (affine clutter = port). Let c_i=(a_i,b_i), i in [m], a_i in GF(2)^n, b_i in GF(2), denoting the equation a_i.x=b_i. Put v_i=(a_i,b_i) in GF(2)^(n+1), e=(0,...,0,1), and let M be the binary matroid on {v_1..v_m,e}. Then the family of minimal inconsistent subsets S of [m] equals {C minus e : C a circuit of M with e in C}. So the minimal-UNSAT clutter of any affine system is the port of M at e. Every binary matroid with a non-loop element e arises this way (linear change of basis sends e to the last unit vector).",
+  "evidence": "Hand proof above; to be checked by the port identity and the elimination test in the next lab run (physalis_code_run on random affine and 2-CNF families).",
+  "id": "S0003",
+  "proved_step": "PROOF of Lemma A. (1) Fredholm over GF(2): Ax=b is solvable iff there is no lambda with lambda^T A=0 and lambda^T b=1. Such a lambda is supported on S and gives sum_{i in S} lambda_i v_i = e. So S is inconsistent iff e in span(v_S). (2) Minimal inconsistent S gives a circuit C=S+e: (i) S is independent, since a nonempty R in S with sum_R v_i=0 and r in R gives v_r in span(v_{S-r}), so S-r is inconsistent, contradicting minimality. (ii) e in span(S) and S independent make C=S+e dependent. (iii) A proper subset of C is either a subset of S (independent by (i)) or U+e with U a proper subset of S. The latter is dependent iff e in span(v_U) iff U inconsistent, impossible since U is consistent by minimality. So C is a circuit containing e. (3) Conversely, let C be a circuit containing e and S=C-e. C is minimal dependent, so v_S is independent and e in span(v_S), hence S is inconsistent. If S-i were inconsistent for some i in S, then e in span(v_{S-i}) would give a dependency inside C-i, contradicting minimality of C. So S is minimal. The two directions are inverse. QED. Consequence: the affine clutter is a binary-matroid port, and the port-level elimination axiom 'for A,B in cl and f in A&B there is D in cl with D inside (A u B)-f' is NOT implied by this. Hand counterexample (binary, graphic): a multigraph with vertices x,u,v,y, edges a,c parallel between x and u, edge e=(u,v), edges b,d parallel-in-role between v and y, edge f=(y,x). The circuits C1={a,e,b,f} and C2={c,e,d,f} give A=C1-e and B=C2-e with A&B={f}, and the only cycles in (A u B) minus f avoid e, so no member of the port lies inside (A u B)-f.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795296364.825549,
+  "session": "pnp-desk/research/R1177",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed in session R1177 (claimant R1171). Hand check: (1) GF(2) Fredholm: Ax=b unsolvable iff some lambda with lambda^T A=0, lambda^T b=1; its support S gives sum_{S} lambda_i v_i = e, so S inconsistent iff e in span(v_S). (2) Minimal inconsistent S is independent (a dependency R inside S makes S-r inconsistent); C=S+e is dependent; proper subsets are either inside S (independent) or U+e with U consistent, hence independent. So C is a circuit. (3) Conversely a circuit C containing e gives S=C-e inconsistent and minimal by circuit minimality. Inverse maps, so the correspondence is bijective. Gap: none found. Finite check: physalis_code_run cm-1c875c9ea8714ee8 (Lemma A part, 600 random systems, n<=4, m<=5, 0 mismatches). The hand graphic counterexample in the step was not re-verified in this review.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795397405.6779895,
+  "session": "pnp-desk/research/R1879",
+  "model": "laguna-xs-2.1",
+  "evidence": "cm-ee40030f7dd247d7 (100% violations on random affine systems), cm-ee7ceb853a364807 (hand counterexample verified: port has clutter {{a,b,f},{c,d,f}}, A={a,b,f}, B={c,d,f}, A&B={f}, (A u B)-f={a,b,c,d}, no clutter member subset of {a,b,c,d}). The affine clutter is NOT a matroid port - circuit elimination axiom fails.",
+  "review_of": "S0003",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795668446.6986868,
+  "session": "pnp-desk/research/R4307",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "For all matrices A,B over GF(2) and vectors c, the projection R={x: exists y, Ax+By=c} is affine. Proof: Let L={lambda: lambda^T B=0}. By finite-dimensional linear algebra, z is in im(B) iff lambda^T z=0 for every lambda in the left nullspace L. Thus x is in R iff c-Ax is in im(B), iff lambda^T A x=lambda^T c for every lambda in L. This is an intersection of affine hyperplanes, hence affine (possibly empty).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795668795.469567,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0006: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The available transcript contains only failed Lean attempts. The next useful step is to verify a proof that combines the two witness equations after distributing the matrix products; no accep (not a refutation; a model review is still needed)"
+ }
+]

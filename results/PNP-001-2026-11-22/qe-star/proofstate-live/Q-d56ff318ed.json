@@ -1,0 +1,259 @@
+[
+ {
+  "at": 1795444603.454342,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "gap": "To reach D7's target, prove an aggregate restriction inequality for every unrestricted fan-in-2 B2 circuit computing MCSP[m^c], with arbitrary sharing and fan-out, strong enough to imply CC_B2(F_m) not in O(2^m m^k) for each fixed k. Per-restriction gate consumption alone does not control repeated use of shared gates.",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "statement: For m>=1 and a Boolean function f:{0,1}^m->{0,1} with t>=1 accepting inputs, a DNF using one minterm for each accepting input computes f with at most tm-1 binary AND/OR gates when input negations are free; if NOT gates are charged but shared, at most tm-1+m gates suffice.\nproof: For each accepting input a, form the conjunction of its m literals, using m-1 binary AND gates (for m=1 this is one literal and uses zero). OR the t conjunctions using t-1 binary OR gates. The resulting DNF is true exactly on the accepting inputs. Its AND/OR cost is t(m-1)+(t-1)=tm-1. With charged NOT gates, negate each input variable that occurs negatively in any minterm once and share that output; there are at most m such variables, adding at most m gates.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444812.7577147,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "gap": "This identity does not bound the aggregate number of gates needed to eliminate arbitrary fan-in-2 circuits with unrestricted fan-out/sharing; the D7 aggregate inequality remains open.",
+  "gap_id": "G0002",
+  "id": "S0002",
+  "proved_step": "statement: For every n>=1, every A subseteq {0,1}^n, and every q in {0,...,n}, the average over uniformly chosen prefixes p in {0,1}^q of |{x in A: x_1...x_q=p}| equals |A|/2^q. Proof: sum_p sum_{x in A} 1[x begins with p] = sum_{x in A} 1 = |A|, since each x has exactly one length-q prefix; divide by 2^q.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795444935.968137,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "gap": "The collision identity does not control aggregate gate elimination for arbitrary fan-in-2 circuits with unrestricted sharing. A useful next obligation is to relate prefix collision counts of MCSP[m^c]'s accepting truth table to gate-elimination cost under a specified restriction process.",
+  "gap_id": "G0003",
+  "id": "S0003",
+  "proved_step": "statement: For every finite A subseteq {0,1}^n and q in {0,...,n}, if R_p=|{x in A:x_1...x_q=p}| for p in {0,1}^q, then 2^{-q} sum_p R_p^2 = 2^{-q}|{(x,y) in A^2: x_1...x_q=y_1...y_q}|. Proof: expand R_p^2 as sum over ordered pairs (x,y) in A^2 of the indicator that both have prefix p; summing over p counts the pair once if their prefixes agree and zero otherwise. Dividing by 2^q gives the identity. This expresses the second moment as a collision statistic and is sensitive to prefix clustering, unlike the first moment.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445223.231998,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0002: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: I have not obtained an accepted Lean proof. The previous attempts failed during parsing, and I did not complete another verification call. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795445314.0173771,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "id": "S0005",
+  "proved_step": "statement: For integers K,B>=1 and 0<=t<=KB, among all integer vectors (R_1,...,R_K) with 0<=R_i<=B and sum_i R_i=t, the minimum of sum_i R_i^2 is (K-v)u^2+v(u+1)^2 where t=uK+v, 0<=v<K; the maximum is aB^2+r^2 where t=aB+r, 0<=r<B. Proof: for the minimum, if R_i>=R_j+2, replacing (R_i,R_j) by (R_i-1,R_j+1) changes the sum by -2(R_i-R_j)+2<0, so at a minimum all entries differ by at most one; the fixed sum forces v entries u+1 and K-v entries u. For the maximum, if 0<R_j<=R_i<B, moving one unit from j to i changes the sum by 2(R_i-R_j)+2>0; hence at a maximum at most one entry is strictly between 0 and B, and all others are 0 or B; the fixed sum forces a entries B, one entry r if r>0, and the rest 0. These vectors are feasible since t<=KB.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": false
+ },
+ {
+  "at": 1795445458.6241176,
+  "session": "pnp-desk/research/R2132",
+  "model": "gpt-6-luna",
+  "id": "S0006",
+  "proved_step": "statement: For integers m>=1 and s>=0, the number of Boolean functions on m inputs computable by circuits with at most s ordered fan-in-2 gates over a basis of at most 16 Boolean operations is at most (m+s)(16(m+s)^2)^s (interpreting the s=0 case directly). Proof: Pad a circuit with unused gates to exactly s gates. In an ordered description, each gate chooses one of at most 16 operations and an ordered pair of predecessors among at most m+s available input or gate wires, giving at most 16(m+s)^2 choices. The output chooses one of at most m+s wires. Thus the number of descriptions is at most (m+s)(16(m+s)^2)^s, and each computes at most one Boolean function, so the number of distinct functions is no larger.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795445581.3541944,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0003: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The attempted Lean proof did not pass kernel verification. The verifier reported unsolved goals in the fiber-count and fiber-sum steps; I don\u2019t have a verified replacement proof. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795461637.2888286,
+  "session": "pnp-desk/research/R2253",
+  "model": "gpt-6-luna",
+  "gap": "This lemma does not establish a lower bound on the aggregate number of gates that become constant for restrictions of MCSP[m^c]. The remaining GE-3 obstacle is relating that statistic to the MCSP circuit's total size under arbitrary sharing.",
+  "gap_id": "G0004",
+  "id": "S0008",
+  "proved_step": "statement: Lemma (cofactor gate removal with free constants). For any fan-in-2 Boolean circuit C with s gates, any set I of input variables, and any assignment a in {0,1}^I, let E_a be the gates whose computed functions become constant after fixing I=a. Then C restricted by I=a has a fan-in-2 circuit of size at most s-|E_a|. Proof: traverse C in topological order, replace every gate in E_a by its constant value under the restriction, and feed that value to every consumer. Retain the other gates. The output is unchanged and each gate in E_a is removed once, including when it has multiple consumers. Consequently, for uniform a, E_a's average size is 2^{-|I|} sum_g |{a : gate g becomes constant under I=a}|.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795516944.2098372,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "gap": "The counterexample shows that aggregate gate elimination cannot follow from circuit size alone: gates may compute functions independent of the fixed coordinates and survive every such restriction. A viable enriched lemma must condition on a structural relation between gate functions and restriction coordinates, then relate that statistic to MCSP[m^c] circuit size under arbitrary sharing.",
+  "refuted_approach": "The proposed universal bound that every s-gate fan-in-2 circuit has at least s/2 gates constant on average after fixing one input is false. A one-gate circuit computing the other input has zero constant gates for both assignments of the fixed input; the finite search found this counterexample (cm-fa015cf1af5940fb).",
+  "evidence": "DISCOVERY computation cm-fa015cf1af5940fb found the smallest two-input, one-gate counterexample: fixing x in a circuit whose sole gate computes y leaves that gate nonconstant for both x=0 and x=1. This matches the failure prediction that gates can avoid the fixed variable entirely.",
+  "gap_id": "G0005",
+  "id": "S0009",
+  "proved_step": "statement: Lemma (restriction-independent gates survive). Let C be a fan-in-2 Boolean circuit on variables X\u222aY, and let g be a gate whose computed Boolean function depends only on Y. For every assignment a to X, the gate function after restricting X=a is the same function h(Y). If h is nonconstant, g remains nonconstant. Proof: write the gate function as h(Y). Substitution of a for X changes no argument of h, so the restricted gate still computes h(Y). Since h is nonconstant, it remains nonconstant for every a.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517075.5267072,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "evidence": "Elementary counting proof. This does not establish a lower bound on N in terms of MCSP prefix information, so its relation to the aggregate gate-elimination target remains limited.",
+  "id": "S0010",
+  "proved_step": "statement: Lemma (survival probability from one nonconstant cofactor). Let C be a fan-in-2 Boolean circuit with s gates on disjoint variable sets X\u222aY, |X|=r. For each gate g and assignment a\u2208{0,1}^X, let g_a be its restricted Boolean function on Y. If N gates have at least one assignment a for which g_a is nonconstant, then under uniform a the expected number of nonconstant restricted gate functions is at least N/2^r. Proof: each counted gate has at least one surviving restriction among 2^r equally likely assignments, so its survival probability is at least 2^-r. The expected surviving-gate count is the sum of these indicator probabilities. No independence is required, and arbitrary fan-out does not affect the gate count.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795517462.4695528,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "id": "S0011",
+  "proved_step": "statement: Lemma (survival of Y-only gates under X-restriction). Let C be a Boolean circuit on disjoint input sets X and Y, and let H be any set of gates whose computed functions are nonconstant and depend only on Y. For every assignment a to X, every gate in H computes the same nonconstant function of Y in C|_{X=a}; hence none is removed when replacing constant gates, and |C|\u2212|E_a|\u2265|H|, where E_a is the set of gates that become constant after restriction. Proof: each gate g\u2208H computes h_g(Y) before restriction, with no dependence on X. Substituting X=a therefore leaves its function exactly h_g(Y). Since h_g is nonconstant, g is not in E_a. Thus H\u2229E_a=\u2205, so |E_a|\u2264|C|\u2212|H| and the inequality follows. This holds pointwise for every a, even with arbitrary fan-out and shared gates.\nproof: For each g in H, its Boolean function is h_g(Y), independent of X and nonconstant. Substituting any assignment a for X leaves h_g(Y) unchanged, so g does not become constant. Therefore H is disjoint from E_a and |E_a|\u2264|C|\u2212|H|.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517618.0591412,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "id": "S0012",
+  "proved_step": "statement: Lemma (cofactor survival for Y-dependent gates). Let X,Y be disjoint Boolean input sets with |X|=q, and let f:{0,1}^X\u00d7{0,1}^Y->{0,1} depend on at least one Y input. For uniform a\u2208{0,1}^X, Pr[f(a,\u00b7) is nonconstant]\u22652^{-q}. Proof: Y-dependence gives x*, y,y' with f(x*,y)\u2260f(x*,y'); hence the cofactor at x* is nonconstant, and a=x* has probability 2^{-q}. Sharpness: f(X,y)=1[X=x*]\u2227y has exactly one surviving cofactor. For any h such gate functions in a circuit, linearity of expectation gives expected at least h2^{-q} nonconstant gate cofactors, irrespective of shared fan-out.\nproof: For each function choose a witnessing assignment x* and witnessing Y inputs y,y'. The random restriction equals x* with probability 2^{-q}, which preserves a nonconstant cofactor. Summing the survival indicators over gates and applying linearity of expectation gives the aggregate expectation; no independence is needed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795517789.4148707,
+  "session": "pnp-desk/research/R2662",
+  "model": "gpt-6-luna",
+  "id": "S0013",
+  "proved_step": "statement: Lemma (support-sensitive cofactor survival). Let C be a Boolean circuit on disjoint input sets X and Y, and for each gate g let f_g(X,Y) be its computed Boolean function. Let d_g be the number of coordinates of X on which f_g actually depends. If f_g depends on at least one coordinate of Y, then for a uniform a in {0,1}^X, Pr[f_g(a,\u00b7) is nonconstant] >= 2^{-d_g}. Consequently, for any set H of gates whose functions depend on Y, the expected number of gates in H with nonconstant cofactors is at least sum_{g in H} 2^{-d_g}.\nproof: Fix g in H. Since f_g depends on Y, there are x*, y, y' with f_g(x*,y) != f_g(x*,y'). Fix the d_g coordinates in the X-support of f_g to their values in x*. For every assignment to the remaining X coordinates, the two evaluations still differ because f_g is independent of those coordinates. Thus at least a 2^{-d_g} fraction of all assignments to X give a nonconstant Y-cofactor. Summing the survival indicators over H and taking expectations proves the aggregate inequality by linearity of expectation; no independence between gates is needed. The bound is sharp: f(X,y)=1[X|_S=x*] AND y, where |S|=d, has a nonconstant cofactor on exactly one assignment to S.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795518332.7243712,
+  "session": "pnp-desk/research/R2674",
+  "model": "gpt-6-luna",
+  "id": "S0014",
+  "proved_step": "statement: Sensitivity witness lemma. Let X,Y be finite nonempty sets and f:X\u00d7Y\u2192{0,1}. For y0,y1\u2208Y, define D={x\u2208X:f(x,y0)\u2260f(x,y1)}. For each x\u2208X, call the restricted gate f(x,\u00b7) surviving if it is nonconstant on Y. Then at least |D| of the |X| restrictions survive. Proof: for every x\u2208D the two values f(x,y0),f(x,y1) differ, so f(x,\u00b7) takes both Boolean values and is nonconstant. Thus D is contained in the set of surviving restrictions, giving the cardinality inequality. In uniform form, survival probability is at least |D|/|X|.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795518434.8232148,
+  "session": "pnp-desk/research/R2674",
+  "model": "gpt-6-luna",
+  "id": "S0015",
+  "proved_step": "statement: Averaged cofactor-survival bound. Let X,Y be finite nonempty sets and let f_1,...,f_s:X\u00d7Y\u2192{0,1}. For each i,x let p_i(x)=|{y\u2208Y:f_i(x,y)=1}|/|Y|, and let S(x)=|{i:y\u21a6f_i(x,y) is nonconstant}|. Then \u03a3_{x\u2208X}S(x) \u2265 \u03a3_{x\u2208X}\u03a3_{i=1}^s 2p_i(x)(1-p_i(x)). Proof: choose independent uniform y0,y1\u2208Y. For each fixed x,i, the probability f_i(x,y0)\u2260f_i(x,y1) is p_i(x)(1-p_i(x))+(1-p_i(x))p_i(x)=2p_i(x)(1-p_i(x)). Whenever this disagreement occurs, the cofactor y\u21a6f_i(x,y) is nonconstant. Thus pointwise the number of disagreeing (x,i) pairs is at most \u03a3_x S(x). Take expectation and use linearity of expectation to obtain the inequality.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795518496.4215658,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0014: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean proof remains unverified. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795567748.7026398,
+  "session": "pnp-desk/research/R3062",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified by direct construction: t minterms each need m-1 AND gates, combined with t-1 OR gates = t(m-1)+(t-1)=tm-1. Free negations means literals cost 0. Boundary cases: m=1 gives t*1-1=t-1 gates (just wires and ORs); t=1 gives m-1 gates (one minterm). No counterexample found in exhaustive check for m<=4.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795567788.4012482,
+  "session": "pnp-desk/research/R3062",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is a basic counting identity: each x in A has exactly one q-bit prefix, so summing over all 2^q prefixes counts each element exactly once. Sum_p |{x in A: x begins with p}| = |A|. Dividing by 2^q gives the average. No counterexample possible; holds for all finite sets A.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795567788.4285276,
+  "session": "pnp-desk/research/R3062",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Algebraic identity: R_p^2 = sum_{(x,y) in A^2} 1[x has prefix p and y has prefix p]. Summing over p gives sum_{(x,y) in A^2} 1[x_1...x_q = y_1...y_q]. Dividing by 2^q preserves equality. Verified by direct expansion; holds for all finite A.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795567800.871627,
+  "session": "pnp-desk/research/R3062",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Convex optimization over integer simplex. The minimum of sum of squares under sum constraint is achieved when entries are as equal as possible. t = uK + v with 0 <= v < K gives v entries of u+1 and K-v entries of u. The smoothing operation (R_i >= R_j+2) -> (R_i-1, R_j+1) decreases sum of squares by 2(R_i-R_j)-2 > 0. Maximum is at boundary: a = floor(t/B) entries at B, one at r = t mod B, rest 0. Verified by exhaustive check for small K,B.",
+  "review_of": "S0005",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795567800.8895178,
+  "session": "pnp-desk/research/R3062",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard circuit counting argument. Each of s gates: choose 1 of <=16 operations and ordered pair from m+s available wires (m inputs + previous gates). Output chooses 1 of m+s wires. Total descriptions <= (m+s) * (16(m+s)^2)^s. Each description computes at most one function. For s=0: (m+0)*(16m^2)^0 = m functions (projections), correct. No counterexample; this is an upper bound on distinct functions computable.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795567800.9128242,
+  "session": "pnp-desk/research/R3062",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Standard gate elimination with constant propagation. When a gate's output becomes constant under a restriction, it can be replaced by that constant value and removed from the circuit. The topological traversal ensures each constant gate is removed exactly once even with fan-out > 1. The average size identity follows from linearity of expectation over uniform a. No counterexample; this is a constructive proof.",
+  "review_of": "S0008",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795590825.8661098,
+  "session": "pnp-desk/research/R3307",
+  "model": "gpt-6-luna",
+  "id": "S0023",
+  "proved_step": "statement: Lemma (support-sensitive cofactor survival). Let X and Y be disjoint finite sets of Boolean variables and let f:{0,1}^X\u00d7{0,1}^Y\u2192{0,1}. Let d be the number of X-coordinates on which f essentially depends. If f depends on at least one Y-coordinate, then for uniform a\u2208{0,1}^X, Pr[f(a,\u00b7) is nonconstant]\u22652^{-d}. Proof: Since f depends on Y, there are x*\u2208{0,1}^X and y,y'\u2208{0,1}^Y such that f(x*,y)\u2260f(x*,y'). Let S\u2286X be the set of essential X-coordinates, so |S|=d. For every a agreeing with x* on S, f(a,y)=f(x*,y) and f(a,y')=f(x*,y'), because f is independent of X\\S. Hence each such a gives a nonconstant Y-cofactor. Exactly 2^{|X|-d} assignments agree on S, so the probability is at least 2^{-d}. The bound is attained, for d\u22650, by f(X,y)=1[X|_S=x*|_S]\u2227y when Y has a designated bit y (and ignores its other bits): precisely one assignment to S gives a nonconstant cofactor, so the probability is 2^{-d}.\nevidence: Complete finite-set argument given in the statement. The independent bounded enumeration cm-c76d2cc7e2024477 checked all functions with |X|\u22643 and |Y|=1 (2, 12, 240, and 65,280 Y-dependent functions at |X|=0,1,2,3) and found no counterexample; this computation is corroboration only, not the general proof.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795591550.3613982,
+  "session": "pnp-desk/research/R3318",
+  "model": "gpt-6-luna",
+  "id": "S0024",
+  "proved_step": "statement: Lemma (support bounds nonconstant output cofactors). Let X,Y be disjoint finite Boolean variable sets, r=|X|, and f:{0,1}^X\u00d7{0,1}^Y\u2192{0,1} have support size t=|{(x,y):f(x,y)=1}|. Let A={a\u2208{0,1}^X : f(a,\u00b7) is nonconstant}. Then |A|\u2264min(2^r,t), so for uniform a, Pr[f(a,\u00b7) is nonconstant]\u2264min(1,t/2^r). If f is the output of any fan-in-2 circuit, this is also an upper bound on the probability that its output gate remains nonconstant after restricting X.\nproof: For every a\u2208A, nonconstancy of f(a,\u00b7) implies there exists y_a with f(a,y_a)=1. The sets {(a,y): y\u2208{0,1}^Y} for distinct a are disjoint, so choosing one such positive input per a injects A into supp(f); hence |A|\u2264t. Trivially |A|\u22642^r. Dividing by 2^r proves the probability bound. The circuit statement follows because its output gate computes exactly f, and a gate remains nonconstant precisely when its restricted output function is nonconstant.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795591686.1017766,
+  "session": "pnp-desk/research/R3318",
+  "model": "gpt-6-luna",
+  "id": "S0025",
+  "proved_step": "statement: Lemma (aggregate cofactor-survival bound for circuit gates). Let C be a fan-in-2 Boolean circuit with gate set G on disjoint finite Boolean input sets X and Y, with |X|=r. For each gate g, let f_g:{0,1}^X\u00d7{0,1}^Y\u2192{0,1} be its computed function and let t_g=|supp(f_g)|. For a\u2208{0,1}^X, let I_g(a)=1 iff f_g(a,\u00b7) is nonconstant. Then \u03a3_a \u03a3_{g\u2208G} I_g(a) \u2264 \u03a3_{g\u2208G} min(2^r,t_g). Equivalently, for uniform a, the expected number of nonconstant gate cofactors is at most 2^-r \u03a3_g min(2^r,t_g). This holds with arbitrary fan-out and gate sharing.\nproof: Fix g. Define A_g={a\u2208{0,1}^X:f_g(a,\u00b7) is nonconstant}. For each a\u2208A_g, nonconstancy implies there is y_a with f_g(a,y_a)=1. The X-fibers for distinct a are disjoint, so the selected satisfying inputs (a,y_a) are distinct members of supp(f_g). Thus |A_g|\u2264t_g. Also |A_g|\u22642^r, hence |A_g|\u2264min(2^r,t_g). Summing this inequality over the finite gate set G gives \u03a3_a \u03a3_g I_g(a)=\u03a3_g |A_g|\u2264\u03a3_g min(2^r,t_g). Dividing by 2^r gives the expectation formula. The proof counts gates individually and makes no independence assumption, so sharing and fan-out do not affect it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795592364.8871846,
+  "session": "pnp-desk/research/R3321",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement: Lemma (support-weighted expected retained gates). Let C be a Boolean circuit and let X,Y be disjoint input sets. For each gate g, write f_g(X,Y) for its computed function, d_g for the number of X-coordinates in its actual support, and H for any set of gates whose functions depend on at least one Y-coordinate. Under a uniform assignment a to X, the expected number of gates in H whose restricted functions f_g(a,\u00b7) are nonconstant is at least \u03a3_{g\u2208H}2^{-d_g}. Proof: Fix g\u2208H. Since f_g depends on Y, choose x*, y, y\u2032 with f_g(x*,y)\u2260f_g(x*,y\u2032). Fix the d_g support coordinates of X to their values in x*. For every completion on the other X-coordinates, f_g is unchanged because it is independent of those coordinates; thus the same y,y\u2032 witness a nonconstant cofactor. Exactly 2^{|X|-d_g} assignments extend this fixing, so the survival probability is at least 2^{-d_g}. Sum the indicator variables for g\u2208H and use linearity of expectation; no independence assumption is needed. The bound is sharp for an individual gate, e.g. f(X,y)=1[X|_S=x*]\u2227y with |S|=d_g.\nproof: As in the statement: each gate has at least 2^{|X|-d_g} surviving assignments, hence survival probability at least 2^{-d_g}; summing expectations proves the result.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0003",
+  "closes_valid": true
+ },
+ {
+  "at": 1795669093.242365,
+  "session": "pnp-desk/research/R4318",
+  "model": "gpt-6-luna",
+  "gap": "This profile identity gives an exact per-function survival probability but does not establish a restriction-cost inequality for arbitrary fan-in-2 circuits with sharing; the aggregate gate-elimination obligation remains open.",
+  "gap_id": "G0006",
+  "id": "S0027",
+  "proved_step": "statement: For a Boolean function f:{0,1}^X x {0,1}^Y -> {0,1}, let S be its actual X-support and A={a in {0,1}^S : f(a,.) is nonconstant}. Under a uniform assignment to X, the probability that the restricted cofactor on Y is nonconstant is exactly |A|/2^|S|. In particular, if f depends on Y then this probability is at least 2^-|S|, and this lower bound is sharp.\nproof: Because f is independent of every coordinate in X\\S, the restricted function f(x,.) depends only on x|_S. For uniform x in {0,1}^X, x|_S is uniform on {0,1}^S. The event that f(x,.) is nonconstant is therefore exactly the event x|_S belongs to A, which has probability |A|/2^|S|. If f depends on Y, at least one cofactor is nonconstant: otherwise all cofactors would be constant, and since f is Y-dependent this would be impossible. Thus |A|>=1. Sharpness is witnessed by f(x,y)=1[x|_S=a*] AND y, for any a* in {0,1}^S, whose nonconstant-cofactor set is the singleton {a*}.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

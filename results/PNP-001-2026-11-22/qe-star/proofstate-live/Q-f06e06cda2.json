@@ -1,0 +1,33 @@
+[
+ {
+  "at": 1795252819.7514117,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-N: (1) an ablation on thr2_evaluate / pit_evaluate where the trace+modulation mechanism beats plain memoisation on the same instances with a saving that grows with n (VERIFIED_RUN, experiment ids); (2) a proof of that saving for a stated circuit class.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795276251.8005726,
+  "session": "pnp-desk/research/R1048",
+  "model": "claude-haiku-5-5",
+  "gap": "Repair attempt not yet constructed. Open obstacle: on random instances the restricted residual profiles are mostly distinct, so the memo key (unfixed set, folded threshold, residual gate tuple) is near 2^n. An enriched version must change the KEY, not the order: e.g. canonical residual profiles under gate merging, or a subclass (bounded distinct bottom-gate count, bounded weights) where the number of distinct residual profiles at depth d is provably at most poly(n) times 2^{n-d}-independent. Not proved for any subclass yet.",
+  "refuted_approach": "Three-factor credit as a variable-order rule for memoised #SAT of THR o THR. Variant (i): immediate influence trace tr[i] = 0.5 tr[i] + sum |v_j||W_ji| over active gates. Variant (ii): delayed credit, incremented by memo hits inside the solved subtree. Both are exact (match brute force) but neither reduces memo states beyond a constant factor vs plain fixed order (cm-a5183321ce3443e5, cm-f720092719754d31, cm-7f1d6616fd1c43cb, cm-33151780751f410f). Wall-clock is not evidence (pure Python vs numpy baseline).",
+  "evidence": "cm-a5183321ce3443e5 (trace vs plain state counts, n=10..16); cm-f720092719754d31 (delayed credit); cm-7f1d6616fd1c43cb and cm-33151780751f410f (wall-clock ablation, speedup 0.02-0.04 vs brute force, not used as evidence).",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795276327.4225776,
+  "session": "pnp-desk/research/R1048",
+  "model": "claude-haiku-5-5",
+  "lemma": "FEW-FORMS LEMMA (repair of G0002: the memo key is replaced, not the variable order). Setting: THR o THR circuit C on n variables with m bottom gates g_j(x) = [W_j . x >= t_j], W_j in Z^n, t_j in Z, and top gate f(x) = [sum_j v_j g_j(x) >= T], v_j in Z, T in Z. Assume the rows W_j take at most d distinct values: W_j = F^{(k(j))} for a matrix F in Z^{d x n} and k: [m] -> [d], and |F_{qi}| <= B. Put R_q = sum_i |F_{qi}| <= B n and grid G = prod_q [-R_q, R_q]. Claim: #SAT(C) = #{x in {0,1}^n : f(x)=1} is computed exactly by the DP below in O(n d |G| + m |G|) integer operations, where |G| = prod_q (2R_q+1) <= (2Bn+1)^d.",
+  "gap": "Open: remove the few-distinct-rows hypothesis. The DP key is a d-dimensional partial-sum vector; for general random THR o THR, d = m and the key is again near 2^n.",
+  "evidence": "pending: physalis_code_run exact check against brute force on d in {1,2,3}, n in {8,10,12,14}, recorded in this session (exploratory evidence of correctness only; the proof above is the actual support).",
+  "gap_id": "G0003",
+  "id": "S0003",
+  "proved_step": "PROOF. Let s(x) = (F^{(1)} x, ..., F^{(d)} x) in Z^d, and let a_i = (F_{1i}, ..., F_{di}) be the i-th column of F. Then s(x) = sum_i x_i a_i. Since g_j(x) = [s_{k(j)}(x) >= t_j], we have f(x) = h(s(x)) with h(sigma) = [sum_j v_j [sigma_{k(j)} >= t_j] >= T]. So #SAT(C) = sum_{sigma in G} N(sigma) h(sigma), where N(sigma) = #{x : s(x) = sigma}. DP: A_0 = indicator of the origin on G; A_i(sigma) = A_{i-1}(sigma) + A_{i-1}(sigma - a_i) (entries outside G are dropped). Invariant: A_i(sigma) = #{y in {0,1}^i : sum_{l<=i} y_l a_l = sigma} for sigma in G. Induction step: a vector y in {0,1}^i with partial sum sigma either has y_i=0 (counted by A_{i-1}(sigma)) or y_i=1 (counted by A_{i-1}(sigma - a_i)). No mass is lost by the truncation to G, because every partial sum over l <= i has |coordinate q| <= sum_l |F_{ql}| <= R_q, so each partial sum lies in G. Hence A_n = N on G, and the output sum_{sigma in G} A_n(sigma) h(sigma) equals #SAT(C). Cost: the DP does n steps, each O(|G|) with d-dimensional slicing; evaluating h on a cell costs O(m). All numbers are at most 2^n, so the arithmetic is exact.\n\nCOROLLARY (sub-exponential saving). Let B be a constant and d <= n / (4 log2(2Bn+1)). Then |G| <= (2Bn+1)^d <= 2^{n/4}, so #SAT(C) is computed in time poly(n, m) * 2^{n/4} (plus the O(m d n) work to find the distinct rows), against brute force 2^n * poly(n, m). The saving is at least 3n/4 - O(log n) bits, so saving/log n -> infinity: this meets the Lemma 3.8 threshold for this subclass. Outside the subclass (d large) the bound (2Bn+1)^d is not better than 2^n and the lemma gives nothing.\n\nSCOPE / WHAT IS NOT CLAIMED: this is a proved algorithm for the subclass 'few distinct bottom weight rows, bounded weights, d <= n/(4 log(2Bn+1))'. It does NOT handle random or general THR o THR (d = m there), so it does not repair the general memo-key obstacle. Whether the subclass is a real intermediate step (lane D / lane C, owner's intermediate-goal rule) is for review. It also does not bear on P vs NP without the general lower-bound or CAPP chain.\n\nOPEN after this step: (a) general d with bounded weights, i.e. remove the distinct-rows hypothesis by replacing rows with a low-dimensional approximation (lane D); (b) the same key (sum-vector) for MAJ o MAJ / CAPP (Q-2f96f7e0f1).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0002",
+  "closes_valid": false
+ }
+]

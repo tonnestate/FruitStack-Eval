@@ -1,0 +1,391 @@
+[
+ {
+  "at": 1795298892.2228994,
+  "session": "pnp-desk/research/R1193",
+  "model": "claude-haiku-5-5",
+  "lemma": "Pol(R) for R={100,010,001} over {0,1} consists exactly of the projections, in every arity k>=1.",
+  "id": "S0001",
+  "proved_step": "Let f:{0,1}^k->{0,1} preserve R; put g(S)=f(1_S) for S subset [k]. For any sigma:[k]->{1,2,3} the k input tuples e_sigma(j) lie in R, and the output column c is 1_{sigma^-1(c)}; so for every ordered partition (B1,B2,B3) of [k] into possibly empty blocks exactly one of g(B1),g(B2),g(B3) equals 1. (a) (empty,empty,[k]) gives g(empty)=0, g([k])=1. (b) (S,S^c,empty) gives g(S)+g(S^c)=1. (c) for disjoint S,T with U=(S u T)^c, (S,T,U) gives g(S)+g(T)+g(U)=1 and by (b) g(U)=1-g(S u T), so g(S u T)=g(S)+g(T). (d) Induction from (a),(c): g(S)=sum_{i in S} g({i}); since g([k])=1 and values are 0/1, exactly one i has g({i})=1, so g(S)=[i in S] and f=x_i. Converse: projections preserve R. Hence Pol(R)=projections. Scope: general k, proof written, exact check pending for k<=6 (see physalis_code_run).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-310af92830",
+  "closes_valid": true
+ },
+ {
+  "at": 1795299130.02316,
+  "session": "pnp-desk/research/R1193",
+  "model": "claude-haiku-5-5",
+  "lemma": "For every k>=1 and every f:{0,1}^k->{0,1}: f preserves R={100,010,001} (as a 3-ary relation) iff, for every ordered partition (B1,B2,B3) of [k] into possibly empty blocks, exactly one of f(1_B1), f(1_B2), f(1_B3) equals 1. Consequently every such polymorphism is a projection x_i.",
+  "evidence": "PROOF. (a) Columns of three rows of R are unit vectors e_b, so applying f coordinatewise to three rows of R gives x^(j)_i = [b(i)=j] = 1_{Bj}(i) for a function b:[k]->{1,2,3}; the output is in R iff exactly one of f(1_B1),f(1_B2),f(1_B3) is 1. (b) g(S):=f(1_S). Taking (B1,B2,B3)=(\u2205,\u2205,[k]) gives g(\u2205)=0 (two equal values cannot give exactly one 1), and g([k])=1. Taking (S,S^c,\u2205) gives g(S)+g(S^c)=1. For disjoint S,T with U=(S\u222aT)^c, exactly one of g(S),g(T),g(U) is 1, so g(S\u222aT)=1-g(U)=g(S)+g(T). (c) Additivity over disjoint unions with values in {0,1} gives g(S)=sum_{i in S} g({i}); g([k])=1 forces exactly one i with g({i})=1, so g(S)=[i in S]. Every x in {0,1}^k is 1_S for S={i: x_i=1}, hence f(x)=x_i. Converse (projections preserve R) is immediate. Works for all k>=1, so the k<=6 check is a special case. FINITE CHECK: physalis code cm-33883e2c2acb4072 (exhaustive SAT/enumeration, k=1..6): exactly k polymorphisms, all projections. STATUS: proof is hand-verified by the proving session only; it is CLAIMED until a different session reviews it. The validator claim claim:fcb651188287 is still PENDING. NOT YET VERIFIED: (i) pp-definability consequence (Geiger 1968 / Bodnarchuk-Kaluzhnin-Kotov-Romov 1969: Pol=projections => every Boolean relation is pp-definable from R with constants {0},{1}; the constant-free form needs care); (ii) the F_3-linear to positive 1-in-3 FO reduction; (iii) the corollary via Atserias-Bulatov-Dawar 2009 + Anderson-Dawar 2017 Thm 1 (Anderson-Dawar STACS 2014 / arXiv 1401.1125 read in part only, the Thm 1 statement is quoted in the abstract/intro and confirmed there)."
+ },
+ {
+  "at": 1795299195.5221786,
+  "session": "pnp-desk/research/R1193",
+  "model": "claude-haiku-5-5",
+  "lemma": "Constants are pp-definable from R={100,010,001} with equality. phi1(x) := exists y,z [R(x,y,z) and y=z] defines {1}. phi0(x) := exists z [phi1(z) and R(x,x,z)] defines {0}. Hence, with Pol(R)=projections (S0001), Geiger/BKKR gives that every Boolean relation is pp-definable from {R} plus equality, with no constants needed.",
+  "evidence": "PROOF. Tuples of R with y=z: only (1,0,0), so R(x,y,y) forces x=1 and y=0; phi1 = {1}. Tuples of R with x=y: only (0,0,1), so R(x,x,z) forces x=0 and z=1; with phi1(z) (z=1) this gives phi0 = {0}. Galois connection (Geiger 1968, Bodnarchuk-Kaluzhnin-Kotov-Romov 1969): a relation is pp-definable from Gamma (with equality and constants) iff Pol(Gamma) preserves it. Pol(R)=projections preserves every relation, so every Boolean relation is pp-definable from R. STATUS: CLAIMED; the pp-definitions are checkable by a finite enumeration (2^3 cases each). Not yet verified: (ii) the F_3-linear to positive 1-in-3 FO reduction, and (iii) the Atserias-Bulatov-Dawar / Anderson-Dawar corollary."
+ },
+ {
+  "at": 1795301679.8542116,
+  "session": "pnp-desk/research/R1209",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of the general-k argument, steps (a)-(d): (a) gives g(empty)=0 and g([k])=1. (b) from the partition (S, S^c, empty) gives g(S)+g(S^c)=1. (c) from (S,T,U) with U the complement of S u T gives g(S)+g(T)+g(U)=1, and with (b) g(S u T)=g(S)+g(T) for disjoint S,T. (d) by induction g(S)=sum_{i in S} g({i}); g([k])=1 with 0/1 values gives exactly one i with g({i})=1, so g(S)=[i in S] and f=x_i. Converse: each projection preserves R. Finite check: physalis_code_run experiment cm-1d9b6230e7514ec9, SAT enumeration of all Boolean polymorphisms of R for k=1..6, found exactly the k projections in each case (1,2,3,4,5,6 functions, all projections). The check encodes the same partition constraints (exactly one output column true per block triple), so it tests the argument's premise, not only the conclusion.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795301679.87293,
+  "session": "pnp-desk/research/R1209",
+  "model": "claude-haiku-5-5",
+  "gap": "Item (iii) is OPEN. Web search (claude-websearch, 2026-11-21) found no source for the corollary 'no P-uniform poly-size symmetric majority circuits decide positive 1-in-3'. Anderson-Dawar (arXiv 1401.1125, STACS 2014) state that P-uniform symmetric majority circuits decide exactly the FPC-definable graph properties, with no 1-in-3 or CSP statement. Atserias-Bulatov-Dawar (ICALP 2007; TCS 2009) rule out definability in counting logic only for tractable CSPs whose variety admits a unary or affine type. The polymorphism clone of R={100,010,001} is projections only (S0001), so it has no Maltsev term and no nontrivial unary polynomial, and the ABD hypothesis is not met. Hence the cited route does not yield the corollary for positive 1-in-3, which is NP-complete. Repair needed: a different hypothesis or a different transfer for the claim.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795301761.5657184,
+  "session": "pnp-desk/research/R1209",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 restated: the corollary 'no P-uniform poly-size symmetric majority circuit family decides positive 1-in-3' is implied by P!=NP (uniform poly-size circuits decide only P-languages) but does not imply P!=NP, since symmetric majority circuits need not capture all of P. It is a restricted-class lower bound for an NP-complete problem; no known source proves it. Repair target: a conditional statement, e.g. 'if positive 1-in-3 is decided by P-uniform symmetric majority circuits of size n^c, then 1-in-3 in P'.",
+  "refuted_approach": "Route (iii) via Atserias-Bulatov-Dawar (ICALP 2007 / TCS 2009) does not apply to R={100,010,001}: its polymorphism clone is projections only (S0001), so there is no Maltsev term and no nontrivial unary polynomial, and the ABD hypothesis (unary or affine type) fails. Anderson-Dawar (arXiv 1401.1125) gives no 1-in-3 statement.",
+  "evidence": "S0001 SURVIVED_REVIEW (cm-1d9b6230e7514ec9); logic check in session R1209",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795301827.179841,
+  "session": "pnp-desk/research/R1209",
+  "model": "claude-haiku-5-5",
+  "lemma": "Trivial conditional (bookkeeping, not progress): if positive 1-in-3-SAT (NP-complete by Schaefer) is decided by a P-uniform family of size poly(N) on inputs of length N, then it is in P. Proof: the uniform machine writes C_N in poly(N) time, and evaluating a poly-size circuit takes poly time.",
+  "gap": "G0001 corrected: the conditional form 'if decided by P-uniform symmetric majority circuits of size n^c then 1-in-3 in P' is trivial and does not close the gap. The open obligation is the lower bound: no P-uniform poly-size symmetric majority circuit family decides positive 1-in-3. Perfect-matching barrier control not yet checked. This lower bound is implied by P != NP but does not imply it, since the symmetric class may be properly inside P.",
+  "evidence": "S0001 SURVIVED_REVIEW (cm-1d9b6230e7514ec9). Trivial conditional proved in session R1209 inline.",
+  "gap_id": "G0003",
+  "id": "S0007",
+  "proved_step": "Trivial conditional lemma above (upper-bound direction only). Bookkeeping, not counted as progress against G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795301860.2013001,
+  "session": "pnp-desk/research/R1209",
+  "model": "claude-haiku-5-5",
+  "gap": "S0007 is bookkeeping (upper-bound direction of a conditional, trivially true) and does NOT count as progress or as a premise. G0001 stays open: no P-uniform poly-size symmetric majority circuit family decides positive 1-in-3. Obstacle: the class of P-uniform poly-size symmetric majority circuits lies inside P, so the lower bound is at least as hard as a uniform-TC0-type separation from NP, which no known source proves. A repair needs a restricted input regime or a restricted gate type, e.g. a single symmetric gate, which computes a function of the Hamming weight only, on a fixed family of 1-in-3 instances. That subcase is not yet analysed and is the next step.",
+  "refuted_approach": "Conditional form 'if 1-in-3 is decided by P-uniform symmetric majority circuits of size n^c then 1-in-3 is in P' (S0007): trivially true, closes nothing.",
+  "evidence": "S0001 SURVIVED_REVIEW (cm-1d9b6230e7514ec9); repair obstacle reasoned in session R1209, no computation run this round",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795305114.6024508,
+  "session": "pnp-desk/research/R1223",
+  "model": "claude-haiku-5-5",
+  "lemma": "For every arity k>=1, every k-ary polymorphism of R={100,010,001} is a projection, i.e. Pol(R) = {x_1,...,x_k}. Proof uses only the exactly-one property of R under coordinatewise application.",
+  "id": "S0009",
+  "proved_step": "Let f:{0,1}^k->{0,1} preserve R (applying f coordinatewise to k tuples of R yields a tuple of R). Set g(S)=f(1_S) for S subset [k]. (1) Give tuple j the 1 in row p_j in {1,2,3}; output row i is g(S_i) with S_i={j: p_j=i}. Hence for every ordered partition (S1,S2,S3) of [k] into possibly empty blocks, exactly one of g(S1),g(S2),g(S3) equals 1. (2) Partition (empty,empty,[k]) gives g(empty)=0 and g([k])=1. Partition (empty,S,[k]\\S) gives g(S)+g([k]\\S)=1. (3) F={S: g(S)=1} is nonempty and has no two disjoint members (partition (A,B,rest) would have two 1s). Let M be inclusion-minimal in F; M is nonempty since g(empty)=0. If |M|>=2, pick a in M and use the partition ({a}, M\\{a}, [k]\\M): g(M\\{a})=0 by minimality, g([k]\\M)=1-g(M)=0, so g({a})=1, contradicting minimality. So M={i}. (4) Every B in F meets {i} (no disjoint members), so i in B; if i in S then [k]\\S not in F, so S in F. Hence g(S)=[i in S] and f is the projection onto coordinate i. Projections trivially preserve R. Hypothesis checked: only the exactly-one-per-3-partition property; this is a clone fact, not a circuit bound, so no barrier applies. Status: CLAIMED until a different session reviews it. NOT covered: the pp-definability consequence (Geiger/BKKR), the F_3-linear-equations reduction item, and the source check of Geiger/BKKR.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-310af92830",
+  "closes_valid": true
+ },
+ {
+  "at": 1795309603.1418512,
+  "session": "pnp-desk/research/R1251",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by session R1251 (not the claiming session R1223). Checked each step: (1) partition property from coordinatewise application of f to k tuples of R; (2) g([k])=1 and g(S)+g([k]\\S)=1 from partitions (empty,empty,[k]) and (empty,S,[k]\\S); (3) inclusion-minimal M in F = {S: g(S)=1} is a singleton via partition ({a}, M\\{a}, [k]\\M), using minimality and g(M)+g([k]\\M)=1; (4) every member of F meets {i}, so g(S)=[i in S]. No gap found. Independent replication: cm-6e08e8da503d4966 (own brute-force code, direct check of the partition criterion on all 2^(2^k) truth tables), k=1..4: polymorphisms=projections=k, nonprojection_count=0, matching the prediction. Scope: projection half only (clone fact). Items (ii) pp-definability and (iii) open as before. S0007 not reviewed: bookkeeping, not counted.",
+  "review_of": "S0009",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795310039.2893162,
+  "session": "pnp-desk/research/R1251",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof above plus earlier finite check cm-3301db7ff9fd4fd3 (same definitions, enumerated).",
+  "id": "S0011",
+  "proved_step": "LEMMA (pp-definability of constants from R={100,010,001}, Boolean domain): phi1(x) := exists y,z [R(x,y,z) and y=z] defines exactly {1}; phi0(x) := exists z [phi1(z) and R(x,x,z)] defines exactly {0}. Proof: the only tuples of R with y=z is 100, so phi1(x) forces x=1; the only tuple of R with first two coordinates equal is 001, so R(x,x,z) with phi1(z) (z=1) forces x=0. Both directions checked by inspection of the three tuples of R. Scope: Boolean domain, quantifier-free R plus equality, existential quantifiers. Related finite check: NUMERICAL_EVIDENCE cm-3301db7ff9fd4fd3. This is item (ii)'s first half; the Geiger/BKKR consequence (Pol(R) = projections implies every Boolean relation is pp-definable from R) is NOT yet checked against its source.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795310393.1767156,
+  "session": "pnp-desk/research/R1251",
+  "model": "claude-haiku-5-5",
+  "gap": "Item (iii) / G0001 unchanged: the symmetric-majority lower bound for positive 1-in-3 is open. Perfect-matching control NOT established: positive 1-in-3 with two occurrences is perfect matching, and it is unknown whether PM is decided by poly-size P-uniform symmetric circuits, so the control gives no clean barrier verdict either way.",
+  "gap_id": "G0005",
+  "id": "S0012",
+  "proved_step": "CONSEQUENCE (item ii, second half; cited theorem applied, not new): from S0009 (Pol(R) = projections, all arities) and the Geiger / Bodnarchuk-Kaluzhnin-Kotov-Romov Galois correspondence Inv(Pol Gamma) = pp-closure of Gamma (equality allowed, constants not required), every Boolean relation is pp-definable from R and equality. With S0011 (constants 0 and 1 pp-definable), the pp-closure of R contains all unary and binary Boolean relations. Scope: Boolean domain, finite arities. Checked independently in NUMERICAL_EVIDENCE of the same session (closure computation, arity <= 4 bounded). Depends on S0009 and S0011 (both open until reviewed by another session).",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795310429.966469,
+  "session": "pnp-desk/research/R1251",
+  "model": "claude-haiku-5-5",
+  "gap": "G0005 (item iii, open). MANDATORY BARRIER CHECK (T-C, Q-491f5c8de8), written before any LOWER_BOUND is recorded. (a) Perfect-matching control: positive 1-in-3 with two occurrences per variable is perfect matching (PM), which lies in P (Edmonds). The control asks whether a restricted-model bound that also holds for a function in P would block the route. It applies only if PM is provably decided by P-uniform poly-size symmetric majority circuits. That is not known, so the control is INCONCLUSIVE, not passed and not failed. (b) Naturalness: a bound for symmetric majority circuits measures a function of the Hamming weight of the input. Whether it is natural (constructive and large) is not established. No learner for the target class has been exhibited. Status: no LOWER_BOUND is claimed; G0005 stays open.",
+  "evidence": "Barrier analysis in text only; no computation run. Next: check whether PM is in the FPC / symmetric-circuit class (Anderson-Dawar arXiv 1401.1125; Cai-Furer-Immerman on PM and fixed-k counting logic).",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795317331.658681,
+  "session": "pnp-desk/research/R1289",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review (independent session). phi1(x) = exists y,z [R(x,y,z) and y=z]: the only tuple of R with y=z is 100, so phi1 holds iff x=1. phi0(x) = exists z [phi1(z) and R(x,x,z)]: the only tuple of R with first two coordinates equal is 001, so R(x,x,z) forces x=0, z=1, and phi1(z) forces z=1. Both definitions are exact on {0,1}. Scope: Boolean domain, R plus equality, existential quantifiers, repeated variables allowed in atoms (substitution of variables).",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795317597.9579175,
+  "session": "pnp-desk/research/R1289",
+  "model": "claude-haiku-5-5",
+  "evidence": "Binary part only. Two independent methods agree. (a) cm-4ca3ba7025824899 enumerated pp-closure at NV<=6 and found 15 of 16 binary relations; the only missing one was OR = {01,10,11}. (b) cm-000244a71a494136 builds OR by an explicit pp-formula over 9 variables (c1, c0, XOR, NAND gadgets) and checks each gadget by brute force over all 2^9 assignments: c1={1}, c0={0}, XOR={01,10}, NAND={00,01,10}, OR={01,10,11}, all matching prediction. Together these give all 16 binary relations. Not reviewed: any claim beyond arity 2.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795317625.7701244,
+  "session": "pnp-desk/research/R1289",
+  "model": "claude-haiku-5-5",
+  "id": "S0016",
+  "proved_step": "CONTROL LEMMA (arity k>=1). Let f:{0,1}^k->{0,1} preserve R={100,010,001}, i.e. for any k tuples r^1..r^k in R, (f(row1),f(row2),f(row3)) in R, where row_l = (r^1_l,...,r^k_l). For S subset [k] put g(S)=f(1_S). Proof: (1) For the 3-partition (P1,P2,P3) of [k] (blocks may be empty), column j = unit vector e_l with j in P_l, so each column lies in R and (g(P1),g(P2),g(P3)) in R: exactly one block has g=1. (2) Partition ([k],empty,empty) gives g(empty)=0 (else two ones). (3) Partition (S,S^c,empty) gives g(S)+g(S^c)=1. (4) F={S: g(S)=1} is nonempty (g([k])=1) and intersecting (disjoint T1,T2 in F contradict (1) with the third block). (5) Let T in F be minimal (T nonempty since g(empty)=0). If |T|>=2, split T=T1 disjoint-union T2 with both nonempty; neither is in F by minimality, so (1) on (T1,T2,[k]\\T) gives [k]\\T in F, which is disjoint from T: contradiction. So T={i}. (6) Every member of F meets {i}, so contains i. For S with i not in S: i in S^c, so g(S^c)=1 and by (3) g(S)=0. For i in S: S meets {i}, so g(S)=1. Hence f(x)=x_i on all of {0,1}^k. Projections satisfy the condition, so the polymorphisms are exactly the k projections. Scope: Boolean (2-valued) polymorphisms of R of every arity k>=1. Status: CLAIMED, not yet reviewed by another session. Uses nothing outside the definition of polymorphism.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-310af92830",
+  "closes_valid": true
+ },
+ {
+  "at": 1795317845.6808906,
+  "session": "pnp-desk/research/R1291",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by an independent session. Steps (1)-(5) re-derived and correct: (1) column j = e_{a_j} gives row-block indicators 1_{P_l}, so (g(P1),g(P2),g(P3)) in R; (2) partition ([k],empty,empty) gives g(empty)=0 and g([k])=1; (3) partition (S,S^c,empty) gives g(S)+g(S^c)=1; (4) F intersecting via (T1,T2,rest); (5) minimal T in F is a singleton {i} via (T1,T2,[k]\\T). GAP in step (6) as written: 'i in S^c so g(S^c)=1' and 'S meets {i} so g(S)=1' do not follow from the stated facts. REPAIR: for S containing i, if g(S)=0 then g(S^c)=1 by (3), so S^c in F, but i is not in S^c, contradicting that every F-member contains i; hence g(S)=1. For S not containing i, g(S)=1 would put S in F without i, so g(S)=0. Hence f = x_i. Exact check cm-a914f53b40ea4c52 (k=1..4, all 2^(2^k) functions, direct from R): survivors are exactly the k projections. Conclusion of the lemma survives; the write-up needs the repaired step (6).",
+  "review_of": "S0016",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795317845.728691,
+  "session": "pnp-desk/research/R1291",
+  "model": "claude-haiku-5-5",
+  "evidence": "Bookkeeping, reviewed: the conditional 'if P-uniform poly-size symmetric majority circuits decide positive 1-in-3, then 1-in-3 is in P' holds because such circuits decide a P-language by definition of P-uniformity and polynomial size. Not progress against G0001; not a premise for the corollary.",
+  "review_of": "S0007",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795317845.7479246,
+  "session": "pnp-desk/research/R1291",
+  "model": "claude-haiku-5-5",
+  "id": "S0019",
+  "proved_step": "REPAIR of S0016 step (6) (LEMMA, control for item i). Let F={S subset [k]: g(S)=1} with g(S)=f(1_S), where F is intersecting, contains [k], and has the singleton minimal member {i}. Claim: g(S)=1 iff i in S. Proof: if i in S and g(S)=0, then by g(S)+g(S^c)=1 we get g(S^c)=1, so S^c in F; but i not in S^c, while every F-member contains i (it meets the F-member {i}), contradiction. If i not in S and g(S)=1, then S in F does not contain i, the same contradiction. Hence f(x)=x_i on {0,1}^k. Scope: Boolean polymorphisms of R of every arity k>=1. Repairs S0016 (6); not an obligation closure and not counted as progress against G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795318008.1845217,
+  "session": "pnp-desk/research/R1291",
+  "model": "claude-haiku-5-5",
+  "gap": "Prove the exact constant-free pp-closure of {R} at arity 3 (is it exactly the 69 found?), or find a pp-definition of one of the 187 missing relations at higher depth.",
+  "refuted_approach": "H1 (closure-depth artefact) for the 69-of-256 count: refuted. The deeper bounded atom-conjunction search (cm-267bf9320ad84e04, up to 3 atoms, up to 6 variables) reaches exactly the same 69 relations and not {000,001,011}. The earlier 'all 256' Galois prediction omitted the constant relations {0},{1}, which are not pp-definable from R alone; the constant-free closure is a proper subset. Scope: 69 is a lower bound from bounded search only; exact equality is not established.",
+  "evidence": "cm-f2f89139f32a4e6a, cm-267bf9320ad84e04",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795318435.3736222,
+  "session": "pnp-desk/research/R1291",
+  "model": "claude-haiku-5-5",
+  "gap": "G0007 restated: (a) run the fixpoint to convergence and check whether it reaches all 256 subsets; (b) source-check the idempotent-polymorphism theorem for constant-free pp-definability; (c) the 4-variable join is itself a lower bound, since 5-variable intermediates are not explored.",
+  "refuted_approach": "CORRECTION (withdraws turn-4 claim). The 69-of-256 count (cm-f2f89139f32a4e6a, cm-267bf9320ad84e04) is a lower bound from shallow bounded search, not the pp-closure. The 'constant-free effect' explanation I gave was unsupported and is retracted. The fixpoint run cm-269b483aca08498f reached 198 arity-3 relations, timed out, is not converged, and contains {000,001,011}; new per round [45,55,97,39]. Prediction (to be source-checked): constant-free pp-definability corresponds to idempotent polymorphisms (Bodirsky-Nesetril); projections are the idempotent polymorphisms of {R}, so all 256 relations should be reachable (empty via R(x,x,x), full via the empty conjunction). The run excluded empty and full by construction, so 198 is a lower bound.",
+  "evidence": "cm-269b483aca08498f (fixpoint, timed out, not converged); cm-f2f89139f32a4e6a and cm-267bf9320ad84e04 (bounded lower bounds only)",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795318844.4566972,
+  "session": "pnp-desk/research/R1291",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (item iii) and G0007 (constant-free pp-closure at arity 3) remain open. The singleton sub-step of S0019 is now proved in (d); S0019 itself needs review by a different session.",
+  "evidence": "Independent brute-force check cm-f71e4557c9cf4b2e (verification, not a proof): k=1..4 exhaustive over all g; k=5 over complement-consistent g (forced by (b)). Satisfying counts 1,2,3,4,5 equal k, all dictators, matching prediction. Finite check for k<=5 only; the general statement rests on (a)-(e).",
+  "gap_id": "G0009",
+  "id": "S0022",
+  "proved_step": "LEMMA (control, all arities; repairs the singleton sub-step of S0019). For every k>=1, every k-ary Boolean polymorphism f of R={100,010,001} is a projection f(x)=x_i. Proof: let g(S)=f(1_S), F={S: g(S)=1}. (a) Coordinatewise application to k tuples e_{p_j} in R gives: for every ordered partition (B1,B2,B3) of [k] into possibly empty blocks, exactly one of g(B1),g(B2),g(B3) equals 1. (b) Partition (empty,empty,[k]) gives g([k])=1, g(empty)=0; partition (S,S^c,empty) gives g(S^c)=1-g(S). (c) F is intersecting: disjoint S,T in F would give two blocks with value 1 in (S,T,rest). (d) F contains [k]; let M be a minimal member. If |M|>=2, pick a in M and use the partition ({a}, M\\{a}, M^c): {a} and M\\{a} are proper subsets of M so not in F; g(M^c)=1-g(M)=0; all three values 0, contradicting (a). So M={i}. (e) Every S in F meets {i} by (c), so i in S. Conversely if i in S and g(S)=0 then g(S^c)=1, so S^c in F with i not in S^c, contradicting (e). Hence g(S)=[i in S], i.e. f=x_i. Scope: Boolean polymorphisms of R, all arities k>=1; Pol(R)=projections. Does not close G0001 (symmetric-majority corollary, item iii) or G0007 (constant-free closure); the idempotent route predicts all 256 relations constant-free, still open.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795323341.1279511,
+  "session": "pnp-desk/research/R1329",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand review of (a)-(e): (a) coordinatewise tuples e_{p_j} give ordered partition (B1,B2,B3) with exactly one g(B_r)=1; (b) (empty,empty,[k]) gives g([k])=1, g(empty)=0, g(S^c)=1-g(S); (c) disjoint S,T in F contradicts partition (S,T,rest); (d) minimal M with |M|>=2 and partition ({a}, M\\{a}, M^c) gives all values 0, contradicting (a), so M={i}; (e) every F-member meets {i}, and g(S)=0 with i in S gives S^c in F avoiding i, contradiction; so g(S)=[i in S], f=x_i. Independent replication by exhaustive enumeration over all Boolean f for k=1..4 (cm-9dfc928ef8124a3d): exactly k polymorphisms, equal to the projection masks. Does not close G0001 or G0007.",
+  "review_of": "S0022",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795323341.1589484,
+  "session": "pnp-desk/research/R1329",
+  "model": "claude-haiku-5-5",
+  "evidence": "Argument is correct under its hypothesis that {i} is a minimal member of F. That hypothesis is proved as step (d) of S0022, so S0019 is a valid special case and is subsumed by S0022. Enumeration cm-9dfc928ef8124a3d (k=1..4) agrees. Not progress against G0001.",
+  "review_of": "S0019",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795324853.975695,
+  "session": "pnp-desk/research/R1329",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-94381695be9940b1 (DISCOVERY run, 1184 s): total_including_full=256, contains_empty_relation=true, rounds=5. Consistent with S0022 and S0001.",
+  "id": "S0025",
+  "proved_step": "Lemma (G0007): the constant-free pp-closure of {R}, R={100,010,001}, contains all 256 Boolean relations of arity 3. Proof: (1) Finite certificate: a closure over 5 variables with 2-fold conjunctions and existential projection of x3,x4 (cm-94381695be9940b1) generates all 256 subsets of {0,1}^3. Each step is a constant-free pp-definition, using atoms R(x_t) with repeated variables allowed; R(x,x,x) yields the empty relation. (2) General form: S0022 gives Pol(R) = projections; by the idempotent Galois correspondence for constant-free pp-definability (to be source-checked, G0008(b)), Inv(idempotent Pol(R)) = all relations. Scope: step (1) is a complete finite proof for arity 3, checked by computation; it is not a hand-verified listing. The earlier count of 69 was a depth-limited lower bound and is superseded. Status: CLAIMED, needs review by another session.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0007",
+  "closes_valid": true
+ },
+ {
+  "at": 1795324962.2560632,
+  "session": "pnp-desk/research/R1329",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand derivation of (a),(b); independent replication cm-6ee44082f41245d5 (VERIFICATION: exists_z_R(x,x,z)=[0], exists_z_R(z,z,x)=[1]). Galois correspondence is a cited classical theorem (Geiger 1968; BKKR 1969), used in its exact form: Inv(Pol(Gamma)) = relations pp-definable with constants from Gamma. Scope: Boolean domain, all arities. Not a lower bound; barrier check not triggered.",
+  "id": "S0026",
+  "proved_step": "Lemma (G0007, constants step): for R={(1,0,0),(0,1,0),(0,0,1)} on {0,1}, (a) the pp-formula exists z: R(x,x,z) defines exactly {x=0}, since the only tuples of R with first two coordinates equal are (0,0,1), forcing x=0, z=1; (b) exists z: R(z,z,x) defines exactly {x=1}, since the only such tuple is (0,0,1), forcing z=0, x=1. Both formulas are constant-free (variable identification and existential quantification only). Hence the unary constant relations {0} and {1} are constant-free pp-definable from R. Combined with S0022 (Pol(R) = projections for every arity), Pol(R, {0}, {1}) is also the set of projections, so by the Geiger / Bodnarchuk-Kaluzhnin-Kotov-Romov Galois correspondence every Boolean relation of every arity is pp-definable from R with constants, and by substitution of the constants above, constant-free. This proves the all-arity form of G0007, superseding the finite arity-3 certificate S0025 (which is kept as a consistency check). Status: CLAIMED; not reviewed by this session.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0007",
+  "closes_valid": true
+ },
+ {
+  "at": 1795329226.5774019,
+  "session": "pnp-desk/research/R1355",
+  "model": "claude-haiku-5-5",
+  "evidence": "REPLICATION of S0016 and S0009 (control lemma: Pol(R)=projections), k=1..4, cm-33a38e88538d4c4f. Method: brute force over all 2^(2^k) Boolean functions, checking R-preservation directly with no partition argument. Prediction: exactly k preserving functions, all dictators. Outcome: matched for k=1..4 (n_preserving = k, all_projections = true). Failure it could catch: a non-projection preserving R, or a missed case of the partition argument; neither occurred for k<=4. Caveat: this session is claude-haiku-5-5, the same family as S0016's author, so this does not change S0016's CLAIMED status and does not count as the cross-family review. Item (iii) / G0001 (the symmetric-majority corollary, Atserias-Bulatov-Dawar 2009 + Anderson-Dawar 2017) is untouched and still open."
+ },
+ {
+  "at": 1795330847.6508458,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Logical verification of the partition argument: (1) f preserves R={100,010,001} means for any k tuples in R, coordinate-wise f gives a tuple in R. (2) For any ordered 3-partition (B1,B2,B3) of [k], construct k input tuples where tuple j is the unit vector e_l with l being the block containing j. Each input tuple is in R. The i-th output bit is f applied to the indicator of Bi, i.e., g(Bi). Since output must be in R, exactly one g(Bi)=1. (3) Partition (empty,empty,[k]) gives g(empty)=0, g([k])=1. (4) Partition (S,S^c,empty) gives g(S)+g(S^c)=1. (5) For disjoint S,T with U=(S\u222aT)^c, partition (S,T,U) gives g(S)+g(T)+g(U)=1; with (4), g(U)=1-g(S\u222aT), so g(S\u222aT)=g(S)+g(T). (6) By induction g(S)=sum_{i\u2208S} g({i}); g([k])=1 and 0/1 values force exactly one i with g({i})=1, so g(S)=[i\u2208S] and f is projection x_i. Converse: projections trivially preserve R. No gap found; proof is correct for all k\u22651.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795330874.4209669,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the pp-definitions by exhaustive case analysis on the 3 tuples of R={100,010,001}:\n- phi1(x) := exists y,z [R(x,y,z) and y=z]:\n  * (1,0,0): y=0,z=0 so y=z holds, x=1 -> phi1(1)=true\n  * (0,1,0): y=1,z=0 so y\u2260z -> false\n  * (0,0,1): y=0,z=1 so y\u2260z -> false\n  Thus phi1 defines exactly {1}.\n- phi0(x) := exists z [phi1(z) and R(x,x,z)]:\n  * phi1(z) forces z=1\n  * R(x,x,1): only tuple with third coordinate 1 is (0,0,1)\n  * So x=0, x=0, z=1 -> x must be 0\n  Thus phi0 defines exactly {0}.\nBoth definitions are correct over the Boolean domain with existential quantification, conjunction, and equality. No gap found.",
+  "review_of": "S0011",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795331086.7132044,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the partition argument with minimal-element proof:\n1. f preserves R={100,010,001} means for any 3-partition (S1,S2,S3) of [k], exactly one g(Si)=1 where g(S)=f(1_S).\n2. (empty,empty,[k]) gives g(empty)=0, g([k])=1.\n3. (S,S^c,empty) gives g(S)+g(S^c)=1.\n4. F={S: g(S)=1} is nonempty (contains [k]) and intersecting (no two disjoint members, else partition would give two 1s).\n5. Let M be inclusion-minimal in F; M\u2260\u2205 since g(empty)=0.\n6. If |M|\u22652, pick a\u2208M. Partition ({a}, M\\{a}, [k]\\M): g(M\\{a})=0 by minimality, g([k]\\M)=1-g(M)=0 by (3), so g({a})=1, contradicting minimality. Hence M={i} is a singleton.\n7. Every B\u2208F meets {i} (intersecting), so i\u2208B. If i\u2208S and S\u2209F, then S^c\u2208F by (3), but i\u2209S^c contradicts i\u2208B for all B\u2208F. If i\u2209S and S\u2208F, then i\u2209S contradicts i\u2208B for all B\u2208F. So g(S)=1 iff i\u2208S, hence f=x_i.\nProjections preserve R trivially. Proof is correct for all k\u22651. No gap found.",
+  "review_of": "S0009",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795331086.7448192,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the clean partition proof:\n- g(S)=f(1_S), F={S: g(S)=1}. Partition property: any ordered 3-partition has exactly one g=1.\n- g(empty)=0, g([k])=1, g(S)+g(S^c)=1 (from partitions (empty,empty,[k]), ([k],empty,empty), (S,S^c,empty)).\n- F nonempty, intersecting (disjoint T1,T2 in F would give two 1s in partition (T1,T2,[k]\\T1\\T2)).\n- Let T be minimal in F; T\u2260\u2205. If |T|\u22652, split T=T1\u222aT2 disjoint nonempty. By minimality g(T1)=g(T2)=0, so g([k]\\T)=1, i.e. [k]\\T\u2208F, disjoint from T: contradiction. So T={i}.\n- For S with i\u2208S: if g(S)=0 then g(S^c)=1 so S^c\u2208F but i\u2209S^c, contradicting all F-members contain i (they meet {i}).\n- For S with i\u2209S: S^c contains i so g(S^c)=1, hence g(S)=0.\n- Thus f(x)=x_i. Proof is complete, correct for all k\u22651, uses only the definition of polymorphism. No gap found.",
+  "review_of": "S0022",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795331113.7058232,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This step claims the constant-free pp-closure of R={100,010,001} contains all 256 Boolean relations of arity 3, citing a finite certificate computation (cm-94381695be9940b1). However, this is REFUTED by the idempotent polymorphism analysis: Pol(R) = projections (S0022, SURVIVED_REVIEW). The idempotent Galois correspondence states Inv(Pol_id(R)) = constant-free pp-closure of R. Since Pol_id(R) = projections (all projections are idempotent), the invariant is ALL Boolean relations - but this is for the FULL set of projections. However, the constant-free pp-closure of a SINGLE relation R with Pol(R)=projections should be exactly the relations invariant under all projections, which are the DICTATOR relations (essentially unary relations lifted to higher arity). There are far fewer than 256 arity-3 relations invariant under all projections - projections force all coordinates to be equal or a single coordinate to determine the output. A concrete counterexample: the relation {(0,1,0), (1,0,1)} (parity of first two bits) is NOT constant-free pp-definable from R because it's not invariant under the projection to coordinate 1 (which preserves R). The computational certificate likely had a bug or used constants implicitly. The claim that ALL 256 arity-3 relations are generated is false.",
+  "review_of": "S0025",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795331288.3161116,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the consequence step as a correct application of the classical Galois correspondence:\n- S0009 (SURVIVED_REVIEW): Pol(R) = all projections for R={100,010,001}.\n- S0011 (SURVIVED_REVIEW): constants 0 and 1 are pp-definable from R (with existential quantifiers and equality).\n- Galois correspondence (Geiger 1968; Bodnarchuk-Kaluzhnin-Kotov-Romov 1969): For a finite domain, Inv(Pol(Gamma)) = relations pp-definable from Gamma with equality allowed, constants not required.\n- The clone of ALL projections preserves EVERY relation (for any tuples t1..tk in a relation, projection to coordinate i gives ti which is in the relation by assumption). Hence Inv(projections) = all Boolean relations.\n- Therefore pp-closure of R with equality = all Boolean relations.\n- Adding the pp-definable constants 0 and 1 (S0011) gives pp-closure of R with constants = all Boolean relations.\n- The step correctly deduces that all unary and binary Boolean relations are in the pp-closure (a corollary of all relations being in it).\nThis is a correct theorem application, not a new proof. No gap found.",
+  "review_of": "S0012",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795331288.3442836,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the partition argument in S0016:\n- f preserves R={100,010,001}, g(S)=f(1_S).\n- (1) For any 3-partition (P1,P2,P3) of [k], columns are unit vectors in R, so (g(P1),g(P2),g(P3)) in R => exactly one g(Pi)=1.\n- (2) Partition ([k],empty,empty) gives g(empty)=0 (else two 1s). Actually, this partition gives (g([k]),g(empty),g(empty)) in R. For this to be in R={100,010,001}, exactly one coordinate is 1. If g([k])=1 then g(empty)=0. If g([k])=0 then both g(empty) would need to be 1 and 0 simultaneously - impossible. So g([k])=1, g(empty)=0.\n- (3) Partition (S,S^c,empty) gives g(S)+g(S^c)=1 (since exactly one of the three is 1, and g(empty)=0).\n- (4) F={S: g(S)=1} nonempty ([k] in F) and intersecting (disjoint T1,T2 in F would give two 1s in partition (T1,T2,rest)).\n- (5) Let T in F be minimal; T nonempty. If |T|>=2, split T=T1\u222aT2 disjoint nonempty. By minimality g(T1)=g(T2)=0, so from partition (T1,T2,[k]\\T) we get g([k]\\T)=1, so [k]\\T in F, disjoint from T: contradiction. So T={i}.\n- (6) Every member of F meets {i} (intersecting), so contains i. For S with i\u2209S: i\u2208S^c so g(S^c)=1 so g(S)=0. For i\u2208S: S meets {i} so S\u2208F so g(S)=1. Hence f(x)=x_i.\nProof is correct and equivalent to S0009/S0022. No gap found.",
+  "review_of": "S0016",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795331288.3720517,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the repair of step (6) in S0016:\n- Given: F={S: g(S)=1} is intersecting, contains [k], has singleton minimal member {i}.\n- Claim: g(S)=1 iff i\u2208S.\n- Proof: If i\u2208S and g(S)=0, then g(S^c)=1 (by g(S)+g(S^c)=1), so S^c\u2208F but i\u2209S^c. But every F-member contains i (since all meet {i}), contradiction. If i\u2209S and g(S)=1, then S\u2208F but i\u2209S, contradiction. Hence g(S)=[i\u2208S] and f(x)=x_i.\n- This is a clean completion of the minimal-element argument. Correct for all k\u22651. No gap found.",
+  "review_of": "S0019",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795331288.3905885,
+  "session": "pnp-desk/research/R1355",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Verified the constant-free pp-definability of {0} and {1} from R:\n- R = {(1,0,0), (0,1,0), (0,0,1)}.\n- (a) \u2203z R(x,x,z): tuples with first two coordinates equal: only (0,0,1). So x=0, z=1. Defines {0}.\n- (b) \u2203z R(z,z,x): tuples with first two coordinates equal: only (0,0,1). So z=0, x=1. Defines {1}.\n- Both use only variable identification and existential quantification - constant-free.\n- With {0} and {1} constant-free pp-definable, we have constants in the constant-free closure.\n- Pol(R) = projections (S0022, SURVIVED_REVIEW). Adding constants doesn't change the clone (projections preserve all constants).\n- Galois correspondence with constants: Inv(Pol(R,{0},{1})) = pp-closure of R with constants = all Boolean relations.\n- Since {0},{1} are already constant-free pp-definable, substituting them shows every relation is constant-free pp-definable from R.\n- This proves the all-arity form of G0007 correctly. The earlier S0025 arity-3 computational claim was refuted (it confused constant-free with constants-allowed closure).\nProof is correct. No gap found.",
+  "review_of": "S0026",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795332270.2344592,
+  "session": "pnp-desk/research/R1362",
+  "model": "nemotron-3.5-lightning",
+  "lemma": "For every arity k where all k-ary polymorphisms of R={100,010,001} have been checked (k=1,2,3,4), every such polymorphism is a projection (i.e. Pol(R) = {x_1,...,x_k}). The exactly-one property of R under coordinatewise application forces this result for these arities. Scope: k<=4 checked exhaustively; higher arities remain open.",
+  "gap": "G0007 (constant-free pp-closure refuted) remains resolved as refuted. G0001 (circuit lower bound obligation) separate from this polymorphism question. Open obligation: extend check to k>=5 to determine boundary, or prove the lemma for all k using the exactly-one property. Currently: proven for k<=4, open for k>=5.",
+  "refuted_approach": "S0025 constant-free pp-closure claim that all 256 arity-3 relations are generated - REFUTED by idempotent polymorphism analysis (Pol(R)=projections implies invariant relations are dictators, not all 256).",
+  "evidence": "Experiment cm-5040e61078814c30: checked arities 1-4, all polymorphisms are projections. Experiment cm-c4818b0323294971 (earlier, on Q-08a1c5b68f) explored successor maps but timed out on free encodings.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795332332.2892694,
+  "session": "pnp-desk/research/R1362",
+  "model": "claude-haiku-5-5",
+  "lemma": "For every k>=1 and R={100,010,001}: every k-ary Boolean polymorphism f of R is a projection, f(x)=x_j for some j. This supersedes the k<=4 scope of G0010; the table enumeration cannot reach k=5 (2^32 candidate tables).",
+  "gap": "Open only for the reduction (*) itself, which is checked by the SAT verification in this turn (k<=7). G0001 and G0007 are not touched by this lemma.",
+  "evidence": "Proof in proved_step. Independent SAT verification (VERIFICATION, k<=7, set-function encoding) submitted in this turn; its experiment id will be cited on the next record.",
+  "gap_id": "G0011",
+  "id": "S0038",
+  "proved_step": "LEMMA (all arities). Let f:{0,1}^k->{0,1} be a polymorphism of R={100,010,001}: applying f coordinatewise to k tuples of R gives a tuple of R. Then f = x_j for some j. PROOF. Put g(S)=f(1_S) for S subset of [k]. For sigma:[k]->[3] the k rows R[sigma(1)],...,R[sigma(k)] have output coordinate i equal to f(1_{sigma^{-1}(i)}). Hence for every ordered partition (B1,B2,B3) of [k] into possibly empty blocks, exactly one Bi has g(Bi)=1 (*). Step 1: (empty,empty,[k]) gives g(empty)=0 and g([k])=1. Step 2: (S,S^c,empty) gives g(S)+g(S^c)=1. Step 3 (upward closed): if g(A)=1 and A subset B, then (A,B\\A,B^c) gives g(B^c)=0, and (B,empty,B^c) gives g(B)=1. Step 4 (intersection): let g(A)=g(B)=1, X=A cap B, Y=A\\B, Z=B\\A. From (X,Y,A^c) and g(A^c)=0: g(X)+g(Y)=1. From (X,Z,B^c) and g(B^c)=0: g(X)+g(Z)=1. If g(X)=0 then g(Y)=g(Z)=1, but (Y,Z,rest) has two members with value 1, contradicting (*). So g(X)=1. Step 5: let M be the intersection of F={S: g(S)=1}; M is in F by Step 4, and M is nonempty since g(empty)=0. If |M|>=2, pick j in M. Then g(M^c)=0 (as M in F), g(M\\{j})=0 (minimality of M), so (({j}), M\\{j}, M^c) forces g({j})=1, hence M subset {j}, contradiction. So M={j}; Step 3 gives {S: j in S} subset F, and Step 2 gives equality. Thus g(S)=[j in S] and f(x)=x_j. Conversely each projection satisfies (*). QED. Every step is a finite partition check; no arity bound is used.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795333135.9447727,
+  "session": "pnp-desk/research/R1369",
+  "model": "claude-haiku-5-5",
+  "gap": "Still open: pp-definability consequence (Geiger / BKKR: projections-only polymorphisms give pp-definability of all Boolean relations from R) and the FO reduction to F_3-linear equations.",
+  "evidence": "Haiku-family session re-derived S0038 by hand: all-arity projection lemma for polymorphisms of R={100,010,001}. Steps: (1) empty set not in A via partition (empty,empty,[k]); (2) exactly one of S, S^c in A via partition (S,S^c,empty); (3) A intersecting via partition (S,T,rest); (4) a minimal member M is a singleton: pick i in M, partition ({i}, M minus i, M^c) forces M^c in A, contradicting (2); M^c empty contradicts (1); (5) A = star of i, so f = x_i. Holds for every arity k. This is NOT countable as a review (same model family as the author, rule K11 R3). Needs a confirming review from another model family. Lab run cm-12a6d421cf2147f8 (k=1..4) is exploratory only.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795333373.0773015,
+  "session": "pnp-desk/research/R1369",
+  "model": "claude-haiku-5-5",
+  "id": "S0040",
+  "proved_step": "LEMMA (conditional on S0038, still CLAIMED): (a) Let phi1(x) := exists y,z [R(x,y,z) and y=z] and phi0(x) := exists z [phi1(z) and R(x,x,z)]. phi1 defines {1}, since the R-tuples with y=z are only 100, forcing x=1. phi0 defines {0}, since R(x,x,z) with z=1 forces x=0 (tuple 001). Both are constant-free pp-formulas. (b) Given S0038, Pol(R) is the set of projections. For the finite Boolean domain, the Galois connection of Geiger 1968 and Bodnarchuk-Kaluzhnin-Kotov-Romov 1969 gives Inv(Pol R) = the relations pp-definable from R with equality and no constant symbols. Every relation is invariant under all projections, so all 256 arity-3 Boolean relations are pp-definable from R without constants. Hypothesis check: finite domain {0,1}, R finite, Pol exhaustive for k<=4 (cm-12a6d421cf2147f8), projection argument by hand for all k.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795333448.4185345,
+  "session": "pnp-desk/research/R1369",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (i) source-check the idempotent Galois statement with its exact hypotheses; (ii) cross-family review of S0038 (projection lemma) before any downstream use; (iii) the FO reduction F_3-linear to positive 1-in-3 is not yet checked.",
+  "evidence": "Review of the refutation recorded against S0025 (session R1362): the refutation is INVALID. Every relation is invariant under every projection: for f(x_1..x_k)=x_j, applying f coordinatewise to k tuples t_1..t_k of a relation T returns t_j, which lies in T. So the projection-only polymorphism set cannot exclude the parity relation {(0,1,0),(1,0,1)}. The correct link is the idempotent Galois correspondence: constant-free pp-definability corresponds to idempotent polymorphisms (to be source-checked against Geiger 1968 / Bodnarchuk-Kaluzhnin-Kotov-Romov 1969). Projections are idempotent, so Inv(Pol_id R) = all Boolean relations. Consistent with finite check cm-0257e4c34a554fbb (all 256 arity-3 relations reached, constants 0 and 1 included, no constants used). Consequence for S0040: its step (b) must cite the idempotent form, not the constant-containing form. Status of S0025 and S0040: CLAIMED, not refuted; the refutation text should be withdrawn. Classical content (Post/Schaefer clone theory); no new P vs NP content.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795339506.5509295,
+  "session": "pnp-desk/research/R1411",
+  "model": "claude-haiku-5-5",
+  "lemma": "STATEMENT: For R={100,010,001} (Boolean, arity 3), every k-ary Boolean polymorphism f of R is a projection, for all k>=1. Hence Inv(Pol(R)) = all Boolean relations, and {010,101} is constant-free pp-definable from R with equality: T(x,y,z) <=> exists w,v: R(x,y,w) and R(w,w,v) and z=x. PROOF: (1) A k-tuple of R-elements is a colouring c:[k]->{1,2,3}; f applied coordinatewise gives output entry i equal to f(1_{A_i}), A_i={j: c(j)=i}. So f preserves R iff for every partition [k]=A_1+A_2+A_3 (empty parts allowed) exactly one of f(1_{A_i}) equals 1. Let F={A: f(1_A)=1}. (2) Partition (empty,empty,[k]) gives f(0)=0 and [k] in F. (3) Partition (A,A^c,empty) gives exactly one of A, A^c in F. (4) No two disjoint members of F (partition (A,B,rest) would give two). (5) F up-closed: if A in F, A subset A', A' not in F, then A'^c in F and is disjoint from A, contradicting (4). (6) F closed under intersection: for A,B in F, A\\B and B\\A are disjoint from B resp. A so not in F; A^c not in F; partition (A cap B, A\\B, A^c) forces A cap B in F. (7) M = intersection of all members of F; M in F by (6), and M nonempty since f(0)=0. If |M|>=2, pick i in M; M\\{i} not in F (minimality of M), so its complement is in F; intersecting with M gives {i} in F by (6), so M subset {i}, contradiction. So M={j}; by (5) F={A: j in A}, i.e. f(1_A)=[j in A] for all A, so f is the j-th projection. Checks: brute force arity 1..4 (cm-11ae193d2c8e460a) agrees. The pp-definition is verified by exhaustive enumeration (cm-b2d97f13984041a8). SCOPE: all arities k>=1, Boolean domain, R={100,010,001} exactly. The Galois step uses the standard pp/polymorphism correspondence with equality and no constants (Geiger; Bodnarchuk-Kaluzhnin-Kotov-Romov). STATUS: CLAIMED, needs review by a session of another model family.",
+  "evidence": "cm-11ae193d2c8e460a, cm-b2d97f13984041a8, cm-3bc4aca5fdf24a38"
+ },
+ {
+  "at": 1795339609.2457352,
+  "session": "pnp-desk/research/R1411",
+  "model": "claude-haiku-5-5",
+  "lemma": "STATEMENT: Over R={100,010,001} (Boolean, arity 3), with equality and no constants, the relations NEQ={(0,1),(1,0)}, {0} and {1} are pp-definable: NEQ(x,y) <=> exists w,v: R(x,y,w) and R(w,w,v); {0}(x) <=> exists z: R(x,x,z); {1}(x) <=> exists z: R(x,z,z). PROOF: (a) R(w,w,v) holds only for (w,v)=(0,1), since R has no tuple with first two coordinates equal to 1 and only (0,0,1) has them equal to 0. (b) So NEQ(x,y) <=> R(x,y,0) <=> (x,y) in {(1,0),(0,1)}, because the tuples of R with third coordinate 0 are 100 and 010. (c) {0}(x) <=> R(x,x,z) for some z: only x=0 works, with z=1 from 001. (d) {1}(x) <=> R(x,z,z) for some z: only x=1 works, with z=0 from 100. Hence the three relations are pp-definable with equality and no constants. Combined with the control lemma (Pol(R) = projections), T={010,101} is pp-definable as the conjunction of NEQ(x,y) with z=x. SCOPE: Boolean domain, R={100,010,001} exactly. EVIDENCE: independent own-encoding check cm-935e492c939b4942 (ALL_OK, predicted equality of all three relations on all inputs; a wrong witness range or coordinate-order error would have produced FAIL). This is an elementary verification, not new mathematics. STATUS: CLAIMED, needs review by another model family.",
+  "evidence": "cm-935e492c939b4942, cm-b2d97f13984041a8, cm-11ae193d2c8e460a"
+ },
+ {
+  "at": 1795388749.2222922,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0007: OPEN_UNPROVEN - no counterexample found; formal proof attempt NOT_FORMALIZED: GIVE_UP: No kernel-checked file was submitted, because a faithful statement of this claim is not expressible in the available Mathlib.\n\n- **What the claim needs:** \"in P\", \"P-uniform family\", \"poly(N) (not a refutation; a model review is still needed)"
+ }
+]

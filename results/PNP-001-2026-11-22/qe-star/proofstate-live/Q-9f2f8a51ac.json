@@ -1,0 +1,140 @@
+[
+ {
+  "at": 1795298775.8892922,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "lemma": "L1 (time-invariant unrolling, exact). Let C be a circuit with s gates, inputs x in {0,1}^n, depth d(g) = 1 + max d(inputs of g) (inputs have depth 0), output gate o, D = max_g d(g). Define the time-invariant system with state sigma in {0,1}^s, sigma^0 = 0, and update sigma^{t}_g = op_g(val_a, val_b) where val reads x_i or sigma^{t-1}_h. Claim: for all t and all g with d(g) <= t, sigma^t_g = C_g(x). Proof by induction on t: t=0 vacuous (no gate has depth 0). Step t-1 -> t: a gate g with d(g) <= t has every input h with d(h) <= t-1, so sigma^{t-1}_h = C_h(x) by hypothesis, hence sigma^t_g = C_g(x). Corollary: sigma^D_o = C(x) after D steps, with D*s gate evaluations in total. L1' (time-dependent schedule, exact): at step t evaluate exactly the gates with d(g) = t; each gate is evaluated once, so s evaluations in total and the output is correct after D steps. Consequence: the two cost accountings differ by a factor D for uniform (time-invariant) updates, and agree for depth-scheduled updates.",
+  "evidence": "cm-3eee3d610bae4480 (60 random circuits, n in 2..4, s in 3..10, all 612 assignments: time-invariant T=D 0 mismatches; T=D-1 74 mismatches in 572 short runs; time-dependent 0 mismatches and exactly s evaluations per instance; sum of D*s = 1294 vs sum of s = 376)",
+  "id": "S0001",
+  "proved_step": "L1 and L1' as stated in lemma: each is a complete induction on t over the gate depth; CLAIMED until a different session reviews it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795298829.216006,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "gap": "L1 and L1' are exact bookkeeping identities (induction on depth). They show that the uniform time-invariant system costs D*s gate evaluations and the depth-scheduled system costs s, both correct. They do NOT by themselves settle dispute K9-D4, because the two dispute positions have not been read yet and it is unknown which cost model each position uses. Open: (a) state the two K9-D4 positions verbatim from the dispute record; (b) decide whether the dispute turns on the cost model (D*s vs s) or on something else, such as the size of the state or the number of distinct gates per step. L1 is CLAIMED and needs an independent review. It is bookkeeping, so it does not count as progress toward closing the obligation.",
+  "evidence": "cm-3eee3d610bae4480 (exploratory, finite sample)",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795298942.7163525,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "lemma": "L2 (cost accounting, exact). For a fan-in-2 circuit with s gates and depth D (D <= s): the time-invariant uniform system (L1) costs D*s gate evaluations in total with update width s per step; the depth-scheduled system (L1') costs s in total with per-step width W_t = number of gates at depth t, and max_t W_t <= s. Hence the time-invariant overhead in total work is exactly the factor D, with 1 <= D <= s, so the two accountings differ by at most a polynomial factor s. The worst case W = s is attained, so the per-step width gives no saving in general. Dispute K9-D4 reading: Position Claude (zero overhead) is exact for time-dependent depth schedules; Position ChatGPT (cost can differ) is exact for time-invariant uniform updates, with overhead factor D, polynomial in s. Both are correct under their own accounting; the disagreement is which update cost U is meant. Status: CLAIMED, bookkeeping, needs independent review.",
+  "evidence": "cm-3eee3d610bae4480 and cm-10893b1b49864358 (finite exploratory samples); L1 and L1' by depth induction."
+ },
+ {
+  "at": 1795299041.1633403,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "lemma": "L3 (time-invariant worklist, exact). Let C be a fan-in-2 circuit with s gates whose gate indices are topological (each gate input is an input bit or a gate with smaller index). The system has state: value bits val[g], in-degree counters ind[g] (initially the number of gate inputs of g, counted with multiplicity), and a queue Q (initially all gates with ind = 0). Each step pops one gate g from Q, computes val[g] from its two inputs (input bits or already-computed values), and for each successor k of g decrements ind[k] and pushes k when ind[k] reaches 0. The step rule is the same at every step. Claim: the run performs exactly s pops and val equals C at all gates. Proof: (i) each gate is pushed exactly once, because ind[k] reaches 0 exactly once; (ii) a gate is pushed only after all its gate inputs are popped, so its inputs are already computed when it is popped; (iii) every gate reaches ind = 0, by induction on index, because its inputs have smaller index and so are eventually popped. Hence s pops, each gate computed once from correct inputs. Cost: s gate evaluations; state O(s log s) bits; update O(1) amortised per pop. Consequence for K9-D4: the factor D overhead of L1 is removed, but only by enlarging the state beyond s value bits and by random access to the static gate description. Status: CLAIMED, needs independent review.",
+  "gap": "Open: (a) whether the static description can be read in a one-pass or streaming model; the current run uses random access to gates and succ; (b) whether the O(s log s) state is within the cost model of any published transfer; (c) worst-case behaviour of the queue is not measured, only the correctness and pop count.",
+  "evidence": "cm-cbd21fe4706a4560 (exploratory, 1836 assignments, 0 mismatches); the proof is a standard Kahn-order argument.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795299152.3139744,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "gap": "K9-D4 remains OPEN. L4 shows that streaming in topological order costs s evaluations with s value bits, while the uniform time-invariant update costs D times s. The dispute turns on whether the graph model fixes the stream order (FB1 accounting) or lets the order be arbitrary. No measurement settles this; it is a model-definition question to be decided from the contract text on the remaining pages, with the open items G0002 a and b unchanged.",
+  "gap_id": "G0003",
+  "id": "S0005",
+  "proved_step": "L4 (stream order, exact, bookkeeping). Let C be a fan-in-2 circuit with s gates, and let pi list its gates once each. Consider the one-pass rule: on arrival, compute the gate from its two inputs read from value memory, with s value bits and no other state. This rule computes C correctly in s steps if and only if pi is a topological order of the gate DAG. Proof: if pi is topological, induction on position shows every arriving gate's inputs are already stored, so each value is correct and exactly s steps are used. If pi is not topological, some gate g arrives before one of its gate inputs h; when g arrives the slot of h is still empty, so the rule reads an undefined value. Status: CLAIMED, needs independent review. This is bookkeeping and closes no obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795299283.6728225,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "gap": "K9-D4 remains OPEN. L5 gives a time-invariant rule (fixed program, state of 2s bits) that uses exactly s gate evaluations for ANY label order, so the D*s overhead of L1 is not forced by time-invariance alone. What remains open: (a) whether readiness detection (about s label checks per step) is charged under FB1 accounting; (b) whether the rule can be made one-pass, since it needs random access to the description table; (c) whether the stream order can be fixed to be topological, which L4 shows is sufficient; (d) the worst-case cost of the ready-set scan is not yet measured, only the pop count. Items (a) and (b) are the model-definition question the dispute turns on.",
+  "gap_id": "G0004",
+  "id": "S0006",
+  "proved_step": "L5 (arbitrary labelling, exact bookkeeping). Let C be an acyclic fan-in-2 circuit with s gates, labelled in any order. Rule: at each step, among the gates not yet computed whose gate inputs are all computed (inputs of the circuit count as computed), compute the one with the smallest label. Claim: the rule is never stuck, performs exactly s steps, and every computed value equals C at that gate. Proof: let D(g) be the longest path from an input to g, so D(g) is at least 1 for gates and every gate input of g has smaller D. Suppose some gate is uncomputed at a point where the rule is stuck, and pick an uncomputed gate g of minimum D. Its gate inputs have smaller D, so they are computed, so g is ready, a contradiction. Hence the rule runs until all s gates are computed. Each step evaluates one gate whose inputs already hold correct values, so each value is correct by induction on the step count. Status: CLAIMED, needs independent review. Bookkeeping: it closes no obligation and does not by itself settle K9-D4.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795299344.116822,
+  "session": "pnp-desk/research/R1191",
+  "model": "claude-haiku-5-5",
+  "gap": "K9-D4 remains OPEN. L4 as stated is not an iff; only its 'if' direction survives. L5 (arbitrary labelling, exact count of s evaluations) is unaffected by this correction. Open items G0002 a and b and G0004 (a)-(d) are unchanged.",
+  "refuted_approach": "L4 'only if' direction (a one-pass rule with s value bits computes C correctly iff the stream order is topological) is FALSE as stated. Counterexample: one input x; gates h = AND(x,x) = x and g = OR(h,x) = x; order (g,h) is not topological; with initial slot value 0, g = 0 OR x = x (correct), then h = x, so both outputs are correct for every x. The rule has no undefined marker: an unfilled slot holds an arbitrary bit. With initial value 1, g = 1 OR x is wrong at x = 0, so the outcome depends on the initial state. Surviving statement: if the order is topological, the rule is correct in s steps (L4 'if' direction, CLAIMED, needs review). A converse must quantify over circuits, or fix the initial state and require correctness for all circuits.",
+  "evidence": "Hand-checked two-gate example above; no lab run. Does not affect L3, L5 or the dispute K9-D4 directly.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795300039.2842162,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "evidence": "Experiment cm-a484da88302f4587 (exploratory finite check, seeded): 1050 random fan-in-2 circuits, n=3 inputs, s=1..7 gates, 150 per s, all 8 input vectors. Synchronous D-round update (all gates recomputed from the previous round's values, starting from 0) gives the correct value at every gate in 1050/1050 circuits. Prefix invariant 'depth(g) <= t implies val_t(g) = C(g)' holds in 1050/1050. Argument check: induction on t. A gate of depth t has gate inputs of depth at most t-1, which are correct after round t-1 by hypothesis, so its round-t value is correct. Base case t=0 holds because depth-0 gates have only input-bit inputs. No gap found; the lab run is a finite agreement only. Scope: bookkeeping identity, does not by itself close G0001 or decide K9-D4.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795300039.3039641,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "evidence": "Experiment cm-a484da88302f4587: the one-pass rule in the topological order perm (perm is topological by construction: gate perm[j] takes gate inputs only from perm[k], k<j) is correct for all inputs in 1050/1050 circuits. Argument check for the 'if' direction only: when gate g is evaluated, each of its gate inputs precedes g in the order, so it already holds its true value; by induction along the order, every gate is correct after one pass, using s evaluations. The 'only if' direction is not claimed and stays refuted as recorded (counterexample h=AND(x,x), g=OR(h,x), order (g,h)). Bookkeeping, does not close an obligation by itself.",
+  "review_of": "S0005",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795300089.5141098,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "evidence": "Experiment cm-29c1d9138a364f3b (exploratory finite check, seeded): 1200 random acyclic fan-in-2 circuits, n=3 inputs, s=1..8 gates, 150 per s, shuffled labels, all 8 input vectors. The smallest-label-among-ready rule was never stuck (0/1200 circuits), took exactly s steps (1200/1200), and matched the true value at every gate for all inputs (1200/1200). Argument check: let g be an uncomputed gate of minimum depth D(g). Each of its gate inputs has smaller depth, so it is not uncomputed, hence it is computed; so g is ready and the rule is never stuck. Each step computes one gate and no gate is recomputed, so exactly s steps. A gate is computed only after its gate inputs, so by induction along the computation order its value is the true one. No gap found. Scope: finite agreement plus a bookkeeping argument; it does not close G0001 or decide K9-D4.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795300089.5368078,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "gap": "Partial only: this shrinks G0004(d) to the explicit bound s^2 tests per run (a worst-case upper bound, not a measured cost). It does NOT settle (a) whether readiness detection is charged under FB1, (b) one-pass access to the description table, or (c) the topological-order question. It is bookkeeping and should not count as progress toward closing the obligation; a reviewer should decide that. K9-D4 remains OPEN and the dispute positions in G0001(a) have not yet been read.",
+  "gap_id": "G0006",
+  "id": "S0011",
+  "proved_step": "LEMMA (ready-set scan cost, exact bookkeeping). Let C be a fan-in-2 circuit with s gates. Run the smallest-label rule of S0006 and count readiness tests, where one test checks whether a gate's two gate inputs are computed. Claim: the rule performs exactly s steps, each step performs at most s readiness tests, so the total is at most s^2 tests and at most 2 s^2 input-slot reads. Proof: S0006 gives exactly s steps. At step t the rule tests each not-yet-computed gate at most once, and at most s gates exist, so at most s tests per step. Summing over s steps gives at most s^2 tests. Each test reads at most two input slots, giving at most 2 s^2 reads. Status: CLAIMED, needs independent review.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0004",
+  "closes_valid": true
+ },
+ {
+  "at": 1795300308.307586,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "gap": "K9-D4 remains OPEN. Bookkeeping only (not progress toward closing the obligation): the worklist run has s pops, s pushes and exactly E gate-edge decrements, E <= 2s (cm-b07b57781cf74dda, finite). The exact point of difference between the two positions is the cost of the readiness detection (the ind[] decrements and the queue scan) and of random access to the static gate table. Under unit-cost random access and O(1) per decrement, the uniform time-invariant rule costs s + E = O(s) gate-level operations, which removes the D*s factor of L1. Still open: (a) whether random access to the description is charged under FB1 accounting, (b) whether a one-pass version exists when the description is streamed in arbitrary order (G0002 a), (c) the topological-order question (L4 'if' direction only). Repair needed for the one-pass case: a rule that reads each gate description once, in arbitrary order, with O(s) state bits, which is not yet constructed.",
+  "evidence": "cm-b07b57781cf74dda; spec K9 section D (serialisation: one ordered read, S bits, U operations between input bits) read on pages 2-3.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795300333.2581916,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "gap": "This does NOT close G0002(a). The state is O(s log s) bits, not O(s), because each gate's two input indices must be stored, so this is not a one-pass rule with O(s) state. Note also that L5's '2s bits' counts value and counter bits only; the queue and pointers need log s bits each, so L5 has the same state issue. Open: (a) whether a one-pass rule with O(s) state exists for arbitrarily ordered descriptions (the state bound this lemma does not reach); (b) whether O(s log s) state is within the cost model of any published transfer (G0002 b); (c) whether random access to T is charged under FB1 accounting (G0004 a); (d) the topological-order question (L4 'if' direction only). The claim is unreviewed and must be reviewed by a different session before it counts.",
+  "gap_id": "G0008",
+  "id": "S0013",
+  "proved_step": "LEMMA (store-then-run one-pass rule, CLAIMED). Model: a fan-in-2 circuit C with s gates is presented as a stream of s records (g, op_g, in_g1, in_g2), in an arbitrary order (a permutation of gate labels), each record read once; inputs x are available by random access. Algorithm: (1) during the single pass, write each record into a table T indexed by g; each record costs O(1) update; (2) after the pass, run the L3 worklist on T with no further reads of the stream. Claim: the run returns val[g] = C(x)_g for every gate, performs exactly s pops and s pushes, and E <= 2s decrements, where E is the number of gate-to-gate edges. Proof: after the pass T is exactly the description of C under the relabelling g, so T is a fan-in-2 DAG description of C. L3's proof (i)-(iii) uses only that every gate-input edge is counted in ind, and that C is acyclic (so (iii) induction on a topological order exists); both hold. Hence the run is correct, with s pops and s pushes by L3. Cost: state O(s log s) bits (value bits plus indices and op codes per record); update O(1) per record; post-pass O(s + E) = O(s) operations with random access into T.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795300361.125916,
+  "session": "pnp-desk/research/R1199",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION (author, R1199): the store-then-run step (S0013, G0008) must NOT be read as closing G0002. Its state is O(s log s) bits, the size of the whole input, so it does not give a one-pass O(s)-state rule (G0002 a). The closes=G0002 field was set in error. G0002 remains OPEN. Also, the APPROACH record claim that both K9-D4 positions were stated verbatim is withdrawn: contract page 1 (Disputes) has not been read in this session.",
+  "evidence": "S0013; spec_read pages 2-3 of PNP-001-K9-NONSTREAM-COMPUTATION-GRAPHS-CONTRACT-2026-11-21.md.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795388036.4809744,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says WEAKER: The invariant is exact for both systems: `L1_time_invariant` and `L1_prime_scheduled` prove `\u2200 t, \u2200 g, d g \u2264 t \u2192 runX C x t g = c g` under only the depth recursion `hd` and circuit equations `hc`, which pin `c` to C_g(x). But the claim also asserts t (not a refutation; a model review is still needed)"
+ }
+]

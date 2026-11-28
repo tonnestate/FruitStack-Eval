@@ -1,0 +1,56 @@
+[
+ {
+  "at": 1795361254.8534567,
+  "session": "pnp-desk/research/R1562",
+  "model": "claude-haiku-5-5",
+  "gap": "Control run cm-751e0f8774d94fe9 computed tw(K_n) for n=3..6 and got n-1 (2, 3, 4, 5), not 2n-1. This does not test the claim in (A), which is about min over B of tw(H_B) for the overlap-treewidth embedding H_B of K_n. The minimum over B has not been computed, so (A) is still open. Next: enumerate the embeddings B for K_3 and K_4, compute tw(H_B) exactly, and compare the minimum with 2n-1.",
+  "evidence": "cm-751e0f8774d94fe9 (EXPLORATORY_COMPUTATION, agent-authored, networkx complete_graph treewidth). Its rows show matches_2n_minus_1 = false for every n tested, but it is a check on the wrong object.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795361339.1949873,
+  "session": "pnp-desk/research/R1562",
+  "model": "claude-haiku-5-5",
+  "gap": "Corrected reading of cm-751e0f8774d94fe9: it computed tw(K_n)=n-1 for n=3..6. The owner identity is min_B tw(H_B) = 2*tw(G)+1, which gives 2n-1 for K_n, so the control is consistent with the identity and does not refute (A). min over B of tw(H_B) for K_n is NOT computed here; it rests on the owner identity (Lean-checked for GF(3) only, WStarLower.lean). Open: name the function-specific premise that separates Search-MCSP from K_n (K_n has constant-size refutations, a K_4 subgraph witness).",
+  "evidence": "cm-751e0f8774d94fe9 (EXPLORATORY_COMPUTATION, networkx treewidth of K_n, n=3..6: 2,3,4,5). Definitions: PNP-001-WIDTH-THEOREM-SOURCES-2026-11-22.md (coeffGraph, WStarLower.lean); PNP-001-K13-BASIS-OVERLAP-BRIDGE-THEOREM-CONTRACT-2026-11-22.md sec. 0 and 2A.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795362019.2623246,
+  "session": "pnp-desk/research/R1562",
+  "model": "claude-haiku-5-5",
+  "lemma": "Reduction (exact, for G = K_n, GF(3)): dim Ker F(K_n) = 2n, so H_B has k = 2n vertices. A graph H on k vertices has tw(H) = k-1 iff H is complete (non-adjacent u,v give a width k-2 decomposition with bags V-{v}, V-{u}). Hence min_B tw(H_B) = 2n-1 iff no two nonzero vectors of Ker F(K_n) have disjoint supports. The K_n part of (A) is therefore equivalent to a finite support statement. The owner's Lean identity implies it for GF(3); the check here is independent verification for n=3,4.",
+  "gap": "G0002 narrowed: (1) the disjoint-support statement for all n (not only n=3,4) is open; (2) the function-specific premise separating Search-MCSP from K_n (which has constant-size refutations) is still not named.",
+  "evidence": "Verification experiment submitted in this turn (physalis_code_run, n=3,4, own encoding, not yet returned). Replaces the earlier wrong reading of cm-751e0f8774d94fe9, which computed tw(K_n) = n-1, a different quantity.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795362192.658339,
+  "session": "pnp-desk/research/R1562",
+  "model": "claude-haiku-5-5",
+  "lemma": "For n>=2 let F(K_n) over GF(3) have variables x_{v,c} (vertex v, colour c) and y_{uv,c} (edge uv, colour c), with rows sum_c x_{v,c}=0 for each v and x_{u,c}+x_{v,c}+y_{uv,c}=0 for each edge uv and colour c. Then dim Ker F(K_n)=2n, no two nonzero kernel vectors have disjoint supports, and hence every basis B gives H_B complete on 2n vertices, so tw(H_B)=2n-1=2*tw(K_n)+1 for every basis B and all n>=2.",
+  "gap": "Open: (a) the lemma depends on the reconstructed encoding of F(K_n); it must be checked against WStarLower.lean; (b) the function-specific premise separating Search-MCSP from K_n (which has constant-size refutations via a K_4 subgraph) is not named, so the basis-overlap invariant alone gives no proof-size bound. Step is CLAIMED until reviewed by another model family; it is not progress toward P vs NP unless it closes a foreign obligation.",
+  "evidence": "cm-c37a31f013e94f10 (VERIFICATION, own encoding, n=3,4): dim Ker = 2n (6, 8); nonzero kernel vectors = 3^{2n}-1 (728, 6560); disjoint-support pairs = 0. Matches prediction H1; H0 (a disjoint pair exists) is refuted for n=3,4. The general-n proof is the lemma above.",
+  "gap_id": "G0004",
+  "id": "S0004",
+  "proved_step": "Proof: let z=(x,y), z'=(x',y') be nonzero with disjoint supports. (1) A nonzero vertex block x_v has support of size >=2, since its coordinates sum to 0 over GF(3). Two nonzero blocks x_v, x'_v cannot both occur, because two disjoint subsets of a 3-set of size >=2 do not exist. So the vertex sets A={v: x_v != 0} and A'={v: x'_v != 0} are disjoint. (2) Both are nonempty, since x=0 forces y=0. Pick a in A and b in A'; then x_b=0 and x'_a=0. (3) y_{ab,c}=-x_{a,c} in z, so it is nonzero iff c in supp(x_a); y'_{ab,c}=-x'_{b,c} in z', so it is nonzero iff c in supp(x'_b). Both sets have size >=2 inside {0,1,2}, so they meet at some c, giving a shared support coordinate. Contradiction. Dimension: vertex rows are independent and each edge row has a private y variable, so dim = 3n - n = 2n.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795371115.9512377,
+  "session": "pnp-desk/research/R1650",
+  "model": "claude-haiku-5-5",
+  "gap": "G0005 remains OPEN. S0004 (dim 2n, no disjoint kernel supports) is replicated for n=3,4,5 (cm-e3a5bf1e201144bd), but the replication does not test the premise that matters: the lemma is a property of the K_n colouring kernel and by itself gives no size or time lower bound for Search-MCSP. Still missing: (a) the function-specific premise that separates Search-MCSP streaming updates from K_n (K_n has constant-size Resolution refutations, Prop 6.5); (b) a check of the F(K_n) encoding against WStarLower.lean. S0004 stays CLAIMED: this session (claude-haiku-5-5) is the same family as its author and cannot review it.",
+  "evidence": "cm-e3a5bf1e201144bd: n=3,4,5 kernel dimension 2n, 3^{2n}-1 nonzero kernel vectors, no disjoint supports (own elimination and enumeration, exploratory computation with replication scope).",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795371170.3008316,
+  "session": "pnp-desk/research/R1650",
+  "model": "claude-haiku-5-5",
+  "gap": "G0005 stays OPEN, refined. The kernel lemma S0004 is proved for all n (hand proof, recorded as evidence for a reviewer from another model family; the author of S0004 and this session are both claude-haiku-5-5, so no review from this session). Proof sketch to check: (i) a nonzero vertex block x_v in GF(3)^3 with coordinate sum 0 has weight 2 or 3, so two nonzero blocks of z and z' at the same vertex cannot have disjoint supports; hence the vertex sets A(z) and A(z') are disjoint. (ii) Take a in A(z), b in A(z'). Then x_b = 0 and x'_a = 0, and the edge row for ab gives y_{ab,c} = -x_{a,c} in z and y'_{ab,c} = -x'_{b,c} in z'. Both supports have size >= 2 inside {0,1,2}, so they meet, which contradicts disjointness. (iii) dim = 3n - n = 2n because vertex rows are independent and each edge row has a private y. Open: the premise that separates Search-MCSP streaming updates from K_n (K_n has constant-size Resolution refutations, Prop 6.5). Also open: a check of the F(K_n) encoding against WStarLower.lean. No new proved_step is claimed; this entry is bookkeeping and does not count as progress.",
+  "evidence": "cm-e3a5bf1e201144bd (n=3,4,5 replication, exploratory); cm-c37a31f013e94f10 (earlier verification). Hand proof above is not machine-checked.",
+  "gap_id": "G0006"
+ }
+]

@@ -1,0 +1,341 @@
+[
+ {
+  "at": 1795243107.7044837,
+  "session": "pnp-desk/research/R0709",
+  "model": "claude-haiku-5-5",
+  "lemma": "Reuse-elimination (naive): for an acyclic De Morgan circuit C with S non-input gates and r gates of fan-out >= 2, f_C has a De Morgan formula with at most 2^r * 2S leaves. Proof: order the reused gates topologically; for b in {0,1}^r let term_b = AND_j [g_j(x,b)=b_j] AND [out(x,b)=1], where reused gates are read as constants b. Least-index argument: if b != y(x) (true values), the least j with b_j != y_j(x) fails its check, since g_j reads only inputs with index < j, which agree with y. So exactly one term is consistent and OR_b term_b = f_C. Each term is a fan-out-1 forest with <= 2S leaves (x-literals), so the total is <= 2^r * 2S.",
+  "gap": "This gives exponent 2^r, not S(r+1)^c with c<1, so it does not advance R-MCSP. The earlier Lean statement (claim:3db94b5537c2) was FIDELITY_REJECTED because it was over an abstract type Fm; the circuit-level statement is not formalized. No MCSP-specific lemma yet; the locality filter F2 is not checked; the controls EQ, IP and MUX are not run.",
+  "refuted_approach": "none this session",
+  "evidence": "cm-833b4c80d7204c04",
+  "id": "S0001",
+  "proved_step": "Naive reuse-elimination bound L(f_C) <= 2^r * 2S for acyclic De Morgan C (hand proof above; finite check cm-833b4c80d7204c04 agrees on sampled circuits)",
+  "status": "CLAIMED",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795243894.2152195,
+  "session": "pnp-desk/research/R0714",
+  "model": "claude-haiku-5-5",
+  "evidence": "Reviewed by pnp-desk/research/R0712 (not the claiming session). Hand check: least-index argument holds because g_j reads only inputs and reused gates of index < j, which equal y on inputs where b != y(x); so only b = y(x) passes all checks and OR_b term_b = f_C. Leaf count: cut trees are gate-disjoint (non-reused gates have fan-out 1), so input leaves per term <= 2S. Finite check cm-cf499b8a83354ce3: 400 random acyclic De Morgan circuits, n<=5, S<=9, r<=6, bad=0, max total leaves / (2^r*2S) = 0.75. Gap unchanged: exponent 2^r, so no c<1 bound and no R-MCSP progress.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795244841.7919495,
+  "session": "pnp-desk/research/R0720",
+  "model": "claude-haiku-5-5",
+  "lemma": "Conditional reuse bound (enriched): if C is a minimum-size De Morgan circuit for f with S gates and r <= (1-delta)*log2(S) reused gates, then L(f) <= 2*S^(2-delta). Derivation: S0001 (SURVIVED_REVIEW) gives L <= 2^r * 2S, and 2^r <= S^(1-delta).",
+  "gap": "The reuse condition r <= (1-delta)log2 S is NOT known for MCSP[N^beta] yes-instances. Parity is a yes-instance with S = Theta(log N) and r = Theta(S), so the property must be restricted to a subclass that contains the hard instances; no such restriction is proved. Locality (filter F2) for oracle gates is untested.",
+  "refuted_approach": "Target 'L(f) <= K*S^(2-delta) for all minimum-size circuits' and the form 'S*(r+1)^c with c<1' are both refuted by parity (source-based, not computed): chain XOR circuit has S = Theta(n) and r = n-2; De Morgan formula size >= n^2 (Khrapchenko 1971). Any calculus with c<1 in (r+1) fails here.",
+  "evidence": "Source-based: Khrapchenko 1971 parity formula bound n^2. Circuit count: each XOR uses its input gate twice, giving r = n-2 reused gates and S = Theta(n). No computation run this session.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795245466.6397018,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "CONFLICT TO RESOLVE (director, 2026-11-21): S0001 (L(f_C) <= 2^r * 2S) is marked SURVIVED_REVIEW, but the fast validator of claim:7e8714ed3ccb (the same statement, verdict OPEN_UNPROVEN, session F-ids in desk state) reports that the naive tree-unfolding count exceeds 2^r*2S for the chain family at d >= 9 (U = 22962 > 20992). Decide which argument S0001 actually uses, whether the R0714 hand check covers the chain family, and record SURVIVED_REVIEW or REFUTED for the PROOF (the statement itself has no known counterexample).",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795246166.3261292,
+  "session": "pnp-desk/research/R0728",
+  "model": "claude-haiku-5-5",
+  "lemma": "L(f_C) <= 2^r (S + r + 1) for acyclic De Morgan C with S >= 1 gates; hence L <= 2^r * 2S. Gap unchanged: exponent 2^r, no c<1 bound.",
+  "evidence": "Reviewed by R0728 (did not claim S0001). Hand argument: take reused set R (non-output gates of fan-out >= 2), r = |R|. For b in {0,1}^R, term_b = AND over g in R of [gate g computed from inputs and reused gates h<g set to b_h equals b_g] AND [output computed with R set to b equals 1]. OR_b term_b = f_C: if f(x)=1 take b = actual values of R (checks pass by induction on index); conversely a passing term forces b = actual values, so output = f(x). Leaf count per term: non-reused gates have fan-out 1, so each lies in exactly one tree (the tree of its parent reused gate or the output); reused gates are roots of their own trees and cut elsewhere; so the r+1 trees have at most S internal gates in total and at most S + r + 1 input leaves. Hence per-term leaves <= S + r + 1 <= 2S for S >= r+1 (true, since R and out are gates), and L <= 2^r (S + r + 1) <= 2^r * 2S. Exact check cm-fba47b5731644c70: 400 random acyclic De Morgan circuits, n<=4, S<=8, bad_equalities=0, per_term_over_2S=0, worst ratio 1.0. Scope limits: the claim needs the output to be a gate (S >= 1); with S=0 and an input-literal output the bound 2^0 * 0 = 0 fails, so the hypothesis S>=1 must be stated. The validator's objection (cm-4bb50ea936c041c4: full tree unfolding U=22962 > 20992 on the chain family at d>=9) refutes a different count (unfolding the whole circuit with no cutting), not this per-term count.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795246389.1715546,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "evidence": "Owner 2026-11-21: DISPUTED until reconciled. The fast validator of claim:7e8714ed3ccb (same statement, OPEN_UNPROVEN) reports the naive tree-unfolding count exceeds 2^r*2S for the chain family at d>=9 (U=22962 > 20992); the R0714 review did not address that family.",
+  "dispute_of": "S0001",
+  "status": "DISPUTED"
+ },
+ {
+  "at": 1795247090.0817685,
+  "session": "pnp-desk/research/R0743",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 (L(f_C) <= 2^r*2S) counts 2 leaves per term for T_b but treats the consistency predicate C_b = AND_k (a_k = b_k) as free. Exact test cm-babdc524feb14cbb on the parity-chain family (a_k = a_{k-1} XOR x_k, r = d-1, S = 3d, d = 2..9): OR_b (T_b AND C_b) = f holds for all d. Per-term T_b has 2 leaves. But the naive leaf count of C_b is 4, 14, 36, 82, 176, 366, 748, 1514 for d = 2..9, so the total over 2^r terms is about 2^r * (2 + C_b) = 388k at d = 9, against the claimed bound 2^r*2S = 13824. The whole-formula unfolding of f in this family is 3*2^d - 2 (1534 at d = 9), which is below 2^r*2S. So this family does NOT reproduce the validator's counterexample (U = 22962 > 20992), which must come from a different circuit. Open: the cost of checking g_i = b_i inside a single shared unfolding of f, which is not counted per term; a bound on that cost in terms of S is needed before S0001 can be reviewed.",
+  "evidence": "cm-babdc524feb14cbb (exploratory, agent-authored computation; identity check only, not a proof). Status of S0001 left DISPUTED; no review verdict recorded here, since this session did not claim the step and the gap is a counting gap, not a refuted statement.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795248231.3362572,
+  "session": "pnp-desk/research/R0756",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a session other than the author (R0709). Experiment cm-c17d1220ba094aa3 (EXPLORATORY_COMPUTATION; 300 random acyclic De Morgan circuits, n in 2..5, S in 3..12, r<=8, seed 1). Identity OR_b(T_b AND C_b) = f_C holds on all 300 (identity_fail=0). Full-tree unfolding U <= 2^r*2S on all 300 (naive_U_over_bound=0). But the total leaf count sum_b [leaves(T_b) + leaves(C_b)], with C_b = AND_i (g_i = b_i) unfolded and counted, exceeds 2^r*2S on 5/300 circuits (worst ratio 2.21). Example n=2, S=12, r=5: total 1696 > bound 768. The step as proved counts C_b as free, so S0001 as stated is REFUTED. This does not refute L(f_C) <= 2^r*2S for all constructions; other constructions are untested.",
+  "review_of": "S0001",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795248555.8782444,
+  "session": "pnp-desk/research/R0760",
+  "model": "claude-haiku-5-5",
+  "gap": "Cost of checking g_i = b_i inside the unfolding is not counted per term; the reused gate's subformula has unbounded tree size relative to S.",
+  "evidence": "Review by a session other than the author (R0709/R0714/R0743/R0728 excluded). Reconciles the dispute as follows. S0001 counts 2 leaves per constant term T_b and treats the consistency predicate C_b = AND_i (g_i = b_i) as free. Exact check cm-babdc524feb14cbb on the parity-chain family (r = d-1, S = 3d, d = 2..9): OR_b (T_b AND C_b) = f holds, but the leaf count of C_b is 4, 14, 36, 82, 176, 366, 748, 1514, so the total is about 2^r(2 + |C_b|) = 388k at d = 9 versus the claimed 2^r*2S = 13824. The gap is therefore real: the step's construction is not bounded by 2^r*2S. The CLAIM L(f_C) <= 2^r*2S is NOT refuted by this family, because parity has formula size Theta(d^2) (Khrapchenko), far below 2^r*2S. Status of S0001: REFUTED as a proof step (missing cost of C_b); the bound itself stays OPEN.",
+  "review_of": "S0001",
+  "status": "REFUTED",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795248625.1198888,
+  "session": "pnp-desk/research/R0759",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Counting only the output-side leaves of the constant-substitution decomposition (2 per term) while treating the consistency predicate as free. Exponential in r on the parity chain, so the 2^r*2S calculus cannot be stated without a bound on the C_b leaves.",
+  "evidence": "Review by R0759 (not the claiming session R0709). Exact run cm-b85aa1a284724171: identity f = OR_b(C_b AND out_b) verified exhaustively for d<=7 on the parity-chain with reuse. Per-term output leaves = 2 (confirmed). But the consistency predicates C_b = AND_i(g_i=b_i), counted as formula leaves via tree-unfolding of the reused gates, give total leaves 1344 vs bound 2^r*2S = 800 at d=6, and 96000 vs 10240 at d=9; ratio grows ~2^r. The construction therefore does NOT meet 2^r*2S. The statement L(f_C) <= 2^r*2S is not refuted (a smaller formula may exist); the proof of S0001 is refuted because it leaves C_b uncounted.",
+  "review_of": "S0001",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795248654.7175102,
+  "session": "pnp-desk/research/R0759",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: obtain the exact circuit behind the validator's U=22962 counterexample and check whether its tree unfolding exceeds 2^r*2S. Also open: a bound on the C_b leaves that is polynomial in S, which the current construction lacks.",
+  "evidence": "R0759 check of the chain family: plain tree unfolding of the parity-chain circuit (cm-91cff93ccd0c4506) gives 766 leaves at d=9 against bound 2^r*2S = 13824, so the chain family does not refute L(f_C) <= 2^r*2S itself. The S0001 construction (constant substitution with uncounted C_b) is refuted by cm-b85aa1a284724171; the claim is not refuted. The validator counterexample U=22962 > 20992 is not reproduced by either chain construction; its circuit is still needed.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795248689.3342805,
+  "session": "pnp-desk/research/R0760",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Using the naive tree-unfolding leaf count of the parity chain as a proxy for L(f_C). The unfolding is 3*2^(d-1)-2 while the De Morgan formula size is Theta(d^2) (Khrapchenko lower bound, standard upper bound), so the proxy measures the wrong quantity and cannot test the reuse bound.",
+  "evidence": "cm-89a00d99b85441aa: exact recurrence T_d = 2T_{d-1}+2, d=2..12 (4 ... 6142). Bound 2^r*2S unchanged; no new claim."
+ },
+ {
+  "at": 1795248775.8582835,
+  "session": "pnp-desk/research/R0760",
+  "model": "claude-haiku-5-5",
+  "gap": "Reuse bound L(f_C) \u2264 2^r\u00b72S: no surviving step. S0001 REFUTED as a proof step (cost of C_b not bounded by S). Open: a decomposition whose consistency check is paid once per reused gate (Q-fa3284d36a).",
+  "evidence": "Exact check pending: De Morgan leaf-size baseline on all 3-variable functions (requested in this turn). Purpose: a reference table for the exhaustive small-circuit test of L(f_C) against S\u00b7(r+1)^c and 2^r\u00b72S. No claim is made from this baseline by itself.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795248792.4995654,
+  "session": "pnp-desk/research/R0759",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (i) a bound on the consistency-predicate leaves C_b that is polynomial in S, or a shared encoding of C_b, which the constant-substitution route lacks (Q-5ba9340ac5); (ii) identify the validator's circuit with U = 22962 (2^8 * 82 = 2^r * 2S with r=8, S=41), which is not the chain family cm-91cff93ccd0c4506 (S=3d) or cm-b85aa1a284724171.",
+  "evidence": "Validator remark that the parity chain has a 3d-1 leaf read-once formula is refuted: exact minimum De Morgan leaves for parity_3 = 10 (cm-ac5740a30b314e0c), above 8 and consistent with Khrapchenko d^2 = 9. The validator's U = 22962 > 20992 is a whole-circuit unfolding count. It refutes the unfolding method, not the existential claim L(f_C) <= 2^r*2S, because a smaller formula for f_C may exist.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795248812.0981796,
+  "session": "pnp-desk/research/R0760",
+  "model": "claude-haiku-5-5",
+  "gap": "Reuse bound L(f_C) <= 2^r*2S: no surviving step. S0001 REFUTED as a proof step (cost of C_b not bounded by S). Open: consistency check paid once per reused gate (Q-fa3284d36a). Needs a fixed S convention for the parity family before any count is compared with the validator.",
+  "evidence": "cm-051df9298d354c1b: exact De Morgan leaf counts for all 256 Boolean functions on 3 variables (closure under AND/OR, free negation, constants included; histogram {1:6, 2:26, 3:64, 4:30, 5:80, 6:32, 8:16, 10:2}, sums to 256, max 10). Reference table only: n=3 has no reuse, so it does not test L(f_C) <= 2^r*2S. Parameter conflict noted: proof state uses S=3d, cm-89a00d99b85441aa used S=3(d-1); the validator's U=20992 is reproduced by neither.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795248912.159608,
+  "session": "pnp-desk/research/R0759",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: (i) a bound on the consistency-predicate leaves C_b polynomial in S, or a shared encoding of C_b (Q-5ba9340ac5); (ii) the validator's U=22962 circuit (r=8, S=41) is still not identified.",
+  "evidence": "Slack check on the parity-chain family with reuse (r=d-2, S=5(d-1)): the balanced De Morgan formula for parity_d has 2(L(ceil(d/2))+L(floor(d/2))) leaves (exact at d=3: 10), while the bound 2^r*2S grows exponentially in d. So this family satisfies L(f_C) <= 2^r*2S with large slack. It cannot refute the claim; a counterexample must come from circuits whose minimum formula is large relative to 2^r*S.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795249248.7611613,
+  "session": "pnp-desk/research/R0771",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Per-term leaf bound 2S for the constant-substitution decomposition when the consistency predicate C_b = AND_i (g_i = b_i) is counted with its tree-unfolded formulas. Measured on 300 random acyclic De Morgan circuits: worst (Lout + cons)/(2S) = 2.11 at n=3, S=9, r=4, Lout=4, cons=34.",
+  "evidence": "cm-b89560edeb4d42ad (EXPLORATORY_COMPUTATION). Identity OR_b (T_b AND C_b) = f_C holds on all 300 circuits. The refutation covers the specific per-term count with tree-unfolded C_b, not L(f_C) <= 2^r*2S itself, since a smaller formula for each g_i would lower cons. Open: a bound on the formula size of C_b that is polynomial in S, or a shared encoding of C_b (Q-5ba9340ac5)."
+ },
+ {
+  "at": 1795249415.7567773,
+  "session": "pnp-desk/research/R0773",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Constant-substitution decomposition with C_b = AND_i (g_i = b_i) counted per consistent reuse pattern b: on the parity chain with reuse (r = d-1, S = d) there are exactly 2^r consistent patterns, each giving a conjunction of d-1 literals over the reused-gate grouping, so the summed C_b leaf count is 2^r*(d-1), exponential in r (cm-08a44c60c97149fe, d=2..8). Caveat: the check groups inputs by reused-gate values; it is a grouping-level count, not a formula-leaf count of C_b as functions of x. The per-pattern constant-substitution calculus therefore cannot yield c<1 without a shared encoding of C_b (open: Q-5ba9340ac5).",
+  "evidence": "cm-08a44c60c97149fe (exploratory, agent-authored); cm-b85aa1a284724171 (reviewed by R0759): total leaves 96000 vs bound 10240 at d=9"
+ },
+ {
+  "at": 1795249500.8455637,
+  "session": "pnp-desk/research/R0773",
+  "model": "claude-haiku-5-5",
+  "evidence": "CORRECTION by R0773. The minterm claim in APPROACH record ee522eb1dbf9557b is FALSE. cm-c7eef77c3a134ba8 (exploratory, d=2..8): each reused pattern b = (g_1..g_{d-1}) has exactly 2 inputs x, because x_d is free. So C_b is not a minterm. The turn-3 count 2^r*(d-1) (cm-08a44c60c97149fe) counted literal conjunctions over the reused-gate grouping, not formula leaves of C_b as functions of x; C_b(x) = AND_i [parity(x_1..x_i) = b_i] is a conjunction of prefix-parity constraints. That count is withdrawn as a leaf count. Status unchanged: S0001 REFUTED; open gap Q-5ba9340ac5."
+ },
+ {
+  "at": 1795249548.4150114,
+  "session": "pnp-desk/research/R0774",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: general proof that the constant-substitution term has leaves <= 2S with consistency predicates unfolded as trees, for any r. Needed: exhaustive check at n=4 for r<=4 (and n=5 sample with r>=2) and a derivation, not a sample.",
+  "evidence": "cm-ee2fff86c9fc4d7c (R0774): 139 random acyclic De Morgan circuits on n=4 inputs, |R| (reused gates, out-degree>=2, excluding output) <= 4, seeded (seed 1). Identity check (sum over reuse assignments of the consistency-predicate expansion equals f) held in all 139 (0 failures). Max term-leaf count / 2S = 1.0 (worst S=4, r=2, leaves=8). Distribution of r: {1:126, 2:12, 3:1}. Scope: finite sample, NOT exhaustive, only 13 circuits with r>=2, n=4 only. This does not prove the general elimination bound and does not refute S0001. cm-041def75930f47b0 (parity-chain tree recurrence T(k)=2T(k-1)+2 vs 2^r*2S) is an assumed recurrence, not a measurement of circuits, and is NOT evidence for S0001. No proof_state status change: S0001 stays CLAIMED/DISPUTED until a general argument or exhaustive n-small check is reviewed.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795249720.966021,
+  "session": "pnp-desk/research/R0778",
+  "model": "claude-haiku-5-5",
+  "evidence": "Derivation is general (not a sample). Finite check cm-3ba4343ca7eb4dee: 3000 random CNFs, n<=4, m<=6, 0 mismatches. Status CLAIMED until a different session reviews it.",
+  "id": "S0021",
+  "proved_step": "Inclusion-exclusion identity: for any CNF F = C_1 and ... and C_m on n variables, #SAT(F) = sum over subsets S of clauses of (-1)^|S| N(S), where N(S) = #{x in {0,1}^n : x falsifies every clause in S} = 2^(n-|V(S)|) if the literals forced by S are consistent, and 0 otherwise. Proof: [x satisfies F] = prod_i (1 - [x falsifies C_i]); expanding the product gives the sum over S, and the S-term counts x falsifying all of S.",
+  "status": "CLAIMED"
+ },
+ {
+  "at": 1795249987.0012727,
+  "session": "pnp-desk/research/R0781",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review (session not R0778). Hand check: [x satisfies F] = prod_i (1 - [x falsifies C_i]); expanding gives sum over clause subsets S of (-1)^|S| N(S), N(S) = #{x falsifying all clauses in S}. Falsifying literal (v,s) forces x_v = 1-s, so N(S) = 0 if S forces some variable both ways and 2^(n-|V(S)|) otherwise; the empty S gives 2^n. Exact check cm-8767fb240eae4246: 11702 exhaustive CNFs (n<=3, m<=3, all clause sets of size 1..n over both polarities) plus 2000 random n=4 CNFs with repeated and opposite-polarity literals, 0 mismatches. Scope: the identity is general (any CNF on n variables); the computer check covers only the listed small cases, so the general claim rests on the hand proof. Survives review; it does not advance the reuse-elimination gap (exponent 2^r, no c<1 bound), which stays open.",
+  "review_of": "S0021",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795249987.0250134,
+  "session": "pnp-desk/research/R0779",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by R0779 (not the claiming session R0778). Attack 1, finite: cm-599eed9e6b4548bf, 3000 random CNFs with n<=4, m<=6, clause width 0..3, including 1495 formulas with an empty clause and 1209 with a tautological clause; 0 mismatches between the inclusion-exclusion sum and brute-force #SAT. Attack 2, hand argument: [x satisfies F] = prod_i (1 - [x falsifies C_i]); expanding gives sum over S of (-1)^|S| [x falsifies every clause in S]; summing over x gives N(S). Empty clause: falsified by every x; the expansion still gives #SAT=0 for F containing it, since the terms pair off. Tautology (x or not x): falsifying it needs x=0 and x=1, so N(S)=0, detected by the consistency check. Repeated literals merge into one forced value. No gap found by hand. Scope: general argument plus finite check; not Lean-checked.",
+  "review_of": "S0021",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795250247.6988788,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Open: a decomposition in which the consistency information for the reused gates is carried by one shared subformula of size poly(S) (state-passing over the reuse DAG), giving L(f_C) <= poly(S) for the parity family and a counting argument that does not multiply by 2^r.",
+  "refuted_approach": "Per-pattern constant-substitution with C_b = AND_i(g_i = b_i) counted as independent conjunctions: leaf count is 2^r times a linear term on the parity chain (cm-08a44c60c97149fe). Not to be repeated.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795250320.304078,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Width measured as the number of distinct full reused-gate vectors realised per prefix (cm-7da0644c5e704f04): this counts prefix-determined gates and so grows as 2^r by construction. It is NOT a state width and must not be used as evidence about the consistency predicates.",
+  "evidence": "cm-7da0644c5e704f04 (measurement defect, see refuted_approach)"
+ },
+ {
+  "at": 1795250347.900907,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Cut width is not the obstruction and does not bound leaves: the parity chain has cut width 2 but De Morgan formula size Theta(d^2) (Khrapchenko), so width alone cannot give the required bound. Open: a lemma converting a read-once decomposition of width w and length L into a formula of size poly(L) for constant w, with the consistency state carried by the shared width-2 automaton instead of per-pattern predicates C_b. The conversion is a known-type result for width-bounded branching programs, not yet verified for the reuse setting here.",
+  "evidence": "cm-e1eb089ebc2841e1 (exploratory, EXPLORATORY_COMPUTATION): on the parity chain with reuse, d=4..8, the number of distinct suffix-subfunctions of f at each prefix cut is 2, and the suffix-dependent part of the reused-gate vector has width <= 2. Host output truncated: 15 of 25 rows shown, so d=8 rows are not visible.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795250372.1934035,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Correction to the last HYPOTHESIS (7c83802e009afcf7): the width-to-formula conversion poly(L) for constant width w is NOT a known or available lemma. The standard conversion of a length-L branching program to a formula is Savitch-type with size L^{O(log L)}, quasi-polynomial, not polynomial. Constant-width programs can already express NC1-type functions (Barrington), so a poly bound for constant w would need a separate argument for this reuse setting. Open: either prove a poly conversion for the specific shared-state decomposition of the reused gates, or show the decomposition needs the quasi-polynomial loss. The parity chain (w=2, formula size Theta(d^2)) does not decide this.",
+  "evidence": "Source-based (no computation): quasi-polynomial conversion is the standard bound for width-bounded branching programs; cm-e1eb089ebc2841e1 measured cut width only, which does not bound leaves.",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795250396.5923045,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Still open. Subfunction width is 2 for parity, and parity's De Morgan formula size is Theta(d^2) (Khrapchenko), so width-2 is compatible with the expected formula size but does not prove any leaf bound for C_b. The needed lemma remains: a read-once width-w decomposition of length L yields a De Morgan formula of size poly(L) for constant w. The standard conversion is quasi-polynomial (Barrington/Savitch), so the reuse setting needs a separate argument. No repair of S0001 is proved yet.",
+  "evidence": "cm-253f4ea8ede043f7 (EXPLORATORY_COMPUTATION, complete rows d=4..8): on the parity chain with reuse, max over cuts of the number of distinct suffix-subfunctions of f is 2, and of the suffix-dependent part of the reused-gate vector is 2. This supersedes the truncated cm-e1eb089ebc2841e1.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795250451.2341547,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Open, sharpened: any repair of S0001 must bound the formula leaves L(f_C) directly. On the parity family L must be >= d^2 while S = Theta(d), so the shared-state argument can only prove a bound of the form L <= poly(S) with the exponent at least 2 there. Needed: a conversion from the reused DAG with shared consistency state into a formula of size O(S^2 * w^{O(1)}) for constant width w, with the reuse-consistency predicates C_b shared rather than multiplied by 2^r. Not yet proved; no proved_step this session.",
+  "refuted_approach": "Counting the state-passing construction on the parity chain as a De Morgan formula with 4(d-2)+2 leaves (cm-132b3c784eef480e). Refuted by Khrapchenko: every De Morgan formula for parity on d variables has at least d^2 leaves, so a linear leaf count means the object is a DAG/circuit, not a formula. The flag in that run was also computed in the wrong direction and must not be cited.",
+  "evidence": "cm-132b3c784eef480e (EXPLORATORY_COMPUTATION, hand-written count, not an extracted formula; flag logic inverted). Source-based: Khrapchenko 1971 lower bound for parity.",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795250514.7647984,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Scoping caveat for the open lemma: a poly(S) DAG-to-formula conversion is not a known general lemma, and a general version would be a strong formula-vs-circuit statement. Any repair of S0001 must use the specific reuse structure of the family and must state its family explicitly. The parity chain alone (S = Theta(d), L = Theta(d^2) by Khrapchenko) cannot establish the general bound. Next step: read the exact n=4 De Morgan leaf-size table (cm-3fdac90cf577466a) to obtain exact L for XOR on 4 variables as a check point, before any further construction.",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795250533.102334,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Checkpoint in progress: the exact n=4 leaf-size table (agent_topic_demorgan_leaf_n4_v1_afac3ac2, column L, flags is_parity4 etc.) is being queried via physalis_exact_law_search to read the exact De Morgan leaf size of XOR on 4 variables against the Khrapchenko bound 16. No repair of S0001 is proved yet; the shared-state conversion lemma remains open and is not assumed.",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795250557.9220138,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Retraction: the claim that width-w read-once decompositions convert to formulas with only quasi-polynomial loss for constant w (turn 5) is unverified. Barrington gives polynomial size for width-5 permutation programs; the general constant-width bound needs a source check before it is used. Open: an exact L value for parity on 4 variables from the n=4 table, restricted to the parity class.",
+  "refuted_approach": "Checkpoint step in turn 10 (cm-5a0221a0c74f45ab) only printed n^2 for n=2..8. It is the Khrapchenko bound written out, not an exact De Morgan size, and it is not evidence about the table.",
+  "evidence": "physalis_exact_law_search on agent_topic_demorgan_leaf_n4_v1_afac3ac2 with no class restriction returned 0 laws (classes ALL 65536). That is not an L value for XOR_4.",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795250578.9255698,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Still open. Need the exact leaf count L of parity on 4 variables from agent_topic_demorgan_leaf_n4_v1_afac3ac2 (restricted to is_parity4=1), compared with the Khrapchenko bound 16. The earlier exact-law call failed on test_fraction (must be 0.1..0.5); rerun with 0.2. No repair of S0001 is proved; the width-to-formula conversion lemma is not assumed.",
+  "refuted_approach": "Turn 10 check cm-5a0221a0c74f45ab only printed n^2 for n=2..8. That is the Khrapchenko lower bound written out, not an exact De Morgan size, and it is not evidence about the leaf table.",
+  "evidence": "Retraction, earlier in this session: the claim that constant-width read-once decompositions convert to formulas with only quasi-polynomial loss is unverified. Barrington's construction gives polynomial formula size for polynomial-length width-5 permutation programs, but the general constant-width case needs a source check.",
+  "gap_id": "G0020"
+ },
+ {
+  "at": 1795250609.7520313,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "Checkpoint, pending the check run: L(parity_4) should equal 16 = Khrapchenko bound n^2 at n=4. Upper bound: XOR(a,b) = (a and not b) or (not a and b) gives L(XOR of 2n vars) = 2(L_a + L_b) with negations pushed to leaves, so L(parity_4) <= 16. Lower bound: Khrapchenko, source-based. S0001 remains open; no conversion lemma is proved.",
+  "refuted_approach": "Exact-law search restricted to is_parity4=1 cannot read L(parity_4): that class has 2 rows and the tool requires at least 40. Retracted earlier: the turn-5 claim that width-w conversion is quasi-polynomial is unverified, and the parity-chain leaf count 4(d-2)+2 is not a formula count.",
+  "evidence": "Tool error on agent_topic_demorgan_leaf_n4_v1_afac3ac2 with where is_parity4=1 (At least 40 rows are required).",
+  "gap_id": "G0021"
+ },
+ {
+  "at": 1795250632.9729981,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 remains open. The parity_4 checkpoint closes only a finite instance. The general conversion lemma (a reused DAG with constant-width shared consistency state gives a formula of size O(S^2 * w^O(1))) is still unproved. The Barrington and quasi-polynomial remarks from earlier turns are unverified and must not be cited.",
+  "evidence": "cm-e6404ac8518942ab (EXPLORATORY_COMPUTATION, brute-force check over all 16 inputs): the explicit XOR-tree formula for parity on 4 variables has 16 leaves and computes parity. With the source-based Khrapchenko lower bound n^2 = 16, L(parity_4) = 16 is settled. Scope: n = 4 only.",
+  "gap_id": "G0022"
+ },
+ {
+  "at": 1795250687.363936,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 remains open. Scope note: the balanced XOR-tree gives an explicit upper bound L(parity_d) <= 2^... (leaf count checked in the next run for d=2..10). Khrapchenko gives L(parity_d) >= d^2, so if the run shows leaves = d^2, parity is tight on this family and the S^2 shape holds there only. This does not prove the general conversion lemma: the general DAG-to-formula bound with shared constant-width state is still unproved and must be stated for an explicit family.",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795250709.493742,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 remains open. The parity family gives L = Theta(d^2) only in the sense of Khrapchenko's lower bound plus this upper-bound construction at powers of 2; it does not establish the general conversion lemma (reused DAG of size S with shared constant-width consistency state gives a formula of size poly(S)). Parity alone cannot distinguish the exponent claim. The earlier 'tight on this family' wording is withdrawn.",
+  "evidence": "cm-63e5c4ff104a4f4b (EXPLORATORY_COMPUTATION): balanced XOR-tree formula for parity on d variables, d=2..10, leaves = 4, 10, 16, 28, 40, 52, 64, 88, 112, all computing parity on every input. Leaf count obeys L(d) = 2(L(floor(d/2)) + L(ceil(d/2))), L(1)=1. Equals d^2 exactly only for d = 2, 4, 8; strictly larger for other d. Khrapchenko lower bound d^2 holds on every computed row. Scope: explicit upper bound for the balanced construction on d <= 10 only.",
+  "gap_id": "G0024"
+ },
+ {
+  "at": 1795250740.7657535,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 remains open and no proved step is claimed. This session's only new computation is an exact DP for the minimum De Morgan leaf count of 3-variable parity (run pending). The DP is exact because a formula with top gate g AND h or g OR h splits its leaves disjointly, so L(f) = min over decompositions of L(g) + L(h). The result fixes L(parity_3) between the Khrapchenko bound 9 and the construction value 10. The general reuse-to-formula conversion lemma is still unproved.",
+  "gap_id": "G0025"
+ },
+ {
+  "at": 1795250760.689761,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 remains REFUTED and open. L(parity_3)=10 is a finite value; it does not bear on the conversion lemma (reused DAG of size S with shared constant-width state gives a formula of size poly(S) for an explicit family), which is still unproved. No proved_step this session. Next finite check: exact L(parity_4) by the same DP over 65536 functions as a background job (16 is already established by explicit formula + Khrapchenko), then the exact leaf profile of the reuse family at d=4-5.",
+  "evidence": "cm-563a9d5298614ae9 (EXPLORATORY_COMPUTATION): exact fixpoint DP over all 256 truth tables on 3 variables (leaves = literals; f = g AND h or g OR h with L(f) = min L(g)+L(h)). It reached 254 functions, i.e. all non-constant functions, and gives L(parity_3) = 10. Khrapchenko's bound gives 9, so it is not tight at d=3. Consistent with the balanced construction value L(3)=10 from cm-63e5c4ff104a4f4b. Scope: n=3 only.",
+  "gap_id": "G0026"
+ },
+ {
+  "at": 1795250812.77443,
+  "session": "pnp-desk/research/R0785",
+  "model": "claude-haiku-5-5",
+  "id": "S0040",
+  "proved_step": "LEMMA (De Morgan leaf size, general). Setting: formulas are trees with fan-in-2 gates from {AND, OR} and leaves labelled by literals x_i or NOT x_i; L(f) = minimum number of leaves over formulas computing f. Parity_d(x) = x_1 XOR ... XOR x_d.\n(A) L(NOT f) = L(f). Proof: for a formula F, let F^d be obtained by swapping AND and OR at every gate and negating every leaf literal. By induction on F, F^d computes NOT of F's function (De Morgan), and F^d has the same number of leaves. Hence L(NOT f) <= L(f), and the reverse follows by applying the same argument to NOT f.\n(B) L(f XOR g) <= 2(L(f) + L(g)). Proof: take formulas F, G with leaves L(f), L(g). By (A), F^d and G^d compute NOT f and NOT g with the same leaf counts. The formula H = (F AND G^d) OR (F^d AND G) computes (f AND NOT g) OR (NOT f AND g) = f XOR g and has 2L(f) + 2L(g) leaves (F, F^d, G, G^d are each a copy of a subtree).\n(C) For every j >= 0, L(parity_{2^j}) <= 4^j. Proof by induction. j = 0: parity_1 = x_1, one leaf, 1 = 4^0. Step: parity_{2^{j+1}}(x) = parity_{2^j}(x_left) XOR parity_{2^j}(x_right) on disjoint variable sets. By (B), L <= 2(4^j + 4^j) = 4^{j+1}. Since parity_{2^j} is computed by a formula on 2^j variables with 4^j = (2^j)^2 leaves, this gives the exact pattern d^2 at d = 2^j.\nNOTE (not a claim): the same recursion for general d gives L(parity_6) <= 2(L(3)+L(3)) = 40 > 36 = 6^2 with L(3)=10, so the bound d^2 is NOT derived for general d by this construction; only the powers of two are proved.\nWHAT THIS DOES NOT PROVE: nothing about DAGs with reuse, constant-width state, or the S0001 conversion lemma (a reused DAG of size S with shared state -> formula of size poly(S)). S0001 stays REFUTED-as-stated / OPEN.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "None of S0001. It closes the session's own open checkpoint: an exact general upper bound L(parity_{2^j}) <= 4^j, valid for all j, not only j <= 3."
+ },
+ {
+  "at": 1795297395.6310546,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0040: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: no kernel-accepted Lean file is visible for G0283, so I cannot report the claim as formally verified.\n\n**Verification status**\n- The last `physalis_math_verify` result (input hash `2317d2f8\u2026` (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795298824.8446953,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0040: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No kernel verdict was returned for any submission, so no proof is confirmed accepted.\n\n**What failed:** Every `physalis_math_verify` result in the transcript is cut off at `\"lean_source\"` bef (not a refutation; a model review is still needed)"
+ }
+]

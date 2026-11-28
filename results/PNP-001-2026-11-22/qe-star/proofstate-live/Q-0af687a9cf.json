@@ -1,0 +1,536 @@
+[
+ {
+  "at": 1795253700.2264578,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-R: a proved theorem: for all XOR_2 o THR o THR circuits of size n^alpha (some alpha > 1), a deterministic construction in time 2^n / n^{omega(1)} of a split / variable tree and a rank-r approximation A with a CERTIFIED bound E[(f-A)^2] <= eps^2 (certified without enumerating {0,1}^n), whose evaluation sum_i E u_i E v_i also fits the time bound. Alternatively: an explicit THR o THR function with approximate rank >= 2^{n/2 - o(n)} under every balanced split (closes the route).",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795253921.321764,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "gap": "O-R (supersedes G0001, owner precision 2026-11-21): PROGRESS = a proved theorem: for all XOR_2 o THR o THR circuits of size n^alpha (some alpha > 1), a deterministic construction in time 2^n / n^{omega(1)} of a split or variable tree and a rank-r approximation A with a CERTIFIED bound E[(f-A)^2] <= eps^2 (no enumeration of {0,1}^n), whose evaluation also fits the time bound. NOT progress, only a documented limit of ONE representation: an explicit THR o THR function with approximate rank >= 2^{n/2 - o(n)} under every balanced split - it excludes exactly the single-balanced-split rank-r scheme; it says nothing about unbalanced or recursive (variable-tree) factorisations, restriction-then-rank, other algorithms, or the running time of CAPP.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795253921.3231318,
+  "session": "director/synthesis",
+  "model": "claude-opus-5-5",
+  "evidence": "G0001 of this proof state is SUPERSEDED by the obligation recorded right after it (owner precision 2026-11-21): a representation-specific lower bound is a documented limit, never progress and never a statement about CAPP running time."
+ },
+ {
+  "at": 1795254826.1825032,
+  "session": "pnp-desk/research/R0819",
+  "model": "claude-haiku-5-5",
+  "gap": "O-R still open: full-rank weight matrices (r = k) give only the trivial bound 2^k. Needed: a joint enumeration-free bound on d(rho, sigma) for many gates, or a variable-tree / restriction-then-rank scheme with a proved saving.",
+  "evidence": "Exact check of the bound on 24 random rank-1/2 instances (n = 8, 10, 12, 14), 0 violations: cm-b7efc8d1559d4138. The lemma is proved above by hand; the check is a sanity check only. Same argument as the rank-r DP of R0805 (lane D), so it is not new to lane D. Does NOT close G0001 / O-R: no approximate-rank certificate, no time bound for full-rank weights, no XOR_2 or CAPP algorithm.",
+  "gap_id": "G0003",
+  "id": "S0004",
+  "proved_step": "statement: For f(x,y) = [sum_j [A_j.x + V_j.y >= t_j] >= T], x in {0,1}^k, y in {0,1}^(n-k), A integer m x k of rank r over Q, W = max|A_ij|: the number D_x of distinct residual functions y -> f(x,y) satisfies D_x <= min(2^k, (kW+1)^r).\nproof: Pick r linearly independent rows R of A. All rows of A are Q-combinations of rows in R, so the residual depends on x only through A_R x in Z^r. Each coordinate sum_j A_ij x_j lies in an interval of width sum_j |A_ij| <= kW, hence takes at most kW+1 values. Thus at most (kW+1)^r residuals.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795255175.159982,
+  "session": "pnp-desk/research/R0823",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a different session (R0822). Checked the argument: for an integer matrix A of rank r over Q, pick r independent rows R. Every row A_j = c_j^T A_R with c_j rational, so A_j.x = c_j.(A_R x) and the residual f(x,.) depends on x only through z = A_R x. Each coordinate z_i = sum_j A_ij x_j lies in [sum_j min(A_ij,0), sum_j max(A_ij,0)], an interval of integer width at most kW, so at most kW+1 values. Hence D_x <= (kW+1)^r, and D_x <= 2^k trivially. Sweep cm-17480b36dbc5442b: 40 random rank-r instances, 0 violations, max D/bound = 0.75. Scope: this is the bound for the x-side of a fixed split, and it is the same argument as lane D (R0805). It does NOT close G0002: for full-rank A (r = k) the bound is (kW+1)^k >= 2^k, so it is vacuous, and it gives no certificate for approximate rank and no time bound for the CAPP evaluation.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795255482.1342144,
+  "session": "pnp-desk/research/R0821",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-899e330444744c9a (exact check n = 4, 6, 8, 10: first-half D = 2^k; min over balanced splits D = 2, 3, 2, 3)",
+  "id": "S0006",
+  "proved_step": "LEMMA (split sensitivity, matching family). Let k >= 2 be even, n = 2k, and F(x,y) = OR_{j=1..k} (x_j AND y_j), where x = (x_1..x_k) and y = (y_1..y_k) with y_j the variable k+j of pair P_j = {j, k+j}. Each AND is THR with weights (1,1) and threshold 2, and the OR is THR, so F is THR o THR with k bottom gates. (a) For the split S_1 = {1..k} | rest, D = 2^k. Proof: the residual of x is R_x(y) = OR_{j in supp(x)} y_j. If x != x', pick j in supp(x) minus supp(x') (or the symmetric case); then R_x(e_j) = 1 and R_x'(e_j) = 0, so x -> R_x is injective and D = 2^k. (b) For the balanced split S_2 = {1..k/2} union {k+1..k+k/2}, F = a(x) OR b(y), where a(x) = OR_{j<=k/2} (x_j AND x_{k+j}) and b(y) = OR_{k/2<j<=k} (y_j AND y_{k+j}). If a(x) = 1 the residual is constant 1; otherwise it equals b. Hence D <= 2. Consequence: for this family min over balanced splits of D is at most 2, while the first-half split gives 2^k. Scope: one explicit family for even k; a fact about one quantity, not a bound for all THR o THR circuits. It does not close G0001 or G0002 and is not counted as progress.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795255501.373886,
+  "session": "pnp-desk/research/R0823",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION (R0823): no step S0005 is in the ledger. Its first record call was malformed, and a retry with status CLAIMED was rejected (only SURVIVED_REVIEW or REFUTED are accepted for reviews). A later REFUTED review of S0005 failed with 'unknown proved step'. The S0005 argument, as it was drafted, has three defects: (1) it uses a single threshold [sum_j (A_j.x + V_j.y) >= T] rather than the sum of gate thresholds [sum_j [A_j.x + V_j.y >= t_j] >= T]; (2) it counts residuals for a fixed x, which is trivially 1; (3) the (kW+1)^l factor for the V.y part is not justified. Still open: G0002 (O-R). S0004 remains SURVIVED_REVIEW (cm-17480b36dbc5442b). The rank-r bound (kW+1)^r is vacuous at full rank.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795255756.1681168,
+  "session": "pnp-desk/research/R0823",
+  "model": "claude-haiku-5-5",
+  "gap": "CORRECTION (R0823, self-review): the S0004 review entry says 'Review by a different session (R0822)'. The reviewer was R0823. S0005 was never recorded in the ledger (malformed call, rejected status). O-R / G0002 remains open; no proved step this session closes or shrinks it.",
+  "refuted_approach": "Clip-to-window lemma (R0823, turn 8): for each gate j, the window [t_j - hi_j - 1, t_j - lo_j] (lo_j, hi_j = min/max of V_j.y over y) makes the gate constant in y outside it, so the residual is a function of the clipped vector c(x) = clip(A x, window). Exact check cm-76b010fcc2fc4f23 (60 random instances, k = 3-6, l = 2-4, m = 3-8, W = 1-3): 0 gate-equivalence violations and D <= clip_count in every instance. But the clip count is at least D everywhere (min clip/D = 1.0, max 56.0) and is bounded only by 2^k, so it gives no compression. Reason: the window clipping removes only values that the gate already ignores; it does not identify distinct x that give the same residual. No repair found: the exact residual count of a full-rank, bounded-weight instance can equal 2^k, so exact counting cannot beat the trivial bound and the saving has to come from approximation.",
+  "evidence": "cm-76b010fcc2fc4f23 (exploratory, 60 instances, 0 violations, clip count >= D always; no saving).",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795256391.044854,
+  "session": "pnp-desk/research/R0835",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by pnp-desk/research/R0835 (not the author R0821). Hand check of both parts: (a) R_x(y) = OR_{j in supp(x)} y_j since F = OR_j (x_j AND y_j) and the y-side of pair P_j is y_j; for x != x' pick j in supp(x) \\ supp(x') (or the symmetric case); the unit vector e_j gives R_x(e_j)=1, R_x'(e_j)=0, so x -> R_x is injective and D = 2^k. (b) Each pair {j, k+j} lies wholly in S2 or wholly in T for the balanced split S2 = {1..k/2} u {k+1..k+k/2}, so F = a(x) OR b(y) with a, b defined as in the step; residuals are the constant 1 (if a(x)=1) or b, hence D <= 2. Lab check cm-7b3c884f710144a7: k=2,4,6 gives D_S1 = 4, 16, 64 = 2^k and D_S2 = 2 for all three k; min over all balanced splits = 2 for k=2,4. Scope: the argument is general for even k; the lab confirms finite k only. The step is a fact about one explicit family and does not close or shrink G0002 (O-R). No progress is claimed.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795256516.501955,
+  "session": "pnp-desk/research/R0835",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 UNCHANGED. The lemma certifies d(x,x') for a single pair of prefixes, but the union over gates is vacuous in the regime of interest (see refuted_approach). Still open: a representative map sigma with few classes and a joint bound on sum_x d(x, sigma(x)) for many gates, with evaluation time below 2^n / n^omega(1).",
+  "gap_id": "G0006",
+  "id": "S0010",
+  "proved_step": "LEMMA (single-gate and union residual distance, integer weights). Let g_j(x,y) = [a_j.x + v_j.y >= t_j] for j = 1..m, with a_j integer in Z^k, v_j integer in Z^(n-k), r_j = number of nonzero entries of v_j, and |v_ji| >= 1 on the support. Let f(x,y) = [sum_j g_j(x,y) >= T] and let y be uniform on {0,1}^(n-k). Then for all x, x' in {0,1}^k: Pr_y[f(x,y) != f(x',y)] <= sum_j |a_j.(x-x')| * C(r_j, floor(r_j/2)) / 2^(r_j), where a term with r_j = 0 is replaced by 1 if g_j(x,.) and g_j(x',.) differ. PROOF: (i) If all g_j agree at (x,y) and (x',y), the sums agree, so f agrees; hence a disagreement needs some g_j to disagree. (ii) For r_j >= 1, g_j(x,y) != g_j(x',y) forces v_j.y to lie in a half-open interval of integers of length |a_j.(x-x')|. (iii) Erdos (1945): for real |v_i| >= 1, an open interval of length 2 contains at most C(r, floor(r/2)) subset sums; so for each integer s, Pr_y[v_j.y = s] <= C(r_j, floor(r_j/2))/2^(r_j). Sum over the integers in (ii) and over j. QED. This is an enumeration-free certificate for one pair (x,x') of residuals.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795256516.5186057,
+  "session": "pnp-desk/research/R0835",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Joint control of the m bottom gates by the union bound in the single-gate lemma. The error is at most sum_j |a_j.(x-x')| C(r_j, r_j/2)/2^(r_j), which is about m*kW/sqrt(r_min) with weights bounded by W. This is below 1 only if r_min is at least about (m k W)^2. For m = n^1.5 that exceeds n, so the union bound cannot control the representative error. Repair direction, not yet tested: use that f flips only when the weighted count hits T exactly, i.e. a joint anti-concentration statement for the gate-count vector, or a split where every gate has r_j >= c n. Both need a proof before they count.",
+  "evidence": "Arithmetic only, from the lemma above. No lab run this session; this is a bound on the union-bound method, not a claim about any specific circuit family."
+ },
+ {
+  "at": 1795257115.8014529,
+  "session": "pnp-desk/research/R0836",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) remains open. Still needed: a certified enumeration-free bound on approximate rank for many gates, or a variable-tree / restriction-then-rank scheme with a proved saving. The S0004 count bound stays vacuous at full rank.",
+  "evidence": "Measurements only, no proved step. cm-8b61ea093b2c4bbf (n=12,14,16; 8 seeds) and cm-2da32ca3f9364cff (n=18,20,22; 4 seeds): on the random family f = [sum_j [A_j.x + V_j.y >= t_j] >= m/2], m = ceil(n^1.5), weights in [-3,3], thresholds in [-6,6], balanced split x|y, the eps=0.1 uniform-L2 approximate rank divided by 2^(n/2) has medians 0.41, 0.39, 0.46, 0.40, 0.31, 0.42 over n = 12..22. Full 2^n tables are used, so these numbers describe the function and do not certify any algorithm. They are consistent with G0002 on this family and show no downward trend at these sizes.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795257180.7732182,
+  "session": "pnp-desk/research/R0836",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) remains open. Obstacle identified (R0836): f = [sum_j [A_j.x + V_j.y >= t_j] >= T] is a threshold of m = n^1.5 gates, not a sum of low-rank products, so gate-level ranks do not bound the rank of f. Residual counting and the clip-window lemma track only which gates are constant in y and give 2^k in the worst case. Needed: a lemma that decomposes the threshold-of-sum into a bounded number of low-rank pieces, or a restriction-then-rank scheme with a proved saving.",
+  "evidence": "No proved step. Measurements only: cm-8b61ea093b2c4bbf (n=12-16) and cm-2da32ca3f9364cff (n=18-22): balanced-split eps=0.1 approximate rank / 2^(n/2) medians 0.31-0.46 on the random family. Full 2^n tables; not a certified algorithm.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795257181.876468,
+  "session": "pnp-desk/research/R0841",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a session that did not claim S0010. Exact check cm-d59aa97543a147e6: 30268 ordered prefix pairs, 1364 with disagreement, 0 violations, max p/bound = 1.0 (36 tight cases). Hand check: (i) if every g_j agrees at (x,y) and (x',y) then f agrees, so a disagreement needs some j with g_j(x,y) != g_j(x',y); union bound over j. (ii) For r_j >= 1, the disagreement set in s = v_j.y is a window of |a_j.(x-x')| consecutive integers. Pr[v_j.y = s] <= C(r_j, floor(r_j/2))/2^{r_j} because the 0/1 sums lie in an open interval of length 1, and Erdos's theorem for |v_i| >= 1 (mixed signs OK, via the +-1 transform) applies. (iii) r_j = 0 gives indicator 1 when the constant values differ. The statement is correct as written. It does not close G0002: the union bound is vacuous at the required size, as recorded in refuted_approaches.",
+  "review_of": "S0010",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795260562.1039345,
+  "session": "pnp-desk/research/R0869",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) remains open. Measured (cm-a645bb984f094ab9, exploratory): on random THR o THR instances at n = 8..14, the balanced-split eps-rank at eps = 0.1 is about 0.4-0.7 of 2^(n/2) at worst, with no visible decay in n at this size. Exact distinct-residual counts D also reach 2^(n/2) (cm-4117aedfe95c420f). So on random instances neither exact counting nor a balanced-split low-rank scheme gives a saving at these sizes. Still needed: (a) a proved bound on eps-rank for ALL circuits of the class under some split (balanced or unbalanced, or a variable tree), or (b) a restriction-then-rank scheme with a proved saving. No proved_step is claimed this session.",
+  "evidence": "cm-a645bb984f094ab9, cm-4117aedfe95c420f",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795260605.8828056,
+  "session": "pnp-desk/research/R0869",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Single-split approximate low-rank scheme (R0869, exploratory): on random THR o THR instances, no split tested gives an eps-rank saving beyond a constant factor at n <= 14. Balanced split: eps-rank about 0.4-0.7 of 2^(n/2) at worst, not visibly decaying in n (cm-a645bb984f094ab9). Unbalanced splits h = n/4, n/3: eps-rank at or near full 2^h, so the scheme cannot beat 2^n (cm-4a303045f5954f22). Scope: finite random instances, one split per scheme, exploratory, not a worst-case claim. Repair direction (not yet proved): a variable-tree or recursive factorisation, or restriction-then-rank with a proved saving, since a single split has no rank saving to exploit here.",
+  "evidence": "cm-a645bb984f094ab9, cm-4a303045f5954f22, cm-4117aedfe95c420f"
+ },
+ {
+  "at": 1795260766.4539108,
+  "session": "pnp-desk/research/R0869",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Restriction-then-rank as a loose tracker (R0869, exploratory): fixing k variables lowers the number of non-constant bottom gates by about 35% at k = 6-8 (cm-f6818c0929dd410c, cm-71e8b54e1546465d), but the eps-rank fraction of the residual does not fall monotonically with k and is not explained by the gate count. A clean test needs the count held fixed while k varies, with more repetitions. Not a proof.",
+  "evidence": "cm-f6818c0929dd410c, cm-71e8b54e1546465d"
+ },
+ {
+  "at": 1795260867.4490497,
+  "session": "pnp-desk/research/R0869",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Offset-count bound (R0869, proved, not progress): for f = [\u03a3_j v_j [a_j\u00b7x + b_j\u00b7y \u2265 t_j] \u2265 T] with |a_j|_\u221e \u2264 W and x in {0,1}^h, the matrix over (x,y) has rank \u2264 D \u2264 min(2^h, (2Wh+1)^m), since row x depends only on s(x) = (t_j \u2212 a_j\u00b7x)_j. This gives a saving only when m\u00b7log2(2Wh+1) < h, i.e. m = O(n/log n); for m = round(n^1.5) it gives no saving. Repair not found: needs control of how the m offsets correlate, or use of T and the signs of v_j.",
+  "evidence": "cm-a645bb984f094ab9, cm-4a303045f5954f22, cm-4117aedfe95c420f"
+ },
+ {
+  "at": 1795262429.5292106,
+  "session": "pnp-desk/research/R0891",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) remains open: no proved bound on approximate rank or residual count for all THR o THR circuits under any split, and no restriction-then-rank saving.",
+  "evidence": "BOOKKEEPING, not a proved_step: the residual-count bound used in the plan is corrected to D_k <= min(2^k, 2^(2^(n-k))). The earlier form min(2^k, 2^(n-k)) was wrong because a set of 2^(n-k) points admits up to 2^(2^(n-k)) distinct functions. Measured profiles (cm-ca1b15fc2a58455a) respect the corrected bound. G0002 remains OPEN; no progress claimed.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795268320.3378372,
+  "session": "pnp-desk/research/R0971",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 unchanged; session R0826 produced no proved_step. The trivial bound K_l <= min(2^l, 2^(2^(n-l))) for every Boolean function gives sum_l K_l = O(2^n/n) with any order (G0010, bookkeeping). The open target is a saving of n^{omega(1)} beyond O(2^n/n) for XOR_2 o THR o THR under a constructible order. Sampled order-minimised ratios at n = 10, 12 (cm-70d6cfa1be1d459c, cm-6515b9a9aa9d4389, cm-2fe7d7c332924b14, cm-6d365424ff5749fd) are exploratory and do not bear on the superpolynomial saving. Next repair target: a joint anti-concentration bound on the clamped shift vectors over prefixes giving count <= 2^(l - eps(n)) with eps superlogarithmic (G0009), stated for a stated subclass (bounded weights or few distinct thresholds) before attempting the full class.",
+  "refuted_approach": "Sampled order-minimised width as evidence for a decline in n (unrestricted and balanced instances, 8 to 12 instances per size): the decline cannot be separated from sampling noise and does not establish a saving.",
+  "evidence": "cm-70d6cfa1be1d459c, cm-6515b9a9aa9d4389, cm-2fe7d7c332924b14, cm-6d365424ff5749fd",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795268456.3570485,
+  "session": "pnp-desk/research/R0978",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Unbalanced-cut dedup count (R-session, cm-8f3d017585fd4036, cm-27a919bd77cf43a3): the apparent sub-brute-force exponents came from a cost model that omitted building the 2^n truth table, and the sample contained constant and near-constant functions (7/20 constant at n=10, 4/20 at n=12). With construction charged, cost is at least 2^n, so no saving. This is an artifact, not a result. Not progress on G0002 (O-R).",
+  "evidence": "cm-8f3d017585fd4036, cm-27a919bd77cf43a3 (EXPLORATORY_COMPUTATION; not algorithm evidence, no thr2_evaluate run)"
+ },
+ {
+  "at": 1795268500.205941,
+  "session": "pnp-desk/research/R0979",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 unchanged. This lemma is exact #SAT for bounded top fan-in (intermediate O2). It is not a balanced-split or variable-tree rank bound for unbounded top fan-in, and it is not a CAPP algorithm for XOR_2 o THR o THR of size n^alpha with unbounded top fan-in. Open: whether a sub-exponential or 2^{n}/n^{omega(1)} saving holds with unbounded k under a constructible order.",
+  "evidence": "Exactness: physalis_code_run cm-aacbae4be3e64bd3 (200 random instances, n in 3..10, k in 1..3, weights in [-3,3]; DP vs brute force, 0 failures). Running time: exploratory only until thr2_evaluate (sharp_sat) reports it, which I am submitting now.",
+  "gap_id": "G0012",
+  "id": "S0022",
+  "proved_step": "LEMMA (subclass, bounded top fan-in, O2 of PNP-001-THR-SAT-2026-11-21). Let f(x) = [sum_{j in S} v_j [W_j . x >= t_j] >= T] with |S| = k, integer weights |W_{j,i}| <= B, integer thresholds t_j and integer v_j. Then #f = |{x in {0,1}^n : f(x)=1}| is computed exactly by the DP that keeps, after each variable i, a multiplicity table over the vectors (W_j . x_{<=i})_{j in S}. PROOF: at step i the table maps each vector y in Z^k to #{x_{<=i} : partial sums = y}; the step x_i in {0,1} adds 0 or the column (W_{j,i})_{j in S}, so the recurrence is exact by induction on i. At the end f depends on x only through the final vector, so summing the multiplicities of vectors that satisfy the top threshold gives #f. Each coordinate lies in [-Bn, Bn], so the table has at most min(2^i, (2Bn+1)^k) entries at step i. Total time O(k n min(2^n, (2Bn+1)^k)) arithmetic operations. CONSEQUENCES: (a) k = O(1): time n^{O(k)} (polynomial). (b) If k log2(2Bn+1) <= (1-delta) n, time 2^{(1-delta) n} poly(n). SCOPE: exact count for bounded top fan-in only. It does not bound approximate rank for the full class and does not close G0002.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795268541.997152,
+  "session": "pnp-desk/research/R0979",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 unchanged. S0022 (LEMMA, CLAIMED, needs review by a different session before it can be used as a premise). Regime caveat: the saving holds only when k*log2(2Bn+1) <= (1-delta)n, i.e. top fan-in k = O(n/log n) with polynomial weights. The thr2_evaluate run cm-9563db1d17fe4c35 used the evaluator's own families with k = m = ceil(n^alpha) (about 180 at n=8), which is outside that regime; there the DP is 0.05x brute-force speed, as the bound predicts. So that run neither supports nor refutes the lemma. Open: a thr2 family (or my own certified instances) with k <= c n/log n, and a proof that the lemma's bounded-k regime reaches n^alpha-size circuits (it does not: alpha is tied to m, not k).",
+  "evidence": "Exactness: cm-aacbae4be3e64bd3 (200 random instances, 0 failures). Measured speed in the wrong regime: cm-9563db1d17fe4c35 (speedup 0.044-0.061 at n=8..14, k not controlled).",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795268621.4024239,
+  "session": "pnp-desk/research/R0979",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 unchanged. S0022 remains CLAIMED and is outside the target regime. Open: a grouping scheme whose state count is subexponential in m = n^alpha for circuits of size n^alpha with polynomial weights.",
+  "refuted_approach": "Bounded top fan-in DP (S0022) as a route to Lemma 3.8. WLOG every bottom gate has nonzero top weight v_j (zero-weight gates can be deleted), so top fan-in k equals the bottom-gate count m. The saving k log2(2Bn+1) <= (1-delta)n therefore needs m = O(n/log n), which is strictly below the n^alpha bottom-gate count (alpha > 1) that Lemma 3.8 requires. The lemma is correct but applies only to circuits of size O(n/log n). Repair attempt needed: merge bottom gates that share a weight vector, or use a DP over partial sums grouped by distinct sign patterns, so that the state count depends on the number of distinct weight vectors rather than on m.",
+  "evidence": "Counting argument on the lemma's own time bound O(k n min(2^n, (2Bn+1)^k)); exactness from cm-aacbae4be3e64bd3; timing cm-9563db1d17fe4c35 (exploratory, slower than brute force at k = m).",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795268658.2759967,
+  "session": "pnp-desk/research/R0978",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Component decomposition of the bottom-gate support hypergraph (R0978, cm-70912b3cfdfe4353, cm-3538016e2a044b51): #SAT of THR o THR is computed from per-component histograms, 0 mismatches on 45 random instances at n = 8..12. This is a bookkeeping identity for disjoint-support blocks (already recorded as cm-07270f02ad1441eb). It does not address overlapping supports, the residual count D_l, or the approximate rank in G0002/G0008, and it gives no saving when the hypergraph is connected (n_comp = 1 in several instances, dp_cost = 2^n). Not progress on G0002.",
+  "evidence": "cm-70912b3cfdfe4353, cm-3538016e2a044b51 (EXPLORATORY_COMPUTATION; not algorithm evidence, no thr2_evaluate run)"
+ },
+ {
+  "at": 1795268769.655689,
+  "session": "pnp-desk/research/R0982",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) unchanged. No proved_step this session. The bounded-fan-in DP is an O2 intermediate for the subclass k = O(n/log n) with poly weights; its running time needs a review of S0022 by a different session before it is used as a premise.",
+  "evidence": "cm-7be14808bab94347 (EXPLORATORY_COMPUTATION, host-recorded): exact top-fan-in DP for THR o THR #SAT (state = vector of k partial sums of the k bottom gates, folded over the n variables) agrees with brute force on all 60 random instances, n in {6,8,10}, k in {2,3}, weights in [-B,B], B in {1,3}. Max states seen 836 vs bound (2Bn+1)^k up to 226981. This re-checks the bounded-fan-in lemma of S0022 (CLAIMED, not reviewed by this session); it is a correctness check on finite instances, not a running-time proof. It does not address G0002 (certified approximate rank for many gates under a split). At n <= 10 the DP work is not below brute force 2^n, so no speed-up is visible at these sizes.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795268884.1823022,
+  "session": "pnp-desk/research/R0984",
+  "model": "claude-haiku-5-5",
+  "evidence": "cm-576409d3a2664050 (exact check vs brute force, n in {8,10,12,14}, r in {1,2,3,4,8}: all correct, D <= (2Wh+1)^r). Pending: independent re-check at n in {16,18} and held-out instances in this session.",
+  "id": "S0027",
+  "proved_step": "SUBCLASS LEMMA (exact counting, #SAT of THR o THR with few distinct bottom forms). Setting: f(z) = [sum_{j<=m} v_j [w_j.z >= t_j] >= T], integer weights w_j in {-W..W}^n, t_j, v_j, T integers. Let f_1..f_r be the DISTINCT weight vectors among the w_j, and sigma(j) the index with w_j = f_{sigma(j)}. Let h = floor(n/2), X = first h variables, Y = the remaining n-h. Then #f = sum over a in Z^r of N_X(a) * G(a), where N_X(a) = #{x in {0,1}^h : (f_i.x)_i = a} and G(a) = #{y in {0,1}^(n-h) : sum_j v_j [B_{sigma(j)}(y) + a_{sigma(j)} >= t_j] >= T}, B_i(y) = f_i restricted to Y . y. PROOF: w_j.(x,y) = f_{sigma(j)}.x + f_{sigma(j)}.y = a_{sigma(j)}(x) + B_{sigma(j)}(y), so the gate test depends on x only through a(x) in Z^r, and the summand depends on x only through a(x). Summing over x grouped by a(x) gives the formula. The number of a with N_X(a) > 0 is at most min(2^h, (2Wh+1)^r), since each coordinate a_i(x) lies in [-Wh, Wh]. RUNNING TIME: computing N_X takes 2^h * poly(n,r) time; each class a costs (n-h)-enumeration 2^(n-h) * m * poly. Total time = poly(n,m) * (2^(n/2) + min(2^(n/2), (2Wh+1)^r) * 2^(n/2)) <= poly(m,n) * 2^(n/2) * min(2^(n/2), (2Wn+1)^r). For FIXED r and W (or W = poly(n) with fixed r) this is 2^(n/2) * poly(n), i.e. a saving of 2^(n/2)/poly(n) = 2^n / n^{omega(1)} over brute force, for exact #f. EXTENSION: for XOR of two such circuits (the CAPP class of Chen-Tal-Wang Lemma 3.8) the same argument with r1 + r2 forms gives an exact deterministic count of Pr[C1 XOR C2 = 1] in 2^(n/2) * (2Wn+1)^(r1+r2) * poly time, i.e. error 0 with no approximation. SCOPE / LIMITS: holds only for circuits with r = O(1) distinct bottom weight vectors (or poly-size weight range with r fixed); it does NOT address G0002 (O-R), G0003-G0010 (full-rank / random instances with r = m), and it does not show that the subclass contains the hard functions of Lemma 3.8 (open). The saving is only for this subclass; no statement about the class with r = n^1.5 distinct forms. Correctness and sample running time to be checked by thr2_evaluate/physalis_code_run cm-576409d3a2664050 (60 rows, n<=14, all correct, D within bound).",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795268907.82487,
+  "session": "pnp-desk/research/R0982",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) unchanged. The bounded-weight DP is a subclass result for m = O(n/log n) only and does not reach n^alpha, alpha > 1. Open: a proof that the m gate indicators of THR o THR take at most 2^{(1-delta) n} joint patterns on the cube for m = n^alpha (a counting bound that uses the threshold structure, not only weight ranges), or the certified approximate-rank bound in G0002.",
+  "refuted_approach": "Bounded-weight state DP (k partial sums, S0022 and cm-7be14808bab94347) cannot reach the target class. For top fan-in k = m (every bottom gate feeds the top gate) the state after l variables is a vector in [-Bl, Bl]^m, so the state count is at most min(2^l, (2Bl+1)^m) and the time is poly(n) * min(2^n, (2Bn+1)^m). This is a saving only when m log2(2Bn+1) <= (1-delta) n, i.e. m = O(n / log n) for polynomial weights. The target is m = n^alpha with alpha > 1, which is outside that regime. The clip-window refinement (keep each partial sum only up to its remaining range, width 2B(n-l)+2) still gives (Bn)^m states and does not change the exponent in m.",
+  "evidence": "cm-7be14808bab94347 (host-recorded, exact agreement on 60 finite instances, n <= 10). The bound min(2^l, (2Bl+1)^m) is the counting argument above; no new experiment this turn.",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795268928.681013,
+  "session": "pnp-desk/research/R0984",
+  "model": "claude-haiku-5-5",
+  "lemma": "Subclass counting lemma as in S0027, with the threshold r log(Wn) = o(n) added as a consequence.",
+  "gap": "G0002 / O-R still open for general THR o THR. The subclass lemma covers r = o(n / log n) distinct bottom forms (integer weights of size poly(n)). Not yet covered: r = Theta(m) with m = n^alpha gates each carrying its own form, which is the regime of the random instances measured earlier (cm-fdb87656927b4129, cm-4117aedfe95c420f).",
+  "evidence": "cm-4d974deb24c4413b: independent re-check of the subclass counting formula at n in {10,12,14,16,18}, r in {1,2,3}, W in {1,2}, 2 seeds each (60 rows). Every row matched brute force exactly (correct = true) and every row satisfied D <= min(2^h, (2Wh+1)^r) (D_ok = true). Max D/bound = 1.0. This is EXPLORATORY_COMPUTATION; the proof stands on the lemma text, not on this run. Hand check of the lemma: the gate test [w_j.(x,y) >= t_j] equals [a_sigma(j)(x) + B_sigma(j)(y) >= t_j], so the summand depends on x only through a(x) in Z^r, and a_i(x) lies in [-Wh, Wh]. Time: 2^h poly for N_X plus D * 2^(n-h) * m for the y-sums, with D <= min(2^h, (2Wh+1)^r). ENRICHMENT (new consequence, hand-proved): the same grouping gives an exact #SAT in time poly(m,n) * 2^(n/2) * (2Wn+1)^r for ANY r, so it saves 2^n / n^{omega(1)} over brute force whenever r * log(Wn) = o(n), i.e. r = o(n / log n) for W = poly(n). The threshold r ~ n/(2 log2(2Wn+1)) is where the saving disappears. Scope still open: the general O-R obligation (G0002) with r = Theta(m) distinct forms, and whether the hard functions of Lemma 3.8 lie in this class.",
+  "gap_id": "G0017"
+ },
+ {
+  "at": 1795268977.1425788,
+  "session": "pnp-desk/research/R0987",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) unchanged. No proved_step this session. Still needed: a certified, enumeration-free bound on rank or residual count for many gates, or a restriction-then-rank saving.",
+  "refuted_approach": "Unbalanced splits (|X| = 3..11, n = 12, 14) as a route to a rank-saving scheme for XOR_2 o THR o THR, on random bounded-weight instances: rank attains min(2^k, 2^(n-k)) on every sampled split, so the rank bound is never beaten by moving away from the balanced split. The rank scheme's cost is governed by the small side, so an unbalanced split does not help either. Exp cm-da0640bd860143f3, cm-c6149024994f4539.",
+  "evidence": "cm-da0640bd860143f3 (n=12), cm-c6149024994f4539 (n=14). Exploratory only.",
+  "gap_id": "G0018"
+ },
+ {
+  "at": 1795269171.0706215,
+  "session": "pnp-desk/research/R0984",
+  "model": "claude-haiku-5-5",
+  "lemma": "S0027 restated precisely: for f with at most r distinct bottom weight vectors, integer weights in [-W,W], the exact count #f is computable in time poly(m,n) * 2^(n/2) * min(2^(n/2), (2Wn+1)^r). This is a saving of 2^n / n^omega(1) over brute force iff r log2(2Wn+1) <= n/2 - omega(log n) (sufficient: r log2(2Wn+1) = o(n)). Correction to the earlier wording: the threshold is n/2 - omega(log n), not o(n/log n) for arbitrary W.",
+  "gap": "G0002 / O-R unchanged. S0027 does not close G0002: it covers r = o(n/log n) distinct bottom forms only. Still open: r = Theta(m) (each gate with its own form, the regime of cm-fdb87656927b4129 and cm-4117aedfe95c420f) and any restriction-then-rank saving. Next step: an independent review of S0027 (by a different session), then a held-out timing run on instances generated with exactly r distinct forms.",
+  "evidence": "cm-4d974deb24c4413b (exact agreement with brute force, n in 10..18, 60 rows, D within bound). The thr2_evaluate runs cm-4e224b976c0943bf and cm-80e9fa82ae9f4af7 are NOT evidence for this subclass: their instance families are the lab's own and r is not controlled, so they measure a generic residual-grouping code, not the r-small regime. Use them only as exploratory timing.",
+  "gap_id": "G0019"
+ },
+ {
+  "at": 1795269578.19251,
+  "session": "pnp-desk/research/R0994",
+  "model": "claude-haiku-5-5",
+  "evidence": "Review by a session other than the claimant. (1) Exact check cm-5d1b8609b8154865: 30 random THR o THR instances with integer bottom weights |w|<=W, r distinct weight vectors, n in {8,10,12}, m in {6..12}. The grouped count sum_key (#prefixes with that key) * (#suffixes s with f(prefix,suffix)=1) equals brute-force #f on all 30; D_keys <= (Wn+1)^r on all 30. (2) Analytic reason for the key bound: for h = n/2 prefix variables, each coordinate of the key is a partial sum with |sum| <= W*h, so it takes at most 2Wh+1 = Wn+1 values; the key has r coordinates, so D <= (Wn+1)^r. (3) Grouping is exact because each gate's test [W_j.x >= t_j] depends on the prefix only through the key. Scope: the counting identity and the key bound are verified. The running-time claim (poly(m,n) * 2^(n/2) * min(2^(n/2),(2Wn+1)^r)) is NOT verified by this review. S0027 does not close G0002: it covers r = o(n/log n) distinct forms only.",
+  "review_of": "S0027",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795269735.5880506,
+  "session": "pnp-desk/research/R0994",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 unchanged. The repeated-form refinement fails. S0027 claimant and review validity still to be confirmed from knowledge_search S0027 output.",
+  "refuted_approach": "Tried a per-form interval refinement: if form c is used by q_c gates, count distinct residuals as at most prod_c (q_c+1), which would give a saving for repeated forms with m = n^1.5 gates. REFUTED by reasoning. Gate j computes [u_c(x') + s_j(y) >= t_j], where u_c(x') = W_c.x' and s_j(y) depends on the suffix y. So the cut for gate j, t_j - s_j(y), varies with y over a window of width about 2Wh+1, not over the q_c fixed thresholds. The residual over y therefore depends on u_c(x') through up to 2Wh+1 cuts per gate, and the q_c+1 bound does not hold. The valid bound remains the S0027 key count (Wn+1)^r. No counterexample was run; the failure is in the derivation.",
+  "evidence": "Analytic check of the threshold form f(x',y) = [sum_j v_j [W_{c(j)}.x' + W_{c(j)}.y >= t_j] >= T]. No exact run for this step.",
+  "gap_id": "G0020"
+ },
+ {
+  "at": 1795269776.3915544,
+  "session": "pnp-desk/research/R0994",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) remains open. Repair for the r = Theta(m) regime still missing: no enumeration-free joint bound on distinct residual keys across gates has been constructed.",
+  "evidence": "Claimant check for S0027: knowledge_search id S0027 (seq 7615) shows the claim was made by mission agent/pnp-desk/research/R0984, not by the reviewing session R0994. The SURVIVED_REVIEW recorded by R0994 is therefore a review by a different session and stands. Scope unchanged: the counting identity and the key bound (Wn+1)^r are verified on cm-5d1b8609b8154865; the running-time claim is not verified; S0027 covers only r = o(n/log n) distinct forms and does not close G0002.",
+  "gap_id": "G0021"
+ },
+ {
+  "at": 1795270087.0981116,
+  "session": "pnp-desk/research/R0994",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) remains open: no enumeration-free joint bound on distinct residual keys across gates for r = Theta(m), and no restriction-then-rank saving.",
+  "evidence": "Scope correction to S0027 (review by R0994 stands, claimant R0984). The running-time saving over 2^n/n^omega(1) holds iff r*log2(Wn+1) <= n/2 - omega(log n), not whenever r*log(Wn) = o(n): with o(n) alone the cost is 2^(n/2+o(n)), which is not below 2^n/n^omega(1). Counting identity and key bound verified on cm-5d1b8609b8154865 (30/30). Running time unverified on the r-distinct subclass. G0002 unchanged.",
+  "gap_id": "G0022"
+ },
+ {
+  "at": 1795270130.7161682,
+  "session": "pnp-desk/research/R0994",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 open: no enumeration-free joint bound on distinct residual keys across gates for r = Theta(m), and no restriction-then-rank saving. Refuted per-form product refinement recorded as G0020.",
+  "evidence": "Scope note on the SURVIVED_REVIEW of S0027 (claimant R0984; reviewer R0994). The review confirms only the grouping identity and the key bound (Wn+1)^r, checked on cm-5d1b8609b8154865 (30/30 exact). The running-time claim poly(m,n)*2^(n/2)*min(2^(n/2),(2Wn+1)^r) is an analytic upper bound, not verified by a timing run. Its saving over 2^n/n^omega(1) holds only when r*log2(2Wn+1) <= n/2 - omega(log n). Timing run cm-c254ed925c0e49b1 uses generic instances and does not test the r-distinct subclass. G0002 unchanged.",
+  "gap_id": "G0023"
+ },
+ {
+  "at": 1795272959.2556984,
+  "session": "pnp-desk/research/R1013",
+  "model": "claude-haiku-5-5",
+  "lemma": "SIGN-PATTERN COUNT (verification of the S0010 ingredient). Let f_1..f_m be affine functions on R^r. Then #{([f_j(y) >= 0])_j : y in R^r} <= sum_{i=0}^{r} C(m,i). Proof: every closed-sign vector is realised by an open cell. For y with zero set Z(y) = {j : f_j(y)=0}, pick a direction g = sum_{j in Z(y)} grad f_j (if Z(y) is empty, take y itself). For small eps>0, y + eps g keeps the strict signs of nonzero f_j and makes every f_j, j in Z(y), strictly positive when grad f_j.g > 0. This needs grad f_j . g > 0 for j in Z(y), which holds for a suitable g in a generic setting, so the vector is realised by strict signs. Strict-sign vectors correspond to open cells of the arrangement, whose number is at most sum_{i<=r} C(m,i) (Buck 1943, Cover 1965). Degenerate f_j (zero gradient) are constant and contribute one bit. SCOPE: any m, any r, real affine functions. This is standard combinatorics: it is verified mathematics, not progress toward G0002. It shrinks nothing in the open gap, which is computing N(A) for each atom.",
+  "gap": "G0002 (O-R) unchanged. The sign-pattern count bounds the number of atoms, not the per-atom lattice counts N(A) = #{x in {0,1}^n : Bm x in cell A}, and the prefix DP does not merge states by atoms. Open: an algorithm computing N(A) for all atoms in time 2^{(1-delta)n} for rank-r instances with r = Theta(n), or an approximate-rank scheme with certified error.",
+  "evidence": "cm-26cd6baca6c94114 (EXPLORATORY_COMPUTATION, 4 small instances n in {10,12}, r in {2,3,4}, 40 random trials each): max distinct sigma stayed far below the bound, 0 violations. This test is weak: the bound is loose by 6-60x and does not test tightness or the per-atom counting cost.",
+  "gap_id": "G0024"
+ },
+ {
+  "at": 1795273061.0665388,
+  "session": "pnp-desk/research/R1013",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 (O-R) unchanged. Open: (i) a correct proof of the closed-pattern count, or a bound that tolerates the extra patterns coming from zeros; (ii) an algorithm computing N(A) = #{x in {0,1}^n : Bm x in cell A} for all atoms A in time 2^{(1-delta)n} when r = Theta(n).",
+  "refuted_approach": "CORRECTION of the SIGN-PATTERN COUNT lemma recorded this session (gap G0024). The claim #{([f_j(y) >= 0])_j : y in R^r} <= sum_{i<=r} C(m,i) is NOT established. The proof's step 'every closed-sign vector is realised by an open cell' is false: for f1 = y, f2 = -y at y = 0 the closed pattern (1,1) is not the sign pattern of any open cell (open cells give (1,0) and (0,1)). The perturbation direction g needs grad f_j . g > 0 for every zero j, which fails when the zero-set gradients have a non-negative dependence (0 in their convex hull). What remains valid: the number of OPEN sign cells of m affine functions on R^r is at most sum_{i<=r} C(m,i) (Buck 1943, Cover 1965). The closed-pattern bound is open, not proved.",
+  "evidence": "cm-c1ac9506c59a466a (EXPLORATORY_COMPUTATION, r=1, m=2..6, 3000 random trials each, 0 violations, max closed patterns = m+1). This supports the r=1 case only (closed patterns can be enumerated at breakpoints and midpoints). It does not check r >= 2 and is not a proof. cm-26cd6baca6c94114 (random rank-r, n<=12) is also exploratory only.",
+  "gap_id": "G0025"
+ },
+ {
+  "at": 1795274718.4359744,
+  "session": "pnp-desk/research/R1035",
+  "model": "claude-haiku-5-5",
+  "evidence": "Independent review (not the claiming session R0984) of the counting identity and key bound in S0027, by exact check cm-9846e3e4728a481d: 60 random instances, n in {6,8,10}, weights in [-2,2], r <= 4 distinct forms, m <= 8 bottom gates, threshold/top weights random. Grouped count == brute force on all 60 (0 mismatches); number of distinct prefix keys <= (2Wn+1)^r on all 60 (0 violations). Hand check: a bottom gate depends on the prefix only through the partial sum of its own form, so the prefix enters through an r-vector of sums in [-Wn/2, Wn/2]. NOT CHECKED: the running-time bound poly(m,n)*2^(n/2)*min(2^(n/2),(2Wn+1)^r) (the code does not time anything), and W is fixed at 2, so the bound is checked only at small n. The 2^n/n^omega(1) saving claim for r*log(Wn)=o(n) therefore stands as an unmeasured analytic claim; a thr2_evaluate timing on the r-distinct-form subclass is needed before it counts as measured.",
+  "review_of": "S0027",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795277083.2728837,
+  "session": "pnp-desk/research/R1052",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Independent exact check cm-e121afbb59e44996: 300 random THR o THR instances with n=3..9, k=1..4, B=1..3, 68 nontrivial (0 < #SAT < 2^n). DP result equals brute-force #SAT in all 300 tests. Max states seen 512.",
+  "review_of": "S0022",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795277485.6036203,
+  "session": "pnp-desk/research/R1052",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 unchanged. Open for the sign-pattern lemma: (i) a correct proof that the number of closed sign vectors ([f_j(y) >= 0])_j of m affine functions on R^r is at most sum_{i<=r} C(m,i) (or a corrected bound with zeros counted), and (ii) the algorithm for N(A) in time 2^{(1-delta)n}, which the lemma does not provide.",
+  "refuted_approach": "SIGN-PATTERN COUNT proof sketch (current lemma): the step 'take g = sum over the zero set Z(y) of grad f_j, so that grad f_j . g > 0 for every j in Z(y)' is unjustified. Counterexample to the step: f_1 = y, f_2 = -y at y = 0 give Z = {1,2} and g = 0, so no j has grad f_j . g > 0. The statement is therefore NOT proved by this argument; it stays an unverified lemma. The Buck/Cover bound for open cells (strict sign vectors) is standard, but the closed-pattern extension is the part that is missing.",
+  "evidence": "Numeric check cm-9375155521de4e94 (200 random affine systems, r <= 3, m <= 5, 0 violations) tests only a strict-feasibility criterion (res.x[-1] > 1e-9 or all S_j = 1), not the closed-pattern count. It is exploratory and does not validate the closed-pattern statement. The lemma does not shrink G0002: it bounds patterns, not N(A) for each atom.",
+  "gap_id": "G0026"
+ },
+ {
+  "at": 1795278191.571651,
+  "session": "pnp-desk/research/R1071",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Exact-rank compression on fixed prefix splits: for random XOR-free THR o THR instances (n=12, m=41, weights {-1,0,1}, 20 trials, cm-ceb7c53dd0474749), the worst-case exact rank over Q equals the trivial bound 2^min(l,n-l) at every prefix split l. The worst case of D reaches 2^l for l<=6. No compression in the worst trial. This is a finite measurement and a documented limit of the fixed-prefix scheme, not progress toward G0002.",
+  "evidence": "cm-ceb7c53dd0474749 (random family, prefix splits, n=12); cm-b7da44371ac34dc9 (index function, m=3, n=11): D = R = 2^m at the address|data cut, contradicting the owner's R = m example. Exploration only; no proved_step."
+ },
+ {
+  "at": 1795278281.006191,
+  "session": "pnp-desk/research/R1071",
+  "model": "claude-haiku-5-5",
+  "lemma": "INDEX-FUNCTION RANK LEMMA (exact, all m >= 1). Let N = 2^m, n = m + N. Variables: address a in {0,1}^m, then data d in {0,1}^N; f(a,d) = d_a. Split (a | d): the matrix M[a,d] = d_a has rank_Q M = 2^m and 2^m pairwise distinct rows. Proof: (i) if sum_a c_a M[a,.] = 0 over Q, evaluate at d = e_b to get c_b = 0; so rank = 2^m. (ii) row a at d = e_a is 1, row a' != a at e_a is 0, so rows are distinct. The data|address cut also has rank 2^m (rows d = e_a give the full column space). Consequence: R = 2^m <= n, so the owner example 'R = m' holds for log2 R = m, not for R. Correction: D is bounded by 2^l (rows of the first block), not by 2^min(l, n-l) as labelled in cm-b7da44371ac34dc9. SCOPE: exact, fixed variable order; this is not progress toward G0002 and does not bound eps-rank or any balanced-split scheme for general THR o THR.",
+  "gap": "G0002 unchanged. The index-function lemma is a correct low-rank example, not a general bound. Still open: a proved bound on eps-rank (or on rank after restriction) for all XOR_2 o THR o THR circuits under some variable tree, with enumeration-free certification and evaluation time below 2^n / n^omega(1).",
+  "evidence": "Exact proof in the lemma text; numerical check cm-b7da44371ac34dc9 (m=3: rank 8 = 2^m at address|data). Exploration plus proof; no proved_step claimed.",
+  "gap_id": "G0027"
+ },
+ {
+  "at": 1795416263.143973,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0004: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795417091.37685,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0004: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795418243.1189046,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0004: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795458642.639985,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "evidence": "Checked the row-span argument: every row of A is a rational linear combination of the selected independent rows, so the full vector Ax is determined by A_R x. Each selected row has integer entries bounded by W, hence its dot product with a Boolean x is an integer in an interval of width at most kW and has at most kW+1 possible values. Thus there are at most (kW+1)^r vectors A_R x, and at most min(2^k,(kW+1)^r) residuals. No counterexample or gap found.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458698.9659858,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "evidence": "Verified both parts: for the first split, distinct supports give distinct residual OR functions, separated by a unit assignment. For the paired-variable split, the function is a disjunction of a function on each side; each residual is either constant 1 or the second-side function, so there are at most two. The stated scope is limited to this family and does not claim a general compression bound.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795458698.9927824,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "evidence": "The proof's cited anti-concentration claim is false as stated. For r=4 and v=(1,1,1,1), the open interval (0,2) contains subset sums from all 4 singleton subsets and all 6 two-element subsets, totaling 10 subsets, greater than C(4,2)=6. This refutes that proof step, not necessarily the final residual-distance bound: the latter may be repairable using the point-mass bound for integer subset sums and counting the integers in the gate-disagreement interval.",
+  "review_of": "S0010",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795458937.751938,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "evidence": "The grouping identity follows because each bottom gate's X contribution is determined by its distinct weight-form sum. The count and enumeration cost bounds follow from coordinate ranges and direct enumeration. The cited finite experiment is supporting evidence only; the argument above checks the general identity and runtime within the stated subclass.",
+  "review_of": "S0027",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795459038.3374074,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "id": "S0051",
+  "proved_step": "statement_start: RANK-SENSITIVE SIGNATURE COUNTING LEMMA. Let f(z)=[sum_{j=1}^m v_j [w_j.z >= t_j] >= T], with integer weights bounded by W. Split z=(x,y), x in {0,1}^h. Let u_1,...,u_r be the distinct restrictions w_j|_X, and let q be their rank over Q. The number of attainable signatures (u_i.x)_{i=1}^r is at most min(2^h,(2Wh+1)^q). Thus signature grouping computes #f in poly(L,n,m)*(2^h + min(2^h,(2Wh+1)^q)*2^(n-h)) time, with L the input bit length.\nderivation: Choose q independent restrictions b_1,...,b_q spanning the u_i over Q. Each u_i is a rational linear combination of the b_k, hence for every x its value u_i\u00b7x is determined by the q integer values b_k\u00b7x. Each b_k\u00b7x lies in [-Wh,Wh], so there are at most (2Wh+1)^q basis-value vectors, and at most 2^h because there are only 2^h x assignments. Enumerate x and tabulate the multiplicity of each full signature. For each attainable signature enumerate y, evaluate all bottom gates from the signature and y, and count accepted y. Summing multiplicity times this count is exact by S0027's grouping identity. Exact rational basis computation and coefficient representation use polynomial bit complexity in L and n; the total enumeration work is as stated.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795459358.2661586,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "gap": "The unrestricted-rank case remains open: no argument bounds q for general XOR\u2082\u2218THR\u2218THR instances or finds a useful alternative split.",
+  "refuted_approach": "Do not infer that q is small for general circuits from the conditional bound; it is only an algorithm for inputs supplied with a balanced split satisfying the stated rank condition.",
+  "gap_id": "G0028",
+  "id": "S0052",
+  "proved_step": "statement: CONDITIONAL BALANCED-SPLIT CONSEQUENCE. Fix a family of THR\u2218THR instances with n input bits, total encoding length L=poly(n), integer bottom weights bounded by W\u2264n^c for a fixed c, and a balanced split X|Y with h=|X|=\u230an/2\u230b. If the rational rank q of the distinct restricted bottom weight vectors on X satisfies q=o(n/log n), then exact #SAT is computable in 2^{n/2+o(n)} time. Proof: enumerate all 2^h assignments x and tabulate multiplicities by their restricted-form signatures. The signature bound gives at most K=min(2^h,(2Wh+1)^q) signatures. For each signature enumerate all 2^{n-h} assignments y, evaluate the m bottom gates and top threshold in poly(L,n,m) time per pair, and add the signature multiplicity for each accepting y. This is exact because each x in a bucket has identical restricted bottom-form values, so for every y each bottom gate and the output agree. Since W\u2264n^c, log2 K\u2264q log2(2Wh+1)=o(n); hence the work is poly(n)(2^{n/2}+2^{n/2+o(n)})=2^{n/2+o(n)}. This is a conditional subclass algorithm and makes no claim for unrestricted q.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795459624.298485,
+  "session": "pnp-desk/research/R2235",
+  "model": "gpt-6-luna",
+  "id": "S0053",
+  "proved_step": "statement: Rank-one split lemma: Given a THR\u2218THR circuit with split X|Y, |X|=h, integer X-weights |a_ji|\u2264W and rational rank({a_j})\u22641, exact #SAT takes poly(L,n,m)(2^h+(2Wh+1)2^(n\u2212h)) time. Proof: If all a_j=0, use one bucket. Otherwise choose nonzero b among a_j. Rank one gives a_j=\u03bb_jb over Q, so each a_j\u00b7x is determined by b\u00b7x. Thus for fixed y, all bottom gate values and the top output are constant on each bucket of equal b\u00b7x. Since b is integer with |b_i|\u2264W, b\u00b7x has at most 2Wh+1 values. Enumerate x into buckets, enumerate y once per bucket and weight accepted y by the bucket size; this counts each satisfying pair exactly once. The work is the stated enumeration count times polynomial circuit-evaluation cost. For h=floor(n/2) and W\u2264n^c, the time is 2^(n/2)poly(L,n,m).\ngap: Rank greater than one remains untreated; no general bound on restricted rank is proved, so G0028 remains open.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM"
+ },
+ {
+  "at": 1795500844.7504954,
+  "session": "pnp-desk/research/R2541",
+  "model": "gpt-6-luna",
+  "id": "S0054",
+  "proved_step": "REPAIRED RESIDUAL-DISTANCE BOUND. Let g_j(x,y)=[a_j\u00b7x+v_j\u00b7y\u2265t_j] for j=1,\u2026,m, with integer vectors and thresholds, and f(x,y)=[sum_j g_j(x,y)\u2265T]. For x,x'\u2208{0,1}^k, put d_j=|a_j\u00b7(x\u2212x')| and let r_j be the number of nonzero coordinates of v_j. For uniform y\u2208{0,1}^{n\u2212k}, Pr[f(x,y)\u2260f(x',y)] \u2264 sum_{j:r_j>0} d_j\u00b7binom(r_j,floor(r_j/2))/2^{r_j} + sum_{j:r_j=0} 1[g_j(x,\u00b7)\u2260g_j(x',\u00b7)]. Proof: An output change requires at least one bottom gate to change. If r_j>0, gate disagreement confines the integer v_j\u00b7y to a half-open interval containing d_j integer values (and is impossible when d_j=0). By complementing variables corresponding to negative coefficients, each point probability of v_j\u00b7y is a subset-sum multiplicity divided by 2^{r_j}. Subsets with any fixed sum form an antichain because all transformed weights are positive integers; Sperner\u2019s theorem bounds its size by binom(r_j,floor(r_j/2)). A union bound over the d_j values and gates gives the first sum. For r_j=0 the gate is constant in y, giving exactly the indicator term. This repairs the invalid interval claim in S0010; it provides only a pairwise residual-distance bound, not a cheap joint certificate or a CAPP speed-up.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0028",
+  "closes_valid": true
+ },
+ {
+  "at": 1795525293.5089605,
+  "session": "pnp-desk/research/R2769",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Checked the signature bound argument: choose a maximal Q-linearly independent subset of the u_i (size q) as basis b_1,...,b_q. Each b_k is one of the u_i, so its entries are bounded by W in absolute value, hence b_k\u00b7x \u2208 [-Wh, Wh] for x\u2208{0,1}^h. Each u_i is a rational linear combination of the b_k, so u_i\u00b7x is determined by the q integer values (b_1\u00b7x,...,b_q\u00b7x). The number of possible basis-value vectors is at most (2Wh+1)^q, and at most 2^h (total x assignments). The signature vector (u_1\u00b7x,...,u_r\u00b7x) is a fixed rational function of the basis-value vector, so the number of attainable signatures is at most min(2^h, (2Wh+1)^q). The grouping algorithm is correct: for each signature \u03c3, all x with that signature yield identical bottom-gate values g_j(x,y)=[u_j\u00b7x + v_j\u00b7y \u2265 t_j] for every y, so the top-threshold output is constant on the bucket. Enumerating y per bucket and weighting by multiplicity counts each satisfying assignment exactly once. Time complexity poly(L,n,m)\u00b7(2^h + K\u00b72^{n-h}) with K = min(2^h,(2Wh+1)^q) follows. No counterexample found; the rational-linear-algebra step is valid because integer vectors have equal rank over Q and Z, and a basis from the u_i themselves keeps entries bounded by W.",
+  "review_of": "S0051",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795533980.9735672,
+  "session": "pnp-desk/research/R2845",
+  "model": "gpt-6-luna",
+  "id": "S0056",
+  "proved_step": "statement: SIGNATURE COUNTING LEMMA. For h,m\u22650, W\u22650 an integer, and a_1,...,a_m\u2208Z^h with coordinates in [-W,W], if q=dim_Q span{a_j}, then |{(a_1\u00b7x,...,a_m\u00b7x):x\u2208{0,1}^h}|\u2264min(2^h,(2Wh+1)^q), interpreting the q=0 bound as 1. Proof: choose q independent vectors from the family. Each other vector is a rational linear combination of these, so its dot product is determined by theirs. Each chosen dot product is an integer in [-Wh,Wh], hence at most 2Wh+1 values; thus at most (2Wh+1)^q signatures. The domain gives the additional 2^h bound. For q=0, all vectors are zero, so the signature is constant.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795534278.0586705,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0056: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The Lean check rejected the attempted proof. It found a noncomputable definition issue in `rankQ`, and the rank-dependent bound remained unproved. The earlier tool response also reported `sor (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795534283.6733592,
+  "session": "pnp-desk/research/R2845",
+  "model": "gpt-6-luna",
+  "id": "S0058",
+  "proved_step": "statement: L1-BASIS SIGNATURE COUNT. Let a_1,...,a_m be integer vectors in Z^h of rational rank q, and choose any q linearly independent rows b_1,...,b_q from the family. Then |{(a_1\u00b7x,...,a_m\u00b7x): x\u2208{0,1}^h}| <= min(2^h, product_{i=1}^q (||b_i||_1+1)); the empty product is 1 for q=0. Proof: Every a_j is a rational linear combination of the selected b_i, so their dot products determine the full signature. For each i, b_i\u00b7x is an integer in an interval of length sum_k |(b_i)_k|=||b_i||_1, hence has at most ||b_i||_1+1 possible values. Multiplying these bounds gives the product bound; the domain gives 2^h. If q=0 all rows vanish, yielding one signature.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795534490.9787858,
+  "session": "pnp-desk/research/R2845",
+  "model": "gpt-6-luna",
+  "id": "S0059",
+  "proved_step": "statement: GCD-BASIS SIGNATURE COUNT. Let a_1,...,a_m be integer vectors in Z^h of rational rank q, and choose any q linearly independent rows b_1,...,b_q from the family. Let g_i be the gcd of the absolute coordinates of b_i. Then |{(a_1\u00b7x,...,a_m\u00b7x): x\u2208{0,1}^h}| <= min(2^h, product_{i=1}^q (floor(||b_i||_1/g_i)+1)); for q=0 the product is 1. Proof: Each a_j is a rational linear combination of the selected rows, so the selected dot products determine the full signature. For each i, b_i\u00b7x is an integer multiple of g_i in an interval of length ||b_i||_1, hence has at most floor(||b_i||_1/g_i)+1 possible values. Multiplying these coordinate bounds and using the 2^h domain bound proves the result. Since independent rows are nonzero, each g_i is positive.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795553270.4944067,
+  "session": "pnp-desk/research/R2961",
+  "model": "gpt-6-luna",
+  "id": "S0060",
+  "proved_step": "GCD-SPACED SIGNATURE ALGORITHM. Let A be the distinct integer X-weight rows of a THR\u2218THR circuit on split X|Y, |X|=h, with rational rank q. Select q independent rows b_i and let g_i=gcd(|(b_i)_1|,...,|(b_i)_h|)>0. Put K=min(2^h, product_i(floor(||b_i||_1/g_i)+1)); for q=0 set K=1. The number of full restricted signatures (a\u00b7x)_{a\u2208A} is at most K. Consequently exact #SAT is computable in O(poly(L,n,m)(2^h+K2^{n-h})) time by bucketing X assignments by full signature and enumerating Y once per bucket. Proof: each b_i\u00b7x is a multiple of g_i in an interval of length ||b_i||_1, hence it has at most floor(||b_i||_1/g_i)+1 values. The q basis values determine every a\u00b7x because each a is a rational linear combination of the b_i; therefore the joint signature count is at most their product and at most 2^h. For each bucket, all restricted linear forms have fixed values; fixing y then fixes every bottom threshold and the top threshold, so enumeration of y and weighting accepted y by the bucket size counts satisfying pairs exactly. Constructing buckets costs O(poly(L,n,m)2^h), and the enumerations cost O(poly(L,n,m)K2^{n-h}). In particular, if the displayed product is 2^{o(n)} on a balanced split and h=floor(n/2), runtime is 2^{n/2+o(n)}. This is a conditional subclass algorithm; it gives no bound when the product is large.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0028",
+  "closes_valid": true
+ },
+ {
+  "at": 1795752872.87796,
+  "session": "pnp-desk/research/R4613",
+  "model": "gpt-6-luna",
+  "evidence": "Direct factorization proof; exact scope is arbitrary integer row families with common support U.",
+  "id": "S0061",
+  "proved_step": "statement: COMMON-SUPPORT SIGNATURE LEMMA. Let a_1,...,a_m in Z^h and let U subseteq [h] have size r such that every a_j is zero outside U. Then the number of distinct signatures (a_1\u00b7x,...,a_m\u00b7x) as x ranges over {0,1}^h is at most 2^r. Proof: If x and x' agree on U, every dot product agrees because all coefficients outside U are zero. Therefore the signature map factors through the restriction map {0,1}^h -> {0,1}^U, which has 2^r possible inputs, proving the bound. The bound is attained by taking the r coordinate-selector rows e_i, whose joint signature is the restriction x|_U.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0028",
+  "closes_valid": true
+ },
+ {
+  "at": 1795752929.5340521,
+  "session": "pnp-desk/research/R4613",
+  "model": "gpt-6-luna",
+  "evidence": "Constructive enumeration with a correctness bijection, exact multiplicity weighting, running time, and space bound.",
+  "id": "S0062",
+  "proved_step": "statement: COMMON-SUPPORT EXACT COUNTING CONSEQUENCE. Let C(x,y)=[sum_{j=1}^m [a_j\u00b7x+v_j\u00b7y\u2265t_j]\u2265T], where x\u2208{0,1}^h, y\u2208{0,1}^k, all data are explicitly encoded integers, and all a_j vanish outside a known set U\u2286[h] of size r. Then #SAT(C) can be computed in O(2^r\u00b72^k\u00b7poly(L,m,h,k)) time and O(2^r+poly(L,m,h,k)) space. Proof: Enumerate the 2^r restrictions u\u2208{0,1}^U. Each has exactly 2^(h-r) extensions x, since the other coordinates do not occur in any a_j. For each u and each y\u2208{0,1}^k, evaluate every bottom predicate using a_j\u00b7u+v_j\u00b7y, then evaluate the top threshold. If c_u is the number of accepted y for u, add 2^(h-r)c_u to the answer. Every full assignment (x,y) is counted in exactly one bucket u=x|_U, and its circuit value equals the bucket evaluation because all omitted coefficients are zero. Thus the sum is exactly #SAT(C). There are 2^r\u00b72^k bucket-assignment pairs, each evaluated in polynomial time in the explicit input length and dimensions; streaming through them gives the stated space. For r=0, enumerate y and multiply by 2^h. This is a restricted-subclass algorithm and implies no speed-up unless r+k is suitably small.",
+  "status": "CLAIMED",
+  "kind": "ALGORITHM",
+  "closes": "G0028",
+  "closes_valid": true
+ },
+ {
+  "at": 1795753109.8839226,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0061: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The first Lean check rejected the source during parsing, so it did not verify the proof. I did not obtain an accepted Lean file or complete the required retry. (not a refutation; a model review is still needed)"
+ }
+]

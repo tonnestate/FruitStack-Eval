@@ -1,0 +1,88 @@
+[
+ {
+  "at": 1795709089.5434425,
+  "session": "pnp-desk/research/R4379",
+  "model": "gpt-6-luna",
+  "id": "S0001",
+  "proved_step": "Lemma (ring-buffer append cost). Let B>=1 and let a deterministic streaming machine receive blocks b_t in {0,1}^{r_t}, with total stored prefix length at most B bits. A state consisting of a B-cell circular array, a write pointer j in {0,...,B-1}, and occupied length q can incorporate a block of r bits, provided q+r<=B, by writing exactly r array cells and updating j and q. In a bit-operation model with binary pointers, this update uses O((r+1) log B) bit operations and O(B+log B) state bits; it does not require shifting the previously stored prefix. Proof: write each incoming bit to the next cell modulo B. Each binary pointer advancement and final pointer/length update costs O(log B) bit operations, so r writes and the metadata updates cost O((r+1) log B). In a word-RAM with word size ceil(log2 B), the update takes O(r+1) word operations. This proves that buffering can remove dependence on the existing prefix length from the append operation, but says nothing about the cost of later ordered decoding or oracle queries.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795712509.2376215,
+  "session": "pnp-desk/research/R4405",
+  "model": "gpt-6-luna",
+  "id": "S0002",
+  "proved_step": "statement: Lemma (ordered read from a circular prefix). Let B>=1 and let A[0..B-1] be a circular array containing q bits, 0<=q<=B, written consecutively from start position a, with next-write position j=(a+q) mod B. Assume none of these q cells has been overwritten. For every k with 0<=k<=q, the first k bits of the stored sequence can be output in order using O(k+1) word-RAM operations and O(1) words of auxiliary storage, with word size ceil(log2(B+1)). Proof: Set the read cursor c=a=(j-q) mod B. For i=0,...,k-1, output A[c] and replace c by (c+1) mod B. Inductively, before iteration i, c=(a+i) mod B. Since i<k<=q and the q stored positions are consecutive cyclic positions from a, A[c] is the (i+1)st stored bit. Thus the outputs are exactly the first k bits in order. Each iteration performs one read, one output, and one modular cursor advance, each using O(1) word-RAM operations; initialization and the k=0 case also take O(1). The cursor uses O(1) words. This establishes an ordered-read procedure for an unoverwritten circular prefix; it gives no bound on later computation or oracle-query cost.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795713430.2943017,
+  "session": "pnp-desk/research/R4407",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "Lemma (trajectory invariance under time-dependent state recoding). Let a deterministic streaming computation have state sets X_t, initial state x_0, transition maps F_t:X_t\u00d7\u03a3\u2192X_{t+1}, and terminal decoder D:X_T\u2192{0,1}. For each t let \u03c0_t:X_t\u2192Y_t be a bijection. Define recoded transitions F'_t(y,a)=\u03c0_{t+1}(F_t(\u03c0_t^{-1}(y),a)) and decoder D'(y)=D(\u03c0_T^{-1}(y)); set y_0=\u03c0_0(x_0). Then for every input stream a_0,\u2026,a_{T\u22121}, the recoded computation has y_t=\u03c0_t(x_t) at every time t and returns the same output. Proof: At t=0 this is the definition of y_0. If y_t=\u03c0_t(x_t), then F'_t(y_t,a_t)=\u03c0_{t+1}(F_t(\u03c0_t^{-1}(\u03c0_t(x_t)),a_t))=\u03c0_{t+1}(F_t(x_t,a_t))=\u03c0_{t+1}(x_{t+1}); induction proves the state identity through T. Therefore D'(y_T)=D(\u03c0_T^{-1}(\u03c0_T(x_T)))=D(x_T). The lemma concerns semantic invariance only: it does not imply that \u03c0_t, \u03c0_t^{-1}, or F'_t have comparable descriptions or evaluation costs.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795715465.6746347,
+  "session": "pnp-desk/research/R4419",
+  "model": "gpt-6-luna",
+  "id": "S0004",
+  "proved_step": "statement: Lemma (continuation-distinguishable prefixes require distinct states). Let M be a deterministic one-pass machine for a language L over alphabet \u03a3, with a fixed initial state, deterministic transition maps, and a terminal decoder. Let P be any finite set of input prefixes such that for every distinct u,v in P there exists a suffix z_{u,v} with exactly one of uz_{u,v}, vz_{u,v} in L. Then the states reached after prefixes in P are pairwise distinct, so M has at least |P| reachable states and requires at least ceil(log2 |P|) bits to encode them. Proof: if distinct u,v reached the same state, processing their common suffix z_{u,v} would follow the same deterministic transitions and produce the same decoded answer. This contradicts that exactly one concatenation is in L. Thus the states are pairwise distinct, and encoding |P| states requires at least ceil(log2 |P|) bits. Scope: this gives a state-space lower bound for a chosen family of distinguishable prefixes, but no per-update time lower bound, including for search-MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795715734.7953827,
+  "session": "pnp-desk/research/R4419",
+  "model": "gpt-6-luna",
+  "id": "S0005",
+  "proved_step": "statement: Lemma (minimal deterministic streaming state count via residuals). Let L be any language over alphabet \u03a3. For each prefix u define its residual R_u={z\u2208\u03a3*: uz\u2208L}. In any deterministic one-pass recognizer for L, prefixes with distinct residuals reach distinct states. Conversely, if L has exactly r distinct residuals among all prefixes, a recognizer with r states exists: its states are residuals, its transition on symbol a maps R_u to R_{ua}, which is well-defined because R_u=R_v implies R_{ua}=R_{va}, and its decoder accepts R_u iff \u03b5\u2208R_u. Thus the minimum number of states is exactly r (or infinite if infinitely many residuals). Proof: the first direction follows by choosing z in the symmetric difference of R_u,R_v; equal machine states would give equal outputs after z. For the converse, the transition is well-defined since z\u2208R_{ua} iff az\u2208R_u, and the decoder is well-defined by \u03b5 membership. This characterizes state complexity exactly but gives no update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795719483.2878351,
+  "session": "pnp-desk/research/R4445",
+  "model": "gpt-6-luna",
+  "evidence": "The proof applies the universal property to the assumed polynomial-update control and derives a contradiction. Applying it to MMW remains conditional on matching the oracle and update-cost conventions to the target model.",
+  "id": "S0006",
+  "proved_step": "Lemma (oracle-control obstruction). Fix a search-MCSP^A[s] streaming model and a cost measure u(M) equal to the worst-case number of updates, with oracle work charged exactly as in that model. Suppose M0 is a correct uniform one-pass algorithm in this model and u(M0) <= s^c for some constant c on all sufficiently large input parameters. Then no property P of update maps can both (i) hold for every correct uniform algorithm in this model and (ii) imply u(M)=s^{omega(1)} for every algorithm satisfying P. Proof: By (i), P holds for M0. By (ii), u(M0)=s^{omega(1)}, contradicting u(M0)<=s^c, since s^{omega(1)} eventually exceeds s^{c+1}. Thus at least one premise fails. If the cited MMW PH-oracle algorithm is correct and has polynomial update count in the exact same model and cost measure, no property shared by every correct algorithm there can prove a superpolynomial update lower bound. This says nothing about restricted models that exclude M0, or about P versus NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795719483.3016183,
+  "session": "pnp-desk/research/R4445",
+  "model": "gpt-6-luna",
+  "refuted_approach": "A universal update-map property intended to imply superpolynomial update time in a model containing MMW's correct PH-oracle algorithm with polynomially many charged updates. First invalid step: applying the purported implication to that algorithm yields a superpolynomial update bound, contradicting its polynomial update bound. This refutation is conditional on exact agreement of model and cost measure."
+ },
+ {
+  "at": 1795719591.0283232,
+  "session": "pnp-desk/research/R4445",
+  "model": "gpt-6-luna",
+  "evidence": "Direct contradiction: applying (i) and then (ii) to M0 gives a superpolynomial per-update bound, contrary to the assumed polynomial bound. No claim is made that MMW's oracle or charging convention matches O*.",
+  "id": "S0007",
+  "proved_step": "Lemma (per-update control obstruction). Fix a streaming model and a cost convention, and let tau(M) be the supremum, over all updates of M on all valid streams, of the cost charged for that single update. Suppose M0 is a correct uniform algorithm in this exact model and tau(M0) <= s^c for some constant c for all sufficiently large s. Then there is no property P of update maps such that (i) every correct uniform algorithm in the model satisfies P and (ii) every algorithm satisfying P has tau(M)=s^{omega(1)}. Proof: By (i), M0 satisfies P. By (ii), tau(M0)=s^{omega(1)}, contradicting tau(M0)<=s^c. Hence at least one premise must fail. In particular, if MMW's algorithm is correct in the exact O* model and has polynomial worst-case per-update cost under its charging convention, no property shared by all correct algorithms in that model can imply a superpolynomial per-update lower bound. This lemma is conditional on that model match and implies nothing about P versus NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795719591.054032,
+  "session": "pnp-desk/research/R4445",
+  "model": "gpt-6-luna",
+  "refuted_approach": "Using a polynomial bound on the number of updates as if it implied a polynomial bound on worst-case time per update. First invalid step: update count does not bound the cost of any individual update; one update may have superpolynomial cost. The repaired conditional lemma uses tau(M), the maximum single-update cost, and requires a polynomial tau control in the exact same model."
+ },
+ {
+  "at": 1795724214.4268806,
+  "session": "pnp-desk/research/R4475",
+  "model": "gpt-6-luna",
+  "id": "S0008",
+  "proved_step": "statement: Lemma (residual distinguishability does not imply update cost). For every n>=1, the length-n parity language L_n={x in {0,1}^n: sum_i x_i is 1 mod 2} has 2^n pairwise continuation-distinguishable prefixes of length n, yet has a deterministic one-pass algorithm using one state bit and one XOR gate per input bit. Proof: for distinct length-n prefixes u,v, their parities differ for some pair only if the prefixes have distinct parity; hence this family itself gives at most two residual classes, so it does not establish the asserted 2^n distinguishable prefixes. Corrected statement: there are exactly two residual classes among all prefixes of L_n when considering the remaining fixed-length suffix positions, and the one-bit machine updates its parity by q <- q XOR b. Thus even a nontrivial state distinction (two residuals) is compatible with constant update cost. This rules out only an inference from residual count alone to a growing update lower bound; it says nothing about search-MCSP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

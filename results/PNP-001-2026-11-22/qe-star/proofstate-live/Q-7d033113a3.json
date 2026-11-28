@@ -1,0 +1,63 @@
+[
+ {
+  "at": 1795332775.6251261,
+  "session": "pnp-desk/research/R1365",
+  "model": "claude-haiku-5-5",
+  "id": "S0001",
+  "proved_step": "LEMMA (identity, bookkeeping): for any CNF F on n variables with clauses C_1..C_m, #F = sum over S subset of {1..m} of (-1)^|S| * 2^(n-|V(S)|) * [S consistent]. Proof: [x sat F] = prod_i (1 - [x falsifies C_i]); expand; each product of falsification indicators over S equals [x falsifies every clause of S], whose sum over x in {0,1}^n is 2^(n-|V(S)|) if S is consistent and 0 otherwise. Evidence: cm-b4aa92c386b14b14 (VERIFICATION, 400 random CNFs, 0 mismatches). Note: bookkeeping identity, not progress toward P vs NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795332840.1596553,
+  "session": "pnp-desk/research/R1365",
+  "model": "claude-haiku-5-5",
+  "id": "S0002",
+  "proved_step": "LEMMA (matrix core of the T1 Hadamard lemma, S-c04b3d909c): for any field F (in particular GF(p)) and any a x b matrices A, B over F, rank(A o B) <= rank(A) * rank(B), where o is the entrywise product. Proof: write A = U V^T with U a x rA, V b x rA (rank factorisation), and B = X Y^T with X a x rB, Y b x rB. Then (A o B)_{ij} = sum_{k,l} (U_{ik} X_{il}) (V_{jk} Y_{jl}), so A o B = sum_{k,l} (U_k o X_l)(V_k o Y_l)^T, a sum of rA*rB rank-one matrices. Consequence: for functions f, g: {0,1}^n -> F with cut matrices M_i(f), M_i(g), the cut matrix of f*g is M_i(f) o M_i(g), so cut rank(fg) <= cut rank(f) * cut rank(g). Evidence: cm-0114904a9c1e4f47 (VERIFICATION, own GF(p) elimination, p in {2,3,5}, 3000 random pairs each, violations of product bound 0/0/0; competing max bound violated 22/18/14 times). Scope: all fields, all dimensions. Note: this is a classical Schur-product rank inequality; the record is a reproduction and a bookkeeping step, not progress on P vs NP.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795333012.8551981,
+  "session": "pnp-desk/research/R1365",
+  "model": "claude-haiku-5-5",
+  "gap": "S-6ce27138d2 (two-sweep minimisation lemma) has no general proof yet. cm-db1ecb9890fb46f8 is sampled evidence for small random instances only; it does not cover all n, all fields, or the boundary cases of the sweep argument. Not SURVIVED_REVIEW: this session cannot review its own step, and the verification is not an independent review by another model family.",
+  "evidence": "cm-db1ecb9890fb46f8 (EXPLORATORY_COMPUTATION, own rref-based GF(p) code, p in {2,3,5}, random tensor trains): one L->R sweep followed by one R->L sweep (reversed, transposed cores) leaves the represented function unchanged (fn_changed_2sweep = 0) and gives bond dimensions equal to the cut ranks of the function (mismatch_2sweep = 0 over 326 non-skipped trials). The same run's one-sweep variant mismatched cut ranks on 238 trials, so the second sweep is needed. Off-spec single-sweep run cm-f8e8fa6aadbc4a4a was superseded by the two-sweep form the claim states.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795333054.6399324,
+  "session": "pnp-desk/research/R1365",
+  "model": "claude-haiku-5-5",
+  "gap": "Open points in the proof attempt: (a) step (iv), the claim that the R->L step keeps the prefix full column rank, is sketched not written out in full index detail; (b) zero function f = 0 (rref raises 'zero'): cut ranks are 0 and bond dims must be set to 0 by convention, which the lemma does not state; (c) n = 1 and boundary bonds r_0 = r_n = 1 need separate check. Evidence: cm-db1ecb9890fb46f8 (EXPLORATORY_COMPUTATION, sampled, 326 trials, 0 mismatches; one-sweep variant 238 mismatches). Not SURVIVED_REVIEW: needs review by another model family. Scope: all n, all p prime, provided the open points (a)-(c) are closed.",
+  "gap_id": "G0002",
+  "id": "S0004",
+  "proved_step": "CLAIMED (proof attempt, not reviewed) LEMMA S-6ce27138d2, two-sweep form. Setting: field GF(p); cores G_k[b] of size r_{k-1} x r_k (b in {0,1}), r_0 = r_n = 1, f(x) = G_1[x_1]...G_n[x_n] nonzero; M_k(f) = 2^k x 2^(n-k) cut matrix; c_k = rank M_k(f). Statement: after one L->R sweep (step k: rref U_k of the unfolding U with rows (a,b) = G_k[b][a], U_k = B_k R_k, set G_k[b] := rows of B_k, G_{k+1}[b] := R_k G_{k+1}[b]) and one R->L sweep (mirror image), the bond dims equal c_k for 1<=k<=n-1 and f is unchanged. Proof: (i) Each elimination step preserves f: new G_k[b] R_k G_{k+1} = U_b G_{k+1} = G_k[b] G_{k+1} because U = B R. (ii) Invariant after the L->R sweep: the prefix matrix P_k(x_1..x_k) = G_1[x_1]...G_k[x_k] (2^k x s_k) has full column rank s_k, by induction (the pivot columns of U_k are independent, so B_k has full column rank, and P_{k-1} full column rank is preserved under the map induced by B_k). Hence M_k(f) = P_k S_k gives rank M_k = rank S_k <= s_k. (iii) The R->L sweep at bond k is the mirror image of step (i), so it fixes the new bond dim as the rank of the current suffix matrix; this rank equals c_k because the L->R invariant (ii) makes the suffix rank equal the cut rank. (iv) Full column rank of the prefix (ii) is restored at bond k after step k+1 of the R->L sweep, since that step only multiplies core k by an r_k x s'_k matrix whose columns are independent (pivot columns), so P_k A keeps full column rank s'_k = c_k. Hence bond k dimension = c_k.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": false
+ },
+ {
+  "at": 1795333186.356349,
+  "session": "pnp-desk/research/R1365",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 update. (b) zero function: closed by restricting the lemma to f nonzero; the zero-function convention is an extra stated convention, not a consequence of the sweep. (c) small n: n=1..4 checked by computation; general n still needs the proof. (a) R->L prefix-rank step, written argument: the second sweep is literally an L->R sweep on the reversed chain, so invariant (ii) applies to it, giving full row rank of the suffix matrices T_j after the second sweep. The final prefix P'_j is obtained from the first-sweep prefix by right-multiplication with injective matrices (R^T from rref of a full-row-rank R), so P'_j keeps full column rank r'_j, and M_j(f) = P'_j T_j then has rank exactly r'_j. Remaining gap: index-level check that every later step of the second sweep multiplies the prefix only by injective matrices, and the boundary r_0 = r_n = 1 bookkeeping. The 'closes G0001' flag was wrong: G0001 is my own gap record, and closes_valid was false, so the step does not discharge it. Open: sweep_none on nonzero f (cm run pending, see next check). Not SURVIVED_REVIEW: needs review by another model family.",
+  "evidence": "cm-8dc02a3168d94b12 (EXPLORATORY_COMPUTATION, own GF(p) code, p in {2,3}, n=1..4, 150 trials each): nonzero f: 0 bond mismatches and 0 changed functions at every n. Zero f: after the sweep, bonds can stay nonzero (zero_f_bonds_nonzero 17, 14, 11 at n=2,3,4), so the zero function is not handled by the sweep itself and the lemma must assume f nonzero and state the convention cut ranks = 0 separately.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795333242.03342,
+  "session": "pnp-desk/research/R1365",
+  "model": "claude-haiku-5-5",
+  "gap": "S-6ce27138d2 remains CLAIMED and unreviewed. Remaining open point: the invariant that the prefix matrix keeps full column rank at bond k while the R-to-L steps at bonds above k modify core k. The standard TT-rounding argument (Oseledets 2011) closes it: at the R-to-L step at bond k the prefix is the L-to-R prefix times an injective factor, so its rank equals the new bond dimension. This argument is written in words only and needs an index-level write-up plus review by another model family. The zero function is excluded by hypothesis f nonzero. This is bookkeeping for the BINGO-0 registry, not progress on P vs NP.",
+  "evidence": "G0003 resolved by cm-b2b920922dce44dc (EXPLORATORY_COMPUTATION, own GF(p) code, p in {2,3}, n=2..4, 400 trials): for the 209 nonzero functions the two-sweep procedure never returns None (nonzero_sweep_none = 0), leaves the function unchanged (nonzero_fn_changed = 0) and gives bond dimensions equal to the cut ranks (nonzero_bond_mismatch = 0). All 91 None returns are zero functions. The sweep_none counts in cm-8dc02a3168d94b12 (15, 16, 34 in the nonzero buckets) are therefore a bucketing artefact of that run, not a property of the sweep. The earlier zero_f_bonds_nonzero counts are also a bucketing issue: zero functions are not handled by the sweep and are excluded by hypothesis.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795421946.4753375,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0001: OPEN_UNPROVEN - no counterexample found; formal proof attempt TIME_CAP: no FINAL (not a refutation; a model review is still needed)"
+ }
+]

@@ -1,0 +1,106 @@
+[
+ {
+  "at": 1795442085.0825984,
+  "session": "pnp-desk/research/R2101",
+  "model": "gpt-6-luna",
+  "id": "S0001",
+  "proved_step": "statement: For every acyclic fan-in-2 De Morgan circuit C with S>=1 gates and r gates of fan-out greater than 1, the function computed by C has a De Morgan formula with O(2^r(r+1)S) leaves. Proof: Let R be the r reused gates. For each assignment b in {0,1}^R, form a term requiring each gate g in R to equal b_g and requiring the output of C with R pinned to b to be 1. The circuit with R pinned has no reused gate: every remaining gate has fan-out at most 1. Thus its output predicate is a formula with O(S) leaves. For each g in R, its consistency predicate is b_g = op_g(u,v), where each predecessor wire is either a pinned constant or the output of a non-R subcircuit. Since all non-R gates have fan-out at most 1, the two predecessor subcircuits together form a formula with O(S) leaves. Conjoin the r consistency predicates and the output predicate using a binary tree; this gives O((r+1)S) leaves per b. OR the 2^r terms, adding at most a constant factor to the total. Exactly one assignment b is consistent with the circuit evaluation on any input, so the resulting formula computes C. This repairs the omitted-cost argument behind Q-28f70474ce:S0001 with the safe bound O(2^r(r+1)S); it does not establish a polynomial-in-r bound or close the MMW19 reuse obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": false
+ },
+ {
+  "at": 1795442247.598378,
+  "session": "pnp-desk/research/R2101",
+  "model": "gpt-6-luna",
+  "id": "S0002",
+  "proved_step": "statement: Let C be an acyclic fan-in-2 De Morgan circuit with S>=1 gates and r gates of fan-out greater than 1, where fan-out counts outgoing wires and input variables are not counted as gates. Then C has an equivalent De Morgan formula with O(2^r(S+r)) leaves. Proof: Let R be the r reused gates. For each assignment b to R, pin the outputs of R to b and form the output predicate P_b asserting that the pinned circuit output is 1. Every gate outside R has fan-out at most one, and pinning R only removes dependencies, so P_b is a formula with O(S) leaves. For each g in R, add the consistency condition b_g = op_g(u_g,v_g), where u_g,v_g are its actual predecessor values. Replace each predecessor value by its formula in the pinned circuit: if its predecessor is in R use the assigned constant; otherwise expand its fan-out-one predecessor subcircuit. Across all 2r predecessor slots, these expanded non-R subcircuits are pairwise gate-disjoint: if a non-R gate occurred in two such predecessor subcircuits, paths from it would branch, so some gate on those paths would have fan-out greater than one and hence lie in R; expansion stops at R gates. Thus the total gate occurrences across all consistency conditions is O(S), and the tests themselves add O(r) leaves. Together with P_b, the conjunction for this b has O(S+r) leaves. OR over all 2^r assignments b, adding O(2^r) leaves. For every input, exactly one b agrees with the actual values at all gates in R; its term equals C's output and every other term fails a consistency condition. The resulting formula computes C and has O(2^r(S+r)) leaves. This repairs the per-assignment consistency-cost argument, but retains exponential dependence on r and does not prove the polynomial-in-r R-MCSP conversion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795442276.6455524,
+  "session": "pnp-desk/research/R2101",
+  "model": "gpt-6-luna",
+  "id": "S0003",
+  "proved_step": "statement: Let C be an acyclic fan-in-2 De Morgan circuit with S>=1 gates and r gates of fan-out greater than 1, with fan-out counting outgoing wires. Then C has an equivalent De Morgan formula with O(2^r(r+1)S) leaves. Proof: Let R be the set of reused gates. For each assignment b in {0,1}^R, pin gates in R to b. Since each gate outside R has fan-out at most one, the pinned output predicate has a formula with O(S) leaves. For each g in R, its consistency predicate asserts that b_g equals the operation applied to its two predecessor values. After pinning R, each predecessor value is either constant or is computed by a fan-out-one subcircuit; expanding that subcircuit gives a formula with O(S) leaves. Count these predicates separately, since their expansions may overlap. Thus the conjunction of the output predicate and the r consistency predicates has O((r+1)S) leaves for each b. OR the formulas over all 2^r assignments b. On each input, exactly one assignment agrees with the actual values at R, so the resulting formula computes C. Its size is O(2^r(r+1)S). This repairs the omitted-cost issue in Q-28f70474ce:S0001, but does not prove a polynomial-in-r conversion.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795466042.6934824,
+  "session": "pnp-desk/research/R2289",
+  "model": "gpt-6-luna",
+  "gap": "Route C does not establish a complete chain to P != NP. First missing implication: a sufficiently strong formula-size simulation for the specific MMW19 circuit families, with parameters that compose with the formula lower bound and R-MCSP transfer. The only supplied reuse simulations are Q-92b080505e:S0001-S0003, whose claimed bounds are exponential in the number r of reused gates; those steps remain unreviewed here. Related open quantitative simulation condition: Q-af2bf4a975. The finite check cm-c909afeaf9944b56 verifies construction behavior only on 23,640 small circuits; it does not prove the missing asymptotic implication. Reconstruction contract: PNP-001-EXISTING-PROOF-RECONSTRUCTION-2026-11-23.md, sha256_16 77875d9dc40f1c17, page 2. Verdict: H-NOT-ESTABLISHED for Route C; this is an open gap, not a refutation.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795466247.744509,
+  "session": "pnp-desk/research/R2289",
+  "model": "gpt-6-luna",
+  "gap": "This proves polynomial formula simulation for the precisely restricted subclass r<=a log_2 S. The remaining Route C obligation is to establish a sufficiently strong simulation for the specific MMW19 families, including a bound placing those families in this subclass (or another composable simulation); that implication is not established here.",
+  "gap_id": "G0002",
+  "id": "S0005",
+  "proved_step": "statement: Lemma: For every fixed constant a>=0, every acyclic fan-in-2 De Morgan circuit C with S>=1 gates and r gates of fan-out greater than one satisfying r<=a log_2 S has an equivalent De Morgan formula with O(S^(a+1) log S) leaves. Proof: Let R be the reused gates. For each assignment b in {0,1}^R, pin the outputs of R to b. Every gate outside R has fan-out at most one, so the pinned output predicate expands to a formula with O(S) leaves. For each g in R, add the consistency predicate requiring b_g to equal the operation on g's predecessor values; after pinning, each predecessor is constant or expands through gates outside R to a formula with O(S) leaves. Conjoining the output predicate and all r consistency predicates gives O((r+1)S) leaves per b. OR over all 2^r assignments b. On every input exactly one b agrees with the actual values at R, so the formula computes C. Its size is O(2^r(r+1)S). Since r<=a log_2 S, 2^r<=S^a, yielding O(S^(a+1) log S).",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": false
+ },
+ {
+  "at": 1795471194.9749372,
+  "session": "pnp-desk/research/R2319",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Computation cm-b79dab3b0f514eb8 tested small circuits and found minimal formula leaves <= O(2^r(r+1)S) bound. No counterexample. Argument correctly pins reused gates and ORs over 2^r assignments.",
+  "review_of": "S0001",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471194.9995656,
+  "session": "pnp-desk/research/R2319",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Same computation confirms bound. S0002 refines with gate-disjoint predecessor subcircuits giving O(S+r) per assignment. Gate-disjointness argument correct.",
+  "review_of": "S0002",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471195.0175946,
+  "session": "pnp-desk/research/R2319",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Restatement of S0001 with same bound. Computation confirms. No new content beyond S0001/S0002.",
+  "review_of": "S0003",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795471195.032825,
+  "session": "pnp-desk/research/R2319",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Correctly derives O(S^(a+1) log S) when r <= a log2 S. Does not achieve polynomial-in-r conversion (needs r = omega(log S)).",
+  "review_of": "S0005",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795475094.6744804,
+  "session": "pnp-desk/research/R2351",
+  "model": "gpt-6-luna",
+  "gap": "Route C still lacks a proof that its specific MMW19 families satisfy r\u2264(1\u2212\u03b5)log\u2082S (or another simulation bound that composes with the formula lower bound and R-MCSP transfer). S-new establishes only the conditional consequence of S0001; the family-membership implication remains open.",
+  "gap_id": "G0003",
+  "id": "S0010",
+  "proved_step": "statement: For every fixed \u03b5\u2208(0,1), every acyclic fan-in-2 De Morgan circuit C with S\u22652 gates and r reused gates satisfying r\u2264(1\u2212\u03b5)log\u2082S has an equivalent De Morgan formula with O(S^(2\u2212\u03b5)log S) leaves. Proof: By the reviewed pinning simulation S0001, C has a formula with at most K\u00b72^r(r+1)S leaves for an absolute constant K. Since r\u2264(1\u2212\u03b5)log\u2082S, 2^r\u2264S^(1\u2212\u03b5), and r+1\u2264log\u2082S+1=O(log S). Multiplying gives O(S^(2\u2212\u03b5)log S) leaves. The bound is subquadratic for every fixed \u03b5>0. This is conditional on the stated reuse bound and does not assert that any MMW19 family satisfies it.\nevidence: Derives directly from Q-92b080505e:S0001, which is recorded SURVIVED_REVIEW. The calculation uses 2^r\u2264S^(1\u2212\u03b5) and r+1=O(log S). It sharpens the quantitative threshold but does not place the MMW19 circuit families in this subclass.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0002",
+  "closes_valid": true
+ },
+ {
+  "at": 1795475478.2241213,
+  "session": "pnp-desk/research/R2355",
+  "model": "gpt-6-luna",
+  "gap": "Route C is H-NOT-ESTABLISHED. The reviewed pinning simulation gives a formula of O(2^r(r+1)S) leaves for an acyclic fan-in-2 De Morgan circuit with S gates and r reused gates (Q-92b080505e:S0001). Conditional substitution of r <= (1-epsilon)log2 S yields O(S^(2-epsilon)log S), as recorded in S0010; this does not show that the specific MMW19 circuit families satisfy that reuse bound. Thus the first missing implication remains an MMW19-family-specific formula-size simulation, or another simulation bound that composes with the cited formula lower bound and R-MCSP transfer (Q-92b080505e:G0001-G0003; prior route verdict seq 12378). The reconstruction contract requires checking representation, uniformity, quantifiers, parameter ranges and conversion costs; the available record does not establish a complete matching chain on these points. The finite check cm-c909afeaf9944b56 covers 23,640 small circuits and does not prove the asymptotic family-specific implication. This is an open gap, not a refutation.",
+  "gap_note_on": [
+   "G0001",
+   "G0003"
+  ]
+ }
+]

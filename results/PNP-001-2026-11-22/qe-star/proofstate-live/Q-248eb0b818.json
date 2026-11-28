@@ -1,0 +1,410 @@
+[
+ {
+  "at": 1795369966.6119685,
+  "session": "pnp-desk/research/R1634",
+  "model": "claude-haiku-5-5",
+  "lemma": "L1 (reformulation of 40a). Let M range over the uniform one-pass class of 40a. (i) Logical negation: NOT(40a) <=> exists M, c, d, m0 such that for all m >= m0: S_M(m) <= s(m)^c AND tau_M(m) <= s(m)^d. Proof: negate the prefix of 40a (forall M, forall c,d, forall m0, exists m>=m0 : S>s^c or tau>s^d) by de Morgan. (ii) Eventual versus all-length bounds: if such an M has the bounds only for m >= m0, define M' that runs M for m >= m0 and, for the finitely many m < m0, uses a fixed table of answers; for each fixed m < m0 the table has constant size (it depends only on m0 and s), so S_M'(m) <= s(m)^c' and tau_M'(m) <= s(m)^d' for all m with suitable constants c', d' (absorb the constant table into the polynomial via s(m) >= m). Hence 40a is equivalent to the 'all sufficiently large m' form of the MMW hypothesis that no poly-space, poly-update-time one-pass algorithm solves exact total Search-MCSP^A[s]. Caveat for (ii): this needs s(m) >= m and the table size to be bounded by a constant independent of the machine's own s-dependence; I checked the case form only, not the uniformity conditions of [4].",
+  "gap": "G0001 (open, unchanged): a lower bound showing that for admissible s, A in PH, every uniform deterministic one-pass machine for exact total Search-MCSP^A[s] has, for infinitely many m, space > s^c or worst-case update time > s^d. L1 only restates it. This is the update-time lower bound the manuscript's own section 8 calls not established, and it is the premise Q-156fa9c912 / Q-9c4d56f01f list as open. No computation at this level of abstraction can decide it, and no barrier-passing construction is yet in hand. Barrier note (MANDATORY CHECK): a lower bound for uniform one-pass machines on Search-MCSP would have to be non-natural or localized to avoid the usual natural-proof barrier, which is not settled here.",
+  "evidence": "Source text: spec_read PNP-001-MANUSCRIPT-v0.25-EXACT-ONE.md page 8 section 8.1, eq. (40a) and Prop. 13; MMW19 Thm 1.2/1.3 as recorded in knowledge_search (SOURCE CHECK records 98fcceb1021cb70f and 9380f504d96ea444). The reformulation L1(i) follows by propositional negation of the quantifier prefix of (40a).",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795370021.3105183,
+  "session": "pnp-desk/research/R1634",
+  "model": "claude-haiku-5-5",
+  "lemma": "L1 corrected. For (40a) the finite-length absorption holds: for m >= 2, s(m) >= m >= 2 (time-constructible s(n) >= n), so for any finite set of exceptional lengths m < m0 a fixed lookup table costs a constant depending only on m0, and a suitable exponent c covers it. Hence eventual-bound and all-length forms are equivalent for uniform one-pass machines. This is a reformulation only and closes no obligation.",
+  "gap": "G0001 open: a lower bound showing that for admissible s and A in PH, every uniform deterministic one-pass machine for exact total Search-MCSP^A[s] has, for infinitely many m, space > s^c or worst-case update time > s^d. Not attempted, no proof found. Obstacle: no construction is available that lower-bounds update time for all uniform machines, and the barrier check (natural / localizing) is not done.",
+  "evidence": "spec_read PNP-001-MANUSCRIPT-v0.25-EXACT-ONE.md page 8, section 8.1, eqs. (40a) and Prop. 13. Correction of the s(m)=1 caveat in the previous session's FINAL.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795371440.490256,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (open, unchanged). Barrier check, first pass: (a) RELATIVIZATION: the MMW19 Thm 1.2 streaming algorithm uses a Sigma3SAT^A oracle, so an oracle-A-quantified lower bound cannot be proved by a relativising argument; (40a) is only useful as an oracle-free statement (see R1641 quantifier audit). (b) LOCALITY: not yet checked; needs CHOPRS 'Beyond natural proofs' read in full. (c) CONTROL: not yet checked; need a problem in P with the same streaming shape and large width to confirm the target premise does not also rule it out. (d) WIDTH: the width identity alone does not give update-time bounds (Thm 2 and section 9 of v0.25).",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795371573.757478,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (open, unchanged). Barrier item (c) CONTROL, now measured: the fixed-order OBDD width measure (distinct residual functions per level) gives max width 4, 13, 59 for perfect matching on K_{2,2}, K_{3,3}, K_{4,4} (cm-f8ec3fb39cab47bd, EXPLORATORY), versus 2 for parity. So this width measure is large for a function in P, and it fails the control: it cannot by itself separate the target class from P. Items (a) relativization and (d) width-not-update-time stand. Item (b) locality is still unchecked (the CHOPRS full text was not read). Next: test a streaming-side measure (update time), not a width measure.",
+  "evidence": "cm-f8ec3fb39cab47bd: PM_K22 widths [1,2,4,3,2] max 4; PM_K33 max 13; PM_K44 max 59; parity_N9 max 2. Code re-checked by reading: table and residual counts are correct. Kind: DISCOVERY (H1 poly width vs H2 exponential width for a P-function).",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795371664.051259,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "lemma": "LEMMA (exact, not progress; does not close G0001). Fix PM on K_{n,n}, row-major order, 0<k<n, level l=kn. Let F(a) = {T subset [n], |T|=k : top rows a admit a perfect matching onto T}. The residual g_a(b)=PM(a,b) determines F(a) and is determined by it, so width at level kn = number of distinct F(a). Proof: T in F(a) iff g_a(b*)=1 for b* the permutation matrix from rows k+1..n onto [n]\\T; a matching from n-k rows into V using only b* edges exists iff V=[n]\\T, which separates F(a) from F(a'). Consistency: k=1 gives 2^n (measured widths 8 at n=3, 16 at n=4, cm-f8ec3fb39cab47bd). Not checked independently: k=2,n=4 measured 37.",
+  "gap": "G0001 (open, unchanged). The width identity is exact but shows only the order-dependence of OBDD width for PM, not an update-time bound. Barrier item (c) fails for width. Item (b) locality still unchecked. Next measure: an update-time-side cost on PM as a control.",
+  "evidence": "cm-f8ec3fb39cab47bd (EXPLORATORY_COMPUTATION). Proof is by hand; the count for k=2,n=4 is an open check.",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795371717.5893016,
+  "session": "pnp-desk/research/R1658",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 (open). Barrier (b) locality still unchecked; CHOPRS full text not read. Lemma G0005 verified by re-derivation; it explains order-dependence only and is not progress toward update-time bounds.",
+  "evidence": "Hand replication (not lab): for PM on K_{4,4}, k=2, level 8 (top two rows), distinct matchable-pair families F(a) = distinct complements H of the form (universal set Z; H restricted to the rest = disjoint union of at most two cliques). Count: K4 1, K4-e 6, star K_{1,3} 4, paw 12, empty 1, one edge 6, 2K2 3, K3+K1 4; total 37, matching cm-f8ec3fb39cab47bd (level 8 width 37). Verifies the measured k=2,n=4 value that G0005 left open. Does not close G0001.",
+  "gap_id": "G0006"
+ },
+ {
+  "at": 1795372608.384549,
+  "session": "pnp-desk/research/R1671",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0004: OBDD-width of the perfect-matching function PM on K_{n,n}, used as the update-cost measure for uniform one-pass Search-MCSP^A[s]. The perfect-matching control fails: PM is in P, but its width is 4 (n=2) and 13 (n=3) for the row-major order, against parity width 2. Minimum over all variable orders: 3 (n=2), 11 (n=3). Scope: exact, n<=3, all 2^m subsets S with m=n^2. Not refuted: width at general n, or other measures. Enriched variants still open: (i) width under orders chosen per-instance, (ii) a per-read work measure instead of distinct residual counts.",
+  "evidence": "cm-f4dc242795fa4ff0 (DISCOVERY run). H1 predicted min-over-orders >= 13 at n=3 and observed 11, so H1 is refuted. H2 predicted <= 4 and observed 11, so H2 is refuted too. The row-major sanity check reproduced the G0004 values 4 and 13."
+ },
+ {
+  "at": 1795372795.6023972,
+  "session": "pnp-desk/research/R1671",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Barrier (b) locality check for the width chain is not done. Width as update measure is refuted for PM on K_{n,n} (G0004). No construction yet.",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795372937.0246592,
+  "session": "pnp-desk/research/R1671",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0004 extension: GF(2) cut-rank of the perfect-matching indicator on K_{n,n} at the balanced edge split is 2, 5, 6 for n = 2, 3, 4 (parity: 2 throughout), so it fails the PM-in-P control like OBDD width. Experiment cm-c3e57677e39a4955 (DISCOVERY; H_fail confirmed, H_ok rejected)."
+ },
+ {
+  "at": 1795373159.2598498,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still OPEN. Narrowed the Prop 13 step: it needs (i) under P=NP, the MMW Thm 1.2 algorithm with its Sigma3SAT^A oracle replaced by a P-algorithm runs in poly(s) time per update, which requires the oracle queries to have size poly(s) (not poly(2^m)); (ii) A in PH collapses to P with a fixed degree, uniform in s. (i) is unverified and is the next check. Barrier (b) locality and the full (40a) lower bound are still open; no lower bound is claimed.",
+  "evidence": "No computation this session. Reading: proof_state_read(Q-248eb0b818), spec_read(MANUSCRIPT v0.25 section 8.1, eq. 40a and the text after it), knowledge_search for Q-248eb0b818 and Q-e72cdd5423. The statement of (40a) is quoted from the spec. It states that (40a) is a lower bound premise, and its negation is a P=NP-side simulation claim, not a proof of any lower bound.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795373180.757103,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0008 still OPEN; item (i) pending the query-size check; item (ii) (A in PH collapses to P uniformly in s) unverified; barrier (b) locality open.",
+  "evidence": "R1682: no computation yet. Pending check of G0008 item (i): the query-size statement of MMW Thm 1.2 (oracle calls per update, query length). Reading only, so far; the next step is a finite or structural test of whether the oracle queries can be bounded by poly(s) when the oracle is replaced by a P-procedure. No lower bound claimed.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795373198.4583585,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0009 item (i) RESOLVED AS A CONDITIONAL, NOT PROGRESS: MMW19 Thm 1.2 uses a Sigma3SAT^A oracle with queries of length O~(s) (source check 9380f504d96ea444). If P = NP then PH = P, so Sigma3SAT is decided by one fixed polynomial p; each oracle query costs p(O~(s)) = poly(s), so the update time is poly(s) for a fixed degree. Item (i) therefore holds under P = NP, but only as a consequence of P = NP itself and it does not show that (40a) fails. Item (ii) (A in PH collapses to P uniformly in s) is still unverified, and barrier (b), locality, is still open. G0001 remains OPEN. No lower bound is claimed.",
+  "evidence": "Reading only, no computation. Source: knowledge_search 9380f504d96ea444 (MMW19 primary PDF, Thm 1.2 quantifiers: Otilde(s) queries, Otilde(s^2) update, Otilde(s) space). Derivation: standard collapse PH = P under P = NP, so the oracle decision time is a fixed polynomial in the query length. Limitation: the collapse degree is non-constructive, so the bound is existential, not explicit.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795373867.2859688,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 still OPEN. The width identity is verified for n<=4 by computation and by hand proof, but it is bookkeeping: it gives no update-time lower bound and no progress toward (40a). Barrier (b) locality is unchecked (CHOPRS full text not read). The P=NP-conditional item (i) (G0010) is still a conditional consequence of P=NP, not progress.",
+  "evidence": "VERIFICATION of cm-f8ec3fb39cab47bd by cm-1428625645214492 (own direct truth-table enumeration of PM residuals g_a(b) over the bottom n-k rows; no use of the F(a) lemma). Results: residual width = distinct F(a) for every tested (n,k): (3,1): 8 = 8; (3,2): 8 = 8; (4,1): 16 = 16; (4,2): 37 = 37. Prediction (lemma: residual count == distinct F(a) count) held exactly; no surprise. Hand check of the lemma: g_a(b)=1 iff some T in F(a) has [n]\\T matched by b, so g_a is determined by F(a); conversely g_a(b*)=1 for b* a permutation of rows k+1..n onto [n]\\T iff T in F(a), so F(a) is determined by g_a. The lemma is correct as an identity. It is a width identity, not an update-time bound, and it does not close G0001. Control (barrier item c) is still failed by this width measure, since PM is in P. Locality (b) is still unchecked.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795373975.9159093,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Next step: define the per-read update cost of a uniform streaming machine for PM on K_{n,n} and measure whether it is poly(n) (discovery test: H1 poly-growth vs H2 super-poly growth). Read CHOPRS locality (barrier b) only if budget allows.",
+  "refuted_approach": "Width (number of distinct residual functions / distinct F(a) over prefixes) as the barrier-compatible measure for the CAND-A gate G0001: fails the perfect-matching control (G0004). Width of PM on K_{n,n} is 4, 13, 59 for n=2,3,4 while PM is in P, so width cannot separate the target class from P.",
+  "evidence": "Control measured in cm-1428625645214492 (width identity verified for (n,k) in {(3,1),(3,2),(4,1),(4,2)}, 8/8, 8/8, 16/16, 37/37). No lemma proved this session; G0001 remains OPEN. Obstacle: a repair needs an update-time measure (not width) that is polynomial on PM on K_{n,n} yet separates the target class; not yet constructed.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795374009.9526608,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Blocker for the update-time control: no formal model yet. Needed first: (a) state of a uniform one-pass machine on PM over K_{n,n}, (b) per-read update cost definition, (c) the live/dead prefix separation condition. Only after these are fixed is the poly(n) vs super-poly growth test (H1 vs H2) meaningful. No lower bound or P != NP progress is claimed.",
+  "evidence": "R1682 turn 11: no new computation. Width control already refuted (G0012, cm-1428625645214492 verification). Under P = NP, the MMW19 Thm 1.2 poly(s) update time is conditional only (G0010), not progress.",
+  "gap_id": "G0013"
+ },
+ {
+  "at": 1795374077.410735,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0013 refined (R1682, definitions only, no proof): (a) uniform one-pass machine M reads x in {0,1}^N in fixed order, states S_t, transition T_t: (s_{t-1}, x_t) -> s_t, output g(s_N). (b) U_t = word-RAM time of T_t; U(M,N) = max_t U_t. (c) correctness: f_p != f_q implies s(p) != s(q) for prefixes p,q of length t; live/dead split is a coarser condition, not required. Control: store-edges machine for PM on K_{n,n} has O(1) per-read work in indexed memory, so PM passes the update-time control (unmeasured, by reasoning). G0001 stays OPEN. Next required step: a target-class measure where U(M,N) is provably super-polynomial for a function in NP, or a proof that no such measure exists under the model.",
+  "evidence": "R1682 turn 12: definitions and control argument only. No computation run; no lower bound claimed. Under P = NP the MMW19 Thm 1.2 poly(s) update time is conditional only (G0010).",
+  "gap_id": "G0014"
+ },
+ {
+  "at": 1795374129.2441368,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "G0013 control (R1682 turn 13): store-edges machine for PM on K_{n,n} as an update-time control. Refuted as a control: it uses space n^2 = N, the full input, so O(1) per-read cost holds trivially and the test is vacuous in the poly(s) << N regime that the lower bound needs.",
+  "evidence": "R1682 turn 14: reasoning only, no computation. G0014 duplicates G0013 and should be treated as one entry. G0001 stays OPEN. Next required step: fix a space bound poly(s) << 2^m for a named NP function, define update cost under it, then test whether a lower bound on update cost exists. No P vs NP progress is claimed."
+ },
+ {
+  "at": 1795374175.5857964,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 OPEN. Reframed (R1682, turn 17): the update-time route needs a PROVED update-time lower bound for SEARCH-MCSP^A (or its decision version) under poly(s) space; choosing a different named NP function does not reduce this to a control. Width (G0012) and the store-edges control (G0013/G0014, vacuous since space = N) are both dropped. No P vs NP progress claimed.",
+  "evidence": "R1682 turn 17: reasoning only, no new computation. Refuted controls G0012 and the vacuous store-edges control are recorded; the open obligation is the update-time lower bound itself.",
+  "gap_id": "G0015"
+ },
+ {
+  "at": 1795374400.113812,
+  "session": "pnp-desk/research/R1682",
+  "model": "claude-haiku-5-5",
+  "refuted_approach": "Locality barrier check (CHOPRS Sec 1.3) does not by itself refute the update-time route; it constrains any route that adapts weak-model lower bounds to oracle circuits.",
+  "evidence": "R1683 BARRIER CHECK (b), locality, from CHOPRS arXiv 1911.08297 (web_read, sha256 1a0ccd5bdc36cc6b49f8c0f80c2e23486a2bfc6ad01f043cbd43a68050ad7e63). Read text: magnification theorems show the problems Q admit efficient circuits extended with small fan-in oracle gates, while lower-bound techniques against weak circuit models often extend easily to circuits with such oracles; so direct adaptations of those lower bounds are unlikely to yield strong separations via magnification. Applied here: (a) the width route is already refuted as a perfect-matching control (G0012), so locality adds nothing new to it; (b) the update-time route (G0013-G0015) has no proved lower bound, so locality cannot be tested on it yet; (c) the (40a) route quantifies over an oracle A, and locality is stated for oracle-gate circuits, so it is a live constraint, not a settled one. Verified only: cm-1428625645214492 (width identity, n<=4). Conditional only: G0010. Not established: any lower bound for (40a); no new lemma closes or shrinks G0001."
+ },
+ {
+  "at": 1795375233.0515451,
+  "session": "pnp-desk/research/R1690",
+  "model": "claude-haiku-5-5",
+  "evidence": "REVIEW-OF-OWN-LEMMA (not a proved_step, not progress; does not close G0001): cm-af1a16cb188a42d7 replicates the level-kn width lemma for n=2,3,4 and all 0<k<n. The partition by F(a) and the partition by residual g_a coincide in every case, and width(n=4,k=2)=37 is confirmed independently. The general argument in the recorded lemma is consistent with this (g_a determines F(a) via b*, and F(a) determines g_a via bottom matchings). G0001 is unchanged: the update-time lower bound for uniform one-pass Search-MCSP^A[s] machines is not established, and the barrier check (natural/localizing) is still open. Width is not an update-time measure, and G0004 already shows it fails the perfect-matching control."
+ },
+ {
+  "at": 1795375292.4148781,
+  "session": "pnp-desk/research/R1690",
+  "model": "claude-haiku-5-5",
+  "evidence": "Hand proof, checked in the reasoning. Finite confirmation for n<=4 is cm-af1a16cb188a42d7 (partitions_coincide true for all (n,k)). Does not close G0001 and is not an update-time bound.",
+  "id": "S0021",
+  "proved_step": "LEMMA W (exact, general n, 0<k<n). PM on K_{n,n}, row-major order, top block a = rows 1..k, bottom block b = rows k+1..n. Let F(a) = {T subset of [n], |T|=k : a admits a perfect matching of rows 1..k onto T}, g_a(b) = PM(a,b). Then F(a)=F(a') iff g_a=g_a' as functions of b. Hence the level-kn width equals the number of distinct F(a). PROOF. (1) A perfect matching of K_{n,n} splits into a matching of rows 1..k onto some T with |T|=k and a matching of rows k+1..n onto [n]\\T; so g_a(b)=1 iff some T in F(a) has b matchable onto [n]\\T. (2) For T, let b_T be the bottom graph whose only edges form one perfect matching of rows k+1..n onto [n]\\T. Its rows can only be matched onto exactly [n]\\T, so by (1) g_a(b_T)=1 iff T in F(a); hence F(a) is determined by g_a. (3) By (1), g_a(b)=1 iff some T in F(a) has b matchable onto [n]\\T, a condition on the pair (F(a), b); hence g_a is determined by F(a). Together (2) and (3) give the claim. QED.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795376154.738773,
+  "session": "pnp-desk/research/R1696",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "The lemma is mathematically correct: for perfect matching PM on K_{n,n} with row-major variable order, at level l=kn (after k rows), the residual function g_a(b) = PM(a,b) is in bijection with F(a) = {T subset [n], |T|=k : top k rows a admit a perfect matching onto T}. Proof: (1) Any perfect matching splits into a matching of rows 1..k onto T and rows k+1..n onto [n]\\T. (2) For each T, the permutation matrix b_T matching rows k+1..n onto [n]\\T satisfies g_a(b_T)=1 iff T in F(a), so F(a) is determined by g_a. (3) g_a(b)=1 iff exists T in F(a) with b matchable onto [n]\\T, so g_a is determined by F(a). Hence width at level kn equals the number of distinct F(a). Verified by re-derivation; matches measured widths 8 (n=3,k=1), 16 (n=4,k=1), 37 (n=4,k=2) from cm-f8ec3fb39cab47bd. However, this width measure fails the control test (G0004): max width 4,13,59 for PM on K_{2,2}, K_{3,3}, K_{4,4} vs 2 for parity, so it is large for a function in P and cannot by itself separate the target class from P.",
+  "review_of": "S0021",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795380585.622692,
+  "session": "pnp-desk/research/R1754",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 unchanged. Logical content of (40a) checked from the spec text: for each plain-class M, its negation is exists c,d,m0 forall m>=m0 with S_M(m) <= s(m)^c and tau_M(m) <= s(m)^d. A lower bound must therefore be an update-time bound, since space-only bounds do not suffice (spec 8.1 note). No proof of (40a) is supplied in this session.",
+  "evidence": "spec_read PNP-001-MANUSCRIPT-v0.25-EXACT-ONE.md page 8 (sha256_16 30c42edb2a6f097e), section 8.1, equation (40a).",
+  "gap_id": "G0016"
+ },
+ {
+  "at": 1795381802.3560395,
+  "session": "pnp-desk/research/R1751",
+  "model": "claude-haiku-5-5",
+  "id": "S0024",
+  "proved_step": "statement: For n>=2 and 1<=k<=n-1, let X={(i,j): i<k} and Y={(i,j): i>=k} be the edge sets of K_{n,n}. Let M[a,b]=1 iff a (subset of X) union b (subset of Y) is a perfect matching of K_{n,n}. Then rank_F(M)=C(n,k) over every field F. Closes: none. This is a control-failure lemma and does not close G0001.\nderivation: (1) In a union a+b that is a perfect matching, each left vertex i<k has degree 1 in a, since b has no edges at i<k, and the right endpoints of a are distinct. So a is valid iff a is an injection f:[k]->[n]; let S(a) be its image, |S|=k. (2) Symmetrically, b is valid iff it is an injection g:{k..n-1}->[n], with image T(b) of size n-k. (3) a+b is a perfect matching iff valid(a), valid(b) and T(b)=[n]\\S(a). (4) Row a depends only on S(a). Each k-set S has a nonempty row class R_S (valid a with S(a)=S), and each (n-k)-set T has a nonempty column class C_T (valid b with T(b)=T). The block R_S x C_T is all-ones if T=[n]\\S and zero otherwise; invalid rows and columns are zero. (5) Distinct S give distinct T=[n]\\S, so the nonzero blocks have disjoint row and column supports. M is therefore a sum of C(n,k) rank-1 blocks with disjoint supports, plus zero rows and columns, so rank_F(M)=C(n,k) over every field. (6) For k=n/2, rank >= 2^n/(n+1). Perfect matching is in P, so this rank measure fails the perfect-matching control.\nevidence: Hand proof above, re-checked step by step. Matches cm-40cf2c6f2271450d (GF(1000003), n<=4: 2,3,3,4,6,4) and cm-4a4d1d1af70b4712 (GF(2), n<=6, ALL_MATCH True, including n=5 k=2 -> 10 and n=6 k=3 -> 20). Not a proof of an oracle-free lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795406390.2698002,
+  "session": "pnp-desk/research/R1921",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Computational verification matches: cm-40cf2c6f2271450d (GF(1000003), n<=4) and cm-4a4d1d1af70b4712 (GF(2), n<=6, ALL_MATCH True including n=5 k=2 -> 10 and n=6 k=3 -> 20). The hand proof is correct: rows partition by k-set S(a), columns by (n-k)-set T(b); nonzero blocks are rank-1 with disjoint supports exactly when T = [n]\\S. There are C(n,k) such pairs. Perfect matching is in P, so this rank measure fails the perfect-matching control as required for the barrier check.",
+  "review_of": "S0024",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795474808.1584513,
+  "session": "pnp-desk/research/R2347",
+  "model": "gpt-6-luna",
+  "id": "S0026",
+  "proved_step": "statement_start: For every deterministic one-pass streaming machine with S state bits and a one-bit input alphabet, each transition stage can be implemented by a Boolean circuit of size O(S 2^S).\nstatement: Lemma (truth-table transition simulation). Let M be a deterministic one-pass machine whose configuration at each read boundary is encoded by S bits, whose next configuration after reading one input bit is a total function \u03b4:{0,1}^S\u00d7{0,1}->{0,1}^S, and whose input length is L. There is a layered Boolean circuit with L transition layers, O(S 2^S) gates per layer, and O(S) wires carrying state between adjacent layers, whose output equals M's final configuration (and hence any Boolean output function of that configuration, if that final decoder is appended). Proof: for each output coordinate j and each pair (u,b) in {0,1}^S\u00d7{0,1} with \u03b4(u,b)_j=1, form the minterm that is 1 exactly when the S state wires equal u and the input wire equals b. OR these minterms to obtain output coordinate j. A minterm uses O(S) literals and can be implemented with O(S) fan-in-2 gates; OR of at most 2^(S+1) minterms uses O(2^S) fan-in-2 gates per output coordinate. Summing over S coordinates gives O(S 2^S) gates per layer. Cascade the layers, feeding the initial configuration constants to the first layer and each layer's state outputs into the next; induction on layer index shows the wires equal M's configuration after each read. Appending the decoder preserves the final output. The construction is exact for all input strings of length L. This restricted lemma only gives an upper simulation bound and does not imply a lower bound for Search-MCSP or close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509576.148978,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "id": "S0027",
+  "proved_step": "statement: Let L be the YES language of an exact deterministic one-pass Search-MCSP machine on inputs of fixed length N. At a cut after t bits, define the suffix residual of prefix u in {0,1}^t by L_u={z in {0,1}^{N-t}: uz in L}, and let R_t be the number of distinct such residuals. If the machine has S state bits and its final output determines membership in L, then 2^S >= R_t, hence S >= ceil(log_2 R_t).\nproof: Suppose prefixes u and v reach the same state at the cut. Determinism implies that for every common suffix z, the continuation from that state produces the same final state and output on uz and vz. Exactness and the assumed membership decoder imply uz is in L iff vz is in L for every z. Therefore L_u=L_v. Distinct residuals must reach distinct machine states, so there are at least R_t states. An S-bit state has at most 2^S possibilities, giving 2^S >= R_t and the logarithmic bound.\nscope: Fixed-length inputs; deterministic one-pass computation; the entire configuration relevant to future computation is included in the S-bit state; final output determines YES membership. Applies to Search-MCSP when its exact search output is decoded for validity/membership under the specified total-task convention.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509732.8987463,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "id": "S0028",
+  "proved_step": "statement: Let F be any subset of {0,1}^N and fix a cut after t bits. For each prefix u in {0,1}^t, define its suffix residual F_u={z in {0,1}^{N-t}: uz in F}. If R_t is the number of distinct residuals, then R_t <= min(2^t, 2^(N-t), |F|+1).\nproof: There are at most 2^t prefixes and at most 2^(N-t) possible residual subsets of suffixes, giving the first two bounds. For the third, each distinct nonempty residual contains at least one suffix z. Choose one such z for each distinct nonempty residual, and choose one prefix u realizing that residual. The resulting pairs (u,z) are distinct because distinct residuals cannot be realized by the same prefix, and each pair satisfies uz in F. Thus the number of distinct nonempty residuals is at most |F|. There is at most one empty residual, so R_t <= |F|+1.\nscope: Finite fixed-length Boolean language and any fixed prefix cut. For Search-MCSP the lemma applies to F equal to the YES truth tables, but supplies only an upper bound on residual width; it does not prove G0001 or an update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795509839.1782928,
+  "session": "pnp-desk/research/R2587",
+  "model": "gpt-6-luna",
+  "id": "S0029",
+  "proved_step": "statement: Let F be a subset of {0,1}^N, fix a cut after t bits, and put p=2^t, q=2^(N-t), k=|F|. For each prefix u define F_u={z:uz in F}, and let R_t be the number of distinct F_u. Then R_t <= min(p,q,k+1,pq-k+1).\nproof: There are p rows, so R_t<=p. Each row is a subset of a q-element suffix set, so R_t<=q. For every distinct nonempty row pattern choose one matrix entry equal to 1 in a row realizing that pattern. Different patterns have different realizing rows, so the chosen entries are distinct; hence there are at most k distinct nonempty patterns, plus at most one empty pattern. Thus R_t<=k+1. For every distinct pattern other than the full pattern, choose a 0-entry in a row realizing it. Distinct patterns have distinct realizing rows, hence these chosen entries are distinct; there are pq-k zero entries. Thus there are at most pq-k non-full patterns, plus at most one full pattern, so R_t<=pq-k+1. Combining the four bounds proves the claim.\nscope: All finite fixed-length Boolean languages and every fixed prefix cut. For Search-MCSP this is only a residual-width upper bound; it proves no residual lower bound and no update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795510999.4873044,
+  "session": "pnp-desk/research/R2609",
+  "model": "gpt-6-luna",
+  "gap": "This implication only negates an eventual jointly bounded tail within the quantified solver class; any comparison with an external transfer theorem's model remains open.",
+  "gap_id": "G0017",
+  "id": "S0030",
+  "proved_step": "statement: For fixed admissible s,A satisfying the stated infinitely-often disjunction, every M in M_{s,A}^{plain} and every fixed c,d has no m1 such that S_M(m)<=s(m)^c and tau_M(m)<=s(m)^d holds for all m>=m1.\nderivation: Assume such an m1 exists. Instantiate the infinitely-often disjunction with this M,c,d and m0=m1. It supplies m>=m1 where at least one bound fails, contradicting the assumed simultaneous bounds throughout the tail. The conclusion is confined to the stated solver class and does not establish inclusion in any larger transfer class.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795539050.3950543,
+  "session": "pnp-desk/research/R2883",
+  "model": "gemma-4-31b-it",
+  "evidence": "The construction is a standard DNF expansion of the transition function \u03b4. With S state bits and 1 input bit, there are 2^{S+1} possible transitions. Each output bit is a Boolean function of S+1 variables, which can be implemented by an OR of at most 2^{S+1} minterms, each using O(S) gates. Total size O(S * 2^S) is correct.",
+  "review_of": "S0026",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795539249.0639648,
+  "session": "pnp-desk/research/R2883",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "This is a standard Myhill-Nerode style argument for deterministic one-pass streaming. If two prefixes u, v reach the same S-bit state, then for all suffixes z the machine's output on uz and vz is identical (determinism + state captures all future-relevant information). Therefore L_u = L_v. Distinct residuals require distinct states, so 2^S >= R_t. The argument is correct for the stated scope (deterministic one-pass, fixed length, state includes all configuration).",
+  "review_of": "S0027",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795539273.4929423,
+  "session": "pnp-desk/research/R2883",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Elementary combinatorial bounds. R_t <= 2^t (number of prefixes), R_t <= 2^(N-t) (number of possible residual subsets). For R_t <= |F|+1: each distinct nonempty residual F_u contains some z with uz in F; choose one such z and the prefix u realizing it. Distinct residuals have distinct chosen u (since u determines F_u), so the (u,z) pairs are distinct elements of F. Thus at most |F| nonempty residuals, plus at most one empty residual.",
+  "review_of": "S0028",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795539318.2926757,
+  "session": "pnp-desk/research/R2883",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Elementary combinatorial bounds. p=2^t rows => R_t<=p. q=2^(N-t) suffixes => R_t<=q. k=|F| ones => at most k nonempty patterns +1 empty => R_t<=k+1. pq-k zeros => at most pq-k non-full patterns +1 full => R_t<=pq-k+1. The injection arguments for the third and fourth bounds are valid (distinct patterns have distinct realizing rows by definition).",
+  "review_of": "S0029",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795539318.3169813,
+  "session": "pnp-desk/research/R2883",
+  "model": "nemotron-3-ultra-550b",
+  "evidence": "Valid proof by contradiction from the infinitely-often disjunction hypothesis. If \u2203m1 \u2200m\u2265m1 both bounds hold, then instantiate the disjunction (which asserts \u2200M,c,d,m0 \u2203m\u2265m0 where a bound fails) with this M,c,d and m0=m1. The disjunction provides m\u2265m1 where a bound fails, contradicting the tail assumption. The logic is sound within the stated solver class scope.",
+  "review_of": "S0030",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795568626.5287163,
+  "session": "pnp-desk/research/R3073",
+  "model": "gpt-6-luna",
+  "id": "S0036",
+  "proved_step": "statement: For every integer n >= 1, the row-major perfect-matching Boolean function on K_{n,n} has exactly 2^n distinct residual functions after the first n edge variables (the edges incident to the first row).\nproof: A prefix of the first n variables specifies a subset U of columns adjacent to the first row. For any suffix assignment b to the remaining edges, the full graph has a perfect matching exactly when some j in U can be reserved for the first row and the suffix rows have a matching onto [n]\\\\{j}. Thus the residual depends only on U, so there are at most 2^n residuals. To distinguish any distinct U,V, choose j in their symmetric difference, and let b contain exactly a bijection from the remaining n-1 rows onto [n]\\\\{j}. Then the only possible perfect matching uses column j for the first row. The residual accepts precisely when j belongs to the prefix subset, so the residuals for U and V differ. Every subset U is realizable by a prefix assignment. Hence there are exactly 2^n distinct residual functions.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608150.5222158,
+  "session": "pnp-desk/research/R3543",
+  "model": "gpt-6-luna",
+  "lemma": "LEMMA (residual distinguishability forces streaming states). Let L be a language over strings split into prefixes and suffixes, and fix a prefix length l. Define u ~ v iff for every suffix z, uz is in L exactly when vz is in L. Any deterministic one-pass machine that reads the prefix, stores a state, and thereafter processes the suffix exactly has at least as many distinct states after length-l prefixes as there are ~-classes. Proof: if u and v reach the same state, determinism implies that processing any common suffix z from that state yields the same acceptance outcome. Exactness therefore gives uz in L iff vz in L for every z, hence u ~ v. Thus each ~-class requires a distinct machine state. If the machine uses at most B bits of memory, it has at most 2^B states, so B >= ceil(log2 R_l), where R_l is the number of residual classes at the cut. Scope: deterministic exact one-pass recognition, fixed cut and encoding; this does not establish a large R_l for Search-MCSP or bound update time, and it does not close G0001.",
+  "id": "S0037",
+  "proved_step": "statement_start: LEMMA (residual distinguishability forces streaming states). Let L be a language over strings split into prefixes and suffixes, and fix a prefix length l.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608200.0585647,
+  "session": "pnp-desk/research/R3543",
+  "model": "gpt-6-luna",
+  "id": "S0038",
+  "proved_step": "statement: CONSTRUCTIVE RESIDUAL AUTOMATON LEMMA. Let L be a language over a finite alphabet \u03a3. For each prefix u, define its residual R_u={z\u2208\u03a3*: uz\u2208L}. Let \u211b={R_u:u\u2208\u03a3*}. If \u211b is finite, the machine with state set \u211b, initial state R_\u03b5, transition \u03b4(R_u,a)=R_{ua}, and accepting states {R_u: \u03b5\u2208R_u} recognizes L and is minimal among deterministic exact automata. The transition is well-defined: R_u=R_v implies for every z, uaz\u2208L iff vaz\u2208L, hence R_{ua}=R_{va}. Recognition follows by induction on the consumed input: after prefix u the state is R_u, which accepts exactly when u\u2208L. For minimality, prefixes with distinct residuals are distinguished by some suffix z on which membership differs; any exact deterministic machine must therefore place them in distinct states. Consequently the minimum state count is |\u211b|, and any encoding needs at least ceil(log2 |\u211b|) bits. This gives an exact state lower bound but no transition-circuit/update-time lower bound.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795608522.9348657,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0037: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: proof not accepted; the quotient and representative construction still has unresolved Lean type errors. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795630923.8113081,
+  "session": "pnp-desk/research/R3823",
+  "model": "nemotron-3.5-super-vl-120b-a12b",
+  "evidence": "Exact enumeration for n=1,2,3,4: distinct residual counts are 2, 4, 8, 16 respectively, exactly 2^n in each case. The proof's two claims hold: (1) residual determined solely by U = columns j with edge(row1,j)=1, since row 1 must use exactly one column from U; (2) any distinct U,V distinguished by choosing j in symmetric difference and setting suffix edges as a bijection from rows 2..n onto [n]\\\\{j} (column j then has no edges from rows 2..n, forcing row 1 to use j, which is possible iff j in U). No gap found.",
+  "review_of": "S0036",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795630924.430249,
+  "session": "pnp-desk/research/R3823",
+  "model": "nemotron-3.5-super-vl-120b-a12b",
+  "evidence": "Exact enumeration for n=1,2,3,4: distinct residual counts are 2, 4, 8, 16 respectively, exactly 2^n in each case. The proof's two claims hold: (1) residual determined solely by U = columns j with edge(row1,j)=1, since row 1 must use exactly one column from U; (2) any distinct U,V distinguished by choosing j in symmetric difference and setting suffix edges as a bijection from rows 2..n onto [n]\\\\{j} (column j then has no edges from rows 2..n, forcing row 1 to use j, which is possible iff j in U). No gap found.",
+  "review_of": "S0036",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795660935.8860693,
+  "session": "pnp-desk/research/R4223",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the Myhill-Nerode theorem for deterministic one-pass streaming machines. The proof is correct: if prefixes u and v reach the same state, determinism implies that for any suffix z, processing z from that state yields the same acceptance outcome, so uz\u2208L \u21d4 vz\u2208L. Thus each ~-equivalence class requires a distinct machine state. The lemma correctly states its scope: deterministic exact one-pass recognition with fixed cut/encoding; it does not establish a large residual count for Search-MCSP, bound update time, or close G0001. No counterexample exists for the stated claim.",
+  "review_of": "S0037",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795660935.914312,
+  "session": "pnp-desk/research/R4223",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "This is the standard Myhill-Nerode construction of the minimal DFA from residuals. The transition is well-defined: if R_u = R_v then for all z, uaz\u2208L \u21d4 vaz\u2208L, so R_{ua} = R_{va}. Recognition follows by induction on input length. Minimality holds because distinct residuals are distinguished by some suffix. This is a fully proved mathematical fact (Myhill-Nerode theorem). The scope note is accurate: it gives an exact state lower bound (ceil(log2 |\u211b|) bits) but no transition-circuit or update-time lower bound. No counterexample or gap exists.",
+  "review_of": "S0038",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795673216.5011137,
+  "session": "pnp-desk/research/R4353",
+  "model": "gpt-6-luna",
+  "id": "S0044",
+  "proved_step": "statement_start: In a Boolean transition circuit with T fan-in-two gates, if every output is driven by a gate, at most 2T distinct input variables can feed those gates.\nevidence: Each of the T gates has at most two input slots, so the union of variables feeding gates has size at most 2T. The output restriction matters: free output wires can copy arbitrarily many inputs without gates. This restricted lemma gives no bound for the unrestricted Search-MCSP machine, so it does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795673354.3974433,
+  "session": "pnp-desk/research/R4353",
+  "model": "gpt-6-luna",
+  "id": "S0045",
+  "proved_step": "statement_start: For every Boolean circuit with n primary input variables and T gates, regardless of fan-out and with arbitrary output wires, the circuit has at most n+T distinct output Boolean functions.\nevidence: Each output function is the function computed by a primary input or by one of the T gates. Thus at most n+T distinct functions can appear on output wires. Fan-out and repeated output wires can repeat a source function, but cannot create another function. This bound does not show that Search-MCSP transitions need many distinct next-state functions, so it does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795673566.8140042,
+  "session": "pnp-desk/research/R4353",
+  "model": "gpt-6-luna",
+  "id": "S0046",
+  "proved_step": "statement_start: For every finite Boolean circuit with n primary input variables and T gates, the number of distinct Boolean functions on its output wires is at most n+T+2.\nevidence: Each output wire carries the function of a primary input, a gate output, or one of the two constant functions. There are at most n+T+2 such sources, regardless of fan-out or repeated wires. This does not show that Search-MCSP transitions require many distinct output functions and does not close G0001.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795673635.072754,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0044: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The length identity for the flattened gate inputs remains unverified. (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795708671.4438627,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0045: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795708671.449504,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0046: OPEN_UNPROVEN - no counterexample found; formal proof attempt TOOL_ERROR: no FINAL (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795708854.4689455,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0046: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: No Lean proof was accepted; the available verification tool could not be called.** (not a refutation; a model review is still needed)"
+ },
+ {
+  "at": 1795709040.383371,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0045: OPEN_UNPROVEN - no counterexample found; formal proof attempt INCONCLUSIVE: GIVE_UP: The transcript contains a kernel-accepted proof of `circuit_distinct_output_functions_le_inputs_plus_gates` using `Finset.card_image_le` and the finite wire type `Fin n \u2295 Fin T`. However, the (not a refutation; a model review is still needed)"
+ }
+]

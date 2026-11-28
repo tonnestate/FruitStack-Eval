@@ -1,0 +1,124 @@
+[
+ {
+  "at": 1795335442.4626327,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "DISPUTE K11-D6 decomposed into two precise propositions, neither yet decided. P1 (Claude, strong): there is a property Pi of truth tables, stated before the proof, with Pi(MCSP target) and not Pi(every oracle circuit of MMW19 Lemma 3.1 type, i.e. Circuit-Min-Merge^A[s] gates of fan-in poly(s)). P2 (ChatGPT, weak): every correct lower-bound proof has at least one step s* that fails on those oracle circuits, and s* can be identified after the fact. Status: P2 is not automatic. Its premise, that the failing step exists, holds only if the bound is unconditional and the oracle circuits exist in the world where the proof is tested. The failing step is then world-dependent, not a fixed syntactic step, so P2 needs the step to be fixed in advance to be checkable. Next: decide whether CHOPRS Section 5 (oracle fan-in / cost model) gives a fixed locality condition that makes P1 necessary, or whether P2 with a fixed step list suffices. Blocker: CHOPRS Section 5 source text (three truncated copies in earlier sessions). No proof step is claimed in this turn.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795335565.9070547,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "G0001 narrowed: P1 must still find a fixed property Pi separating MCSP[N^beta] from MMW19 oracle circuits with fan-in N^{Theta(beta)}; Section 5 of TR19-168 is required to confirm which local techniques survive. No proved step claimed in this turn.",
+  "evidence": "Read TR19-168 (ECCC 2019) Appendix A.2 text: Definition 62 (local circuit classes: q oracle gates, fan-in <= l, adaptivity <= a) and Proposition 63 [MMW19]: MCSP[s] in [O(N/poly(s)), poly(s), O(n/log s)]-Circuit[N/poly(s)]. For s=N^beta the oracle fan-in is l = poly(s) = N^{Theta(beta)}, so MMW19 oracle circuits lie in the locality-barrier regime for small beta. Section 5 (locality barrier proof text) NOT yet read; the CHOPRS locality claim is still cited, not verified.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795335586.4464035,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "G0002 narrowed: find a property Pi (fixed in advance) with Pi(MCSP[N^beta]) true and Pi false for every MMW19 Lemma 3.1 oracle circuit. The Lemma 41 degree bound does not separate them for beta < 1/2 because it is a fan-in product bound; a separator must use something other than fan-in locality. P2 (step-list version) remains untested.",
+  "evidence": "Read TR19-168 Section 5.1.1 (ECCC 2019, via web_read offset 89023). Proposition 39 (A1O): MKtP[n^c,2n^c] is in AND-O-XOR[N^1.01] with oracle gates of fan-in poly(n) in the middle layer. Lemma 41 (localized Razborov-Smolensky): a depth-d oracle AC0[XOR] circuit whose level-i oracle gates have fan-in O_i has a probabilistic polynomial of degree at most (log N)^d * prod_i O_i. Proposition 39(A3O): Majority is not computed by such circuits when prod_i O_i <= sqrt(N)/omega(log N)^d, via Lemma 40 (degree <= sqrt(N)/4 polynomials fail to approximate Majority). Scope: these statements are for AC0[XOR] oracle circuits and for Majority, not for MCSP. Consequence for P1: with a single oracle level of fan-in N^{Theta(beta)} the product is N^{Theta(beta)}, so the localized method applies for beta < 1/2 and gives no separating property for MCSP[N^beta] there. Status: Section 5 read; P1 not yet tested; no step claimed.",
+  "gap_id": "G0003"
+ },
+ {
+  "at": 1795335604.123412,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "G0003: (i) decide whether MMW19 Lemma 3.1 oracle circuits are AC0[XOR]-shaped (depth and gate types from the MMW19 text, not yet read); (ii) if not, P1 (a fixed property separating MCSP[N^beta] from them) is untested and no barrier claim may be made; (iii) P2 (step-list version) untested. No proved step claimed in this turn.",
+  "evidence": "CORRECTION to the previous evidence entry. TR19-168 Lemma 41 and Prop. 39(A3O) are stated for depth-d polynomial-size AC0[XOR] oracle circuits and for Majority. The text does not show that MMW19 Lemma 3.1 oracle circuits (general size N/poly(s), oracle gates of fan-in poly(s), no depth bound stated in the read window) lie in that class. The earlier sentence 'the localized method applies for beta < 1/2 to MCSP oracle circuits and gives no separating property' is therefore NOT established and is withdrawn. What is established: the degree bound of Lemma 41 is a product of oracle fan-ins, so it can only rule out MMW19-type circuits if they are AC0[XOR] of bounded depth; this is an open scope check, not a refutation of P1 or P2.",
+  "gap_id": "G0004"
+ },
+ {
+  "at": 1795335761.6698399,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 open: a separator for MMW19 Lemma 3.1 circuits that is not a fan-in product bound. P2 (fixed step list) is untested. No proved step in this session.",
+  "refuted_approach": "Localized Razborov-Smolensky degree route (TR19-168 Lemma 41 / Prop 39 A3O) as a separator of MMW19 Lemma 3.1 oracle circuits from MCSP[N^beta]. Two independent obstructions: (1) Lemma 41 is stated only for constant-depth d polynomial-size AC0[XOR] oracle circuits and for Majority; MMW19 circuits have depth O(n/log l) and Circuit-Min-Merge oracle gates, so the lemma does not apply. (2) Even granting the shape, the degree bound prod_i O_i = l^D is >= 2^n >= sqrt(N) on the 36-row parameter grid (n in {200,400,800}, beta in {0.1,0.25,0.4}, l = s^c, c in {2,3,5,10}); this grid check is exploratory and is not a proof for all parameters. Correction: the earlier reading 'ratio = c/(c-1)' is not what the table shows.",
+  "evidence": "cm-2aad2f717c054720 (EXPLORATORY_COMPUTATION, 36 rows, all_prod_ge_N true); MMW19 Lemma 3.1 text (people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf, d = l/(100 s log s), d-ary tree of depth log_d(2^n)); TR19-168 Lemma 41 and Prop 39 (ECCC 2019 section 5.1.1, constant d).",
+  "gap_id": "G0005"
+ },
+ {
+  "at": 1795335869.091007,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 unchanged: no separator Pi for MMW19 Lemma 3.1 oracle circuits that is not a fan-in product bound. P2 (fixed step-list separator) untested. Repair of the Lemma 41 route is not constructed.",
+  "evidence": "Algebra only: l^D >= d^D >= N follows from l >= d, D >= 0, d^D >= N. Checked by hand; no computation needed.",
+  "gap_id": "G0006",
+  "id": "S0006",
+  "proved_step": "Lemma (tree product bound): for integers d >= 2, l >= d, D >= 0 with d^D >= N, the product of D level fan-ins each equal to l is l^D >= d^D >= N. Proof: l >= d and D >= 0 give l^D >= d^D; d^D >= N by hypothesis. BOOKKEEPING ONLY: does not close G0004 and is not progress toward P vs NP. It explains why cm-2aad2f717c054720 is vacuous and is not an independent check.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795336013.2254112,
+  "session": "pnp-desk/research/R1383",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 open: separator for MMW19 Lemma 3.1 circuits that is not a degree or fan-in-product bound. P2 untested. No proved step this session.",
+  "refuted_approach": "Lemma 41 degree route (TR19-168 section 5.1.1) as a separator of MMW19 Lemma 3.1 oracle circuits from MCSP[N^beta]. SOURCED SCOPE (ECCC TR19-168 download, read this session): Lemma 41 is stated for a depth-d polynomial-size oracle AC0[XOR] circuit whose level-i oracle gates have fan-in at most O_i, with degree bound O(log N)^d * prod_i O_i. MMW19 Lemma 3.1 trees have depth about n/log(l), grow with n, and use Circuit-Min-Merge oracle gates, so the lemma's hypotheses do not hold. On the 36-row grid the product is at least N (exploratory only). Earlier claims that the route applies for beta < 1/2 and the c/(c-1) ratio are withdrawn.",
+  "evidence": "TR19-168 full text (eccc.weizmann.ac.il/report/2019/168/download, read offset 90670): Lemma 41 statement and proof of A3O of Proposition 39. MMW19 Lemma 3.1 construction (people.csail.mit.edu/rrw/MCSP-MKTP-stoc19.pdf). cm-2aad2f717c054720 (exploratory).",
+  "gap_id": "G0007"
+ },
+ {
+  "at": 1795347419.8592522,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 still open. This session has not yet checked MMW19 Lemma 3.1 for AC0[XOR] shape, and no separator Pi has been constructed. Next step: a discovery computation on the tree shape (depth, fan-in, gate types), then decide P1 versus P2 for the fixed-step list.",
+  "gap_id": "G0008"
+ },
+ {
+  "at": 1795347481.496347,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "evidence": "Session R1455. cm-d92ee4f08b5b4b84 failed (OverflowError from N**beta at n=800); no data. cm-365b400425064cba (VERIFICATION of arithmetic) shows log2(l^D) = n = log2(N) identically at all 36 grid points, because D = n/log2(l) is chosen to make the product equal N. The grid therefore carries NO information about MMW19 Lemma 3.1 trees: D must be the real depth from the MMW19 text, not a free parameter. The earlier 'product >= N on the grid' statement (G0004 route) is withdrawn as non-discriminating. This is exploration evidence only, not a separator."
+ },
+ {
+  "at": 1795347677.8620389,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 open: MMW19 Lemma 3.1 Circuit-Min-Merge tree shape (fan-in, depth, gate types) not yet read verbatim. Next: read the remaining sections of the arXiv-hosted STOC19 PDF (offset 13500 onward) and test the candidate separator against the exact tree shape.",
+  "evidence": "Session R1455, DISCOVERY run cm-788c40e311db4102 (4-variable Boolean functions, split x1x2|x3x4): D = number of distinct residual rows, R = GF(2) rank of the 4x4 matrix. Prediction H2 (D != R for some f) holds, counts (D,R): (1,0):1, (1,1):15, (2,1):210, (2,2):1470, (3,2):5040, (3,3):15120, (4,2):840, (4,3):22680, (4,4):20160. The first mismatch is the zero function (D=1, R=0), so the separation is definitional (zero row counted as a state) and carries no information about the MCSP oracle question. Not a finding; G0004 remains open because MMW19 Lemma 3.1 is still unread.",
+  "gap_id": "G0009"
+ },
+ {
+  "at": 1795347701.3968217,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 open: MMW19 Lemma 3.1 Circuit-Min-Merge tree shape not yet read verbatim (expected offset >= 22500).",
+  "evidence": "CORRECTION (R1455): cm-788c40e311db4102 is not a discriminating DISCOVERY. The D != R separation follows from the definitions (e.g. rows {1,2,3} give D=3, R=2 over GF(2)); the zero-row case is degenerate. It carries no information for the MCSP oracle question and must not be cited as evidence. MMW19 offsets 0-18000 read: Thm 1.1-1.7 stated; Lemma 3.1 not yet read.",
+  "gap_id": "G0010"
+ },
+ {
+  "at": 1795347726.6053221,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 open: Lemma 3.1 (Section 3) still unread. Next: offsets 27000 and 31500.",
+  "evidence": "MMW19 Section 1.2 (offset 22500, informal, not Lemma 3.1 verbatim): for the NP-subset-TC0 / depth-bounded case, the compression is an O(1)-depth tree of Circuit-Min-Merge oracle gates, each taking poly(s(n)) inputs (child outputs feed parent gates), whose leaves span the whole 2^n-length input, and whose root prints a size-s(n) circuit or reports none exists. The Circuit-Min-Merge gates merge an unbounded number of circuits on disjoint intervals. The tree shape therefore has bounded depth and poly(s) fan-in, with leaves covering all of the input. This is a candidate locality-free structure to test against Q-26be1ff4a1, but the claim is not yet checked against the lemma text.",
+  "gap_id": "G0011"
+ },
+ {
+  "at": 1795347754.5633323,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "gap": "G0004 closed as READ (Lemma 3.1 verbatim, above). Open: whether a locality-free state-count measure (distinct residuals or GF(2) cut rank) can give a lower bound on the Circuit-Min-Merge tree. No such claim is made. Next step would be a DISCOVERY test that separates two hypotheses: (A) the tree's gate outputs are determined by residual-row counts at each level (predicts a count-based bound), (B) they need full circuit descriptions (predicts count-based bounds fail on instances with equal residual counts but different minimum circuit size).",
+  "evidence": "MMW19 Lemma 3.1 read verbatim (STOC19 PDF, offset 31500). Statement: for s(n) >= n and l(n) >= s(n)^2 (both time constructible), there is a uniform AC circuit family for MCSP^A[s(n)] of ~O(2^n * s(n)/l(n)) size and O(n/log l(n)) depth using Circuit-Min-Merge^A[s(n)] oracle gates, each taking only l(n) input bits. Construction: a d-ary tree with d = l(n)/(100 s(n) log s(n)); each gate merges d child circuit descriptions (size <= s(n)) on disjoint intervals; leaves are the constant-size descriptions D_0^x of the 2^n truth-table bits; depth log_d(2^n) = O(n/log l). Output is the AND of the first output bits of the root-layer gates, and search-MCSP is obtained by ANDing with the root description. CORRECTION to the earlier G0011 note: the gate fan-in is d = Theta(l/(s log s)), not poly(s); the 'poly(s) inputs' phrase in MMW19 Section 1.2 is informal. Scope: this is an UPPER-BOUND (circuit) construction; it gives no lower bound and no hardness information by itself. Locality observation (not a result): the state passed between gates is a size-s circuit description, not a residual-row count, so a count of distinct residual rows is not the quantity this construction uses. The earlier cm-788c40e311db4102 run is not evidence (see CORRECTION). P vs NP progress in R1455: none.",
+  "gap_id": "G0012"
+ },
+ {
+  "at": 1795347823.460351,
+  "session": "pnp-desk/research/R1455",
+  "model": "claude-haiku-5-5",
+  "evidence": "BOOKKEEPING ONLY (session R1455, turn 17). Standard inclusion-exclusion. Checked edge cases: an empty clause has f_i identically 1, so the terms for S and S with i removed cancel; a tautological clause is never falsified and is covered by N(S) = 0. It does not close G0001-G0012 or any obligation of Q-26be1ff4a1, and it is not progress toward P vs NP. Needs an independent review before it counts as VERIFIED.",
+  "id": "S0014",
+  "proved_step": "Formalization of S-54f648a904 (inclusion-exclusion for #F). Let F = C_1 and ... and C_m be a CNF over x_1..x_n. For S subset of [m] put L(S) = union of C_i over i in S, and N(S) = #{a in {0,1}^n : every literal of L(S) is false under a}. Then #F = sum over S of (-1)^|S| N(S). Moreover N(S) = 2^(n - |V(S)|) if L(S) contains no complementary pair {x, not-x}, and N(S) = 0 otherwise, where V(S) is the set of variables occurring in L(S). Proof: with f_i(a) = 1 iff C_i is falsified by a, [a satisfies F] = product over i of (1 - f_i(a)). Expanding gives sum over S of (-1)^|S| times product over i in S of f_i(a), and that product is 1 exactly when all literals of L(S) are false under a. Summing over a gives the identity. A consistent L(S) forces the values of V(S) and leaves n - |V(S)| variables free; an inconsistent L(S) has no satisfying-falsifying assignment.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795426000.0067642,
+  "session": "formal-lane",
+  "model": "unknown",
+  "evidence": "FORMAL LANE on S0006: OPEN_UNPROVEN - Lean kernel accepted a statement, but the fidelity review says MISMATCH: The Lean theorem `test (n : Nat) : n = n := rfl` is a trivial reflexivity tautology that shares no variables, hypotheses, or conclusions with the original claim. The claim quantifies over d\u22652, l\u2265d, D\u22650, N with d^D\u2265N and concludes l^D \u2265 d^D \u2265 N; the L (not a refutation; a model review is still needed)"
+ }
+]

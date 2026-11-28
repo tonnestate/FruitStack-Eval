@@ -1,0 +1,36 @@
+[
+ {
+  "at": 1795367905.8773186,
+  "session": "pnp-desk/research/R1602",
+  "model": "claude-haiku-5-5",
+  "gap": "Part (A) is open. The K4 run cm-a283e21770284a80 is a tautology (itertools.combinations(range(n),4) is nonempty iff n>=4), so it does not discriminate H0 (width-only hardness for all n) from H1 (a function-specific premise is needed). It establishes only that K_n has 4-vertex subgraphs, which is not a refutation-size measurement. Still needed: (1) the exact min over bases B of tw(H_B) for K_3 and K_4 (this is G0001 of Q-33e33ccf08, not yet computed); (2) a named premise P that Search-MCSP satisfies and K_n does not, stated so it can be checked on both. Candidate P (unverified): the function must be total on all 2^m truth-table prefixes, so a refutation must cover every consistent circuit. Whether K_n violates P is not checked.",
+  "evidence": "cm-a283e21770284a80: K4_subgraph_exists = false (n=3), true (n=4,5,6). Result is a trivial combinatorial fact; no width or refutation size was measured.",
+  "gap_id": "G0001"
+ },
+ {
+  "at": 1795367948.8276777,
+  "session": "pnp-desk/research/R1602",
+  "model": "claude-haiku-5-5",
+  "gap": "Part (A) premise is unverified and may be mis-stated. The question assumes K_n has constant-size Resolution refutations, but this is not established: the only K_n witness checked (cm-a283e21770284a80) shows a 4-subset exists for n>=4, which is trivial. Standard width results for Tseitin-type systems on graphs (Ben-Sasson-Wigderson 2001, width >= treewidth-type bound; to be checked at primary source) suggest that for GF(2) Tseitin on K_n the refutation width grows with n, which would contradict the premise. The formula in Q-33e33ccf08 is a GF(3) linear system, not a Tseitin CNF, so the transfer is open. Open obligations: (1) exact min over bases B of tw(H_B) for K_3, K_4 (G0001 of Q-33e33ccf08, uncomputed); (2) the exact CNF encoding of F(K_n) and its Resolution width for small n, computed by an independent encoding; (3) only then a named premise separating Search-MCSP from K_n.",
+  "evidence": "cm-a283e21770284a80 is a trivial 4-subset check and measures no width or refutation size. No proved_step is recorded: no lemma was proved this session.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795376500.2052572,
+  "session": "pnp-desk/research/R1697",
+  "model": "claude-haiku-5-5",
+  "id": "S0003",
+  "proved_step": "statement: Let G be a connected graph, c: V -> {0,1} with sum_v c(v) odd, and Tseitin(G,c) the GF(2) CNF on edge variables that contains, for each vertex v, every clause excluding one parity-violating assignment of the edges at v. Then every resolution refutation of Tseitin(G,c) contains a clause of width >= min{deg(v) : c(v) = 1}. Corollary: for K_n with c(0)=1 and c(v)=0 otherwise (n odd-sum parity fixed), every refutation has width >= n-1, so refutation width is unbounded in n for this encoding.\nderivation: Let x = 0. For a vertex v with c(v)=0, the parity of x at v is even, so no clause of v's parity-violating family is falsified by x: every such clause is satisfied by x. For a vertex v with c(v)=1 and deg(v)=d, x has even parity at v, so the single clause of v's family that excludes x|_{edges at v} is falsified by x; that clause has width d. Let w < min{deg(v): c(v)=1}. Then every initial clause of width <= w is satisfied by x (clauses of charge-0 vertices by the parity argument, and charge-1 clauses have width >= min deg > w so they are absent). Resolution is sound: if C and D are satisfied by a fixed assignment x, every resolvent of C and D is satisfied by x. Hence every clause derivable with width <= w is satisfied by x, and the empty clause, which x does not satisfy, is not derivable. So no refutation of width <= w exists, i.e. every refutation has a clause of width >= min odd-charge degree. Check on bowtie (deg 4 at vertex 0): width >= 4 (matches measured minimal width 4 in cm-5e55529b375c468f, so tw+1 = 3 is refuted for this encoding). K_n with one odd vertex: width >= n-1 (measured K4: 4 >= 3; K5: >= 7 >= 4, so the bound is not tight there).\nscope: Gf(2) Tseitin CNF with edge variables and all parity-violating clauses per vertex, as stated. Does not cover the GF(3) kernel encoding F(K_n) of Q-33e33ccf08 or any other encoding. Lower bound only; no upper bound claimed.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795376592.579226,
+  "session": "pnp-desk/research/R1697",
+  "model": "claude-haiku-5-5",
+  "id": "S0004",
+  "proved_step": "statement: Let F be an unsatisfiable CNF over Boolean variables and let x be any assignment. Let m(x) = min{|C| : C in F and x falsifies C} (m(x) = infinity if x falsifies no clause). Then every resolution refutation of F contains a clause of width >= m(x). Corollary: if some x falsifies only clauses of width >= m, then F has no refutation of width < m. The degree lemma S0003 is the special case F = Tseitin(G,c), x = 0.\nderivation: Let P be a resolution refutation of F and suppose every clause of P has width < m(x). Each initial clause of P is a clause of F with width < m(x), so by definition of m(x) x satisfies it. Resolution is sound for a fixed assignment: if clauses C and D are both satisfied by x, a resolvent of C and D is satisfied by x, because the resolved variable is satisfied by x via one of C or D. By induction every clause of P is satisfied by x. The last clause of P is the empty clause, which x does not satisfy. Contradiction. Hence P contains a clause of width >= m(x). The corollary follows by taking x that falsifies only clauses of width >= m. Check: for x = 0 and Tseitin(G,c) with c(v)=1 at vertex v, m(0) = min odd-charge degree, which recovers S0003.\nscope: Any unsatisfiable CNF F and any assignment x, resolution (Boolean, no weakening, width = max clause size in the refutation). Gives only a lower bound; it does not give an upper bound. It does not by itself say anything about the GF(3) kernel encoding of F(K_n) or about Search-MCSP. Its use for part (A) requires exhibiting, for a given CNF encoding of F(K_n), an x whose falsified clauses are all wide; that check is not done here.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ }
+]

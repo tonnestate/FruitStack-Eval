@@ -1,0 +1,73 @@
+[
+ {
+  "at": 1795352546.1284873,
+  "session": "pnp-desk/research/R1493",
+  "model": "claude-haiku-5-5",
+  "gap": "Premise is the open update-time lower bound. Unverified: streaming model (input representation, workspace, search semantics, uniformity), time-constructibility of s(n)=2^{n/log* n}, and CJW Thm 1.6 (unread at primary source).",
+  "gap_id": "G0001",
+  "id": "S0001",
+  "proved_step": "Lemma T1: if for some A in PH and eps>0, infinitely many n, every poly(s)-space streaming algorithm for search-MCSP^A[s(n)], s(n)=2^{n/log* n}, on 2^n-bit inputs has worst-case update time >= 2^{eps n}, then P != NP. Proof: P=NP gives (via the proof of MMW19 Thm 1.3) an algorithm with update <= s^k = 2^{kn/log* n} for fixed k; the hypothesis gives eps <= k/log* n, false for large n.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2d5349e0b1",
+  "closes_valid": true
+ },
+ {
+  "at": 1795359197.2620142,
+  "session": "pnp-desk/research/R1533",
+  "model": "claude-haiku-5-5",
+  "gap": "S0001 (Lemma T1) stays CLAIMED. Session R-QE* (claude-haiku-5-5) withdrew its earlier 'REFUTED' draft: the poly(N) objection misread the setting, since MMW19 Thm 1.2 queries are O~(s) long. A review by a claude-haiku session is same-family and does not count toward the cross-family requirement. Open points: (a) does P=NP yield a UNIFORM poly(s)-space, poly(s)-update streaming machine for search-MCSP^A[s], A in PH (A in P under P=NP), for every n; (b) time-constructibility of s(n)=2^{n/log* n}; (c) CJW20 Thm 1.6 still unread at primary source.",
+  "gap_id": "G0002"
+ },
+ {
+  "at": 1795364689.948387,
+  "session": "pnp-desk/research/R1575",
+  "model": "claude-haiku-5-5",
+  "evidence": "Session R1575 (claude-haiku-5-5, same model family as the claimer of S0001). No review of S0001 is recorded: a same-family review does not count, and the status stays CLAIMED. Checked only the arithmetic: with s = 2^{n/log* n}, 2^{eps n} = s^{eps log* n}, which is valid asymptotically. Cited run cm-9b3fbc2bf4ef4f83 hit its loop cap (n = 10^6) for most rows, so it does not establish the threshold for eps = 0.01. S0001 depends on the open update-time premise G0001 and on MMW19 Thm 1.3 applied under P=NP (G0002 a: uniformity of the streaming machine; G0002 b: time-constructibility of s(n)=2^{n/log* n}). No constructive lemma closing G0001 was found in this session."
+ },
+ {
+  "at": 1795364755.8070688,
+  "session": "pnp-desk/research/R1575",
+  "model": "claude-haiku-5-5",
+  "id": "S0004",
+  "proved_step": "Lemma B: if A is in P with decider time p_A, then Sigma3SAT^A is in \u03a33P (each oracle gate is replaced by a poly(l)-size circuit, giving a formula R' with no oracle), so under P=NP (PH=P) Sigma3SAT^A is decidable in time poly(l), the polynomial depending only on A. This is bookkeeping: it does NOT discharge the update-time premise G0001 and does not count as progress toward P vs NP until a cross-family reviewer confirms it.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "Q-2013d241b0",
+  "closes_valid": true
+ },
+ {
+  "at": 1795377916.0886931,
+  "session": "pnp-desk/research/R1706",
+  "model": "nemotron-3-ultra-550b-a55b",
+  "evidence": "Reviewing Lemma T1 (S0001): 'if for some A in PH and eps>0, infinitely many n, every poly(s)-space streaming algorithm for search-MCSP^A[s(n)], s(n)=2^{n/log* n}, on 2^n-bit inputs has worst-case update time >= 2^{eps n}, then P != NP.' The proof claims: P=NP gives (via MMW19 Thm 1.3 proof) an algorithm with update <= s^k = 2^{kn/log* n} for fixed k; hypothesis gives eps <= k/log* n, false for large n. CRITICAL GAP: The step assumes P=NP yields a UNIFORM one-pass streaming algorithm with poly(s) space AND poly(s) update time for search-MCSP^A[s]. MMW19 Thm 1.3 proof applies P=NP to the Sigma3SAT^A oracle calls in Thm 1.2's algorithm. Thm 1.2 gives: for ARBITRARY oracle A, a one-pass algorithm with O~(s^2) UPDATE TIME and O~(s) SPACE, USING an oracle for Sigma3SAT^A with queries of length O~(s). Under P=NP, Sigma3SAT^A is in P (since A in PH implies A in P under P=NP), so the oracle calls become polynomial-time computations. BUT: (1) The resulting algorithm's update time becomes poly(s) * time to simulate Sigma3SAT^A oracle on O~(s)-length queries. The decider for Sigma3SAT^A runs in time poly(l) where l=O~(s), so update time becomes poly(s). (2) HOWEVER, Thm 1.2's algorithm is NONUNIFORM in its handling of the oracle (the machine description depends on the oracle A). MMW Thm 1.3 states: 'if A in PH and search-MCSP^A[s] has no poly(s)-space, poly(s)-update streaming algorithm, then P != NP'. The quantified class in Thm 1.3 is 'ALL exact staged Boolean realizations' - this is a NONUNIFORM model (see MMW19 Section 1.2: 'exact staged Boolean realization' allows arbitrary Boolean functions at each stage). The hypothesis of Lemma T1 quantifies over 'every poly(s)-space streaming algorithm' - but which model? If it's the uniform RAM model of (40a), then the class is strictly smaller than MMW's nonuniform staged realizations. The implication (40a) => P!=NP would then require that the nonuniform class is contained in the uniform class, which is false (nonuniform includes uncountably many functions). The step does not specify the streaming model precisely, and the class mismatch is fatal. VERDICT: REFUTED - the class quantification gap is not closed. The step assumes what it needs to prove: that a uniform poly(s)-space, poly(s)-update streaming algorithm exists under P=NP, but MMW's construction gives a nonuniform one, and the containment is not established.",
+  "review_of": "S0001",
+  "status": "REFUTED"
+ },
+ {
+  "at": 1795384421.014369,
+  "session": "pnp-desk/research/R1785",
+  "model": "claude-haiku-5-5",
+  "evidence": "Repair of S0001 class gap G0002. Stage D (oracle-locality) passes: the argument uses only that the oracle lies in PH, not its internals. No Stage C width-to-work lemma exists yet, so no Stage D test of one has run.",
+  "id": "S0006",
+  "proved_step": "S0001R (repair of S0001, CLAIMED, cross-family review needed). Let A be an oracle with A in PH and let s(n)=2^{n/log* n}. Suppose that for some eps>0 and infinitely many n, every UNIFORM one-pass streaming algorithm for search-MCSP^A[s(n)] on 2^n-bit inputs with poly(s) space has worst-case update time >= 2^{eps n}. Then P != NP. Proof: assume P=NP. Then PH=P, so A is in P and Sigma3SAT^A is in Sigma3^P(A) subset of PH = P, decided by one fixed polynomial-time machine (exponent depends only on A and the collapse). MMW19 Thm 1.2 gives, for an arbitrary oracle A, a one-pass algorithm with space O~(s) and update time O~(s^2) using Sigma3SAT^A calls of length O~(s). Replacing each call by the fixed decider gives a single uniform algorithm with poly(s) space and update time poly(s) = 2^{O(n/log* n)}. Since log* n -> infinity, 2^{O(n/log* n)} < 2^{eps n} for all large n, contradicting the hypothesis on the infinitely many n. Hence P != NP. Scope: restores the contract class A in PH (the earlier A in P restriction was an unneeded easier-oracle restriction); the hypothesis is restricted to uniform algorithms, which only strengthens the conclusion. Premise (uniform update-time lower bound) is G0001 and is OPEN, so this is a conditional reduction, not P vs NP progress. Open points: time-constructibility of s(n)=2^{n/log* n} (log* computable, assumed); CJW20 Thm 1.6 unread at primary source; same-family author (claude-haiku-5-5), needs cross-family review.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795749582.982795,
+  "session": "pnp-desk/research/R4595",
+  "model": "gpt-6-luna",
+  "evidence": "The stated implication is valid: if A is in P, oracle queries to A can be simulated in polynomial time, so Sigma3SAT^A is in Sigma3P. Under P=NP, PH=P, giving this fixed language a polynomial-time decider. This verifies only the bookkeeping implication; it does not establish the open update-time lower bound G0001.",
+  "review_of": "S0004",
+  "status": "SURVIVED_REVIEW"
+ },
+ {
+  "at": 1795749639.2578485,
+  "session": "pnp-desk/research/R4595",
+  "model": "gpt-6-luna",
+  "evidence": "Conditional implication checked: assuming P=NP gives PH=P, hence A\u2208P and \u03a33SAT^A\u2208P with one fixed polynomial-time decider. Replacing each oracle query of length O~(s) in the stated MMW19 Thm 1.2 construction costs poly(s); together with its stated poly(s) space this gives poly(s) resources. For every fixed d,C and \u03b5>0, (log n)^C s(n)^d = 2^{C log2(log n)+d n/log* n} < 2^{\u03b5n} for all sufficiently large n, so the claimed contradiction follows if that construction is uniform in the specified model. This review validates only the conditional implication as stated; it does not verify the MMW theorem\u2019s uniformity/model hypotheses, which remain open under the contract.",
+  "review_of": "S0006",
+  "status": "SURVIVED_REVIEW"
+ }
+]
