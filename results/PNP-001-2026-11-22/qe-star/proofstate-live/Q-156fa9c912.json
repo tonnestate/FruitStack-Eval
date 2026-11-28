@@ -9415,5 +9415,46 @@
   "proved_step": "statement: RESIDUAL DISTINGUISHABILITY LOWER BOUND FOR PREFIX RECOGNIZERS. Let L be any fixed-length language over {0,1}^N, and let A be a deterministic one-pass streaming recognizer that reads all N bits and then accepts or rejects from its final state. For prefixes p,q of the same length t, define R_p={z in {0,1}^{N-t}: pz in L}. If R_p\u2260R_q, then A must be in different states after reading p and q. Consequently A has at least |{R_p:p in {0,1}^t}| states after t bits and needs at least ceil(log2 |{R_p:p in {0,1}^t}|) state bits at that depth. Proof: choose z in the symmetric difference of R_p and R_q. Then exactly one of pz,qz belongs to L. If A had the same state after p and q, determinism forces identical subsequent state evolution on the common suffix z, hence the same final decision on pz and qz, a contradiction. This is a lower bound on exact recognizer state count only; it does not bound the cost of computing transitions or imply a lower bound for arbitrary MCSP decision circuits.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795782236.6635308,
+  "session": "pnp-desk/research/R4756",
+  "model": "gpt-6-luna",
+  "gap": "The explicit candidate-vector update costs O(|D|), which may be exponential in s log(n+s) for size-s circuit descriptions. The central open issue remains whether an arbitrary MCSP decision circuit H_C yields a compact state representation with a proved bounded-cost transition.",
+  "gap_id": "G0221",
+  "id": "S1069",
+  "proved_step": "statement: CANDIDATE-FILTER TRANSITION LEMMA. Let D be a finite set of descriptions, each describing a Boolean function f_d:{0,1}^N->{0,1}. At a fixed input position i, represent the descriptions consistent with the already-read prefix by a bit vector q in {0,1}^D, where q_d=1 exactly for consistent descriptions. On reading input bit b, define q'_d=q_d AND [f_d(x_i)=b]. This next-state map is computed by a fan-in-two Boolean circuit with at most |D| AND gates when the fixed labels f_d(x_i) are constants; its output is nonzero exactly when some description in D is consistent with the extended prefix. Proof: For each d, the next prefix is consistent with d iff the old prefix is consistent with d and its predicted bit at position i equals b. This is precisely q_d AND [f_d(x_i)=b]. Since the prediction is a fixed Boolean constant, the output coordinate is either q_d or 0 (and can be implemented with at most one AND gate); hence the gate bound. Taking the disjunction of output coordinates, or simply using nonzeroness of q', gives the extendibility equivalence. This lemma concerns the explicit candidate-vector representation and fixed per-candidate predictions; it gives no polynomial-in-s transition bound when |D| is exponential, and does not derive such a representation from an arbitrary MCSP decision circuit H_C.\nderivation: For each description d, consistency after reading b is equivalent to consistency before reading b together with f_d(x_i)=b. Thus q'_d=q_d\u2227[f_d(x_i)=b]. The bracketed value is a fixed constant, so each coordinate is computed with at most one AND gate. There is a surviving description iff at least one output coordinate is 1.\nscope: Finite D, fixed position i and fixed functions f_d; fan-in-two Boolean gates with fixed prediction labels available as constants. No claim about constructing labels from H_C or compressing D.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795782403.225992,
+  "session": "pnp-desk/research/R4756",
+  "model": "gpt-6-luna",
+  "gap": "For arbitrary H_C with r witness bits and long suffixes, eliminating existential variables remains unbounded by this construction. This repaired lemma handles the exact special case r=0, and the fixed-r case, with an explicit real-gate cost.",
+  "gap_id": "G0222",
+  "id": "S1070",
+  "proved_step": "statement: BOUNDED-SUFFIX PROJECTION LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates. Fix a prefix p\u2208{0,1}^{N-k}. Define E_H(p)=1 iff there exist u\u2208{0,1}^k and y\u2208{0,1}^r with H(pu,y)=1. There is a fan-in-two circuit on no input variables computing E_H(p), of size at most 2^k(h+1)+2^k, by making one copy of H for each u, substituting p,u, existentially OR-ing over all y is NOT performed by this construction; thus this statement as written is false unless y is absent or its domain is also explicitly enumerated. Corrected lemma: for H:{0,1}^N\u2192{0,1} (r=0), E_H(p)=OR_{u\u2208{0,1}^k}H(pu) has a circuit of size at most 2^k h+(2^k\u22121). For H(x,y) with r witness bits, the same bound holds only when r is a fixed constant and the 2^r witness assignments are enumerated, giving size at most 2^{k+r}h+(2^{k+r}\u22121).\nderivation: For each complete assignment u (and, in the witness version, each y), substitute the constants p,u (and y) into a separate copy of H. OR all resulting output bits using a binary tree; a binary tree with M leaves uses M\u22121 fan-in-two OR gates. The resulting output is 1 exactly when one enumerated completion satisfies H. This construction also identifies the earlier gap: copying H and enumerating only u leaves the existential y uneliminated, so it does not construct E_H for arbitrary r.\nscope: Exact circuit construction for Boolean circuits with h fan-in-two gates. Cost is exponential in the number of enumerated suffix plus witness bits; no claim for arbitrary long suffix or unbounded witness length.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795782570.0400555,
+  "session": "pnp-desk/research/R4756",
+  "model": "gpt-6-luna",
+  "gap": "This gives a circuit for each residual projection but not a bounded-cost transition rule for arbitrary MCSP decision circuits. The exponential dependence on eliminated suffix and witness bits remains.",
+  "gap_id": "G0223",
+  "id": "S1071",
+  "proved_step": "statement: VARIABLE-PREFIX PROJECTION CIRCUIT LEMMA. Let H:{0,1}^N\u00d7{0,1}^r\u2192{0,1} be computed by a fan-in-two Boolean circuit with h gates. For 0\u2264k\u2264N, define E:{0,1}^{N-k}\u2192{0,1} by E(z)=1 iff there exist u\u2208{0,1}^k and y\u2208{0,1}^r such that H(zu,y)=1. Then E has a fan-in-two circuit with at most 2^(k+r)h + 2^(k+r)\u22121 gates (allowing constants at inputs). Proof: Let M=2^(k+r). For each pair (u,y), make a copy of H and substitute the constants u,y into the corresponding input positions, leaving z as the variable inputs. Each copy has at most h gates. OR the M outputs using a fan-in-two tree with M\u22121 gates (zero OR gates when M=1). For each z, this output is 1 exactly when some pair (u,y) satisfies H(zu,y)=1, which is the definition of E(z).\nderivation: The construction enumerates all assignments to the eliminated suffix and witness bits, substitutes each assignment while retaining the prefix variables, and ORs the resulting circuit outputs. Constant substitution does not increase gate count; a binary OR tree on M outputs uses M\u22121 gates.\nscope: All N,r,k with 0\u2264k\u2264N and all fan-in-two Boolean circuits H with h gates. The bound is exponential in k+r; it gives no polynomial bound when those parameters grow.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795846900.6685755,
+  "session": "pnp-desk/research/R4800",
+  "model": "glyph-cluster",
+  "evidence": "Independent review (glyph-cluster; different family from claude-haiku R1244 and nemotron R1444). Checked: rank(A)=t => A injective on F_3^t, hence on {0,1}^t. If rank(A)<t, exists d!=0 in F_3^t with Ad=0; over F_3 coordinates are in {-1,0,1}, so x=1_{d_j=1}, y=1_{d_j=-1} are in {0,1}^t, x-y=d!=0, and phi(x)-phi(y)=A(x-y)=Ad=0. Scope correctly F_3/one affine step/state-space only; no update-time bound, no G0004/G0006 closure. Existing review texts match the statement (R1444 uses d_j=2 for -1 in F_3).",
+  "review_of": "S0086",
+  "status": "SURVIVED_REVIEW"
  }
 ]

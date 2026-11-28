@@ -7821,5 +7821,63 @@
   "proved_step": "statement: FIXED-POINT-FREE INVOLUTION ENCODING. Let Q be a set of size m=2p, p>=1, and let delta:Q->Q be a fixed-point-free involution. Put S=ceil(log2 m). There is an injective encoding psi:Q->{0,1}^S such that the encoded transition extends to a total S-bit Boolean map computed with one NOT gate. Proof: Partition Q into the p unordered pairs {q,delta(q)} and choose an ordering of the pairs. Let k=ceil(log2 p). Encode the i-th pair by the k-bit binary representation of i, and distinguish its two members by a tag bit 0 or 1. Since k+1=ceil(log2 p)+1 <= ceil(log2(2p))=S, pad these codes with S-k-1 fixed zero bits. The codes are distinct, so psi is injective. Define the total map on every S-bit string to preserve the first k pair-index bits and all padding bits, and toggle the tag bit. This is computed by a single NOT gate on the tag bit, with all other output bits wired through. On each valid code it sends q to delta(q), because delta exchanges the two members of each pair. Thus the construction works for every fixed-point-free involution and every even m.\nproof: Pair each state with its unique distinct image under the fixed-point-free involution. There are p pairs. The pair index uses k=ceil(log2 p) bits and one additional tag bit. The inequality k+1<=ceil(log2(2p)) ensures the encoding fits in S bits; append zero bits if necessary. Pair indices distinguish different pairs, and the tag distinguishes the two states within one pair, proving injectivity. Toggling only the tag exchanges the two members within each pair, which is exactly delta. Toggling one coordinate is one NOT gate; the other coordinates are wires. Defining this same toggle on unused codes supplies a total Boolean map.",
   "status": "CLAIMED",
   "kind": "LEMMA"
+ },
+ {
+  "at": 1795781279.881043,
+  "session": "pnp-desk/research/R4750",
+  "model": "gpt-6-luna",
+  "id": "S0882",
+  "proved_step": "statement: SINGLE-TRANSPOSITION LINEAR-SIZE EXTENSION. For every m>=2 and self-map \u03b4 on Q={q_0,...,q_{m-1}} swapping q_0,q_1 and fixing all other states, let S=ceil(log2 m). Encode q_i by the S-bit binary representation of i. Define h(x)=AND_{j=1}^{S-1} \u00acx_j, with empty conjunction 1. Set F_0=x_0 XOR h and F_j=x_j for j>0. The predicate h costs O(S) fan-in-two AND/NOT gates, XOR costs O(1), and the other outputs are wires. Codes 0 and 1 have all upper bits zero, so F exchanges them. Every valid code i>=2 has an upper bit 1, so F fixes it. The formula defines a total map on all S-bit inputs and extends the encoded transition.\nevidence: Proof is by the explicit formula and the two cases i<2 and i>=2. A finite DISCOVERY check for m=2..64 over all S-bit inputs, including unused codes, is requested separately as sanity evidence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795781343.6239293,
+  "session": "pnp-desk/research/R4749",
+  "model": "gpt-6-luna",
+  "id": "S0883",
+  "proved_step": "statement: For every even m=2p\u22652 and every fixed-point-free involution \u03b4 on an m-element set Q, there is an injective stationary encoding into S=\u2308log\u2082m\u2309 bits whose transition is one NOT gate.\nproof: Write the p exchanged pairs as (u_i,v_i), i=0,...,p\u22121. Encode u_i as (bin(i),0) and v_i as (bin(i),1), using k=\u2308log\u2082p\u2309 index bits. The codes are distinct, and k+1=\u2308log\u2082(2p)\u2309=S. Applying \u03b4 preserves i and flips the tag, so the valid-code transition is implemented by passing the index bits through and negating the tag. This formula is total on all S-bit strings, including unused codes. Thus the construction has the claimed encoding length and one-gate update.",
+  "status": "CLAIMED",
+  "kind": "LEMMA",
+  "closes": "G0001",
+  "closes_valid": true
+ },
+ {
+  "at": 1795781593.6698983,
+  "session": "pnp-desk/research/R4750",
+  "model": "gpt-6-luna",
+  "id": "S0884",
+  "proved_step": "statement: SPARSE-CHANGE EXTENSION. Let m>=2, Q={q_0,...,q_{m-1}}, S=ceil(log2 m), encode q_i by its S-bit binary representation, and let delta:Q->Q be any map with t non-fixed states. The encoded transition extends to a total Boolean map F:{0,1}^S->{0,1}^S computed by O(S+tS) fan-in-two AND/NOT gates. Proof: For each non-fixed q, form the equality indicator e_q(x) for its code using at most S-1 AND gates after sharing the S input negations. For each output coordinate j, OR the indicators e_q over states whose transition changes bit j; an empty OR is 0. Set F_j(x)=x_j XOR that OR, implementing each OR and XOR with a constant number of AND/NOT gates per binary operation. On any valid code, injectivity ensures at most its own indicator is true; therefore each output bit toggles exactly when delta changes that bit. This gives F(psi(q))=psi(delta(q)) for every state, and the formulas define F on all bit strings, including unused codes. The cost is O(S+tS). This is an upper bound only and closes no lower-bound obligation.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795781952.1021972,
+  "session": "pnp-desk/research/R4750",
+  "model": "gpt-6-luna",
+  "id": "S0885",
+  "proved_step": "SPARSE-TRANSITION EXPLICIT SIZE BOUND. Let Q have m>=2 elements, S=ceil(log2 m), let psi:Q->{0,1}^S be injective, and let delta:Q->Q. Suppose exactly t states change, where 1<=t<=m, and define H=sum_{q:delta(q)!=q} dist_H(psi(q),psi(delta(q))). Then the encoded transition on psi(Q) has a total fan-in-two AND/NOT extension of size O(S + t(S-floor(log2 t)) + H). If t=0, the identity extension has size O(S) (and can be implemented with wires alone). Proof: Let A={psi(q):delta(q)!=q}; injectivity gives |A|=t. Apply the trie construction: its non-root node count T(A) is at most t(S-floor(log2 t))+2t-2. The sparse-transition extension uses O(S+T(A)+H) gates: compute the changed-state equality indicators from shared trie prefixes, and for each output bit toggle the input bit exactly when the current changed state's transition differs in that bit. Substitution of the trie bound gives O(S+t(S-floor(log2 t))+H), absorbing 2t into O(tS) since S>=1. If no state changes, the identity map suffices. This is an explicit bound for each fixed encoding; it asserts no lower bound and no P-vs-NP transfer.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795782888.287281,
+  "session": "pnp-desk/research/R4758",
+  "model": "gpt-6-luna",
+  "evidence": "Complete constructive argument stated in the proved_step. The endpoint corrections are disjoint equality tests; each output coordinate ORs only the endpoint indicators whose correction mask has a 1 there. No external lemma beyond standard fan-in-two Boolean gate implementations is needed.",
+  "id": "S0886",
+  "proved_step": "statement: For every finite set Q of size m>=2 and every permutation delta of Q with c cycles, there is an injective stationary encoding psi:Q->{0,1}^S, S=ceil(log2 m), whose encoded transition extends to a total S-bit Boolean map computable with O(S(c+1)) fan-in-two AND/NOT gates. Proof: Order the cycles of delta and concatenate their cyclic listings as q_0,...,q_{m-1}; encode q_i by the S-bit binary representation of i. Let E contain the indices i that end their cycle. Define I(x)=x+1 mod 2^S. It has an O(S)-gate fan-in-two AND/NOT circuit: compute prefix conjunctions of lower input bits as carries and implement each output XOR with a constant number of AND/NOT gates. For each i in E, let d_i=(i+1 mod 2^S) XOR index(delta(q_i)). For each output coordinate j, define F_j(x)=I_j(x) XOR OR_{i in E: (d_i)_j=1}[x=i]. Each equality test costs O(S) gates and all endpoint correction ORs cost O(S c); shared prefix/carry gates and increment cost O(S). If x=i is not an endpoint, its successor in the concatenated list has index i+1, so I(x) gives the prescribed transition. If i is an endpoint, exactly its equality test is active, and XORing d_i changes I(i) to the required successor code. The formulas define F on all 2^S inputs, including unused codes. Thus F is a total extension of the required transition and has O(S(c+1)) gates. This is a direct proof of the cycle-concatenation upper bound; it does not establish a lower bound or a P-vs-NP consequence.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
+ },
+ {
+  "at": 1795782945.3769813,
+  "session": "pnp-desk/research/R4758",
+  "model": "gpt-6-luna",
+  "evidence": "The proof explicitly counts endpoint equality costs and grouped mask costs. Grouping reduces output correction aggregation to O(rS), while preserving O(cS) endpoint detection; the stated valid bound is O(S(c+1)+rS). No lower bound or P-vs-NP consequence is claimed.",
+  "id": "S0887",
+  "proved_step": "statement: CORRECTION-MASK GROUPING BOUND. Let \u03b4 be a permutation of an m-element set, m\u22652, with c cycles, and let S=ceil(log2 m). Concatenate its cycles and encode the resulting list positions in binary as in S0712. For each cycle-end index i, define its correction mask d_i=(i+1 mod 2^S) XOR index(\u03b4(q_i)). Let r be the number of distinct masks among these c endpoints. The encoded transition extends to a total S-bit map computed with O(S+c+rS) fan-in-two AND/NOT gates. Proof: Construct the increment map I(x)=x+1 mod 2^S using O(S) gates, and compute each endpoint indicator e_i(x)=[x=i] using O(S) gates, for O(S+cS) total so far. Partition endpoints by their correction mask; for each distinct mask a, form g_a(x)=OR_{i:d_i=a} e_i(x), using a binary OR tree. These trees use at most c gates in total. For each output bit j, set F_j(x)=I_j(x) XOR OR_{a:a_j=1} g_a(x). Across all bits, the latter OR aggregations use at most rS gates. XOR and OR have constant-size AND/NOT implementations, so the total is O(S+cS+c+rS), which simplifies to O(S(c+1)+c+rS), not the claimed O(S+c+rS). Therefore the proposed bound is not established by this construction; the endpoint equality indicators dominate at O(cS). A valid bound from this argument is O(S(c+1)+rS), since the grouped OR trees cost O(c), and the increment costs O(S). At each valid non-endpoint code, no endpoint indicator is active and I gives its successor. At endpoint i, exactly e_i is active, so exactly g_{d_i} is active and the output toggles d_i, yielding the prescribed successor. The map is defined on every S-bit input, hence is a total extension.",
+  "status": "CLAIMED",
+  "kind": "LEMMA"
  }
 ]
