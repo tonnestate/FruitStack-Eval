@@ -47,3 +47,27 @@
 - proofbook ids: [18772]
 - github: https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-research-graph-export-20261127/results/PNP-001-research-graph-export (commit 3838b25f4b, seq 18807)
 - autonomous action: graph sync computes revalidation_impact; an AUDIT question for the largest dependent set is filed by this director
+
+## 2026-11-28T15:05:21+0100  SESSION_FAILURES  `SESSION_FAILURES:REVIEW-2026112814`
+- finding: lane REVIEW: 17 sessions in 6 h, 0 with FINAL
+- significance: workers cannot close their work inside the turn limit
+- affected: REVIEW
+- proofbook ids: []
+- github: https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-research-graph-export-20261127/results/PNP-001-research-graph-export (commit f0f89d5655, seq 18818)
+- autonomous action: countdown nudge + continuation rule active; repeated heads are demoted by the lane sorter
+
+## 2026-11-28T15:05:21+0100  STAGNATION  `STAGNATION:REVIEW-2026112814`
+- finding: lane REVIEW: no proof step, verification, refutation or connection in 17 sessions (6 h)
+- significance: lane output is approach descriptions / numerical records only
+- affected: REVIEW
+- proofbook ids: []
+- github: https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-research-graph-export-20261127/results/PNP-001-research-graph-export (commit f0f89d5655, seq 18818)
+- autonomous action: REVIEW share rebalanced; the lane's repeated heads are demoted
+
+## 2026-11-28T15:05:21+0100  STAGNATION  `STAGNATION:COMPRESS-2026112814`
+- finding: lane COMPRESS: no proof step, verification, refutation or connection in 20 sessions (6 h)
+- significance: lane output is approach descriptions / numerical records only
+- affected: COMPRESS
+- proofbook ids: []
+- github: https://github.com/tonnestate/FruitStack-Eval/tree/cc/pnp001-research-graph-export-20261127/results/PNP-001-research-graph-export (commit f0f89d5655, seq 18818)
+- autonomous action: REVIEW share rebalanced; the lane's repeated heads are demoted
